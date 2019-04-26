@@ -1,0 +1,103 @@
+name: ipfs-api
+version: '0.0.1.0'
+category: API
+author: Brooklyn Zelenka
+maintainer: be.zelenka@gmail.com
+copyright: © 2019 Brooklyn Zelenka
+license: Apache-2.0
+license-file: LICENSE
+github: expede/fission-ipfs-api
+tested-with: GHC==8.6.4
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
+
+ghc-options:
+  - -Wall
+  # as recommended in:
+  # https://functor.tokyo/blog/2017-07-28-ghc-warnings-you-should-enable
+  - -Wincomplete-uni-patterns
+  - -Wincomplete-record-updates
+
+dependencies:
+  - aeson
+  - base
+  - bytestring
+  - lens
+  - monad-logger
+  - rio
+  - servant-server
+  - text
+  - typed-process
+  - wai
+  - wai-extra
+  - warp
+
+default-extensions:
+  - LambdaCase
+  - OverloadedStrings
+  - NoImplicitPrelude
+
+library:
+  source-dirs: src
+
+executables:
+  server:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+      - ipfs-api
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -O2
+
+tests:
+  tracks-test:
+    main: Main.hs
+    source-dirs: test/testsuite
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - aeson
+      - transformers
+      - hspec
+      - hspec-wai
+      - hspec-wai-json
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
+      - ipfs-api
+
+  tracks-doctest:
+    main: Main.hs
+    source-dirs: test/doctest
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - doctest
+      - Glob
+      - QuickCheck
+      - ipfs-api
+
+benchmarks:
+  tracks-benchmark:
+    main: Main.hs
+    source-dirs: benchmark
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -O2
+    dependencies:
+      - criterion
+      - ipfs-api
+
+    stability: alpha (experimental)

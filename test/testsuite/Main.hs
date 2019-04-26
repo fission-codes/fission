@@ -1,0 +1,90 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+
+module Main (main) where
+
+import ClassyPrelude
+
+-- import Test.Tasty                   (TestTree, defaultMainWithIngredients, testGroup)
+-- import Test.Tasty.HUnit             (Assertion, testCase, (@?=))
+-- import Test.Tasty.Ingredients.Rerun (rerunningTests)
+-- import Test.Tasty.Runners           (consoleTestReporter, listingTests)
+-- import Test.Tasty.SmallCheck        (testProperty)
+
+import Test.Hspec
+import Test.Hspec.Wai
+import Test.Hspec.Wai.JSON
+
+import Database.Persist.Postgresql (runSqlPool)
+import Network.Wai.Handler.Warp    (run)
+
+import Tracks.API    (app)
+import Tracks.Config (Config (..), Environment (..), lookupSetting, makePool, setLogger)
+import Tracks.Model
+
+main :: IO ()
+main = do
+  port <- lookupSetting "PORT" 8081
+  pool <- makePool Test
+
+  runSqlPool doMigrate pool
+
+  let logger = setLogger Test
+      config = Config { getPool = pool
+                      , getEnv  = Test
+                      }
+
+  putStrLn "Testing..."
+  hspec . spec . run port . logger $ app config
+
+spec :: IO () -> Spec
+spec server = with server $ do
+  describe "GET /" $ do
+    it "responds with 200" $ do
+      1 `shouldBe` 1
+      -- get "/users" `shouldRespondWith` 200
+
+        -- it "responds with 'Simple'" $ do
+        --     get "/" `shouldRespondWith` "Simple"
+
+-- config = Config { getPool = , getEnv = Test }
+
+-- main :: IO ()
+-- main = return ()
+
+-- main :: IO ()
+-- main =
+--   defaultMainWithIngredients
+--     [ rerunningTests [listingTests, consoleTestReporter] ]
+--     (testGroup "all-tests" tests)
+
+-- tests :: [TestTree]
+-- tests =
+--   [ testGroup "SmallCheck" scTests
+--   , testGroup "Unit tests" huTests
+--   ]
+
+-- scTests :: [TestTree]
+-- scTests =
+--   [ testProperty "inc == succ" prop_succ
+--   , testProperty "inc . negate == negate . pred" prop_pred
+--   ]
+
+-- huTests :: [TestTree]
+-- huTests =
+--   [ testCase "Increment below TheAnswer" case_inc_below
+--   , testCase "Decrement above TheAnswer" case_dec_above
+--   ]
+
+-- prop_succ :: Int -> Bool
+-- prop_succ n = inc n == succ n
+
+-- prop_pred :: Int -> Bool
+-- prop_pred n = inc (negate n) == negate (pred n)
+
+-- case_inc_below :: Assertion
+-- case_inc_below = inc 41 @?= (42 :: Int)
+
+-- case_dec_above :: Assertion
+-- case_dec_above = negate (inc (negate 43)) @?= (42 :: Int)

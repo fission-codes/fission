@@ -1,0 +1,167 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 0f138eb17a223cf2fa9ab7c5fd3289bdf3be714e697cfbf62a5f1174f5f26fa0
+
+name:           ipfs-api
+version:        0.0.1.0
+category:       API
+homepage:       https://github.com/expede/fission-ipfs-api#readme
+bug-reports:    https://github.com/expede/fission-ipfs-api/issues
+author:         Brooklyn Zelenka
+maintainer:     be.zelenka@gmail.com
+copyright:      © 2019 Brooklyn Zelenka
+license:        Apache-2.0
+license-file:   LICENSE
+tested-with:    GHC==8.6.4
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/expede/fission-ipfs-api
+
+library
+  exposed-modules:
+      Fission
+      Fission.Internal.Constraint
+      Fission.Web
+      Fission.Web.IPFS
+      Fission.Web.Ping
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      src
+  default-extensions: LambdaCase OverloadedStrings NoImplicitPrelude
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , lens
+    , monad-logger
+    , rio
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
+executable server
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      app
+  default-extensions: LambdaCase OverloadedStrings NoImplicitPrelude
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
+test-suite tracks-doctest
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      test/doctest
+  default-extensions: LambdaCase OverloadedStrings NoImplicitPrelude
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Glob
+    , QuickCheck
+    , aeson
+    , base
+    , bytestring
+    , doctest
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
+test-suite tracks-test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      test/testsuite
+  default-extensions: LambdaCase OverloadedStrings NoImplicitPrelude
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , hspec
+    , hspec-wai
+    , hspec-wai-json
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-server
+    , tasty
+    , tasty-hspec
+    , tasty-hunit
+    , tasty-rerun
+    , tasty-smallcheck
+    , text
+    , transformers
+    , typed-process
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
+benchmark tracks-benchmark
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      benchmark
+  default-extensions: LambdaCase OverloadedStrings NoImplicitPrelude
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , criterion
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010

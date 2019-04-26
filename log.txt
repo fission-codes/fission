@@ -1,0 +1,8 @@
+Listening on sockets: ("tcp://127.0.0.1:62780","tcp://127.0.0.1:62781","tcp://127.0.0.1:62782","tcp://127.0.0.1:62783")
+Setting PYTHONPATH to "/Users/expede/Desktop/ptghci/.stack-work/install/x86_64-osx/lts-13.17/8.6.4/share/x86_64-osx-ghc-8.6.4/ptghci-0.1.0.0/pybits"
+Python thread starting
+Python version 3.7.3 (default, Apr  5 2019, 14:33:11) 
+[Clang 10.0.1 (clang-1001.0.46.3)]
+Python module path: /Users/expede/Desktop/ptghci/.stack-work/install/x86_64-osx/lts-13.17/8.6.4/share/x86_64-osx-ghc-8.6.4/ptghci-0.1.0.0/pybits:/usr/local/opt/python/Frameworks/Python.framework/Versions/3.7/lib/python37.zip:/usr/local/opt/python/Frameworks/Python.framework/Versions/3.7/lib/python3.7:/usr/local/opt/python/Frameworks/Python.framework/Versions/3.7/lib/python3.7/lib-dynload
+Python exited with an exception
+ptGHCi engine shutting down
