@@ -2,10 +2,12 @@
 
 # FISSION IPFS Web API
 
+[![Build Status](https://travis-ci.org/fission-suite/ipfs-api.svg?branch=master)](https://travis-ci.org/fission-suite/ipfs-api)
+
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
 
-## Installation
+## QuickStart
 
 ```shell
 docker build -t expede/fission .
