@@ -5,12 +5,6 @@
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
 
-## Table Of Contents
-
-* [Library Usage](#library-usage)
-* [Installation](#installation)
-* [Development Notes](#development)
-
 ## Installation
 
 ```shell
