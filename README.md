@@ -1,5 +1,9 @@
+![](https://github.com/fission-suite/ipfs-api/raw/master/assets/logo.png?sanitize=true)
+
 # FISSION IPFS Web API
-> Description of what this library does
+
+A library and application to help Web 2.0-style applications leverage IPFS
+in a familiar, compatible way
 
 ## Table Of Contents
 
@@ -51,4 +55,3 @@ rules:
   get feedback.
 
 * Make sure you adhere to the general pull request rules above.
-
