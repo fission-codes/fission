@@ -19,12 +19,12 @@ data Peer = Peer { peer :: Text }
 $(deriveJSON defaultOptions ''Peer)
 
 all :: MonadIO m => m [Peer]
-all = UTF8.encode <$> rawAll >>= \case
+all = UTF8.encode <$> allRaw >>= \case
   Left err   -> error $ show err -- FIXME
   Right text -> return $ Peer <$> Text.lines text
 
-rawAll :: MonadIO m => m Lazy.ByteString
-rawAll =
+allRaw :: MonadIO m => m Lazy.ByteString
+allRaw =
   readProcessStdout_
   . setStdin createPipe
   . setStdout byteStringOutput
