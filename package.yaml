@@ -65,9 +65,9 @@ tests:
   fission-test:
     main: Main.hs
     source-dirs:
-      - test/testsuite
-      - test
       - src
+      - test
+      - test/testsuite
     ghc-options:
       - -fhpc
       - -threaded
@@ -75,20 +75,20 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - aeson
-      - transformers
       - hspec
       - hspec-wai
       - hspec-wai-json
+      - ipfs-api
       - tasty
       - tasty-hunit
       - tasty-hspec
       - tasty-smallcheck
       - tasty-rerun
-      - ipfs-api
+      - transformers
 
-  fission-haddock:
+  fission-docs:
     main: Main.hs
-    source-dirs: test/haddock
+    source-dirs: test/docs
     dependencies:
       - doctest
       - ipfs-api
@@ -103,6 +103,14 @@ tests:
       - ipfs-api
       - process
       - regex-compat
+
+  fission-lint:
+    main: Main.hs
+    source-dirs: test/lint
+    dependencies:
+      - base
+      - hlint
+      - rio
 
 benchmarks:
   fission-benchmark:
