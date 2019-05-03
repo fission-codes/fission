@@ -38,4 +38,4 @@ RUN ipfs daemon &
 # Enter Webapp #
 ################
 
-CMD ["/usr/local/bin/stack","exec","test-exe"]
+CMD ["/usr/local/bin/stack","exec","server"]
