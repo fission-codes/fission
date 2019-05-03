@@ -2,11 +2,11 @@ name: ipfs-api
 version: '0.0.1.0'
 category: API
 author: Brooklyn Zelenka
-maintainer: be.zelenka@gmail.com
+maintainer: hello@brooklynzelenka.com
 copyright: © 2019 Brooklyn Zelenka
 license: Apache-2.0
 license-file: LICENSE
-github: expede/fission-ipfs-api
+github: fission-suite/ipfs-api
 tested-with: GHC==8.6.4
 extra-source-files:
   - README.md
@@ -33,11 +33,6 @@ dependencies:
   - wai-extra
   - warp
 
-default-extensions:
-  - LambdaCase
-  - OverloadedStrings
-  - NoImplicitPrelude
-
 library:
   source-dirs: src
 
@@ -54,27 +49,7 @@ executables:
       - -O2
 
 tests:
-  tracks-test:
-    main: Main.hs
-    source-dirs: test/testsuite
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - aeson
-      - transformers
-      - hspec
-      - hspec-wai
-      - hspec-wai-json
-      - tasty
-      - tasty-hunit
-      - tasty-hspec
-      - tasty-smallcheck
-      - tasty-rerun
-      - ipfs-api
-
-  tracks-doctest:
+  fission-doctest:
     main: Main.hs
     source-dirs: test/doctest
     ghc-options:
@@ -87,8 +62,58 @@ tests:
       - QuickCheck
       - ipfs-api
 
+  fission-test:
+    main: Main.hs
+    source-dirs:
+      - src
+      - test
+      - test/testsuite
+    ghc-options:
+      - -fhpc
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - aeson
+      - hspec
+      - hspec-wai
+      - hspec-wai-json
+      - ipfs-api
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
+      - transformers
+
+  fission-docs:
+    main: Main.hs
+    source-dirs: test/docs
+    dependencies:
+      - doctest
+      - ipfs-api
+      - process
+      - regex-compat
+
+  fission-coverage:
+    main: Main.hs
+    source-dirs: test/coverage
+    dependencies:
+      - base
+      - ipfs-api
+      - process
+      - regex-compat
+
+  fission-lint:
+    main: Main.hs
+    source-dirs: test/lint
+    dependencies:
+      - base
+      - hlint
+      - rio
+
 benchmarks:
-  tracks-benchmark:
+  fission-benchmark:
     main: Main.hs
     source-dirs: benchmark
     ghc-options:
@@ -99,5 +124,3 @@ benchmarks:
     dependencies:
       - criterion
       - ipfs-api
-
-    stability: alpha (experimental)

@@ -1,4 +1,5 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Fission.Internal.Constraint
   ( WithRIO
