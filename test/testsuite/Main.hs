@@ -1,10 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
+-- {-# LANGUAGE QuasiQuotes #-}
 
 module Main (main) where
 
-import ClassyPrelude
+import RIO
 
 -- import Test.Tasty                   (TestTree, defaultMainWithIngredients, testGroup)
 -- import Test.Tasty.HUnit             (Assertion, testCase, (@?=))
@@ -12,41 +11,37 @@ import ClassyPrelude
 -- import Test.Tasty.Runners           (consoleTestReporter, listingTests)
 -- import Test.Tasty.SmallCheck        (testProperty)
 
-import Test.Hspec
-import Test.Hspec.Wai
-import Test.Hspec.Wai.JSON
+-- -- import Test.Hspec
+-- -- import Test.Hspec.Wai
+-- -- import Test.Hspec.Wai.JSON
 
-import Database.Persist.Postgresql (runSqlPool)
-import Network.Wai.Handler.Warp    (run)
-
-import Tracks.API    (app)
-import Tracks.Config (Config (..), Environment (..), lookupSetting, makePool, setLogger)
-import Tracks.Model
+-- import Network.Wai.Handler.Warp (run)
 
 main :: IO ()
-main = do
-  port <- lookupSetting "PORT" 8081
-  pool <- makePool Test
+main = return ()
+-- main = do
+--   -- port <- lookupSetting "PORT" 8081
+--   -- pool <- makePool Test
 
-  runSqlPool doMigrate pool
+--   -- runSqlPool doMigrate pool
 
-  let logger = setLogger Test
-      config = Config { getPool = pool
-                      , getEnv  = Test
-                      }
+--   -- let logger = setLogger Test
+--   --     config = Config { getPool = pool
+--   --                     , getEnv  = Test
+--   --                     }
 
-  putStrLn "Testing..."
-  hspec . spec . run port . logger $ app config
+--   putStrLn "Testing..."
+--   hspec . spec . run port . logger $ app config
 
-spec :: IO () -> Spec
-spec server = with server $ do
-  describe "GET /" $ do
-    it "responds with 200" $ do
-      1 `shouldBe` 1
-      -- get "/users" `shouldRespondWith` 200
+-- spec :: IO () -> Spec
+-- spec server = with server $ do
+--   describe "GET /ping" $ do
+--     it "responds with 200" $ do
+--       1 `shouldBe` 1
+--       -- get "/users" `shouldRespondWith` 200
 
-        -- it "responds with 'Simple'" $ do
-        --     get "/" `shouldRespondWith` "Simple"
+--         -- it "responds with 'Simple'" $ do
+--         --     get "/" `shouldRespondWith` "Simple"
 
 -- config = Config { getPool = , getEnv = Test }
 

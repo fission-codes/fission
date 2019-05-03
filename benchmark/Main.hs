@@ -1,12 +1,19 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 module Main where
 
-import Protolude
 import Criterion
 import Criterion.Main
+import RIO
 
-import Lib (inc)
+import qualified Fission.Internal.UTF8 as UTF8
+import qualified RIO.ByteString.Lazy   as Lazy
 
 main :: IO ()
-main = defaultMain [bench "inc 41" (whnf inc (41 :: Int))]
+main = defaultMain
+  [ bgroup "Textable.encode" encode
+  ]
+
+encode :: [Benchmark]
+encode =
+  [ bench "Strict ByteString" $ whnf UTF8.encode ("hello world" :: ByteString)
+  , bench "Lazy ByteString" $ whnf UTF8.encode ("hello world" :: Lazy.ByteString)
+  ]

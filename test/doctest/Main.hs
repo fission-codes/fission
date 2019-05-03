@@ -1,9 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import ClassyPrelude
+import RIO
 
 import System.FilePath.Glob (glob)
 import Test.DocTest         (doctest)

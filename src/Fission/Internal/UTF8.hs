@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Fission.Internal.UTF8 where
 
 import           RIO
