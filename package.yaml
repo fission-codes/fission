@@ -98,6 +98,8 @@ tests:
   fission-coverage:
     main: Main.hs
     source-dirs: test/coverage
+    ghc-options:
+      - -fhpc
     dependencies:
       - base
       - ipfs-api

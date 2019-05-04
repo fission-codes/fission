@@ -28,6 +28,7 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 .dir-locals.el # Intero
+*.tix
 
 ### Linux ###
 *~

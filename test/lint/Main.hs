@@ -10,9 +10,9 @@ import System.Exit            (exitFailure, exitSuccess)
 arguments :: [String]
 arguments =
     [ "benchmark"
-    , "server"
-    , "library"
-    , "test-suite"
+    , "app"
+    , "src"
+    , "test/testsuite"
     ]
 
 main :: IO ()
