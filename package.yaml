@@ -42,6 +42,7 @@ executables:
     source-dirs: app
     dependencies:
       - ipfs-api
+      - wai-logger
     ghc-options:
       - -threaded
       - -rtsopts

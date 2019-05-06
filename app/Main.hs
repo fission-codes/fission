@@ -1,31 +1,26 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import RIO
 
-import           Fission
 import qualified Fission.Ambient as Ambient
 import qualified Fission.Env     as Env
 import qualified Fission.Web     as Web
 
+import Network.Wai.Handler.Warp
+import Network.Wai.Logger
+
 main :: IO ()
 main = do
-  -- runEnv  <- Ambient.lookup "ENV" Env.Development
   port <- Ambient.lookup "PORT" 8000
 
-  -- let logger = setLogger env
-  --     env    = Env.Env { Env._logger = mkLogFunc Env.simpleLogger }
+  withStdoutLogger $ \logger -> do
+    let portSettings = setPort port
+        logSettings  = setLogger logger
+        settings     = portSettings $ logSettings defaultSettings
 
-  runRIO Env.base (Web.app `startAtPort` port)
-
---   pool <- makePool env
-
---   runSqlPool doMigrate pool
---   seed env
-
---   let logger = setLogger env
---       config = Config { getPool = pool
---                       , getEnv  = env
---                       }
-
---   putStrLn "Up and running"
--- run port . logger $ app config
+    runRIO Env.base $ do
+      logInfo $ "Servant running at port " <> display port <> "\n"
+      liftIO $ runSettings settings Web.app

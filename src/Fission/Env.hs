@@ -10,7 +10,8 @@ import RIO
 import qualified Fission.Log as Log
 
 data Env = Env
-  { _logger :: LogFunc
+  { _logger      :: LogFunc
+  , _minLogLevel :: Log.MinLogLevel
   }
 
 makeLenses ''Env
@@ -21,6 +22,7 @@ instance HasLogFunc Env where
 base :: Env
 base = Env
   { _logger = mkLogFunc Log.simple
+  , _minLogLevel = Log.MinLogLevel LevelDebug
   }
 
 -- | Right now, we're distinguishing between three environments. We could
