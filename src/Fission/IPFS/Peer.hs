@@ -24,7 +24,6 @@ all = nCode allRaw (fmap Peer . Text.lines)
 allRaw :: MonadIO m => m Lazy.ByteString
 allRaw = run ["bootstrap", "list"]
 
--- nCode :: MonadIO m => m Lazy.ByteString -> m a
 nCode :: Monad m => m Lazy.ByteString -> (Text -> a) -> m a
 nCode p wrapper = UTF8.encode <$> p >>= \case
   Left err   -> error $ show err -- FIXME

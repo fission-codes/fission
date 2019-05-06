@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Fission.Web.IPFS where
@@ -9,21 +10,23 @@ import RIO
 import Network.Wai
 import Servant
 
-import Fission.IPFS.Peer as Peer
+import Fission.IPFS.Peer   as Peer
+import Fission.IPFS.Upload as Upload
 
-type API = {- ROOT -} ReqBody '[JSON] Text :> Post '[JSON] Text
-      :<|> "peers"                         :> Get  '[JSON] [Peer]
-
+type API = ReqBody '[JSON, PlainText] Text
+             :> Post '[JSON, PlainText] Text
+      :<|> "peers"
+             :> Get  '[JSON] [Peer]
 
 app :: Application
 app = serve api server
 
 server :: Server API
-server = liftIO <$> foo :<|> Peer.all
+server = liftIO <$> (\txt -> Upload.test txt) :<|> Peer.all
 
 api :: Proxy API
 api = Proxy
 
--- foo :: UploadMe -> Hash
-foo :: Text -> IO Text
-foo toUpload = return toUpload
+-- -- curl -v -H "Content-Type: text/plain;charset=utf-8" -H "charset=ascii" -H "Accept: text/plain" localhost:8000/ipfs/echo -d "{'fdsa': 1}"
+-- uploader :: Text -> Servant.Handler Text
+-- uploader text = return Upload.insert text
