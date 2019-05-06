@@ -31,6 +31,7 @@ dependencies:
   - typed-process
   - wai
   - wai-extra
+  - wai-logger
   - warp
 
 library:
@@ -42,6 +43,7 @@ executables:
     source-dirs: app
     dependencies:
       - ipfs-api
+      - wai-logger
     ghc-options:
       - -threaded
       - -rtsopts
