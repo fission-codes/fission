@@ -7,7 +7,6 @@ dist
 dist-*
 dist-newstyle
 cabal-dev
-*.cabal
 *.o
 *.hi
 *.chi
