@@ -7,7 +7,7 @@ copyright: © 2019 Brooklyn Zelenka
 license: Apache-2.0
 license-file: LICENSE
 github: fission-suite/ipfs-api
-tested-with: GHC==8.6.4
+tested-with: GHC==8.6.3
 extra-source-files:
   - README.md
   - CHANGELOG.md
