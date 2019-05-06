@@ -12,6 +12,7 @@ import qualified Fission.Log as Log
 data Env = Env
   { _logger      :: LogFunc
   , _minLogLevel :: Log.MinLogLevel
+  , _ipfsBin     :: FilePath
   }
 
 makeLenses ''Env
@@ -19,10 +20,17 @@ makeLenses ''Env
 instance HasLogFunc Env where
   logFuncL = logger
 
+class HasIPFSBin env where
+  ipfsBinL :: Lens' env FilePath
+
+instance HasIPFSBin Env where
+  ipfsBinL = ipfsBin
+
 base :: Env
 base = Env
   { _logger = mkLogFunc Log.simple
   , _minLogLevel = Log.MinLogLevel LevelDebug
+  , _ipfsBin = "/usr/local/bin/ipfs" -- FIXME use in app
   }
 
 -- | Right now, we're distinguishing between three environments. We could
