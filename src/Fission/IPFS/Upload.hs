@@ -1,23 +1,20 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Fission.IPFS.Upload where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
-import Data.Aeson
-import Data.Aeson.TH
+import Data.Bifunctor as DB
 
 import qualified Fission.Internal.UTF8 as UTF8
-import qualified Fission.IPFS.Process  as IPFSProc
-
-data Blob = Blob { blob :: Text }
-$(deriveJSON defaultOptions ''Blob)
+import qualified Fission.IPFS.Process  as IPFS.Proc
 
 run :: MonadIO m => Text -> m (Either UnicodeException Text)
-run = fmap UTF8.encode
-     . IPFSProc.run ["add"]
-     . Lazy.fromStrict
-     . encodeUtf8
+run = fmap (DB.second (Text.dropSuffix "\n"))
+    . fmap UTF8.encode
+    . IPFS.Proc.run ["add", "-q"]
+    . Lazy.fromStrict
+    . encodeUtf8
