@@ -11,6 +11,7 @@ import Data.Bifunctor as DB
 
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Process  as IPFS.Proc
+
 import Fission.Internal.Constraint
 import Fission.Env
 

@@ -15,13 +15,16 @@ import Data.Aeson.TH
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Process  as IPFSProc
 
+import Fission.Env
+import Fission.Internal.Constraint
+
 data Peer = Peer { peer :: Text }
 $(deriveJSON defaultOptions ''Peer)
 
-all :: MonadIO m => m [Peer]
+all :: (WithRIO env m, HasIPFSBin env) => m [Peer]
 all = nCode allRaw (fmap Peer . Text.lines)
 
-allRaw :: MonadIO m => m Lazy.ByteString
+allRaw :: (WithRIO env m, HasIPFSBin env) => m Lazy.ByteString
 allRaw = IPFSProc.run' ["bootstrap", "list"]
 
 nCode :: Monad m => m Lazy.ByteString -> (Text -> a) -> m a
