@@ -24,15 +24,19 @@ type API = ReqBody '[JSON, PlainText] Text
 server :: FissionServer API
 server input = Upload.run input >>= \case
   Left  unicodeException -> throwM $ err500 { errBody = foo unicodeException } -- throwIO?
-  Right hash            -> return hash
+  Right unicodeException -> throwM $ err500 { errBody = bar unicodeException } -- throwIO?
+  -- Right hash            -> return hash
 
 handleError :: Either String Text -> Servant.Handler Text
 handleError = \case
   Left _ -> throwError err500
-  Right hash -> return hash
+  Right hash -> throwError err500 -- return hash
 
 api :: Proxy API
 api = Proxy
 
 foo :: UnicodeException -> Lazy.ByteString
 foo unie = Lazy.fromStrict $ Text.encodeUtf8 $ textDisplay $ displayShow unie -- throwIO?
+
+bar :: Text -> Lazy.ByteString
+bar unie = Lazy.fromStrict $ Text.encodeUtf8 unie -- throwIO?
