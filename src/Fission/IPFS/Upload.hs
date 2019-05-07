@@ -35,5 +35,5 @@ nCode p wrapper = UTF8.encode <$> p >>= \case
 
 test :: (WithRIO env m, Loggable env) => Text -> m Text
 test text = do
-  logDebug "here"
+  logInfo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% here"
   (flip nCode) id (insert . Lazy.fromStrict $ encodeUtf8 text)
