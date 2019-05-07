@@ -17,5 +17,5 @@ app = serve api server
 api :: Proxy API
 api = Proxy
 
-server :: Server API
+server :: Server API -- ServerT api Handler
 server = return "pong"

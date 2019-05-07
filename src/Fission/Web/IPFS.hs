@@ -10,19 +10,26 @@ import RIO
 import Network.Wai
 import Servant
 
-import Fission.IPFS.Peer   as Peer
-import Fission.IPFS.Upload as Upload
+import Fission.Env
+import Fission.Web.Types
 
-type API = ReqBody '[JSON, PlainText] Text
-             :> Post '[JSON, PlainText] Text
-      :<|> "peers"
-             :> Get  '[JSON] [Peer]
+import           Fission.IPFS.Peer   as Peer
+import qualified Fission.IPFS.Upload as Upload
 
-app :: Application
-app = serve api server
+type UploadAPI = ReqBody '[JSON, PlainText] Text
+                   :> Post '[JSON, PlainText] Text
 
-server :: Server API
-server = liftIO <$> (\txt -> Upload.test txt) :<|> Peer.all
+type API = UploadAPI
+      :<|> "peers" :> Get '[JSON] [Peer]
+
+toServer :: Env -> Server API
+toServer env = hoistServer api (toHandler env) serverT
+
+app :: Env -> Application
+app = serve api . toServer
+
+serverT :: FissionServer API
+serverT = Upload.test :<|> Peer.all
 
 api :: Proxy API
 api = Proxy
