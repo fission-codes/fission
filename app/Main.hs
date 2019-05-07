@@ -20,7 +20,7 @@ main = do
     let portSettings = setPort port
         logSettings  = setLogger logger
         settings     = portSettings $ logSettings defaultSettings
-        env = Env.base
+        env          = Env.base
 
     runRIO env $ do
       logInfo $ "Servant running at port " <> display port <> "\n"
