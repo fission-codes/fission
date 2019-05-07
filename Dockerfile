@@ -6,8 +6,6 @@ WORKDIR /opt/fission-ipfs-api
 # Cache common files #
 ######################
 
-COPY test.txt /opt/fission-ipfs-api
-
 COPY ipfs-api.cabal /opt/fission-ipfs-api
 COPY stack.yaml     /opt/fission-ipfs-api
 
