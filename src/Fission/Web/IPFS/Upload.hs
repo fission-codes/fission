@@ -3,21 +3,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Fission.Web.IPFS where
+module Fission.Web.IPFS.Upload where
 
 import RIO
 
 import Servant
 
-import           Fission.IPFS.Peer       as Peer
+import qualified Fission.IPFS.Upload  as Upload
 import           Fission.Web.Internal
-import qualified Fission.Web.IPFS.Upload as Upload
 
-type API = {- Root -} Upload.API
-      :<|> "peers" :> Get '[JSON] [Peer]
+type API = ReqBody '[JSON, PlainText] Text
+        :> Post    '[JSON, PlainText] Text
 
 server :: FissionServer API
-server = Upload.server :<|> Peer.all
+server = Upload.test
 
 api :: Proxy API
 api = Proxy

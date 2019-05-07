@@ -5,17 +5,18 @@
 module Fission.Web.Ping where
 
 import RIO
-
-import Network.Wai
 import Servant
+
+import Fission.Env
+import Fission.Web.Internal
 
 type API = Get '[JSON] Text
 
-app :: Application
-app = serve api server
+toServer :: Env -> Server API
+toServer env = hoistServer api (toHandler env) server
 
 api :: Proxy API
 api = Proxy
 
-server :: Server API -- ServerT api Handler
+server :: FissionServer API
 server = return "pong"

@@ -8,11 +8,10 @@ module Fission.Web where
 
 import RIO
 
-import Network.Wai
 import Servant
 
 import Fission.Env
-import Fission.Web.Types
+import Fission.Web.Internal
 
 import qualified Fission.Web.IPFS as IPFS
 import qualified Fission.Web.Ping as Ping
@@ -20,14 +19,14 @@ import qualified Fission.Web.Ping as Ping
 type API = "ping" :> Ping.API
       :<|> "ipfs" :> IPFS.API
 
-server :: FissionServer API -- Env -> Server API
-server = Ping.server :<|> IPFS.serverT
+app :: Env -> Application
+app = serve api . toServer
 
--- app :: Env -> Application
--- app env = serve api $ server env
+toServer :: Env -> Server API
+toServer env = hoistServer api (toHandler env) server
+
+server :: FissionServer API
+server = Ping.server :<|> IPFS.server
 
 api :: Proxy API
 api = Proxy
-
-nt :: ServerT api Servant.Handler -> ServerT api Fission
-nt server =
