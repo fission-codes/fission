@@ -20,14 +20,14 @@ run' :: (WithRIO env m, HasIPFSPath env) => [Opt] -> m Lazy.ByteString
 run' opts = runHelper opts createPipe
 
 runHelper :: WithRIO env m
-     => HasIPFSPath env
-     => [Opt]
-     -> StreamSpec 'STInput stdin
-     -> m Lazy.ByteString
+          => HasIPFSPath env
+          => [Opt]
+          -> StreamSpec 'STInput stdin
+          -> m Lazy.ByteString
 runHelper opts stdIn = do
-  ipfsPath <- asks $ view ipfsPathL
+  ipfs  <- asks $ view ipfsPathL
 
   readProcessStdout_
     . setStdin stdIn
     . setStdout byteStringOutput
-    $ proc ipfsPath opts
+    $ proc ipfs opts
