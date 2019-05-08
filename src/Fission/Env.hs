@@ -12,7 +12,7 @@ import qualified Fission.Log as Log
 data Env = Env
   { _logger      :: LogFunc
   , _minLogLevel :: Log.MinLogLevel
-  , _ipfsBin     :: FilePath
+  , _ipfsPath    :: FilePath
   }
 
 makeLenses ''Env
@@ -20,17 +20,17 @@ makeLenses ''Env
 instance HasLogFunc Env where
   logFuncL = logger
 
-class HasIPFSBin env where
-  ipfsBinL :: Lens' env FilePath
+class HasIPFSPath env where
+  ipfsPathL :: Lens' env FilePath
 
-instance HasIPFSBin Env where
-  ipfsBinL = ipfsBin
+instance HasIPFSPath Env where
+  ipfsPathL = ipfsPath
 
 base :: Env
 base = Env
   { _logger = mkLogFunc Log.simple
   , _minLogLevel = Log.MinLogLevel LevelDebug
-  , _ipfsBin = "/usr/local/bin/ipfs"
+  , _ipfsPath = "/usr/local/bin/ipfs"
   }
 
 -- | Right now, we're distinguishing between three environments. We could

@@ -21,11 +21,11 @@ import Fission.Internal.Constraint
 data Peer = Peer { peer :: Text }
 $(deriveJSON defaultOptions ''Peer)
 
-all :: (WithRIO env m, HasIPFSBin env) => m (Either UnicodeException [Peer])
+all :: (WithRIO env m, HasIPFSPath env) => m (Either UnicodeException [Peer])
 all = do
   textOrErr      <- UTF8.encode <$> allRaw
   peerNamesOrErr <- return $ Text.lines <$> textOrErr
   return $ (fmap Peer) <$> peerNamesOrErr
 
-allRaw :: (WithRIO env m, HasIPFSBin env) => m Lazy.ByteString
+allRaw :: (WithRIO env m, HasIPFSPath env) => m Lazy.ByteString
 allRaw = IPFSProc.run' ["bootstrap", "list"]

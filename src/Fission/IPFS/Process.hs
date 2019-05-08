@@ -13,19 +13,19 @@ import Fission.Env
 
 type Opt = String
 
-run :: (WithRIO env m, HasIPFSBin env) => [Opt] -> Lazy.ByteString -> m Lazy.ByteString
+run :: (WithRIO env m, HasIPFSPath env) => [Opt] -> Lazy.ByteString -> m Lazy.ByteString
 run opts input = runHelper opts (byteStringInput input)
 
-run' :: (WithRIO env m, HasIPFSBin env) => [Opt] -> m Lazy.ByteString
+run' :: (WithRIO env m, HasIPFSPath env) => [Opt] -> m Lazy.ByteString
 run' opts = runHelper opts createPipe
 
 runHelper :: WithRIO env m
-     => HasIPFSBin env
+     => HasIPFSPath env
      => [Opt]
      -> StreamSpec 'STInput stdin
      -> m Lazy.ByteString
 runHelper opts stdIn = do
-  ipfsPath <- asks $ view ipfsBinL
+  ipfsPath <- asks $ view ipfsPathL
 
   readProcessStdout_
     . setStdin stdIn
