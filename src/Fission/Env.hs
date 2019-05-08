@@ -28,9 +28,9 @@ instance HasIPFSPath Env where
 
 base :: Env
 base = Env
-  { _logger = mkLogFunc Log.simple
+  { _logger      = mkLogFunc Log.simple
   , _minLogLevel = Log.MinLogLevel LevelDebug
-  , _ipfsPath = "/usr/local/bin/ipfs"
+  , _ipfsPath    = "/usr/local/bin/ipfs"
   }
 
 -- | Right now, we're distinguishing between three environments. We could
