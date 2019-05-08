@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f3f0b14884cb0af2d5cef5702717e396d4f3152572a67ff4ce8644b365279c21
+-- hash: b82a9e20105d8f3f7cf4fe9d8b55c9e077378fa3be28e088cef541627c54bd59
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -59,6 +59,31 @@ library
     , text
     , typed-process
     , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+executable cli
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      cli
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp

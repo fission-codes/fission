@@ -38,6 +38,18 @@ library:
   source-dirs: src
 
 executables:
+  cli:
+    main: Main.hs
+    source-dirs: cli
+    dependencies:
+      - ipfs-api
+      - wai-cli
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -O2
+
   server:
     main: Main.hs
     source-dirs: app
