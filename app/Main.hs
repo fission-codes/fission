@@ -5,12 +5,12 @@ module Main where
 
 import RIO
 
+import Network.Wai.Handler.Warp
+import Network.Wai.Logger
+
 import qualified Fission.Ambient as Ambient
 import qualified Fission.Env     as Env
 import qualified Fission.Web     as Web
-
-import Network.Wai.Handler.Warp
-import Network.Wai.Logger
 
 main :: IO ()
 main = do
