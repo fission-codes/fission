@@ -30,7 +30,7 @@ base :: Env
 base = Env
   { _logger = mkLogFunc Log.simple
   , _minLogLevel = Log.MinLogLevel LevelDebug
-  , _ipfsBin = "/usr/local/bin/ipfs" -- FIXME use in app
+  , _ipfsBin = "/usr/local/bin/ipfs"
   }
 
 -- | Right now, we're distinguishing between three environments. We could
