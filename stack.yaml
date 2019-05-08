@@ -39,6 +39,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - alex-3.2.4
+- ekg-wai-0.1.0.3
 - happy-1.19.9
 - tasty-rerun-1.1.14
 

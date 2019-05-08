@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b82a9e20105d8f3f7cf4fe9d8b55c9e077378fa3be28e088cef541627c54bd59
+-- hash: 746f17f014fa86621fac13c5f5a257443144df3a9f2389333d0993bf5c59f536
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -95,11 +95,12 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , base
     , bytestring
+    , ekg-wai
     , ipfs-api
     , lens
     , monad-logger
