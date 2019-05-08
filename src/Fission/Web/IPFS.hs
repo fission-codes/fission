@@ -1,23 +1,23 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Fission.Web.IPFS where
 
 import RIO
 
-import Network.Wai
 import Servant
 
-import Fission.IPFS.Peer as Peer
+import           Fission.Web.Internal
+import qualified Fission.Web.IPFS.Peer   as Peer
+import qualified Fission.Web.IPFS.Upload as Upload
 
-type API = "peers" :> Get '[JSON] [Peer]
+type API = {- Root -} Upload.API
+      :<|> "peers" :> Peer.API
 
-app :: Application
-app = serve api server
-
-server :: Server API
-server = liftIO Peer.all
+server :: FissionServer API
+server = Upload.server :<|> Peer.server
 
 api :: Proxy API
 api = Proxy
