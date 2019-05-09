@@ -9,6 +9,7 @@ import RIO
 
 import Servant
 
+import           Fission.Config
 import           Fission.Web.Internal
 import qualified Fission.Web.IPFS.Peer   as Peer
 import qualified Fission.Web.IPFS.Upload as Upload
@@ -16,7 +17,7 @@ import qualified Fission.Web.IPFS.Upload as Upload
 type API = {- Root -} Upload.API
       :<|> "peers" :> Peer.API
 
-server :: FissionServer API
+server :: (HasLogFunc cfg, HasIPFSPath cfg) => RIOServer cfg API
 server = Upload.server :<|> Peer.server
 
 api :: Proxy API

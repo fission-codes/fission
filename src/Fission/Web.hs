@@ -25,7 +25,7 @@ app = serve api . toServer
 toServer :: Config -> Server API
 toServer cfg = hoistServer api (toHandler cfg) server
 
-server :: FissionServer API
+server :: (HasIPFSPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server = Ping.server :<|> IPFS.server
 
 api :: Proxy API

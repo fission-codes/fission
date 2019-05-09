@@ -11,13 +11,14 @@ import RIO
 
 import Servant
 
+import           Fission.Config
 import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.IPFS.Peer     as Peer
 import           Fission.Web.Internal
 
 type API = Get '[JSON] [Peer]
 
-server :: FissionServer API
+server :: HasIPFSPath cfg => RIOServer cfg API
 server = Peer.all >>= \case
   Left  unicodeErr -> throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
   Right peers      -> return peers
