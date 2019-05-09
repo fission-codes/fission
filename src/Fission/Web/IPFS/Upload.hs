@@ -20,8 +20,12 @@ type API = ReqBody '[JSON, PlainText] Text
 
 server :: FissionServer API
 server input = Upload.run input >>= \case
-  Left  unicodeErr -> throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
-  Right hash       -> return hash
+  Left  unicodeErr ->
+    throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
+
+  Right hash -> do
+    logInfo $ "Generated hash: " <> display hash
+    return hash
 
 api :: Proxy API
 api = Proxy
