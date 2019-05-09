@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Fission.Env where
+module Fission.Config where
 
 import Control.Lens (makeLenses)
 import RIO
