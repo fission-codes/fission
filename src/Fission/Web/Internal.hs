@@ -5,11 +5,8 @@ module Fission.Web.Internal where
 import RIO
 import Servant
 
-import Fission
-import Fission.Env
+type RIOServer cfg a = ServerT a (RIO cfg)
 
-type FissionServer a = ServerT a Fission
-
--- | Natural transformation `Fission -> Handler`
-toHandler :: Env -> RIO Env m -> Servant.Handler m
-toHandler env = liftIO . runRIO env
+-- | Natural transformation `RIO cfg -> Handler`
+toHandler :: cfg -> RIO cfg m -> Servant.Handler m
+toHandler cfg = liftIO . runRIO cfg

@@ -13,9 +13,9 @@ import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Process  as IPFS.Proc
 
 import Fission.Internal.Constraint
-import Fission.Env
+import Fission.Config
 
-run :: (WithRIO env m, HasIPFSPath env) => Text -> m (Either UnicodeException Text)
+run :: (WithRIO cfg m, HasIPFSPath cfg) => Text -> m (Either UnicodeException Text)
 run = fmap (Bi.second $ Text.dropSuffix "\n")
     . fmap UTF8.encode
     . IPFS.Proc.run ["add", "-q"]

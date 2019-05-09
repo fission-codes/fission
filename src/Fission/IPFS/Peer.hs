@@ -15,18 +15,18 @@ import Data.Aeson.TH
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Process  as IPFSProc
 
-import Fission.Env
+import Fission.Config
 import Fission.Internal.Constraint
 
 data Peer = Peer { peer :: Text }
 $(deriveJSON defaultOptions ''Peer)
 
-all :: (WithRIO env m, HasIPFSPath env) => m (Either UnicodeException [Peer])
+all :: (WithRIO cfg m, HasIPFSPath cfg) => m (Either UnicodeException [Peer])
 all = do
   allRaw         <- getAllRaw
   textOrErr      <- return $ UTF8.encode allRaw
   peerNamesOrErr <- return $ Text.lines <$> textOrErr
   return $ (fmap Peer) <$> peerNamesOrErr
 
-getAllRaw :: (WithRIO env m, HasIPFSPath env) => m Lazy.ByteString
+getAllRaw :: (WithRIO cfg m, HasIPFSPath cfg) => m Lazy.ByteString
 getAllRaw = IPFSProc.run' ["bootstrap", "list"]

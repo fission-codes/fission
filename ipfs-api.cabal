@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 746f17f014fa86621fac13c5f5a257443144df3a9f2389333d0993bf5c59f536
+-- hash: 9c597840c564f186a10d283854ee3ae1ec993babc0b2012a1f894e115ec4d310
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -29,15 +29,17 @@ source-repository head
 library
   exposed-modules:
       Fission
-      Fission.Ambient
-      Fission.Env
+      Fission.Config
+      Fission.Environment
       Fission.Internal.Constraint
       Fission.Internal.UTF8
       Fission.IPFS.Peer
       Fission.IPFS.Process
       Fission.IPFS.Upload
       Fission.Log
+      Fission.Monitor
       Fission.Web
+      Fission.Web.Config
       Fission.Web.Internal
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
@@ -52,6 +54,8 @@ library
       aeson
     , base
     , bytestring
+    , ekg-wai
+    , envy
     , lens
     , monad-logger
     , rio
@@ -75,6 +79,8 @@ executable cli
       aeson
     , base
     , bytestring
+    , ekg-wai
+    , envy
     , ipfs-api
     , lens
     , monad-logger
@@ -101,6 +107,7 @@ executable server
     , base
     , bytestring
     , ekg-wai
+    , envy
     , ipfs-api
     , lens
     , monad-logger
@@ -126,6 +133,8 @@ test-suite fission-coverage
       aeson
     , base
     , bytestring
+    , ekg-wai
+    , envy
     , ipfs-api
     , lens
     , monad-logger
@@ -154,6 +163,8 @@ test-suite fission-docs
     , base
     , bytestring
     , doctest
+    , ekg-wai
+    , envy
     , ipfs-api
     , lens
     , monad-logger
@@ -184,6 +195,8 @@ test-suite fission-doctest
     , base
     , bytestring
     , doctest
+    , ekg-wai
+    , envy
     , ipfs-api
     , lens
     , monad-logger
@@ -209,6 +222,8 @@ test-suite fission-lint
       aeson
     , base
     , bytestring
+    , ekg-wai
+    , envy
     , hlint
     , lens
     , monad-logger
@@ -227,15 +242,17 @@ test-suite fission-test
   main-is: Main.hs
   other-modules:
       Fission
-      Fission.Ambient
-      Fission.Env
+      Fission.Config
+      Fission.Environment
       Fission.Internal.Constraint
       Fission.Internal.UTF8
       Fission.IPFS.Peer
       Fission.IPFS.Process
       Fission.IPFS.Upload
       Fission.Log
+      Fission.Monitor
       Fission.Web
+      Fission.Web.Config
       Fission.Web.Internal
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
@@ -251,6 +268,8 @@ test-suite fission-test
       aeson
     , base
     , bytestring
+    , ekg-wai
+    , envy
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -286,6 +305,8 @@ benchmark fission-benchmark
     , base
     , bytestring
     , criterion
+    , ekg-wai
+    , envy
     , ipfs-api
     , lens
     , monad-logger
