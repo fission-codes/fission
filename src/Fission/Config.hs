@@ -34,12 +34,3 @@ instance DefConfig Config where
     , _minLogLevel = Log.MinLogLevel LevelDebug
     , _ipfsPath    = "/usr/local/bin/ipfs"
     }
-
--- data LogOptions = LogOptions
---   { logMinLevel :: !LogLevel
---   , logVerboseFormat :: !Bool
---   , logTerminal :: !Bool
---   , logUseTime :: !Bool
---   , logUseColor :: !Bool
---   , logSend :: !(Builder -> IO ())
---   }
