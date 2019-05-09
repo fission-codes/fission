@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa2737b62fe5ee991bdc8545a0ad1572626ee42e52869f5178d33a8d6d2695d8
+-- hash: 9c597840c564f186a10d283854ee3ae1ec993babc0b2012a1f894e115ec4d310
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -29,7 +29,8 @@ source-repository head
 library
   exposed-modules:
       Fission
-      Fission.Env
+      Fission.Config
+      Fission.Environment
       Fission.Internal.Constraint
       Fission.Internal.UTF8
       Fission.IPFS.Peer
@@ -241,7 +242,8 @@ test-suite fission-test
   main-is: Main.hs
   other-modules:
       Fission
-      Fission.Env
+      Fission.Config
+      Fission.Environment
       Fission.Internal.Constraint
       Fission.Internal.UTF8
       Fission.IPFS.Peer

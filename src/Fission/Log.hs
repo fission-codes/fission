@@ -12,7 +12,7 @@ import Fission.Internal.Constraint
 
 newtype MinLogLevel = MinLogLevel LogLevel
 
-atLevel :: (WithRIO env m, HasMinLogLevel env)
+atLevel :: (WithRIO cfg m, HasMinLogLevel cfg)
         => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
 atLevel cs src lvl msg = do
   MinLogLevel minLevel <- view minLogLevelL

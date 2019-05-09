@@ -8,5 +8,5 @@ module Fission.Internal.Constraint
 
 import RIO
 
-type WithRIO env m = (MonadIO m, MonadReader env m)
-type Loggable env  = (HasLogFunc env, HasCallStack)
+type WithRIO cfg m = (MonadIO m, MonadReader cfg m)
+type Loggable cfg  = (HasLogFunc cfg, HasCallStack)

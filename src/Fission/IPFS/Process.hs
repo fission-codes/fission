@@ -9,25 +9,32 @@ import qualified RIO.ByteString.Lazy as Lazy
 import System.Process.Typed
 
 import Fission.Internal.Constraint
-import Fission.Env
+import Fission.Config
 
 type Opt = String
 
-run :: (WithRIO env m, HasIPFSPath env) => [Opt] -> Lazy.ByteString -> m Lazy.ByteString
-run opts input = runHelper opts (byteStringInput input)
+run :: WithRIO cfg m
+    => HasIPFSPath cfg
+    => [Opt]
+    -> Lazy.ByteString
+    -> m Lazy.ByteString
+run opts input = runHelper opts $ byteStringInput input
 
-run' :: (WithRIO env m, HasIPFSPath env) => [Opt] -> m Lazy.ByteString
+run' :: WithRIO cfg m
+     => HasIPFSPath cfg
+     => [Opt]
+     -> m Lazy.ByteString
 run' opts = runHelper opts createPipe
 
-runHelper :: WithRIO env m
-          => HasIPFSPath env
+runHelper :: WithRIO cfg m
+          => HasIPFSPath cfg
           => [Opt]
           -> StreamSpec 'STInput stdin
           -> m Lazy.ByteString
-runHelper opts stdIn = do
-  ipfs  <- asks $ view ipfsPathL
+runHelper opts inStream = do
+  ipfs <- view ipfsPathL
 
   readProcessStdout_
-    . setStdin stdIn
+    . setStdin inStream
     . setStdout byteStringOutput
     $ proc ipfs opts

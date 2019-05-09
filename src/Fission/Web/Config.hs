@@ -19,7 +19,7 @@ instance DefConfig Config where
 
 instance FromEnv Config
 
-get :: (WithRIO env m, HasLogFunc env) => m Config
+get :: (WithRIO cfg m, HasLogFunc cfg) => m Config
 get = liftIO (decodeEnv :: IO (Either String Config)) >>= \case
   Right config ->
     return config

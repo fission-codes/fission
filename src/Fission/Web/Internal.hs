@@ -6,10 +6,10 @@ import RIO
 import Servant
 
 import Fission
-import Fission.Env
+import Fission.Config
 
 type FissionServer a = ServerT a Fission
 
 -- | Natural transformation `Fission -> Handler`
-toHandler :: Env -> RIO Env m -> Servant.Handler m
-toHandler env = liftIO . runRIO env
+toHandler :: Config -> RIO Config m -> Servant.Handler m
+toHandler cfg = liftIO . runRIO cfg
