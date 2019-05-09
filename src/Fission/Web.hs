@@ -19,11 +19,8 @@ import qualified Fission.Web.Ping as Ping
 type API = "ping" :> Ping.API
       :<|> "ipfs" :> IPFS.API
 
-app :: Config -> Application
-app = serve api . toServer
-
-toServer :: Config -> Server API
-toServer cfg = hoistServer api (toHandler cfg) server
+app :: (HasIPFSPath cfg, HasLogFunc cfg) => cfg -> Application
+app cfg = serve api $ hoistServer api (toHandler cfg) server
 
 server :: (HasIPFSPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server = Ping.server :<|> IPFS.server

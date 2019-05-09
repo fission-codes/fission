@@ -4,10 +4,11 @@ module Main where
 
 import RIO
 
-import Network.Wai.Cli (defWaiMain)
-import System.Envy
+import qualified Network.Wai.Cli as CLI
+import           System.Envy
 
-import qualified Fission.Web as Web
+import           Fission.Config
+import qualified Fission.Web    as Web
 
 main :: IO ()
-main = defWaiMain =<< return (Web.app defConfig)
+main = CLI.defWaiMain =<< return (Web.app (defConfig :: Config))
