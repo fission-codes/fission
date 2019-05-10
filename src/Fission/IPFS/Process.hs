@@ -23,9 +23,6 @@ run :: MonadRIO cfg m
     -> m Lazy.ByteString
 run opts input = runHelper opts $ byteStringInput input
 
-askOpt :: (Has b a, MonadReader a m) => (b -> d) -> m d
-askOpt f = asks $ f . getter
-
 run' :: MonadRIO cfg m
      => Has IpfsPath cfg
      => [Opt]

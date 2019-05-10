@@ -10,6 +10,7 @@ module Fission.Web.IPFS.Upload where
 import RIO
 
 import Servant
+import Data.Has
 
 import           Fission.Config
 import qualified Fission.Internal.UTF8 as UTF8
@@ -19,7 +20,7 @@ import           Fission.Web.Internal
 type API = ReqBody '[JSON, PlainText] Text
         :> Post    '[JSON, PlainText] Text
 
-server :: (HasIPFSPath cfg, HasLogFunc cfg) => RIOServer cfg API
+server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server input = Upload.run input >>= \case
   Left  unicodeErr ->
     throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
