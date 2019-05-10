@@ -23,6 +23,7 @@ dependencies:
   - aeson
   - base
   - bytestring
+  - data-has
   - ekg-wai
   - envy
   - lens

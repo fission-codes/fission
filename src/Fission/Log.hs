@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -8,14 +9,17 @@ import           RIO
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
 
+import Data.Has
+
 import Fission.Internal.Constraint
 
 newtype MinLogLevel = MinLogLevel LogLevel
 
-atLevel :: (WithRIO cfg m, HasMinLogLevel cfg)
+atLevel :: MonadRIO cfg m
+        => Has MinLogLevel cfg
         => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
 atLevel cs src lvl msg = do
-  MinLogLevel minLevel <- view minLogLevelL
+  MinLogLevel minLevel <- view hasLens
   if lvl >= minLevel
     then liftIO $ simple cs src lvl msg
     else return ()
@@ -38,6 +42,3 @@ short = \case
   LevelInfo      -> "Info"
   LevelOther lvl -> "Other: " <> lvl
   LevelWarn      -> "Warn"
-
-class HasMinLogLevel env where
-  minLogLevelL :: Lens' env MinLogLevel
