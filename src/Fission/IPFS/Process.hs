@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -11,28 +12,33 @@ import System.Process.Typed
 import Fission.Internal.Constraint
 import Fission.Config
 
+import Data.Has
+
 type Opt = String
 
-run :: WithRIO cfg m
-    => HasIPFSPath cfg
+run :: MonadRIO cfg m
+    => Has IpfsPath cfg
     => [Opt]
     -> Lazy.ByteString
     -> m Lazy.ByteString
 run opts input = runHelper opts $ byteStringInput input
 
-run' :: WithRIO cfg m
-     => HasIPFSPath cfg
+askOpt :: (Has b a, MonadReader a m) => (b -> d) -> m d
+askOpt f = asks $ f . getter
+
+run' :: MonadRIO cfg m
+     => Has IpfsPath cfg
      => [Opt]
      -> m Lazy.ByteString
 run' opts = runHelper opts createPipe
 
-runHelper :: WithRIO cfg m
-          => HasIPFSPath cfg
+runHelper :: Has IpfsPath cfg
+          => MonadRIO cfg m
           => [Opt]
           -> StreamSpec 'STInput stdin
           -> m Lazy.ByteString
 runHelper opts inStream = do
-  ipfs <- view ipfsPathL
+  IpfsPath ipfs <- view hasLens
 
   readProcessStdout_
     . setStdin inStream

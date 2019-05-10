@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9c597840c564f186a10d283854ee3ae1ec993babc0b2012a1f894e115ec4d310
+-- hash: 0afa0bfbc75858a5bd53d297a975178192b60ae62a79364873842abb31a3792f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -54,6 +54,7 @@ library
       aeson
     , base
     , bytestring
+    , data-has
     , ekg-wai
     , envy
     , lens
@@ -79,6 +80,7 @@ executable cli
       aeson
     , base
     , bytestring
+    , data-has
     , ekg-wai
     , envy
     , ipfs-api
@@ -106,6 +108,7 @@ executable server
       aeson
     , base
     , bytestring
+    , data-has
     , ekg-wai
     , envy
     , ipfs-api
@@ -133,6 +136,7 @@ test-suite fission-coverage
       aeson
     , base
     , bytestring
+    , data-has
     , ekg-wai
     , envy
     , ipfs-api
@@ -162,6 +166,7 @@ test-suite fission-docs
       aeson
     , base
     , bytestring
+    , data-has
     , doctest
     , ekg-wai
     , envy
@@ -194,6 +199,7 @@ test-suite fission-doctest
     , aeson
     , base
     , bytestring
+    , data-has
     , doctest
     , ekg-wai
     , envy
@@ -222,6 +228,7 @@ test-suite fission-lint
       aeson
     , base
     , bytestring
+    , data-has
     , ekg-wai
     , envy
     , hlint
@@ -268,6 +275,7 @@ test-suite fission-test
       aeson
     , base
     , bytestring
+    , data-has
     , ekg-wai
     , envy
     , hspec
@@ -305,6 +313,7 @@ benchmark fission-benchmark
     , base
     , bytestring
     , criterion
+    , data-has
     , ekg-wai
     , envy
     , ipfs-api

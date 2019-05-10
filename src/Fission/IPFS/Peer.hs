@@ -21,12 +21,12 @@ import Fission.Internal.Constraint
 data Peer = Peer { peer :: Text }
 $(deriveJSON defaultOptions ''Peer)
 
-all :: (WithRIO cfg m, HasIPFSPath cfg) => m (Either UnicodeException [Peer])
+all :: (MonadRIO cfg m, HasIPFSPath cfg) => m (Either UnicodeException [Peer])
 all = do
   allRaw         <- getAllRaw
   textOrErr      <- return $ UTF8.encode allRaw
   peerNamesOrErr <- return $ Text.lines <$> textOrErr
   return $ (fmap Peer) <$> peerNamesOrErr
 
-getAllRaw :: (WithRIO cfg m, HasIPFSPath cfg) => m Lazy.ByteString
+getAllRaw :: (MonadRIO cfg m, HasIPFSPath cfg) => m Lazy.ByteString
 getAllRaw = IPFSProc.run' ["bootstrap", "list"]

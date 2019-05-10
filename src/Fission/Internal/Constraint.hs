@@ -2,11 +2,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Fission.Internal.Constraint
-  ( WithRIO
+  ( MonadRIO
   , Loggable
   ) where
 
 import RIO
 
-type WithRIO cfg m = (MonadIO m, MonadReader cfg m)
-type Loggable cfg  = (HasLogFunc cfg, HasCallStack)
+type MonadRIO cfg m = (MonadIO m, MonadReader cfg m)
+type Loggable cfg   = (HasLogFunc cfg, HasCallStack)
