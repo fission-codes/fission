@@ -31,11 +31,11 @@ makeLenses ''Config
 instance Has IpfsPath Config where
   hasLens = ipfsPath
 
-instance HasLogFunc Config where
-  logFuncL = logFunc
-
 instance Has Log.MinLogLevel Config where
   hasLens = minLogLevel
+
+instance HasLogFunc Config where
+  logFuncL = logFunc
 
 instance DefConfig Config where
   defConfig = Config
