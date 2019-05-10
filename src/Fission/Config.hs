@@ -28,14 +28,11 @@ data Config = Config
 
 makeLenses ''Config
 
-instance HasLogFunc a => Has LogFunc a where
-  hasLens = logFuncL
-
 instance Has IpfsPath Config where
   hasLens = ipfsPath
 
-instance Has LogFunc Config where
-  hasLens = logFunc
+instance HasLogFunc Config where
+  logFuncL = logFunc
 
 instance Has Log.MinLogLevel Config where
   hasLens = minLogLevel

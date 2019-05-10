@@ -20,7 +20,7 @@ import           Fission.Web.Internal
 type API = ReqBody '[JSON, PlainText] Text
         :> Post    '[JSON, PlainText] Text
 
-server :: (Has IpfsPath cfg, Has LogFunc cfg) => RIOServer cfg API
+server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server input = Upload.run input >>= \case
   Left  unicodeErr ->
     throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
