@@ -1,0 +1,21 @@
+{
+  "id": "fission-ipfs",
+  "api": {
+    "config_vars_prefix": "FISSION_IPFS",
+    "config_vars": [
+      "FISSION_IPFS_URL"
+    ],
+    "password": "oEpyTO9aJk7EraUPYIsyESTkXy0ijNur",
+    "sso_salt": "Wys1vYBChqfPAwRWoSGe9lussgWrInaM",
+    "regions": [
+      "us"
+    ],
+    "requires": [],
+    "production": {
+      "base_url": "https://myaddon.com/heroku/resources",
+      "sso_url": "https://myaddon.com/sso/login"
+    },
+    "version": "3"
+  },
+  "name": "Fission IPFS"
+}
