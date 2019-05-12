@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -9,7 +10,9 @@ module Fission.Web where
 
 import RIO
 
-import Servant
+import Servant as Servant
+import Servant.Auth.Server as Auth
+
 import Data.Has
 
 import Fission.Config
@@ -19,13 +22,30 @@ import qualified Fission.Web.IPFS as IPFS
 import qualified Fission.Web.Ping as Ping
 
 type API = "ping" :> Ping.API
-      :<|> "ipfs" :> IPFS.API
+      :<|> "ipfs" :> Servant.BasicAuth "admin realm" Text {- TODO `User` -} :> IPFS.API
 
-app :: (Has IpfsPath cfg, HasLogFunc cfg) => cfg -> Application
-app cfg = serve api $ hoistServer api (toHandler cfg) server
+app :: (HasContextEntry '[] (BasicAuthCheck Text), Has IpfsPath cfg, HasLogFunc cfg) => cfg -> Application
+app cfg = serve api $ hoistServerWithAuth api (toHandler cfg) server
+  -- where ctx = checkBasicAuth :. EmptyContext
+
+hoistServerWithAuth
+  :: HasServer api '[Auth.BasicAuth]
+  => Proxy api
+  -> (forall x. m x -> n x) -- natural transformation
+  -> ServerT api m
+  -> ServerT api n
+hoistServerWithAuth api' =
+  hoistServerWithContext api' (Proxy :: Proxy '[Auth.BasicAuth])
+
+checkBasicAuth :: Text -> BasicAuthResult ()
+checkBasicAuth _ = Authorized ()
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
-server = Ping.server :<|> IPFS.server
+server = Ping.server :<|> (guarded IPFS.server)
 
 api :: Proxy API
 api = Proxy
+
+guarded :: Has IpfsPath cfg => RIOServer cfg IPFS.API -> Text -> RIOServer cfg IPFS.API
+guarded s "password" = s
+guarded _ _          = error "boom" -- throwM err401
