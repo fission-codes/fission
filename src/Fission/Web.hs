@@ -25,8 +25,11 @@ type API = "ping" :> Ping.API
       :<|> "ipfs" :> Servant.BasicAuth "admin realm" Text {- TODO `User` -} :> IPFS.API
 
 app :: (HasContextEntry '[] (BasicAuthCheck Text), Has IpfsPath cfg, HasLogFunc cfg) => cfg -> Application
-app cfg = serve api $ hoistServerWithAuth api (toHandler cfg) server
-  -- where ctx = checkBasicAuth :. EmptyContext
+app cfg = serveWithContext api ctx $ hoistServerWithAuth api (toHandler cfg) server
+  where ctx = basicAuthServerContext -- checkBasicAuth :. EmptyContext
+
+basicAuthServerContext :: Context (BasicAuthCheck Text ': '[])
+basicAuthServerContext = checkText :. EmptyContext
 
 hoistServerWithAuth
   :: HasServer api '[Auth.BasicAuth]
@@ -36,6 +39,13 @@ hoistServerWithAuth
   -> ServerT api n
 hoistServerWithAuth api' =
   hoistServerWithContext api' (Proxy :: Proxy '[Auth.BasicAuth])
+
+checkText :: BasicAuthCheck Text
+checkText =
+  let
+    check (BasicAuthData _username _password) = return $ Authorized ("yup" :: Text)
+  in
+    BasicAuthCheck check
 
 checkBasicAuth :: Text -> BasicAuthResult ()
 checkBasicAuth _ = Authorized ()
