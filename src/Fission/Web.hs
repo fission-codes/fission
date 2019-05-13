@@ -26,11 +26,7 @@ app :: (Has IpfsPath cfg, HasLogFunc cfg) => cfg -> Application
 app cfg = serveWithContext api basicAuthContext $ protectedServer api cfg server
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
-server = Ping.server :<|> guarded IPFS.server
+server = Ping.server :<|> \_user -> IPFS.server
 
 api :: Proxy API
 api = Proxy
-
-guarded :: Has IpfsPath cfg => RIOServer cfg IPFS.API -> Text -> RIOServer cfg IPFS.API
-guarded s "password" = s
-guarded _ _          = error "boom" -- throwM err401
