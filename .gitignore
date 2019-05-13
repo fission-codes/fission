@@ -2,6 +2,9 @@
 # Created by https://www.gitignore.io/api/linux,macos,haskell,windows
 # Edit at https://www.gitignore.io/?templates=linux,macos,haskell,windows
 
+*.pem
+*.csr
+
 ### Haskell ###
 dist
 dist-*
