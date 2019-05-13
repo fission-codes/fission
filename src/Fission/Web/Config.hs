@@ -14,8 +14,8 @@ import Fission.Internal.Constraint
 
 data Config = Config
   { port    :: Port
-  , tlsCert :: FilePath
-  , tlsKey  :: FilePath
+  , tlsCert :: FilePath -- FIXME use `etc`
+  , tlsKey  :: FilePath -- FIXME use `etc`
   } deriving (Generic, Show)
 
 instance DefConfig Config where
