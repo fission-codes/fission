@@ -1,4 +1,4 @@
-<img height=200 width=200 src=https://github.com/fission-suite/ipfs-api/raw/master/assets/logo.png?sanitize=true>
+![](https://github.com/fission-suite/ipfs-api/raw/master/assets/logo.png?sanitize=true)
 
 # FISSION IPFS Web API
 
