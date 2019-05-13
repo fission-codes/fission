@@ -15,20 +15,22 @@ import Data.Has
 import Fission.Config
 import Fission.Web.Internal
 
-server :: HasServer api '[BasicAuthCheck Text]
-              => Has IpfsPath cfg
-              => HasLogFunc cfg
-              => Proxy api
-              -> cfg
-              -> RIOServer cfg api
-              -> Server api
+server :: HasServer api '[BasicAuthCheck ByteString]
+       => Has IpfsPath cfg
+       => HasLogFunc cfg
+       => Proxy api
+       -> cfg
+       -> RIOServer cfg api
+       -> Server api
 server api cfg serv = hoistServerWithContext api context (toHandler cfg) serv
 
-context :: Proxy (BasicAuthCheck Text ': '[])
+context :: Proxy (BasicAuthCheck ByteString ': '[])
 context = Proxy
 
-basic :: Context (BasicAuthCheck Text ': '[])
-basic = BasicAuthCheck check :. EmptyContext
-
-check :: Monad m => BasicAuthData -> m (BasicAuthResult Text)
-check (BasicAuthData _username _password) = return $ Authorized ("yup" :: Text)
+basic :: ByteString -> ByteString -> Context (BasicAuthCheck ByteString ': '[])
+basic unOK pwOK = BasicAuthCheck check :. EmptyContext
+  where
+    check (BasicAuthData username password) =
+      if (username == unOK) && (pwOK == password)
+         then return $ Authorized username
+         else return Unauthorized
