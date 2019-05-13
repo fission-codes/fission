@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df82917f7ca9c3ff9cfc4c281f17888f22ff9fb330c0e6a56e05ba7d1ecb79fb
+-- hash: 3bfea7a7f2366c5bd9ea77281b4ff424b6c1cd7e0d8bc32fee020e2de84505ed
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -59,6 +59,7 @@ library
     , data-has
     , ekg-wai
     , envy
+    , etc
     , lens
     , monad-logger
     , rio
@@ -87,6 +88,7 @@ executable cli
     , data-has
     , ekg-wai
     , envy
+    , etc
     , ipfs-api
     , lens
     , monad-logger
@@ -117,6 +119,7 @@ executable server
     , data-has
     , ekg-wai
     , envy
+    , etc
     , ipfs-api
     , lens
     , monad-logger
@@ -147,6 +150,7 @@ test-suite fission-coverage
     , data-has
     , ekg-wai
     , envy
+    , etc
     , ipfs-api
     , lens
     , monad-logger
@@ -180,6 +184,7 @@ test-suite fission-docs
     , doctest
     , ekg-wai
     , envy
+    , etc
     , ipfs-api
     , lens
     , monad-logger
@@ -215,6 +220,7 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , etc
     , ipfs-api
     , lens
     , monad-logger
@@ -245,6 +251,7 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , etc
     , hlint
     , lens
     , monad-logger
@@ -296,6 +303,7 @@ test-suite fission-test
     , data-has
     , ekg-wai
     , envy
+    , etc
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -336,6 +344,7 @@ benchmark fission-benchmark
     , data-has
     , ekg-wai
     , envy
+    , etc
     , ipfs-api
     , lens
     , monad-logger

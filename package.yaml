@@ -26,6 +26,7 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - etc
   - lens
   - monad-logger
   - rio
