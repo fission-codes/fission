@@ -1,0 +1,350 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 71c18b6fbd0d95cdd5f16b05883e2c7629b04acdb3a409883187894a39f10878
+
+name:           ipfs-api
+version:        0.0.1.0
+category:       API
+homepage:       https://github.com/fission-suite/ipfs-api#readme
+bug-reports:    https://github.com/fission-suite/ipfs-api/issues
+author:         Brooklyn Zelenka
+maintainer:     hello@brooklynzelenka.com
+copyright:      © 2019 Brooklyn Zelenka
+license:        Apache-2.0
+license-file:   LICENSE
+tested-with:    GHC==8.6.3
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/fission-suite/ipfs-api
+
+library
+  exposed-modules:
+      Fission
+      Fission.Config
+      Fission.Environment
+      Fission.Internal.Constraint
+      Fission.Internal.UTF8
+      Fission.IPFS.Peer
+      Fission.IPFS.Process
+      Fission.IPFS.Upload
+      Fission.Log
+      Fission.Monitor
+      Fission.Web
+      Fission.Web.Auth
+      Fission.Web.Config
+      Fission.Web.Internal
+      Fission.Web.IPFS
+      Fission.Web.IPFS.Peer
+      Fission.Web.IPFS.Upload
+      Fission.Web.Ping
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , ekg-wai
+    , envy
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+executable cli
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      cli
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , ekg-wai
+    , envy
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-cli
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+executable server
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , ekg-wai
+    , envy
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+test-suite fission-coverage
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      test/coverage
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , ekg-wai
+    , envy
+    , ipfs-api
+    , lens
+    , monad-logger
+    , process
+    , regex-compat
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+test-suite fission-docs
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      test/docs
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , doctest
+    , ekg-wai
+    , envy
+    , ipfs-api
+    , lens
+    , monad-logger
+    , process
+    , regex-compat
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+test-suite fission-doctest
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      test/doctest
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Glob
+    , QuickCheck
+    , aeson
+    , base
+    , bytestring
+    , data-has
+    , doctest
+    , ekg-wai
+    , envy
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+test-suite fission-lint
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      test/lint
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , ekg-wai
+    , envy
+    , hlint
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+test-suite fission-test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Fission
+      Fission.Config
+      Fission.Environment
+      Fission.Internal.Constraint
+      Fission.Internal.UTF8
+      Fission.IPFS.Peer
+      Fission.IPFS.Process
+      Fission.IPFS.Upload
+      Fission.Log
+      Fission.Monitor
+      Fission.Web
+      Fission.Web.Auth
+      Fission.Web.Config
+      Fission.Web.Internal
+      Fission.Web.IPFS
+      Fission.Web.IPFS.Peer
+      Fission.Web.IPFS.Upload
+      Fission.Web.Ping
+      Paths_ipfs_api
+  hs-source-dirs:
+      src
+      test
+      test/testsuite
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , data-has
+    , ekg-wai
+    , envy
+    , hspec
+    , hspec-wai
+    , hspec-wai-json
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , tasty
+    , tasty-hspec
+    , tasty-hunit
+    , tasty-rerun
+    , tasty-smallcheck
+    , text
+    , transformers
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
+
+benchmark fission-benchmark
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_ipfs_api
+  hs-source-dirs:
+      benchmark
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , criterion
+    , data-has
+    , ekg-wai
+    , envy
+    , ipfs-api
+    , lens
+    , monad-logger
+    , rio
+    , servant-auth-server
+    , servant-client
+    , servant-server
+    , text
+    , typed-process
+    , wai
+    , wai-extra
+    , wai-logger
+    , warp
+  default-language: Haskell2010
