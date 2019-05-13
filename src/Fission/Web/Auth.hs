@@ -15,24 +15,20 @@ import Data.Has
 import Fission.Config
 import Fission.Web.Internal
 
-protectedServer :: HasServer api '[BasicAuthCheck Text]
+server :: HasServer api '[BasicAuthCheck Text]
               => Has IpfsPath cfg
               => HasLogFunc cfg
               => Proxy api
               -> cfg
               -> RIOServer cfg api
               -> Server api
-protectedServer api cfg serv = hoistServerWithContext api context (toHandler cfg) serv
+server api cfg serv = hoistServerWithContext api context (toHandler cfg) serv
 
 context :: Proxy (BasicAuthCheck Text ': '[])
 context = Proxy
 
-basicAuthContext :: Context (BasicAuthCheck Text ': '[])
-basicAuthContext = checkText :. EmptyContext
+basic :: Context (BasicAuthCheck Text ': '[])
+basic = BasicAuthCheck check :. EmptyContext
 
-checkText :: BasicAuthCheck Text
-checkText =
-  let
-    check (BasicAuthData _username _password) = return $ Authorized ("yup" :: Text)
-  in
-    BasicAuthCheck check
+check :: Monad m => BasicAuthData -> m (BasicAuthResult Text)
+check (BasicAuthData _username _password) = return $ Authorized ("yup" :: Text)
