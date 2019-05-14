@@ -22,7 +22,7 @@ type API = ReqBody '[JSON, PlainText] Text
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server input = Upload.run input >>= \case
-  Left  unicodeErr ->
+  Left unicodeErr ->
     throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
 
   Right hash -> do

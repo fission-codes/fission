@@ -30,6 +30,7 @@ dependencies:
   - monad-logger
   - rio
   - servant-server
+  - servant-multipart
   - text
   - typed-process
   - wai

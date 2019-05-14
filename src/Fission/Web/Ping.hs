@@ -9,7 +9,7 @@ import Servant
 
 import Fission.Web.Internal
 
-type API = Get '[JSON] Text
+type API = Get '[JSON, PlainText] Text
 
 api :: Proxy API
 api = Proxy
