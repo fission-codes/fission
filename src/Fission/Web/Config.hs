@@ -12,10 +12,14 @@ import System.Envy
 
 import Fission.Internal.Constraint
 
-data Config = Config { port :: Port } deriving (Generic, Show)
+data Config = Config
+  { port    :: Port
+  , tlsCert :: FilePath -- FIXME use `etc`
+  , tlsKey  :: FilePath -- FIXME use `etc`
+  } deriving (Generic, Show)
 
 instance DefConfig Config where
-  defConfig = Config 8000
+  defConfig = Config 443 "certificate.pem" "key.pem"
 
 instance FromEnv Config
 
