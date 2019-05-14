@@ -7,23 +7,14 @@
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
 
-## QuickStart
-
-### Docker
+# QuickStart
 
 ```shell
-docker build -t expede/fission .
-docker run -it -p 8000:8000 expede/fission:latest
-```
-
-### Stack
-
-```shell
-# IPFS
-brew install ipfs # or https://docs.ipfs.io/introduction/install/
+# IPFS on MacOS, otherwise https://docs.ipfs.io/introduction/install/
+brew install ipfs
 brew service start ipfs
 
-# TLS Certificates
+# Self-Signed TLS Certificates for Local Dev
 openssl genrsa -out key.pem 2048
 openssl req -new -key key.pem -out certificate.csr
 openssl x509 -req -in certificate.csr -signkey key.pem -out certificate.pem
@@ -31,7 +22,8 @@ openssl x509 -req -in certificate.csr -signkey key.pem -out certificate.pem
 # Web Server
 stack run server
 
-# Make Request
+# Local Request
+# (`insecure` because of self-seigned certificate)
 curl --insecure
   -iX POST \
   -H "Content-Type: text/plain;charset=utf-8" \
@@ -39,3 +31,27 @@ curl --insecure
   -d"hello world" \
   https://localhost:443/ipfs/
 ```
+
+# Configuration
+
+## Environment Variables
+
+Environment variables are set via the command line (e.g. `export PORT=80`)
+
+### `PORT`
+
+Default: `443`
+
+The port to run the web server on.
+
+### `TLS_CERT`
+
+Default: `certificate.pem`
+
+Path to the TLS certificate.
+
+### `TLS_KEY`
+
+Default: `key.pem`
+
+Path to the TLS key.
