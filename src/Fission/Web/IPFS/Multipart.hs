@@ -35,7 +35,7 @@ type API = MultipartForm Mem (MultipartData Mem)
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server form@(MultipartData{..}) =
-  Upload.runBS raw >>= \case
+  Upload.run (decodeUtf8Lenient $ Lazy.toStrict raw) >>= \case
     Left unicodeErr ->
       throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
 

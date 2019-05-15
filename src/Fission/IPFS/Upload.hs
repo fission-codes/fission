@@ -27,5 +27,11 @@ runBS = fmap (Bi.second $ Text.dropSuffix "\n")
       . fmap UTF8.encode
       . IPFS.Proc.run ["add", "-q"]
 
+runBS' :: MonadRIO cfg m
+       => Has IpfsPath cfg
+       => Lazy.ByteString
+       -> m Lazy.ByteString
+runBS' = IPFS.Proc.run ["add", "-q"]
+
 -- sanitizeIPFSOutput :: _ -> m (Either UnicodeException Text)
 -- sanitizeIPFSOutput = fmap (Bi.second $ Text.dropSuffix "\n") . fmap UTF8.encode

@@ -17,8 +17,8 @@ import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Upload   as Upload
 import           Fission.Web.Internal
 
-type API = ReqBody '[JSON, PlainText] Text
-        :> Post    '[JSON, PlainText] Text
+type API = ReqBody '[OctetStream] Lazy.ByteString
+        :> Post    '[OctetStream] Lazy.ByteString
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server input = Upload.run input >>= \case
