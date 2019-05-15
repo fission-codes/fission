@@ -13,7 +13,7 @@ import Servant
 import Data.Has
 
 import Fission.Config
-import Fission.Web.Internal
+import Fission.Web.Server
 
 server :: HasServer api '[BasicAuthCheck ByteString]
        => Has IpfsPath cfg

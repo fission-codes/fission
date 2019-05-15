@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3bfea7a7f2366c5bd9ea77281b4ff424b6c1cd7e0d8bc32fee020e2de84505ed
+-- hash: 600a1af700addb055d094cca054ef1823852bc9382da7190c1a026c9238075ba
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -31,22 +31,26 @@ library
       Fission
       Fission.Config
       Fission.Environment
+      Fission.File
       Fission.Internal.Constraint
       Fission.Internal.UTF8
+      Fission.IPFS
+      Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
-      Fission.IPFS.Upload
       Fission.Log
       Fission.Monitor
       Fission.User
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Config
-      Fission.Web.Internal
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
+      Fission.Web.IPFS.Upload.Multipart
+      Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Server
   other-modules:
       Paths_ipfs_api
   hs-source-dirs:
@@ -63,8 +67,10 @@ library
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -93,8 +99,10 @@ executable cli
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -124,8 +132,10 @@ executable server
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -157,8 +167,10 @@ test-suite fission-coverage
     , process
     , regex-compat
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -191,8 +203,10 @@ test-suite fission-docs
     , process
     , regex-compat
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -225,8 +239,10 @@ test-suite fission-doctest
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -256,8 +272,10 @@ test-suite fission-lint
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
@@ -274,22 +292,26 @@ test-suite fission-test
       Fission
       Fission.Config
       Fission.Environment
+      Fission.File
       Fission.Internal.Constraint
       Fission.Internal.UTF8
+      Fission.IPFS
+      Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
-      Fission.IPFS.Upload
       Fission.Log
       Fission.Monitor
       Fission.User
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Config
-      Fission.Web.Internal
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
+      Fission.Web.IPFS.Upload.Multipart
+      Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Server
       Paths_ipfs_api
   hs-source-dirs:
       src
@@ -311,8 +333,10 @@ test-suite fission-test
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , tasty
     , tasty-hspec
@@ -349,8 +373,10 @@ benchmark fission-benchmark
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-auth-server
     , servant-client
+    , servant-multipart
     , servant-server
     , text
     , typed-process
