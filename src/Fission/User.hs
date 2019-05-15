@@ -33,7 +33,7 @@ users = table "users" [#id :- autoPrimary]
 setup :: (MonadRIO cfg m, HasLogFunc cfg, Has DBPath cfg) => m ()
 setup = do
   DBPath db <- view hasLens
-  logInfo $ displayShow db
+  logInfo $ "Creating table: " <> displayShow db
   liftIO . withSQLite db $ do
     createTable users
     insert_ users
