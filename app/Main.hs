@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Main where
 
@@ -18,7 +19,7 @@ import qualified Fission.Web.Config as Web.Config
 main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
   runRIO (mkLogFunc Log.simple) $ do
-    Web.Config.Config port <- Web.Config.get
+    Web.Config.Config {..} <- Web.Config.get
 
     let portSettings = setPort port
         logSettings  = setLogger stdOut

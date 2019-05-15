@@ -5,8 +5,8 @@
     "config_vars": [
       "FISSION_IPFS_URL"
     ],
-    "password": "oEpyTO9aJk7EraUPYIsyESTkXy0ijNur",
-    "sso_salt": "Wys1vYBChqfPAwRWoSGe9lussgWrInaM",
+    "password": "PASSWORD",
+    "sso_salt": "SALT",
     "regions": [
       "us"
     ],
