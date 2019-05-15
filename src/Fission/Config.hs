@@ -4,7 +4,17 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
-module Fission.Config where
+module Fission.Config
+  ( Config (..)
+  , AuthUsername (..)
+  , AuthPassword (..)
+  , IpfsPath (..)
+  , logFunc
+  , minLogLevel
+  , ipfsPath
+  , authUsername
+  , authPassword
+  ) where
 
 import RIO
 

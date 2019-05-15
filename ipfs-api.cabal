@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d7beedf3da7d3408061be8c4e7ad0dee3244fbd09590300b811d0bae3bbb77d7
+-- hash: 32393ba2513d31a5c5402a577722d32c853fae9ca367b23dc1491ac7f3cc6abe
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -16,7 +16,7 @@ maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
 license:        Apache-2.0
 license-file:   LICENSE
-tested-with:    GHC==8.6.5
+tested-with:    GHC==8.6.4
 build-type:     Simple
 extra-source-files:
     README.md
@@ -72,7 +72,6 @@ library
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -107,7 +106,6 @@ executable cli
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -143,7 +141,6 @@ executable server
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -181,7 +178,6 @@ test-suite fission-coverage
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -220,7 +216,6 @@ test-suite fission-docs
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -259,7 +254,6 @@ test-suite fission-doctest
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -295,7 +289,6 @@ test-suite fission-lint
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text
@@ -359,7 +352,6 @@ test-suite fission-test
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , tasty
@@ -402,7 +394,6 @@ benchmark fission-benchmark
     , rio
     , servant
     , servant-auth-server
-    , servant-client
     , servant-multipart
     , servant-server
     , text

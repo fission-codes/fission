@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Main where
+module Main (main) where
 
 import RIO
 
@@ -11,4 +11,4 @@ import           Fission.Config
 import qualified Fission.Web    as Web
 
 main :: IO ()
-main = CLI.defWaiMain =<< return (Web.app (defConfig :: Config))
+main = CLI.defWaiMain (Web.app (defConfig :: Config))

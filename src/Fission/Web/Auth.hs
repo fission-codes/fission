@@ -4,20 +4,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Fission.Web.Auth where
+module Fission.Web.Auth
+  ( server
+  , context
+  , basic
+  ) where
 
 import RIO
 
 import Servant
 
-import Data.Has
-
-import Fission.Config
 import Fission.Web.Server
 
 server :: HasServer api '[BasicAuthCheck ByteString]
-       -- => Has IpfsPath cfg
-       -- => HasLogFunc cfg
        => Proxy api
        -> cfg
        -> RIOServer cfg api

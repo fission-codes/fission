@@ -4,7 +4,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Fission.Web.IPFS where
+module Fission.Web.IPFS
+  ( API
+  , server
+  ) where
 
 import RIO
 

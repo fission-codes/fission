@@ -4,7 +4,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Fission.Monitor where
+module Fission.Monitor
+  ( Config (..)
+  , ekgHost
+  , ekgPort
+  , wai
+  ) where
 
 import RIO
 

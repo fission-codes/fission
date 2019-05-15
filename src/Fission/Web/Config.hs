@@ -3,7 +3,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Fission.Web.Config where
+module Fission.Web.Config
+  ( Config (..)
+  , get
+  ) where
 
 import RIO
 

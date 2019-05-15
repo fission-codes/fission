@@ -1,6 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Fission.Web.Server where
+module Fission.Web.Server
+  ( RIOServer
+  , toHandler
+  ) where
 
 import RIO
 import Servant

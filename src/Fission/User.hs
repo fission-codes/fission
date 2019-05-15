@@ -11,14 +11,20 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
-module Fission.User where
+module Fission.User
+  ( UserT (..)
+  , User
+  , UserId
+  , userEmail
+  , userPassword
+  ) where
 
 import RIO
 
 import Control.Lens (makeLenses)
 
 import Database.Beam
-import Database.Beam.Sqlite
+import Database.Beam.Sqlite ()
 
 data UserT f = User
   { _userEmail    :: Columnar f Text

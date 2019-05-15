@@ -2,7 +2,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Web.Ping where
+module Fission.Web.Ping
+  ( API
+  , server
+  ) where
 
 import RIO
 import Servant

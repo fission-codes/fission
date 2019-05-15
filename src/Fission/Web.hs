@@ -4,7 +4,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Fission.Web where
+module Fission.Web
+  ( API
+  , app
+  , server
+  ) where
 
 import RIO
 
