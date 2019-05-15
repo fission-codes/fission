@@ -28,11 +28,13 @@ $(deriveJSON defaultOptions ''Peer)
 peers :: (MonadRIO cfg m, Has IpfsPath cfg) => m (Either UnicodeException [Peer])
 peers = do
   allRaw <- rawPeers
+  -- textOrErr      <- return $ UTF8.encode allRaw
+  -- peerNamesOrErr <- return $ Text.lines <$> textOrErr
 
   let textOrErr      = UTF8.encode allRaw
       peerNamesOrErr = Text.lines <$> textOrErr
 
-  fmap Peer <$> peerNamesOrErr
+  return $ fmap Peer <$> peerNamesOrErr
 
 rawPeers :: (MonadRIO cfg m, Has IpfsPath cfg) => m Lazy.ByteString
 rawPeers = IPFSProc.run' ["bootstrap", "list"]

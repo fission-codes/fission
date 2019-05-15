@@ -4,7 +4,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Fission.Log
-  ( atLevel
+  ( MinLogLevel (..)
+  , atLevel
   , short
   , simple
   ) where
