@@ -7,9 +7,9 @@ module Fission.Web.Ping where
 import RIO
 import Servant
 
-import Fission.Web.Internal
+import Fission.Web.Server
 
-type API = Get '[JSON] Text
+type API = Get '[JSON, PlainText] Text
 
 api :: Proxy API
 api = Proxy

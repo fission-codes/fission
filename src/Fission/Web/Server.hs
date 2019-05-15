@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Fission.Web.Internal where
+module Fission.Web.Server where
 
 import RIO
 import Servant

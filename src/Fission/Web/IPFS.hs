@@ -12,7 +12,7 @@ import Servant
 import Data.Has
 
 import           Fission.Config
-import           Fission.Web.Internal
+import           Fission.Web.Server
 import qualified Fission.Web.IPFS.Peer   as Peer
 import qualified Fission.Web.IPFS.Upload as Upload
 

@@ -13,7 +13,7 @@ import Servant
 import Data.Has
 
 import Fission.Config
-import Fission.Web.Internal
+import Fission.Web.Server
 
 import qualified Fission.Web.IPFS as IPFS
 import qualified Fission.Web.Ping as Ping
