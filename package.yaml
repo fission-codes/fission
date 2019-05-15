@@ -30,9 +30,6 @@ ghc-options:
 dependencies:
   - aeson
   - base
-  - beam-core
-  - beam-migrate
-  - beam-sqlite
   - bytestring
   - data-has
   - ekg-wai
@@ -40,12 +37,14 @@ dependencies:
   - etc
   - lens
   - monad-logger
+  - persistent
+  - persistent-sqlite
+  - persistent-template
   - rio
   - servant
   - servant-auth-server
   - servant-server
   - servant-multipart
-  - sqlite-simple
   - text
   - typed-process
   - wai

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 84d170daeda19f83f8ff303a005a171c8d3b96ba6fe6bbc998ea209b9a993ca8
+-- hash: e2d8b6c4d1c07065ecd069813ca45cd3ae7cb3e95e9fdcdc182da8ef12b7ced8
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -30,7 +30,6 @@ library
   exposed-modules:
       Fission
       Fission.Config
-      Fission.Database
       Fission.Environment
       Fission.File
       Fission.Internal.Constraint
@@ -60,9 +59,6 @@ library
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -70,12 +66,14 @@ library
     , etc
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -94,9 +92,6 @@ executable cli
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -105,12 +100,14 @@ executable cli
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -130,9 +127,6 @@ executable server
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -141,12 +135,14 @@ executable server
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -166,9 +162,6 @@ test-suite fission-coverage
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -177,6 +170,9 @@ test-suite fission-coverage
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , process
     , regex-compat
     , rio
@@ -184,7 +180,6 @@ test-suite fission-coverage
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -204,9 +199,6 @@ test-suite fission-docs
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , doctest
@@ -216,6 +208,9 @@ test-suite fission-docs
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , process
     , regex-compat
     , rio
@@ -223,7 +218,6 @@ test-suite fission-docs
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -245,9 +239,6 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , doctest
@@ -257,12 +248,14 @@ test-suite fission-doctest
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -282,9 +275,6 @@ test-suite fission-lint
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -293,12 +283,14 @@ test-suite fission-lint
     , hlint
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -313,7 +305,6 @@ test-suite fission-test
   other-modules:
       Fission
       Fission.Config
-      Fission.Database
       Fission.Environment
       Fission.File
       Fission.Internal.Constraint
@@ -344,9 +335,6 @@ test-suite fission-test
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -358,12 +346,14 @@ test-suite fission-test
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , tasty
     , tasty-hspec
     , tasty-hunit
@@ -389,9 +379,6 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , base
-    , beam-core
-    , beam-migrate
-    , beam-sqlite
     , bytestring
     , criterion
     , data-has
@@ -401,12 +388,14 @@ benchmark fission-benchmark
     , ipfs-api
     , lens
     , monad-logger
+    , persistent
+    , persistent-sqlite
+    , persistent-template
     , rio
     , servant
     , servant-auth-server
     , servant-multipart
     , servant-server
-    , sqlite-simple
     , text
     , typed-process
     , wai
