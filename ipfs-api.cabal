@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 32393ba2513d31a5c5402a577722d32c853fae9ca367b23dc1491ac7f3cc6abe
+-- hash: 84d170daeda19f83f8ff303a005a171c8d3b96ba6fe6bbc998ea209b9a993ca8
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -30,6 +30,7 @@ library
   exposed-modules:
       Fission
       Fission.Config
+      Fission.Database
       Fission.Environment
       Fission.File
       Fission.Internal.Constraint
@@ -74,6 +75,7 @@ library
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -108,6 +110,7 @@ executable cli
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -143,6 +146,7 @@ executable server
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -180,6 +184,7 @@ test-suite fission-coverage
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -218,6 +223,7 @@ test-suite fission-docs
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -256,6 +262,7 @@ test-suite fission-doctest
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -291,6 +298,7 @@ test-suite fission-lint
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai
@@ -305,6 +313,7 @@ test-suite fission-test
   other-modules:
       Fission
       Fission.Config
+      Fission.Database
       Fission.Environment
       Fission.File
       Fission.Internal.Constraint
@@ -354,6 +363,7 @@ test-suite fission-test
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , tasty
     , tasty-hspec
     , tasty-hunit
@@ -396,6 +406,7 @@ benchmark fission-benchmark
     , servant-auth-server
     , servant-multipart
     , servant-server
+    , sqlite-simple
     , text
     , typed-process
     , wai

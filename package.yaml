@@ -45,6 +45,7 @@ dependencies:
   - servant-auth-server
   - servant-server
   - servant-multipart
+  - sqlite-simple
   - text
   - typed-process
   - wai
