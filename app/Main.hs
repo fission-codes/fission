@@ -26,6 +26,6 @@ main = withStdoutLogger $ \stdOut -> do
         cfg          = (defConfig :: Config)
 
     runRIO cfg $ do
-      -- Monitor.wai -- TODO only run locally in dev
+      Monitor.wai -- TODO only run locally in dev
       logInfo $ "Servant running at port " <> display port <> "\n"
       liftIO $ runSettings settings $ Web.app cfg

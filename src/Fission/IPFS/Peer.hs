@@ -1,7 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Fission.IPFS.Peer where
@@ -12,7 +10,6 @@ import qualified RIO.Text            as Text
 
 import Data.Aeson
 import Data.Aeson.TH
-
 import Data.Has
 
 import qualified Fission.Internal.UTF8 as UTF8
