@@ -6,7 +6,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Fission.Web.IPFS.Upload where
+module Fission.Web.IPFS.Upload
+  ( API
+  , server
+  , api
+  ) where
 
 import RIO
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 600a1af700addb055d094cca054ef1823852bc9382da7190c1a026c9238075ba
+-- hash: d7beedf3da7d3408061be8c4e7ad0dee3244fbd09590300b811d0bae3bbb77d7
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -16,7 +16,7 @@ maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
 license:        Apache-2.0
 license-file:   LICENSE
-tested-with:    GHC==8.6.3
+tested-with:    GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     README.md
@@ -55,10 +55,13 @@ library
       Paths_ipfs_api
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -86,10 +89,13 @@ executable cli
       Paths_ipfs_api
   hs-source-dirs:
       cli
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -119,10 +125,13 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -152,10 +161,13 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -187,10 +199,13 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , doctest
@@ -223,12 +238,15 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
     , QuickCheck
     , aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , doctest
@@ -259,10 +277,13 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -317,10 +338,13 @@ test-suite fission-test
       src
       test
       test/testsuite
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , data-has
     , ekg-wai
@@ -359,10 +383,13 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
-  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , bytestring
     , criterion
     , data-has

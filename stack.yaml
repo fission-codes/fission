@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-13.11
+resolver: lts-13.21
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -39,8 +39,10 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - alex-3.2.4
+- beam-migrate-0.4.0.1
+- beam-sqlite-0.4.0.0
 - ekg-wai-0.1.0.3
-- happy-1.19.9
+- happy-1.19.10
 - servant-multipart-0.11.4
 - tasty-rerun-1.1.14
 

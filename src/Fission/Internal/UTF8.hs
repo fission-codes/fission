@@ -1,6 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Fission.Internal.UTF8 where
+module Fission.Internal.UTF8
+  ( Textable (..)
+  , showLazyBS
+  , textToLazyBS
+  ) where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy

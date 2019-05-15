@@ -1,8 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
-module Fission.Environment where
+module Fission.Environment (Environment (..)) where
 
 import RIO
 import RIO.Text

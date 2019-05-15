@@ -16,13 +16,13 @@ import Fission.Config
 import Fission.Web.Server
 
 server :: HasServer api '[BasicAuthCheck ByteString]
-       => Has IpfsPath cfg
-       => HasLogFunc cfg
+       -- => Has IpfsPath cfg
+       -- => HasLogFunc cfg
        => Proxy api
        -> cfg
        -> RIOServer cfg api
        -> Server api
-server api cfg serv = hoistServerWithContext api context (toHandler cfg) serv
+server api cfg = hoistServerWithContext api context (toHandler cfg)
 
 context :: Proxy (BasicAuthCheck ByteString ': '[])
 context = Proxy

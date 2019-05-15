@@ -5,7 +5,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Fission.Web.IPFS.Upload.Multipart where
+module Fission.Web.IPFS.Upload.Multipart
+  ( API
+  , server
+  , api
+  ) where
 
 import RIO
 
@@ -24,7 +28,7 @@ type API = MultipartForm Mem (MultipartData Mem)
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server form =
   case lookupFile "file" form of
-    Just (FileData { fdPayload }) -> do
+    Just FileData { fdPayload } -> do
       hash <- IPFS.upload fdPayload
       logInfo $ "Generated address: " <> display hash
       return hash

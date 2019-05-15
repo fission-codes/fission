@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 
-module Fission.File where
+module Fission.File (Serialized (..)) where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy

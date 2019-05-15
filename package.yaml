@@ -7,13 +7,21 @@ copyright: © 2019 Brooklyn Zelenka
 license: Apache-2.0
 license-file: LICENSE
 github: fission-suite/ipfs-api
-tested-with: GHC==8.6.3
+tested-with: GHC==8.6.5
 extra-source-files:
   - README.md
   - CHANGELOG.md
 
 ghc-options:
   - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wredundant-constraints
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Prettier Development
+  - -fprint-unicode-syntax
+  - -fhide-source-paths
   # as recommended in:
   # https://functor.tokyo/blog/2017-07-28-ghc-warnings-you-should-enable
   - -Wincomplete-uni-patterns
@@ -22,6 +30,9 @@ ghc-options:
 dependencies:
   - aeson
   - base
+  - beam-core
+  - beam-migrate
+  - beam-sqlite
   - bytestring
   - data-has
   - ekg-wai
