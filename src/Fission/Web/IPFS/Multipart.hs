@@ -1,30 +1,51 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Fission.Web.IPFS.Multipart where
 
-import RIO
+import           RIO
+import qualified RIO.ByteString.Lazy as Lazy
+
+import Data.Has
 
 import Servant
 import Servant.Multipart
 
-import Fission.Web.Internal
+import           Fission.Config
+import           Fission.Internal.UTF8 as UTF8
+import qualified Fission.IPFS.Upload   as Upload
+import           Fission.Web.Internal
 
-type API = MultipartForm Tmp (MultipartData Tmp)
+type API = MultipartForm Mem (MultipartData Mem)
         :> Post '[PlainText] Text
 
-server :: RIOServer cfg API
-server multipartData = do
-  return str
+-- instance FromMultipart Mem Utf8Builder where
+--     -- fromMultipart form = undefined
+--     fromMultipart form@(MultipartData{..}) =
+--         case lookupFile "file" form of
+--           Nothing                       -> Nothing
+--           Just (FileData { fdPayload }) -> Just $ foldr (\chunk acc -> display chunk <> acc) "" $  toStrict fdPayload
 
-  where str = "The form was submitted with "
-                <> textDisplay nInputs <> " textual inputs and "
-                <> textDisplay nFiles  <> " files."
-        nInputs = length (inputs multipartData)
-        nFiles  = length (files multipartData)
+server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
+server form@(MultipartData{..}) =
+  Upload.runBS raw >>= \case
+    Left unicodeErr ->
+      throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
+
+    Right hash -> do
+      logInfo $ "Generated hash: " <> display hash
+      return hash
+
+  where
+    Just (FileData {..}) = lookupFile "file" form
+    raw = (fdPayload :: Lazy.ByteString)
 
 api :: Proxy API
 api = Proxy

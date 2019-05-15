@@ -18,8 +18,13 @@ import Fission.Internal.Constraint
 import Fission.Config
 
 run :: (MonadRIO cfg m, Has IpfsPath cfg) => Text -> m (Either UnicodeException Text)
-run = fmap (Bi.second $ Text.dropSuffix "\n")
-    . fmap UTF8.encode
-    . IPFS.Proc.run ["add", "-q"]
+run = runBS
     . Lazy.fromStrict
     . encodeUtf8
+
+runBS :: (MonadRIO cfg m, Has IpfsPath cfg) => Lazy.ByteString -> m (Either UnicodeException Text)
+runBS = fmap (Bi.second $ Text.dropSuffix "\n") -- remor
+      . fmap UTF8.encode
+      . IPFS.Proc.run ["add", "-q"]
+
+removeNewline
