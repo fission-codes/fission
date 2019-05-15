@@ -29,6 +29,7 @@ dependencies:
   - lens
   - monad-logger
   - rio
+  - servant
   - servant-server
   - servant-multipart
   - text

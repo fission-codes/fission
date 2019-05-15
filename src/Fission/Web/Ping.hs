@@ -7,7 +7,7 @@ module Fission.Web.Ping where
 import RIO
 import Servant
 
-import Fission.Web.Internal
+import Fission.Web.Server
 
 type API = Get '[JSON, PlainText] Text
 

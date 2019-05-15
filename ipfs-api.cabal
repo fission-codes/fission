@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c7d2373f10a4b616cce315d83bb611616acca338507e3dec381c2fd90da69443
+-- hash: 75d69eb548fced5467b414ba44fee0b4afe6f13b01a5869a6d3c4954d155d743
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -31,21 +31,24 @@ library
       Fission
       Fission.Config
       Fission.Environment
+      Fission.File
       Fission.Internal.Constraint
       Fission.Internal.UTF8
+      Fission.IPFS
+      Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
-      Fission.IPFS.Upload
       Fission.Log
       Fission.Monitor
       Fission.Web
       Fission.Web.Config
-      Fission.Web.Internal
       Fission.Web.IPFS
-      Fission.Web.IPFS.Multipart
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
+      Fission.Web.IPFS.Upload.Multipart
+      Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Server
   other-modules:
       Paths_ipfs_api
   hs-source-dirs:
@@ -61,6 +64,7 @@ library
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -89,6 +93,7 @@ executable cli
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -118,6 +123,7 @@ executable server
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -149,6 +155,7 @@ test-suite fission-coverage
     , process
     , regex-compat
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -181,6 +188,7 @@ test-suite fission-docs
     , process
     , regex-compat
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -213,6 +221,7 @@ test-suite fission-doctest
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -242,6 +251,7 @@ test-suite fission-lint
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text
@@ -259,21 +269,24 @@ test-suite fission-test
       Fission
       Fission.Config
       Fission.Environment
+      Fission.File
       Fission.Internal.Constraint
       Fission.Internal.UTF8
+      Fission.IPFS
+      Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
-      Fission.IPFS.Upload
       Fission.Log
       Fission.Monitor
       Fission.Web
       Fission.Web.Config
-      Fission.Web.Internal
       Fission.Web.IPFS
-      Fission.Web.IPFS.Multipart
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
+      Fission.Web.IPFS.Upload.Multipart
+      Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Server
       Paths_ipfs_api
   hs-source-dirs:
       src
@@ -294,6 +307,7 @@ test-suite fission-test
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , tasty
@@ -330,6 +344,7 @@ benchmark fission-benchmark
     , lens
     , monad-logger
     , rio
+    , servant
     , servant-multipart
     , servant-server
     , text

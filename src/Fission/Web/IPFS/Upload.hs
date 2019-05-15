@@ -1,33 +1,27 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Fission.Web.IPFS.Upload where
 
 import RIO
 
-import Servant
 import Data.Has
+import Servant
 
 import           Fission.Config
-import qualified Fission.Internal.UTF8 as UTF8
-import qualified Fission.IPFS.Upload   as Upload
-import           Fission.Web.Internal
+import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
+import qualified Fission.Web.IPFS.Upload.Simple    as Simple
+import           Fission.Web.Server
 
-type API = ReqBody '[OctetStream] Lazy.ByteString
-        :> Post    '[OctetStream] Lazy.ByteString
+type API = Simple.API :<|> Multipart.API
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
-server input = Upload.run input >>= \case
-  Left unicodeErr ->
-    throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
-
-  Right hash -> do
-    logInfo $ "Generated hash: " <> display hash
-    return hash
+server = Simple.server :<|> Multipart.server
 
 api :: Proxy API
 api = Proxy

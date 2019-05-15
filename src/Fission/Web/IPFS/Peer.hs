@@ -12,15 +12,16 @@ import RIO
 import Servant
 import Data.Has
 
-import           Fission.Config
-import qualified Fission.Internal.UTF8 as UTF8
-import           Fission.IPFS.Peer     as Peer
-import           Fission.Web.Internal
+import Fission.Config
+import Fission.Web.Server
 
-type API = Get '[JSON] [Peer]
+import qualified Fission.Internal.UTF8 as UTF8
+import qualified Fission.IPFS          as IPFS
+
+type API = Get '[JSON] [IPFS.Peer]
 
 server :: Has IpfsPath cfg => RIOServer cfg API
-server = Peer.all >>= \case
+server = IPFS.peers >>= \case
   Left  unicodeErr -> throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
   Right peers      -> return peers
 
