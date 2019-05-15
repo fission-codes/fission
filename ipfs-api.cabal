@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: acd9b78f360795bcf1f639342ea0160c290bcc0dbed8e7de7fcf2df6c41bc97a
+-- hash: 0afa0bfbc75858a5bd53d297a975178192b60ae62a79364873842abb31a3792f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -67,7 +67,6 @@ library
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 executable cli
@@ -96,7 +95,6 @@ executable cli
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 executable server
@@ -124,7 +122,6 @@ executable server
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 test-suite fission-coverage
@@ -155,7 +152,6 @@ test-suite fission-coverage
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 test-suite fission-docs
@@ -187,7 +183,6 @@ test-suite fission-docs
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 test-suite fission-doctest
@@ -219,7 +214,6 @@ test-suite fission-doctest
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 test-suite fission-lint
@@ -248,7 +242,6 @@ test-suite fission-lint
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 test-suite fission-test
@@ -305,7 +298,6 @@ test-suite fission-test
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010
 
 benchmark fission-benchmark
@@ -335,5 +327,4 @@ benchmark fission-benchmark
     , wai-extra
     , wai-logger
     , warp
-    , warp-tls
   default-language: Haskell2010

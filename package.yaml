@@ -36,7 +36,6 @@ dependencies:
   - wai-extra
   - wai-logger
   - warp
-  - warp-tls
 
 library:
   source-dirs: src
