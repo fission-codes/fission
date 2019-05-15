@@ -9,11 +9,13 @@ module Fission.Config
   , AuthUsername (..)
   , AuthPassword (..)
   , IpfsPath (..)
+  , DBPath (..)
   , logFunc
   , minLogLevel
   , ipfsPath
   , authUsername
   , authPassword
+  , dbPath
   ) where
 
 import RIO
@@ -28,6 +30,9 @@ import qualified Fission.Log as Log
 newtype IpfsPath = IpfsPath { unIpfsPath :: FilePath }
   deriving (Show, IsString)
 
+newtype DBPath = DBPath { unDB :: FilePath }
+  deriving (Show, IsString)
+
 newtype AuthUsername = AuthUsername { unAuthUsername :: ByteString }
 newtype AuthPassword = AuthPassword { unAuthPassword :: ByteString }
 
@@ -37,6 +42,7 @@ data Config = Config
   , _ipfsPath     :: IpfsPath
   , _authUsername :: AuthUsername -- FIXME
   , _authPassword :: AuthPassword -- FIXME
+  , _dbPath       :: DBPath
   }
 
 makeLenses ''Config
@@ -53,6 +59,9 @@ instance Has AuthUsername Config where
 instance Has AuthPassword Config where
   hasLens = authPassword
 
+instance Has DBPath Config where
+  hasLens = dbPath
+
 instance HasLogFunc Config where
   logFuncL = logFunc
 
@@ -63,4 +72,5 @@ instance DefConfig Config where
     , _ipfsPath     = IpfsPath "/usr/local/bin/ipfs"
     , _authUsername = AuthUsername "CHANGEME" -- FIXME
     , _authPassword = AuthPassword "SUPERSECRET" -- FIXME
+    , _dbPath       = DBPath "fission.sqlite"
     }

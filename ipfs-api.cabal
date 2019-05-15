@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e2d8b6c4d1c07065ecd069813ca45cd3ae7cb3e95e9fdcdc182da8ef12b7ced8
+-- hash: 2d4423b7b32ce0541d84505d6a2a83720821ec7ae4df4000e100149f8e9cdb51
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -16,7 +16,7 @@ maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
 license:        Apache-2.0
 license-file:   LICENSE
-tested-with:    GHC==8.6.4
+tested-with:    GHC==8.6.3
 build-type:     Simple
 extra-source-files:
     README.md
@@ -66,10 +66,9 @@ library
     , etc
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -100,10 +99,9 @@ executable cli
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -135,10 +133,9 @@ executable server
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -170,12 +167,11 @@ test-suite fission-coverage
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , process
     , regex-compat
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -208,12 +204,11 @@ test-suite fission-docs
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , process
     , regex-compat
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -248,10 +243,9 @@ test-suite fission-doctest
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -283,10 +277,9 @@ test-suite fission-lint
     , hlint
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -346,10 +339,9 @@ test-suite fission-test
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart
@@ -388,10 +380,9 @@ benchmark fission-benchmark
     , ipfs-api
     , lens
     , monad-logger
-    , persistent
-    , persistent-sqlite
-    , persistent-template
     , rio
+    , selda
+    , selda-sqlite
     , servant
     , servant-auth-server
     , servant-multipart

@@ -9,8 +9,6 @@ module Fission.IPFS
   , peers
   ) where
 
-import Fission.IPFS.Address
-
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
