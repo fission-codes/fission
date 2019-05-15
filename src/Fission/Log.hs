@@ -24,7 +24,7 @@ atLevel :: MonadRIO cfg m
         => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
 atLevel cs src lvl msg = do
   MinLogLevel minLevel <- view hasLens
-  when lvl >= minLevel $
+  when (lvl >= minLevel) $
     liftIO $ simple cs src lvl msg
 
 simple :: MonadIO m => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
