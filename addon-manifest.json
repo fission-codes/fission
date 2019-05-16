@@ -3,7 +3,7 @@
   "api": {
     "config_vars_prefix": "FISSION_IPFS",
     "config_vars": [
-      "FISSION_IPFS_URL"
+      "URL"
     ],
     "password": "PASSWORD",
     "sso_salt": "SALT",

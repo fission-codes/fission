@@ -35,6 +35,8 @@ dependencies:
   - ekg-wai
   - envy
   - etc
+  - http-client
+  - hourglass
   - lens
   - monad-logger
   - rio
@@ -42,10 +44,12 @@ dependencies:
   - selda-sqlite
   - servant
   - servant-auth-server
+  - servant-client
   - servant-server
   - servant-multipart
   - text
   - typed-process
+  - uuid
   - wai
   - wai-extra
   - wai-logger

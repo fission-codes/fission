@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2d4423b7b32ce0541d84505d6a2a83720821ec7ae4df4000e100149f8e9cdb51
+-- hash: 590b49d7a88047711bc4eac138dd3849435353e06229c49fd11ef682ebd21d50
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -44,6 +44,7 @@ library
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Config
+      Fission.Web.Heroku
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -64,6 +65,8 @@ library
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , lens
     , monad-logger
     , rio
@@ -71,10 +74,12 @@ library
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -96,6 +101,8 @@ executable cli
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -104,10 +111,12 @@ executable cli
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-cli
     , wai-extra
@@ -130,6 +139,8 @@ executable server
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -138,10 +149,12 @@ executable server
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -164,6 +177,8 @@ test-suite fission-coverage
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -174,10 +189,12 @@ test-suite fission-coverage
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -201,6 +218,8 @@ test-suite fission-docs
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -211,10 +230,12 @@ test-suite fission-docs
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -240,6 +261,8 @@ test-suite fission-doctest
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -248,10 +271,12 @@ test-suite fission-doctest
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -275,6 +300,8 @@ test-suite fission-lint
     , envy
     , etc
     , hlint
+    , hourglass
+    , http-client
     , lens
     , monad-logger
     , rio
@@ -282,10 +309,12 @@ test-suite fission-lint
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -312,6 +341,7 @@ test-suite fission-test
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Config
+      Fission.Web.Heroku
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -333,9 +363,11 @@ test-suite fission-test
     , ekg-wai
     , envy
     , etc
+    , hourglass
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -344,6 +376,7 @@ test-suite fission-test
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , tasty
@@ -354,6 +387,7 @@ test-suite fission-test
     , text
     , transformers
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
@@ -377,6 +411,8 @@ benchmark fission-benchmark
     , ekg-wai
     , envy
     , etc
+    , hourglass
+    , http-client
     , ipfs-api
     , lens
     , monad-logger
@@ -385,10 +421,12 @@ benchmark fission-benchmark
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-client
     , servant-multipart
     , servant-server
     , text
     , typed-process
+    , uuid
     , wai
     , wai-extra
     , wai-logger
