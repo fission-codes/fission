@@ -29,6 +29,7 @@ ghc-options:
 
 dependencies:
   - aeson
+  - aeson-casing
   - base
   - bytestring
   - data-has
@@ -48,6 +49,7 @@ dependencies:
   - servant-server
   - servant-multipart
   - text
+  - time
   - typed-process
   - uuid
   - wai

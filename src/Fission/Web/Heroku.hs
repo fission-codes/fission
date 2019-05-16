@@ -9,13 +9,19 @@
 module Fission.Web.Heroku where
 
 import RIO
+import RIO.Char (toUpper)
+
+import Control.Lens (makeLenses)
 
 import Data.Aeson
+import Data.Aeson.Casing
+import Data.Aeson.TH
+
 import Data.Proxy
 import Data.UUID
 
+import Data.Time.Clock
 import GHC.Generics
-import System.Hourglass
 import Time.Types
 
 import           Network.HTTP.Client      (defaultManagerSettings, newManager)
@@ -55,33 +61,20 @@ Accept: application/vnd.heroku-addons+json; version=3
 -}
 
 data OAuthGrant = OAuthGrant
-  { _code       :: UUID -- ^ may be exchanged for an access_token that is scoped to the resource being provisioned for use in the Platform API
-  , _expires_at :: DateTime -- ^ the time at which the grant expires (ensure you have exchanged the code before this time) defaults to 5 minutes from now
-  , _type       :: Text -- ^ the oauth grant type
+  { _code      :: UUID -- ^ may be exchanged for an access_token that is scoped to the resource being provisioned for use in the Platform API
+  , _expiresAt :: UTCTime -- ^ the time at which the grant expires (ensure you have exchanged the code before this time) defaults to 5 minutes from now
+  , _type      :: Text -- ^ the oauth grant type
   } deriving (Show, Eq)
 
-$(deriveJSON defaultOptions ''OAuthGrant)
+$(deriveJSON (defaultOptions { fieldLabelModifier = snakeCase }) ''OAuthGrant)
 
-{-
-REGION
+data Test = Test
+  { _fooThere :: Text
+  , _bar      :: Int
+  } deriving (Show, Eq)
 
-Specifies the geographical region of the app that the add-on is being provisioned to— for the common run time, either amazon-web-services::us-east-1 or amazon-web-services::eu-west-1 are possible. The region values for private spaces are:
-
-    amazon-web-services::us-west-1 (california)
-    amazon-web-services::eu-west-1 (dublin)
-    amazon-web-services::eu-central-1 (frankfurt)
-    amazon-web-services::us-west-2 (oregon)
-    amazon-web-services::ap-southeast-1 (singapore)
-    amazon-web-services::ap-southeast-2 (sydney)
-    amazon-web-services::ap-northeast-1 (tokyo)
-    amazon-web-services::us-east-1 (virginia)
-
-Use this to provision the resource in geographical proximity to the app, ignore it (if your add-on is not latency sensitive) or respond with an error if your add-on does not support apps in the region specified
-
----
-
-e.g. amazon-web-services::us-east-1
--}
+makeLenses ''Test
+$(deriveJSON (defaultOptions { fieldLabelModifier = drop 1 . snakeCase }) ''Test)
 
 data Region
   = California
@@ -92,33 +85,55 @@ data Region
   | Sydney
   | Tokyo
   | Virginia
-  | Other Text -- Juuuust in case! This shouldn't break the API!
+  | Other Text -- ^ Being very lenient for now
   deriving (Show, Eq)
 
 instance ToJSON Region where
-  toEncoding = toJSON
-
   toJSON = \case
-    California -> "amazon-web-services::us-west-1"
-    Dublin     -> "amazon-web-services::eu-west-1"
-    Frankfurt  -> "amazon-web-services::eu-central-1"
-    Oregon     -> "amazon-web-services::us-west-2"
-    Singapore  -> "amazon-web-services::ap-southeast-1"
-    Sydney     -> "amazon-web-services::ap-southeast-2"
-    Tokyo      -> "amazon-web-services::ap-northeast-1"
-    Virginia   -> "amazon-web-services::us-east-1"
-    Other txt  -> displayShow txt
+    California -> String "amazon-web-services::us-west-1"
+    Dublin     -> String "amazon-web-services::eu-west-1"
+    Frankfurt  -> String "amazon-web-services::eu-central-1"
+    Oregon     -> String "amazon-web-services::us-west-2"
+    Singapore  -> String "amazon-web-services::ap-southeast-1"
+    Sydney     -> String "amazon-web-services::ap-southeast-2"
+    Tokyo      -> String "amazon-web-services::ap-northeast-1"
+    Virginia   -> String "amazon-web-services::us-east-1"
+    Other txt  -> String txt
+
+instance FromJSON Region where
+  parseJSON = withText "Region" $ \case
+    "amazon-web-services::us-west-1"      -> return California
+    "amazon-web-services::eu-west-1"      -> return Dublin
+    "amazon-web-services::eu-central-1"   -> return Frankfurt
+    "amazon-web-services::us-west-2"      -> return Oregon
+    "amazon-web-services::ap-southeast-1" -> return Singapore
+    "amazon-web-services::ap-southeast-2" -> return Sydney
+    "amazon-web-services::ap-northeast-1" -> return Tokyo
+    "amazon-web-services::us-east-1"      -> return Virginia
+    other                                 -> return $ Other other
+
+data Plan = Free | Paid
+  deriving (Show, Eq)
+
+$(deriveJSON defaultOptions ''Plan)
 
 data ProvisionReq = ProvisionReq
-  { _callback_url :: Text -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
-  , _name         :: Text -- ^ Logical name of the resource being provisioned.
-  , _oauth_grant  :: Maybe OAuthGrant -- ^ OAuth object details (nullable)
-  , _plan         :: Text -- ^ the name of the plan to provision (e.g. `basic`)
-  , _region       :: Text -- TODO Update to Region / see above
-  , _uuid         :: UUID -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
+  { _callbackUrl :: Text             -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
+  , _name        :: Text             -- ^ Logical name of the resource being provisioned.
+  , _oauthGrant  :: Maybe OAuthGrant -- ^ OAuth object details (nullable).
+  , _plan        :: Plan             -- ^ Name of the plan to provision (e.g. `basic`).
+  , _region      :: Region           -- ^ Physical hosting region of the requesting client.
+  , _uuid        :: UUID             -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
   } deriving (Show, Eq)
 
-$(deriveJSON defaultOptions ''ProvisionReq)
+$(deriveJSON (defaultOptions { fieldLabelModifier = snakeCase }) ''ProvisionReq)
+
+data HerokuConfig = HerokuConfig { _fissionApiUrl :: Text }
+  deriving (Show, Eq)
+
+$(deriveJSON
+    (defaultOptions { fieldLabelModifier = (fmap toUpper) . snakeCase })
+    ''HerokuConfig)
 
 {-
 Response Parameters
@@ -143,18 +158,19 @@ the prefix PRIMARY_DB.
 Example:
 HTTP/1.1 200 OK
 { "MYADDON_URL": "http://myaddon.com/52e82f5d73" }
+
 -}
 
 data ProvisionResp = ProvisionResp
-  { _id      :: Text
+  { _id      :: UUID
   , _message :: Text
+  , _config  :: HerokuConfig
   } deriving (Show, Eq)
 
 $(deriveJSON defaultOptions ''ProvisionResp)
 
 type ProvisionAPI = ReqBody '[JSON] ProvisionReq
       :> Post    '[JSON] ProvisionResp
-
 
 -----------------------
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 590b49d7a88047711bc4eac138dd3849435353e06229c49fd11ef682ebd21d50
+-- hash: 032de8e06a4998a6b9a72643c25ce2980ae7a17485b646356128c4af92e94080
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -59,6 +59,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -78,6 +79,7 @@ library
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -95,6 +97,7 @@ executable cli
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -115,6 +118,7 @@ executable cli
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -133,6 +137,7 @@ executable server
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -153,6 +158,7 @@ executable server
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -171,6 +177,7 @@ test-suite fission-coverage
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -193,6 +200,7 @@ test-suite fission-coverage
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -211,6 +219,7 @@ test-suite fission-docs
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -234,6 +243,7 @@ test-suite fission-docs
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -254,6 +264,7 @@ test-suite fission-doctest
       Glob
     , QuickCheck
     , aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -275,6 +286,7 @@ test-suite fission-doctest
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -293,6 +305,7 @@ test-suite fission-lint
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -313,6 +326,7 @@ test-suite fission-lint
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
@@ -357,6 +371,7 @@ test-suite fission-test
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , data-has
@@ -385,6 +400,7 @@ test-suite fission-test
     , tasty-rerun
     , tasty-smallcheck
     , text
+    , time
     , transformers
     , typed-process
     , uuid
@@ -404,6 +420,7 @@ benchmark fission-benchmark
   ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
+    , aeson-casing
     , base
     , bytestring
     , criterion
@@ -425,6 +442,7 @@ benchmark fission-benchmark
     , servant-multipart
     , servant-server
     , text
+    , time
     , typed-process
     , uuid
     , wai
