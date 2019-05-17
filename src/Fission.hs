@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission where
+module Fission (Fission) where
 
 import Fission.Config
 import RIO

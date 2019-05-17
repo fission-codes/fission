@@ -14,6 +14,14 @@ extra-source-files:
 
 ghc-options:
   - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wredundant-constraints
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Prettier Development
+  - -fprint-unicode-syntax
+  - -fhide-source-paths
   # as recommended in:
   # https://functor.tokyo/blog/2017-07-28-ghc-warnings-you-should-enable
   - -Wincomplete-uni-patterns
@@ -21,19 +29,29 @@ ghc-options:
 
 dependencies:
   - aeson
+  - aeson-casing
   - base
   - bytestring
   - data-has
   - ekg-wai
   - envy
+  - etc
+  - http-client
+  - hourglass
   - lens
   - monad-logger
   - rio
+  - selda
+  - selda-sqlite
   - servant
+  - servant-auth-server
+  - servant-client
   - servant-server
   - servant-multipart
   - text
+  - time
   - typed-process
+  - uuid
   - wai
   - wai-extra
   - wai-logger

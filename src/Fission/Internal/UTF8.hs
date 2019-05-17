@@ -1,6 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Internal.UTF8 where
+module Fission.Internal.UTF8
+  ( Textable (..)
+  , showLazyBS
+  , stripNewline
+  , textToLazyBS
+  ) where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
@@ -20,3 +26,6 @@ showLazyBS = textToLazyBS . textDisplay . displayShow
 
 textToLazyBS :: Text -> Lazy.ByteString
 textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
+
+stripNewline :: Lazy.ByteString -> Lazy.ByteString
+stripNewline bs = maybe bs id $ Lazy.stripSuffix "\n" bs

@@ -40,7 +40,7 @@ packages:
 extra-deps:
 - alex-3.2.4
 - ekg-wai-0.1.0.3
-- happy-1.19.9
+- happy-1.19.10
 - servant-multipart-0.11.4
 - tasty-rerun-1.1.14
 

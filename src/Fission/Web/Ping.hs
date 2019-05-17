@@ -2,7 +2,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Web.Ping where
+module Fission.Web.Ping
+  ( API
+  , server
+  ) where
 
 import RIO
 import Servant
@@ -10,9 +13,6 @@ import Servant
 import Fission.Web.Server
 
 type API = Get '[JSON, PlainText] Text
-
-api :: Proxy API
-api = Proxy
 
 server :: RIOServer cfg API
 server = return "pong"

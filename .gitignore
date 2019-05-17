@@ -4,6 +4,8 @@
 
 *.pem
 *.csr
+*.sqlite
+*.db
 
 ### Haskell ###
 dist

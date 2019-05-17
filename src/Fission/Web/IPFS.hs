@@ -1,10 +1,13 @@
-{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Fission.Web.IPFS where
+module Fission.Web.IPFS
+  ( API
+  , server
+  ) where
 
 import RIO
 
@@ -21,6 +24,3 @@ type API = {- Root -} Upload.API
 
 server :: (HasLogFunc cfg, Has IpfsPath cfg) => RIOServer cfg API
 server = Upload.server :<|> Peer.server
-
-api :: Proxy API
-api = Proxy

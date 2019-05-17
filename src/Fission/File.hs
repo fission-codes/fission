@@ -1,7 +1,8 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 
-module Fission.File where
+module Fission.File (Serialized (..)) where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
@@ -9,7 +10,10 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified Data.ByteString.Builder as Builder
 import           Servant
 
+-- TODO should this be `Serialized.hs` or similar?
+
 newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
+  deriving (Show, Eq)
 
 instance Display Serialized where
   display = Utf8Builder . Builder.lazyByteString . unserialize
