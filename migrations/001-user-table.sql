@@ -1,9 +1,0 @@
-ATTACH DATABASE "fission.db" AS DB
-
-CREATE TABLE DB.users (
-  email text NOT NULL PRIMARY KEY,
-  password text NOT NULL,
-
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
-);
