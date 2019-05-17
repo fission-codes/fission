@@ -8,7 +8,6 @@
 module Fission.Web.IPFS.Peer
   ( API
   , server
-  , api
   ) where
 
 import RIO
@@ -20,14 +19,12 @@ import Fission.Config
 import Fission.Web.Server
 
 import qualified Fission.Internal.UTF8 as UTF8
-import qualified Fission.IPFS          as IPFS
+import qualified Fission.IPFS.Peer     as IPFS
+import qualified Fission.IPFS.Peer     as IPFS.Peer
 
 type API = Get '[JSON] [IPFS.Peer]
 
 server :: Has IpfsPath cfg => RIOServer cfg API
-server = IPFS.peers >>= \case
+server = IPFS.Peer.all >>= \case
   Left  unicodeErr -> throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
   Right peers      -> return peers
-
-api :: Proxy API
-api = Proxy

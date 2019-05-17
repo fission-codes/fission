@@ -13,6 +13,8 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified Data.ByteString.Builder as Builder
 import           Servant
 
+import qualified Fission.Internal.UTF8 as UTF8
+
 newtype Address = Address { unaddress :: Lazy.ByteString }
 
 instance Display Address where
@@ -25,7 +27,4 @@ instance MimeRender OctetStream Address where
   mimeRender _proxy = unaddress
 
 mkAddress :: Lazy.ByteString -> Address
-mkAddress = Address . stripNewline
-
-stripNewline :: Lazy.ByteString -> Lazy.ByteString
-stripNewline bs = maybe bs id $ Lazy.stripSuffix "\n" bs
+mkAddress = Address . UTF8.stripNewline

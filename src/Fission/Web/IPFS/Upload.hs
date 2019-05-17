@@ -9,7 +9,6 @@
 module Fission.Web.IPFS.Upload
   ( API
   , server
-  , api
   ) where
 
 import RIO
@@ -26,6 +25,3 @@ type API = Simple.API :<|> Multipart.API
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server = Simple.server :<|> Multipart.server
-
-api :: Proxy API
-api = Proxy

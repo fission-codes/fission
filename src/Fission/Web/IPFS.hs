@@ -24,6 +24,3 @@ type API = {- Root -} Upload.API
 
 server :: (HasLogFunc cfg, Has IpfsPath cfg) => RIOServer cfg API
 server = Upload.server :<|> Peer.server
-
-api :: Proxy API
-api = Proxy

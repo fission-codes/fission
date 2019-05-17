@@ -14,8 +14,5 @@ import Fission.Web.Server
 
 type API = Get '[JSON, PlainText] Text
 
-api :: Proxy API
-api = Proxy
-
 server :: RIOServer cfg API
 server = return "pong"
