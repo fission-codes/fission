@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 72cf7f4c1cf5523aed85cb10c96fbdeff9ed5155231cd05b80d0123a594057e6
+-- hash: 027286f0d94510317d72280a254f68ce549c46b7266d4dbbd01107fbcaf6681c
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -32,19 +32,26 @@ library
       Fission.Config
       Fission.Environment
       Fission.File
+      Fission.Heroku
+      Fission.Heroku.Provision
+      Fission.Heroku.Region
+      Fission.Heroku.UserConfig
       Fission.Internal.Constraint
+      Fission.Internal.JSON
       Fission.Internal.UTF8
       Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
+      Fission.Pricing
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Config
+      Fission.Web.Heroku
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -343,19 +350,26 @@ test-suite fission-test
       Fission.Config
       Fission.Environment
       Fission.File
+      Fission.Heroku
+      Fission.Heroku.Provision
+      Fission.Heroku.Region
+      Fission.Heroku.UserConfig
       Fission.Internal.Constraint
+      Fission.Internal.JSON
       Fission.Internal.UTF8
       Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
+      Fission.Pricing
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Config
+      Fission.Web.Heroku
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
