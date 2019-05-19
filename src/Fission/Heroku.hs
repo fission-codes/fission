@@ -1,21 +1,19 @@
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Fission.Heroku where
 
 import RIO
-import RIO.Char (toUpper)
+-- import RIO.Char (toUpper)
 
-import Control.Lens (makeLenses)
+-- import Control.Lens (makeLenses)
 
-import Data.Aeson
-import Data.Aeson.Casing
-import Data.Aeson.TH
+-- import Data.Aeson
+-- import Data.Aeson.Casing
+-- import Data.Aeson.TH
 
-import Data.Time.Clock
-import Data.UUID
+-- import Data.Time.Clock
+-- import Data.UUID
 
 -- type API = "heroku" :> "resources" :>
 
@@ -45,11 +43,11 @@ Accept: application/vnd.heroku-addons+json; version=3
 
 -}
 
-data OAuthGrant = OAuthGrant
-  { _code      :: UUID -- ^ may be exchanged for an access_token that is scoped to the resource being provisioned for use in the Platform API
-  , _expiresAt :: UTCTime -- ^ the time at which the grant expires (ensure you have exchanged the code before this time) defaults to 5 minutes from now
-  , _type      :: Text -- ^ the oauth grant type
-  } deriving (Show, Eq)
+-- data OAuthGrant = OAuthGrant
+--   { _code      :: UUID -- ^ may be exchanged for an access_token that is scoped to the resource being provisioned for use in the Platform API
+--   , _expiresAt :: UTCTime -- ^ the time at which the grant expires (ensure you have exchanged the code before this time) defaults to 5 minutes from now
+--   , _type      :: Text -- ^ the oauth grant type
+--   } deriving (Show, Eq)
 
-makeLenses ''OAuthGrant
-$(deriveJSON (defaultOptions snake_case ''OAuthGrant)
+-- makeLenses ''OAuthGrant
+--  $(deriveJSON (defaultOptions snake_case ''OAuthGrant)

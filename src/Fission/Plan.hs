@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Fission.Pricing (Plan (..)) where
+module Fission.Plan (Tier (..)) where
 
 import RIO
 
@@ -10,8 +10,8 @@ import Control.Lens (makeLenses)
 import Data.Aeson
 import Data.Aeson.TH
 
-data Plan = Free --  | Paid
+data Tier = Free --  | Paid
   deriving (Show, Eq)
 
-makeLenses ''Plan
-$(deriveJSON defaultOptions ''Plan)
+makeLenses ''Tier
+$(deriveJSON defaultOptions ''Tier)

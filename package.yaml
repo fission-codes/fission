@@ -52,6 +52,7 @@ dependencies:
   - time
   - typed-process
   - uuid
+  - uuid-types
   - wai
   - wai-extra
   - wai-logger

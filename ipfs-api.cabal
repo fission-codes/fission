@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 027286f0d94510317d72280a254f68ce549c46b7266d4dbbd01107fbcaf6681c
+-- hash: 7d09e40594df4be3e8cf5cd65e7432fce43f1d22f7668c747835dc1b7e03332a
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -44,7 +44,8 @@ library
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
-      Fission.Pricing
+      Fission.Orphan.UUID
+      Fission.Plan
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
@@ -89,6 +90,7 @@ library
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -128,6 +130,7 @@ executable cli
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-cli
     , wai-extra
@@ -168,6 +171,7 @@ executable server
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -210,6 +214,7 @@ test-suite fission-coverage
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -253,6 +258,7 @@ test-suite fission-docs
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -296,6 +302,7 @@ test-suite fission-doctest
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -336,6 +343,7 @@ test-suite fission-lint
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -362,7 +370,8 @@ test-suite fission-test
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
-      Fission.Pricing
+      Fission.Orphan.UUID
+      Fission.Plan
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
@@ -418,6 +427,7 @@ test-suite fission-test
     , transformers
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
@@ -459,6 +469,7 @@ benchmark fission-benchmark
     , time
     , typed-process
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
