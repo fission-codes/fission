@@ -10,13 +10,13 @@ module Fission.Web.Heroku where
 
 import RIO
 
-import Data.Has
 import System.Envy
 
 import Servant.API
 import Servant.Client
 
-import Network.HTTP.Client (defaultManagerSettings, newManager)
+import Network.HTTP.Client     (defaultManagerSettings, newManager)
+import Network.HTTP.Client.TLS (newTlsManager, tlsManagerSettings)
 
 import Fission.Config
 import Fission.Heroku.Provision as Provision
@@ -27,7 +27,8 @@ type ProvisionAPI = ReqBody '[JSON] Provision.Request
 -----------------------
 
 type APIA = "heroku" :> Capture "x" Int :> "resources" :> Get '[JSON] Text
-type APIB = "foo" :> Get '[JSON] Text
+-- type APIB = Get '[JSON] Text
+type APIB = "resources" :> Get '[JSON] Text
 
 type API = APIA :<|> APIB
 
@@ -49,14 +50,18 @@ heroku :<|> foo = client api
 queries :: ClientM (Text, Text)
 queries = return ("hi", "there")
 
+-- tlsPort ∷ Int
+tlsPort = 443
+
 run :: IO ()
 run = runRIO (defConfig :: Config) $ do
-  manager' <- liftIO $ newManager defaultManagerSettings
-  resp <- liftIO $ runClientM queries (mkClientEnv manager' (BaseUrl Https "" 443 ""))
+  manager' <- newTlsManager -- tlsManagerSettings
+  resp <- liftIO . runClientM foo
+                . mkClientEnv manager'
+                 $ BaseUrl Https "api.heroku.com" 443 "/heroku"
   case resp of
-    Right (pos, msg) -> do
-      logInfo $ displayShow pos
-      logInfo $ displayShow msg
+    Right txt -> do
+      logInfo $ displayShow txt
 
     Left err ->
       logError $ displayShow err

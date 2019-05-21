@@ -37,6 +37,7 @@ dependencies:
   - envy
   - etc
   - http-client
+  - http-client-tls
   - lens
   - monad-logger
   - rio

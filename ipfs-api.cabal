@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 225160d50632e0a1310f0f4d7de3110fc5c7b7a0539590a49049508a63ecb212
+-- hash: 67299ae80cb874a207b6be20ec2f8a81ef4ae0d6e2db70a66ba607646119ba36
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -74,6 +74,7 @@ library
     , envy
     , etc
     , http-client
+    , http-client-tls
     , lens
     , monad-logger
     , rio
@@ -112,6 +113,7 @@ executable cli
     , envy
     , etc
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
@@ -152,6 +154,7 @@ executable server
     , envy
     , etc
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
@@ -192,6 +195,7 @@ test-suite fission-coverage
     , envy
     , etc
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
@@ -235,6 +239,7 @@ test-suite fission-docs
     , envy
     , etc
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
@@ -280,6 +285,7 @@ test-suite fission-doctest
     , envy
     , etc
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
@@ -321,6 +327,7 @@ test-suite fission-lint
     , etc
     , hlint
     , http-client
+    , http-client-tls
     , lens
     , monad-logger
     , rio
@@ -396,6 +403,7 @@ test-suite fission-test
     , hspec-wai
     , hspec-wai-json
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
@@ -443,6 +451,7 @@ benchmark fission-benchmark
     , envy
     , etc
     , http-client
+    , http-client-tls
     , ipfs-api
     , lens
     , monad-logger
