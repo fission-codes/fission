@@ -16,16 +16,16 @@ ghc-options:
   - -Wall
   - -Wcompat
   - -Widentities
-  - -Wredundant-constraints
+  # Warn about too little
   - -Wmissing-export-lists
   - -Wpartial-fields
+  - -Wincomplete-uni-patterns
+  - -Wincomplete-record-updates
+  # Warn about too much
+  - -Wredundant-constraints
   # Prettier Development
   - -fprint-unicode-syntax
   - -fhide-source-paths
-  # as recommended in:
-  # https://functor.tokyo/blog/2017-07-28-ghc-warnings-you-should-enable
-  - -Wincomplete-uni-patterns
-  - -Wincomplete-record-updates
 
 dependencies:
   - aeson
@@ -37,7 +37,6 @@ dependencies:
   - envy
   - etc
   - http-client
-  - hourglass
   - lens
   - monad-logger
   - rio

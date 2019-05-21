@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7d09e40594df4be3e8cf5cd65e7432fce43f1d22f7668c747835dc1b7e03332a
+-- hash: 225160d50632e0a1310f0f4d7de3110fc5c7b7a0539590a49049508a63ecb212
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -44,7 +44,6 @@ library
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
-      Fission.Orphan.UUID
       Fission.Plan
       Fission.Storage.IPFS
       Fission.Storage.SQLite
@@ -64,7 +63,7 @@ library
       Paths_ipfs_api
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
@@ -74,7 +73,6 @@ library
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , lens
     , monad-logger
@@ -103,7 +101,7 @@ executable cli
       Paths_ipfs_api
   hs-source-dirs:
       cli
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
@@ -113,7 +111,6 @@ executable cli
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , ipfs-api
     , lens
@@ -144,7 +141,7 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , aeson-casing
@@ -154,7 +151,6 @@ executable server
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , ipfs-api
     , lens
@@ -185,7 +181,7 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -fhpc
   build-depends:
       aeson
     , aeson-casing
@@ -195,7 +191,6 @@ test-suite fission-coverage
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , ipfs-api
     , lens
@@ -228,7 +223,7 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
@@ -239,7 +234,6 @@ test-suite fission-docs
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , ipfs-api
     , lens
@@ -272,7 +266,7 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
     , QuickCheck
@@ -285,7 +279,6 @@ test-suite fission-doctest
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , ipfs-api
     , lens
@@ -316,7 +309,7 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
@@ -327,7 +320,6 @@ test-suite fission-lint
     , envy
     , etc
     , hlint
-    , hourglass
     , http-client
     , lens
     , monad-logger
@@ -370,7 +362,6 @@ test-suite fission-test
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
-      Fission.Orphan.UUID
       Fission.Plan
       Fission.Storage.IPFS
       Fission.Storage.SQLite
@@ -391,7 +382,7 @@ test-suite fission-test
       src
       test
       test/testsuite
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , aeson-casing
@@ -401,7 +392,6 @@ test-suite fission-test
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -441,7 +431,7 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
@@ -452,7 +442,6 @@ benchmark fission-benchmark
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
     , ipfs-api
     , lens
