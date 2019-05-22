@@ -38,6 +38,7 @@ dependencies:
   - etc
   - http-client
   - http-client-tls
+  - http-media
   - lens
   - monad-logger
   - rio

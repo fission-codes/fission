@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 67299ae80cb874a207b6be20ec2f8a81ef4ae0d6e2db70a66ba607646119ba36
+-- hash: fe7b32df2a0058f4e7fa22b25b16eec86bd746dfb30f4cf90d2936798eac8af8
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -59,6 +59,7 @@ library
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
       Fission.Web.Server
+      Fission.Web.Tls
   other-modules:
       Paths_ipfs_api
   hs-source-dirs:
@@ -67,6 +68,7 @@ library
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -75,6 +77,7 @@ library
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , lens
     , monad-logger
     , rio
@@ -106,6 +109,7 @@ executable cli
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -114,6 +118,7 @@ executable cli
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
@@ -147,6 +152,7 @@ executable server
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -155,6 +161,7 @@ executable server
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
@@ -188,6 +195,7 @@ test-suite fission-coverage
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -196,6 +204,7 @@ test-suite fission-coverage
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
@@ -231,6 +240,7 @@ test-suite fission-docs
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -240,6 +250,7 @@ test-suite fission-docs
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
@@ -277,6 +288,7 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -286,6 +298,7 @@ test-suite fission-doctest
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
@@ -319,6 +332,7 @@ test-suite fission-lint
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -328,6 +342,7 @@ test-suite fission-lint
     , hlint
     , http-client
     , http-client-tls
+    , http-media
     , lens
     , monad-logger
     , rio
@@ -384,6 +399,7 @@ test-suite fission-test
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
       Fission.Web.Server
+      Fission.Web.Tls
       Paths_ipfs_api
   hs-source-dirs:
       src
@@ -393,6 +409,7 @@ test-suite fission-test
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -404,6 +421,7 @@ test-suite fission-test
     , hspec-wai-json
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
@@ -443,6 +461,7 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , aeson-casing
+    , aeson-pretty
     , base
     , bytestring
     , criterion
@@ -452,6 +471,7 @@ benchmark fission-benchmark
     , etc
     , http-client
     , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
