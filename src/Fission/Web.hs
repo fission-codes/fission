@@ -47,7 +47,7 @@ app cfg =
 
 server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server = Ping.server
-  :<|> (\_user -> IPFS.server) {- TODO use `User` -}
+  :<|> const IPFS.server {- TODO use `User` -}
   :<|> Heroku.server
 
 api :: Proxy API
