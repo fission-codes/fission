@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fe7b32df2a0058f4e7fa22b25b16eec86bd746dfb30f4cf90d2936798eac8af8
+-- hash: 0af8708e73a0f18911cf7cc269fc15170640ea9f81b631545384cab91daa1cf4
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -32,10 +32,6 @@ library
       Fission.Config
       Fission.Environment
       Fission.File
-      Fission.Heroku
-      Fission.Heroku.Provision
-      Fission.Heroku.Region
-      Fission.Heroku.UserConfig
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.UTF8
@@ -44,14 +40,23 @@ library
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
+      Fission.Partner.Heroku
+      Fission.Partner.Heroku.Host
+      Fission.Partner.Heroku.Provision
+      Fission.Partner.Heroku.Region
+      Fission.Partner.Heroku.UserConfig
       Fission.Plan
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Client
       Fission.Web.Config
       Fission.Web.Heroku
+      Fission.Web.Heroku.MIME
+      Fission.Web.Heroku.Provision
+      Fission.Web.Heroku.Schema
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -68,7 +73,6 @@ library
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -109,7 +113,6 @@ executable cli
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -152,7 +155,6 @@ executable server
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -195,7 +197,6 @@ test-suite fission-coverage
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -240,7 +241,6 @@ test-suite fission-docs
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -288,7 +288,6 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -332,7 +331,6 @@ test-suite fission-lint
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -372,10 +370,6 @@ test-suite fission-test
       Fission.Config
       Fission.Environment
       Fission.File
-      Fission.Heroku
-      Fission.Heroku.Provision
-      Fission.Heroku.Region
-      Fission.Heroku.UserConfig
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.UTF8
@@ -384,14 +378,23 @@ test-suite fission-test
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
+      Fission.Partner.Heroku
+      Fission.Partner.Heroku.Host
+      Fission.Partner.Heroku.Provision
+      Fission.Partner.Heroku.Region
+      Fission.Partner.Heroku.UserConfig
       Fission.Plan
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Client
       Fission.Web.Config
       Fission.Web.Heroku
+      Fission.Web.Heroku.MIME
+      Fission.Web.Heroku.Provision
+      Fission.Web.Heroku.Schema
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -409,7 +412,6 @@ test-suite fission-test
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , data-has
@@ -461,7 +463,6 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , base
     , bytestring
     , criterion

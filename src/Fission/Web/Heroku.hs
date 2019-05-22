@@ -4,18 +4,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Fission.Web.Heroku where
+module Fission.Web.Heroku
+  ( API
+  , server
+  ) where
 
 import RIO
 
-import Network.HTTP.Client.TLS (newTlsManager)
 import Servant.API
-import Servant.Client
 
-import Fission.Web.Heroku.MIME as Heroku
-import Fission.Web.Tls         as Tls
+import qualified Fission.Web.Heroku.Provision as Provision
+import           Fission.Web.Server
 
--- type ProvisionAPI = ReqBody '[JSON] Provision.Request
---                  :> Post    '[JSON] Provision
+type API = "resources" :> Provision.API
 
-type API = "schema" :> Get '[Heroku.VendorJSONv3] Heroku.VendorJSONv3
+server :: HasLogFunc cfg => RIOServer cfg API
+server = Provision.server

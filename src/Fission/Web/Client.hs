@@ -1,14 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Web.Client where
+module Fission.Web.Client (run) where
 
 import RIO
 
 import Network.HTTP.Client.TLS (newTlsManager)
 import Servant.Client          (ClientM)
 
-import Fission.Web.Tls as Tls
+import qualified Fission.Web.Tls as Tls
 
 run :: (Show a, HasLogFunc cfg) => String -> ClientM a -> RIO cfg ()
 run loc clnt = do

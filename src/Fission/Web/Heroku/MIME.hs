@@ -12,6 +12,7 @@ import Network.HTTP.Media ((//), (/:))
 import Servant.API
 
 newtype VendorJSONv3 = VendorJSONv3 { unVendorJSONv3 :: Value }
+  deriving Show
 
 instance Accept VendorJSONv3 where
   contentType _ = "application" // "vnd.heroku+json; version=3" /: ("version", "3")

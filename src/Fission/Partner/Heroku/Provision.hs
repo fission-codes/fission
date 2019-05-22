@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Fission.Heroku.Provision
+module Fission.Partner.Heroku.Provision
   ( Request (..)
   , callbackUrl
   , name
@@ -25,18 +25,19 @@ import Data.Aeson.TH
 -- import Data.Time.Clock
 import Data.UUID
 
-import           Fission.Heroku.Region
-import           Fission.Heroku.UserConfig
 import           Fission.Internal.JSON
-import qualified Fission.Plan              as Plan
+import qualified Fission.Plan          as Plan
+
+import Fission.Partner.Heroku.Region
+import Fission.Partner.Heroku.UserConfig
 
 data Request = Request
-  { _callbackUrl :: Text             -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
-  , _name        :: Text             -- ^ Logical name of the resource being provisioned.
+  { _callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
+  , _name        :: Text       -- ^ Logical name of the resource being provisioned.
   , _oauthGrant  :: Maybe Text -- OAuthGrant -- ^ OAuth object details (nullable).
-  , _plan        :: Plan.Tier        -- ^ Name of the plan to provision (e.g. `basic`).
-  , _region      :: Region           -- ^ Physical hosting region of the requesting client.
-  , _uuid        :: UUID             -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
+  , _plan        :: Plan.Tier  -- ^ Name of the plan to provision (e.g. `basic`).
+  , _region      :: Region     -- ^ Physical hosting region of the requesting client.
+  , _uuid        :: UUID       -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
   } deriving (Show, Eq)
 
 makeLenses ''Request

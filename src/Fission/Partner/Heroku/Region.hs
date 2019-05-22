@@ -2,7 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Heroku.Region where
+module Fission.Partner.Heroku.Region where
 
 import RIO
 

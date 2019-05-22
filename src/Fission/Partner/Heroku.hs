@@ -1,9 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Heroku where
+module Fission.Partner.Heroku where
 
 import RIO
+
 -- import RIO.Char (toUpper)
 
 -- import Control.Lens (makeLenses)
