@@ -1,33 +1,27 @@
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedLabels  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.User
-  ( User (..)
-  , mkTable
-  , setup
-  , tableName
-  ) where
+module Fission.Platform.Heroku.AddOn where
 
 import RIO hiding (id)
 
 import Data.Has
 import Database.Selda
 
-import Fission.Platform
-import qualified Fission.Platform.Heroku as Heroku
+import Fission.Platform.Heroku.Region as Heroku
 
-import Fission.Storage.SQLite
-import Fission.Internal.Constraint
 import Fission.Config
+import Fission.Internal.Constraint
+import Fission.Storage.SQLite
 
-data User = User
-  { id            :: ID User
-  , platform      :: Platform
-  , herokuAddOnId :: Maybe (ID Heroku.AddOn)
+data AddOn = AddOn
+  { id           :: ID AddOn
+  , region       :: Maybe Heroku.Region
+  , refreshToken :: Text
   } deriving ( Show
              , Eq
              , SqlRow
@@ -35,9 +29,9 @@ data User = User
              )
 
 tableName :: TableName
-tableName = "users"
+tableName = "heroku_add_ons"
 
-mkTable :: Table User
+mkTable :: Table AddOn
 mkTable = table tableName [#id :- autoPrimary]
 
 setup :: MonadRIO cfg m
