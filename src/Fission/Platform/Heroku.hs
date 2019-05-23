@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Partner.Heroku where
+module Fission.Platform.Heroku where
 
 import RIO
 

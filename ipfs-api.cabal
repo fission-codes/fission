@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0af8708e73a0f18911cf7cc269fc15170640ea9f81b631545384cab91daa1cf4
+-- hash: 106de5dfc805a205e9b67ccc51a387e5888b1ac3c70f31772fc9a90a6a1a37c6
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -40,12 +40,12 @@ library
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
-      Fission.Partner.Heroku
-      Fission.Partner.Heroku.Host
-      Fission.Partner.Heroku.Provision
-      Fission.Partner.Heroku.Region
-      Fission.Partner.Heroku.UserConfig
       Fission.Plan
+      Fission.Platform.Heroku
+      Fission.Platform.Heroku.Host
+      Fission.Platform.Heroku.Provision
+      Fission.Platform.Heroku.Region
+      Fission.Platform.Heroku.UserConfig
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
@@ -109,7 +109,7 @@ executable cli
       Paths_ipfs_api
   hs-source-dirs:
       cli
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
@@ -151,7 +151,7 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , aeson-casing
@@ -378,12 +378,12 @@ test-suite fission-test
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
-      Fission.Partner.Heroku
-      Fission.Partner.Heroku.Host
-      Fission.Partner.Heroku.Provision
-      Fission.Partner.Heroku.Region
-      Fission.Partner.Heroku.UserConfig
       Fission.Plan
+      Fission.Platform.Heroku
+      Fission.Platform.Heroku.Host
+      Fission.Platform.Heroku.Provision
+      Fission.Platform.Heroku.Region
+      Fission.Platform.Heroku.UserConfig
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User

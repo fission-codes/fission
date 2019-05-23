@@ -15,11 +15,11 @@ import RIO.Text
 
 import Servant.API
 
-import Fission.Partner.Heroku.Provision  as Provision
-import Fission.Partner.Heroku.UserConfig
+import Fission.Platform.Heroku.Provision  as Provision
+import Fission.Platform.Heroku.UserConfig
 
-import qualified Fission.Partner.Heroku.Host as Host
-import qualified Fission.Web.Heroku.MIME     as Heroku
+import qualified Fission.Platform.Heroku.Host as Host
+import qualified Fission.Web.Heroku.MIME      as Heroku
 import           Fission.Web.Server
 
 type API = ReqBody '[JSON]                Provision.Request

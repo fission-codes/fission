@@ -18,7 +18,6 @@ brew service start ipfs
 stack run server
 
 # Local Request
-# (`insecure` because of self-seigned certificate)
 curl \
   -H "Content-Type: text/plain;charset=utf-8" \
   -H "Authorization: Basic Q0hBTkdFTUU6U1VQRVJTRUNSRVQ=" \

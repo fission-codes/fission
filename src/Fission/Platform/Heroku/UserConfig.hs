@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Fission.Partner.Heroku.UserConfig
+module Fission.Platform.Heroku.UserConfig
   ( UserConfig (..)
   , fissionApiUrl
   ) where

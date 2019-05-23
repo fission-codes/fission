@@ -1,12 +1,14 @@
+{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Partner.Heroku.Region where
+module Fission.Platform.Heroku.Region where
 
 import RIO
 
 import Data.Aeson
+import Database.Selda
 
 data Region
   = California
@@ -17,8 +19,14 @@ data Region
   | Sydney
   | Tokyo
   | Virginia
-  | Other Text -- ^ Being very lenient for now
-  deriving (Show, Eq)
+  -- | Other Text -- ^ Being very lenient for now
+  deriving ( Show
+           , Read
+           , Eq
+           , Enum
+           , Bounded
+           , SqlType
+           )
 
 instance ToJSON Region where
   toJSON = \case
@@ -30,7 +38,7 @@ instance ToJSON Region where
     Sydney     -> String "amazon-web-services::ap-southeast-2"
     Tokyo      -> String "amazon-web-services::ap-northeast-1"
     Virginia   -> String "amazon-web-services::us-east-1"
-    Other txt  -> String txt
+    -- Other txt  -> String txt
 
 instance FromJSON Region where
   parseJSON = withText "Region" $ \case
@@ -42,4 +50,4 @@ instance FromJSON Region where
     "amazon-web-services::ap-southeast-2" -> return Sydney
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
-    other                                 -> return $ Other other
+    -- other                                 -> return $ Other other

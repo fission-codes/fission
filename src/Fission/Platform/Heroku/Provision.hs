@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Fission.Partner.Heroku.Provision
+module Fission.Platform.Heroku.Provision
   ( Request (..)
   , callbackUrl
   , name
@@ -28,8 +28,8 @@ import Data.UUID
 import           Fission.Internal.JSON
 import qualified Fission.Plan          as Plan
 
-import Fission.Partner.Heroku.Region
-import Fission.Partner.Heroku.UserConfig
+import Fission.Platform.Heroku.Region
+import Fission.Platform.Heroku.UserConfig
 
 data Request = Request
   { _callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -66,7 +66,6 @@ the prefix PRIMARY_DB.
 Example:
 HTTP/1.1 200 OK
 { "MYADDON_URL": "http://myaddon.com/52e82f5d73" }
-
 -}
 
 data Provision = Provision

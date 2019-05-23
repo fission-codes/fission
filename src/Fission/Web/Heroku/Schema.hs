@@ -10,9 +10,9 @@ import RIO
 import Servant.API
 import Servant.Client (client)
 
-import qualified Fission.Partner.Heroku.Host as Heroku.Host
-import qualified Fission.Web.Client          as Client
-import qualified Fission.Web.Heroku.MIME     as Heroku
+import qualified Fission.Platform.Heroku.Host as Heroku.Host
+import qualified Fission.Web.Client           as Client
+import qualified Fission.Web.Heroku.MIME      as Heroku
 
 type API = "schema" :> Get '[Heroku.VendorJSONv3] Text
 

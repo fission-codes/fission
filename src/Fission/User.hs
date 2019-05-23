@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -16,17 +18,33 @@ import RIO hiding (id)
 import Data.Has
 import Database.Selda
 
+import Fission.Platform.Heroku.Region
 import Fission.Storage.SQLite
 import Fission.Internal.Constraint
 import Fission.Config
 
+data Platform
+  = Direct
+  | Heroku
+  deriving ( Show
+           , Read
+           , Eq
+           , Bounded
+           , Enum
+           , SqlType
+           )
+
 data User = User
   { id       :: ID User
-  , email    :: Text
+  , platform :: Platform
+  , region   :: Maybe Region
+  , token    :: Text
   , password :: Text
-  } deriving Generic
-
-instance SqlRow User
+  } deriving ( Show
+             , Eq
+             , SqlRow
+             , Generic
+             )
 
 tableName :: TableName
 tableName = "users"

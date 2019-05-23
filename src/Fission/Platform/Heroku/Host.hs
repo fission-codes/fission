@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Fission.Partner.Heroku.Host (api) where
+module Fission.Platform.Heroku.Host (api) where
 
 import RIO
 
