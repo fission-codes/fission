@@ -17,15 +17,15 @@ ghc-options:
   - -Wcompat
   - -Widentities
   # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
   - -Wmissing-export-lists
   - -Wpartial-fields
-  - -Wincomplete-uni-patterns
-  - -Wincomplete-record-updates
   # Warn about too much
   - -Wredundant-constraints
   # Prettier Development
-  - -fprint-unicode-syntax
   - -fhide-source-paths
+  - -fprint-unicode-syntax
 
 dependencies:
   - aeson
@@ -36,6 +36,7 @@ dependencies:
   - ekg-wai
   - envy
   - etc
+  - hoauth2
   - http-client
   - http-client-tls
   - http-media

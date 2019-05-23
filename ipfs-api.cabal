@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 106de5dfc805a205e9b67ccc51a387e5888b1ac3c70f31772fc9a90a6a1a37c6
+-- hash: cc6909563fd1b5a825eb6173ce36fd3d41f6b0747860a236068a6f5110a5b25f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -41,6 +41,7 @@ library
       Fission.Log
       Fission.Monitor
       Fission.Plan
+      Fission.Platform
       Fission.Platform.Heroku
       Fission.Platform.Heroku.Host
       Fission.Platform.Heroku.Provision
@@ -79,6 +80,7 @@ library
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -119,6 +121,7 @@ executable cli
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -161,6 +164,7 @@ executable server
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -203,6 +207,7 @@ test-suite fission-coverage
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -248,6 +253,7 @@ test-suite fission-docs
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -295,6 +301,7 @@ test-suite fission-doctest
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -338,6 +345,7 @@ test-suite fission-lint
     , envy
     , etc
     , hlint
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -379,6 +387,7 @@ test-suite fission-test
       Fission.Log
       Fission.Monitor
       Fission.Plan
+      Fission.Platform
       Fission.Platform.Heroku
       Fission.Platform.Heroku.Host
       Fission.Platform.Heroku.Provision
@@ -418,6 +427,7 @@ test-suite fission-test
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -470,6 +480,7 @@ benchmark fission-benchmark
     , ekg-wai
     , envy
     , etc
+    , hoauth2
     , http-client
     , http-client-tls
     , http-media
