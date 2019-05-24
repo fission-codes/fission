@@ -11,13 +11,15 @@ module Fission.Web.Heroku
 
 import RIO
 
-import Data.Has
 import Servant.API
+import Database.Selda
 
 import qualified Fission.Web.Heroku.Provision as Provision
 import           Fission.Web.Server
 
 type API = "resources" :> Provision.API
 
-server :: HasLogFunc cfg => RIOServer cfg API
+server :: HasLogFunc cfg
+       => MonadSelda (RIO cfg)
+       => RIOServer cfg API
 server = Provision.server

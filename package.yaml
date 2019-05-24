@@ -45,6 +45,7 @@ dependencies:
   - monad-logger
   - resource-pool
   - rio
+  - rio-orphans
   - scientific
   - selda
   - selda-sqlite
@@ -60,6 +61,7 @@ dependencies:
   - uuid
   - uuid-types
   - wai
+  - wai-cli
   - wai-extra
   - wai-logger
   - warp

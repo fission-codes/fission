@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 996deae5f534cb04e1c7ec3863ca32a45cb59284ffe8642ffdeb8e0615b01485
+-- hash: 4b2ffc59f1a9d34767a4ac311d526b9ffdf9d02f2ab4a7e2309d85c8d186336a
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -46,6 +46,7 @@ library
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
+      Fission.Storage.Internal.Orphans
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
@@ -88,6 +89,7 @@ library
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -103,6 +105,7 @@ library
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -134,6 +137,7 @@ executable cli
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -181,6 +185,7 @@ executable server
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -196,6 +201,7 @@ executable server
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -230,6 +236,7 @@ test-suite fission-coverage
     , regex-compat
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -245,6 +252,7 @@ test-suite fission-coverage
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -280,6 +288,7 @@ test-suite fission-docs
     , regex-compat
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -295,6 +304,7 @@ test-suite fission-docs
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -330,6 +340,7 @@ test-suite fission-doctest
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -345,6 +356,7 @@ test-suite fission-doctest
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -377,6 +389,7 @@ test-suite fission-lint
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -392,6 +405,7 @@ test-suite fission-lint
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -419,6 +433,7 @@ test-suite fission-test
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
+      Fission.Storage.Internal.Orphans
       Fission.Storage.IPFS
       Fission.Storage.SQLite
       Fission.User
@@ -466,6 +481,7 @@ test-suite fission-test
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -487,6 +503,7 @@ test-suite fission-test
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -520,6 +537,7 @@ benchmark fission-benchmark
     , monad-logger
     , resource-pool
     , rio
+    , rio-orphans
     , scientific
     , selda
     , selda-sqlite
@@ -535,6 +553,7 @@ benchmark fission-benchmark
     , uuid
     , uuid-types
     , wai
+    , wai-cli
     , wai-extra
     , wai-logger
     , warp

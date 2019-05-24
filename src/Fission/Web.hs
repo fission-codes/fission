@@ -15,6 +15,7 @@ import RIO
 import Servant
 
 import Data.Has
+import Database.Selda
 
 import Fission.Config
 import Fission.Web.Server
@@ -36,6 +37,7 @@ app :: Has IpfsPath cfg
     => Has AuthUsername cfg
     => Has AuthPassword cfg
     => HasLogFunc cfg
+    => MonadSelda (RIO cfg)
     => cfg
     -> Application
 app cfg =
@@ -45,7 +47,10 @@ app cfg =
     AuthPassword pwOK = cfg ^. hasLens
     authCtx           = Auth.basic unOK pwOK
 
-server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
+server :: Has IpfsPath cfg
+       => HasLogFunc cfg
+       => MonadSelda (RIO cfg)
+       => RIOServer cfg API
 server = Ping.server
   :<|> const IPFS.server {- TODO use `User` -}
   :<|> Heroku.server

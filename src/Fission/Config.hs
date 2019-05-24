@@ -5,7 +5,6 @@
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE UndecidableInstances       #-}
 
 module Fission.Config
   ( Config (..)
@@ -30,7 +29,6 @@ import Control.Lens (makeLenses)
 
 import Data.Has
 import Data.Pool
-import Database.Selda
 import Database.Selda.Backend
 
 import           Fission.Internal.Constraint

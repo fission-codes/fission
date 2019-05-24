@@ -1,6 +1,6 @@
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 
 module Main (main) where
 
@@ -12,15 +12,17 @@ import Network.Wai.Logger
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
 
+import Fission.Storage.Internal.Orphans
+
 import qualified Fission.Log        as Log
 import qualified Fission.Monitor    as Monitor
 import qualified Fission.Web        as Web
-import qualified Fission.Web.Config as Web.Config
+import           Fission.Web.Config as Web.Config
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut ->
   runRIO (mkLogFunc Log.simple) $ do
-    Web.Config.Config {..} <- Web.Config.get
+    Web.Config.Config {port} <- Web.Config.get
     pool <- SQLite.connPool $ DBPath "FIXME.sqlite"
 
     let portSettings = setPort port
