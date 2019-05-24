@@ -15,7 +15,7 @@ newtype VendorJSONv3 = VendorJSONv3 { unVendorJSONv3 :: Value }
   deriving Show
 
 instance Accept VendorJSONv3 where
-  contentType _ = "application" // "vnd.heroku+json; version=3" /: ("version", "3")
+  contentType _ = "application" // "vnd.heroku-addons+json" /: ("version", "3")
 
 instance ToJSON a => MimeRender VendorJSONv3 a where
   mimeRender _ = encode

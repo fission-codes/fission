@@ -20,7 +20,7 @@ data Config = Config
   } deriving (Generic, Show)
 
 instance DefConfig Config where
-  defConfig = Config "localhost" 8642
+  defConfig = Config "localhost" 9630
 
 instance FromEnv Config
 

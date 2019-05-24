@@ -36,7 +36,7 @@ server :: HasLogFunc cfg
        => MonadSelda (RIO cfg)
        => RIOServer cfg API
 server Request {_uuid} = do
-  now    <- liftIO getCurrentTime
+  now <- liftIO getCurrentTime
   userId <- insert1 now $ User def Regular Nothing
 
   logInfo $ "Provisioned UUID: " <> displayShow _uuid <> " as " <> displayShow userId
