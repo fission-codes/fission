@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc6909563fd1b5a825eb6173ce36fd3d41f6b0747860a236068a6f5110a5b25f
+-- hash: 996deae5f534cb04e1c7ec3863ca32a45cb59284ffe8642ffdeb8e0615b01485
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -41,8 +41,7 @@ library
       Fission.Log
       Fission.Monitor
       Fission.Plan
-      Fission.Platform
-      Fission.Platform.Heroku
+      Fission.Platform.Heroku.AddOn
       Fission.Platform.Heroku.Host
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
@@ -70,12 +69,13 @@ library
       Paths_ipfs_api
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -86,7 +86,9 @@ library
     , http-media
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -94,6 +96,7 @@ library
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -111,12 +114,13 @@ executable cli
       Paths_ipfs_api
   hs-source-dirs:
       cli
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -flate-specialise -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -128,7 +132,9 @@ executable cli
     , ipfs-api
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -136,6 +142,7 @@ executable cli
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -154,12 +161,13 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -171,7 +179,9 @@ executable server
     , ipfs-api
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -179,6 +189,7 @@ executable server
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -197,12 +208,13 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -fhpc
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -fhpc
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -216,7 +228,9 @@ test-suite fission-coverage
     , monad-logger
     , process
     , regex-compat
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -224,6 +238,7 @@ test-suite fission-coverage
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -242,12 +257,13 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , doctest
     , ekg-wai
@@ -262,7 +278,9 @@ test-suite fission-docs
     , monad-logger
     , process
     , regex-compat
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -270,6 +288,7 @@ test-suite fission-docs
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -288,7 +307,7 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
     , QuickCheck
@@ -296,6 +315,7 @@ test-suite fission-doctest
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , doctest
     , ekg-wai
@@ -308,7 +328,9 @@ test-suite fission-doctest
     , ipfs-api
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -316,6 +338,7 @@ test-suite fission-doctest
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -334,12 +357,13 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -351,7 +375,9 @@ test-suite fission-lint
     , http-media
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -359,6 +385,7 @@ test-suite fission-lint
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
@@ -387,8 +414,7 @@ test-suite fission-test
       Fission.Log
       Fission.Monitor
       Fission.Plan
-      Fission.Platform
-      Fission.Platform.Heroku
+      Fission.Platform.Heroku.AddOn
       Fission.Platform.Heroku.Host
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
@@ -417,12 +443,13 @@ test-suite fission-test
       src
       test
       test/testsuite
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -437,7 +464,9 @@ test-suite fission-test
     , ipfs-api
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -445,6 +474,7 @@ test-suite fission-test
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , tasty
     , tasty-hspec
     , tasty-hunit
@@ -469,13 +499,14 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
-  ghc-options: -Wall -Wcompat -Widentities -Wmissing-export-lists -Wpartial-fields -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fprint-unicode-syntax -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
     , criterion
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
@@ -487,7 +518,9 @@ benchmark fission-benchmark
     , ipfs-api
     , lens
     , monad-logger
+    , resource-pool
     , rio
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -495,6 +528,7 @@ benchmark fission-benchmark
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process

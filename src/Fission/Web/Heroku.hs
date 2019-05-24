@@ -11,6 +11,7 @@ module Fission.Web.Heroku
 
 import RIO
 
+import Data.Has
 import Servant.API
 
 import qualified Fission.Web.Heroku.Provision as Provision

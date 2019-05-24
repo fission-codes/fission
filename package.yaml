@@ -32,6 +32,7 @@ dependencies:
   - aeson-casing
   - base
   - bytestring
+  - data-default-class
   - data-has
   - ekg-wai
   - envy
@@ -42,7 +43,9 @@ dependencies:
   - http-media
   - lens
   - monad-logger
+  - resource-pool
   - rio
+  - scientific
   - selda
   - selda-sqlite
   - servant
@@ -50,6 +53,7 @@ dependencies:
   - servant-client
   - servant-server
   - servant-multipart
+  - streaming-commons
   - text
   - time
   - typed-process

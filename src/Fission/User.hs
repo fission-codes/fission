@@ -7,7 +7,9 @@
 
 module Fission.User
   ( User (..)
-  , mkTable
+  , Role (..)
+  , UserId
+  , users
   , setup
   , tableName
   ) where
@@ -17,17 +19,32 @@ import RIO hiding (id)
 import Data.Has
 import Database.Selda
 
-import Fission.Platform
-import qualified Fission.Platform.Heroku as Heroku
+import qualified Fission.Platform.Heroku.AddOn as Heroku
+import           Fission.Storage.SQLite
+import           Fission.Internal.Constraint
+import           Fission.Config
 
-import Fission.Storage.SQLite
-import Fission.Internal.Constraint
-import Fission.Config
+type UserId = ID User
+
+data Role
+  = Regular
+  | Admin
+  deriving ( Show
+           , Read
+           , Eq
+           , Enum
+           , Bounded
+           , SqlType
+           )
 
 data User = User
   { id            :: ID User
-  , platform      :: Platform
+
+  , role          :: Role
   , herokuAddOnId :: Maybe (ID Heroku.AddOn)
+
+  , createdAt     :: UTCTime
+  , updatedAt     :: UTCTime
   } deriving ( Show
              , Eq
              , SqlRow
@@ -37,11 +54,14 @@ data User = User
 tableName :: TableName
 tableName = "users"
 
-mkTable :: Table User
-mkTable = table tableName [#id :- autoPrimary]
+users :: Table User
+users = table tableName [#id :- autoPrimary]
 
 setup :: MonadRIO cfg m
       => HasLogFunc cfg
       => Has DBPath cfg
       => m ()
-setup = setupTable mkTable tableName
+setup = setupTable users tableName
+
+instance Insertable User where
+  insertX t partRs = insertWithPK users $ fmap (build t) partRs

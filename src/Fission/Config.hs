@@ -1,21 +1,27 @@
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 module Fission.Config
   ( Config (..)
-  , AuthUsername (..)
-  , AuthPassword (..)
-  , IpfsPath (..)
-  , DBPath (..)
   , logFunc
   , minLogLevel
-  , ipfsPath
+  , AuthUsername (..)
   , authUsername
+  , AuthPassword (..)
   , authPassword
+  , IpfsPath (..)
+  , ipfsPath
+  , DBPath (..)
   , dbPath
+  , DBPool (..)
+  , dbPool
+  , base
   ) where
 
 import RIO
@@ -23,26 +29,31 @@ import RIO
 import Control.Lens (makeLenses)
 
 import Data.Has
-import System.Envy
+import Data.Pool
+import Database.Selda
+import Database.Selda.Backend
 
-import qualified Fission.Log as Log
+import           Fission.Internal.Constraint
+import qualified Fission.Log                 as Log
 
 newtype IpfsPath = IpfsPath { unIpfsPath :: FilePath }
   deriving (Show, IsString)
 
-newtype DBPath = DBPath { unDB :: FilePath }
+newtype DBPath = DBPath { unDBPath :: FilePath }
   deriving (Show, IsString)
 
 newtype AuthUsername = AuthUsername { unAuthUsername :: ByteString }
 newtype AuthPassword = AuthPassword { unAuthPassword :: ByteString }
+newtype DBPool = DBPool { unPool :: Pool SeldaConnection }
 
 data Config = Config
-  { _logFunc      :: LogFunc
-  , _minLogLevel  :: Log.MinLogLevel
-  , _ipfsPath     :: IpfsPath
-  , _authUsername :: AuthUsername -- FIXME
-  , _authPassword :: AuthPassword -- FIXME
-  , _dbPath       :: DBPath
+  { _logFunc      :: !LogFunc
+  , _minLogLevel  :: !Log.MinLogLevel
+  , _ipfsPath     :: !IpfsPath
+  , _authUsername :: !AuthUsername -- FIXME
+  , _authPassword :: !AuthPassword -- FIXME
+  , _dbPath       :: !DBPath
+  , _dbPool       :: !DBPool
   }
 
 makeLenses ''Config
@@ -62,15 +73,24 @@ instance Has AuthPassword Config where
 instance Has DBPath Config where
   hasLens = dbPath
 
+instance Has DBPool Config where
+  hasLens = dbPool
+
 instance HasLogFunc Config where
   logFuncL = logFunc
 
-instance DefConfig Config where
-  defConfig = Config
+-- instance (MonadMask mr, MonadRIO cfg mr, Has DBPool cfg) => MonadSelda mr where
+--   seldaConnection = do
+--     DBPool pool <- view hasLens
+--     liftIO $ withResource pool pure
+
+base :: DBPool -> Config
+base pool = Config
     { _logFunc      = mkLogFunc Log.simple
     , _minLogLevel  = Log.MinLogLevel LevelDebug
     , _ipfsPath     = IpfsPath "/usr/local/bin/ipfs"
     , _authUsername = AuthUsername "CHANGEME" -- FIXME
     , _authPassword = AuthPassword "SUPERSECRET" -- FIXME
     , _dbPath       = DBPath "fission.sqlite"
+    , _dbPool       = pool
     }

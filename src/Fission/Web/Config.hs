@@ -9,6 +9,7 @@ module Fission.Web.Config
   ) where
 
 import RIO
+import Data.Has
 
 import Network.Wai.Handler.Warp
 import System.Envy

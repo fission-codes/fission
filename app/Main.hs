@@ -8,9 +8,10 @@ import RIO
 
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
-import System.Envy
 
-import           Fission.Config
+import Fission.Config         as Config
+import Fission.Storage.SQLite as SQLite
+
 import qualified Fission.Log        as Log
 import qualified Fission.Monitor    as Monitor
 import qualified Fission.Web        as Web
@@ -20,11 +21,12 @@ main :: IO ()
 main = withStdoutLogger $ \stdOut ->
   runRIO (mkLogFunc Log.simple) $ do
     Web.Config.Config {..} <- Web.Config.get
+    pool <- SQLite.connPool $ DBPath "FIXME.sqlite"
 
     let portSettings = setPort port
         logSettings  = setLogger stdOut
         settings     = portSettings $ logSettings defaultSettings
-        cfg          = (defConfig :: Config)
+        cfg          = Config.base $ DBPool pool
 
     runRIO cfg $ do
       Monitor.wai -- TODO only run locally in dev

@@ -22,7 +22,6 @@ import Control.Lens (makeLenses)
 import Data.Aeson
 import Data.Aeson.TH
 
--- import Data.Time.Clock
 import Data.UUID
 
 import           Fission.Internal.JSON
@@ -30,6 +29,7 @@ import qualified Fission.Plan          as Plan
 
 import Fission.Platform.Heroku.Region
 import Fission.Platform.Heroku.UserConfig
+import Fission.User                       hiding (id)
 
 data Request = Request
   { _callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -69,7 +69,7 @@ HTTP/1.1 200 OK
 -}
 
 data Provision = Provision
-  { _id      :: UUID
+  { _id      :: UserId
   , _config  :: UserConfig
   , _message :: Text
   } deriving (Show, Eq)

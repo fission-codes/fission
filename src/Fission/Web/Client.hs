@@ -1,8 +1,10 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Fission.Web.Client (run) where
 
+import Data.Has
 import RIO
 
 import Network.HTTP.Client.TLS (newTlsManager)
