@@ -8,7 +8,7 @@ import RIO
 
 import qualified Network.Wai.Cli as CLI
 
-import Fission.Storage.Internal.Orphans
+import Fission.Internal.Orphanage
 
 import           Fission.Config         as Config
 import qualified Fission.Log            as Log

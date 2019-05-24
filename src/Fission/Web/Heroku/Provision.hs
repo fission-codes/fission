@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 
 module Fission.Web.Heroku.Provision
   ( API

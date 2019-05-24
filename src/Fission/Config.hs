@@ -25,14 +25,12 @@ module Fission.Config
 
 import RIO
 
-import Control.Lens (makeLenses)
-
+import Control.Lens           (makeLenses)
 import Data.Has
 import Data.Pool
 import Database.Selda.Backend
 
-import           Fission.Internal.Constraint
-import qualified Fission.Log                 as Log
+import qualified Fission.Log as Log
 
 newtype IpfsPath = IpfsPath { unIpfsPath :: FilePath }
   deriving (Show, IsString)
@@ -76,11 +74,6 @@ instance Has DBPool Config where
 
 instance HasLogFunc Config where
   logFuncL = logFunc
-
--- instance (MonadMask mr, MonadRIO cfg mr, Has DBPool cfg) => MonadSelda mr where
---   seldaConnection = do
---     DBPool pool <- view hasLens
---     liftIO $ withResource pool pure
 
 base :: DBPool -> Config
 base pool = Config

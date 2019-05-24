@@ -18,10 +18,7 @@ module Fission.User
 import RIO hiding (id)
 
 import Data.Has
-import Data.Aeson
 import Database.Selda
-import Data.Scientific
-import Data.Aeson.Types
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
 import           Fission.Storage.SQLite
@@ -43,10 +40,8 @@ data Role
 
 data User = User
   { id            :: ID User
-
   , role          :: Role
   , herokuAddOnId :: Maybe (ID Heroku.AddOn)
-
   , createdAt     :: UTCTime
   , updatedAt     :: UTCTime
   } deriving ( Show
@@ -69,21 +64,3 @@ setup = setupTable users tableName
 
 instance DBInsertable User where
   insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs
-
-newtype UID a = UID { unUID :: ID a }
-
-instance ToJSON (ID a) where
-  toJSON = Number . fromIntegral . fromId
-
-instance FromJSON (ID a) where
-  parseJSON = \case
-    num@(Number n) ->
-      case toBoundedInteger n of
-        Nothing -> errMsg num
-        Just i  -> return $ toId i
-
-    invalid ->
-      errMsg invalid
-
-    where
-      errMsg = modifyFailure ("parsing ID failed, " ++) . typeMismatch "Number"

@@ -5,33 +5,28 @@
 {-# LANGUAGE OverloadedLabels  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Platform.Heroku.AddOn where
+module Fission.Platform.Heroku.AddOn
+  ( AddOn(..)
+  , tableName
+  , addons
+  , setup
+  ) where
 
 import RIO hiding (id)
 
 import Data.Has
 import Database.Selda
--- import Network.OAuth.OAuth2.Internal
 import Data.UUID
 
 import Fission.Platform.Heroku.Region as Heroku
 import Fission.Config
 import Fission.Internal.Constraint
+import Fission.Internal.Orphanage
 import Fission.Storage.SQLite
-
--- data OAuth2Token = OAuth2Token
---   {
-
---   }
-
-instance Enum    UUID
-instance Bounded UUID
-instance SqlType UUID
 
 data AddOn = AddOn
   { id           :: ID AddOn
   , uuid         :: UUID
-  -- , oAuthToken   :: OAuth2Token
   , region       :: Maybe Heroku.Region
   , refreshToken :: Text
   } deriving ( Show

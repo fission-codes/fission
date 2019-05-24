@@ -12,7 +12,7 @@ import Network.Wai.Logger
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
 
-import Fission.Storage.Internal.Orphans
+import Fission.Internal.Orphanage
 
 import qualified Fission.Log        as Log
 import qualified Fission.Monitor    as Monitor

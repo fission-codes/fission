@@ -3,7 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Fission.Platform.Heroku.Region where
+module Fission.Platform.Heroku.Region (Region (..)) where
 
 import RIO
 
@@ -50,4 +50,4 @@ instance FromJSON Region where
     "amazon-web-services::ap-southeast-2" -> return Sydney
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
-    -- other                                 -> return $ Other other
+    -- bad ->

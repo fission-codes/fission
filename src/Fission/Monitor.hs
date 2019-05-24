@@ -6,8 +6,6 @@
 
 module Fission.Monitor
   ( Config (..)
-  , ekgHost
-  , ekgPort
   , wai
   ) where
 
@@ -22,7 +20,7 @@ data Config = Config
   } deriving (Generic, Show)
 
 instance DefConfig Config where
-  defConfig = Config "localhost" 8888
+  defConfig = Config "localhost" 8642
 
 instance FromEnv Config
 
