@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bb3bb8c6c3a4df84d1dd2eb55baab734921c17e42c40766204f5786f792a29d0
+-- hash: 65ecbb3d249e47ea99d76049288658e463eb3dd4a65f827210ecdd45cb6c25c7
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -56,8 +56,7 @@ library
       Fission.Web.Config
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
-      Fission.Web.Heroku.Provision
-      Fission.Web.Heroku.Schema
+      Fission.Web.Heroku.Resource
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -70,7 +69,7 @@ library
       Paths_ipfs_api
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
@@ -117,7 +116,7 @@ executable cli
       Paths_ipfs_api
   hs-source-dirs:
       cli
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -flate-specialise -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
@@ -165,7 +164,7 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , aeson-casing
@@ -214,7 +213,7 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -fhpc
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc
   build-depends:
       aeson
     , aeson-casing
@@ -265,7 +264,7 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
@@ -317,7 +316,7 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
     , QuickCheck
@@ -369,7 +368,7 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
@@ -443,8 +442,7 @@ test-suite fission-test
       Fission.Web.Config
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
-      Fission.Web.Heroku.Provision
-      Fission.Web.Heroku.Schema
+      Fission.Web.Heroku.Resource
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -458,7 +456,7 @@ test-suite fission-test
       src
       test
       test/testsuite
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -fhpc -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , aeson-casing
@@ -516,7 +514,7 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fprint-unicode-syntax -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing

@@ -25,7 +25,7 @@ ghc-options:
   - -Wredundant-constraints
   # Prettier Development
   - -fhide-source-paths
-  - -fprint-unicode-syntax
+  # - -fprint-unicode-syntax
 
 dependencies:
   - aeson

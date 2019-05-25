@@ -26,13 +26,13 @@ import qualified Fission.Web.IPFS as IPFS
 import qualified Fission.Web.Ping as Ping
 import qualified Fission.Web.Heroku as Heroku
 
-type API = "ping"
-             :> Ping.API
-      :<|> "ipfs"
+type API = "ipfs"
              :> Servant.BasicAuth "admin realm" ByteString {- TODO `User` -}
              :> IPFS.API
       :<|> "heroku"
              :> Heroku.API
+      :<|> "ping"
+             :> Ping.API
 
 app :: Has IpfsPath cfg
     => Has AuthUsername cfg
@@ -52,9 +52,9 @@ server :: Has IpfsPath cfg
        => HasLogFunc cfg
        => MonadSelda (RIO cfg)
        => RIOServer cfg API
-server = Ping.server
-  :<|> const IPFS.server {- TODO use `User` -}
-  :<|> Heroku.server
+server = const IPFS.server {- TODO use `User` -}
+    :<|> Heroku.create
+    :<|> Ping.server
 
 api :: Proxy API
 api = Proxy

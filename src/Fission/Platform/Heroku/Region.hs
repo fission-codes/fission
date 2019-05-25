@@ -38,7 +38,6 @@ instance ToJSON Region where
     Sydney     -> String "amazon-web-services::ap-southeast-2"
     Tokyo      -> String "amazon-web-services::ap-northeast-1"
     Virginia   -> String "amazon-web-services::us-east-1"
-    -- Other txt  -> String txt
 
 instance FromJSON Region where
   parseJSON = withText "Region" $ \case
@@ -50,4 +49,4 @@ instance FromJSON Region where
     "amazon-web-services::ap-southeast-2" -> return Sydney
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
-    -- bad ->
+    bad -> fail $ "Invalid region: " <> show bad

@@ -3,11 +3,11 @@
 
 module Fission.Platform.Heroku.Provision
   ( Request (..)
-  -- , callbackUrl
+  , callbackUrl
   , name
   -- , oauthGrant
-  -- , plan
-  -- , region
+  , plan
+  , region
   , uuid
   , Provision (..)
   , id
@@ -19,7 +19,6 @@ import RIO hiding (id)
 
 import Control.Lens (makeLenses)
 
-import Data.Aeson
 import Data.Aeson.TH
 
 import Data.UUID
@@ -32,12 +31,12 @@ import Fission.Platform.Heroku.UserConfig
 import Fission.User                       hiding (id)
 
 data Request = Request
-  { --_callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
-  _name   :: Text       -- ^ Logical name of the resource being provisioned.
+  { _callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
+  , _name        :: Text       -- ^ Logical name of the resource being provisioned.
   -- , _oauthGrant :: Maybe Text -- OAuthGrant -- ^ OAuth object details (nullable).
-  -- , _plan :: Plan.Tier  -- ^ Name of the plan to provision (e.g. `basic`).
-  -- , _region :: Region     -- ^ Physical hosting region of the requesting client.
-  , _uuid :: UUID       -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
+  , _plan        :: Plan.Tier  -- ^ Name of the plan to provision (e.g. `basic`).
+  , _region      :: Region     -- ^ Physical hosting region of the requesting client.
+  , _uuid        :: UUID       -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
   } deriving (Show, Eq)
 
 makeLenses ''Request
@@ -75,6 +74,6 @@ data Provision = Provision
   } deriving (Show, Eq)
 
 makeLenses ''Provision
-$(deriveJSON defaultOptions ''Provision)
+$(deriveJSON lens_snake_case ''Provision)
 
 -- data Error = ...

@@ -28,11 +28,14 @@ lens_snake_case = defaultOptions { fieldLabelModifier = drop 1 . snakeCase }
 --   N.B. This does not remove leading underscore from the lens convention
 _SCREAMING_SNAKE_CASE :: Options
 _SCREAMING_SNAKE_CASE = defaultOptions
-  { fieldLabelModifier = (fmap toUpper) . snakeCase }
+  { fieldLabelModifier = toScreamingSnake }
 
 -- | Format JSON as `SCREAMING_SNAKE_CASE`.
 --   Handles the underscore prefix from the generator convention
 --   by simply dropping the first character
 lens_SCREAMING_SNAKE_CASE :: Options
 lens_SCREAMING_SNAKE_CASE = defaultOptions
-  { fieldLabelModifier = drop 1 . (fmap toUpper) . snakeCase }
+  { fieldLabelModifier = drop 1 . toScreamingSnake }
+
+toScreamingSnake :: String -> String
+toScreamingSnake = fmap toUpper . snakeCase

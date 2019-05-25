@@ -15,14 +15,15 @@
 module Fission.Internal.Orphanage () where
 
 import RIO
-import RIO.Orphans
+import RIO.Orphans ()
+import qualified RIO.Partial as Partial
 
 -- import Data.Aeson
 import Data.Aeson.Types
 import Data.Scientific
 import Data.Has
 import Data.Pool
-import Data.UUID
+import Data.UUID as UUID
 
 import Database.Selda
 import Database.Selda.Backend
@@ -30,8 +31,11 @@ import Database.Selda.Backend
 import           Fission.Config
 
 instance Enum    UUID
-instance Bounded UUID
 instance SqlType UUID
+
+instance Bounded UUID where
+  minBound = Partial.fromJust $ UUID.fromString "00000000-0000-0000-0000-000000000000"
+  maxBound = Partial.fromJust $ UUID.fromString "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
 
 instance ToJSON (ID a) where
   toJSON = Number . fromIntegral . fromId

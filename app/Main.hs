@@ -12,12 +12,14 @@ import Network.Wai.Logger
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
 
-import Fission.Internal.Orphanage
+import Fission.Internal.Orphanage ()
 
 import qualified Fission.Log        as Log
 import qualified Fission.Monitor    as Monitor
 import qualified Fission.Web        as Web
 import           Fission.Web.Config as Web.Config
+
+import qualified Fission.Platform.Heroku.AddOn as Heroku
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut ->
@@ -31,6 +33,7 @@ main = withStdoutLogger $ \stdOut ->
         cfg          = Config.base $ DBPool pool
 
     runRIO cfg $ do
+      setupTable Heroku.addOns Heroku.tableName
       Monitor.wai -- TODO only run locally in dev
       logInfo $ "Servant running at port " <> display port
       liftIO $ runSettings settings $ Web.app cfg
