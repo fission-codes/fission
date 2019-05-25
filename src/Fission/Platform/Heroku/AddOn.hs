@@ -9,9 +9,8 @@ module Fission.Platform.Heroku.AddOn
   ( AddOn(..)
   , tableName
   , addOns
-  , setup
-  , selUpdatedAt
-  , selCreatedAt
+  , selInsertedAt
+  , selModifiedAt
   , selRegion
   , selUUID
   , selId
@@ -19,23 +18,20 @@ module Fission.Platform.Heroku.AddOn
 
 import RIO hiding (id)
 
-import Data.Has
-import Database.Selda
 import Data.UUID
+import Database.Selda
 
-import Fission.Platform.Heroku.Region as Heroku
-import Fission.Config
-import Fission.Internal.Constraint
 import Fission.Internal.Orphanage ()
+import Fission.Platform.Heroku.Region as Heroku
 import Fission.Storage.SQLite
 
 data AddOn = AddOn
-  { id           :: ID AddOn
-  , uuid         :: UUID
-  , region       :: Maybe Heroku.Region
+  { id         :: ID AddOn
+  , uuid       :: UUID
+  , region     :: Maybe Heroku.Region
   -- , refreshToken :: Text
-  , createdAt     :: UTCTime
-  , updatedAt     :: UTCTime
+  , insertedAt :: UTCTime
+  , modifiedAt :: UTCTime
   } deriving ( Show
              , Eq
              , SqlRow
@@ -54,17 +50,11 @@ addOns = table tableName [#id :- autoPrimary]
 selId        :: Selector AddOn (ID AddOn)
 selUUID      :: Selector AddOn UUID
 selRegion    :: Selector AddOn (Maybe Region)
-selCreatedAt :: Selector AddOn UTCTime
-selUpdatedAt :: Selector AddOn UTCTime
+selInsertedAt :: Selector AddOn UTCTime
+selModifiedAt :: Selector AddOn UTCTime
 
 selId
   :*: selUUID
   :*: selRegion
-  :*: selCreatedAt
-  :*: selUpdatedAt = selectors addOns
-
-setup :: MonadRIO cfg m
-      => HasLogFunc cfg
-      => Has DBPath cfg
-      => m ()
-setup = setupTable addOns tableName
+  :*: selInsertedAt
+  :*: selModifiedAt = selectors addOns

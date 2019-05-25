@@ -11,21 +11,18 @@ module Fission.User
   , Role (..)
   , UserId
   , users
-  , setup
   , tableName
-  , traceAll
   , createFresh
   -- Selectors
   , selId
   , selRole
   , selHerokuAddOnId
-  , selCreatedAt
-  , selUpdatedAt
+  , selInsertedAt
+  , selModifiedAt
   ) where
 
 import RIO hiding (id)
 
-import Data.Has
 import Database.Selda
 import Database.Selda.SQLite
 import Data.Time
@@ -34,8 +31,6 @@ import Data.UUID
 import Fission.Platform.Heroku.Region as Heroku
 import qualified Fission.Platform.Heroku.AddOn as Heroku
 import           Fission.Storage.SQLite
-import           Fission.Internal.Constraint
-import           Fission.Config
 
 type UserId = ID User
 
@@ -71,32 +66,20 @@ users = table tableName
   , #herokuAddOnId :- foreignKey Heroku.addOns Heroku.selId
   ]
 
-setup :: MonadRIO cfg m
-      => HasLogFunc cfg
-      => Has DBPath cfg
-      => m ()
-setup = setupTable users tableName
-
 selId            :: Selector User (ID User)
 selRole          :: Selector User Role
 selHerokuAddOnId :: Selector User (Maybe (ID Heroku.AddOn))
-selCreatedAt     :: Selector User UTCTime
-selUpdatedAt     :: Selector User UTCTime
+selInsertedAt    :: Selector User UTCTime
+selModifiedAt    :: Selector User UTCTime
 
 selId
   :*: selRole
   :*: selHerokuAddOnId
-  :*: selCreatedAt
-  :*: selUpdatedAt = selectors users
+  :*: selInsertedAt
+  :*: selModifiedAt = selectors users
 
 instance DBInsertable User where
   insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs
-
-traceAll :: IO ()
-traceAll = withSQLite "fission.sqlite" $ do
-  us <- query $ select users
-  forM_ us $ \u -> traceIO $ textDisplay $ displayShow u <> "\n"
-  return ()
 
 createFresh :: MonadIO m
             => MonadSelda m

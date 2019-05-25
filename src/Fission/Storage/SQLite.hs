@@ -9,6 +9,7 @@ module Fission.Storage.SQLite
   , DBInsertable (..)
   , insert1
   , insertStamp
+  , traceAll
   ) where
 
 import RIO hiding (id)
@@ -59,3 +60,8 @@ connPool (DBPath {unDBPath = path}) = do
   logInfo $ "DB pool stats: " <> displayShow pool
 
   return pool
+
+traceAll :: (Show a, Relational a) => Table a -> IO ()
+traceAll tbl = withSQLite "fission.sqlite" $ do
+  rows <- query (select tbl)
+  forM_ rows (traceIO . textDisplay . displayShow)
