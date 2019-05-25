@@ -10,9 +10,12 @@ module Fission.Storage.SQLite
   , insert1
   , insertStamp
   , traceAll
+  , lensTable
   ) where
 
-import RIO hiding (id)
+import           RIO         hiding     (id)
+import qualified RIO.Partial as Partial
+import           RIO.Text               (stripPrefix)
 
 import Data.Has
 import Data.Pool
@@ -65,3 +68,7 @@ traceAll :: (Show a, Relational a) => Table a -> IO ()
 traceAll tbl = withSQLite "fission.sqlite" $ do
   rows <- query (select tbl)
   forM_ rows (traceIO . textDisplay . displayShow)
+
+lensTable :: Relational r => TableName -> [Attr r] -> Table r
+lensTable tableName conf =
+  tableFieldMod tableName conf (Partial.fromJust . stripPrefix "_")

@@ -20,15 +20,16 @@ import RIO hiding (id)
 import Control.Lens (makeLenses)
 
 import Data.Aeson.TH
-
 import Data.UUID
+
+import Database.Selda
 
 import           Fission.Internal.JSON
 import qualified Fission.Plan          as Plan
 
-import Fission.Platform.Heroku.Region
-import Fission.Platform.Heroku.UserConfig
-import Fission.User                       hiding (id)
+import Fission.Platform.Heroku.Region     (Region)
+import Fission.Platform.Heroku.UserConfig (UserConfig)
+import Fission.User                       (User)
 
 data Request = Request
   { _callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -68,7 +69,7 @@ HTTP/1.1 200 OK
 -}
 
 data Provision = Provision
-  { _id      :: UserId
+  { _id      :: ID User
   , _config  :: UserConfig
   , _message :: Text
   } deriving (Show, Eq)
