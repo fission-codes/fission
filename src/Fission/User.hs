@@ -8,14 +8,23 @@
 module Fission.User
   ( User (..)
   , Role (..)
-  , users
-  , tableName
-  , createFresh
+  -- Selectors
+  , id'
+  , role'
+  , herokuAddOnId'
+  , insertedAt'
+  , modifiedAt'
+  -- Lenses
   , id
   , role
   , herokuAddOnId
   , insertedAt
   , modifiedAt
+  -- Table
+  , users
+  , tableName
+  -- Helpers
+  , createFresh
   ) where
 
 import RIO hiding (id)
@@ -25,8 +34,8 @@ import Database.Selda
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
 
-import qualified Fission.Platform.Heroku                as Heroku
-import qualified Fission.Platform.Heroku.AddOn.Selector as Heroku.AddOn.Selector
+import qualified Fission.Platform.Heroku       as Heroku
+import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 import           Fission.Storage.SQLite
 import           Fission.User.Role
 
@@ -47,13 +56,24 @@ makeLenses ''User
 instance DBInsertable User where
   insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs
 
+id'            :: Selector User (ID User)
+role'          :: Selector User Role
+herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
+insertedAt'    :: Selector User UTCTime
+modifiedAt'    :: Selector User UTCTime
+
+id' :*: role'
+    :*: herokuAddOnId'
+    :*: insertedAt'
+    :*: modifiedAt' = selectors users
+
 tableName :: TableName
 tableName = "users"
 
 users :: Table User
 users = lensTable tableName
   [ #_id            :- autoPrimary
-  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.Selector.id
+  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.id'
   ]
 
 createFresh :: MonadIO m

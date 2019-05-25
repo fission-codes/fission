@@ -8,13 +8,21 @@
 
 module Fission.Platform.Heroku.AddOn
   ( AddOn(..)
-  , tableName
-  , addOns
+  -- Selectors
+  , id'
+  , uuid'
+  , region'
+  , insertedAt'
+  , modifiedAt'
+  -- Lenses
   , id
   , uuid
   , region
   , insertedAt
   , modifiedAt
+  -- Table
+  , tableName
+  , addOns
   ) where
 
 import RIO hiding (id)
@@ -44,6 +52,17 @@ makeLenses ''AddOn
 
 instance DBInsertable AddOn where
   insertX t partRs = insertWithPK addOns $ fmap (insertStamp t) partRs
+
+id'         :: Selector AddOn (ID AddOn)
+uuid'       :: Selector AddOn UUID
+region'     :: Selector AddOn (Maybe Region)
+insertedAt' :: Selector AddOn UTCTime
+modifiedAt' :: Selector AddOn UTCTime
+
+id' :*: uuid'
+    :*: region'
+    :*: insertedAt'
+    :*: modifiedAt' = selectors addOns
 
 tableName :: TableName
 tableName = "heroku_add_ons"
