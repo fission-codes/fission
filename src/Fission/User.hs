@@ -13,14 +13,14 @@ module Fission.User
   , id'
   , role'
   , herokuAddOnId'
-  , secret'
+  , secretDigest'
   , insertedAt'
   , modifiedAt'
   -- Lenses
   , id
   , role
   , herokuAddOnId
-  , secret
+  , secretDigest
   , insertedAt
   , modifiedAt
   -- Table
@@ -41,14 +41,14 @@ import qualified Fission.Platform.Heroku       as Heroku
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 import           Fission.Storage.SQLite
 import           Fission.User.Role
-import           Fission.Security (Secret)
+import           Fission.Security (SecretDigest)
 
 data User = User
   { _id            :: ID User
   , _role          :: Role
   , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
   -- , _userName :: Text
-  , _secret        :: Secret
+  , _secretDigest  :: SecretDigest
   , _insertedAt    :: UTCTime
   , _modifiedAt    :: UTCTime
   } deriving ( Show
@@ -65,14 +65,14 @@ instance DBInsertable User where
 id'            :: Selector User (ID User)
 role'          :: Selector User Role
 herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
-secret'        :: Selector User Text
+secretDigest'  :: Selector User SecretDigest
 insertedAt'    :: Selector User UTCTime
 modifiedAt'    :: Selector User UTCTime
 
 id' :*: role'
     :*: herokuAddOnId'
     -- :*: userName'
-    :*: secret'
+    :*: secretDigest'
     :*: insertedAt'
     :*: modifiedAt' = selectors users
 
@@ -85,7 +85,7 @@ users = lensTable tableName
   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.id'
   ]
 
-createFresh :: (MonadIO m, MonadSelda m) => UUID -> Heroku.Region -> Secret -> m (ID User)
+createFresh :: (MonadIO m, MonadSelda m) => UUID -> Heroku.Region -> SecretDigest -> m (ID User)
 createFresh herokuUUID herokuRegion sekret = transaction $ do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now . Heroku.AddOn def herokuUUID $ Just herokuRegion

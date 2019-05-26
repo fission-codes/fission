@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: acd4b104f0dbad47fee9e869a7e8d1ba9d50d7e87bc2aacfd693898c74015f75
+-- hash: bfe29bac62542ad45cc66a0b5179c772695529b075c9eb164dbda175f5e0c277
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -79,6 +79,7 @@ library
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
@@ -128,6 +129,7 @@ executable cli
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
@@ -178,6 +180,7 @@ executable server
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
@@ -229,6 +232,7 @@ test-suite fission-coverage
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
@@ -282,6 +286,7 @@ test-suite fission-docs
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , doctest
@@ -338,6 +343,7 @@ test-suite fission-doctest
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , doctest
@@ -390,6 +396,7 @@ test-suite fission-lint
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
@@ -484,6 +491,7 @@ test-suite fission-test
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
@@ -545,6 +553,7 @@ benchmark fission-benchmark
     , base
     , bytestring
     , criterion
+    , cryptonite
     , data-default-class
     , data-has
     , ekg-wai

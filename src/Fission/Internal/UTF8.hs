@@ -6,6 +6,7 @@ module Fission.Internal.UTF8
   , showLazyBS
   , stripNewline
   , textToLazyBS
+  , textShow
   ) where
 
 import           RIO
@@ -29,3 +30,6 @@ textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
 
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
 stripNewline bs = maybe bs id $ Lazy.stripSuffix "\n" bs
+
+textShow :: Show a => a -> Text
+textShow = textDisplay . displayShow

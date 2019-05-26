@@ -31,6 +31,7 @@ dependencies:
   - aeson
   - aeson-casing
   - base
+  - cryptonite
   - bytestring
   - data-default-class
   - data-has
