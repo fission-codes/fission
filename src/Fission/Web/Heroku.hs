@@ -16,9 +16,10 @@ module Fission.Web.Heroku
 import RIO
 import RIO.Text
 
-import Crypto.Hash
-import Database.Selda
-import Servant
+import           Crypto.Hash
+import qualified Data.ByteString.Random as BS
+import           Database.Selda
+import           Servant
 
 import qualified Fission.Platform.Heroku.Host       as Host
 import           Fission.Platform.Heroku.Provision  as Provision
@@ -28,7 +29,6 @@ import qualified Fission.Web.Heroku.MIME as Heroku
 import           Fission.Web.Server
 
 import qualified Fission.Internal.UTF8 as UTF8
-import           Fission.Random        as Random
 import           Fission.Security      as Security
 import qualified Fission.User          as User
 
@@ -39,8 +39,9 @@ type CreateAPI = ReqBody '[JSON]                Provision.Request
 
 create :: (HasLogFunc cfg, MonadSelda (RIO cfg)) => RIOServer cfg API
 create (Request {_uuid, _region}) = do
-  rawSecret <- liftIO $ Random.text 500
-  secret'   <- case Security.toSecret rawSecret of
+  rawSecret <- liftIO $ BS.random 500
+
+  secret' <- case Security.toSecret rawSecret of
     Left  unicodeErr -> throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
     Right skt        -> return skt
 
@@ -58,7 +59,8 @@ create (Request {_uuid, _region}) = do
     { _id      = userId
     , _message = "Successfully provisioned Fission for Heroku"
     , _config  = Heroku.UserConfig
-                   { _fissionApiUrl = pack Host.api
-                   , _fissionSecret = secret'
+                   { _fissionApiUrl   = pack Host.api
+                   , _fissionUserName = userId
+                   , _fissionSecret   = secret'
                    }
     }

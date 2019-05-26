@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bfe29bac62542ad45cc66a0b5179c772695529b075c9eb164dbda175f5e0c277
+-- hash: f6db0e0a8e140d8db0eff5b22072ed9dc65514a15aa2018050eee4f6994e881f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -48,7 +48,6 @@ library
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
-      Fission.Random
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
@@ -92,6 +91,7 @@ library
     , http-media
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans
@@ -143,6 +143,7 @@ executable cli
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans
@@ -194,6 +195,7 @@ executable server
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans
@@ -247,6 +249,7 @@ test-suite fission-coverage
     , lens
     , monad-logger
     , process
+    , random-bytestring
     , regex-compat
     , resource-pool
     , rio
@@ -302,6 +305,7 @@ test-suite fission-docs
     , lens
     , monad-logger
     , process
+    , random-bytestring
     , regex-compat
     , resource-pool
     , rio
@@ -358,6 +362,7 @@ test-suite fission-doctest
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans
@@ -410,6 +415,7 @@ test-suite fission-lint
     , http-media
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans
@@ -459,7 +465,6 @@ test-suite fission-test
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
-      Fission.Random
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
@@ -508,6 +513,7 @@ test-suite fission-test
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans
@@ -567,6 +573,7 @@ benchmark fission-benchmark
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans

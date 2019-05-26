@@ -45,6 +45,7 @@ dependencies:
   - http-media
   - lens
   - monad-logger
+  - random-bytestring
   - resource-pool
   - rio
   - rio-orphans

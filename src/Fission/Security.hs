@@ -12,8 +12,8 @@ module Fission.Security
 import Data.Aeson
 import RIO
 
-import qualified Fission.Internal.UTF8 as UTF8
-import qualified Fission.Random        as Random
+import qualified Data.ByteString.Random as BS
+import qualified Fission.Internal.UTF8  as UTF8
 
 type SecretDigest = Text
 
@@ -24,8 +24,8 @@ newtype Secret = Secret { unSecret :: Text }
            , FromJSON
            )
 
-mkSecret :: Int -> IO (Either UnicodeException Secret)
-mkSecret = return . toSecret <=< Random.text
+mkSecret :: Natural -> IO (Either UnicodeException Secret)
+mkSecret = return . toSecret <=< BS.random
 
 toSecret :: ByteString -> Either UnicodeException Secret
 toSecret raw = Secret <$> UTF8.encode raw
