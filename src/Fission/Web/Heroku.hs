@@ -49,7 +49,7 @@ create (Request {_uuid, _region}) = do
 
   logInfo $ mconcat
     [ "Provisioned UUID:"
-    ,  displayShow _uuid
+    , displayShow _uuid
     , " as "
     , displayShow userId
     ]
