@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f6db0e0a8e140d8db0eff5b22072ed9dc65514a15aa2018050eee4f6994e881f
+-- hash: 0ce8add398c37904b66111096789d495e63331b951ec5f49aaf2825603a81f4f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -51,6 +51,7 @@ library
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
+      Fission.Storage.SQLite.Migrate
       Fission.User
       Fission.User.Role
       Fission.Web
@@ -82,7 +83,6 @@ library
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -133,7 +133,6 @@ executable cli
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -185,7 +184,6 @@ executable server
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -238,7 +236,6 @@ test-suite fission-coverage
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -294,7 +291,6 @@ test-suite fission-docs
     , data-has
     , doctest
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -352,7 +348,6 @@ test-suite fission-doctest
     , data-has
     , doctest
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -405,7 +400,6 @@ test-suite fission-lint
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hlint
@@ -468,6 +462,7 @@ test-suite fission-test
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
+      Fission.Storage.SQLite.Migrate
       Fission.User
       Fission.User.Role
       Fission.Web
@@ -500,7 +495,6 @@ test-suite fission-test
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2
@@ -563,7 +557,6 @@ benchmark fission-benchmark
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hoauth2

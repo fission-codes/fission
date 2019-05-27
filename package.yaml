@@ -36,7 +36,6 @@ dependencies:
   - data-default-class
   - data-has
   - ekg-wai
-  - entropy
   - envy
   - etc
   - hoauth2
