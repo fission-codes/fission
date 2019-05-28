@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0ce8add398c37904b66111096789d495e63331b951ec5f49aaf2825603a81f4f
+-- hash: c1a8aaf52c4cabc43eacfe123b2d13ce73c0bb74dd8cf005c489d9cead998b21
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -48,6 +48,7 @@ library
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
+      Fission.Random
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
@@ -83,6 +84,7 @@ library
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -133,6 +135,7 @@ executable cli
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -184,6 +187,7 @@ executable server
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -236,6 +240,7 @@ test-suite fission-coverage
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -291,6 +296,7 @@ test-suite fission-docs
     , data-has
     , doctest
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -348,6 +354,7 @@ test-suite fission-doctest
     , data-has
     , doctest
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -400,6 +407,7 @@ test-suite fission-lint
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hlint
@@ -459,6 +467,7 @@ test-suite fission-test
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
+      Fission.Random
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
@@ -495,6 +504,7 @@ test-suite fission-test
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2
@@ -557,6 +567,7 @@ benchmark fission-benchmark
     , data-default-class
     , data-has
     , ekg-wai
+    , entropy
     , envy
     , etc
     , hoauth2

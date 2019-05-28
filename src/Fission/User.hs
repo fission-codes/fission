@@ -12,6 +12,7 @@ module Fission.User
   -- Selectors
   , id'
   , role'
+  , active'
   , herokuAddOnId'
   , secretDigest'
   , insertedAt'
@@ -19,6 +20,7 @@ module Fission.User
   -- Lenses
   , id
   , role
+  , active
   , herokuAddOnId
   , secretDigest
   , insertedAt
@@ -46,6 +48,7 @@ import           Fission.Security (SecretDigest)
 data User = User
   { _id            :: ID User
   , _role          :: Role
+  , _active        :: Bool
   , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
   -- , _userName :: Text
   , _secretDigest  :: SecretDigest
@@ -64,12 +67,14 @@ instance DBInsertable User where
 
 id'            :: Selector User (ID User)
 role'          :: Selector User Role
+active'        :: Selector User Bool
 herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
 secretDigest'  :: Selector User SecretDigest
 insertedAt'    :: Selector User UTCTime
 modifiedAt'    :: Selector User UTCTime
 
 id' :*: role'
+    :*: active'
     :*: herokuAddOnId'
     -- :*: userName'
     :*: secretDigest'
@@ -89,4 +94,4 @@ createFresh :: (MonadIO m, MonadSelda m) => UUID -> Heroku.Region -> SecretDiges
 createFresh herokuUUID herokuRegion sekret = transaction $ do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now . Heroku.AddOn def herokuUUID $ Just herokuRegion
-  insert1 now $ User def Regular (Just hConfId) sekret
+  insert1 now $ User def Regular True (Just hConfId) sekret

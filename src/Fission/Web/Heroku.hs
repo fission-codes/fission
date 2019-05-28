@@ -16,37 +16,40 @@ module Fission.Web.Heroku
 import RIO
 import RIO.Text
 
-import           Crypto.Hash
-import qualified Data.ByteString.Random as BS
-import           Database.Selda
-import           Servant
+import Database.Selda
+import Servant
 
+-- Heroku
 import qualified Fission.Platform.Heroku.Host       as Host
 import           Fission.Platform.Heroku.Provision  as Provision
 import           Fission.Platform.Heroku.UserConfig as Heroku
 
+-- Web
+import           Fission.Web.Error
 import qualified Fission.Web.Heroku.MIME as Heroku
 import           Fission.Web.Server
 
-import qualified Fission.Internal.UTF8 as UTF8
-import           Fission.Security      as Security
-import qualified Fission.User          as User
+-- Utility
+import qualified Fission.Random   as Random
+import           Fission.Security as Security
+import qualified Fission.User     as User
+
+--------------------------------------------------------------------------------
 
 type API = "resources" :> CreateAPI
+
+------------
+-- CREATE --
+------------
 
 type CreateAPI = ReqBody '[JSON]                Provision.Request
               :> Post    '[Heroku.VendorJSONv3] Provision
 
 create :: (HasLogFunc cfg, MonadSelda (RIO cfg)) => RIOServer cfg API
 create (Request {_uuid, _region}) = do
-  rawSecret <- liftIO $ BS.random 500
-
-  secret' <- case Security.toSecret rawSecret of
-    Left  unicodeErr -> throwM $ err500 { errBody = UTF8.showLazyBS unicodeErr }
-    Right skt        -> return skt
-
-  userId <- User.createFresh _uuid _region
-    (UTF8.textShow (hash rawSecret :: Digest SHA3_512))
+  rawSecret <- liftIO $ Random.byteString 500
+  secret'   <- ensureUnicode $ Security.toSecret rawSecret
+  userId    <- User.createFresh _uuid _region $ toHash rawSecret
 
   logInfo $ mconcat
     [ "Provisioned UUID:"
