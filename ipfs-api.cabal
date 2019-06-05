@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c1a8aaf52c4cabc43eacfe123b2d13ce73c0bb74dd8cf005c489d9cead998b21
+-- hash: 6fb39fbf3933b33fef5dbf566c06709315b1be812365f3a9a67cc9c3be4205ff
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -44,7 +44,6 @@ library
       Fission.Plan
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
-      Fission.Platform.Heroku.Host
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
@@ -52,6 +51,7 @@ library
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
+      Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.User
       Fission.User.Role
@@ -59,6 +59,7 @@ library
       Fission.Web.Auth
       Fission.Web.Client
       Fission.Web.Config
+      Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.Heroku.Resource
@@ -463,7 +464,6 @@ test-suite fission-test
       Fission.Plan
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
-      Fission.Platform.Heroku.Host
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
@@ -471,6 +471,7 @@ test-suite fission-test
       Fission.Security
       Fission.Storage.IPFS
       Fission.Storage.SQLite
+      Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.User
       Fission.User.Role
@@ -478,6 +479,7 @@ test-suite fission-test
       Fission.Web.Auth
       Fission.Web.Client
       Fission.Web.Config
+      Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.Heroku.Resource

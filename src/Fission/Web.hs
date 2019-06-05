@@ -27,7 +27,7 @@ import qualified Fission.Web.Ping as Ping
 import qualified Fission.Web.Heroku as Heroku
 
 type API = "ipfs"
-             :> Servant.BasicAuth "admin realm" ByteString {- TODO `User` -}
+             :> Servant.BasicAuth "registered users" User -- ByteString {- TODO `User` -}
              :> IPFS.API
       :<|> "heroku"
              :> Heroku.API
@@ -47,6 +47,16 @@ app cfg =
     AuthUsername unOK = cfg ^. hasLens
     AuthPassword pwOK = cfg ^. hasLens
     authCtx           = Auth.basic unOK pwOK
+
+{-
+rawInput (cleartext) && (== hashInput) && active
+    |                         ^             ^
+    v                         |             |
+  hashPW                   (hashID,      active)
+    |                         ^             ^
+    v                         |             |
+ DB.lookup --------------> (userID,      active)
+-}
 
 server :: Has IpfsPath cfg
        => HasLogFunc cfg

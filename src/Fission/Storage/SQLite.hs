@@ -9,7 +9,6 @@ module Fission.Storage.SQLite
   , DBInsertable (..)
   , insert1
   , insertStamp
-  , traceAll
   , lensTable
   ) where
 
@@ -36,11 +35,8 @@ class DBInsertable r where
 insertStamp :: UTCTime -> (UTCTime -> UTCTime -> r) -> r
 insertStamp time record = record time time
 
-insert1 :: DBInsertable r
-        => MonadSelda m
-        => UTCTime
-        -> (UTCTime -> UTCTime -> r)
-        -> m (ID r)
+insert1 :: (DBInsertable r, MonadSelda m)
+        => UTCTime -> (UTCTime -> UTCTime -> r) -> m (ID r)
 insert1 t partR = insertX t [partR]
 
 setupTable :: MonadRIO cfg m
@@ -59,15 +55,10 @@ connPool :: HasLogFunc cfg => DBPath -> RIO cfg (Pool SeldaConnection)
 connPool (DBPath {unDBPath = path}) = do
   logInfo $ "Establishing database connection for " <> displayShow path
 
-  pool <- liftIO $ createPool (sqliteOpen path) seldaClose 4 2 10
+  pool <- liftIO $ createPool (sqliteOpen path) seldaClose 4 2 10 -- config these
   logInfo $ "DB pool stats: " <> displayShow pool
 
   return pool
-
-traceAll :: (Show a, Relational a) => Table a -> IO ()
-traceAll tbl = withSQLite "fission.sqlite" $ do
-  rows <- query (select tbl)
-  forM_ rows (traceIO . textDisplay . displayShow)
 
 lensTable :: Relational r => TableName -> [Attr r] -> Table r
 lensTable tableName conf =

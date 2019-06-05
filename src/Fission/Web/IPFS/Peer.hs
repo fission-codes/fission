@@ -20,9 +20,9 @@ import Fission.Web.Server
 import Fission.Web.Error
 
 import qualified Fission.IPFS.Peer as IPFS
-import qualified Fission.IPFS.Peer as IPFS.Peer
+import qualified Fission.IPFS.Peer as Peer
 
 type API = Get '[JSON] [IPFS.Peer]
 
 server :: Has IpfsPath cfg => RIOServer cfg API
-server = IPFS.Peer.all >>= ensureUnicode
+server = Peer.all >>= ensureUnicode

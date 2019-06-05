@@ -39,8 +39,12 @@ import Database.Selda
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
 
-import qualified Fission.Platform.Heroku       as Heroku
-import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+-- import qualified Fission.Platform.Heroku       as Heroku
+-- import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+import qualified Fission.Platform.Heroku.AddOn       as Heroku
+import qualified Fission.Platform.Heroku.AddOn       as Heroku.AddOn
+import qualified Fission.Platform.Heroku.Region      as Heroku
+
 import           Fission.Storage.SQLite
 import           Fission.User.Role
 import           Fission.Security (SecretDigest)
@@ -50,7 +54,6 @@ data User = User
   , _role          :: Role
   , _active        :: Bool
   , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
-  -- , _userName :: Text
   , _secretDigest  :: SecretDigest
   , _insertedAt    :: UTCTime
   , _modifiedAt    :: UTCTime
@@ -76,7 +79,6 @@ modifiedAt'    :: Selector User UTCTime
 id' :*: role'
     :*: active'
     :*: herokuAddOnId'
-    -- :*: userName'
     :*: secretDigest'
     :*: insertedAt'
     :*: modifiedAt' = selectors users
@@ -87,6 +89,8 @@ tableName = "users"
 users :: Table User
 users = lensTable tableName
   [ #_id            :- autoPrimary
+  -- , TODO SELDA INDEX ACTIVE
+  -- , TODO SELDA INDEX SECRET DIGEST & see if possible to make immutible in SQLite
   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.id'
   ]
 
@@ -95,3 +99,10 @@ createFresh herokuUUID herokuRegion sekret = transaction $ do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now . Heroku.AddOn def herokuUUID $ Just herokuRegion
   insert1 now $ User def Regular True (Just hConfId) sekret
+
+-- getUserByPassword :: _
+getUserByPassword :: MonadSelda m => Col s Text -> m [User]
+getUserByPassword secret = query $ do
+  user <- select users
+  restrict (user ! #_secretDigest .== secret)
+  return user

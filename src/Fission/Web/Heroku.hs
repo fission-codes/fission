@@ -19,20 +19,14 @@ import RIO.Text
 import Database.Selda
 import Servant
 
--- Heroku
-import qualified Fission.Platform.Heroku.Host       as Host
-import           Fission.Platform.Heroku.Provision  as Provision
-import           Fission.Platform.Heroku.UserConfig as Heroku
-
--- Web
 import           Fission.Web.Error
 import qualified Fission.Web.Heroku.MIME as Heroku
 import           Fission.Web.Server
 
--- Utility
-import qualified Fission.Random   as Random
-import           Fission.Security as Security
-import qualified Fission.User     as User
+import qualified Fission.Platform.Heroku as Heroku
+import qualified Fission.Random          as Random
+import           Fission.Security
+import qualified Fission.User            as User
 
 --------------------------------------------------------------------------------
 
@@ -48,7 +42,7 @@ type CreateAPI = ReqBody '[JSON]                Provision.Request
 create :: (HasLogFunc cfg, MonadSelda (RIO cfg)) => RIOServer cfg API
 create (Request {_uuid, _region}) = do
   rawSecret <- liftIO $ Random.byteString 500
-  secret'   <- ensureUnicode $ Security.toSecret rawSecret
+  secret'   <- ensureUnicode $ toSecret rawSecret
   userId    <- User.createFresh _uuid _region $ toHash rawSecret
 
   logInfo $ mconcat
@@ -62,7 +56,7 @@ create (Request {_uuid, _region}) = do
     { _id      = userId
     , _message = "Successfully provisioned Fission for Heroku"
     , _config  = Heroku.UserConfig
-                   { _fissionApiUrl   = pack Host.api
+                   { _fissionApiUrl   = pack Heroku.host
                    , _fissionUserName = userId
                    , _fissionSecret   = secret'
                    }
