@@ -33,17 +33,16 @@ module Fission.User
   ) where
 
 import RIO hiding (id)
+import RIO.List (headMaybe)
 
 import Control.Lens (makeLenses)
 import Database.Selda
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
 
--- import qualified Fission.Platform.Heroku       as Heroku
--- import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
-import qualified Fission.Platform.Heroku.AddOn       as Heroku
-import qualified Fission.Platform.Heroku.AddOn       as Heroku.AddOn
-import qualified Fission.Platform.Heroku.Region      as Heroku
+import qualified Fission.Platform.Heroku.AddOn  as Heroku       (AddOn (..), addOns)
+import qualified Fission.Platform.Heroku.AddOn  as Heroku.AddOn (id')
+import qualified Fission.Platform.Heroku.Region as Heroku       (Region)
 
 import           Fission.Storage.SQLite
 import           Fission.User.Role
@@ -89,6 +88,7 @@ tableName = "users"
 users :: Table User
 users = lensTable tableName
   [ #_id            :- autoPrimary
+  , #_secretDigest  :- unique
   -- , TODO SELDA INDEX ACTIVE
   -- , TODO SELDA INDEX SECRET DIGEST & see if possible to make immutible in SQLite
   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.id'
@@ -100,9 +100,23 @@ createFresh herokuUUID herokuRegion sekret = transaction $ do
   hConfId <- insert1 now . Heroku.AddOn def herokuUUID $ Just herokuRegion
   insert1 now $ User def Regular True (Just hConfId) sekret
 
--- getUserByPassword :: _
-getUserByPassword :: MonadSelda m => Col s Text -> m [User]
-getUserByPassword secret = query $ do
+getUserByPassword :: MonadSelda m => Col s Text -> m (Maybe User)
+getUserByPassword secret = fmap headMaybe . query $ do
   user <- select users
-  restrict (user ! #_secretDigest .== secret)
+  u' <- Inner user
+  restrict (user ! #_secretDigest .== secret) -- Has a uniqueness constraint
   return user
+
+-- getUserByPassword secret = do
+--   u <- query $ do
+--         user <- select users
+--         restrict (user ! #_secretDigest .== secret) -- Has a uniqueness constraint
+--         return user
+
+--   return $ headMaybe u
+
+-- authUser pwd = do
+--   u <- getUserByPassword pwd
+--   case u of
+--     [] -> error "no results"
+--     -- []
