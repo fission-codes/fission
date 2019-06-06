@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE DeriveAnyClass    #-}
@@ -30,10 +31,10 @@ module Fission.User
   , tableName
   -- Helpers
   , createFresh
+  , bySecret
   ) where
 
 import RIO hiding (id)
-import RIO.List (headMaybe)
 
 import Control.Lens (makeLenses)
 import Database.Selda
@@ -46,7 +47,8 @@ import qualified Fission.Platform.Heroku.Region as Heroku       (Region)
 
 import           Fission.Storage.SQLite
 import           Fission.User.Role
-import           Fission.Security (SecretDigest)
+import           Fission.Security (SecretDigest, Digestable (..))
+import qualified Fission.Internal.UTF8  as UTF8
 
 data User = User
   { _id            :: ID User
@@ -66,6 +68,9 @@ makeLenses ''User
 
 instance DBInsertable User where
   insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs
+
+instance Digestable (ID User) where
+  digest = digest . UTF8.textShow
 
 id'            :: Selector User (ID User)
 role'          :: Selector User Role
@@ -88,35 +93,23 @@ tableName = "users"
 users :: Table User
 users = lensTable tableName
   [ #_id            :- autoPrimary
+  , #_active        :- index
+  , #_secretDigest  :- index
   , #_secretDigest  :- unique
-  -- , TODO SELDA INDEX ACTIVE
-  -- , TODO SELDA INDEX SECRET DIGEST & see if possible to make immutible in SQLite
   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.id'
   ]
 
-createFresh :: (MonadIO m, MonadSelda m) => UUID -> Heroku.Region -> SecretDigest -> m (ID User)
+createFresh :: (MonadIO m, MonadSelda m)
+            => UUID -> Heroku.Region -> SecretDigest -> m (ID User)
 createFresh herokuUUID herokuRegion sekret = transaction $ do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now . Heroku.AddOn def herokuUUID $ Just herokuRegion
   insert1 now $ User def Regular True (Just hConfId) sekret
 
-getUserByPassword :: MonadSelda m => Col s Text -> m (Maybe User)
-getUserByPassword secret = fmap headMaybe . query $ do
+-- TODO `limit 0 1`
+bySecret :: MonadSelda m => Text -> m [User]
+bySecret secret = query $ do
   user <- select users
-  u' <- Inner user
-  restrict (user ! #_secretDigest .== secret) -- Has a uniqueness constraint
+  restrict $ user ! #_secretDigest .== text secret
+         .&& user ! #_active       .== true
   return user
-
--- getUserByPassword secret = do
---   u <- query $ do
---         user <- select users
---         restrict (user ! #_secretDigest .== secret) -- Has a uniqueness constraint
---         return user
-
---   return $ headMaybe u
-
--- authUser pwd = do
---   u <- getUserByPassword pwd
---   case u of
---     [] -> error "no results"
---     -- []

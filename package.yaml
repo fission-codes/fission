@@ -61,6 +61,8 @@ dependencies:
   - text
   - time
   - typed-process
+  - unliftio
+  - unliftio-core
   - uuid
   - uuid-types
   - wai

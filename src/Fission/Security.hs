@@ -7,7 +7,8 @@ module Fission.Security
   , unSecret
   , mkSecret
   , toSecret
-  , toHash
+  , Digestable
+  , digest
   ) where
 
 import RIO
@@ -33,5 +34,11 @@ mkSecret = return . toSecret <=< BS.random
 toSecret :: ByteString -> Either UnicodeException Secret
 toSecret raw = Secret <$> UTF8.encode raw
 
-toHash :: ByteString -> SecretDigest
-toHash plain = UTF8.textShow (hash plain :: Digest SHA3_512)
+class Digestable a where
+  digest :: a -> SecretDigest
+
+instance Digestable ByteString where
+  digest bs = UTF8.textShow (hash bs :: Digest SHA3_512)
+
+instance Digestable Text where
+  digest = digest . encodeUtf8

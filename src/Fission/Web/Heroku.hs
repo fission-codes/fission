@@ -43,7 +43,7 @@ create :: (HasLogFunc cfg, MonadSelda (RIO cfg)) => RIOServer cfg API
 create (Request {_uuid, _region}) = do
   rawSecret <- liftIO $ Random.byteString 500
   secret'   <- ensureUnicode $ toSecret rawSecret
-  userId    <- User.createFresh _uuid _region $ toHash rawSecret
+  userId    <- User.createFresh _uuid _region $ digest rawSecret
 
   logInfo $ mconcat
     [ "Provisioned UUID:"

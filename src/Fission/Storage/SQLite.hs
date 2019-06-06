@@ -10,11 +10,13 @@ module Fission.Storage.SQLite
   , insert1
   , insertStamp
   , lensTable
+  , getOne
   ) where
 
 import           RIO         hiding     (id)
 import qualified RIO.Partial as Partial
 import           RIO.Text               (stripPrefix)
+import RIO.List (headMaybe)
 
 import Data.Has
 import Data.Pool
@@ -63,3 +65,6 @@ connPool (DBPath {unDBPath = path}) = do
 lensTable :: Relational r => TableName -> [Attr r] -> Table r
 lensTable tableName conf =
   tableFieldMod tableName conf (Partial.fromJust . stripPrefix "_")
+
+getOne :: Functor f => f [a] -> f (Maybe a)
+getOne = fmap headMaybe

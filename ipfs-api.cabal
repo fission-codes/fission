@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6fb39fbf3933b33fef5dbf566c06709315b1be812365f3a9a67cc9c3be4205ff
+-- hash: 780e3491b24975b40c089ded61293003fadfaa71aa6147067d68113d51353767
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -110,6 +110,8 @@ library
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -162,6 +164,8 @@ executable cli
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -214,6 +218,8 @@ executable server
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -269,6 +275,8 @@ test-suite fission-coverage
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -325,6 +333,8 @@ test-suite fission-docs
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -381,6 +391,8 @@ test-suite fission-doctest
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -434,6 +446,8 @@ test-suite fission-lint
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -541,6 +555,8 @@ test-suite fission-test
     , time
     , transformers
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -595,6 +611,8 @@ benchmark fission-benchmark
     , text
     , time
     , typed-process
+    , unliftio
+    , unliftio-core
     , uuid
     , uuid-types
     , wai
