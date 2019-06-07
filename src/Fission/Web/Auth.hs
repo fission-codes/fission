@@ -1,4 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -13,12 +12,11 @@ module Fission.Web.Auth
   , check
   ) where
 
-import RIO
+import RIO hiding (id)
 
 import Servant
 import Database.Selda
 
-import Fission.Internal.UTF8
 import Fission.Security
 import Fission.Web.Server
 import Fission.User as User
@@ -51,6 +49,5 @@ check (BasicAuthData username password) = do
   return $ maybe NoSuchUser checkId mayUsr
 
   where
-    checkId usr@(User { _id })
-      | encodeUtf8 (digest _id) == username = Authorized usr
-      | otherwise                          = Unauthorized
+    checkId usr | encodeUtf8 (digest $ usr ^. id) == username = Authorized usr
+                | otherwise                                  = Unauthorized

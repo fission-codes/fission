@@ -1,17 +1,41 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Fission.Random (byteString, byteString') where
+module Fission.Random
+  ( byteString
+  , text
+  ) where
 
 import           RIO
 import qualified RIO.ByteString as BS
 
 import qualified Data.ByteString.Random as BS
-import           Data.Word8             (isPrint)
-import           System.Entropy
+import           Data.Word8
 
-byteString' :: Natural -> IO ByteString
-byteString' amount = return . BS.filter isPrint =<< BS.random amount
+text :: Natural -> IO Text
+text amount = decodeUtf8Lenient <$> byteString amount
 
-byteString :: Int -> IO ByteString
-byteString amount = getHardwareEntropy amount >>=
-  maybe (getEntropy amount) (return . BS.filter isPrint)
+byteString :: Natural -> IO ByteString
+byteString amount = return . BS.filter isURL =<< BS.random amount
+
+isURL :: Word8 -> Bool
+isURL w = isDigit w
+        || isDigit w
+        || any' urlSpecials w
+
+any' :: [a -> Bool] -> a -> Bool
+any' preds value = any (== True) (preds <*> [value])
+
+urlSpecials :: [Word8 -> Bool]
+urlSpecials =
+  fmap (==)
+    [ _asterisk
+    , _comma
+    , _dollar
+    , _exclam
+    , _hyphen
+    , _parenleft
+    , _parenright
+    , _period
+    , _plus
+    , _underscore
+    ]

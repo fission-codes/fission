@@ -36,10 +36,8 @@ dependencies:
   - data-default-class
   - data-has
   - ekg-wai
-  - entropy
   - envy
   - etc
-  - hoauth2
   - http-client
   - http-client-tls
   - http-media
@@ -61,8 +59,6 @@ dependencies:
   - text
   - time
   - typed-process
-  - unliftio
-  - unliftio-core
   - uuid
   - uuid-types
   - wai

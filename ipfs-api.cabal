@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 780e3491b24975b40c089ded61293003fadfaa71aa6147067d68113d51353767
+-- hash: 8585d558d921267089db104a172056c0342dbcef8defb8831a44cdf4f86d7bb1
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -32,9 +32,11 @@ library
       Fission.Config
       Fission.Environment
       Fission.File
+      Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.Orphanage
+      Fission.Internal.URL
       Fission.Internal.UTF8
       Fission.IPFS.Address
       Fission.IPFS.Peer
@@ -85,10 +87,8 @@ library
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -110,8 +110,6 @@ library
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -138,10 +136,8 @@ executable cli
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -164,8 +160,6 @@ executable cli
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -192,10 +186,8 @@ executable server
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -218,8 +210,6 @@ executable server
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -247,10 +237,8 @@ test-suite fission-coverage
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -275,8 +263,6 @@ test-suite fission-coverage
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -305,10 +291,8 @@ test-suite fission-docs
     , data-has
     , doctest
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -333,8 +317,6 @@ test-suite fission-docs
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -365,10 +347,8 @@ test-suite fission-doctest
     , data-has
     , doctest
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -391,8 +371,6 @@ test-suite fission-doctest
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -420,11 +398,9 @@ test-suite fission-lint
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
     , hlint
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -446,8 +422,6 @@ test-suite fission-lint
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -466,9 +440,11 @@ test-suite fission-test
       Fission.Config
       Fission.Environment
       Fission.File
+      Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.Orphanage
+      Fission.Internal.URL
       Fission.Internal.UTF8
       Fission.IPFS.Address
       Fission.IPFS.Peer
@@ -520,10 +496,8 @@ test-suite fission-test
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -555,8 +529,6 @@ test-suite fission-test
     , time
     , transformers
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai
@@ -585,10 +557,8 @@ benchmark fission-benchmark
     , data-default-class
     , data-has
     , ekg-wai
-    , entropy
     , envy
     , etc
-    , hoauth2
     , http-client
     , http-client-tls
     , http-media
@@ -611,8 +581,6 @@ benchmark fission-benchmark
     , text
     , time
     , typed-process
-    , unliftio
-    , unliftio-core
     , uuid
     , uuid-types
     , wai

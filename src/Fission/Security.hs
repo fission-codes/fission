@@ -2,9 +2,8 @@
 {-# LANGUAGE NoImplicitPrelude          #-}
 
 module Fission.Security
-  ( Secret
+  ( Secret (..)
   , SecretDigest
-  , unSecret
   , mkSecret
   , toSecret
   , Digestable

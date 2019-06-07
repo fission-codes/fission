@@ -9,36 +9,44 @@
 
 module Fission.Web.Heroku.Resource
   ( API
-  -- , create
+  , create
   ) where
 
 import RIO
-import RIO.Text
 
+import Data.Has
 import Database.Selda
 import Servant.API
 
-import qualified Fission.Platform.Heroku.Host       as Host
-import           Fission.Platform.Heroku.Provision  as Provision
-import qualified Fission.Platform.Heroku.UserConfig as Heroku
+import           Fission.Config
+import qualified Fission.Platform.Heroku           as Heroku
+import           Fission.Platform.Heroku.Provision as Provision
 
 import qualified Fission.Web.Heroku.MIME as Heroku
 import           Fission.Web.Server
 
-import qualified Fission.User as User
+import           Fission.Security as Security
+import qualified Fission.User     as User
+import qualified Fission.Random   as Random
 
 type API = ReqBody '[JSON]                Provision.Request
         :> Post    '[Heroku.VendorJSONv3] Provision
 
--- create :: HasLogFunc cfg
---        => MonadSelda (RIO cfg)
---        => RIOServer cfg API
--- create (Request {_uuid, _region}) = do
---   userId <- User.createFresh _uuid _region
---   logInfo $ "Provisioned UUID: " <> displayShow _uuid <> " as " <> displayShow userId
+create :: (HasLogFunc cfg, Has Host cfg, MonadSelda (RIO cfg)) => RIOServer cfg API
+create (Request {_uuid, _region}) = do
+  Host url <- view hasLens
+  secret   <- liftIO $ Random.text 250
+  userId   <- User.createFresh _uuid _region secret
 
---   return Provision
---     { _id      = userId
---     , _config  = Heroku.UserConfig $ pack Host.api
---     , _message = "Provisioned successfully"
---     }
+  logInfo $ mconcat
+    [ "Provisioned UUID: "
+    , displayShow _uuid
+    , " as "
+    , displayShow userId
+    ]
+
+  return Provision
+    { _id      = userId
+    , _config  = Heroku.UserConfig url (digest userId) (Secret secret)
+    , _message = "Successfully provisioned Interplanetary FISSION!"
+    }
