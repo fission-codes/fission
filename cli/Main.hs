@@ -6,6 +6,7 @@ module Main (main) where
 
 import RIO
 
+import           Database.Selda ()
 import qualified Network.Wai.Cli as CLI
 
 import Fission.Internal.Orphanage ()
@@ -27,4 +28,5 @@ main = runRIO (mkLogFunc Log.simple) $ do
   runRIO cfg $ do
     Monitor.wai -- TODO only run locally in dev
     logInfo $ "Servant running at port " <> display port
-    liftIO . CLI.defWaiMain $ Web.app cfg
+    app <- Web.app cfg
+    liftIO $ CLI.defWaiMain app

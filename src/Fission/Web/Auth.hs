@@ -1,3 +1,4 @@
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -9,7 +10,8 @@ module Fission.Web.Auth
   , context
   , basic
   , user
-  , check
+  , checkUser
+  , nt
   ) where
 
 import RIO hiding (id)
@@ -18,12 +20,10 @@ import Servant
 import Database.Selda
 
 import Fission.Internal.Orphanage ()
-import Fission.Internal.Constraint
-
 import Fission.Security
-import Fission.Web.Server
-import Fission.User as User
 import Fission.Storage.SQLite
+import Fission.User as User
+import Fission.Web.Server
 
 server :: HasServer api '[BasicAuthCheck User]
        => Proxy api
@@ -43,17 +43,18 @@ basic unOK pwOK = BasicAuthCheck check' :. EmptyContext
          then return $ Authorized username
          else return Unauthorized
 
-user :: MonadSelda IO => Context (BasicAuthCheck User ': '[])
-user = BasicAuthCheck check :. EmptyContext
+user :: MonadSelda (RIO cfg) => RIO cfg (Context (BasicAuthCheck User ': '[]))
+user = ask >>= \cfg -> pure (BasicAuthCheck (nt checkUser cfg) :. EmptyContext)
 
-check' :: (MonadRIO m cfg, MonadSelda IO) => RIO cfg (BasicAuthResult User)
-check' = ioToRIO . check
+nt :: MonadIO m
+   => (BasicAuthData -> RIO cfg (BasicAuthResult u))
+   -> cfg
+   -> BasicAuthData
+   -> m (BasicAuthResult u)
+nt check cfg = runRIO cfg . check
 
-ioToRIO :: IO a -> RIO cfg a
-ioToRIO = liftIO
-
-check :: MonadIO io => MonadSelda io => BasicAuthData -> io (BasicAuthResult User)
-check (BasicAuthData username password) = do
+checkUser :: MonadSelda (RIO cfg) => BasicAuthData -> RIO cfg (BasicAuthResult User)
+checkUser (BasicAuthData username password) = do
   mayUsr <- getOne . User.bySecret $ decodeUtf8Lenient password
   return $ maybe NoSuchUser checkId mayUsr
 

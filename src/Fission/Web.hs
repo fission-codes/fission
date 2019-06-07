@@ -3,7 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 
 module Fission.Web
   ( API
@@ -13,18 +13,17 @@ module Fission.Web
 
 import RIO
 
-import Servant
-
 import Data.Has
 import Database.Selda
+import Servant
 
-import Fission.Config
+import           Fission.Config
 import           Fission.User
-import           Fission.Web.Server
-import qualified Fission.Web.Auth as Auth
 
-import qualified Fission.Web.IPFS as IPFS
-import qualified Fission.Web.Ping as Ping
+import           Fission.Web.Server
+import qualified Fission.Web.Auth   as Auth
+import qualified Fission.Web.IPFS   as IPFS
+import qualified Fission.Web.Ping   as Ping
 import qualified Fission.Web.Heroku as Heroku
 
 type API = "ipfs"
@@ -39,9 +38,11 @@ app :: Has IpfsPath cfg
     => HasLogFunc cfg
     => Has Host cfg
     => MonadSelda (RIO cfg)
-    -- => MonadSelda IO
-    => cfg -> Application
-app cfg = serveWithContext api Auth.user $ Auth.server api cfg server
+    => cfg -> RIO cfg Application
+app cfg = do
+  auth <- Auth.user
+  return . serveWithContext api auth
+         $ Auth.server api cfg server
 
 server :: Has IpfsPath cfg
        => Has Host cfg

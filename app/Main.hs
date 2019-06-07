@@ -12,6 +12,7 @@ import Network.Wai.Logger
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
 
+import Database.Selda ()
 import Fission.Internal.Orphanage ()
 
 import qualified Fission.Log        as Log
@@ -33,4 +34,6 @@ main = withStdoutLogger $ \stdOut ->
     runRIO cfg $ do
       Monitor.wai -- TODO only run locally in dev
       logInfo $ "Servant running at port " <> display port
-      liftIO $ runSettings settings $ Web.app cfg
+
+      app <- Web.app cfg
+      liftIO $ runSettings settings app
