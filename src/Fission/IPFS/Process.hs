@@ -35,7 +35,7 @@ runHelper :: Has IpfsPath cfg
           -> StreamSpec 'STInput stdin
           -> m Lazy.ByteString
 runHelper opts inStream = do
-  IpfsPath ipfs <- view hasLens
+  IpfsPath ipfs <- fromCfg
 
   readProcessStdout_
     . setStdin inStream

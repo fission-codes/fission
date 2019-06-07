@@ -48,7 +48,7 @@ setupTable :: MonadRIO cfg m
            -> TableName
            -> m ()
 setupTable tbl tblName = do
-  DBPath db <- view hasLens
+  DBPath db <- fromCfg
   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB " <> displayShow db
   liftIO . withSQLite db $ createTable tbl
 

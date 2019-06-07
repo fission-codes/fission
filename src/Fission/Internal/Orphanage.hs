@@ -55,5 +55,5 @@ instance FromJSON (ID a) where
 
 instance Has DBPool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
-    DBPool pool <- view hasLens
+    DBPool pool <- fromCfg
     liftIO $ withResource pool pure

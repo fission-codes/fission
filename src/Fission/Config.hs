@@ -19,6 +19,7 @@ module Fission.Config
   , Host (..)
   , host
   , base
+  , fromCfg
   ) where
 
 import RIO
@@ -81,3 +82,6 @@ base pool = Config
     , _dbPath      = DBPath "fission.sqlite"
     , _dbPool      = pool
     }
+
+fromCfg :: (MonadReader cfg m, Has a cfg) => m a
+fromCfg = view hasLens
