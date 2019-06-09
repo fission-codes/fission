@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
@@ -11,6 +12,7 @@ module Fission.Storage.SQLite
   , insertStamp
   , lensTable
   , getOne
+  , TableName' (..)
   ) where
 
 import           RIO         hiding     (id)
@@ -27,6 +29,12 @@ import Database.Selda.Backend
 
 import Fission.Internal.Constraint
 import Fission.Config
+
+newtype TableName' a = TableName' { unTable :: TableName }
+  deriving ( Show
+           , Eq
+           , IsString
+           )
 
 class DBInsertable r where
   insertX :: MonadSelda m

@@ -11,7 +11,6 @@ module Fission.Web.Auth
   , basic
   , user
   , checkUser
-  , nt
   ) where
 
 import RIO hiding (id)
@@ -44,14 +43,9 @@ basic unOK pwOK = BasicAuthCheck check' :. EmptyContext
          else return Unauthorized
 
 user :: MonadSelda (RIO cfg) => RIO cfg (Context (BasicAuthCheck User ': '[]))
-user = ask >>= \cfg -> pure (BasicAuthCheck (nt checkUser cfg) :. EmptyContext)
-
-nt :: MonadIO m
-   => (BasicAuthData -> RIO cfg (BasicAuthResult u))
-   -> cfg
-   -> BasicAuthData
-   -> m (BasicAuthResult u)
-nt check cfg = runRIO cfg . check
+user = do
+  cfg <- ask
+  return $ BasicAuthCheck (runRIO cfg . checkUser) :. EmptyContext
 
 checkUser :: MonadSelda (RIO cfg) => BasicAuthData -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do

@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE LambdaCase        #-}
@@ -87,11 +88,11 @@ id' :*: role'
     :*: insertedAt'
     :*: modifiedAt' = selectors users
 
-tableName :: TableName
-tableName = "users"
+tableName :: TableName' User
+tableName = TableName' "users"
 
 users :: Table User
-users = lensTable tableName
+users = lensTable (unTable tableName)
   [ #_id            :- autoPrimary
   , #_active        :- index
   , #_secretDigest  :- index

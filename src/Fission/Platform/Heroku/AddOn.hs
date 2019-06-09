@@ -64,8 +64,8 @@ id' :*: uuid'
     :*: insertedAt'
     :*: modifiedAt' = selectors addOns
 
-tableName :: TableName
+tableName :: TableName' AddOn
 tableName = "heroku_add_ons"
 
 addOns :: Table AddOn
-addOns = lensTable tableName [#_id :- autoPrimary]
+addOns = lensTable (unTable tableName) [#_id :- autoPrimary]
