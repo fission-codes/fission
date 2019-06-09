@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8141a4b7626688078288da896869331d27cc95a6e9d12c4423d56b4da264315d
+-- hash: fd0b97b8215236d1045ae71806b3091f728327c04091ddb5bb5fc16f7d41c0dc
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -113,58 +113,6 @@ library
     , uuid
     , uuid-types
     , wai
-    , wai-cli
-    , wai-extra
-    , wai-logger
-    , warp
-    , word8
-  default-language: Haskell2010
-
-executable cli
-  main-is: Main.hs
-  other-modules:
-      Paths_ipfs_api
-  hs-source-dirs:
-      cli
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -O2
-  build-depends:
-      aeson
-    , aeson-casing
-    , base
-    , bytestring
-    , cryptonite
-    , data-default-class
-    , data-has
-    , ekg-wai
-    , envy
-    , etc
-    , http-client
-    , http-client-tls
-    , http-media
-    , ipfs-api
-    , lens
-    , monad-logger
-    , random-bytestring
-    , resource-pool
-    , rio
-    , rio-orphans
-    , scientific
-    , selda
-    , selda-sqlite
-    , servant
-    , servant-auth-server
-    , servant-client
-    , servant-multipart
-    , servant-server
-    , streaming-commons
-    , text
-    , time
-    , typed-process
-    , unliftio
-    , uuid
-    , uuid-types
-    , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -215,7 +163,6 @@ executable server
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -269,7 +216,6 @@ test-suite fission-coverage
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -324,7 +270,6 @@ test-suite fission-docs
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -379,7 +324,6 @@ test-suite fission-doctest
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -431,7 +375,6 @@ test-suite fission-lint
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -538,7 +481,6 @@ test-suite fission-test
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp
@@ -591,7 +533,6 @@ benchmark fission-benchmark
     , uuid
     , uuid-types
     , wai
-    , wai-cli
     , wai-extra
     , wai-logger
     , warp

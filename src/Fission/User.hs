@@ -104,7 +104,7 @@ createFresh :: (MonadIO m, MonadSelda m)
             => UUID -> Heroku.Region -> SecretDigest -> m (ID User)
 createFresh herokuUUID herokuRegion sekret = transaction $ do
   now     <- liftIO getCurrentTime
-  hConfId <- insert1 now . Heroku.AddOn def herokuUUID $ Just herokuRegion
+  hConfId <- insert1 now $ Heroku.AddOn def herokuUUID (Just herokuRegion)
   insert1 now $ User def Regular True (Just hConfId) sekret
 
 -- TODO `limit 0 1`

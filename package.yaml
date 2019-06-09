@@ -63,7 +63,6 @@ dependencies:
   - uuid
   - uuid-types
   - wai
-  - wai-cli
   - wai-extra
   - wai-logger
   - warp
@@ -73,19 +72,6 @@ library:
   source-dirs: src
 
 executables:
-  cli:
-    main: Main.hs
-    source-dirs: cli
-    dependencies:
-      - ipfs-api
-      - wai-cli
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -flate-specialise
-      - -with-rtsopts=-N
-      - -O2
-
   server:
     main: Main.hs
     source-dirs: app

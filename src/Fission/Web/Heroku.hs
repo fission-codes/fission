@@ -45,17 +45,24 @@ create :: (HasLogFunc cfg, Has Host cfg, MonadSelda (RIO cfg)) => RIOServer cfg 
 create (Request {_uuid, _region}) = do
   Host url <- fromCfg
   secret   <- liftIO $ Random.text 200
-  userId   <- User.createFresh _uuid _region secret
+  userID   <- User.createFresh _uuid _region secret
 
   logInfo $ mconcat
     [ "Provisioned UUID: "
     , displayShow _uuid
     , " as "
-    , displayShow userId
+    , displayShow userID
     ]
 
+  let
+    userConfig = Heroku.UserConfig
+      { Heroku._fissionApiUrl   = url
+      , Heroku._fissionUserName = digest userID
+      , Heroku._fissionSecret   = Secret secret
+      }
+
   return Provision
-    { _id      = userId
-    , _config  = Heroku.UserConfig url (digest userId) (Secret secret)
+    { _id      = userID
+    , _config  = userConfig
     , _message = "Successfully provisioned Interplanetary FISSION!"
     }

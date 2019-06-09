@@ -8,7 +8,9 @@ module Fission.Storage.SQLite
   ( setupTable
   , connPool
   , DBInsertable (..)
+  , insertX'
   , insert1
+  , insert1'
   , insertStamp
   , lensTable
   , getOne
@@ -19,6 +21,7 @@ import           RIO         hiding     (id)
 import qualified RIO.Partial as Partial
 import           RIO.Text               (stripPrefix)
 import RIO.List (headMaybe)
+import Data.Time (getCurrentTime)
 
 import Data.Has
 import Data.Pool
@@ -45,9 +48,17 @@ class DBInsertable r where
 insertStamp :: UTCTime -> (UTCTime -> UTCTime -> r) -> r
 insertStamp time record = record time time
 
+insertX' :: (DBInsertable r, MonadSelda m) => [UTCTime -> UTCTime -> r] -> m (ID r)
+insertX' partRs = do
+  now <- liftIO getCurrentTime
+  insertX now partRs
+
 insert1 :: (DBInsertable r, MonadSelda m)
         => UTCTime -> (UTCTime -> UTCTime -> r) -> m (ID r)
 insert1 t partR = insertX t [partR]
+
+insert1' :: (DBInsertable r, MonadSelda m) => (UTCTime -> UTCTime -> r) -> m (ID r)
+insert1' partR = insertX' [partR]
 
 setupTable :: MonadRIO cfg m
            => HasLogFunc cfg

@@ -24,7 +24,7 @@ main :: IO ()
 main = withStdoutLogger $ \stdOut ->
   runRIO (mkLogFunc Log.simple) $ do
     Web.Config.Config {port} <- Web.Config.get
-    pool <- SQLite.connPool $ DBPath "fission.sqlite"
+    pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite"
 
     let portSettings = setPort port
         logSettings  = setLogger stdOut

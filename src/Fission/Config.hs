@@ -79,7 +79,7 @@ base pool = Config
     , _minLogLevel = Log.MinLogLevel LevelDebug
     , _ipfsPath    = IpfsPath "/usr/local/bin/ipfs"
     , _host        = Host "localhost:3000"
-    , _dbPath      = DBPath "fission.sqlite"
+    , _dbPath      = DBPath "ipfs-api.sqlite"
     , _dbPool      = pool
     }
 

@@ -28,8 +28,9 @@ all :: (MonadRIO cfg m, Has IpfsPath cfg) => m (Either UnicodeException [Peer])
 all = do
   allRaw <- rawList
 
-  let textOrErr      = UTF8.encode allRaw
-      peerNamesOrErr = Text.lines <$> textOrErr
+  let
+    textOrErr      = UTF8.encode allRaw
+    peerNamesOrErr = Text.lines <$> textOrErr
 
   return $ fmap Peer <$> peerNamesOrErr
 

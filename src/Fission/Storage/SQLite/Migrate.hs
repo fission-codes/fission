@@ -41,5 +41,5 @@ mutations =
 
 makeTable :: Table t -> TableName' t -> IO ()
 makeTable tbl tblName = runRIO (mkLogFunc Log.simple) $ do
-  pool <- SQLite.connPool $ DBPath "fission.sqlite"
+  pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite"
   runRIO (Config.base $ DBPool pool) (setupTable tbl $ unTable tblName)
