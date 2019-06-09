@@ -1,18 +1,10 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedLabels  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Fission.User
   ( User (..)
   , Role (..)
   -- Selectors
-  , id'
+  , userID'
   , role'
   , active'
   , herokuAddOnId'
@@ -20,7 +12,7 @@ module Fission.User
   , insertedAt'
   , modifiedAt'
   -- Lenses
-  , id
+  , userID
   , role
   , active
   , herokuAddOnId
@@ -35,16 +27,20 @@ module Fission.User
   , bySecret
   ) where
 
-import RIO hiding (id)
+import RIO
 
 import Control.Lens (makeLenses)
 import Database.Selda
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
 
-import qualified Fission.Platform.Heroku.AddOn  as Heroku       (AddOn (..), addOns)
-import qualified Fission.Platform.Heroku.AddOn  as Heroku.AddOn (id')
-import qualified Fission.Platform.Heroku.Region as Heroku       (Region)
+import qualified Fission.Platform.Heroku.AddOn as Heroku
+  ( AddOn (..)
+  , addOns
+  , addOnID'
+  )
+
+import qualified Fission.Platform.Heroku.Region as Heroku (Region)
 
 import           Fission.Storage.SQLite
 import           Fission.User.Role
@@ -52,7 +48,7 @@ import           Fission.Security (SecretDigest, Digestable (..))
 import qualified Fission.Internal.UTF8  as UTF8
 
 data User = User
-  { _id            :: ID User
+  { _userID        :: ID User
   , _role          :: Role
   , _active        :: Bool
   , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
@@ -73,7 +69,7 @@ instance DBInsertable User where
 instance Digestable (ID User) where
   digest = digest . UTF8.textShow
 
-id'            :: Selector User (ID User)
+userID'        :: Selector User (ID User)
 role'          :: Selector User Role
 active'        :: Selector User Bool
 herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
@@ -81,35 +77,35 @@ secretDigest'  :: Selector User SecretDigest
 insertedAt'    :: Selector User UTCTime
 modifiedAt'    :: Selector User UTCTime
 
-id' :*: role'
-    :*: active'
-    :*: herokuAddOnId'
-    :*: secretDigest'
-    :*: insertedAt'
-    :*: modifiedAt' = selectors users
+userID' :*: role'
+        :*: active'
+        :*: herokuAddOnId'
+        :*: secretDigest'
+        :*: insertedAt'
+        :*: modifiedAt' = selectors users
 
 tableName :: TableName' User
 tableName = TableName' "users"
 
 users :: Table User
 users = lensTable (unTable tableName)
-  [ #_id            :- autoPrimary
+  [ #_userID        :- autoPrimary
   , #_active        :- index
   , #_secretDigest  :- index
   , #_secretDigest  :- unique
-  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.AddOn.id'
+  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
   ]
 
 createFresh :: (MonadIO m, MonadSelda m)
             => UUID -> Heroku.Region -> SecretDigest -> m (ID User)
-createFresh herokuUUID herokuRegion sekret = transaction $ do
+createFresh herokuUUID herokuRegion sekret = transaction do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now $ Heroku.AddOn def herokuUUID (Just herokuRegion)
   insert1 now $ User def Regular True (Just hConfId) sekret
 
 -- TODO `limit 0 1`
 bySecret :: MonadSelda m => Text -> m [User]
-bySecret secret = query $ do
+bySecret secret = query do
   user <- select users
   restrict $ user ! #_secretDigest .== text secret
          .&& user ! #_active       .== true

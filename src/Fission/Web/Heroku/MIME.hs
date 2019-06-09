@@ -1,8 +1,3 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-
 module Fission.Web.Heroku.MIME (VendorJSONv3 (..)) where
 
 import RIO

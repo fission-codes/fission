@@ -1,6 +1,3 @@
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-
 module Fission.Platform.Heroku
   ( host
   , AddOn (..)

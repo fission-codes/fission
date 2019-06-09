@@ -1,7 +1,3 @@
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main (main) where
 
 import RIO
@@ -22,7 +18,7 @@ import           Fission.Web.Config as Web.Config
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut ->
-  runRIO (mkLogFunc Log.simple) $ do
+  runRIO (mkLogFunc Log.simple) do
     Web.Config.Config {port} <- Web.Config.get
     pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite"
 
@@ -31,7 +27,7 @@ main = withStdoutLogger $ \stdOut ->
         settings     = portSettings $ logSettings defaultSettings
         cfg          = Config.base $ DBPool pool
 
-    runRIO cfg $ do
+    runRIO cfg do
       Monitor.wai -- TODO only run locally in dev
       logInfo $ "Servant running at port " <> display port
 

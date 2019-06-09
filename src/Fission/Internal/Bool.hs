@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Internal.Bool (anyX) where
 
 import RIO

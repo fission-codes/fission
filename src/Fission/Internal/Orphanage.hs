@@ -1,15 +1,7 @@
-{-# OPTIONS_GHC -fno-warn-orphans        #-}
-{-# OPTIONS_GHC -fno-warn-missing-methods        #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-orphans         #-}
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedLabels  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.Internal.Orphanage () where
@@ -18,7 +10,6 @@ import RIO
 import RIO.Orphans ()
 import qualified RIO.Partial as Partial
 
--- import Data.Aeson
 import Data.Aeson.Types
 import Data.Scientific
 import Data.Has

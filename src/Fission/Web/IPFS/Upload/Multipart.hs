@@ -1,10 +1,3 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeOperators         #-}
-
 module Fission.Web.IPFS.Upload.Multipart
   ( API
   , server

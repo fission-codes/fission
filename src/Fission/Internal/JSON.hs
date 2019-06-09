@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Internal.JSON
   ( lens_snake_case
   , lens_SCREAMING_SNAKE_CASE

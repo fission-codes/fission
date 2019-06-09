@@ -1,6 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-
 module Fission.Platform.Heroku.Provision
   ( Request (..)
   , callbackUrl
@@ -77,4 +74,4 @@ data Provision = Provision
 makeLenses ''Provision
 $(deriveJSON lens_snake_case ''Provision)
 
--- data Error = ...
+-- TODO data Error = ...

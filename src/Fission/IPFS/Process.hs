@@ -1,18 +1,13 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.IPFS.Process (run, run') where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
+import Data.Has
 import System.Process.Typed
 
 import Fission.Internal.Constraint
 import Fission.Config
-
-import Data.Has
 
 type Opt = String
 

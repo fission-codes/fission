@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-
 module Fission.IPFS.Peer
   ( Peer (..)
   , all

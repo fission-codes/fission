@@ -1,7 +1,4 @@
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Fission.Platform.Heroku.Region (Region (..)) where
 

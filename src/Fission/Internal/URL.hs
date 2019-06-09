@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Internal.URL
   ( isURL
   , specials

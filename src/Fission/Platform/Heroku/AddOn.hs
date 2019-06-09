@@ -1,21 +1,15 @@
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedLabels  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Fission.Platform.Heroku.AddOn
   ( AddOn(..)
   -- Selectors
-  , id'
+  , addOnID'
   , uuid'
   , region'
   , insertedAt'
   , modifiedAt'
   -- Lenses
-  , id
+  , addOnID
   , uuid
   , region
   , insertedAt
@@ -25,7 +19,7 @@ module Fission.Platform.Heroku.AddOn
   , addOns
   ) where
 
-import RIO hiding (id)
+import RIO
 
 import Control.Lens (makeLenses)
 import Data.UUID
@@ -36,7 +30,7 @@ import Fission.Platform.Heroku.Region
 import Fission.Storage.SQLite
 
 data AddOn = AddOn
-  { _id         :: ID AddOn
+  { _addOnID    :: ID AddOn
   , _uuid       :: UUID
   , _region     :: Maybe Region
   -- , refreshToken :: Text
@@ -53,19 +47,19 @@ makeLenses ''AddOn
 instance DBInsertable AddOn where
   insertX t partRs = insertWithPK addOns $ fmap (insertStamp t) partRs
 
-id'         :: Selector AddOn (ID AddOn)
+addOnID'    :: Selector AddOn (ID AddOn)
 uuid'       :: Selector AddOn UUID
 region'     :: Selector AddOn (Maybe Region)
 insertedAt' :: Selector AddOn UTCTime
 modifiedAt' :: Selector AddOn UTCTime
 
-id' :*: uuid'
-    :*: region'
-    :*: insertedAt'
-    :*: modifiedAt' = selectors addOns
+addOnID' :*: uuid'
+         :*: region'
+         :*: insertedAt'
+         :*: modifiedAt' = selectors addOns
 
 tableName :: TableName' AddOn
 tableName = "heroku_add_ons"
 
 addOns :: Table AddOn
-addOns = lensTable (unTable tableName) [#_id :- autoPrimary]
+addOns = lensTable (unTable tableName) [#_addOnID :- autoPrimary]

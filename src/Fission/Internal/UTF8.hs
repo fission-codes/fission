@@ -1,6 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Fission.Internal.UTF8
   ( Textable (..)
   , showLazyBS

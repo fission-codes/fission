@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Web.Server
   ( RIOServer
   , toHandler

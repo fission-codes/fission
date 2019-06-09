@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
 
 module Fission.Security
   ( Secret (..)
@@ -28,7 +27,7 @@ newtype Secret = Secret { unSecret :: Text }
            )
 
 mkSecret :: Natural -> IO (Either UnicodeException Secret)
-mkSecret = return . toSecret <=< BS.random
+mkSecret = pure . toSecret <=< BS.random
 
 toSecret :: ByteString -> Either UnicodeException Secret
 toSecret raw = Secret <$> UTF8.encode raw

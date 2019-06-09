@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fd0b97b8215236d1045ae71806b3091f728327c04091ddb5bb5fc16f7d41c0dc
+-- hash: 459c30dcd1dc210096f8529bd26664ae321eb621aee905cbfd2d777e25cfbebd
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -76,6 +76,7 @@ library
       Paths_ipfs_api
   hs-source-dirs:
       src
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -125,6 +126,7 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
@@ -176,6 +178,7 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc
   build-depends:
       aeson
@@ -229,6 +232,7 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -283,6 +287,7 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
@@ -337,6 +342,7 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -434,6 +440,7 @@ test-suite fission-test
       src
       test
       test/testsuite
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -494,6 +501,7 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson

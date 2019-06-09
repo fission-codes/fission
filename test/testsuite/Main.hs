@@ -35,13 +35,13 @@ main = return ()
 --   hspec . spec . run port . logger $ app config
 
 -- spec :: IO () -> Spec
--- spec server = with server $ do
+-- spec server = with server do
 --   describe "GET /ping" $ do
---     it "responds with 200" $ do
+--     it "responds with 200" do
 --       1 `shouldBe` 1
 --       -- get "/users" `shouldRespondWith` 200
 
---         -- it "responds with 'Simple'" $ do
+--         -- it "responds with 'Simple'" do
 --         --     get "/" `shouldRespondWith` "Simple"
 
 -- config = Config { getPool = , getEnv = Test }

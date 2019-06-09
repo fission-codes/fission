@@ -1,6 +1,3 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Internal.Constraint (MonadRIO) where
 
 import RIO

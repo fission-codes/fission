@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Storage.SQLite.Migrate
   ( Mutation
   , makeTable
@@ -9,8 +5,6 @@ module Fission.Storage.SQLite.Migrate
   ) where
 
 import RIO
-
-import Fission.Storage.SQLite
 
 import Database.Selda
 
@@ -24,7 +18,7 @@ import qualified Fission.User                  as User
 -- | Table creation or migration
 type Mutation = IO ()
 
--- -- Can express migrations & creation as a DAG
+-- TODO -- Can express migrations & creation as a DAG
 -- -- Use `dag: Compile-time, type-safe directed acyclic graphs.`
 -- data Mutation' m
 --   = Alone m
@@ -40,6 +34,6 @@ mutations =
   ]
 
 makeTable :: Table t -> TableName' t -> IO ()
-makeTable tbl tblName = runRIO (mkLogFunc Log.simple) $ do
+makeTable tbl tblName = runRIO (mkLogFunc Log.simple) do
   pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite"
   runRIO (Config.base $ DBPool pool) (setupTable tbl $ unTable tblName)

@@ -1,6 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-
 module Fission.Platform.Heroku.UserConfig
   ( UserConfig (..)
   , fissionApiUrl

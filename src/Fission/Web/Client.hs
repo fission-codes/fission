@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Web.Client (run) where
 
 import RIO
@@ -15,5 +13,5 @@ run loc clnt = do
   resp <- liftIO $ Tls.run mgr clnt loc
 
   case resp of
-    Right result -> logInfo $ displayShow result
+    Right result -> logInfo  $ displayShow result
     Left servErr -> logError $ displayShow servErr

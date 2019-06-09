@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Fission.Storage.IPFS (add) where
 
 import           RIO

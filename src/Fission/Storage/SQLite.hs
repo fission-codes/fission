@@ -1,8 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
 
 module Fission.Storage.SQLite
   ( setupTable
@@ -17,7 +13,7 @@ module Fission.Storage.SQLite
   , TableName' (..)
   ) where
 
-import           RIO         hiding     (id)
+import           RIO
 import qualified RIO.Partial as Partial
 import           RIO.Text               (stripPrefix)
 import RIO.List (headMaybe)

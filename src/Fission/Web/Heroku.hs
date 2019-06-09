@@ -1,12 +1,4 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module Fission.Web.Heroku
   ( API

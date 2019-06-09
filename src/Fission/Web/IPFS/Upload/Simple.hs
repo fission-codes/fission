@@ -1,9 +1,3 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE TypeOperators         #-}
-
 module Fission.Web.IPFS.Upload.Simple
   ( API
   , server

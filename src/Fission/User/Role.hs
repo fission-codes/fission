@@ -1,7 +1,4 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Fission.User.Role
   ( Role (..)
@@ -9,7 +6,7 @@ module Fission.User.Role
   , _Admin
   ) where
 
-import RIO hiding (id)
+import RIO
 
 import Control.Lens   (makePrisms)
 import Database.Selda (SqlType)

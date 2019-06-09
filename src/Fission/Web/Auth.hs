@@ -1,10 +1,3 @@
-{-# LANGUAGE MonoLocalBinds #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
-
 module Fission.Web.Auth
   ( server
   , context
@@ -13,7 +6,7 @@ module Fission.Web.Auth
   , checkUser
   ) where
 
-import RIO hiding (id)
+import RIO
 
 import Servant
 import Database.Selda
@@ -35,12 +28,13 @@ context :: Proxy (BasicAuthCheck User ': '[])
 context = Proxy
 
 basic :: ByteString -> ByteString -> Context (BasicAuthCheck ByteString ': '[])
-basic unOK pwOK = BasicAuthCheck check' :. EmptyContext
+basic unOK pwOK = BasicAuthCheck (pure . check') :. EmptyContext
   where
+    check' :: BasicAuthData -> BasicAuthResult ByteString
     check' (BasicAuthData username password) =
       if (username == unOK) && (pwOK == password)
-         then return $ Authorized username
-         else return Unauthorized
+         then Authorized username
+         else Unauthorized
 
 user :: MonadSelda (RIO cfg) => RIO cfg (Context (BasicAuthCheck User ': '[]))
 user = do
@@ -50,8 +44,11 @@ user = do
 checkUser :: MonadSelda (RIO cfg) => BasicAuthData -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
   mayUsr <- getOne . User.bySecret $ decodeUtf8Lenient password
-  return $ maybe NoSuchUser checkId mayUsr
+  return $ maybe NoSuchUser checkID mayUsr
 
   where
-    checkId usr | encodeUtf8 (digest $ usr ^. id) == username = Authorized usr
-                | otherwise                                  = Unauthorized
+    checkID :: User -> BasicAuthResult User
+    checkID usr =
+      if encodeUtf8 (digest $ usr ^. userID) == username
+         then Authorized usr
+         else Unauthorized

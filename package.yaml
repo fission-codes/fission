@@ -68,6 +68,29 @@ dependencies:
   - warp
   - word8
 
+default-extensions:
+  - BangPatterns
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DeriveGeneric
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - LambdaCase
+  - MultiParamTypeClasses
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - OverloadedLabels
+  - RecordWildCards
+  - ScopedTypeVariables
+  - TypeSynonymInstances
+  - TemplateHaskell
+  - TypeOperators
+
 library:
   source-dirs: src
 
