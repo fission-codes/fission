@@ -1,10 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Fission (Fission) where
 
-import Fission.Config
 import RIO
+
+import Fission.Config
 
 -- | Top-level application type
 type Fission = RIO Config

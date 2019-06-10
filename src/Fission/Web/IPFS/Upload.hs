@@ -1,11 +1,3 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeOperators         #-}
-
 module Fission.Web.IPFS.Upload
   ( API
   , server
@@ -23,5 +15,5 @@ import           Fission.Web.Server
 
 type API = Simple.API :<|> Multipart.API
 
-server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
+server :: (Has IPFSPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server = Simple.server :<|> Multipart.server

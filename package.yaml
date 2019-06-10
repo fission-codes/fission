@@ -16,31 +16,38 @@ ghc-options:
   - -Wall
   - -Wcompat
   - -Widentities
-  - -Wredundant-constraints
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
   - -Wmissing-export-lists
   - -Wpartial-fields
+  # Warn about too much
+  - -Wredundant-constraints
   # Prettier Development
-  - -fprint-unicode-syntax
   - -fhide-source-paths
-  # as recommended in:
-  # https://functor.tokyo/blog/2017-07-28-ghc-warnings-you-should-enable
-  - -Wincomplete-uni-patterns
-  - -Wincomplete-record-updates
+  # - -fprint-unicode-syntax
 
 dependencies:
   - aeson
   - aeson-casing
   - base
+  - cryptonite
   - bytestring
+  - data-default-class
   - data-has
   - ekg-wai
   - envy
   - etc
   - http-client
-  - hourglass
+  - http-client-tls
+  - http-media
   - lens
   - monad-logger
+  - random-bytestring
+  - resource-pool
   - rio
+  - rio-orphans
+  - scientific
   - selda
   - selda-sqlite
   - servant
@@ -48,31 +55,46 @@ dependencies:
   - servant-client
   - servant-server
   - servant-multipart
+  - streaming-commons
   - text
   - time
   - typed-process
+  - unliftio
   - uuid
+  - uuid-types
   - wai
   - wai-extra
   - wai-logger
   - warp
+  - word8
+
+default-extensions:
+  - BangPatterns
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DeriveGeneric
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - LambdaCase
+  - MultiParamTypeClasses
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - OverloadedLabels
+  - RecordWildCards
+  - ScopedTypeVariables
+  - TypeSynonymInstances
+  - TemplateHaskell
+  - TypeOperators
 
 library:
   source-dirs: src
 
 executables:
-  cli:
-    main: Main.hs
-    source-dirs: cli
-    dependencies:
-      - ipfs-api
-      - wai-cli
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-      - -O2
-
   server:
     main: Main.hs
     source-dirs: app
@@ -82,6 +104,7 @@ executables:
     ghc-options:
       - -threaded
       - -rtsopts
+      - -flate-specialise
       - -with-rtsopts=-N
       - -with-rtsopts=-T
       - -O2

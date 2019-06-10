@@ -1,8 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Fission.Log
   ( MinLogLevel (..)
   , atLevel
@@ -37,6 +32,7 @@ simple _ src lvl msg =
     , textDisplay src
     , " | "
     , textDisplay msg
+    , "\n"
     ]
 
 short :: LogLevel -> Text
@@ -44,5 +40,5 @@ short = \case
   LevelDebug     -> "Warn"
   LevelError     -> "Error"
   LevelInfo      -> "Info"
-  LevelOther lvl -> "Other: " <> lvl
   LevelWarn      -> "Warn"
+  LevelOther lvl -> "Other: " <> lvl

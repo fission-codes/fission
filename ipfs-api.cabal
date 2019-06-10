@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 72cf7f4c1cf5523aed85cb10c96fbdeff9ed5155231cd05b80d0123a594057e6
+-- hash: 56198c59e106b2a6a7622153758702476d1184a9d5722aff340dd527428611ca
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -32,19 +32,41 @@ library
       Fission.Config
       Fission.Environment
       Fission.File
+      Fission.Internal.Bool
       Fission.Internal.Constraint
+      Fission.Internal.JSON
+      Fission.Internal.Orphanage
+      Fission.Internal.URL
       Fission.Internal.UTF8
       Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
+      Fission.Plan
+      Fission.Platform.Heroku
+      Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.Provision
+      Fission.Platform.Heroku.Region
+      Fission.Platform.Heroku.UserConfig
+      Fission.Random
+      Fission.Security
       Fission.Storage.IPFS
+      Fission.Storage.Mutate
+      Fission.Storage.Query
       Fission.Storage.SQLite
+      Fission.Storage.SQLite.Internal
+      Fission.Storage.SQLite.Migrate
+      Fission.Storage.Table
       Fission.User
+      Fission.User.Role
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Client
       Fission.Web.Config
+      Fission.Web.Error
+      Fission.Web.Heroku
+      Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -52,25 +74,34 @@ library
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
       Fission.Web.Server
+      Fission.Web.Tls
   other-modules:
       Paths_ipfs_api
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , lens
     , monad-logger
+    , random-bytestring
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -78,54 +109,18 @@ library
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
-  default-language: Haskell2010
-
-executable cli
-  main-is: Main.hs
-  other-modules:
-      Paths_ipfs_api
-  hs-source-dirs:
-      cli
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
-  build-depends:
-      aeson
-    , aeson-casing
-    , base
-    , bytestring
-    , data-has
-    , ekg-wai
-    , envy
-    , etc
-    , hourglass
-    , http-client
-    , ipfs-api
-    , lens
-    , monad-logger
-    , rio
-    , selda
-    , selda-sqlite
-    , servant
-    , servant-auth-server
-    , servant-client
-    , servant-multipart
-    , servant-server
-    , text
-    , time
-    , typed-process
-    , uuid
-    , wai
-    , wai-cli
-    , wai-extra
-    , wai-logger
-    , warp
+    , word8
   default-language: Haskell2010
 
 executable server
@@ -134,22 +129,30 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T -O2
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -157,14 +160,18 @@ executable server
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010
 
 test-suite fission-coverage
@@ -174,24 +181,32 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
     , process
+    , random-bytestring
     , regex-compat
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -199,14 +214,18 @@ test-suite fission-coverage
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010
 
 test-suite fission-docs
@@ -216,25 +235,33 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , doctest
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
     , process
+    , random-bytestring
     , regex-compat
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -242,14 +269,18 @@ test-suite fission-docs
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010
 
 test-suite fission-doctest
@@ -259,7 +290,8 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
     , QuickCheck
@@ -267,17 +299,24 @@ test-suite fission-doctest
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , doctest
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -285,14 +324,18 @@ test-suite fission-doctest
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010
 
 test-suite fission-lint
@@ -302,22 +345,30 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
     , etc
     , hlint
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , lens
     , monad-logger
+    , random-bytestring
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -325,14 +376,18 @@ test-suite fission-lint
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010
 
 test-suite fission-test
@@ -343,19 +398,41 @@ test-suite fission-test
       Fission.Config
       Fission.Environment
       Fission.File
+      Fission.Internal.Bool
       Fission.Internal.Constraint
+      Fission.Internal.JSON
+      Fission.Internal.Orphanage
+      Fission.Internal.URL
       Fission.Internal.UTF8
       Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
       Fission.Log
       Fission.Monitor
+      Fission.Plan
+      Fission.Platform.Heroku
+      Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.Provision
+      Fission.Platform.Heroku.Region
+      Fission.Platform.Heroku.UserConfig
+      Fission.Random
+      Fission.Security
       Fission.Storage.IPFS
+      Fission.Storage.Mutate
+      Fission.Storage.Query
       Fission.Storage.SQLite
+      Fission.Storage.SQLite.Internal
+      Fission.Storage.SQLite.Migrate
+      Fission.Storage.Table
       Fission.User
+      Fission.User.Role
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Client
       Fission.Web.Config
+      Fission.Web.Error
+      Fission.Web.Heroku
+      Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Upload
@@ -363,30 +440,39 @@ test-suite fission-test
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
       Fission.Web.Server
+      Fission.Web.Tls
       Paths_ipfs_api
   hs-source-dirs:
       src
       test
       test/testsuite
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -fhpc -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
+    , cryptonite
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , hspec
     , hspec-wai
     , hspec-wai-json
     , http-client
+    , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -394,6 +480,7 @@ test-suite fission-test
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , tasty
     , tasty-hspec
     , tasty-hunit
@@ -403,11 +490,14 @@ test-suite fission-test
     , time
     , transformers
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010
 
 benchmark fission-benchmark
@@ -417,23 +507,31 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
-  ghc-options: -Wall -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fprint-unicode-syntax -fhide-source-paths -Wincomplete-uni-patterns -Wincomplete-record-updates -threaded -rtsopts -with-rtsopts=-N -O2
+  default-extensions: BangPatterns BlockArguments ConstraintKinds DataKinds DeriveGeneric FlexibleContexts FlexibleInstances FunctionalDependencies GADTs LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RecordWildCards ScopedTypeVariables TypeSynonymInstances TemplateHaskell TypeOperators
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
     , base
     , bytestring
     , criterion
+    , cryptonite
+    , data-default-class
     , data-has
     , ekg-wai
     , envy
     , etc
-    , hourglass
     , http-client
+    , http-client-tls
+    , http-media
     , ipfs-api
     , lens
     , monad-logger
+    , random-bytestring
+    , resource-pool
     , rio
+    , rio-orphans
+    , scientific
     , selda
     , selda-sqlite
     , servant
@@ -441,12 +539,16 @@ benchmark fission-benchmark
     , servant-client
     , servant-multipart
     , servant-server
+    , streaming-commons
     , text
     , time
     , typed-process
+    , unliftio
     , uuid
+    , uuid-types
     , wai
     , wai-extra
     , wai-logger
     , warp
+    , word8
   default-language: Haskell2010

@@ -1,8 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 
 module Fission.Web
   ( API
@@ -12,38 +8,46 @@ module Fission.Web
 
 import RIO
 
+import Data.Has
+import Database.Selda
 import Servant
 
-import Data.Has
+import           Fission.Config
+import           Fission.User
 
-import Fission.Config
-import Fission.Web.Server
-import qualified Fission.Web.Auth as Auth
+import           Fission.Web.Server
+import qualified Fission.Web.Auth   as Auth
+import qualified Fission.Web.IPFS   as IPFS
+import qualified Fission.Web.Ping   as Ping
+import qualified Fission.Web.Heroku as Heroku
 
-import qualified Fission.Web.IPFS as IPFS
-import qualified Fission.Web.Ping as Ping
-
-type API = "ping"
-             :> Ping.API
-      :<|> "ipfs"
-             :> Servant.BasicAuth "admin realm" ByteString {- TODO `User` -}
+type API = "ipfs"
+             :> Servant.BasicAuth "registered users" User
              :> IPFS.API
+      :<|> "heroku"
+             :> Heroku.API
+      :<|> "ping"
+             :> Ping.API
 
-app :: Has IpfsPath cfg
-    => Has AuthUsername cfg
-    => Has AuthPassword cfg
+app :: Has IPFSPath cfg
     => HasLogFunc cfg
+    => Has Host cfg
+    => MonadSelda (RIO cfg)
     => cfg
-    -> Application
-app cfg =
-  serveWithContext api authCtx $ Auth.server api cfg server
-  where
-    AuthUsername unOK = cfg ^. hasLens
-    AuthPassword pwOK = cfg ^. hasLens
-    authCtx           = Auth.basic unOK pwOK
+    -> RIO cfg Application
+app cfg = do
+  auth <- Auth.user
+  return . serveWithContext api auth
+         $ Auth.server api cfg server
 
-server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
-server = Ping.server :<|> \_user -> IPFS.server -- TODO use `User`
+server :: Has IPFSPath cfg
+       => Has Host cfg
+       => HasLogFunc cfg
+       => MonadSelda (RIO cfg)
+       => RIOServer cfg API
+server = const IPFS.server
+    :<|> Heroku.create
+    :<|> Ping.server
 
 api :: Proxy API
 api = Proxy

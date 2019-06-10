@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-
 module Fission.IPFS.Peer
   ( Peer (..)
   , all
@@ -24,14 +20,15 @@ import Fission.Internal.Constraint
 data Peer = Peer { peer :: Text }
 $(deriveJSON defaultOptions ''Peer)
 
-all :: (MonadRIO cfg m, Has IpfsPath cfg) => m (Either UnicodeException [Peer])
+all :: (MonadRIO cfg m, Has IPFSPath cfg) => m (Either UnicodeException [Peer])
 all = do
   allRaw <- rawList
 
-  let textOrErr      = UTF8.encode allRaw
-      peerNamesOrErr = Text.lines <$> textOrErr
+  let
+    textOrErr      = UTF8.encode allRaw
+    peerNamesOrErr = Text.lines <$> textOrErr
 
   return $ fmap Peer <$> peerNamesOrErr
 
-rawList :: (MonadRIO cfg m, Has IpfsPath cfg) => m Lazy.ByteString
+rawList :: (MonadRIO cfg m, Has IPFSPath cfg) => m Lazy.ByteString
 rawList = IPFSProc.run' ["bootstrap", "list"]

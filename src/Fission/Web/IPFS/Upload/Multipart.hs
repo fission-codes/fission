@@ -1,10 +1,3 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeOperators         #-}
-
 module Fission.Web.IPFS.Upload.Multipart
   ( API
   , server
@@ -25,7 +18,7 @@ import           Fission.Web.Server
 type API = MultipartForm Mem (MultipartData Mem)
         :> Post '[OctetStream, PlainText] IPFS.Address
 
-server :: (Has IpfsPath cfg, HasLogFunc cfg) => RIOServer cfg API
+server :: (Has IPFSPath cfg, HasLogFunc cfg) => RIOServer cfg API
 server form =
   case lookupFile "file" form of
     Just FileData { fdPayload } -> do

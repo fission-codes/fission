@@ -1,13 +1,5 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-
 module Fission.Monitor
   ( Config (..)
-  , ekgHost
-  , ekgPort
   , wai
   ) where
 
@@ -22,17 +14,24 @@ data Config = Config
   } deriving (Generic, Show)
 
 instance DefConfig Config where
-  defConfig = Config "localhost" 8888
+  defConfig = Config "localhost" 9630
 
 instance FromEnv Config
 
 wai :: HasLogFunc env => RIO env ()
 wai = liftIO (decodeEnv :: IO (Either String Config)) >>= \case
-  Right Config { .. } -> do
-    logInfo $ "EKG available at " <> displayBytesUtf8 ekgHost <> ":" <> display ekgPort <> "\n"
-    liftIO $ void $ forkServer ekgHost ekgPort
-
   Left err -> do
     logError $ displayShow err
-    Config { .. } <- return defConfig
-    liftIO $ void $ forkServer ekgHost ekgPort
+    Config { ekgHost, ekgPort } <- return defConfig
+    liftIO . void $ forkServer ekgHost ekgPort
+
+  Right Config { ekgHost, ekgPort } -> do
+    logInfo $ mconcat
+      [ "EKG available at "
+      , displayBytesUtf8 ekgHost
+      , ":"
+      , display ekgPort
+      , "\n"
+      ]
+
+    liftIO . void $ forkServer ekgHost ekgPort

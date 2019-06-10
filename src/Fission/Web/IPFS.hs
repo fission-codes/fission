@@ -1,9 +1,3 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
-
 module Fission.Web.IPFS
   ( API
   , server
@@ -22,5 +16,5 @@ import qualified Fission.Web.IPFS.Upload as Upload
 type API = {- Root -} Upload.API
       :<|> "peers" :> Peer.API
 
-server :: (HasLogFunc cfg, Has IpfsPath cfg) => RIOServer cfg API
+server :: (HasLogFunc cfg, Has IPFSPath cfg) => RIOServer cfg API
 server = Upload.server :<|> Peer.server
