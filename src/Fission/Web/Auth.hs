@@ -12,8 +12,7 @@ import Servant
 import Database.Selda
 
 import Fission.Internal.Orphanage ()
-import Fission.Security
-import Fission.Storage.SQLite
+import Fission.Storage.Query
 import Fission.User as User
 import Fission.Web.Server
 
@@ -36,19 +35,31 @@ basic unOK pwOK = BasicAuthCheck (pure . check') :. EmptyContext
          then Authorized username
          else Unauthorized
 
-user :: MonadSelda (RIO cfg) => RIO cfg (Context (BasicAuthCheck User ': '[]))
+user :: HasLogFunc cfg
+     => MonadSelda (RIO cfg)
+     => RIO cfg (Context (BasicAuthCheck User ': '[]))
 user = do
   cfg <- ask
   return $ BasicAuthCheck (runRIO cfg . checkUser) :. EmptyContext
 
-checkUser :: MonadSelda (RIO cfg) => BasicAuthData -> RIO cfg (BasicAuthResult User)
+checkUser :: HasLogFunc cfg
+          => MonadSelda (RIO cfg)
+          => BasicAuthData
+          -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
   mayUsr <- getOne . User.bySecret $ decodeUtf8Lenient password
-  return $ maybe NoSuchUser checkID mayUsr
+  maybe (return NoSuchUser) checkID mayUsr
 
   where
-    checkID :: User -> BasicAuthResult User
     checkID usr =
-      if encodeUtf8 (digest $ usr ^. userID) == username
-         then Authorized usr
-         else Unauthorized
+      if encodeUtf8 (hashID $ usr ^. userID) == username
+         then return (Authorized usr)
+         else do
+           logWarn $ mconcat
+             [ "Unauthorized user! HashedID: "
+             , displayBytesUtf8 username
+             , ", secret: "
+             , displayBytesUtf8 password
+             ]
+
+           return Unauthorized

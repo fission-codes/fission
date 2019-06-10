@@ -15,8 +15,9 @@ import qualified Fission.File         as File
 import qualified Fission.IPFS.Address as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
 
+-- FIXME plaintext is broken?!
 type API = ReqBody '[OctetStream, PlainText] File.Serialized
         :> Post    '[OctetStream, PlainText] IPFS.Address
 
-server :: Has IpfsPath cfg => RIOServer cfg API
+server :: Has IPFSPath cfg => RIOServer cfg API
 server = Storage.IPFS.add . File.unserialize

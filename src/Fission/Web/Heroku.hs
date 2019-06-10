@@ -36,7 +36,7 @@ type CreateAPI = ReqBody '[JSON]                Provision.Request
 create :: (HasLogFunc cfg, Has Host cfg, MonadSelda (RIO cfg)) => RIOServer cfg API
 create (Request {_uuid, _region}) = do
   Host url <- fromCfg
-  secret   <- liftIO $ Random.text 200
+  secret   <- liftIO $ Random.text 500
   userID   <- User.createFresh _uuid _region secret
 
   logInfo $ mconcat
@@ -49,7 +49,7 @@ create (Request {_uuid, _region}) = do
   let
     userConfig = Heroku.UserConfig
       { Heroku._fissionApiUrl   = url
-      , Heroku._fissionUserName = digest userID
+      , Heroku._fissionUserName = User.hashID userID
       , Heroku._fissionSecret   = Secret secret
       }
 

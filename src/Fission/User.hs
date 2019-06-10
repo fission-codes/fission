@@ -25,9 +25,11 @@ module Fission.User
   -- Helpers
   , createFresh
   , bySecret
+  , hashID
   ) where
 
 import RIO
+import qualified RIO.Text as Text
 
 import Control.Lens (makeLenses)
 import Database.Selda
@@ -42,10 +44,13 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku
 
 import qualified Fission.Platform.Heroku.Region as Heroku (Region)
 
-import           Fission.Storage.SQLite
 import           Fission.User.Role
 import           Fission.Security (SecretDigest, Digestable (..))
 import qualified Fission.Internal.UTF8  as UTF8
+
+import           Fission.Storage.Query
+import           Fission.Storage.Mutate
+import qualified Fission.Storage.Table  as Table
 
 data User = User
   { _userID        :: ID User
@@ -84,11 +89,11 @@ userID' :*: role'
         :*: insertedAt'
         :*: modifiedAt' = selectors users
 
-tableName :: TableName' User
-tableName = TableName' "users"
+tableName :: Table.Name User
+tableName = "users"
 
 users :: Table User
-users = lensTable (unTable tableName)
+users = Table.lensPrefixed (Table.name tableName)
   [ #_userID        :- autoPrimary
   , #_active        :- index
   , #_secretDigest  :- index
@@ -96,8 +101,12 @@ users = lensTable (unTable tableName)
   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
   ]
 
-createFresh :: (MonadIO m, MonadSelda m)
-            => UUID -> Heroku.Region -> SecretDigest -> m (ID User)
+createFresh :: MonadIO m
+            => MonadSelda m
+            => UUID
+            -> Heroku.Region
+            -> SecretDigest
+            -> m (ID User)
 createFresh herokuUUID herokuRegion sekret = transaction do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now $ Heroku.AddOn def herokuUUID (Just herokuRegion)
@@ -107,6 +116,9 @@ createFresh herokuUUID herokuRegion sekret = transaction do
 bySecret :: MonadSelda m => Text -> m [User]
 bySecret secret = query do
   user <- select users
-  restrict $ user ! #_secretDigest .== text secret
-         .&& user ! #_active       .== true
+  restrict $ user `is'` #_active
+         .&& user ! #_secretDigest .== text secret
   return user
+
+hashID :: ID User -> SecretDigest
+hashID uID = Text.take 20 $ digest uID

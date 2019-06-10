@@ -10,5 +10,5 @@ import           Fission.Internal.Constraint
 import           Fission.IPFS.Address        as IPFS
 import qualified Fission.IPFS.Process        as IPFS.Proc
 
-add :: (MonadRIO cfg m, Has IpfsPath cfg) => Lazy.ByteString -> m IPFS.Address
+add :: (MonadRIO cfg m, Has IPFSPath cfg) => Lazy.ByteString -> m IPFS.Address
 add input = mkAddress <$> IPFS.Proc.run ["add", "-q"] input

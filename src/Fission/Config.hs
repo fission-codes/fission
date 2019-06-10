@@ -4,7 +4,7 @@ module Fission.Config
   ( Config (..)
   , logFunc
   , minLogLevel
-  , IpfsPath (..)
+  , IPFSPath (..)
   , ipfsPath
   , DBPath (..)
   , dbPath
@@ -27,21 +27,21 @@ import Database.Selda.Backend
 
 import qualified Fission.Log as Log
 
-newtype IpfsPath = IpfsPath { unIpfsPath :: FilePath }
+newtype IPFSPath = IPFSPath { getIPFSPath :: FilePath }
   deriving (Show, IsString)
 
-newtype DBPath = DBPath { unDBPath :: FilePath }
+newtype DBPath = DBPath { getDBPath :: FilePath }
   deriving (Show, IsString)
 
-newtype DBPool = DBPool { unPool :: Pool SeldaConnection }
+newtype DBPool = DBPool { getPool :: Pool SeldaConnection }
 
-newtype Host = Host { unHost :: Text }
+newtype Host = Host { getHost :: Text }
   deriving (Show, IsString)
 
 data Config = Config
   { _logFunc     :: !LogFunc
   , _minLogLevel :: !Log.MinLogLevel
-  , _ipfsPath    :: !IpfsPath
+  , _ipfsPath    :: !IPFSPath
   , _host        :: !Host
   , _dbPath      :: !DBPath
   , _dbPool      :: !DBPool
@@ -49,7 +49,7 @@ data Config = Config
 
 makeLenses ''Config
 
-instance Has IpfsPath Config where
+instance Has IPFSPath Config where
   hasLens = ipfsPath
 
 instance Has Log.MinLogLevel Config where
@@ -71,7 +71,7 @@ base :: DBPool -> Config
 base pool = Config
     { _logFunc     = mkLogFunc Log.simple
     , _minLogLevel = Log.MinLogLevel LevelDebug
-    , _ipfsPath    = IpfsPath "/usr/local/bin/ipfs"
+    , _ipfsPath    = IPFSPath "/usr/local/bin/ipfs"
     , _host        = Host "localhost:3000"
     , _dbPath      = DBPath "ipfs-api.sqlite"
     , _dbPool      = pool

@@ -17,5 +17,5 @@ import qualified Fission.IPFS.Peer as Peer
 
 type API = Get '[JSON] [IPFS.Peer]
 
-server :: Has IpfsPath cfg => RIOServer cfg API
+server :: Has IPFSPath cfg => RIOServer cfg API
 server = Peer.all >>= ensureUnicode

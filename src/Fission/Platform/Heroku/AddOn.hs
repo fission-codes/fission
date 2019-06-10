@@ -25,9 +25,10 @@ import Control.Lens (makeLenses)
 import Data.UUID
 import Database.Selda
 
-import Fission.Internal.Orphanage ()
-import Fission.Platform.Heroku.Region
-import Fission.Storage.SQLite
+import           Fission.Internal.Orphanage ()
+import           Fission.Platform.Heroku.Region (Region (..))
+import           Fission.Storage.Mutate
+import qualified Fission.Storage.Table       as Table
 
 data AddOn = AddOn
   { _addOnID    :: ID AddOn
@@ -58,8 +59,8 @@ addOnID' :*: uuid'
          :*: insertedAt'
          :*: modifiedAt' = selectors addOns
 
-tableName :: TableName' AddOn
+tableName :: Table.Name AddOn
 tableName = "heroku_add_ons"
 
 addOns :: Table AddOn
-addOns = lensTable (unTable tableName) [#_addOnID :- autoPrimary]
+addOns = Table.lensPrefixed (Table.name tableName) [#_addOnID :- autoPrimary]

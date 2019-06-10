@@ -16,7 +16,8 @@ byteString :: Natural -> IO ByteString
 byteString amount = return . BS.filter isURL =<< BS.random amount
 
 isURL :: Word8 -> Bool
-isURL w = isDigit w
+isURL w = isAsciiUpper w
+        || isAsciiLower w
         || isDigit w
         || any' urlSpecials w
 

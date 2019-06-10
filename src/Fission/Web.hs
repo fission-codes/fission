@@ -29,7 +29,7 @@ type API = "ipfs"
       :<|> "ping"
              :> Ping.API
 
-app :: Has IpfsPath cfg
+app :: Has IPFSPath cfg
     => HasLogFunc cfg
     => Has Host cfg
     => MonadSelda (RIO cfg)
@@ -39,7 +39,7 @@ app cfg = do
   return . serveWithContext api auth
          $ Auth.server api cfg server
 
-server :: Has IpfsPath cfg
+server :: Has IPFSPath cfg
        => Has Host cfg
        => HasLogFunc cfg
        => MonadSelda (RIO cfg)
