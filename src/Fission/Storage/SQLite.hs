@@ -6,7 +6,7 @@ module Fission.Storage.SQLite
   , makeTable
   ) where
 
-import           RIO
+import RIO
 
 import Data.Has
 import Data.Pool
