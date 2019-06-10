@@ -52,6 +52,7 @@ import           Fission.Storage.Query
 import           Fission.Storage.Mutate
 import qualified Fission.Storage.Table  as Table
 
+
 data User = User
   { _userID        :: ID User
   , _role          :: Role
@@ -118,6 +119,7 @@ bySecret secret = query do
   user <- select users
   restrict $ user `is'` #_active
          .&& user ! #_secretDigest .== text secret
+
   return user
 
 hashID :: ID User -> SecretDigest

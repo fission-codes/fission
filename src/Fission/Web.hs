@@ -33,7 +33,8 @@ app :: Has IPFSPath cfg
     => HasLogFunc cfg
     => Has Host cfg
     => MonadSelda (RIO cfg)
-    => cfg -> RIO cfg Application
+    => cfg
+    -> RIO cfg Application
 app cfg = do
   auth <- Auth.user
   return . serveWithContext api auth
