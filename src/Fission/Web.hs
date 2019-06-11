@@ -25,28 +25,49 @@ type API = "ipfs"
              :> Servant.BasicAuth "registered users" User
              :> IPFS.API
       :<|> "heroku"
+             :> Servant.BasicAuth "heroku add-on api" ByteString
              :> Heroku.API
       :<|> "ping"
              :> Ping.API
 
 app :: Has IPFSPath cfg
-    => HasLogFunc cfg
     => Has Host cfg
+    => Has HerokuID cfg
+    => Has HerokuPassword cfg
+    => HasLogFunc cfg
     => MonadSelda (RIO cfg)
     => cfg
     -> RIO cfg Application
 app cfg = do
-  auth <- Auth.user
-  return . serveWithContext api auth
+  auth' <- auth
+  return . serveWithContext api auth'
          $ Auth.server api cfg server
+
+auth :: Has HerokuID cfg
+     => Has HerokuPassword cfg
+     => HasLogFunc cfg
+     => MonadSelda (RIO cfg)
+     => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
+auth = do
+  HerokuID       hkuID   <- fromCfg
+  HerokuPassword hkuPass <- fromCfg
+
+  hku <- return $ Auth.basic hkuID hkuPass
+  usr <- Auth.user
+
+  return $ usr
+        :. hku
+        :. EmptyContext
 
 server :: Has IPFSPath cfg
        => Has Host cfg
+       => Has HerokuID cfg
+       => Has HerokuPassword cfg
        => HasLogFunc cfg
        => MonadSelda (RIO cfg)
        => RIOServer cfg API
 server = const IPFS.server
-    :<|> Heroku.create
+    :<|> const Heroku.create
     :<|> Ping.server
 
 api :: Proxy API

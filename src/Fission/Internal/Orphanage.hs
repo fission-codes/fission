@@ -10,6 +10,8 @@ import RIO
 import RIO.Orphans ()
 import qualified RIO.Partial as Partial
 
+import Control.Lens (_1)
+
 import Data.Aeson.Types
 import Data.Scientific
 import Data.Has
@@ -19,7 +21,7 @@ import Data.UUID as UUID
 import Database.Selda
 import Database.Selda.Backend
 
-import           Fission.Config
+import Fission.Config
 
 instance Enum    UUID
 instance SqlType UUID
@@ -48,3 +50,9 @@ instance Has DBPool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
     DBPool pool <- fromCfg
     liftIO $ withResource pool pure
+
+instance HasLogFunc (LogFunc, b) where
+  logFuncL = _1
+
+instance HasLogFunc (LogFunc, b, c) where
+  logFuncL = _1

@@ -48,9 +48,9 @@ create (Request {_uuid, _region}) = do
 
   let
     userConfig = Heroku.UserConfig
-      { Heroku._fissionApiUrl   = url
-      , Heroku._fissionUserName = User.hashID userID
-      , Heroku._fissionSecret   = Secret secret
+      { Heroku._interplanetaryFissionUrl      = url
+      , Heroku._interplanetaryFissionUsername = User.hashID userID
+      , Heroku._interplanetaryFissionPassword = Secret secret
       }
 
   return Provision

@@ -5,7 +5,10 @@ import RIO
 import Control.Lens (makeLenses)
 import Data.Aeson
 
-data Tier = Free --  | Paid
+data Tier
+  = Test
+  | Free
+  --  | Paid
   deriving (Show, Eq)
 
 makeLenses ''Tier
