@@ -16,6 +16,7 @@ module Fission.Config
   , HerokuPassword (..)
   , herokuPassword
   -- Helpers
+  , SeldaPool
   , base
   , fromCfg
   , logFunc
@@ -38,7 +39,9 @@ newtype IPFSPath = IPFSPath { getIPFSPath :: FilePath }
 newtype DBPath = DBPath { getDBPath :: FilePath }
   deriving (Show, IsString)
 
-newtype DBPool = DBPool { getPool :: Pool SeldaConnection }
+type SeldaPool = Pool SeldaConnection
+
+newtype DBPool = DBPool { getPool :: SeldaPool }
 
 newtype Host = Host { getHost :: Text }
   deriving (Show, IsString)
