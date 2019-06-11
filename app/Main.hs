@@ -5,6 +5,8 @@ import RIO
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 
+import System.Environment
+
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
 
@@ -17,7 +19,10 @@ import qualified Fission.Web        as Web
 import           Fission.Web.Config as Web.Config
 
 main :: IO ()
-main = withStdoutLogger $ \stdOut ->
+main = withStdoutLogger $ \stdOut -> do
+  Just hID   <- pack <$> lookupEnv "HEROKU_ID"
+  Just hPass <- pack <$> lookupEnv "HEROKU_PASS"
+
   runRIO (mkLogFunc Log.simple) do
     Web.Config.Config {port} <- Web.Config.get
     pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite"
@@ -25,7 +30,7 @@ main = withStdoutLogger $ \stdOut ->
     let portSettings = setPort port
         logSettings  = setLogger stdOut
         settings     = portSettings $ logSettings defaultSettings
-        cfg          = Config.base $ DBPool pool
+        cfg          = Config.base (HerokuID hID) (HerokuPassword hPass) (DBPool pool)
 
     runRIO cfg do
       Monitor.wai -- TODO only run locally in dev

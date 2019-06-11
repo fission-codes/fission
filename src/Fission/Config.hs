@@ -28,7 +28,6 @@ import Control.Lens (makeLenses)
 
 import Data.Has
 import Data.Pool
-
 import Database.Selda.Backend
 
 import qualified Fission.Log as Log
