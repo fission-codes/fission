@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 56198c59e106b2a6a7622153758702476d1184a9d5722aff340dd527428611ca
+-- hash: cfb5fc16c1ea60f003e4bc4b70f42ad247b2b50d18293edd7188257d84d16cc5
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -46,6 +46,7 @@ library
       Fission.Plan
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.AddOn.Manifest
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig
@@ -412,6 +413,7 @@ test-suite fission-test
       Fission.Plan
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.AddOn.Manifest
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Region
       Fission.Platform.Heroku.UserConfig

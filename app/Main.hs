@@ -1,6 +1,9 @@
 module Main (main) where
 
 import RIO
+import RIO.Char (toLower)
+
+import Data.Aeson
 
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
@@ -17,24 +20,28 @@ import qualified Fission.Log        as Log
 import qualified Fission.Monitor    as Monitor
 import qualified Fission.Web        as Web
 import           Fission.Web.Config as Web.Config
+import           Fission.Platform.Heroku.AddOn.Manifest as Manifest
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
-  Just hID   <- pack <$> lookupEnv "HEROKU_ID"
-  Just hPass <- pack <$> lookupEnv "HEROKU_PASS"
+  Just (manifest :: Manifest) <- decodeFileStrict "./addon-manifest.json"
+  monitorEnv <- lookupEnv "MONITOR"
+  monitored  <- return $ maybe False ((== "true") . fmap toLower) monitorEnv
 
   runRIO (mkLogFunc Log.simple) do
     Web.Config.Config {port} <- Web.Config.get
-    pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite"
+    pool <- SQLite.connPool $ DBPath "ipfs-api.sqlite" -- TODO make env var
 
-    let portSettings = setPort port
-        logSettings  = setLogger stdOut
-        settings     = portSettings $ logSettings defaultSettings
-        cfg          = Config.base (HerokuID hID) (HerokuPassword hPass) (DBPool pool)
+    let
+      portSettings = setPort port
+      logSettings  = setLogger stdOut
+      settings     = portSettings $ logSettings defaultSettings
+
+      hID   = HerokuID       . encodeUtf8 $ manifest ^. Manifest.id
+      hPass = HerokuPassword . encodeUtf8 $ manifest ^. api ^. password
+      cfg   = Config.base hID hPass (DBPool pool)
 
     runRIO cfg do
-      Monitor.wai -- TODO only run locally in dev
+      when monitored Monitor.wai
       logInfo $ "Servant running at port " <> display port
-
-      app <- Web.app cfg
-      liftIO $ runSettings settings app
+      liftIO . runSettings settings =<< Web.app cfg
