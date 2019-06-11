@@ -6,6 +6,7 @@
 *.csr
 *.sqlite
 *.db
+addon-manifest.json
 
 ### Haskell ###
 dist
