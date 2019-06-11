@@ -4,8 +4,6 @@ import RIO
 import RIO.Char (toLower)
 
 import Data.Aeson
-import Data.Pool
-import Database.Selda.Backend
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 import System.Environment
