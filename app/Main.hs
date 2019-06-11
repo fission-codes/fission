@@ -3,7 +3,7 @@ module Main (main) where
 import RIO
 import RIO.Char (toLower)
 
-import Data.Aeson
+import Data.Aeson (decodeFileStrict)
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 import System.Environment
@@ -27,11 +27,12 @@ main = withStdoutLogger $ \stdOut -> do
     Web.Config.Config {port} <- Web.Config.get
     pool <- setupPool
 
-    runRIO (mkConfig manifest pool) do
+    let config = mkConfig manifest pool
+
+    runRIO config do
       condMonitor
       logInfo $ "Servant running at port " <> display port
-      app <- Web.app <$> ask
-      liftIO $ runSettings (mkSettings stdOut port) app
+      liftIO . runSettings (mkSettings stdOut port) =<< Web.app config
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
