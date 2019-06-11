@@ -27,14 +27,11 @@ main = withStdoutLogger $ \stdOut -> do
     Web.Config.Config {port} <- Web.Config.get
     pool <- setupPool
 
-    let
-      settings = mkSettings stdOut port
-      config   = mkConfig manifest pool
-
-    runRIO config do
+    runRIO (mkConfig manifest pool) do
       condMonitor
       logInfo $ "Servant running at port " <> display port
-      liftIO . runSettings settings =<< Web.app config
+      app <- Web.app <$> ask
+      liftIO $ runSettings (mkSettings stdOut port) app
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
