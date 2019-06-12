@@ -96,13 +96,38 @@ curl -i \
      -X POST \
      -H "Content-Type: application/octet-stream" \
      -H "Authorization: Basic Yzc0YmQ5NWI4NTU1Mjc1Mjc3ZDQ6R1cwU0hCeVBtWTAueStsZyl4N0RlLlBObUp2aDE" \
-     http://localhost:1337/ipfs -d '{"hi":1}'
+     -d '{"hi":1}' \
+     http://localhost:1337/ipfs
 
 # HTTP/1.1 200 OK
 # Transfer-Encoding: chunked
 # Date: XXXXXXXXXXXXXXXXXXXXXXXX
 # Server: Warp/3.2.27
-# Content-Type: application/octet-stream
+# Content-Type: text/plain;charset=utf-8
+#
+# QmSeDGD18CLeUyKrATcaCbmH4Z3gyh3SrdgjoYkrxkEmgx
+```
+
+# Gotchas
+
+## MIME Types
+
+* Requests default to `text/plain`.
+* When requesting `text/plain`, the character set must be specified.
+
+```shell
+curl -i \
+    -X POST \
+    -H "Authorization: Basic abcdef==" \
+    -H "Content-Type: text/plain;charset=UTF-8" # This line
+    -d '{"hi":1}' \
+    http://localhost:1337/ipfs
+
+# HTTP/1.1 200 OK
+# Transfer-Encoding: chunked
+# Date: XXXXXXXXXXXXXXXXXXXX
+# Server: Warp/3.2.27
+# Content-Type: text/plain;charset=utf-8
 #
 # QmSeDGD18CLeUyKrATcaCbmH4Z3gyh3SrdgjoYkrxkEmgx
 ```
