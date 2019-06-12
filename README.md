@@ -36,3 +36,16 @@ Environment variables are set via the command line (e.g. `export PORT=80`)
 Default: `1337`
 
 The port to run the web server on.
+
+# Load Test
+
+Very simple local load test
+
+```
+# HTTP1.1
+ab -n 10000 -c 100 http://localhost:1337/ping/
+
+# HTTP2
+brew install nghttp2
+h2load -n10000 -c100 -t2 --warm-up-time=3 http://localhost:1337/ping/
+```
