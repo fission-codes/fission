@@ -47,5 +47,5 @@ ab -n 10000 -c 100 http://localhost:1337/ping/
 
 # HTTP2
 brew install nghttp2
-h2load -n10000 -c100 -t2 --warm-up-time=3 http://localhost:1337/ping/
+h2load -n10000 -c100 -t2 http://localhost:1337/ping/
 ```
