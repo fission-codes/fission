@@ -4,8 +4,9 @@ module Fission.Platform.Heroku.AddOn.Manifest
   , name
   , api
   , API (..)
+  , configVarsPrefix
   , password
-  , sso_salt
+  , ssoSalt
   ) where
 
 import RIO hiding (id)
@@ -16,8 +17,9 @@ import Data.Aeson.TH
 import Fission.Internal.JSON
 
 data API = API
-  { _password :: Text
-  , _sso_salt :: Text
+  { _password         :: Text
+  , _ssoSalt          :: Text
+  , _configVarsPrefix :: Text
   } deriving ( Show
              , Eq
              )
