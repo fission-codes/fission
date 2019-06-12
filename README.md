@@ -55,7 +55,7 @@ ab -n 10000 -c 100 http://localhost:1337/ping/
 
 # HTTP2
 brew install nghttp2
- h2load -n10000 -c100 -t2 http://localhost:1337/ping/
+h2load -n10000 -c100 -t2 http://localhost:1337/ping/
 ```
 
 # Manual Workflow
@@ -81,7 +81,7 @@ curl -H "Authorization: Basic 012345generatedfrommanifest==" \
 #    "id"      : 5,
 #    "config"  : {
 #       "INTERPLANETARY_FISSION_USERNAME" : "c74bd95b8555275277d4",
-#       "INTERPLANETARY_FISSION_PASSWORD" : "GW0SHByPmY0.y+lg)x7De.PNmJvh1+YXYTcL9RW1mOzxoE.sQGrroxlbNA0xE5(t)_iVVDe!8V,1ZEG)Bse6,dwb,78pN69BT_E9m3+rmJxKCE,v6HMc7Z-tMk0EIcDQQ0)2QUa3Kj,C5A,(sl!",
+#       "INTERPLANETARY_FISSION_PASSWORD" : "GW0SHByPmY0.y+lg)x7De.PNmJvh1",
 #       "INTERPLANETARY_FISSION_URL"      : "localhost:3000/ipfs"
 #    }
 # }
@@ -95,7 +95,7 @@ Encode basic auth from `INTERPLANETARY_FISSION_USERNAME:INTERPLANETARY_FISSION_P
 curl -i \
      -X POST \
      -H "Content-Type: application/octet-stream" \
-     -H "Authorization: Basic MzdmNTU4MTM0YmFhNTM1OTAzYzY6am1tcy0tSEJpOGd4bDB0bDlHY2sqWW1ZOVJYX2hNb3MkVzk0cW9kUipKZGhMV29hVXRRR3ExenZ6SW1FLG0rdEQqN3dhVXhRU3V0dEs0a2wuSWd2LCRHMnA4NmNTLHVBIXVORjJlMHFMOTR5dDZ3Wnd2WipRekIoNGF0JFItazNDcw=="
+     -H "Authorization: Basic Yzc0YmQ5NWI4NTU1Mjc1Mjc3ZDQ6R1cwU0hCeVBtWTAueStsZyl4N0RlLlBObUp2aDE" \
      http://localhost:1337/ipfs -d '{"hi":1}'
 
 # HTTP/1.1 200 OK
