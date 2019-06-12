@@ -37,11 +37,19 @@ Default: `1337`
 
 The port to run the web server on.
 
+# Live Monitoring
+
+```
+export MONITOR=true
+stack run server
+open http://localhost:9630
+```
+
 # Load Test
 
 Very simple local load test
 
-```
+```shell
 # HTTP1.1
 ab -n 10000 -c 100 http://localhost:1337/ping/
 
