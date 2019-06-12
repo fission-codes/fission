@@ -19,7 +19,7 @@ module Fission.Platform.Heroku.AddOn
   , addOns
   ) where
 
-import RIO
+import RIO hiding (id)
 
 import Control.Lens (makeLenses)
 import Data.UUID
@@ -28,13 +28,12 @@ import Database.Selda
 import           Fission.Internal.Orphanage ()
 import           Fission.Platform.Heroku.Region (Region (..))
 import           Fission.Storage.Mutate
-import qualified Fission.Storage.Table       as Table
+import qualified Fission.Storage.Table as Table
 
 data AddOn = AddOn
   { _addOnID    :: ID AddOn
   , _uuid       :: UUID
   , _region     :: Maybe Region
-  -- , refreshToken :: Text
   , _insertedAt :: UTCTime
   , _modifiedAt :: UTCTime
   } deriving ( Show

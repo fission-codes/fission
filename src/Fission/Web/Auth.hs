@@ -4,30 +4,33 @@ module Fission.Web.Auth
   , basic
   , user
   , checkUser
+  -- , heroku
   ) where
 
 import RIO
 
-import Servant
 import Database.Selda
+import Servant
 
 import Fission.Internal.Orphanage ()
 import Fission.Storage.Query
 import Fission.User as User
 import Fission.Web.Server
 
-server :: HasServer api '[BasicAuthCheck User]
+server :: HasServer api '[BasicAuthCheck User, BasicAuthCheck ByteString]
        => Proxy api
        -> cfg
        -> RIOServer cfg api
        -> Server api
 server api cfg = hoistServerWithContext api context (toHandler cfg)
 
-context :: Proxy (BasicAuthCheck User ': '[])
+context :: Proxy (BasicAuthCheck User ': BasicAuthCheck ByteString ': '[])
 context = Proxy
 
-basic :: ByteString -> ByteString -> Context (BasicAuthCheck ByteString ': '[])
-basic unOK pwOK = BasicAuthCheck (pure . check') :. EmptyContext
+basic :: ByteString
+      -> ByteString
+      -> BasicAuthCheck ByteString
+basic unOK pwOK = BasicAuthCheck (pure . check')
   where
     check' :: BasicAuthData -> BasicAuthResult ByteString
     check' (BasicAuthData username password) =
@@ -37,10 +40,10 @@ basic unOK pwOK = BasicAuthCheck (pure . check') :. EmptyContext
 
 user :: HasLogFunc cfg
      => MonadSelda (RIO cfg)
-     => RIO cfg (Context (BasicAuthCheck User ': '[]))
+     => RIO cfg (BasicAuthCheck User)
 user = do
   cfg <- ask
-  return $ BasicAuthCheck (runRIO cfg . checkUser) :. EmptyContext
+  return $ BasicAuthCheck (runRIO cfg . checkUser)
 
 checkUser :: HasLogFunc cfg
           => MonadSelda (RIO cfg)

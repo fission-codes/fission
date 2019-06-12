@@ -16,6 +16,7 @@ import Database.Selda.SQLite
 import Database.Selda.Backend
 
 import           Fission.Internal.Constraint
+import           Fission.Internal.Orphanage ()
 import           Fission.Config              as Config
 import qualified Fission.Storage.Table       as Table
 import qualified Fission.Log                 as Log
@@ -41,7 +42,9 @@ connPool (DBPath {getDBPath = path}) = do
 
   return pool
 
-makeTable :: Table t -> Table.Name t -> IO ()
-makeTable tbl tblName = runRIO (mkLogFunc Log.simple) do
-  pool <- connPool $ DBPath "ipfs-api.sqlite"
-  runRIO (Config.base $ DBPool pool) $ setupTable tbl (Table.name tblName)
+makeTable :: DBPath -> Table t -> Table.Name t -> IO ()
+makeTable dbPath' tbl tblName = runRIO logger do
+  pool <- connPool dbPath'
+  runRIO (logger, DBPool pool, dbPath') $ setupTable tbl (Table.name tblName)
+  where
+    logger  = mkLogFunc Log.simple

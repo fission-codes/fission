@@ -1,8 +1,8 @@
 module Fission.Platform.Heroku.UserConfig
   ( UserConfig (..)
-  , fissionApiUrl
-  , fissionSecret
-  , fissionUserName
+  , interplanetaryFissionUrl
+  , interplanetaryFissionPassword
+  , interplanetaryFissionUsername
   ) where
 
 import RIO
@@ -14,9 +14,9 @@ import Fission.Internal.JSON
 import Fission.Security
 
 data UserConfig = UserConfig
-  { _fissionApiUrl   :: Text
-  , _fissionUserName :: Text
-  , _fissionSecret   :: Secret
+  { _interplanetaryFissionUrl      :: Text
+  , _interplanetaryFissionUsername :: Text
+  , _interplanetaryFissionPassword :: Secret
   } deriving (Show, Eq)
 
 makeLenses ''UserConfig
