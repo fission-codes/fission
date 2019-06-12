@@ -61,8 +61,6 @@ auth = do
 
 server :: Has IPFSPath cfg
        => Has Host cfg
-       => Has HerokuID cfg
-       => Has HerokuPassword cfg
        => HasLogFunc cfg
        => MonadSelda (RIO cfg)
        => RIOServer cfg API
