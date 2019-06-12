@@ -29,6 +29,9 @@ main = withStdoutLogger $ \stdOut -> do
     logInfo $ "Servant running at port " <> display port
     liftIO . runSettings (mkSettings stdOut port) =<< Web.app =<< ask
 
+simply :: RIO LogFunc a -> IO a
+simply = runRIO (mkLogFunc Log.simple)
+
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
   monitorEnv <- liftIO $ lookupEnv "MONITOR"
@@ -46,9 +49,6 @@ mkConfig manifest pool = Config.base hID hPass (DBPool pool)
   where
     hID   = HerokuID       . encodeUtf8 $ manifest ^. Manifest.id
     hPass = HerokuPassword . encodeUtf8 $ manifest ^. api ^. password
-
-simply :: RIO LogFunc a -> IO a
-simply = runRIO (mkLogFunc Log.simple)
 
 setupPool :: HasLogFunc cfg => RIO cfg SeldaPool
 setupPool = do
