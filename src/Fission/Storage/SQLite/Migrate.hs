@@ -23,7 +23,7 @@ type Mutation = IO ()
 --
 --  NB To run after a certain point: `sequence_ . drop n`
 mutations :: DBPath -> [Mutation]
-mutations dbPath' =
-  [ makeTable dbPath' Heroku.AddOn.addOns Heroku.AddOn.tableName
-  , makeTable dbPath' User.users          User.tableName
+mutations db =
+  [ makeTable db Heroku.AddOn.addOns Heroku.AddOn.tableName
+  , makeTable db User.users          User.tableName
   ]
