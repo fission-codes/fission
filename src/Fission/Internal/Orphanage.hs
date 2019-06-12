@@ -44,7 +44,7 @@ instance FromJSON (ID a) where
       errMsg invalid
 
     where
-      errMsg = modifyFailure ("parsing ID failed, " ++) . typeMismatch "Number"
+      errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
 
 instance Has DBPool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
