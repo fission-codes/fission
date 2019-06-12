@@ -78,8 +78,8 @@ curl -H "Authorization: Basic 012345generatedfrommanifest==" \
 # 100   563    0   372  100   191  20871  10716 --:--:-- --:--:-- --:--:-- 21882
 # {
 #    "message" : "Successfully provisioned Interplanetary FISSION!",
-#    "id" : 5,
-#    "config" : {
+#    "id"      : 5,
+#    "config"  : {
 #       "INTERPLANETARY_FISSION_USERNAME" : "c74bd95b8555275277d4",
 #       "INTERPLANETARY_FISSION_PASSWORD" : "GW0SHByPmY0.y+lg)x7De.PNmJvh1+YXYTcL9RW1mOzxoE.sQGrroxlbNA0xE5(t)_iVVDe!8V,1ZEG)Bse6,dwb,78pN69BT_E9m3+rmJxKCE,v6HMc7Z-tMk0EIcDQQ0)2QUa3Kj,C5A,(sl!",
 #       "INTERPLANETARY_FISSION_URL"      : "localhost:3000/ipfs"
@@ -97,6 +97,7 @@ curl -i \
      -H "Content-Type: application/octet-stream" \
      -H "Authorization: Basic MzdmNTU4MTM0YmFhNTM1OTAzYzY6am1tcy0tSEJpOGd4bDB0bDlHY2sqWW1ZOVJYX2hNb3MkVzk0cW9kUipKZGhMV29hVXRRR3ExenZ6SW1FLG0rdEQqN3dhVXhRU3V0dEs0a2wuSWd2LCRHMnA4NmNTLHVBIXVORjJlMHFMOTR5dDZ3Wnd2WipRekIoNGF0JFItazNDcw=="
      http://localhost:1337/ipfs -d '{"hi":1}'
+
 # HTTP/1.1 200 OK
 # Transfer-Encoding: chunked
 # Date: XXXXXXXXXXXXXXXXXXXXXXXX
