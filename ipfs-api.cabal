@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cfb5fc16c1ea60f003e4bc4b70f42ad247b2b50d18293edd7188257d84d16cc5
+-- hash: 63115aabf525eab5d67e4f1b06b8b9b8ee922707af4b656fb66e744987870af8
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -16,7 +16,7 @@ maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
 license:        Apache-2.0
 license-file:   LICENSE
-tested-with:    GHC==8.6.3
+tested-with:    GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     README.md
