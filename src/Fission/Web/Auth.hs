@@ -9,11 +9,9 @@ module Fission.Web.Auth
 
 import RIO
 
-import Data.Has
 import Database.Selda
 import Servant
 
-import Fission.Config
 import Fission.Internal.Orphanage ()
 import Fission.Storage.Query
 import Fission.User as User
