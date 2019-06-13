@@ -108,26 +108,10 @@ curl -i \
 # QmSeDGD18CLeUyKrATcaCbmH4Z3gyh3SrdgjoYkrxkEmgx
 ```
 
-# Gotchas
+# MIME Types
 
-## MIME Types
+## Defaults
 
-* Requests default to `text/plain`.
-* When requesting `text/plain`, the character set must be specified.
-
-```shell
-curl -i \
-    -X POST \
-    -H "Authorization: Basic abcdef==" \
-    -H "Content-Type: text/plain;charset=UTF-8" # This line
-    -d '{"hi":1}' \
-    http://localhost:1337/ipfs
-
-# HTTP/1.1 200 OK
-# Transfer-Encoding: chunked
-# Date: XXXXXXXXXXXXXXXXXXXX
-# Server: Warp/3.2.27
-# Content-Type: text/plain;charset=utf-8
-#
-# QmSeDGD18CLeUyKrATcaCbmH4Z3gyh3SrdgjoYkrxkEmgx
-```
+* `Content-Type: application/octet-stream`
+* `Accept: text/plain;charset=utf-8`
+  * NB: When requesting `text/plain`, the character set must be specified
