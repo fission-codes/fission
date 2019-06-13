@@ -15,7 +15,7 @@ import qualified Fission.File         as File
 import qualified Fission.IPFS.Address as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
 
-type API = ReqBody '[PlainText, OctetStream] File.Serialized
+type API = ReqBody '[OctetStream, PlainText] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.Address
 
 server :: Has IPFSPath cfg => RIOServer cfg API
