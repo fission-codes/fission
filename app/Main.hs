@@ -7,7 +7,7 @@ import Control.Lens ((.~))
 import Data.Aeson (decodeFileStrict)
 import System.Environment
 
-import Network.Wai
+-- import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 import Network.Wai.Middleware.RequestLogger
@@ -15,7 +15,8 @@ import Network.Wai.Middleware.RequestLogger
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
 
-import Fission.Internal.Orphanage ()
+import           Fission.Internal.Orphanage ()
+import qualified Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.Log                            as Log
 import qualified Fission.Monitor                        as Monitor
@@ -28,34 +29,26 @@ import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
   Just (manifest :: Manifest) <- decodeFileStrict "./addon-manifest.json"
-  pool <- simply setupPool
-  runRIO (mkConfig manifest pool) do
+  pool      <- simply setupPool
+  hostURL   <- withEnv "HOST" "localhost:3000" UTF8.textShow
+  condDebug <- withFlag "DEBUG_REQS" id logStdoutDev
+
+  runRIO (mkConfig manifest pool hostURL) do
     condMonitor
     Web.Config.Config port <- Web.Config.get
     logInfo $ "Servant running at port " <> display port
 
-    let middleware = runSettings (mkSettings stdOut port) <=< condDebugReqs
-    liftIO . middleware $ Web.app =<< ask
+    liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app =<< ask
 
 simply :: RIO LogFunc a -> IO a
 simply = runRIO (mkLogFunc Log.simple)
 
-condDebugReqs :: IO (Application -> Application)
-condDebugReqs = do
-  debugReqsEnv <- liftIO $ lookupEnv "DEBUG_REQS"
-  return $ maybe id logOrNot debugReqsEnv
+mkConfig :: Manifest -> SeldaPool -> Text -> Config
+mkConfig manifest pool url = cfg & host .~ Host url
   where
-    logOrNot :: String -> (Application -> Application)
-    logOrNot str =
-      if fmap toLower str == "true"
-         then logStdoutDev
-         else id
-
-condMonitor :: HasLogFunc cfg => RIO cfg ()
-condMonitor = do
-  monitorEnv <- liftIO $ lookupEnv "MONITOR"
-  monitored  <- return $ maybe False ((== "true") . fmap toLower) monitorEnv
-  when monitored Monitor.wai
+    cfg   = Config.base hID hPass (DBPool pool)
+    hID   = HerokuID       . encodeUtf8 $ manifest ^. Manifest.id
+    hPass = HerokuPassword . encodeUtf8 $ manifest ^. api ^. password
 
 mkSettings :: ApacheLogger -> Port -> Settings
 mkSettings stdOut port = portSettings $ logSettings defaultSettings
@@ -63,14 +56,20 @@ mkSettings stdOut port = portSettings $ logSettings defaultSettings
     portSettings = setPort port
     logSettings  = setLogger stdOut
 
-mkConfig :: Manifest -> SeldaPool -> Maybe String -> Config
-mkConfig manifest pool = \case
-  Nothing   -> cfg
-  Just path -> cfg & host .~ Host (textDisplay path)
-  where
-    cfg   = Config.base hID hPass (DBPool pool)
-    hID   = HerokuID       . encodeUtf8 $ manifest ^. Manifest.id
-    hPass = HerokuPassword . encodeUtf8 $ manifest ^. api ^. password
+condMonitor :: HasLogFunc cfg => RIO cfg ()
+condMonitor = do
+  monitorFlag <- liftIO $ getFlag "MONITOR"
+  when monitorFlag Monitor.wai
+
+withFlag :: forall a. String -> a -> a -> IO a
+withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
+
+withEnv :: String -> a -> (String -> a) -> IO a
+withEnv key fallback transform = pure . maybe fallback transform =<< lookupEnv key
+
+getFlag :: String -> IO Bool
+getFlag key =
+  pure . maybe False (\flag -> fmap toLower flag == "true") =<< lookupEnv key
 
 setupPool :: HasLogFunc cfg => RIO cfg SeldaPool
 setupPool = do
