@@ -7,7 +7,6 @@ import Control.Lens ((.~))
 import Data.Aeson (decodeFileStrict)
 import System.Environment
 
--- import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 import Network.Wai.Middleware.RequestLogger

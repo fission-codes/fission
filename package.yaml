@@ -27,6 +27,41 @@ ghc-options:
   - -fhide-source-paths
   # - -fprint-unicode-syntax
 
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - KindSignatures
+  - LambdaCase
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - OverloadedLabels
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TupleSections
+  - TypeSynonymInstances
+  - TemplateHaskell
+  - TypeOperators
+
 dependencies:
   - aeson
   - aeson-casing
@@ -67,41 +102,6 @@ dependencies:
   - wai-logger
   - warp
   - word8
-
-default-extensions:
-  - ApplicativeDo
-  - BangPatterns
-  - BlockArguments
-  - ConstraintKinds
-  - DataKinds
-  - DeriveFoldable
-  - DeriveFunctor
-  - DeriveGeneric
-  - DeriveLift
-  - DeriveTraversable
-  - DerivingStrategies
-  - FlexibleContexts
-  - FlexibleInstances
-  - FunctionalDependencies
-  - GADTs
-  - GeneralizedNewtypeDeriving
-  - KindSignatures
-  - LambdaCase
-  - MultiParamTypeClasses
-  - MultiWayIf
-  - NamedFieldPuns
-  - NoImplicitPrelude
-  - NoMonomorphismRestriction
-  - OverloadedStrings
-  - OverloadedLabels
-  - RankNTypes
-  - RecordWildCards
-  - ScopedTypeVariables
-  - StandaloneDeriving
-  - TupleSections
-  - TypeSynonymInstances
-  - TemplateHaskell
-  - TypeOperators
 
 library:
   source-dirs: src
