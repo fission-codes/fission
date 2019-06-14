@@ -3,6 +3,7 @@ module Main (main) where
 import RIO
 import RIO.Char (toLower)
 
+import Control.Lens ((.~))
 import Data.Aeson (decodeFileStrict)
 import System.Environment
 
@@ -33,9 +34,8 @@ main = withStdoutLogger $ \stdOut -> do
     Web.Config.Config port <- Web.Config.get
     logInfo $ "Servant running at port " <> display port
 
-    debuggable <- liftIO condDebugReqs
-    app        <- Web.app =<< ask
-    liftIO . runSettings (mkSettings stdOut port) $ debuggable app
+    let middleware = runSettings (mkSettings stdOut port) <=< condDebugReqs
+    liftIO . middleware $ Web.app =<< ask
 
 simply :: RIO LogFunc a -> IO a
 simply = runRIO (mkLogFunc Log.simple)
@@ -63,9 +63,12 @@ mkSettings stdOut port = portSettings $ logSettings defaultSettings
     portSettings = setPort port
     logSettings  = setLogger stdOut
 
-mkConfig :: Manifest -> SeldaPool -> Config
-mkConfig manifest pool = Config.base hID hPass (DBPool pool)
+mkConfig :: Manifest -> SeldaPool -> Maybe String -> Config
+mkConfig manifest pool = \case
+  Nothing   -> cfg
+  Just path -> cfg & host .~ Host (textDisplay path)
   where
+    cfg   = Config.base hID hPass (DBPool pool)
     hID   = HerokuID       . encodeUtf8 $ manifest ^. Manifest.id
     hPass = HerokuPassword . encodeUtf8 $ manifest ^. api ^. password
 
