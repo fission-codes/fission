@@ -4,9 +4,12 @@ import RIO
 import RIO.Char (toLower)
 
 import Data.Aeson (decodeFileStrict)
+import System.Environment
+
+import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
-import System.Environment
+import Network.Wai.Middleware.RequestLogger
 
 import Fission.Config         as Config
 import Fission.Storage.SQLite as SQLite
@@ -17,7 +20,9 @@ import qualified Fission.Log                            as Log
 import qualified Fission.Monitor                        as Monitor
 import qualified Fission.Web                            as Web
 import qualified Fission.Web.Config                     as Web.Config
-import           Fission.Platform.Heroku.AddOn.Manifest as Manifest
+
+import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
+import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
@@ -27,10 +32,24 @@ main = withStdoutLogger $ \stdOut -> do
     condMonitor
     Web.Config.Config port <- Web.Config.get
     logInfo $ "Servant running at port " <> display port
-    liftIO . runSettings (mkSettings stdOut port) =<< Web.app =<< ask
+
+    debuggable <- liftIO condDebugReqs
+    app        <- Web.app =<< ask
+    liftIO . runSettings (mkSettings stdOut port) $ debuggable app
 
 simply :: RIO LogFunc a -> IO a
 simply = runRIO (mkLogFunc Log.simple)
+
+condDebugReqs :: IO (Application -> Application)
+condDebugReqs = do
+  debugReqsEnv <- liftIO $ lookupEnv "DEBUG_REQS"
+  return $ maybe id logOrNot debugReqsEnv
+  where
+    logOrNot :: String -> (Application -> Application)
+    logOrNot str =
+      if fmap toLower str == "true"
+         then logStdoutDev
+         else id
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
