@@ -1,7 +1,6 @@
 module Main (main) where
 
 import RIO
-import RIO.Char (toLower)
 
 import Control.Lens ((.~))
 import Data.Aeson (decodeFileStrict)
@@ -17,6 +16,7 @@ import Fission.Storage.SQLite as SQLite
 import           Fission.Internal.Orphanage ()
 import qualified Fission.Internal.UTF8 as UTF8
 
+import           Fission.Environment
 import qualified Fission.Log                            as Log
 import qualified Fission.Monitor                        as Monitor
 import qualified Fission.Web                            as Web
@@ -36,7 +36,6 @@ main = withStdoutLogger $ \stdOut -> do
     condMonitor
     Web.Config.Config port <- Web.Config.get
     logInfo $ "Servant running at port " <> display port
-
     liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app =<< ask
 
 simply :: RIO LogFunc a -> IO a
@@ -59,16 +58,6 @@ condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
   monitorFlag <- liftIO $ getFlag "MONITOR"
   when monitorFlag Monitor.wai
-
-withFlag :: forall a. String -> a -> a -> IO a
-withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
-
-withEnv :: String -> a -> (String -> a) -> IO a
-withEnv key fallback transform = pure . maybe fallback transform =<< lookupEnv key
-
-getFlag :: String -> IO Bool
-getFlag key =
-  pure . maybe False (\flag -> fmap toLower flag == "true") =<< lookupEnv key
 
 setupPool :: HasLogFunc cfg => RIO cfg SeldaPool
 setupPool = do
