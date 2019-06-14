@@ -6,10 +6,9 @@ import qualified RIO.ByteString.Lazy as Lazy
 import Data.Has
 import System.Process.Typed
 
-import Fission.Internal.Constraint
 import Fission.Config
-
-type Opt = String
+import Fission.Internal.Constraint
+import Fission.IPFS.Types
 
 run :: MonadRIO cfg m
     => Has IPFSPath cfg

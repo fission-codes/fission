@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a8cbca4062c85b74385219561d498bdbdc4c6a26d5dd70fd9735cb3e734acdf3
+-- hash: 422cb28dc82364f8fedb286a3bd174c7db1d8bbd2bd7780e4c8eb2784bccd03e
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -30,6 +30,7 @@ library
   exposed-modules:
       Fission
       Fission.Config
+      Fission.Config.Internal
       Fission.Environment
       Fission.File
       Fission.Internal.Bool
@@ -41,6 +42,7 @@ library
       Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
+      Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
       Fission.Plan
@@ -59,12 +61,12 @@ library
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
+      Fission.Storage.Types
       Fission.User
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
-      Fission.Web.Config
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
@@ -76,6 +78,7 @@ library
       Fission.Web.Ping
       Fission.Web.Server
       Fission.Web.Tls
+      Fission.Web.Types
   other-modules:
       Paths_ipfs_api
   hs-source-dirs:
@@ -397,6 +400,7 @@ test-suite fission-test
   other-modules:
       Fission
       Fission.Config
+      Fission.Config.Internal
       Fission.Environment
       Fission.File
       Fission.Internal.Bool
@@ -408,6 +412,7 @@ test-suite fission-test
       Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
+      Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
       Fission.Plan
@@ -426,12 +431,12 @@ test-suite fission-test
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
+      Fission.Storage.Types
       Fission.User
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
-      Fission.Web.Config
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
@@ -443,6 +448,7 @@ test-suite fission-test
       Fission.Web.Ping
       Fission.Web.Server
       Fission.Web.Tls
+      Fission.Web.Types
       Paths_ipfs_api
   hs-source-dirs:
       src

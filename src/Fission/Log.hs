@@ -6,18 +6,35 @@ module Fission.Log
   ) where
 
 import           RIO
+import           RIO.Char (toLower)
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
 
 import Data.Has
+import System.Envy
 
-import Fission.Internal.Constraint
+import           Fission.Internal.Constraint
+import qualified Fission.Internal.UTF8 as UTF8
 
 newtype MinLogLevel = MinLogLevel LogLevel
 
+instance FromEnv MinLogLevel where
+  fromEnv = do
+    levelEnv <- env "MIN_LOG_LEVEL"
+    pure . MinLogLevel $ case fmap toLower levelEnv of
+      "debug" -> LevelDebug
+      "error" -> LevelError
+      "info"  -> LevelInfo
+      "warn"  -> LevelWarn
+      other   -> LevelOther (UTF8.textShow (other :: String))
+
 atLevel :: MonadRIO cfg m
         => Has MinLogLevel cfg
-        => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
+        => CallStack
+        -> LogSource
+        -> LogLevel
+        -> Utf8Builder
+        -> m ()
 atLevel cs src lvl msg = do
   MinLogLevel minLevel <- view hasLens
   when (lvl >= minLevel) $
@@ -37,7 +54,7 @@ simple _ src lvl msg =
 
 short :: LogLevel -> Text
 short = \case
-  LevelDebug     -> "Warn"
+  LevelDebug     -> "Debug"
   LevelError     -> "Error"
   LevelInfo      -> "Info"
   LevelWarn      -> "Warn"

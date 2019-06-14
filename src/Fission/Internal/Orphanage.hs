@@ -21,7 +21,8 @@ import Data.UUID as UUID
 import Database.Selda
 import Database.Selda.Backend
 
-import Fission.Config
+import           Fission.Config.Internal
+import qualified Fission.Storage.Types as DB
 
 instance Enum    UUID
 instance SqlType UUID
@@ -46,9 +47,9 @@ instance FromJSON (ID a) where
     where
       errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
 
-instance Has DBPool cfg => MonadSelda (RIO cfg) where
+instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
-    DBPool pool <- fromCfg
+    DB.Pool pool <- fromCfg
     liftIO $ withResource pool pure
 
 instance HasLogFunc (LogFunc, b) where

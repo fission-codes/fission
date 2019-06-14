@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Fission.Config
   ( Config (..)
   -- Fields
@@ -18,7 +16,6 @@ module Fission.Config
   -- Helpers
   , SeldaPool
   , base
-  , fromCfg
   , logFunc
   , minLogLevel
   ) where
@@ -26,25 +23,18 @@ module Fission.Config
 import RIO
 
 import Control.Lens (makeLenses)
+import System.Envy
 
 import Data.Has
 import Data.Pool
 import Database.Selda.Backend
 
-import qualified Fission.Log as Log
+import qualified Fission.Log            as Log
+import qualified Fission.Web.Config     as Web
+import qualified Fission.Storage.SQLite as DB
+import qualified Fission.IPFS.Path      as IPFS
 
-newtype IPFSPath = IPFSPath { getIPFSPath :: FilePath }
-  deriving (Show, IsString)
-
-newtype DBPath = DBPath { getDBPath :: FilePath }
-  deriving (Show, IsString)
-
-type SeldaPool = Pool SeldaConnection
-
-newtype DBPool = DBPool { getPool :: SeldaPool }
-
-newtype Host = Host { getHost :: Text }
-  deriving (Show, IsString)
+import qualified Fission.Storage.Types
 
 newtype HerokuID = HerokuID { getHerokuID :: ByteString }
   deriving (Show, IsString)
@@ -65,7 +55,7 @@ data Config = Config
 
 makeLenses ''Config
 
-instance Has IPFSPath Config where
+instance Has IPFS.Path Config where
   hasLens = ipfsPath
 
 instance Has Log.MinLogLevel Config where
@@ -89,6 +79,7 @@ instance Has Host Config where
 instance HasLogFunc Config where
   logFuncL = logFunc
 
+-- FIXME with Envy
 base :: HerokuID -> HerokuPassword -> DBPool -> Config
 base hkuID hkuPass pool = Config
     { _logFunc        = mkLogFunc Log.simple
@@ -100,6 +91,3 @@ base hkuID hkuPass pool = Config
     , _herokuID       = hkuID
     , _herokuPassword = hkuPass
     }
-
-fromCfg :: (MonadReader cfg m, Has a cfg) => m a
-fromCfg = view hasLens

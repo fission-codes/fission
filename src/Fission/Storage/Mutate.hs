@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Fission.Storage.Mutate
   ( DBInsertable (..)
   , insertX'

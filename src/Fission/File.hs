@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Fission.File (Serialized (..)) where
 
 import           RIO
