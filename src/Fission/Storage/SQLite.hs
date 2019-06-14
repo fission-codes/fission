@@ -15,6 +15,7 @@ import Database.Selda.Backend
 
 import System.Envy
 
+import           Fission.Config.Internal
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage ()
 import qualified Fission.Storage.Table       as Table
@@ -45,6 +46,6 @@ connPool (DB.Path {getPath = path}) = do
 makeTable :: DB.Path -> Table t -> Table.Name t -> IO ()
 makeTable dbPath' tbl tblName = runRIO logger do
   pool <- connPool dbPath'
-  runRIO (logger, DB.Pool pool, dbPath') $ setupTable tbl (Table.name tblName)
+  runRIO (logger, pool, dbPath') $ setupTable tbl (Table.name tblName)
   where
     logger  = mkLogFunc Log.simple
