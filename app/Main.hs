@@ -2,9 +2,7 @@ module Main (main) where
 
 import RIO
 
-import Control.Lens ((.~))
 import Data.Aeson (decodeFileStrict)
-import System.Envy
 
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
@@ -14,14 +12,14 @@ import Fission
 import Fission.Types
 import Fission.Storage.SQLite as SQLite
 
-import           Fission.Internal.Orphanage ()
-import qualified Fission.Internal.UTF8 as UTF8
-
 import           Fission.Environment
+import           Fission.Internal.Orphanage ()
+import           Fission.Storage.Types as DB
+import qualified Fission.IPFS.Types    as IPFS
+import qualified Fission.Log           as Log
 import qualified Fission.Monitor       as Monitor
 import qualified Fission.Web           as Web
 import qualified Fission.Web.Types     as Web
-import           Fission.Storage.Types as DB
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
@@ -29,25 +27,24 @@ import qualified Fission.Platform.Heroku.Types          as Heroku
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
-  Just (manifest :: Manifest) <- decodeFileStrict "./addon-manifest.json"
-
   Web.Port port <- getEnv
-  DB.Pool  pool <- simply setupPool
+  Just manifest <- decodeFileStrict "./addon-manifest.json"
+  condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
+  _minLogLevel  <- decodeElse $ Log.MinLevel LevelDebug
+  _host         <- decodeElse $ Web.Host "localhost:3000"
+  _ipfsPath     <- decodeElse $ IPFS.Path "/usr/local/bin/ipfs"
+  _dbPath       <- decodeElse $ DB.Path "ipfs-api.sqlite"
+  _dbPool       <- simply $ SQLite.connPool _dbPath
 
-  hostURL   <- withEnv "HOST" "localhost:3000" UTF8.textShow
-  condDebug <- withFlag "DEBUG_REQS" id logStdoutDev
+  let
+    _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
+    _herokuPassword = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
+    _logFunc        = mkLogFunc Log.simple
 
-  runRIO (mkConfig' manifest pool hostURL) do
+  runRIO Config { .. } do
     condMonitor
-    logInfo $ "Servant running at port " <> display port
+    logInfo $ "Servant running at  " <> display port
     liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app =<< ask
-
-mkConfig' :: Manifest -> SeldaPool -> Text -> Config
-mkConfig' manifest pool url = cfg & host .~ Web.Host url
-  where
-    cfg   = mkConfig hID hPass (DB.Pool pool)
-    hID   = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
-    hPass = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
 
 mkSettings :: ApacheLogger -> Port -> Settings
 mkSettings stdOut port = portSettings $ logSettings defaultSettings
@@ -59,8 +56,3 @@ condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
   monitorFlag <- liftIO $ getFlag "MONITOR"
   when monitorFlag Monitor.wai
-
-setupPool :: HasLogFunc cfg => RIO cfg DB.Pool
-setupPool = liftIO decode
-        >>= return . maybe (DB.Path "ipfs-api.sqlite") id
-        >>= SQLite.connPool

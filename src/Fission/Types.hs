@@ -27,7 +27,7 @@ type Fission = RIO Config
 
 data Config = Config
   { _logFunc        :: !LogFunc
-  , _minLogLevel    :: !Log.MinLogLevel
+  , _minLogLevel    :: !Log.MinLevel
   , _ipfsPath       :: !IPFS.Path
   , _host           :: !Host
   , _dbPath         :: !DB.Path
@@ -41,7 +41,7 @@ makeLenses ''Config
 instance Has IPFS.Path Config where
   hasLens = ipfsPath
 
-instance Has Log.MinLogLevel Config where
+instance Has Log.MinLevel Config where
   hasLens = minLogLevel
 
 instance Has DB.Path Config where

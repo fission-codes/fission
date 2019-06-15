@@ -1,5 +1,5 @@
 module Fission.Log
-  ( MinLogLevel (..)
+  ( MinLevel (..)
   , atLevel
   , short
   , simple
@@ -16,12 +16,12 @@ import System.Envy
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8 as UTF8
 
-newtype MinLogLevel = MinLogLevel LogLevel
+newtype MinLevel = MinLevel LogLevel
 
-instance FromEnv MinLogLevel where
+instance FromEnv MinLevel where
   fromEnv = do
-    levelEnv <- env "MIN_LOG_LEVEL"
-    pure . MinLogLevel $ case fmap toLower levelEnv of
+    levelEnv <- env "MIN_LOG_LEVEL" .!= "debug"
+    pure . MinLevel $ case fmap toLower levelEnv of
       "debug" -> LevelDebug
       "error" -> LevelError
       "info"  -> LevelInfo
@@ -29,14 +29,14 @@ instance FromEnv MinLogLevel where
       other   -> LevelOther (UTF8.textShow (other :: String))
 
 atLevel :: MonadRIO cfg m
-        => Has MinLogLevel cfg
+        => Has MinLevel cfg
         => CallStack
         -> LogSource
         -> LogLevel
         -> Utf8Builder
         -> m ()
 atLevel cs src lvl msg = do
-  MinLogLevel minLevel <- view hasLens
+  MinLevel minLevel <- view hasLens
   when (lvl >= minLevel) $
     liftIO $ simple cs src lvl msg
 

@@ -4,6 +4,7 @@ module Fission.Environment
   , withEnv
   , getFlag
   , getEnv
+  , decodeElse
   ) where
 
 import RIO
@@ -27,6 +28,11 @@ instance Display Environment where
 getEnv :: FromEnv a => IO a
 getEnv = decodeEnv >>= \case
   Left msg  -> error msg
+  Right val -> return val
+
+decodeElse :: FromEnv a => a -> IO a
+decodeElse fallback = decodeEnv >>= \case
+  Left  _   -> return fallback
   Right val -> return val
 
 withFlag :: String -> a -> a -> IO a
