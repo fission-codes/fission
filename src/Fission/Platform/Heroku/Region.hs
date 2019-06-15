@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Fission.Platform.Heroku.Region (Region (..)) where
 
