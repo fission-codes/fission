@@ -10,10 +10,8 @@ import           RIO.Text    (stripPrefix)
 import Database.Selda
 
 newtype Name a = Name { name :: TableName }
-  deriving ( Show
-           , Eq
-           , IsString
-           )
+  deriving         (Eq, Show)
+  deriving newtype IsString
 
 lensPrefixed :: Relational r => TableName -> [Attr r] -> Table r
 lensPrefixed tableName conf =

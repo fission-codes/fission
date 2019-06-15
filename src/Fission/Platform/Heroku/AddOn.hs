@@ -1,7 +1,5 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 module Fission.Platform.Heroku.AddOn
-  ( AddOn(..)
+  ( AddOn (..)
   -- Selectors
   , addOnID'
   , uuid'
@@ -26,7 +24,7 @@ import Data.UUID
 import Database.Selda
 
 import           Fission.Internal.Orphanage ()
-import           Fission.Platform.Heroku.Region (Region (..))
+import           Fission.Platform.Heroku.Types (Region (..))
 import           Fission.Storage.Mutate
 import qualified Fission.Storage.Table as Table
 

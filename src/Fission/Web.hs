@@ -13,16 +13,17 @@ import Database.Selda
 import Servant
 
 import           Fission
-import           Fission.Types
-import qualified Fission.IPFS.Types as IPFS
 import           Fission.User
-
 import           Fission.Web.Server
-import qualified Fission.Web.Types  as Web
+import qualified Fission.IPFS.Types as IPFS
+
 import qualified Fission.Web.Auth   as Auth
 import qualified Fission.Web.IPFS   as IPFS
 import qualified Fission.Web.Ping   as Ping
-import qualified Fission.Web.Heroku as Heroku
+import qualified Fission.Web.Types  as Web
+
+import qualified Fission.Platform.Heroku.Types as Heroku
+import qualified Fission.Web.Heroku            as Heroku
 
 type API = "ipfs"
              :> Servant.BasicAuth "registered users" User
@@ -33,12 +34,12 @@ type API = "ipfs"
       :<|> "ping"
              :> Ping.API
 
-app :: Has IPFS.Path      cfg
-    => Has Web.Host       cfg
-    => Has HerokuID       cfg
-    => Has HerokuPassword cfg
-    => HasLogFunc         cfg
-    => MonadSelda    (RIO cfg)
+app :: Has IPFS.Path       cfg
+    => Has Web.Host        cfg
+    => Has Heroku.ID       cfg
+    => Has Heroku.Password cfg
+    => HasLogFunc          cfg
+    => MonadSelda     (RIO cfg)
     =>     cfg
     -> RIO cfg Application
 app cfg = do
@@ -46,14 +47,14 @@ app cfg = do
   return . serveWithContext api auth'
          $ Auth.server api cfg server
 
-auth :: Has HerokuID       cfg
-     => Has HerokuPassword cfg
-     => HasLogFunc         cfg
-     => MonadSelda    (RIO cfg)
+auth :: Has Heroku.ID       cfg
+     => Has Heroku.Password cfg
+     => HasLogFunc          cfg
+     => MonadSelda     (RIO cfg)
      => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
 auth = do
-  HerokuID       hkuID   <- fromConfig
-  HerokuPassword hkuPass <- fromConfig
+  Heroku.ID       hkuID   <- fromConfig
+  Heroku.Password hkuPass <- fromConfig
 
   hku <- return $ Auth.basic hkuID hkuPass
   usr <- Auth.user

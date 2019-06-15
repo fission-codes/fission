@@ -15,7 +15,8 @@ type SeldaPool = Database.Pool SeldaConnection
 newtype Pool = Pool { getPool :: SeldaPool }
 
 newtype Path = Path { getPath :: FilePath }
-  deriving (Show, IsString)
+  deriving         Show
+  deriving newtype IsString
 
 instance FromEnv Path where
   fromEnv = Path <$> env "DB_PATH"

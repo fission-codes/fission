@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans         #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
-{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.Internal.Orphanage () where

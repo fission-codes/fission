@@ -9,10 +9,11 @@ import qualified Network.Wai.Handler.Warp as Warp (Port)
 import           System.Envy
 
 newtype Host = Host { getHost :: Text }
-  deriving (Show, IsString)
+  deriving         Show
+  deriving newtype IsString
 
 newtype Port = Port { port :: Warp.Port }
-  deriving (Show, Eq)
+  deriving (Show, Eq) -- TODO IsString?
 
 instance FromEnv Host where
   fromEnv = Host <$> env "HOST"

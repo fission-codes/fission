@@ -9,14 +9,15 @@ import RIO
 
 import Data.Has
 
-import qualified Fission.IPFS.Types    as IPFS
-import qualified Fission.Log           as Log
-import qualified Fission.Storage.Types as DB
 import           Fission.Types
-import qualified Fission.Web.Types     as Web
+import qualified Fission.IPFS.Types            as IPFS
+import qualified Fission.Log                   as Log
+import qualified Fission.Platform.Heroku.Types as Heroku
+import qualified Fission.Storage.Types         as DB
+import qualified Fission.Web.Types             as Web
 
 -- FIXME with Envy
-mkConfig :: HerokuID -> HerokuPassword -> DB.Pool -> Config
+mkConfig :: Heroku.ID -> Heroku.Password -> DB.Pool -> Config
 mkConfig hkuID hkuPass pool = Config
     { _logFunc        = mkLogFunc Log.simple
     , _minLogLevel    = Log.MinLogLevel LevelDebug

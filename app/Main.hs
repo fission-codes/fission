@@ -25,6 +25,7 @@ import           Fission.Storage.Types as DB
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
+import qualified Fission.Platform.Heroku.Types          as Heroku
 
 main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
@@ -45,8 +46,8 @@ mkConfig' :: Manifest -> SeldaPool -> Text -> Config
 mkConfig' manifest pool url = cfg & host .~ Web.Host url
   where
     cfg   = mkConfig hID hPass (DB.Pool pool)
-    hID   = HerokuID       . encodeUtf8 $ manifest ^. Manifest.id
-    hPass = HerokuPassword . encodeUtf8 $ manifest ^. api ^. password
+    hID   = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
+    hPass = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
 
 mkSettings :: ApacheLogger -> Port -> Settings
 mkSettings stdOut port = portSettings $ logSettings defaultSettings

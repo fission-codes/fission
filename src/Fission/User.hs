@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 module Fission.User
   ( User (..)
   , Role (..)
@@ -42,7 +40,7 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku
   , addOnID'
   )
 
-import qualified Fission.Platform.Heroku.Region as Heroku (Region)
+import qualified Fission.Platform.Heroku.Types as Heroku
 
 import           Fission.User.Role
 import           Fission.Security (SecretDigest, Digestable (..))

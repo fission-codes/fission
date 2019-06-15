@@ -6,7 +6,6 @@ import qualified RIO.ByteString.Lazy as Lazy
 import Data.Has
 
 import           Fission.Internal.Constraint
-import           Fission.IPFS.Address        as IPFS
 import           Fission.IPFS.Types          as IPFS
 import qualified Fission.IPFS.Process        as IPFS.Proc
 

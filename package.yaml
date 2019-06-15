@@ -33,6 +33,7 @@ default-extensions:
   - BlockArguments
   - ConstraintKinds
   - DataKinds
+  - DeriveAnyClass
   - DeriveFoldable
   - DeriveFunctor
   - DeriveGeneric
