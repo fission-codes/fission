@@ -13,6 +13,7 @@ module Fission.Types
 
 import RIO
 import RIO.Text (pack)
+import RIO.List (intercalate)
 
 import Control.Lens (makeLenses)
 import Data.Has
@@ -49,6 +50,20 @@ data Config = Config
   }
 
 makeLenses ''Config
+
+instance Show Config where
+  show Config {..} = intercalate "\n"
+    [ "Config {"
+    , "  _logFunc        = **SOME LOG FUNCTION**"
+    , "  _minLogLevel    = " <> show _minLogLevel
+    , "  _ipfsPath       = " <> show _ipfsPath
+    , "  _host           = " <> show _host
+    , "  _dbPath         = " <> show _dbPath
+    , "  _dbPool         = " <> show _dbPool
+    , "  _herokuID       = " <> show _herokuID
+    , "  _herokuPassword = " <> show _herokuPassword
+    , "}"
+    ]
 
 instance Has IPFS.Path Config where
   hasLens = ipfsPath

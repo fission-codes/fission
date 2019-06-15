@@ -34,10 +34,10 @@ setupTable tbl tblName = do
 -- TODO make configurable
 connPool :: HasLogFunc cfg => DB.Path -> RIO cfg DB.Pool
 connPool (DB.Path {getPath = path}) = do
-  logInfo $ "Establishing database connection for " <> displayShow path
+  logDebug $ "Establishing DB pool for " <> displayShow path
 
   rawPool <- liftIO $ createPool (sqliteOpen path) seldaClose 4 2 10 -- config these
-  logInfo $ "DB pool stats: " <> displayShow rawPool
+  logDebug $ "DB pool stats: " <> displayShow rawPool
 
   return $ DB.Pool rawPool
 

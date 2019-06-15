@@ -41,11 +41,13 @@ main = withStdoutLogger $ \stdOut -> do
     _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
     _herokuPassword = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
     _logFunc        = mkLogFunc Log.simple
+    config          = Config { .. }
 
-  runRIO Config { .. } do
+  runRIO config do
     condMonitor
-    logInfo $ "Servant running at " <> display port
-    liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app =<< ask
+    logDebug $ "Configured with: " <> displayShow config
+    logInfo  $ "Servant running at: " <> display port
+    liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app config
 
 mkSettings :: ApacheLogger -> Port -> Settings
 mkSettings stdOut port = portSettings $ logSettings defaultSettings

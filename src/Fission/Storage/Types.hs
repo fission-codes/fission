@@ -13,6 +13,7 @@ import           System.Envy
 type SeldaPool = Database.Pool SeldaConnection
 
 newtype Pool = Pool { getPool :: SeldaPool }
+  deriving Show
 
 newtype Path = Path { getPath :: FilePath }
   deriving         Show
