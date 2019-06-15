@@ -28,7 +28,10 @@ newtype Path = Path { getPath :: FilePath }
   deriving         Show
   deriving newtype IsString
 
-data Peer = Peer { peer :: Text }
+newtype Peer = Peer { peer :: Text }
+  deriving         Show
+  deriving newtype IsString
+
 $(deriveJSON defaultOptions ''Peer)
 
 instance FromEnv Path where

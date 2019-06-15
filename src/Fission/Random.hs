@@ -13,7 +13,7 @@ text :: Natural -> IO Text
 text amount = decodeUtf8Lenient <$> byteString amount
 
 byteString :: Natural -> IO ByteString
-byteString amount = return . BS.filter isURL =<< BS.random amount
+byteString amount = BS.filter isURL <$> BS.random amount
 
 isURL :: Word8 -> Bool
 isURL w = isAsciiUpper w
@@ -22,7 +22,7 @@ isURL w = isAsciiUpper w
         || any' urlSpecials w
 
 any' :: [a -> Bool] -> a -> Bool
-any' preds value = any (== True) (preds <*> [value])
+any' preds value = elem True (preds <*> [value])
 
 urlSpecials :: [Word8 -> Bool]
 urlSpecials =

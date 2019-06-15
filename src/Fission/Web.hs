@@ -56,7 +56,7 @@ auth = do
   Heroku.ID       hkuID   <- fromConfig
   Heroku.Password hkuPass <- fromConfig
 
-  hku <- return $ Auth.basic hkuID hkuPass
+  let hku = Auth.basic hkuID hkuPass
   usr <- Auth.user
 
   return $ usr
