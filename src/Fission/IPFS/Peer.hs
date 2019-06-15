@@ -9,12 +9,10 @@ import qualified RIO.Text            as Text
 
 import Data.Has
 
-import qualified Fission.Internal.UTF8 as UTF8
-import qualified Fission.IPFS.Process  as IPFSProc
-
-import Fission.Types
-import Fission.Internal.Constraint
-import qualified Fission.IPFS.Types as IPFS
+import           Fission.Internal.Constraint
+import qualified Fission.IPFS.Process        as IPFSProc
+import qualified Fission.IPFS.Types          as IPFS
+import qualified Fission.Internal.UTF8       as UTF8
 
 all :: MonadRIO cfg m
     => Has IPFS.Path cfg

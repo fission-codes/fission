@@ -26,7 +26,7 @@ textToLazyBS :: Text -> Lazy.ByteString
 textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
 
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
-stripNewline bs = maybe bs id $ Lazy.stripSuffix "\n" bs
+stripNewline bs = fromMaybe bs $ Lazy.stripSuffix "\n" bs
 
 textShow :: Show a => a -> Text
 textShow = textDisplay . displayShow

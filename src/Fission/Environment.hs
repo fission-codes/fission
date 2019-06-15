@@ -5,6 +5,7 @@ module Fission.Environment
   , getFlag
   , getEnv
   , decodeElse
+  , (.!~)
   ) where
 
 import RIO
@@ -34,6 +35,9 @@ decodeElse :: FromEnv a => a -> IO a
 decodeElse fallback = decodeEnv >>= \case
   Left  _   -> return fallback
   Right val -> return val
+
+(.!~) :: MonadIO m => m (Maybe a) -> a -> m a
+action .!~ fallback = pure . fromMaybe fallback =<< action
 
 withFlag :: String -> a -> a -> IO a
 withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)

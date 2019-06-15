@@ -3,6 +3,7 @@ module Main (main) where
 import RIO
 
 import Data.Aeson (decodeFileStrict)
+import System.Envy
 
 import Network.Wai.Handler.Warp
 import Network.Wai.Logger
@@ -30,7 +31,7 @@ main = withStdoutLogger $ \stdOut -> do
   Web.Port port <- getEnv
   Just manifest <- decodeFileStrict "./addon-manifest.json"
   condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
-  _minLogLevel  <- decodeElse $ Log.MinLevel LevelDebug
+  _minLogLevel  <- decode .!~ Log.MinLevel LevelDebug
   _host         <- decodeElse $ Web.Host "localhost:3000"
   _ipfsPath     <- decodeElse $ IPFS.Path "/usr/local/bin/ipfs"
   _dbPath       <- decodeElse $ DB.Path "ipfs-api.sqlite"
