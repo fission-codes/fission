@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Fission.Storage.SQLite
   ( setupTable
   , connPool
@@ -13,38 +11,39 @@ import Data.Pool
 
 import Database.Selda
 import Database.Selda.SQLite
-import Database.Selda.Backend
 
-import           Fission.Internal.Constraint
-import           Fission.Internal.Orphanage ()
-import           Fission.Config              as Config
-import qualified Fission.Storage.Table       as Table
-import qualified Fission.Log                 as Log
+import Fission
+import Fission.Internal.Constraint
+import Fission.Internal.Orphanage ()
+
+import qualified Fission.Storage.Table as Table
+import qualified Fission.Log           as Log
+import qualified Fission.Storage.Types as DB
 
 setupTable :: MonadRIO cfg m
            => HasLogFunc cfg
-           => Has DBPath cfg
+           => Has DB.Path cfg
            => Table b
            -> TableName
            -> m ()
 setupTable tbl tblName = do
-  DBPath db <- fromCfg
+  DB.Path db <- fromConfig
   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB " <> displayShow db
   liftIO . withSQLite db $ createTable tbl
 
 -- TODO make configurable
-connPool :: HasLogFunc cfg => DBPath -> RIO cfg (Pool SeldaConnection)
-connPool (DBPath {getDBPath = path}) = do
-  logInfo $ "Establishing database connection for " <> displayShow path
+connPool :: HasLogFunc cfg => DB.Path -> RIO cfg DB.Pool
+connPool (DB.Path {getPath = path}) = do
+  logDebug $ "Establishing DB pool for " <> displayShow path
 
-  pool <- liftIO $ createPool (sqliteOpen path) seldaClose 4 2 10 -- config these
-  logInfo $ "DB pool stats: " <> displayShow pool
+  rawPool <- liftIO $ createPool (sqliteOpen path) seldaClose 4 2 10 -- config these
+  logDebug $ "DB pool stats: " <> displayShow rawPool
 
-  return pool
+  return $ DB.Pool rawPool
 
-makeTable :: DBPath -> Table t -> Table.Name t -> IO ()
+makeTable :: DB.Path -> Table t -> Table.Name t -> IO ()
 makeTable dbPath' tbl tblName = runRIO logger do
   pool <- connPool dbPath'
-  runRIO (logger, DBPool pool, dbPath') $ setupTable tbl (Table.name tblName)
+  runRIO (logger, pool, dbPath') $ setupTable tbl (Table.name tblName)
   where
     logger  = mkLogFunc Log.simple

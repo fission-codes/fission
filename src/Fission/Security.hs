@@ -20,11 +20,8 @@ import qualified Fission.Internal.UTF8  as UTF8
 type SecretDigest = Text
 
 newtype Secret = Secret { unSecret :: Text }
-  deriving ( Show
-           , Eq
-           , ToJSON
-           , FromJSON
-           )
+  deriving         (Eq, Show)
+  deriving newtype (FromJSON, ToJSON)
 
 mkSecret :: Natural -> IO (Either UnicodeException Secret)
 mkSecret = pure . toSecret <=< BS.random

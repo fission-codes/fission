@@ -23,18 +23,17 @@ import Database.Selda
 
 import           Fission.Internal.JSON
 import qualified Fission.Plan          as Plan
-
-import Fission.Platform.Heroku.Region     (Region)
-import Fission.Platform.Heroku.UserConfig (UserConfig)
-import Fission.User                       (User)
+import qualified Fission.Platform.Heroku.Types      as Heroku
+import qualified Fission.Platform.Heroku.UserConfig as Heroku
+import           Fission.User                       (User)
 
 data Request = Request
-  { _callbackUrl :: Text       -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
-  , _name        :: Text       -- ^ Logical name of the resource being provisioned.
+  { _callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
+  , _name        :: Text          -- ^ Logical name of the resource being provisioned.
   -- , _oauthGrant :: Maybe Text -- OAuthGrant -- ^ OAuth object details (nullable).
-  , _plan        :: Plan.Tier  -- ^ Name of the plan to provision (e.g. `basic`).
-  , _region      :: Region     -- ^ Physical hosting region of the requesting client.
-  , _uuid        :: UUID       -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
+  , _plan        :: Plan.Tier     -- ^ Name of the plan to provision (e.g. `basic`).
+  , _region      :: Heroku.Region -- ^ Physical hosting region of the requesting client.
+  , _uuid        :: UUID          -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
   } deriving (Show, Eq)
 
 makeLenses ''Request
@@ -67,7 +66,7 @@ HTTP/1.1 200 OK
 
 data Provision = Provision
   { _id      :: ID User
-  , _config  :: UserConfig
+  , _config  :: Heroku.UserConfig
   , _message :: Text
   } deriving (Show, Eq)
 

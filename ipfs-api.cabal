@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a8cbca4062c85b74385219561d498bdbdc4c6a26d5dd70fd9735cb3e734acdf3
+-- hash: eccb645578b9f715c5a0844ef5c6567143b3781b934a53bf99a524d4b8b432ba
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -29,7 +29,6 @@ source-repository head
 library
   exposed-modules:
       Fission
-      Fission.Config
       Fission.Environment
       Fission.File
       Fission.Internal.Bool
@@ -38,9 +37,9 @@ library
       Fission.Internal.Orphanage
       Fission.Internal.URL
       Fission.Internal.UTF8
-      Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
+      Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
       Fission.Plan
@@ -48,7 +47,7 @@ library
       Fission.Platform.Heroku.AddOn
       Fission.Platform.Heroku.AddOn.Manifest
       Fission.Platform.Heroku.Provision
-      Fission.Platform.Heroku.Region
+      Fission.Platform.Heroku.Types
       Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
@@ -59,12 +58,13 @@ library
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
+      Fission.Storage.Types
+      Fission.Types
       Fission.User
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
-      Fission.Web.Config
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
@@ -76,11 +76,12 @@ library
       Fission.Web.Ping
       Fission.Web.Server
       Fission.Web.Tls
+      Fission.Web.Types
   other-modules:
       Paths_ipfs_api
   hs-source-dirs:
       src
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -130,7 +131,7 @@ executable server
       Paths_ipfs_api
   hs-source-dirs:
       app
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
   build-depends:
       aeson
@@ -182,7 +183,7 @@ test-suite fission-coverage
       Paths_ipfs_api
   hs-source-dirs:
       test/coverage
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc
   build-depends:
       aeson
@@ -236,7 +237,7 @@ test-suite fission-docs
       Paths_ipfs_api
   hs-source-dirs:
       test/docs
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -291,7 +292,7 @@ test-suite fission-doctest
       Paths_ipfs_api
   hs-source-dirs:
       test/doctest
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
@@ -346,7 +347,7 @@ test-suite fission-lint
       Paths_ipfs_api
   hs-source-dirs:
       test/lint
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -396,7 +397,6 @@ test-suite fission-test
   main-is: Main.hs
   other-modules:
       Fission
-      Fission.Config
       Fission.Environment
       Fission.File
       Fission.Internal.Bool
@@ -405,9 +405,9 @@ test-suite fission-test
       Fission.Internal.Orphanage
       Fission.Internal.URL
       Fission.Internal.UTF8
-      Fission.IPFS.Address
       Fission.IPFS.Peer
       Fission.IPFS.Process
+      Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
       Fission.Plan
@@ -415,7 +415,7 @@ test-suite fission-test
       Fission.Platform.Heroku.AddOn
       Fission.Platform.Heroku.AddOn.Manifest
       Fission.Platform.Heroku.Provision
-      Fission.Platform.Heroku.Region
+      Fission.Platform.Heroku.Types
       Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
@@ -426,12 +426,13 @@ test-suite fission-test
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
+      Fission.Storage.Types
+      Fission.Types
       Fission.User
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
-      Fission.Web.Config
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
@@ -443,12 +444,13 @@ test-suite fission-test
       Fission.Web.Ping
       Fission.Web.Server
       Fission.Web.Tls
+      Fission.Web.Types
       Paths_ipfs_api
   hs-source-dirs:
       src
       test
       test/testsuite
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -509,7 +511,7 @@ benchmark fission-benchmark
       Paths_ipfs_api
   hs-source-dirs:
       benchmark
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
+  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson

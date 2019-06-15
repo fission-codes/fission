@@ -1,11 +1,21 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-
-module Fission.Platform.Heroku.Region (Region (..)) where
+module Fission.Platform.Heroku.Types
+  ( ID (..)
+  , Password (..)
+  , Region (..)
+  ) where
 
 import RIO
 
+import Database.Selda (SqlType)
 import Data.Aeson
-import Database.Selda
+
+newtype ID = ID { getID :: ByteString }
+  deriving         (Eq, Show)
+  deriving newtype IsString
+
+newtype Password = Password { getPassword :: ByteString }
+  deriving         (Eq, Show)
+  deriving newtype IsString
 
 data Region
   = California

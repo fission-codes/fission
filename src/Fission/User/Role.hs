@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 module Fission.User.Role
   ( Role (..)
   , _Regular

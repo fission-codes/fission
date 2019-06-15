@@ -1,25 +1,23 @@
 module Fission.Web.IPFS.Upload.Multipart
   ( API
-  , server
+  , add
   ) where
 
 import RIO
 
 import Data.Has
-
 import Servant
 import Servant.Multipart
 
-import           Fission.Config
-import qualified Fission.IPFS.Address as IPFS
-import qualified Fission.Storage.IPFS as Storage.IPFS
 import           Fission.Web.Server
+import qualified Fission.IPFS.Types   as IPFS
+import qualified Fission.Storage.IPFS as Storage.IPFS
 
 type API = MultipartForm Mem (MultipartData Mem)
         :> Post '[OctetStream, PlainText] IPFS.Address
 
-server :: (Has IPFSPath cfg, HasLogFunc cfg) => RIOServer cfg API
-server form =
+add :: (Has IPFS.Path cfg, HasLogFunc cfg) => RIOServer cfg API
+add form =
   case lookupFile "file" form of
     Just FileData { fdPayload } -> do
       hash <- Storage.IPFS.add fdPayload

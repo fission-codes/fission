@@ -17,7 +17,9 @@ data UserConfig = UserConfig
   { _interplanetaryFissionUrl      :: Text
   , _interplanetaryFissionUsername :: Text
   , _interplanetaryFissionPassword :: Secret
-  } deriving (Show, Eq)
+  } deriving ( Show
+             , Eq
+             )
 
 makeLenses ''UserConfig
 $(deriveJSON lens_SCREAMING_SNAKE_CASE ''UserConfig)

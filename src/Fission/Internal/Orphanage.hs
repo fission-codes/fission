@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans         #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
-{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.Internal.Orphanage () where
@@ -21,7 +20,8 @@ import Data.UUID as UUID
 import Database.Selda
 import Database.Selda.Backend
 
-import Fission.Config
+import           Fission
+import qualified Fission.Storage.Types as DB
 
 instance Enum    UUID
 instance SqlType UUID
@@ -46,9 +46,9 @@ instance FromJSON (ID a) where
     where
       errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
 
-instance Has DBPool cfg => MonadSelda (RIO cfg) where
+instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
-    DBPool pool <- fromCfg
+    DB.Pool pool <- fromConfig
     liftIO $ withResource pool pure
 
 instance HasLogFunc (LogFunc, b) where

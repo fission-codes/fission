@@ -1,8 +1,16 @@
-module Fission (Fission) where
+module Fission
+  ( fromConfig
+  , simply
+  ) where
 
 import RIO
 
-import Fission.Config
+import Data.Has
 
--- | Top-level application type
-type Fission = RIO Config
+import qualified Fission.Log as Log
+
+fromConfig :: (MonadReader cfg m, Has a cfg) => m a
+fromConfig = view hasLens
+
+simply :: RIO LogFunc a -> IO a
+simply = runRIO (mkLogFunc Log.simple)
