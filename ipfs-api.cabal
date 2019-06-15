@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 422cb28dc82364f8fedb286a3bd174c7db1d8bbd2bd7780e4c8eb2784bccd03e
+-- hash: 788f9bf21dc6c09c6bde3ff0b3dc2f2a343e299015cd20b68e0d0ff772eea591
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -29,8 +29,6 @@ source-repository head
 library
   exposed-modules:
       Fission
-      Fission.Config
-      Fission.Config.Internal
       Fission.Environment
       Fission.File
       Fission.Internal.Bool
@@ -62,6 +60,7 @@ library
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Types
       Fission.User
       Fission.User.Role
       Fission.Web
@@ -399,8 +398,6 @@ test-suite fission-test
   main-is: Main.hs
   other-modules:
       Fission
-      Fission.Config
-      Fission.Config.Internal
       Fission.Environment
       Fission.File
       Fission.Internal.Bool
@@ -432,6 +429,7 @@ test-suite fission-test
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Types
       Fission.User
       Fission.User.Role
       Fission.Web

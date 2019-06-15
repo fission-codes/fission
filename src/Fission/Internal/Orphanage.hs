@@ -21,7 +21,7 @@ import Data.UUID as UUID
 import Database.Selda
 import Database.Selda.Backend
 
-import           Fission.Config.Internal
+import           Fission
 import qualified Fission.Storage.Types as DB
 
 instance Enum    UUID
@@ -49,7 +49,7 @@ instance FromJSON (ID a) where
 
 instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
-    DB.Pool pool <- fromCfg
+    DB.Pool pool <- fromConfig
     liftIO $ withResource pool pure
 
 instance HasLogFunc (LogFunc, b) where

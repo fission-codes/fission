@@ -1,8 +1,35 @@
-module Fission (Fission) where
+module Fission
+  ( Fission
+  , mkConfig
+  , fromConfig
+  , simply
+  ) where
 
 import RIO
 
-import Fission.Config
+import Data.Has
 
--- | Top-level application type
-type Fission = RIO Config
+import qualified Fission.IPFS.Types    as IPFS
+import qualified Fission.Log           as Log
+import qualified Fission.Storage.Types as DB
+import           Fission.Types
+import qualified Fission.Web.Types     as Web
+
+-- FIXME with Envy
+mkConfig :: HerokuID -> HerokuPassword -> DB.Pool -> Config
+mkConfig hkuID hkuPass pool = Config
+    { _logFunc        = mkLogFunc Log.simple
+    , _minLogLevel    = Log.MinLogLevel LevelDebug
+    , _ipfsPath       = IPFS.Path "/usr/local/bin/ipfs"
+    , _host           = Web.Host "localhost:3000"
+    , _dbPath         = DB.Path "ipfs-api.sqlite"
+    , _dbPool         = pool
+    , _herokuID       = hkuID
+    , _herokuPassword = hkuPass
+    }
+
+fromConfig :: (MonadReader cfg m, Has a cfg) => m a
+fromConfig = view hasLens
+
+simply :: RIO LogFunc a -> IO a
+simply = runRIO (mkLogFunc Log.simple)

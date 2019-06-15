@@ -11,16 +11,14 @@ import Data.Pool
 
 import Database.Selda
 import Database.Selda.SQLite
-import Database.Selda.Backend
 
-import System.Envy
+import Fission
+import Fission.Internal.Constraint
+import Fission.Internal.Orphanage ()
 
-import           Fission.Config.Internal
-import           Fission.Internal.Constraint
-import           Fission.Internal.Orphanage ()
-import qualified Fission.Storage.Table       as Table
-import qualified Fission.Log                 as Log
-import qualified Fission.Storage.Types       as DB
+import qualified Fission.Storage.Table as Table
+import qualified Fission.Log           as Log
+import qualified Fission.Storage.Types as DB
 
 setupTable :: MonadRIO cfg m
            => HasLogFunc cfg
@@ -29,7 +27,7 @@ setupTable :: MonadRIO cfg m
            -> TableName
            -> m ()
 setupTable tbl tblName = do
-  DB.Path db <- fromCfg
+  DB.Path db <- fromConfig
   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB " <> displayShow db
   liftIO . withSQLite db $ createTable tbl
 

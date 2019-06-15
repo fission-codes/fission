@@ -5,9 +5,9 @@ module Fission.Storage.SQLite.Migrate
 
 import RIO
 
-import           Fission.Config                (DBPath)
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 import           Fission.Storage.SQLite        (makeTable)
+import           Fission.Storage.Types         as DB
 import qualified Fission.User                  as User
 
 -- | Table creation or migration
@@ -22,7 +22,7 @@ type Mutation = IO ()
 -- | All migrations, in order
 --
 --  NB To run after a certain point: `sequence_ . drop n`
-mutations :: DBPath -> [Mutation]
+mutations :: DB.Path -> [Mutation]
 mutations db =
   [ makeTable db Heroku.AddOn.addOns Heroku.AddOn.tableName
   , makeTable db User.users          User.tableName

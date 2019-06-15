@@ -3,13 +3,15 @@ module Fission.Environment
   , withFlag
   , withEnv
   , getFlag
+  , getEnv
   ) where
 
 import RIO
 import RIO.Char (toLower)
 import RIO.Text (pack)
 
-import System.Environment
+import System.Environment (lookupEnv)
+import System.Envy
 
 data Environment
   = Test
@@ -21,6 +23,11 @@ data Environment
 instance Display Environment where
   display     = displayShow
   textDisplay = pack . show
+
+getEnv :: FromEnv a => IO a
+getEnv = decodeEnv >>= \case
+  Left msg  -> error msg
+  Right val -> return val
 
 withFlag :: String -> a -> a -> IO a
 withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)

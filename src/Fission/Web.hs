@@ -12,10 +12,13 @@ import Data.Has
 import Database.Selda
 import Servant
 
-import           Fission.Config
+import           Fission
+import           Fission.Types
+import qualified Fission.IPFS.Types as IPFS
 import           Fission.User
 
 import           Fission.Web.Server
+import qualified Fission.Web.Types  as Web
 import qualified Fission.Web.Auth   as Auth
 import qualified Fission.Web.IPFS   as IPFS
 import qualified Fission.Web.Ping   as Ping
@@ -30,8 +33,8 @@ type API = "ipfs"
       :<|> "ping"
              :> Ping.API
 
-app :: Has IPFSPath       cfg
-    => Has Host           cfg
+app :: Has IPFS.Path      cfg
+    => Has Web.Host       cfg
     => Has HerokuID       cfg
     => Has HerokuPassword cfg
     => HasLogFunc         cfg
@@ -49,8 +52,8 @@ auth :: Has HerokuID       cfg
      => MonadSelda    (RIO cfg)
      => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
 auth = do
-  HerokuID       hkuID   <- fromCfg
-  HerokuPassword hkuPass <- fromCfg
+  HerokuID       hkuID   <- fromConfig
+  HerokuPassword hkuPass <- fromConfig
 
   hku <- return $ Auth.basic hkuID hkuPass
   usr <- Auth.user
@@ -59,8 +62,8 @@ auth = do
         :. hku
         :. EmptyContext
 
-server :: Has IPFSPath    cfg
-       => Has Host        cfg
+server :: Has IPFS.Path   cfg
+       => Has Web.Host    cfg
        => HasLogFunc      cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API

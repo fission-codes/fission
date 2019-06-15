@@ -1,6 +1,6 @@
 module Fission.IPFS.Peer
-  ( Peer (..)
-  , all
+  ( all
+  , rawList
   ) where
 
 import           RIO hiding (all)
@@ -12,11 +12,13 @@ import Data.Has
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Process  as IPFSProc
 
-import Fission.Config
+import Fission.Types
 import Fission.Internal.Constraint
-import Fission.IPFS.Types
+import qualified Fission.IPFS.Types as IPFS
 
-all :: (MonadRIO cfg m, Has IPFSPath cfg) => m (Either UnicodeException [Peer])
+all :: MonadRIO cfg m
+    => Has IPFS.Path cfg
+    => m (Either UnicodeException [IPFS.Peer])
 all = do
   allRaw <- rawList
 
@@ -24,7 +26,7 @@ all = do
     textOrErr      = UTF8.encode allRaw
     peerNamesOrErr = Text.lines <$> textOrErr
 
-  return $ fmap Peer <$> peerNamesOrErr
+  return $ fmap IPFS.Peer <$> peerNamesOrErr
 
-rawList :: (MonadRIO cfg m, Has IPFSPath cfg) => m Lazy.ByteString
+rawList :: (MonadRIO cfg m, Has IPFS.Path cfg) => m Lazy.ByteString
 rawList = IPFSProc.run' ["bootstrap", "list"]
