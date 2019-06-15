@@ -47,7 +47,7 @@ open http://localhost:9630
 
 # Load Test
 
-Very simple local load test
+A very simple local load test:
 
 ```shell
 # HTTP1.1
