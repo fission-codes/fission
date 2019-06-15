@@ -32,10 +32,10 @@ main = withStdoutLogger $ \stdOut -> do
   Just (manifest :: Manifest) <- decodeFileStrict "./addon-manifest.json"
 
   Web.Port port <- getEnv
-  DB.Pool pool  <- simply setupPool
+  DB.Pool  pool <- simply setupPool
 
-  hostURL       <- withEnv "HOST" "localhost:3000" UTF8.textShow
-  condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
+  hostURL   <- withEnv "HOST" "localhost:3000" UTF8.textShow
+  condDebug <- withFlag "DEBUG_REQS" id logStdoutDev
 
   runRIO (mkConfig' manifest pool hostURL) do
     condMonitor
