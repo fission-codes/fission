@@ -24,7 +24,8 @@ withFlag :: String -> a -> a -> IO a
 withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
 
 withEnv :: String -> a -> (String -> a) -> IO a
-withEnv key fallback transform = pure . maybe fallback transform =<< lookupEnv key
+withEnv key fallback transform = pure (maybe fallback transform) <*> lookupEnv key
 
 getFlag :: String -> IO Bool
-getFlag = pure . maybe False (\flag -> fmap toLower flag == "true") <=< lookupEnv
+getFlag key =
+  pure (maybe False $ \flag -> fmap toLower flag == "true") <*> lookupEnv key
