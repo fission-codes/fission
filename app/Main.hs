@@ -32,9 +32,9 @@ main = withStdoutLogger $ \stdOut -> do
   Just manifest <- decodeFileStrict "./addon-manifest.json"
   condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
   _minLogLevel  <- decode .!~ Log.MinLevel LevelDebug
-  _host         <- decodeElse $ Web.Host "localhost:3000"
-  _ipfsPath     <- decodeElse $ IPFS.Path "/usr/local/bin/ipfs"
-  _dbPath       <- decodeElse $ DB.Path "ipfs-api.sqlite"
+  _host         <- decode .!~ Web.Host "localhost:3000"
+  _ipfsPath     <- decode .!~ IPFS.Path "/usr/local/bin/ipfs"
+  _dbPath       <- decode .!~ DB.Path "ipfs-api.sqlite"
   _dbPool       <- simply $ SQLite.connPool _dbPath
 
   let

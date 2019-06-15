@@ -4,7 +4,6 @@ module Fission.Environment
   , withEnv
   , getFlag
   , getEnv
-  , decodeElse
   , (.!~)
   ) where
 
@@ -31,13 +30,8 @@ getEnv = decodeEnv >>= \case
   Left msg  -> error msg
   Right val -> return val
 
-decodeElse :: FromEnv a => a -> IO a
-decodeElse fallback = decodeEnv >>= \case
-  Left  _   -> return fallback
-  Right val -> return val
-
-(.!~) :: MonadIO m => m (Maybe a) -> a -> m a
-action .!~ fallback = pure . fromMaybe fallback =<< action
+(.!~) :: Monad m => m (Maybe a) -> a -> m a
+mVal .!~ fallback = pure . fromMaybe fallback =<< mVal
 
 withFlag :: String -> a -> a -> IO a
 withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
