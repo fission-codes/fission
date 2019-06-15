@@ -12,6 +12,7 @@ module Fission.Types
   ) where
 
 import RIO
+import RIO.Text (pack)
 
 import Control.Lens (makeLenses)
 import Data.Has
@@ -24,6 +25,17 @@ import qualified Fission.Platform.Heroku.Types as Heroku
 
 -- | Top-level application type
 type Fission = RIO Config
+
+data Environment
+  = Test
+  | Development
+  --  | Staging
+  | Production
+  deriving (Eq, Show, Read)
+
+instance Display Environment where
+  display     = displayShow
+  textDisplay = pack . show
 
 data Config = Config
   { _logFunc        :: !LogFunc

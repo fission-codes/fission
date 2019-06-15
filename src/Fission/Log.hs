@@ -17,6 +17,7 @@ import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8 as UTF8
 
 newtype MinLevel = MinLevel LogLevel
+  deriving (Eq, Show)
 
 instance FromEnv MinLevel where
   fromEnv = do

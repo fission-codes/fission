@@ -1,6 +1,5 @@
 module Fission.Environment
-  ( Environment (..)
-  , withFlag
+  ( withFlag
   , withEnv
   , getFlag
   , getEnv
@@ -9,21 +8,9 @@ module Fission.Environment
 
 import RIO
 import RIO.Char (toLower)
-import RIO.Text (pack)
 
 import System.Environment (lookupEnv)
 import System.Envy
-
-data Environment
-  = Test
-  | Development
-  --  | Staging
-  | Production
-  deriving (Eq, Show, Read)
-
-instance Display Environment where
-  display     = displayShow
-  textDisplay = pack . show
 
 getEnv :: FromEnv a => IO a
 getEnv = decodeEnv >>= \case
@@ -31,7 +18,7 @@ getEnv = decodeEnv >>= \case
   Right val -> return val
 
 (.!~) :: Monad m => m (Maybe a) -> a -> m a
-mVal .!~ fallback = pure . fromMaybe fallback =<< mVal
+mVal .!~ fallback = pure (fromMaybe fallback) <*> mVal
 
 withFlag :: String -> a -> a -> IO a
 withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
