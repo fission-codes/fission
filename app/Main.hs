@@ -44,7 +44,7 @@ main = withStdoutLogger $ \stdOut -> do
 
   runRIO Config { .. } do
     condMonitor
-    logInfo $ "Servant running at  " <> displayShow _host
+    logInfo $ "Servant running at " <> display port
     liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app =<< ask
 
 mkSettings :: ApacheLogger -> Port -> Settings
