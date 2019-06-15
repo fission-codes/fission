@@ -32,7 +32,7 @@ main = withStdoutLogger $ \stdOut -> do
   Just manifest <- decodeFileStrict "./addon-manifest.json"
   condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
   _minLogLevel  <- decode .!~ Log.MinLevel LevelDebug
-  _host         <- decode .!~ Web.Host "localhost:3000"
+  _host         <- decode .!~ Web.Host "localhost:1337"
   _ipfsPath     <- decode .!~ IPFS.Path "/usr/local/bin/ipfs"
   _dbPath       <- decode .!~ DB.Path "ipfs-api.sqlite"
   _dbPool       <- simply $ SQLite.connPool _dbPath
@@ -44,7 +44,7 @@ main = withStdoutLogger $ \stdOut -> do
 
   runRIO Config { .. } do
     condMonitor
-    logInfo $ "Servant running at  " <> display port
+    logInfo $ "Servant running at  " <> displayShow _host
     liftIO . runSettings (mkSettings stdOut port) . condDebug =<< Web.app =<< ask
 
 mkSettings :: ApacheLogger -> Port -> Settings
