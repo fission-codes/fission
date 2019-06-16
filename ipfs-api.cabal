@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0bf3530ad7a7a9d86516784cd457ec8edd3bf8837350ae6390866e44039bc70a
+-- hash: 346b2a640e148e1b75219d4b97cb5b9654f1d580bdeb527064f6211d37b9b247
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -16,7 +16,7 @@ maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
 license:        Apache-2.0
 license-file:   LICENSE
-tested-with:    GHC==8.6.5
+tested-with:    GHC==8.6.4
 build-type:     Simple
 extra-source-files:
     README.md
@@ -256,60 +256,6 @@ test-suite fission-docs
     , process
     , random-bytestring
     , regex-compat
-    , resource-pool
-    , rio
-    , rio-orphans
-    , scientific
-    , selda
-    , selda-sqlite
-    , servant
-    , servant-auth-server
-    , servant-client
-    , servant-multipart
-    , servant-server
-    , streaming-commons
-    , text
-    , time
-    , typed-process
-    , unliftio
-    , uuid
-    , uuid-types
-    , wai
-    , wai-extra
-    , wai-logger
-    , warp
-    , word8
-  default-language: Haskell2010
-
-test-suite fission-doctest
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  other-modules:
-      Paths_ipfs_api
-  hs-source-dirs:
-      test/doctest
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      Glob
-    , QuickCheck
-    , aeson
-    , aeson-casing
-    , base
-    , bytestring
-    , cryptonite
-    , data-default-class
-    , data-has
-    , doctest
-    , ekg-wai
-    , envy
-    , http-client
-    , http-client-tls
-    , http-media
-    , ipfs-api
-    , lens
-    , monad-logger
-    , random-bytestring
     , resource-pool
     , rio
     , rio-orphans

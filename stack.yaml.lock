@@ -41,7 +41,7 @@ packages:
     hackage: tasty-rerun-1.1.14
 snapshots:
 - completed:
-    size: 499461
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/13/25.yaml
-    sha256: aed98969628e20615e96b06083c933c7e3354ae56b08b75e607a26569225d6c0
-  original: lts-13.25
+    size: 495801
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/13/11.yaml
+    sha256: 835062158db2b3ebb8b9525d9662a02ebf9783e8f6a08a64684cd5546f847152
+  original: lts-13.11

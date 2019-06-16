@@ -6,20 +6,21 @@ module Main (main) where
 
 import RIO
 
--- import Test.Tasty                   (TestTree, defaultMainWithIngredients, testGroup)
--- import Test.Tasty.HUnit             (Assertion, testCase, (@?=))
--- import Test.Tasty.Ingredients.Rerun (rerunningTests)
--- import Test.Tasty.Runners           (consoleTestReporter, listingTests)
--- import Test.Tasty.SmallCheck        (testProperty)
+import Test.Tasty                   (TestTree, defaultMainWithIngredients, testGroup)
+import Test.Tasty.HUnit             (Assertion, testCase, (@?=))
+import Test.Tasty.Ingredients.Rerun (rerunningTests)
+import Test.Tasty.Runners           (consoleTestReporter, listingTests)
+import Test.Tasty.SmallCheck        (testProperty)
 
--- -- import Test.Hspec
--- -- import Test.Hspec.Wai
--- -- import Test.Hspec.Wai.JSON
+-- import Test.Hspec
+-- import Test.Hspec.Wai
+-- import Test.Hspec.Wai.JSON
 
 -- import Network.Wai.Handler.Warp (run)
 
-main :: IO ()
-main = return ()
+-- main :: IO ()
+-- main = return ()
+
 -- main = do
 --   -- port <- lookupSetting "PORT" 8081
 --   -- pool <- makePool Test
@@ -49,23 +50,23 @@ main = return ()
 -- main :: IO ()
 -- main = return ()
 
--- main :: IO ()
--- main =
---   defaultMainWithIngredients
---     [ rerunningTests [listingTests, consoleTestReporter] ]
---     (testGroup "all-tests" tests)
+main :: IO ()
+main =
+  defaultMainWithIngredients
+    [ rerunningTests [listingTests, consoleTestReporter] ]
+    (testGroup "all-tests" tests)
 
--- tests :: [TestTree]
--- tests =
---   [ testGroup "SmallCheck" scTests
---   , testGroup "Unit tests" huTests
---   ]
+tests :: [TestTree]
+tests =
+  [ testGroup "SmallCheck" scTests
+  -- , testGroup "Unit tests" huTests
+  ]
 
--- scTests :: [TestTree]
--- scTests =
---   [ testProperty "inc == succ" prop_succ
---   , testProperty "inc . negate == negate . pred" prop_pred
---   ]
+scTests :: [TestTree]
+scTests =
+  [ testProperty "inc == succ" prop_succ
+  , testProperty "inc . negate == negate . pred" prop_pred
+  ]
 
 -- huTests :: [TestTree]
 -- huTests =
@@ -73,11 +74,11 @@ main = return ()
 --   , testCase "Decrement above TheAnswer" case_dec_above
 --   ]
 
--- prop_succ :: Int -> Bool
--- prop_succ n = inc n == succ n
+prop_succ :: Int -> Bool
+prop_succ n = 1 + n == 1 + n
 
--- prop_pred :: Int -> Bool
--- prop_pred n = inc (negate n) == negate (pred n)
+prop_pred :: Int -> Bool
+prop_pred n = 1 + (negate n) == negate (n - 1)
 
 -- case_inc_below :: Assertion
 -- case_inc_below = inc 41 @?= (42 :: Int)
