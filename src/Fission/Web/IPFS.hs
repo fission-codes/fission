@@ -4,6 +4,7 @@ module Fission.Web.IPFS
   ) where
 
 import RIO
+import RIO.Process (HasProcessContext)
 
 import Servant
 import Data.Has
@@ -16,5 +17,8 @@ import qualified Fission.Web.IPFS.Upload as Upload
 type API = {- Root -} Upload.API
       :<|> "peers" :> Peer.API
 
-server :: (HasLogFunc cfg, Has IPFS.Path cfg) => RIOServer cfg API
+server :: HasLogFunc cfg
+       => HasProcessContext cfg
+       => Has IPFS.Path cfg
+       => RIOServer cfg API
 server = Upload.add :<|> Peer.index

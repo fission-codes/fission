@@ -7,6 +7,7 @@ module Fission.Web
   ) where
 
 import RIO
+import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Database.Selda
@@ -38,6 +39,7 @@ app :: Has IPFS.Path       cfg
     => Has Web.Host        cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
+    => HasProcessContext   cfg
     => HasLogFunc          cfg
     => MonadSelda     (RIO cfg)
     =>     cfg
@@ -63,11 +65,12 @@ auth = do
         :. hku
         :. EmptyContext
 
-server :: Has IPFS.Path   cfg
-       => Has Web.Host    cfg
-       => HasLogFunc      cfg
-       => MonadSelda (RIO cfg)
-       => RIOServer       cfg API
+server :: Has IPFS.Path     cfg
+       => Has Web.Host      cfg
+       => HasProcessContext cfg
+       => HasLogFunc        cfg
+       => MonadSelda   (RIO cfg)
+       => RIOServer         cfg API
 server = const IPFS.server
     :<|> const Heroku.create
     :<|> Ping.server

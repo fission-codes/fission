@@ -4,6 +4,7 @@ module Fission.Web.IPFS.Upload
   ) where
 
 import RIO
+import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Servant
@@ -15,5 +16,8 @@ import           Fission.Web.Server
 
 type API = Simple.API :<|> Multipart.API
 
-add :: (Has IPFS.Path cfg, HasLogFunc cfg) => RIOServer cfg API
+add :: Has IPFS.Path cfg
+    => HasProcessContext cfg
+    => HasLogFunc cfg
+    => RIOServer cfg API
 add = Simple.add :<|> Multipart.add
