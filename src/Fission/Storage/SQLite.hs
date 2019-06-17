@@ -1,5 +1,3 @@
-{-# HLINT ignore #-}
-
 module Fission.Storage.SQLite
   ( setupTable
   , connPool

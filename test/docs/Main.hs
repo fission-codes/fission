@@ -1,22 +1,21 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Main (main) where
 
 import           RIO
 import qualified RIO.ByteString as BS
 import qualified RIO.Partial    as Part
+import qualified RIO.Process    as Proc
 
 import Data.List   (genericLength)
 import Data.Maybe  (catMaybes)
 import System.Exit (exitFailure, exitSuccess)
 
 -- TODO move to typed-process
-import System.Process (readProcess)
-import Text.Regex     (matchRegex, mkRegex)
+-- import System.Process (readProcess)
+import Text.Regex (matchRegex, mkRegex)
 
 main :: IO ()
 main = do
-    output <- readProcess "stack" ["haddock"] ""
+    output <- readProcessStdout_ $ proc "stack" ["haddock"]
 
     if average (match output) >= expected
       then exitSuccess

@@ -122,18 +122,21 @@ executables:
       - -O2
 
 tests:
-  # fission-doctest:
-  #   main: Main.hs
-  #   source-dirs: test/doctest
-  #   ghc-options:
-  #     - -threaded
-  #     - -rtsopts
-  #     - -with-rtsopts=-N
-  #   dependencies:
-  #     - doctest
-  #     - Glob
-  #     - QuickCheck
-  #     - ipfs-api
+  fission-doctest:
+    main: Main.hs
+    source-dirs: test/doctest
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - directory
+      - directory-tree
+      - doctest
+      - Glob
+      - lens-aeson
+      - QuickCheck
+      - yaml
 
   fission-test:
     main: Main.hs
@@ -159,43 +162,43 @@ tests:
       - tasty-rerun
       - transformers
 
-  fission-docs:
-    main: Main.hs
-    source-dirs: test/docs
-    dependencies:
-      - doctest
-      - ipfs-api
-      - process
-      - regex-compat
+  # fission-docs:
+  #   main: Main.hs
+  #   source-dirs: test/docs
+  #   dependencies:
+  #     - doctest
+  #     - ipfs-api
+  #     - process
+  #     - regex-compat
 
-  fission-coverage:
-    main: Main.hs
-    source-dirs: test/coverage
-    ghc-options:
-      - -fhpc
-    dependencies:
-      - base
-      - ipfs-api
-      - process
-      - regex-compat
+  # fission-coverage:
+  #   main: Main.hs
+  #   source-dirs: test/coverage
+  #   ghc-options:
+  #     - -fhpc
+  #   dependencies:
+  #     - base
+  #     - ipfs-api
+  #     - process
+  #     - regex-compat
 
-  fission-lint:
-    main: Main.hs
-    source-dirs: test/lint
-    dependencies:
-      - base
-      - hlint
-      - rio
+  # fission-lint:
+  #   main: Main.hs
+  #   source-dirs: test/lint
+  #   dependencies:
+  #     - base
+  #     - hlint
+  #     - rio
 
-benchmarks:
-  fission-benchmark:
-    main: Main.hs
-    source-dirs: benchmark
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-      - -O2
-    dependencies:
-      - criterion
-      - ipfs-api
+# benchmarks:
+#   fission-benchmark:
+#     main: Main.hs
+#     source-dirs: benchmark
+#     ghc-options:
+#       - -threaded
+#       - -rtsopts
+#       - -with-rtsopts=-N
+#       - -O2
+#     dependencies:
+#       - criterion
+#       - ipfs-api

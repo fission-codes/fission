@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
-{-# HLINT ignore #-}
 
 module Fission.Storage.SQLite.Internal (traceAll) where
 
