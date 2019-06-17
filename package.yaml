@@ -93,7 +93,6 @@ dependencies:
   - streaming-commons
   - text
   - time
-  - typed-process
   - unliftio
   - uuid
   - uuid-types
