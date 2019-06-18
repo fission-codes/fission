@@ -8,7 +8,7 @@ jobs:
       - restore_cache:
           name: Restore Cached Dependencies
           keys:
-            - fission-ipfs-api-{{ checksum "package.yaml" }}
+            - fission-ipfs-api-{{ checksum "package.yaml" }}-2
       - run:
           name: Resolve/Update Dependencies
           command: stack setup
