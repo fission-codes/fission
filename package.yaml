@@ -161,22 +161,22 @@ tests:
       - tasty-rerun
       - transformers
 
-  fission-docs:
-    main: Main.hs
-    source-dirs: test/docs
-    dependencies:
-      - doctest
-      - ipfs-api
-      - process
-      - regex-compat
-
-  # fission-coverage:
+  # fission-coverage-code:
   #   main: Main.hs
-  #   source-dirs: test/coverage
+  #   source-dirs: test/code-coverage
   #   ghc-options:
   #     - -fhpc
   #   dependencies:
   #     - base
+  #     - ipfs-api
+  #     - process
+  #     - regex-compat
+
+  # fission-coverage-docs:
+  #   main: Main.hs
+  #   source-dirs: test/doc-coverage
+  #   dependencies:
+  #     - doctest
   #     - ipfs-api
   #     - process
   #     - regex-compat
