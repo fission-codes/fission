@@ -1,11 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Main (main) where
 
 import RIO
 
 import Language.Haskell.HLint (hlint)
-import System.Exit            (exitFailure, exitSuccess)
+import System.Exit            (exitSuccess)
 
 arguments :: [String]
 arguments =
@@ -16,8 +14,10 @@ arguments =
     ]
 
 main :: IO ()
-main = do
-  hints <- hlint arguments
-  if null hints
-    then exitSuccess
-    else exitFailure
+main = hlint arguments >> exitSuccess
+
+-- main = do
+  -- hints <- hlint arguments
+  -- if null hints
+  --   then exitSuccess
+  --   else exitFailure

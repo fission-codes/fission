@@ -4,6 +4,7 @@ module Fission.Web.IPFS.Upload.Simple
   ) where
 
 import RIO
+import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Servant
@@ -16,5 +17,8 @@ import qualified Fission.Storage.IPFS as Storage.IPFS
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.Address
 
-add :: Has IPFS.Path cfg => RIOServer cfg API
+add :: Has IPFS.Path cfg
+    => HasProcessContext cfg
+    => HasLogFunc cfg
+    => RIOServer cfg API
 add = Storage.IPFS.add . File.unserialize

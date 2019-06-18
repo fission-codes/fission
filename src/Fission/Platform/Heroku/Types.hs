@@ -26,7 +26,6 @@ data Region
   | Sydney
   | Tokyo
   | Virginia
-  -- | Other Text -- ^ Being very lenient for now
   deriving ( Show
            , Read
            , Eq

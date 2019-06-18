@@ -1,6 +1,7 @@
 module Fission.Types
   ( Fission
   , Config (..)
+  , processCtx
   , logFunc
   , minLogLevel
   , ipfsPath
@@ -14,6 +15,7 @@ module Fission.Types
 import RIO
 import RIO.Text (pack)
 import RIO.List (intercalate)
+import RIO.Process (ProcessContext, HasProcessContext (..))
 
 import Control.Lens (makeLenses)
 import Data.Has
@@ -39,7 +41,8 @@ instance Display Environment where
   textDisplay = pack . show
 
 data Config = Config
-  { _logFunc        :: !LogFunc
+  { _processCtx     :: !ProcessContext
+  , _logFunc        :: !LogFunc
   , _minLogLevel    :: !Log.MinLevel
   , _ipfsPath       :: !IPFS.Path
   , _host           :: !Host
@@ -54,6 +57,7 @@ makeLenses ''Config
 instance Show Config where
   show Config {..} = intercalate "\n"
     [ "Config {"
+    , "  _processCtx     = **SOME PROC CONTEXT**"
     , "  _logFunc        = **SOME LOG FUNCTION**"
     , "  _minLogLevel    = " <> show _minLogLevel
     , "  _ipfsPath       = " <> show _ipfsPath
@@ -64,6 +68,12 @@ instance Show Config where
     , "  _herokuPassword = " <> show _herokuPassword
     , "}"
     ]
+
+instance HasProcessContext Config where
+  processContextL = processCtx
+
+instance HasLogFunc Config where
+  logFuncL = logFunc
 
 instance Has IPFS.Path Config where
   hasLens = ipfsPath
@@ -85,6 +95,3 @@ instance Has Heroku.Password Config where
 
 instance Has Host Config where
   hasLens = host
-
-instance HasLogFunc Config where
-  logFuncL = logFunc

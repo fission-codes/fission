@@ -1,6 +1,7 @@
 module Main (main) where
 
 import RIO
+import RIO.Process (mkDefaultProcessContext)
 
 import Data.Aeson (decodeFileStrict)
 import System.Envy
@@ -30,6 +31,7 @@ main :: IO ()
 main = withStdoutLogger $ \stdOut -> do
   Web.Port port <- getEnv
   Just manifest <- decodeFileStrict "./addon-manifest.json"
+  _processCtx   <- mkDefaultProcessContext
   condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
   _minLogLevel  <- decode .!~ Log.MinLevel LevelDebug
   _host         <- decode .!~ Web.Host "localhost:1337"

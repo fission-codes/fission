@@ -4,6 +4,7 @@ module Fission.Web.IPFS.Peer
   ) where
 
 import RIO
+import RIO.Process (HasProcessContext)
 
 import Servant
 import Data.Has
@@ -16,5 +17,8 @@ import qualified Fission.IPFS.Peer  as Peer
 
 type API = Get '[JSON] [IPFS.Peer]
 
-index :: Has IPFS.Path cfg => RIOServer cfg API
+index :: Has IPFS.Path     cfg
+      => HasProcessContext cfg
+      => HasLogFunc        cfg
+      => RIOServer         cfg API
 index = Peer.all >>= ensureUnicode

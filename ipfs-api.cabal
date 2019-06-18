@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eccb645578b9f715c5a0844ef5c6567143b3781b934a53bf99a524d4b8b432ba
+-- hash: 4836652925ebf901f91278df0a358164f4c5a27f3e5f08adc237b1fe1049fe48
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -16,7 +16,7 @@ maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
 license:        Apache-2.0
 license-file:   LICENSE
-tested-with:    GHC==8.6.5
+tested-with:    GHC==8.6.4
 build-type:     Simple
 extra-source-files:
     README.md
@@ -93,7 +93,6 @@ library
     , data-has
     , ekg-wai
     , envy
-    , etc
     , http-client
     , http-client-tls
     , http-media
@@ -114,7 +113,6 @@ library
     , streaming-commons
     , text
     , time
-    , typed-process
     , unliftio
     , uuid
     , uuid-types
@@ -143,7 +141,6 @@ executable server
     , data-has
     , ekg-wai
     , envy
-    , etc
     , http-client
     , http-client-tls
     , http-media
@@ -165,116 +162,6 @@ executable server
     , streaming-commons
     , text
     , time
-    , typed-process
-    , unliftio
-    , uuid
-    , uuid-types
-    , wai
-    , wai-extra
-    , wai-logger
-    , warp
-    , word8
-  default-language: Haskell2010
-
-test-suite fission-coverage
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  other-modules:
-      Paths_ipfs_api
-  hs-source-dirs:
-      test/coverage
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc
-  build-depends:
-      aeson
-    , aeson-casing
-    , base
-    , bytestring
-    , cryptonite
-    , data-default-class
-    , data-has
-    , ekg-wai
-    , envy
-    , etc
-    , http-client
-    , http-client-tls
-    , http-media
-    , ipfs-api
-    , lens
-    , monad-logger
-    , process
-    , random-bytestring
-    , regex-compat
-    , resource-pool
-    , rio
-    , rio-orphans
-    , scientific
-    , selda
-    , selda-sqlite
-    , servant
-    , servant-auth-server
-    , servant-client
-    , servant-multipart
-    , servant-server
-    , streaming-commons
-    , text
-    , time
-    , typed-process
-    , unliftio
-    , uuid
-    , uuid-types
-    , wai
-    , wai-extra
-    , wai-logger
-    , warp
-    , word8
-  default-language: Haskell2010
-
-test-suite fission-docs
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  other-modules:
-      Paths_ipfs_api
-  hs-source-dirs:
-      test/docs
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
-  build-depends:
-      aeson
-    , aeson-casing
-    , base
-    , bytestring
-    , cryptonite
-    , data-default-class
-    , data-has
-    , doctest
-    , ekg-wai
-    , envy
-    , etc
-    , http-client
-    , http-client-tls
-    , http-media
-    , ipfs-api
-    , lens
-    , monad-logger
-    , process
-    , random-bytestring
-    , regex-compat
-    , resource-pool
-    , rio
-    , rio-orphans
-    , scientific
-    , selda
-    , selda-sqlite
-    , servant
-    , servant-auth-server
-    , servant-client
-    , servant-multipart
-    , servant-server
-    , streaming-commons
-    , text
-    , time
-    , typed-process
     , unliftio
     , uuid
     , uuid-types
@@ -304,15 +191,16 @@ test-suite fission-doctest
     , cryptonite
     , data-default-class
     , data-has
+    , directory
+    , directory-tree
     , doctest
     , ekg-wai
     , envy
-    , etc
     , http-client
     , http-client-tls
     , http-media
-    , ipfs-api
     , lens
+    , lens-aeson
     , monad-logger
     , random-bytestring
     , resource-pool
@@ -329,7 +217,6 @@ test-suite fission-doctest
     , streaming-commons
     , text
     , time
-    , typed-process
     , unliftio
     , uuid
     , uuid-types
@@ -338,6 +225,7 @@ test-suite fission-doctest
     , wai-logger
     , warp
     , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-lint
@@ -359,7 +247,6 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
-    , etc
     , hlint
     , http-client
     , http-client-tls
@@ -381,7 +268,6 @@ test-suite fission-lint
     , streaming-commons
     , text
     , time
-    , typed-process
     , unliftio
     , uuid
     , uuid-types
@@ -462,7 +348,6 @@ test-suite fission-test
     , data-has
     , ekg-wai
     , envy
-    , etc
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -493,7 +378,6 @@ test-suite fission-test
     , text
     , time
     , transformers
-    , typed-process
     , unliftio
     , uuid
     , uuid-types
@@ -524,7 +408,6 @@ benchmark fission-benchmark
     , data-has
     , ekg-wai
     , envy
-    , etc
     , http-client
     , http-client-tls
     , http-media
@@ -546,7 +429,6 @@ benchmark fission-benchmark
     , streaming-commons
     , text
     , time
-    , typed-process
     , unliftio
     , uuid
     , uuid-types

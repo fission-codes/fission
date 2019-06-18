@@ -39,7 +39,7 @@ create :: HasLogFunc      cfg
        => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
-create (Request {_uuid, _region}) = do
+create Request {_uuid, _region} = do
   Web.Host url <- fromConfig
   secret       <- liftIO $ Random.text 200
   userID       <- User.createFresh _uuid _region secret

@@ -41,6 +41,7 @@ connPool (DB.Path {getPath = path}) = do
 
   return $ DB.Pool rawPool
 
+-- HLint can't handle BlockArguments _yet_
 makeTable :: DB.Path -> Table t -> Table.Name t -> IO ()
 makeTable dbPath' tbl tblName = runRIO logger do
   pool <- connPool dbPath'

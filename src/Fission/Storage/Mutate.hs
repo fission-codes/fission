@@ -15,7 +15,7 @@ import Database.Selda
 class DBInsertable r where
   insertX :: MonadSelda m
           => UTCTime
-          -> [(UTCTime -> UTCTime -> r)]
+          -> [UTCTime -> UTCTime -> r]
           -> m (ID r)
 
 insertStamp :: UTCTime -> (UTCTime -> UTCTime -> r) -> r

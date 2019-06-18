@@ -10,9 +10,9 @@ import Data.Word8
 import Fission.Internal.Bool (anyX)
 
 isURL :: Word8 -> Bool
-isURL w = anyX (isAlpha : isDigit : isSpecial) w
+isURL = anyX (isAlpha : isDigit : isSpecial)
   where
-    isSpecial = ((==) <$> specials)
+    isSpecial = (==) <$> specials
 
 specials :: [Word8]
 specials =

@@ -9,20 +9,19 @@ import qualified RIO.ByteString as BS
 import qualified Data.ByteString.Random as BS
 import           Data.Word8
 
+import Fission.Internal.Bool (anyX)
+
 text :: Natural -> IO Text
 text amount = decodeUtf8Lenient <$> byteString amount
 
 byteString :: Natural -> IO ByteString
-byteString amount = return . BS.filter isURL =<< BS.random amount
+byteString amount = BS.filter isURL <$> BS.random amount
 
 isURL :: Word8 -> Bool
 isURL w = isAsciiUpper w
         || isAsciiLower w
         || isDigit w
-        || any' urlSpecials w
-
-any' :: [a -> Bool] -> a -> Bool
-any' preds value = any (== True) (preds <*> [value])
+        || anyX urlSpecials w
 
 urlSpecials :: [Word8 -> Bool]
 urlSpecials =

@@ -7,7 +7,7 @@ copyright: © 2019 Brooklyn Zelenka
 license: Apache-2.0
 license-file: LICENSE
 github: fission-suite/ipfs-api
-tested-with: GHC==8.6.5
+tested-with: GHC==8.6.4
 extra-source-files:
   - README.md
   - CHANGELOG.md
@@ -73,7 +73,6 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
-  - etc
   - http-client
   - http-client-tls
   - http-media
@@ -94,7 +93,6 @@ dependencies:
   - streaming-commons
   - text
   - time
-  - typed-process
   - unliftio
   - uuid
   - uuid-types
@@ -131,10 +129,13 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
+      - directory
+      - directory-tree
       - doctest
       - Glob
+      - lens-aeson
       - QuickCheck
-      - ipfs-api
+      - yaml
 
   fission-test:
     main: Main.hs
@@ -160,25 +161,25 @@ tests:
       - tasty-rerun
       - transformers
 
-  fission-docs:
-    main: Main.hs
-    source-dirs: test/docs
-    dependencies:
-      - doctest
-      - ipfs-api
-      - process
-      - regex-compat
+  # fission-coverage-code:
+  #   main: Main.hs
+  #   source-dirs: test/code-coverage
+  #   ghc-options:
+  #     - -fhpc
+  #   dependencies:
+  #     - base
+  #     - ipfs-api
+  #     - process
+  #     - regex-compat
 
-  fission-coverage:
-    main: Main.hs
-    source-dirs: test/coverage
-    ghc-options:
-      - -fhpc
-    dependencies:
-      - base
-      - ipfs-api
-      - process
-      - regex-compat
+  # fission-coverage-docs:
+  #   main: Main.hs
+  #   source-dirs: test/doc-coverage
+  #   dependencies:
+  #     - doctest
+  #     - ipfs-api
+  #     - process
+  #     - regex-compat
 
   fission-lint:
     main: Main.hs

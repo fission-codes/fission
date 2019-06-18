@@ -1,28 +1,25 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 module Main (main) where
 
 import           RIO
-import qualified RIO.ByteString as BS
-import qualified RIO.Partial    as Part
+import qualified RIO.Partial as Part
+import           RIO.Process
 
 import Data.List   (genericLength)
 import Data.Maybe  (catMaybes)
 import System.Exit (exitFailure, exitSuccess)
-
--- TODO move to typed-process
-import System.Process (readProcess)
-import Text.Regex     (matchRegex, mkRegex)
+import Text.Regex  (matchRegex, mkRegex)
 
 main :: IO ()
-main = do
-    output <- readProcess "stack" ["haddock"] ""
+main = runSimpleApp do
+  output <- proc "hpc" ["report", "dist/hpc/tix/hspec/hspec.tix"] readProcessStdout_
 
-    if average (match output) >= expected
-      then exitSuccess
-      else do
-        traceDisplayIO $ displayShow output
-        exitFailure
+  if average (match $ show output) >= expected
+    then liftIO exitSuccess
+    else do
+      logWarn $ displayShow output
+      liftIO exitFailure
 
 match :: String -> [Int]
 match = fmap Part.read . concat . catMaybes . fmap (matchRegex pattern) . lines

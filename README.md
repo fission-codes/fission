@@ -3,6 +3,9 @@
 # FISSION IPFS Web API
 
 [![Build Status](https://travis-ci.org/fission-suite/ipfs-api.svg?branch=master)](https://travis-ci.org/fission-suite/ipfs-api)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/fission-suite/blob/master/LICENSE)
+[![Built by FISSION](https://img.shields.io/badge/⌘-Built_by_FISSION-purple.svg)](https://fission.codes)
+![Discord](https://img.shields.io/discord/478735028319158273.svg)
 
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
@@ -47,7 +50,7 @@ open http://localhost:9630
 
 # Load Test
 
-Very simple local load test
+A very simple local load test:
 
 ```shell
 # HTTP1.1

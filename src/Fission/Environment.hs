@@ -17,6 +17,13 @@ getEnv = decodeEnv >>= \case
   Left msg  -> error msg
   Right val -> return val
 
+-- |
+--
+-- >>> Right (Just 9) .!~ 42
+-- Right 9
+--
+-- >>> Right Nothing .!~ 42
+-- Right 42
 (.!~) :: Monad m => m (Maybe a) -> a -> m a
 mVal .!~ fallback = pure (fromMaybe fallback) <*> mVal
 
