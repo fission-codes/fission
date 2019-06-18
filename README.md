@@ -4,7 +4,8 @@
 
 [![Build Status](https://travis-ci.org/fission-suite/ipfs-api.svg?branch=master)](https://travis-ci.org/fission-suite/ipfs-api)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/fission-suite/blob/master/LICENSE)
-[![Built with ❤ by FISSION](https://img.shields.io/badge/built%20with%20%F0%9F%92%96%20by-SPADE%20Co-purple.svg)](https://fission.codes)
+[![Built by FISSION](https://img.shields.io/badge/⌘-Built_by_FISSION-purple.svg)](https://fission.codes)
+![Discord](https://img.shields.io/discord/478735028319158273.svg)
 
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
