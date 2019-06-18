@@ -11,12 +11,12 @@ module Fission.Security
 
 import RIO
 
-import Crypto.Hash
-import Data.Aeson
-
+import           Crypto.Hash
+import           Data.Aeson
 import qualified Data.ByteString.Random as BS
+import           Data.Swagger (ToSchema)
+
 import qualified Fission.Internal.UTF8  as UTF8
-import Data.Swagger (ToSchema)
 
 type SecretDigest = Text
 

@@ -11,6 +11,7 @@ import qualified RIO.ByteString.Lazy as Lazy
 
 import Data.Aeson
 import Data.Aeson.TH
+import Data.Swagger (ToSchema)
 
 import qualified Data.ByteString.Builder as Builder
 import           Servant
@@ -21,16 +22,19 @@ import qualified Fission.Internal.UTF8 as UTF8
 type Opt = String
 
 newtype Address = Address { unaddress :: Lazy.ByteString }
-  deriving         Show
-  deriving newtype IsString
+  deriving          (Show, Generic)
+  deriving anyclass ToSchema
+  deriving newtype  IsString
 
 newtype Path = Path { getPath :: FilePath }
-  deriving         Show
-  deriving newtype IsString
+  deriving         (Show, Generic)
+  deriving anyclass ToSchema
+  deriving newtype  IsString
 
 newtype Peer = Peer { peer :: Text }
-  deriving         Show
-  deriving newtype IsString
+  deriving         (Show, Generic)
+  deriving anyclass ToSchema
+  deriving newtype  IsString
 
 $(deriveJSON defaultOptions ''Peer)
 

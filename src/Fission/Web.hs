@@ -15,7 +15,7 @@ import Servant
 
 import Data.Swagger
 import Servant.Swagger
-import Servant.Auth.Swagger ()
+import Servant.Auth.Swagger
 
 import           Fission
 import           Fission.User
@@ -41,8 +41,7 @@ type WebAPI = "ipfs"
           :<|> "ping"
                 :> Ping.API
 
-type SwaggerAPI = "swagger.json"
-                  :> Get '[JSON] Swagger
+type SwaggerAPI = "swagger.json" :> Get '[JSON] Swagger
 
 app :: Has IPFS.Path       cfg
     => Has Web.Host        cfg
@@ -55,8 +54,8 @@ app :: Has IPFS.Path       cfg
     -> RIO cfg Application
 app cfg = do
   auth' <- auth
-  return . serveWithContext webApi auth'
-         $ Auth.server webApi cfg server
+  return . serveWithContext api auth'
+         $ Auth.server api cfg server
 
 auth :: Has Heroku.ID       cfg
      => Has Heroku.Password cfg
@@ -79,14 +78,14 @@ server :: Has IPFS.Path     cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
-       => RIOServer         cfg WebAPI
+       => RIOServer         cfg API
 server = const IPFS.server
     :<|> const Heroku.create
     :<|> Ping.server
-    -- :<|> swagger
+    :<|> pure swagger
 
--- swagger :: RIO cfg Swagger
--- swagger = return $ toSwagger webApi
+swagger :: Swagger
+swagger = toSwagger webApi
 
 webApi :: Proxy WebAPI
 webApi = Proxy
