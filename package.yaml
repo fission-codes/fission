@@ -87,10 +87,13 @@ dependencies:
   - selda-sqlite
   - servant
   - servant-auth-server
+  - servant-auth-swagger
   - servant-client
   - servant-server
   - servant-multipart
+  - servant-swagger
   - streaming-commons
+  - swagger2
   - text
   - time
   - unliftio

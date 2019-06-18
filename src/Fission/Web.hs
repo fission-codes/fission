@@ -13,6 +13,10 @@ import Data.Has
 import Database.Selda
 import Servant
 
+import Data.Swagger
+import Servant.Swagger
+import Servant.Auth.Swagger ()
+
 import           Fission
 import           Fission.User
 import           Fission.Web.Server
@@ -26,14 +30,19 @@ import qualified Fission.Web.Types  as Web
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
 
-type API = "ipfs"
-             :> Servant.BasicAuth "registered users" User
-             :> IPFS.API
-      :<|> "heroku"
-             :> Servant.BasicAuth "heroku add-on api" ByteString
-             :> Heroku.API
-      :<|> "ping"
-             :> Ping.API
+type API = WebAPI :<|> SwaggerAPI
+
+type WebAPI = "ipfs"
+                :> Servant.BasicAuth "registered users" User
+                :> IPFS.API
+          :<|> "heroku"
+                :> Servant.BasicAuth "heroku add-on api" ByteString
+                :> Heroku.API
+          :<|> "ping"
+                :> Ping.API
+
+type SwaggerAPI = "swagger.json"
+                  :> Get '[JSON] Swagger
 
 app :: Has IPFS.Path       cfg
     => Has Web.Host        cfg
@@ -46,8 +55,8 @@ app :: Has IPFS.Path       cfg
     -> RIO cfg Application
 app cfg = do
   auth' <- auth
-  return . serveWithContext api auth'
-         $ Auth.server api cfg server
+  return . serveWithContext webApi auth'
+         $ Auth.server webApi cfg server
 
 auth :: Has Heroku.ID       cfg
      => Has Heroku.Password cfg
@@ -70,10 +79,17 @@ server :: Has IPFS.Path     cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
-       => RIOServer         cfg API
+       => RIOServer         cfg WebAPI
 server = const IPFS.server
     :<|> const Heroku.create
     :<|> Ping.server
+    -- :<|> swagger
+
+-- swagger :: RIO cfg Swagger
+-- swagger = return $ toSwagger webApi
+
+webApi :: Proxy WebAPI
+webApi = Proxy
 
 api :: Proxy API
 api = Proxy

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4836652925ebf901f91278df0a358164f4c5a27f3e5f08adc237b1fe1049fe48
+-- hash: 6d2fe902da77c6e22cab52cd478f1b8e4a3314672f56c591f15c39a3a60a1cd0
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -75,6 +75,7 @@ library
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
       Fission.Web.Server
+      Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
   other-modules:
@@ -107,10 +108,13 @@ library
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -156,10 +160,13 @@ executable server
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -211,10 +218,13 @@ test-suite fission-doctest
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -262,10 +272,13 @@ test-suite fission-lint
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -329,6 +342,7 @@ test-suite fission-test
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
       Fission.Web.Server
+      Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
       Paths_ipfs_api
@@ -366,10 +380,13 @@ test-suite fission-test
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , tasty
     , tasty-hspec
     , tasty-hunit
@@ -423,10 +440,13 @@ benchmark fission-benchmark
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio

@@ -11,6 +11,10 @@ import Data.Has
 import Database.Selda
 import Servant
 
+import Data.Swagger
+import Servant.Swagger
+import Servant.Auth.Swagger ()
+
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
 import           Fission.Web.Server
 
@@ -63,3 +67,7 @@ create Request {_uuid, _region} = do
     , _config  = userConfig
     , _message = "Successfully provisioned Interplanetary FISSION!"
     }
+
+
+swagger :: RIO cfg Swagger
+swagger = return $ toSwagger (Proxy :: Proxy API)
