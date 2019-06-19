@@ -32,18 +32,18 @@ instance ToSchema Address where
             $ mempty & type_ .~ SwaggerString
 
 newtype Path = Path { getPath :: FilePath }
-  deriving        ( Show
-                  , Generic
-                  )
-  deriving anyclass ToSchema
-  deriving newtype  IsString
+  deriving          ( Show
+                    , Generic
+                    )
+  deriving anyclass ( ToSchema )
+  deriving newtype  ( IsString )
 
 newtype Peer = Peer { peer :: Text }
-  deriving        ( Show
-                  , Generic
-                  )
-  deriving anyclass ToSchema
-  deriving newtype  IsString
+  deriving          ( Show
+                    , Generic
+                    )
+  deriving anyclass ( ToSchema )
+  deriving newtype  ( IsString )
 
 $(deriveJSON defaultOptions ''Peer)
 
