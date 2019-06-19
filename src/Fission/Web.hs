@@ -12,6 +12,7 @@ import RIO.Process (HasProcessContext)
 import Data.Has
 import Database.Selda
 import Servant
+import Servant.Swagger.UI
 
 import           Fission
 import           Fission.User

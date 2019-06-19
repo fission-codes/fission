@@ -92,6 +92,7 @@ dependencies:
   - servant-server
   - servant-multipart
   - servant-swagger
+  - servant-swagger-ui
   - streaming-commons
   - swagger2
   - text

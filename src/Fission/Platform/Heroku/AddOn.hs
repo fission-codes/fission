@@ -17,7 +17,7 @@ module Fission.Platform.Heroku.AddOn
   , addOns
   ) where
 
-import RIO hiding (id)
+import RIO
 
 import Control.Lens (makeLenses)
 import Data.UUID
