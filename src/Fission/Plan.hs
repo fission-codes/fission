@@ -5,12 +5,17 @@ import RIO.Text (toLower)
 
 import Control.Lens (makeLenses)
 import Data.Aeson
+import Data.Swagger (ToSchema)
 
 data Tier
   = Test
   | Free
   --  | Paid
-  deriving (Show, Eq, Generic)
+  deriving ( Eq
+           , Show
+           , Generic
+           , ToSchema
+           )
 
 makeLenses ''Tier
 

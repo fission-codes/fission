@@ -21,6 +21,8 @@ import Data.UUID
 
 import Database.Selda
 
+import Data.Swagger (ToSchema)
+
 import           Fission.Internal.JSON
 import qualified Fission.Plan          as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
@@ -34,7 +36,11 @@ data Request = Request
   , _plan        :: Plan.Tier     -- ^ Name of the plan to provision (e.g. `basic`).
   , _region      :: Heroku.Region -- ^ Physical hosting region of the requesting client.
   , _uuid        :: UUID          -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
-  } deriving (Show, Eq)
+  } deriving ( Eq
+             , Show
+             , Generic
+             , ToSchema
+             )
 
 makeLenses ''Request
 $(deriveJSON lens_snake_case ''Request)
@@ -68,7 +74,11 @@ data Provision = Provision
   { _id      :: ID User
   , _config  :: Heroku.UserConfig
   , _message :: Text
-  } deriving (Show, Eq)
+  } deriving ( Eq
+             , Show
+             , Generic
+             , ToSchema
+             )
 
 makeLenses ''Provision
 $(deriveJSON lens_snake_case ''Provision)

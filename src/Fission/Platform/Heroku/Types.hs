@@ -8,6 +8,7 @@ import RIO
 
 import Database.Selda (SqlType)
 import Data.Aeson
+import Data.Swagger (ToSchema)
 
 newtype ID = ID { getID :: ByteString }
   deriving         (Eq, Show)
@@ -30,8 +31,10 @@ data Region
            , Read
            , Eq
            , Enum
+           , Generic
            , Bounded
            , SqlType
+           , ToSchema
            )
 
 instance ToJSON Region where

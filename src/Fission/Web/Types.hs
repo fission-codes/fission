@@ -5,7 +5,7 @@ module Fission.Web.Types
 
 import RIO
 
-import qualified Network.Wai.Handler.Warp as Warp (Port)
+import qualified Network.Wai.Handler.Warp as Warp
 import           System.Envy
 
 newtype Host = Host { getHost :: Text }

@@ -11,17 +11,24 @@ module Fission.Security
 
 import RIO
 
-import Crypto.Hash
-import Data.Aeson
-
+import           Crypto.Hash
+import           Data.Aeson
 import qualified Data.ByteString.Random as BS
+import           Data.Swagger (ToSchema)
+
 import qualified Fission.Internal.UTF8  as UTF8
 
 type SecretDigest = Text
 
 newtype Secret = Secret { unSecret :: Text }
-  deriving         (Eq, Show)
-  deriving newtype (FromJSON, ToJSON)
+  deriving          ( Eq
+                    , Show
+                    , Generic
+                    )
+  deriving anyclass ( ToSchema )
+  deriving newtype  ( FromJSON
+                    , ToJSON
+                    )
 
 mkSecret :: Natural -> IO (Either UnicodeException Secret)
 mkSecret = pure . toSecret <=< BS.random

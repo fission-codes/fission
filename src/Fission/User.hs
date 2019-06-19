@@ -29,10 +29,11 @@ module Fission.User
 import RIO
 import qualified RIO.Text as Text
 
-import Control.Lens (makeLenses)
+import Control.Lens (makeLenses, (.~))
 import Database.Selda
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
+import Data.Swagger
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
   ( AddOn (..)
@@ -50,7 +51,6 @@ import           Fission.Storage.Query
 import           Fission.Storage.Mutate
 import qualified Fission.Storage.Table  as Table
 
-
 data User = User
   { _userID        :: ID User
   , _role          :: Role
@@ -61,11 +61,16 @@ data User = User
   , _modifiedAt    :: UTCTime
   } deriving ( Show
              , Eq
-             , SqlRow
              , Generic
+             , SqlRow
              )
 
 makeLenses ''User
+
+instance ToSchema (ID User) where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "User ID")
+            $ mempty & type_ .~ SwaggerInteger
 
 instance DBInsertable User where
   insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs

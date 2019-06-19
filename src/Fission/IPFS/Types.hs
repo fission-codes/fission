@@ -9,8 +9,10 @@ module Fission.IPFS.Types
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
+import Control.Lens ((.~))
 import Data.Aeson
 import Data.Aeson.TH
+import Data.Swagger
 
 import qualified Data.ByteString.Builder as Builder
 import           Servant
@@ -24,13 +26,24 @@ newtype Address = Address { unaddress :: Lazy.ByteString }
   deriving         Show
   deriving newtype IsString
 
+instance ToSchema Address where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "Address")
+            $ mempty & type_ .~ SwaggerString
+
 newtype Path = Path { getPath :: FilePath }
-  deriving         Show
-  deriving newtype IsString
+  deriving          ( Show
+                    , Generic
+                    )
+  deriving anyclass ( ToSchema )
+  deriving newtype  ( IsString )
 
 newtype Peer = Peer { peer :: Text }
-  deriving         Show
-  deriving newtype IsString
+  deriving          ( Show
+                    , Generic
+                    )
+  deriving anyclass ( ToSchema )
+  deriving newtype  ( IsString )
 
 $(deriveJSON defaultOptions ''Peer)
 

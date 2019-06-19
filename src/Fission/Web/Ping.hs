@@ -1,14 +1,12 @@
 module Fission.Web.Ping
   ( API
-  , server
+  , pong
   ) where
 
 import RIO
 import Servant
 
-import Fission.Web.Server
-
 type API = Get '[JSON, PlainText] Text
 
-server :: RIOServer cfg API
-server = return "pong"
+pong :: Text
+pong = "pong"

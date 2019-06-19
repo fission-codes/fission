@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4836652925ebf901f91278df0a358164f4c5a27f3e5f08adc237b1fe1049fe48
+-- hash: 37f75394088bf91b8b10e3ecc2bfbe816fed54151e89e3a39b3b26c03e76b65f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -74,7 +74,9 @@ library
       Fission.Web.IPFS.Upload.Multipart
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Routes
       Fission.Web.Server
+      Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
   other-modules:
@@ -107,10 +109,13 @@ library
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -156,10 +161,13 @@ executable server
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -211,10 +219,13 @@ test-suite fission-doctest
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -262,10 +273,13 @@ test-suite fission-lint
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
@@ -328,7 +342,9 @@ test-suite fission-test
       Fission.Web.IPFS.Upload.Multipart
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Routes
       Fission.Web.Server
+      Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
       Paths_ipfs_api
@@ -366,10 +382,13 @@ test-suite fission-test
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , tasty
     , tasty-hspec
     , tasty-hunit
@@ -423,10 +442,13 @@ benchmark fission-benchmark
     , selda-sqlite
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client
     , servant-multipart
     , servant-server
+    , servant-swagger
     , streaming-commons
+    , swagger2
     , text
     , time
     , unliftio
