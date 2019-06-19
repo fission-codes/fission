@@ -32,11 +32,13 @@ import qualified Fission.Web.Heroku            as Heroku
 
 type API = WebAPI :<|> SwaggerAPI
 
+-- NOTE TO SELF: SWAGGER NEEDS ITS OWN TOP LEVEL WITH AUTH &C! THESE ARE SEPARATE FROM HOW IT ACTUALLY RUNS!!
+-- COMPOSE!
 type WebAPI = "ipfs"
-                :> Servant.BasicAuth "registered users" User
+                :> Servant.Auth.Swagger.BasicAuth -- "registered users" User
                 :> IPFS.API
           :<|> "heroku"
-                :> Servant.BasicAuth "heroku add-on api" ByteString
+                :> Servant.Auth.Swagger.BasicAuth -- "heroku add-on api" ByteString
                 :> Heroku.API
           :<|> "ping"
                 :> Ping.API
