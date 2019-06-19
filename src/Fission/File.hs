@@ -9,12 +9,11 @@ import           Data.Swagger
 import           Servant
 
 newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
-  deriving        ( Eq
-                  , Show
-                  , Generic
-                  )
-  -- deriving anyclass ToSchema
-  deriving newtype  IsString
+  deriving         ( Eq
+                   , Show
+                   , Generic
+                   )
+  deriving newtype ( IsString )
 
 instance ToSchema Serialized where
   declareNamedSchema _ =

@@ -10,11 +10,6 @@ import Data.Has
 import Servant
 import Servant.Multipart
 
-import Control.Lens
-import Data.Swagger
-import Servant.Swagger
-import Servant.Swagger.Internal (addParam)
-
 import           Fission.Web.Server
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
@@ -35,15 +30,3 @@ add form =
 
     Nothing ->
       throwM $ err422 { errBody = "File not processable" }
-
-instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api) --  & addParam param
-    -- where
-    --   param = mempty
-    --         & name        .~ "file"
-    --         & required    ?~ True
-    --         & description ?~ "File to upload"
-    --         & schema      .~ ParamOther
-    --             $ mempty
-    --             & in_ .~ ParamFormData
-    --             & paramSchema .~ (mempty & type_ .~ SwaggerFile)

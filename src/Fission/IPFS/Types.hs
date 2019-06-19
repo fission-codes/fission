@@ -23,8 +23,8 @@ import qualified Fission.Internal.UTF8 as UTF8
 type Opt = String
 
 newtype Address = Address { unaddress :: Lazy.ByteString }
-  deriving          Show
-  deriving newtype  IsString
+  deriving         Show
+  deriving newtype IsString
 
 instance ToSchema Address where
   declareNamedSchema _ =

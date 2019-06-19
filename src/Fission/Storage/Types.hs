@@ -17,9 +17,11 @@ newtype Pool = Pool { getPool :: SeldaPool }
   deriving Show
 
 newtype Path = Path { getPath :: FilePath }
-  deriving         (Show, Generic)
-  deriving anyclass ToSchema
-  deriving newtype  IsString
+  deriving          ( Show
+                    , Generic
+                    )
+  deriving anyclass ( ToSchema )
+  deriving newtype  ( IsString )
 
 instance FromEnv Path where
   fromEnv = Path <$> env "DB_PATH"

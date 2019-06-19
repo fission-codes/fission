@@ -21,6 +21,7 @@ import Database.Selda
 import Database.Selda.Backend
 
 import Servant
+import Servant.Multipart
 import Servant.Swagger
 
 import           Fission
@@ -61,4 +62,7 @@ instance HasLogFunc (LogFunc, b, c) where
   logFuncL = _1
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api) --  & addParam param
+  toSwagger _ = toSwagger (Proxy :: Proxy api)
+
+instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> api) where
+  toSwagger _ = toSwagger (Proxy :: Proxy api)
