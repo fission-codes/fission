@@ -14,10 +14,10 @@ import qualified Fission.Web.IPFS.Upload.Simple    as Simple
 import qualified Fission.IPFS.Types   as IPFS
 import           Fission.Web.Server
 
-type API = Simple.API :<|> Multipart.API
+type API = Simple.API -- :<|> Multipart.API
 
 add :: Has IPFS.Path cfg
     => HasProcessContext cfg
     => HasLogFunc cfg
     => RIOServer cfg API
-add = Simple.add :<|> Multipart.add
+add = Simple.add -- :<|> Multipart.add

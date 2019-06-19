@@ -33,7 +33,6 @@ import Control.Lens (makeLenses, (.~))
 import Database.Selda
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
-
 import Data.Swagger
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
@@ -67,8 +66,6 @@ data User = User
              )
 
 makeLenses ''User
-
--- instance Generic (ID User)
 
 instance ToSchema (ID User) where
   declareNamedSchema _ =

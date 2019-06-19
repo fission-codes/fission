@@ -1,4 +1,4 @@
-{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE MonoLocalBinds #-}
 
 module Fission.Web
   ( API
@@ -26,24 +26,21 @@ import qualified Fission.Web.Auth   as Auth
 import qualified Fission.Web.IPFS   as IPFS
 import qualified Fission.Web.Ping   as Ping
 import qualified Fission.Web.Types  as Web
+import qualified Fission.Web.Swagger as Web.Swagger
 
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
 
-type API = WebAPI :<|> SwaggerAPI
-
--- NOTE TO SELF: SWAGGER NEEDS ITS OWN TOP LEVEL WITH AUTH &C! THESE ARE SEPARATE FROM HOW IT ACTUALLY RUNS!!
--- COMPOSE!
-type WebAPI = "ipfs"
-                :> Servant.Auth.Swagger.BasicAuth -- "registered users" User
+type API = "ipfs"
+                :> Servant.BasicAuth "registered users" User
                 :> IPFS.API
           :<|> "heroku"
-                :> Servant.Auth.Swagger.BasicAuth -- "heroku add-on api" ByteString
+                :> Servant.BasicAuth "heroku add-on api" ByteString
                 :> Heroku.API
           :<|> "ping"
                 :> Ping.API
-
-type SwaggerAPI = "swagger.json" :> Get '[JSON] Swagger
+          :<|> "swagger.json"
+                :> Web.Swagger.API
 
 app :: Has IPFS.Path       cfg
     => Has Web.Host        cfg
@@ -84,13 +81,7 @@ server :: Has IPFS.Path     cfg
 server = const IPFS.server
     :<|> const Heroku.create
     :<|> Ping.server
-    :<|> pure swagger
-
-swagger :: Swagger
-swagger = toSwagger webApi
-
-webApi :: Proxy WebAPI
-webApi = Proxy
+    :<|> pure Web.Swagger.docs
 
 api :: Proxy API
 api = Proxy
