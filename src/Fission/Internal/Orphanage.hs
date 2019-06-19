@@ -20,6 +20,9 @@ import Data.UUID as UUID
 import Database.Selda
 import Database.Selda.Backend
 
+import Servant
+import Servant.Swagger
+
 import           Fission
 import qualified Fission.Storage.Types as DB
 
@@ -56,3 +59,6 @@ instance HasLogFunc (LogFunc, b) where
 
 instance HasLogFunc (LogFunc, b, c) where
   logFuncL = _1
+
+instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
+  toSwagger _ = toSwagger (Proxy :: Proxy api) --  & addParam param

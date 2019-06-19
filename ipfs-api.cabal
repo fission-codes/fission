@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6d2fe902da77c6e22cab52cd478f1b8e4a3314672f56c591f15c39a3a60a1cd0
+-- hash: 37f75394088bf91b8b10e3ecc2bfbe816fed54151e89e3a39b3b26c03e76b65f
 
 name:           ipfs-api
 version:        0.0.1.0
@@ -74,6 +74,7 @@ library
       Fission.Web.IPFS.Upload.Multipart
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
       Fission.Web.Tls
@@ -341,6 +342,7 @@ test-suite fission-test
       Fission.Web.IPFS.Upload.Multipart
       Fission.Web.IPFS.Upload.Simple
       Fission.Web.Ping
+      Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
       Fission.Web.Tls
