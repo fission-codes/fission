@@ -3,7 +3,7 @@ module Fission.File (Serialized (..)) where
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
-import Control.Lens
+import           Control.Lens
 import qualified Data.ByteString.Builder as Builder
 import           Data.Swagger
 import           Servant
