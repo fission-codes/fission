@@ -14,14 +14,13 @@ module Fission.Platform.Heroku.Provision
 
 import RIO hiding (id)
 
-import Control.Lens (makeLenses)
+import Control.Lens (makeLenses, (?~), (.~))
 
+import Data.Aeson
 import Data.Aeson.TH
 import Data.UUID
-
+import Data.Swagger hiding (name)
 import Database.Selda
-
-import Data.Swagger (ToSchema)
 
 import           Fission.Internal.JSON
 import qualified Fission.Plan          as Plan
@@ -39,11 +38,23 @@ data Request = Request
   } deriving ( Eq
              , Show
              , Generic
-             , ToSchema
              )
 
 makeLenses ''Request
 $(deriveJSON lens_snake_case ''Request)
+
+instance ToSchema Request where
+  declareNamedSchema _ = do
+    planSchema <- declareSchemaRef (Proxy :: Proxy Plan.Tier)
+    return $ NamedSchema (Just "ProvisionRequest") $ mempty
+      & type_       .~ SwaggerObject
+      & title       ?~ "Heroku Provisioning Request"
+      & description ?~ "super awesome provisioning request"
+      & properties  .~ [ ("plan", planSchema)
+                       ]
+      & required    .~ [ "plan"
+                       ]
+      & example     ?~ toJSON Plan.Free
 
 {-
 Response Parameters

@@ -75,7 +75,7 @@ instance Digestable (ID User) where
 
 instance ToSchema (ID User) where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "User ID")
+     return $ NamedSchema (Just "UserID")
             $ mempty & type_ .~ SwaggerInteger
 
 userID'        :: Selector User (ID User)
