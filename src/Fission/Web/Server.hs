@@ -5,19 +5,15 @@ module Fission.Web.Server
   ) where
 
 import RIO hiding (Handler)
-import Servant -- (Handler, ServerT, runHandler, hoistServer, HasServer)
+import Servant
 
 type RIOServer cfg api = ServerT api (RIO cfg)
 
--- | Natural transformation `RIO cfg -> Handler`
+-- | Natural transformation to native Servant handler
 toHandler :: cfg -> RIO cfg a -> Handler a
 toHandler cfg = liftIO . runRIO cfg
 
--- | Natural transformation `Handler -> RIO cfg`
--- fromServer :: forall api cfg. HasServer api '[] => Handler api -> RIOServer cfg api
--- fromServer :: HasServer api '[] => Proxy api -> Server api -> RIOServer cfg api
--- fromServer server = hoistServer (Proxy :: Proxy api) fromHandler server
-
+-- | Natural transformation into a RIO handler
 fromHandler :: Handler a -> RIO cfg a
 fromHandler handler =
   liftIO $ runHandler handler >>= \case
