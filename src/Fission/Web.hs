@@ -12,7 +12,6 @@ import RIO.Process (HasProcessContext)
 import Data.Has
 import Database.Selda
 import Servant
-import Servant.Swagger.UI
 
 import           Fission
 import           Fission.User
@@ -67,10 +66,10 @@ server :: Has IPFS.Path     cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
        => RIOServer         cfg API
-server = pure  Web.Swagger.docs
+server = Web.Swagger.server
     :<|> const IPFS.server
     :<|> const Heroku.create
-    :<|> pure  Ping.pong
+    :<|> pure Ping.pong
 
 api :: Proxy API
 api = Proxy
