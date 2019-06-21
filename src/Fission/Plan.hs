@@ -5,9 +5,9 @@ import RIO.Text (toLower)
 
 import Control.Lens (makeLenses)
 import Data.Aeson
-import Data.Swagger
+import Data.Swagger as Swagger
 
-import Fission.Internal.Schema as Schema
+-- import Fission.Internal.Schema as Schema
 
 data Tier
   = Test
@@ -37,7 +37,8 @@ instance FromJSON Tier where
   parseJSON other = cantParse other
 
 instance ToSchema Tier where
-  declareNamedSchema = Schema.fromJSON
+  declareNamedSchema = genericDeclareNamedSchema
+    $ defaultSchemaOptions { Swagger.fieldLabelModifier = show . toJSON }
 
 cantParse :: (Monad m, Show a) => a -> m b
 cantParse other = fail $ "Unable to parse " <> show other

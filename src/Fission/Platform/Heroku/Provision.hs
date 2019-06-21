@@ -24,12 +24,12 @@ import Data.Swagger hiding (name)
 import Database.Selda
 
 import           Fission.Internal.JSON
-import qualified Fission.Internal.Schema            as Schema
 
 import qualified Fission.Plan                       as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.User                       (User)
+import Fission.Security
 
 data Request = Request
   { _callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -105,7 +105,34 @@ data Provision = Provision
 makeLenses ''Provision
 $(deriveJSON lens_snake_case ''Provision)
 
+-- instance ToSchema Provision where
+--   declareNamedSchema pxy =
+
 instance ToSchema Provision where
-  declareNamedSchema = Schema.fromJSON
+  declareNamedSchema _ = do
+    uId    <- declareSchemaRef (Proxy :: Proxy (ID User))
+    usrCfg <- declareSchemaRef (Proxy :: Proxy Heroku.UserConfig)
+    txt    <- declareSchemaRef (Proxy :: Proxy Text)
+    return $ NamedSchema (Just "HerokuProvision") $ mempty
+           & type_    .~ SwaggerObject
+           & properties .~
+               [ ("id",      uId)
+               , ("config",  usrCfg)
+               , ("message", txt)
+               ]
+           & required .~ ["id" , "config"]
+           & example  ?~ toJSON provisionEx
+    where
+      provisionEx = Provision
+        { _id      = toId 4213
+        , _config  = cfgEx
+        , _message = "Provisioned successfully"
+        }
+
+      cfgEx = Heroku.UserConfig
+        { _interplanetaryFissionUrl      = "localhost:1337/ipfs"
+        , _interplanetaryFissionUsername = "c74bd95b8555275277d4"
+        , _interplanetaryFissionPassword = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
+        }
 
 -- TODO data Error = ...

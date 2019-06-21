@@ -9,10 +9,9 @@ import RIO
 
 import Control.Lens  (makeLenses)
 import Data.Aeson.TH
-import Data.Swagger
+import Data.Swagger as Swagger
 
 import Fission.Internal.JSON
-import qualified Fission.Internal.Schema as Schema
 import Fission.Security
 
 data UserConfig = UserConfig
@@ -28,4 +27,4 @@ makeLenses ''UserConfig
 $(deriveJSON lens_SCREAMING_SNAKE_CASE ''UserConfig)
 
 instance ToSchema UserConfig where
-  declareNamedSchema = Schema.fromJSON
+  declareNamedSchema = genericDeclareNamedSchema $ fromAesonOptions lens_SCREAMING_SNAKE_CASE

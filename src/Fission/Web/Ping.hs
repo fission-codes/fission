@@ -3,10 +3,10 @@ module Fission.Web.Ping
   , pong
   ) where
 
-import RIO
 import Servant
+import Fission.Web.Ping.Types
 
-type API = Get '[JSON, PlainText] Text
+type API = Get '[JSON, PlainText] Pong
 
-pong :: Text
-pong = "pong"
+pong :: Pong
+pong = Pong "pong"

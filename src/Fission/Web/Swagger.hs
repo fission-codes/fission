@@ -10,17 +10,21 @@ import Control.Lens
 import Data.Swagger
 
 import Servant
-import Servant.Swagger (toSwagger)
-import Servant.Swagger.UI.ReDoc
+import Servant.Swagger
+import Servant.Swagger.UI
 
 import qualified Fission.Web.Routes as Web
 import           Fission.Web.Server
+
+import qualified Fission.Web.IPFS as IPFS
+import qualified Fission.Web.Heroku as Heroku
+import qualified Fission.Web.Ping as Ping
 
 type API = SwaggerSchemaUI "docs" "docs.json"
 
 server :: Host -> RIOServer cfg API
 server appHost =
-  hoistServer (Proxy :: Proxy API) fromHandler . redocSchemaUIServer $ docs appHost
+  hoistServer (Proxy :: Proxy API) fromHandler . swaggerSchemaUIServer $ docs appHost
 
 docs :: Host -> Swagger
 docs appHost = toSwagger (Proxy :: Proxy Web.API)
@@ -30,6 +34,10 @@ docs appHost = toSwagger (Proxy :: Proxy Web.API)
              & info . description ?~ "Easily use IPFS from Web 2.0 applications"
              & info . contact     ?~ fissionContact
              & info . license     ?~ projectLicense
+             & ipfsDocs
+             & herokuDocs
+             & pingDocs
+
   where
     fissionContact = Contact
       { _contactName  = Just "FISSION Team"
@@ -39,3 +47,18 @@ docs appHost = toSwagger (Proxy :: Proxy Web.API)
 
     projectLicense = "Apache 2.0"
                    & url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"
+
+ipfsDocs :: Swagger -> Swagger
+ipfsDocs = applyTagsFor ops ["IPFS" & description ?~ "The primary IPFS API"]
+  where
+    ops = subOperations (Proxy :: Proxy Web.IPFSRoute) (Proxy :: Proxy Web.API)
+
+herokuDocs :: Swagger -> Swagger
+herokuDocs = applyTagsFor ops  ["Heroku" & description ?~ "Interaction with the Heroku add-on API"]
+  where
+    ops = subOperations (Proxy :: Proxy Web.HerokuRoute) (Proxy :: Proxy Web.API)
+
+pingDocs :: Swagger -> Swagger
+pingDocs = applyTagsFor ops  ["Ping" & description ?~ "Check for liveness"]
+  where
+    ops = subOperations (Proxy :: Proxy Web.PingRoute) (Proxy :: Proxy Web.API)

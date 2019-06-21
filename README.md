@@ -86,7 +86,7 @@ curl -H "Authorization: Basic 012345generatedfrommanifest==" \
 #    "config"  : {
 #       "INTERPLANETARY_FISSION_USERNAME" : "c74bd95b8555275277d4",
 #       "INTERPLANETARY_FISSION_PASSWORD" : "GW0SHByPmY0.y+lg)x7De.PNmJvh1",
-#       "INTERPLANETARY_FISSION_URL"      : "localhost:3000/ipfs"
+#       "INTERPLANETARY_FISSION_URL"      : "localhost:1337/ipfs"
 #    }
 # }
 ```

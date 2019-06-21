@@ -8,7 +8,7 @@ import RIO
 
 import Database.Selda (SqlType)
 import Data.Aeson
-import Data.Swagger
+import Data.Swagger as Swagger
 
 import qualified Fission.Internal.Schema as Schema
 
@@ -62,4 +62,5 @@ instance FromJSON Region where
     bad -> fail $ "Invalid region: " <> show bad
 
 instance ToSchema Region where
-  declareNamedSchema = Schema.fromJSON
+  declareNamedSchema = genericDeclareNamedSchema
+    $ defaultSchemaOptions { Swagger.fieldLabelModifier = show . toJSON }
