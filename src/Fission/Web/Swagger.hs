@@ -6,28 +6,30 @@ module Fission.Web.Swagger
 
 import RIO
 
-import           Control.Lens
+import Control.Lens
 import Data.Swagger
+
 import Servant
 import Servant.Swagger (toSwagger)
 import Servant.Swagger.UI.ReDoc
 
 import qualified Fission.Web.Routes as Web
-import Fission.Web.Server
+import           Fission.Web.Server
 
-type API = SwaggerSchemaUI "swagger-ui" "swagger.json"
+type API = SwaggerSchemaUI "docs" "docs.json"
 
-server :: RIOServer cfg API
-server = hoistServer (Proxy :: Proxy API) fromHandler (redocSchemaUIServer docs)
+server :: Host -> RIOServer cfg API
+server appHost =
+  hoistServer (Proxy :: Proxy API) fromHandler . redocSchemaUIServer $ docs appHost
 
-docs :: Swagger
-docs =
-  toSwagger (Proxy :: Proxy Web.API)
-  & info . title       .~ "FISSION's IPFS API"
-  & info . version     .~ "1.0.0"
-  & info . description ?~ "Easily use IPFS from Web 2.0 applications"
-  & info . contact     ?~ fissionContact
-  & info . license     ?~ projectLicense
+docs :: Host -> Swagger
+docs appHost = toSwagger (Proxy :: Proxy Web.API)
+             & host               ?~ appHost
+             & info . title       .~ "FISSION's IPFS API"
+             & info . version     .~ "1.0.0"
+             & info . description ?~ "Easily use IPFS from Web 2.0 applications"
+             & info . contact     ?~ fissionContact
+             & info . license     ?~ projectLicense
   where
     fissionContact = Contact
       { _contactName  = Just "FISSION Team"

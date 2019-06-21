@@ -16,14 +16,17 @@ import RIO hiding (id)
 
 import Control.Lens (makeLenses, (?~), (.~))
 
+import Data.Maybe
 import Data.Aeson
 import Data.Aeson.TH
-import Data.UUID
+import Data.UUID as UUID
 import Data.Swagger hiding (name)
 import Database.Selda
 
 import           Fission.Internal.JSON
-import qualified Fission.Plan          as Plan
+import qualified Fission.Internal.Schema            as Schema
+
+import qualified Fission.Plan                       as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.User                       (User)
@@ -44,7 +47,7 @@ makeLenses ''Request
 $(deriveJSON lens_snake_case ''Request)
 
 instance ToSchema Request where
-  declareNamedSchema _ = do
+  declareNamedSchema _ = do -- Schema.fromJSON
     planSchema <- declareSchemaRef (Proxy :: Proxy Plan.Tier)
     return $ NamedSchema (Just "ProvisionRequest") $ mempty
       & type_       .~ SwaggerObject
@@ -54,7 +57,16 @@ instance ToSchema Request where
                        ]
       & required    .~ [ "plan"
                        ]
-      & example     ?~ toJSON Plan.Free
+      & example     ?~ exampleReq
+    where
+      exampleReq = toJSON
+        Request
+          { _callbackUrl = "foo.bar.com"
+          , _name = "my-awesome-app"
+          , _plan = Plan.Free
+          , _region = Heroku.Tokyo
+          , _uuid   = fromJust $ UUID.fromString "0cebfcfe-93c9-11e9-bc42-526af7764f64"
+          }
 
 {-
 Response Parameters
@@ -88,10 +100,12 @@ data Provision = Provision
   } deriving ( Eq
              , Show
              , Generic
-             , ToSchema
              )
 
 makeLenses ''Provision
 $(deriveJSON lens_snake_case ''Provision)
+
+instance ToSchema Provision where
+  declareNamedSchema = Schema.fromJSON
 
 -- TODO data Error = ...

@@ -5,7 +5,9 @@ import RIO.Text (toLower)
 
 import Control.Lens (makeLenses)
 import Data.Aeson
-import Data.Swagger (ToSchema)
+import Data.Swagger
+
+import Fission.Internal.Schema as Schema
 
 data Tier
   = Test
@@ -14,7 +16,6 @@ data Tier
   deriving ( Eq
            , Show
            , Generic
-           , ToSchema
            )
 
 makeLenses ''Tier
@@ -34,6 +35,9 @@ instance FromJSON Tier where
       other  -> cantParse other
 
   parseJSON other = cantParse other
+
+instance ToSchema Tier where
+  declareNamedSchema = Schema.fromJSON
 
 cantParse :: (Monad m, Show a) => a -> m b
 cantParse other = fail $ "Unable to parse " <> show other

@@ -8,7 +8,9 @@ import RIO
 
 import Database.Selda (SqlType)
 import Data.Aeson
-import Data.Swagger (ToSchema)
+import Data.Swagger
+
+import qualified Fission.Internal.Schema as Schema
 
 newtype ID = ID { getID :: ByteString }
   deriving         (Eq, Show)
@@ -34,7 +36,6 @@ data Region
            , Generic
            , Bounded
            , SqlType
-           , ToSchema
            )
 
 instance ToJSON Region where
@@ -59,3 +60,6 @@ instance FromJSON Region where
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
     bad -> fail $ "Invalid region: " <> show bad
+
+instance ToSchema Region where
+  declareNamedSchema = Schema.fromJSON

@@ -8,10 +8,12 @@ module Fission.Web
 
 import RIO
 import RIO.Process (HasProcessContext)
+import qualified RIO.Text as Text
 
 import Data.Has
 import Database.Selda
 import Servant
+import Data.Swagger as Swagger
 
 import           Fission
 import           Fission.User
@@ -40,9 +42,11 @@ app :: Has IPFS.Path       cfg
     =>     cfg
     -> RIO cfg Application
 app cfg = do
-  auth <- mkAuth
+  auth             <- mkAuth
+  Web.Host appHost <- fromConfig
   return . serveWithContext api auth
-         $ Auth.server api cfg server
+         . Auth.server api cfg
+         $ server (Swagger.Host (Text.unpack appHost) Nothing)
 
 mkAuth :: Has Heroku.ID       cfg
        => Has Heroku.Password cfg
@@ -65,11 +69,12 @@ server :: Has IPFS.Path     cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
-       => RIOServer         cfg API
-server = Web.Swagger.server
-    :<|> const IPFS.server
-    :<|> const Heroku.create
-    :<|> pure Ping.pong
+       => Swagger.Host
+       -> RIOServer         cfg API
+server host' = Web.Swagger.server host'
+          :<|> const IPFS.server
+          :<|> const Heroku.create
+          :<|> pure Ping.pong
 
 api :: Proxy API
 api = Proxy
