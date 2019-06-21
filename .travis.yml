@@ -1,7 +1,7 @@
 sudo: true
 language: haskell
 ghc:
-  - "8.6.3"
+  - "8.6.5"
 
 git:
   depth: 5
