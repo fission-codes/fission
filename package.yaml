@@ -1,5 +1,5 @@
 name: ipfs-api
-version: '0.0.1.0'
+version: '1.0.0'
 category: API
 author: Brooklyn Zelenka
 maintainer: hello@brooklynzelenka.com
@@ -54,6 +54,7 @@ default-extensions:
   - NoMonomorphismRestriction
   - OverloadedStrings
   - OverloadedLabels
+  - OverloadedLists
   - RankNTypes
   - RecordWildCards
   - ScopedTypeVariables
@@ -92,6 +93,7 @@ dependencies:
   - servant-server
   - servant-multipart
   - servant-swagger
+  - servant-swagger-ui
   - streaming-commons
   - swagger2
   - text

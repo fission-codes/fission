@@ -9,7 +9,7 @@ module Fission.IPFS.Types
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
-import Control.Lens ((.~))
+import Control.Lens ((.~), (?~))
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Swagger
@@ -26,11 +26,6 @@ newtype Address = Address { unaddress :: Lazy.ByteString }
   deriving         Show
   deriving newtype IsString
 
-instance ToSchema Address where
-  declareNamedSchema _ =
-     return $ NamedSchema (Just "Address")
-            $ mempty & type_ .~ SwaggerString
-
 newtype Path = Path { getPath :: FilePath }
   deriving          ( Show
                     , Generic
@@ -42,7 +37,6 @@ newtype Peer = Peer { peer :: Text }
   deriving          ( Show
                     , Generic
                     )
-  deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
 
 $(deriveJSON defaultOptions ''Peer)
@@ -58,6 +52,18 @@ instance MimeRender PlainText Address where
 
 instance MimeRender OctetStream Address where
   mimeRender _proxy = unaddress
+
+instance ToSchema Address where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "IPFS Address") $ mempty
+            & type_   .~ SwaggerString
+            & example ?~ "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
+
+instance ToSchema Peer where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "IPFS Peer") $ mempty
+            & type_   .~ SwaggerString
+            & example ?~ "/ip4/178.62.158.247/tcp/4001/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd"
 
 -- | Smart constructor for @Address@
 mkAddress :: Lazy.ByteString -> Address

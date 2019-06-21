@@ -67,16 +67,16 @@ data User = User
 
 makeLenses ''User
 
-instance ToSchema (ID User) where
-  declareNamedSchema _ =
-     return $ NamedSchema (Just "User ID")
-            $ mempty & type_ .~ SwaggerInteger
-
 instance DBInsertable User where
   insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs
 
 instance Digestable (ID User) where
   digest = digest . UTF8.textShow
+
+instance ToSchema (ID User) where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "UserID")
+            $ mempty & type_ .~ SwaggerInteger
 
 userID'        :: Selector User (ID User)
 role'          :: Selector User Role

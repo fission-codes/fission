@@ -1,4 +1,9 @@
-module Fission.Web.Routes (API) where
+module Fission.Web.Routes
+  ( API
+  , IPFSRoute
+  , HerokuRoute
+  , PingRoute
+  ) where
 
 import RIO
 
@@ -9,11 +14,14 @@ import qualified Fission.Web.IPFS   as IPFS
 import qualified Fission.Web.Ping   as Ping
 import qualified Fission.Web.Heroku as Heroku
 
-type API = "ipfs"
-           :> BasicAuth "registered users" User
-           :> IPFS.API
-      :<|> "heroku"
-           :> BasicAuth "heroku add-on api" ByteString
-           :> Heroku.API
-      :<|> "ping"
-           :> Ping.API
+type API = IPFSRoute :<|> HerokuRoute :<|> PingRoute
+
+type IPFSRoute = "ipfs"
+                 :> BasicAuth "registered users" User
+                 :> IPFS.API
+
+type HerokuRoute = "heroku"
+                   :> BasicAuth "heroku add-on api" ByteString
+                   :> Heroku.API
+
+type PingRoute = "ping" :> Ping.API

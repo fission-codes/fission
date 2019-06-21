@@ -1,11 +1,12 @@
 module Fission.Plan (Tier (..)) where
 
 import RIO
-import RIO.Text (toLower)
+import RIO.Text as Text
 
 import Control.Lens (makeLenses)
 import Data.Aeson
-import Data.Swagger (ToSchema)
+import Data.Aeson.Casing
+import Data.Swagger as Swagger
 
 data Tier
   = Test
@@ -14,13 +15,12 @@ data Tier
   deriving ( Eq
            , Show
            , Generic
-           , ToSchema
            )
 
 makeLenses ''Tier
 
 instance ToJSON Tier where
-  toJSON = String . toLower . textDisplay . displayShow
+  toJSON = String . Text.toLower . textDisplay . displayShow
 
 instance FromJSON Tier where
   parseJSON (String str) =
@@ -34,6 +34,11 @@ instance FromJSON Tier where
       other  -> cantParse other
 
   parseJSON other = cantParse other
+
+instance ToSchema Tier where
+  declareNamedSchema = genericDeclareNamedSchema
+    $ defaultSchemaOptions
+      { Swagger.constructorTagModifier = camelCase }
 
 cantParse :: (Monad m, Show a) => a -> m b
 cantParse other = fail $ "Unable to parse " <> show other

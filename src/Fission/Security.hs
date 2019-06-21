@@ -11,10 +11,11 @@ module Fission.Security
 
 import RIO
 
+import           Control.Lens
 import           Crypto.Hash
 import           Data.Aeson
 import qualified Data.ByteString.Random as BS
-import           Data.Swagger (ToSchema)
+import           Data.Swagger
 
 import qualified Fission.Internal.UTF8  as UTF8
 
@@ -25,10 +26,15 @@ newtype Secret = Secret { unSecret :: Text }
                     , Show
                     , Generic
                     )
-  deriving anyclass ( ToSchema )
   deriving newtype  ( FromJSON
                     , ToJSON
                     )
+
+instance ToSchema Secret where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "Secret") $ mempty
+            & type_   .~ SwaggerString
+            & example ?~ "U)mRvIvI6$L_MkYpme!lfzMte_92M5G912-NUfRmfxhRKx$Rr6aLUxqdqW"
 
 mkSecret :: Natural -> IO (Either UnicodeException Secret)
 mkSecret = pure . toSecret <=< BS.random
