@@ -5,10 +5,10 @@ module Fission.Platform.Heroku.Types
   ) where
 
 import RIO
+import RIO.Partial (read)
 
 import Database.Selda (SqlType)
 import Data.Aeson
-import Data.Aeson.Casing
 import Data.Swagger as Swagger
 
 -- | Heroku add-on ID (from @addon-manifest.json@)
@@ -64,5 +64,10 @@ instance FromJSON Region where
     bad -> fail $ "Invalid region: " <> show bad
 
 instance ToSchema Region where
-  declareNamedSchema = genericDeclareNamedSchema
-    $ defaultSchemaOptions { Swagger.constructorTagModifier = camelCase }
+  declareNamedSchema = genericDeclareNamedSchema $ defaultSchemaOptions
+    { Swagger.constructorTagModifier = (\str -> take (length str - 1) str)
+                                     . drop 8
+                                     . show
+                                     . toJSON
+                                     . (read :: String -> Region)
+    }
