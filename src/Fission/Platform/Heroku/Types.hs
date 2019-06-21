@@ -8,6 +8,7 @@ import RIO
 
 import Database.Selda (SqlType)
 import Data.Aeson
+import Data.Aeson.Casing
 import Data.Swagger as Swagger
 
 -- | Heroku add-on ID (from @addon-manifest.json@)
@@ -64,4 +65,4 @@ instance FromJSON Region where
 
 instance ToSchema Region where
   declareNamedSchema = genericDeclareNamedSchema
-    $ defaultSchemaOptions { Swagger.fieldLabelModifier = show . toJSON }
+    $ defaultSchemaOptions { Swagger.constructorTagModifier = camelCase }

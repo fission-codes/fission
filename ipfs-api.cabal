@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b30722cd2b5b3e8408814b802dda99700b8c37989c20b136013bb5da4ab00c49
+-- hash: 3bb35b04beb9eaff4c006adb831fd6030511f27f32bd2a8369b37289eb0b132d
 
 name:           ipfs-api
 version:        1.0.0
@@ -116,7 +116,6 @@ library
     , servant-server
     , servant-swagger
     , servant-swagger-ui
-    , servant-swagger-ui-redoc
     , streaming-commons
     , swagger2
     , text
@@ -170,7 +169,6 @@ executable server
     , servant-server
     , servant-swagger
     , servant-swagger-ui
-    , servant-swagger-ui-redoc
     , streaming-commons
     , swagger2
     , text
@@ -230,7 +228,6 @@ test-suite fission-doctest
     , servant-server
     , servant-swagger
     , servant-swagger-ui
-    , servant-swagger-ui-redoc
     , streaming-commons
     , swagger2
     , text
@@ -286,7 +283,6 @@ test-suite fission-lint
     , servant-server
     , servant-swagger
     , servant-swagger-ui
-    , servant-swagger-ui-redoc
     , streaming-commons
     , swagger2
     , text
@@ -398,7 +394,6 @@ test-suite fission-test
     , servant-server
     , servant-swagger
     , servant-swagger-ui
-    , servant-swagger-ui-redoc
     , streaming-commons
     , swagger2
     , tasty
@@ -460,7 +455,6 @@ benchmark fission-benchmark
     , servant-server
     , servant-swagger
     , servant-swagger-ui
-    , servant-swagger-ui-redoc
     , streaming-commons
     , swagger2
     , text

@@ -47,26 +47,34 @@ makeLenses ''Request
 $(deriveJSON lens_snake_case ''Request)
 
 instance ToSchema Request where
-  declareNamedSchema _ = do -- Schema.fromJSON
-    planSchema <- declareSchemaRef (Proxy :: Proxy Plan.Tier)
+  declareNamedSchema _ = do
+    planSchema   <- declareSchemaRef (Proxy :: Proxy Plan.Tier)
+    regionSchema <- declareSchemaRef (Proxy :: Proxy Heroku.Region)
+    stringSchema <- declareSchemaRef (Proxy :: Proxy String)
+    uuidSchema   <- declareSchemaRef (Proxy :: Proxy UUID)
     return $ NamedSchema (Just "ProvisionRequest") $ mempty
       & type_       .~ SwaggerObject
       & title       ?~ "Heroku Provisioning Request"
-      & description ?~ "super awesome provisioning request"
-      & properties  .~ [ ("plan", planSchema)
+      & description ?~ "Request from Heroku to provision a new user"
+      & properties  .~ [ ("callbackUrl", stringSchema)
+                       , ("name",        stringSchema)
+                       , ("plan",        planSchema)
+                       , ("region",      regionSchema)
+                       , ("uuid",        uuidSchema)
                        ]
-      & required    .~ [ "plan"
+      & required    .~ [ "callbackUrl"
+                       , "name"
+                       , "plan"
+                       , "region"
+                       , "uuid"
                        ]
-      & example     ?~ exampleReq
-    where
-      exampleReq = toJSON
-        Request
-          { _callbackUrl = "foo.bar.com"
-          , _name = "my-awesome-app"
-          , _plan = Plan.Free
-          , _region = Heroku.Tokyo
-          , _uuid   = fromJust $ UUID.fromString "0cebfcfe-93c9-11e9-bc42-526af7764f64"
-          }
+      & example     ?~ toJSON Request
+                         { _callbackUrl = "callback.herokuapp.com/foo"
+                         , _name        = "my-awesome-app"
+                         , _plan        = Plan.Free
+                         , _region      = Heroku.Tokyo
+                         , _uuid        = fromJust $ UUID.fromString "0cebfcfe-93c9-11e9-bc42-526af7764f64"
+                         }
 
 {-| Response Parameters
 
