@@ -9,20 +9,24 @@ import RIO
 import RIO.Orphans ()
 import qualified RIO.Partial as Partial
 
-import Control.Lens (_1)
+import Control.Lens
 
 import Data.Aeson.Types
 import Data.Scientific
 import Data.Has
 import Data.Pool
+import Data.Swagger
 import Data.UUID as UUID
 
 import Database.Selda
 import Database.Selda.Backend
 
+import Network.HTTP.Media.MediaType
+
 import Servant
 import Servant.Multipart
 import Servant.Swagger
+import Servant.Swagger.Internal
 
 import           Fission
 import qualified Fission.Storage.Types as DB
@@ -63,6 +67,16 @@ instance HasLogFunc (LogFunc, b, c) where
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)
+              & securityDefinitions .~ [("basic", SecurityScheme SecuritySchemeBasic Nothing)]
 
+
+-- FIXME just ignoring for now
 instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)
+              & addConsumes ["multipart" // "form-data"]
+              & addParam param
+    where
+      param = mempty
+            & name        .~ "file"
+            & description ?~ "A file to upload (may also be multipart/form-data)"
+            & required    ?~ True

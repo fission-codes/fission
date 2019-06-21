@@ -16,10 +16,6 @@ import Servant.Swagger.UI
 import qualified Fission.Web.Routes as Web
 import           Fission.Web.Server
 
-import qualified Fission.Web.IPFS as IPFS
-import qualified Fission.Web.Heroku as Heroku
-import qualified Fission.Web.Ping as Ping
-
 type API = SwaggerSchemaUI "docs" "docs.json"
 
 server :: Host -> RIOServer cfg API
@@ -29,6 +25,7 @@ server appHost =
 docs :: Host -> Swagger
 docs appHost = toSwagger (Proxy :: Proxy Web.API)
              & host               ?~ appHost
+             & schemes            ?~ [Https, Http]
              & info . title       .~ "FISSION's IPFS API"
              & info . version     .~ "1.0.0"
              & info . description ?~ "Easily use IPFS from Web 2.0 applications"
@@ -37,13 +34,11 @@ docs appHost = toSwagger (Proxy :: Proxy Web.API)
              & ipfsDocs
              & herokuDocs
              & pingDocs
-
   where
-    fissionContact = Contact
-      { _contactName  = Just "FISSION Team"
-      , _contactUrl   = Just (URL "https://fission.codes")
-      , _contactEmail = Just "support@fission.codes"
-      }
+    fissionContact = mempty
+                   & name ?~"FISSION Team"
+                   & url ?~ URL "https://fission.codes"
+                   & email ?~ "support@fission.codes"
 
     projectLicense = "Apache 2.0"
                    & url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"

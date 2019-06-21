@@ -14,10 +14,6 @@ import           Fission.Web.Server
 import qualified Fission.Web.IPFS.Peer   as Peer
 import qualified Fission.Web.IPFS.Upload as Upload
 
-import Data.Swagger hiding (name)
-import Control.Lens
-import Servant.Swagger (toSwagger)
-
 type API = {- Root -} Upload.API
       :<|> "peers" :> Peer.API
 
@@ -26,9 +22,3 @@ server :: HasLogFunc        cfg
        => Has IPFS.Path     cfg
        => RIOServer         cfg API
 server = Upload.add :<|> Peer.index
-
-
-
-
-
-  --subOperations (Proxy :: Proxy Peer.API)

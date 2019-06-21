@@ -68,35 +68,36 @@ instance ToSchema Request where
           , _uuid   = fromJust $ UUID.fromString "0cebfcfe-93c9-11e9-bc42-526af7764f64"
           }
 
-{-
-Response Parameters
+{-| Response Parameters
 
-In addition to the id parameter as documented under asynchronous provisioning,
-you should include a config parameter along with any other optional parameters
-of your choosing.
+From Heroku
 
-Name: config
-Type: object
-
-Description:
-Configuration variables to be set as environment variables on any applications
-that use this add-on resource. All environment variables that you send should
-have the same prefix: your add-on’s name, capitalized. However,
-within the context of a Heroku app, the prefix may be different for a variety
-of reasons. For example, if your add-on is named fast-db and you are setting
-FAST_DB_URL, the variable name on the application will default to FAST_DB_URL
-but would be PRIMARY_DB_URL if the user added the add-on with
-the prefix PRIMARY_DB.
-
-Example:
-HTTP/1.1 200 OK
-{ "MYADDON_URL": "http://myaddon.com/52e82f5d73" }
+> In addition to the id parameter as documented under asynchronous provisioning,
+> you should include a config parameter along with any other optional parameters
+> of your choosing.
+>
+> Name: config
+> Type: object
+>
+> Description:
+> Configuration variables to be set as environment variables on any applications
+> that use this add-on resource. All environment variables that you send should
+> have the same prefix: your add-on’s name, capitalized. However,
+> within the context of a Heroku app, the prefix may be different for a variety
+> of reasons. For example, if your add-on is named fast-db and you are setting
+> FAST_DB_URL, the variable name on the application will default to FAST_DB_URL
+> but would be PRIMARY_DB_URL if the user added the add-on with
+> the prefix PRIMARY_DB.
+>
+> Example:
+> HTTP/1.1 200 OK
+> { "MYADDON_URL": "http://myaddon.com/52e82f5d73" }
 -}
 
 data Provision = Provision
-  { _id      :: ID User
-  , _config  :: Heroku.UserConfig
-  , _message :: Text
+  { _id      :: ID User           -- ^ User ID
+  , _config  :: Heroku.UserConfig -- ^ Heroku env var payload
+  , _message :: Text              -- ^ A helpful human-readable message
   } deriving ( Eq
              , Show
              , Generic
@@ -104,9 +105,6 @@ data Provision = Provision
 
 makeLenses ''Provision
 $(deriveJSON lens_snake_case ''Provision)
-
--- instance ToSchema Provision where
---   declareNamedSchema pxy =
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
@@ -130,7 +128,7 @@ instance ToSchema Provision where
         }
 
       cfgEx = Heroku.UserConfig
-        { _interplanetaryFissionUrl      = "localhost:1337/ipfs"
+        { _interplanetaryFissionUrl      = "https://hostless.dev/ipfs"
         , _interplanetaryFissionUsername = "c74bd95b8555275277d4"
         , _interplanetaryFissionPassword = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
         }

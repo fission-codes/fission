@@ -10,16 +10,17 @@ import Database.Selda (SqlType)
 import Data.Aeson
 import Data.Swagger as Swagger
 
-import qualified Fission.Internal.Schema as Schema
-
+-- | Heroku add-on ID (from @addon-manifest.json@)
 newtype ID = ID { getID :: ByteString }
   deriving         (Eq, Show)
   deriving newtype IsString
 
+-- | Heroku add-on password (from @addon-manifest.json@)
 newtype Password = Password { getPassword :: ByteString }
   deriving         (Eq, Show)
   deriving newtype IsString
 
+-- | Location of Heroku server requesting keys
 data Region
   = California
   | Dublin
@@ -39,15 +40,15 @@ data Region
            )
 
 instance ToJSON Region where
-  toJSON = \case
-    California -> String "amazon-web-services::us-west-1"
-    Dublin     -> String "amazon-web-services::eu-west-1"
-    Frankfurt  -> String "amazon-web-services::eu-central-1"
-    Oregon     -> String "amazon-web-services::us-west-2"
-    Singapore  -> String "amazon-web-services::ap-southeast-1"
-    Sydney     -> String "amazon-web-services::ap-southeast-2"
-    Tokyo      -> String "amazon-web-services::ap-northeast-1"
-    Virginia   -> String "amazon-web-services::us-east-1"
+  toJSON = String . \case
+    California -> "amazon-web-services::us-west-1"
+    Dublin     -> "amazon-web-services::eu-west-1"
+    Frankfurt  -> "amazon-web-services::eu-central-1"
+    Oregon     -> "amazon-web-services::us-west-2"
+    Singapore  -> "amazon-web-services::ap-southeast-1"
+    Sydney     -> "amazon-web-services::ap-southeast-2"
+    Tokyo      -> "amazon-web-services::ap-northeast-1"
+    Virginia   -> "amazon-web-services::us-east-1"
 
 instance FromJSON Region where
   parseJSON = withText "Region" $ \case
