@@ -1,16 +1,56 @@
 etc/filepaths:
-- ./config.yml
+  - ./config.yml
+
+etc/cli:
+  desc: "The FISSION IPFS web server"
+  header: "ipfs-api - An IPFS web service"
+  commands:
+    getconfig:
+      desc:   "Prints the configuration summary"
+      header: ""
+
+    start:
+      desc: "Starts the web server"
+      header: ""
 
 etc/enteries:
-  valkyrie:
-    port:
+  database:
+    db_path:
       etc/spec:
-        type:    number
-        default: 1337
-        env:     "PORT"
+        type:    string
+        default: "ipfs-api.sqlite"
+        env:     "DB_PATH"
+        cli:
+          input:    option
+          metavar:  DB_PATH
+          help:     "Path to the SQLite server"
+          required: false
+          commands:
+            - start
 
+  web:
     host:
       etc/spec:
         type:    string
         default: "localhost:1337"
         env:     "HOST"
+        cli:
+          input:    option
+          metavar:  HOST
+          help:     "The server's hostname"
+          required: false
+          commands:
+            - start
+
+    port:
+      etc/spec:
+        type:    number
+        default: 1337
+        env:     "PORT"
+        cli:
+          input:   option
+          metavar: PORT
+          help:    "The server's port"
+          required: false
+          commands:
+            - start
