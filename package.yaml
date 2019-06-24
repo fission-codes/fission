@@ -76,6 +76,7 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - etc
   - http-client
   - http-client-tls
   - http-media

@@ -1,0 +1,16 @@
+etc/filepaths:
+- ./config.yml
+
+etc/enteries:
+  valkyrie:
+    port:
+      etc/spec:
+        type:    number
+        default: 1337
+        env:     "PORT"
+
+    host:
+      etc/spec:
+        type:    string
+        default: "localhost:1337"
+        env:     "HOST"
