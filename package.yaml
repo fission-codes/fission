@@ -47,6 +47,7 @@ default-extensions:
   - GeneralizedNewtypeDeriving
   - KindSignatures
   - LambdaCase
+  - LiberalTypeSynonyms
   - MultiParamTypeClasses
   - MultiWayIf
   - NamedFieldPuns
@@ -63,6 +64,7 @@ default-extensions:
   - TypeSynonymInstances
   - TemplateHaskell
   - TypeOperators
+  - ViewPatterns
 
 dependencies:
   - aeson
