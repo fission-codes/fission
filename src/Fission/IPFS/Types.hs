@@ -1,8 +1,9 @@
 module Fission.IPFS.Types
-  ( Opt
+  ( BinPath (..)
   , CID (..)
   , mkCID
   , Name (..)
+  , Opt
   , Peer (..)
   , Path (..)
   , SparseTree (..)
@@ -132,7 +133,7 @@ data SparseTree
                     , Show
                     )
 
-linearize :: SparseTree -> Either Text Path
+linearize :: SparseTree -> Either Text Path -- FIXME serialization error
 linearize = fmap Path . \case
   Stub    (Name name) -> Right $ UTF8.textShow name
   Content (CID cid)   -> Right $ textDisplay cid

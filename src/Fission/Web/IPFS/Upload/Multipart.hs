@@ -5,14 +5,18 @@ module Fission.Web.IPFS.Upload.Multipart
 
 import RIO
 import RIO.Process (HasProcessContext)
+import qualified RIO.Text as Text
 
 import Data.Has
 import Servant
 import Servant.Multipart
 
 import           Fission.Web.Server
-import qualified Fission.IPFS.Types   as IPFS
-import qualified Fission.Storage.IPFS as Storage.IPFS
+import           Fission.Internal.Constraint
+import qualified Fission.IPFS.Types            as IPFS
+import qualified Fission.Storage.IPFS          as Storage.IPFS
+import qualified Fission.IPFS.Error            as IPFS.Error
+import qualified Fission.Web.IPFS.Upload.Error as IPFS
 
 type API = TextAPI :<|> JSONAPI
 
@@ -25,15 +29,13 @@ type JSONAPI = FileRequest
                :> Post '[JSON] IPFS.SparseTree
 
 type FileRequest = MultipartForm Mem (MultipartData Mem)
-type NameQuery   = QueryParam "name" (Maybe String)
+type NameQuery   = QueryParam "name" IPFS.Name
 
-textAdd :: Has IPFS.Path     cfg
+textAdd :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg TextAPI
-textAdd form = run \case
-  Directory [outer] (Dir [(name, inner)]) -> outer <> "/" <> name
-  _ -> throwM $ err500 { errBody = "IPFS add error" }
+textAdd form = run form (either IPFS.throwErr pure . IPFS.linearize)
 
 -- jsonAdd :: Has IPFS.Path     cfg
 --         => HasProcessContext cfg
@@ -43,14 +45,32 @@ textAdd form = run \case
 --   Root outer (Dir [(name, inner)]) -> outer <> "/" <> name
 --   _ -> throwM $ err500 { errBody = "IPFS add error" }
 
--- run :: String
-run form cont =
-  case lookupFile "file" form of
-    Just FileData { fdPayload, fdFileName, fdInputName } -> do
-      structure <- Storage.IPFS.addFile fdPayload -- (Text.unpack (fdInputName OR fdFileName))
-      case structure of
-        Left _ -> throwM $ err500 { errBody = "IPFS add error" }
-        Right structure -> cont structure
+run :: MonadRIO          cfg m
+    => MonadThrow            m
+    => Has IPFS.BinPath  cfg
+    => HasProcessContext cfg
+    => HasLogFunc        cfg
+    => MultipartData Mem
+    -> Maybe IPFS.Name
+    -> (IPFS.SparseTree -> m a)
+    -> m a
+run form queryName cont = case lookupFile "file" form of
+  Just FileData { fdPayload, fdFileName, fdInputName } -> do
+    Storage.IPFS.addFile fdPayload (name queryName fdInputName fdFileName "foo.txt") >>= \case
+      Left _       -> throwM $ err500 { errBody = "IPFS add error" }
+      Right struct -> cont struct
 
-    Nothing ->
-      throwM $ err422 { errBody = "File not processable" }
+  Nothing ->
+    throwM $ err422 { errBody = "File not processable" }
+  where
+    name :: Maybe IPFS.Name -> Text -> Text -> String -> IPFS.Name
+    name queryName' inputName fileName fallback =
+      case queryName' of
+        Nothing              -> IPFS.Name $ name' inputName fileName fallback
+        Just (IPFS.Name "")  -> IPFS.Name $ name' inputName fileName fallback
+        Just ipfsName        -> ipfsName
+
+    name' :: Text -> Text -> String -> String
+    name' ""        ""       fallback = fallback
+    name' ""        fileName _        = Text.unpack fileName
+    name' inputName _        _        = Text.unpack inputName

@@ -44,7 +44,7 @@ data Config = Config
   { _processCtx     :: !ProcessContext
   , _logFunc        :: !LogFunc
   , _minLogLevel    :: !Log.MinLevel
-  , _ipfsPath       :: !IPFS.Path
+  , _ipfsPath       :: !IPFS.BinPath
   , _host           :: !Host
   , _dbPath         :: !DB.Path
   , _dbPool         :: !DB.Pool
@@ -75,7 +75,7 @@ instance HasProcessContext Config where
 instance HasLogFunc Config where
   logFuncL = logFunc
 
-instance Has IPFS.Path Config where
+instance Has IPFS.BinPath Config where
   hasLens = ipfsPath
 
 instance Has Log.MinLevel Config where
