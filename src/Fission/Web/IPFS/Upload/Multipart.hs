@@ -31,10 +31,9 @@ textAdd :: Has IPFS.Path     cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg TextAPI
-textAdd form = addRaw ...
--- textAdd form = run \case
-  -- Directory [outer] (Dir [(name, inner)]) -> outer <> "/" <> name
-  -- _ -> throwM $ err500 { errBody = "IPFS add error" }
+textAdd form = run \case
+  Directory [outer] (Dir [(name, inner)]) -> outer <> "/" <> name
+  _ -> throwM $ err500 { errBody = "IPFS add error" }
 
 -- jsonAdd :: Has IPFS.Path     cfg
 --         => HasProcessContext cfg
