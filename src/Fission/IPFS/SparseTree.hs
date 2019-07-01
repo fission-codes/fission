@@ -13,12 +13,15 @@ import           Fission.IPFS.Types
 linearize :: SparseTree -> Either Error.Linearization Path
 linearize = fmap Path . \case
   Stub    (Name name) -> Right $ UTF8.textShow name
-  Content (CID cid)   -> Right $ textDisplay cid
+  Content (CID _)     -> Right ""
   Directory [(tag, value)] ->
     case linearize value of
+      Right (Path "")   -> Right $ fromKey tag
+      Right (Path text) -> Right $ fromKey tag <> "/" <> text
       Left  err         -> Left err
-      Right (Path text) -> Right (fromKey tag <> "/" <> text)
   dir -> Left $ Error.NonLinear dir
   where
-    fromKey (Hash (CID cid))  = cid
-    fromKey (Key (Name name)) = UTF8.textShow name
+    fromKey :: Tag -> Text
+    fromKey = UTF8.stripN 1 . \case
+      Hash (CID cid)   -> cid
+      Key  (Name name) -> UTF8.textShow name

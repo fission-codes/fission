@@ -1,6 +1,7 @@
 module Fission.Internal.UTF8
   ( Textable (..)
   , showLazyBS
+  , stripN
   , stripNewline
   , textToLazyBS
   , textShow
@@ -30,3 +31,9 @@ stripNewline bs = fromMaybe bs $ Lazy.stripSuffix "\n" bs
 
 textShow :: Show a => a -> Text
 textShow = textDisplay . displayShow
+
+stripN :: Natural -> Text -> Text
+stripN n = Text.dropEnd i . Text.drop i
+  where
+    i :: Int
+    i = fromIntegral n

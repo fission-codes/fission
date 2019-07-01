@@ -11,7 +11,9 @@ module Fission.IPFS.Types
   ) where
 
 import           RIO
-import qualified RIO.Text as Text
+import qualified RIO.HashMap as HashMap
+import qualified RIO.Map     as Map
+import qualified RIO.Text    as Text
 
 import Control.Lens ((.~), (?~))
 import Data.Aeson
@@ -62,7 +64,7 @@ newtype Name = Name { unName :: String }
                     )
   deriving newtype  ( IsString )
 
-$(deriveJSON defaultOptions ''Name)
+$(deriveJSON defaultOptions {constructorTagModifier = const ""} ''Name)
 
 instance FromHttpApiData Name where
   parseUrlPiece = \case
@@ -76,7 +78,7 @@ newtype CID = CID { unaddress :: Text }
                     )
   deriving newtype  ( IsString )
 
-$(deriveJSON defaultOptions ''CID)
+$(deriveJSON defaultOptions {constructorTagModifier = const ""} ''CID)
 
 -- | Smart constructor for @CID@
 mkCID :: Text -> CID
@@ -97,7 +99,7 @@ data Tag
            , Show
            )
 
-$(deriveJSON defaultOptions ''Tag)
+$(deriveJSON defaultOptions {constructorTagModifier = const ""} ''Tag)
 
 instance FromJSONKey Tag
 instance ToJSONKey Tag
@@ -122,7 +124,6 @@ newtype Peer = Peer { peer :: Text }
                     , Generic
                     )
   deriving newtype  ( IsString )
-
 $(deriveJSON defaultOptions ''Peer)
 
 instance ToSchema Peer where
@@ -158,4 +159,14 @@ data SparseTree
                     )
   deriving anyclass ( ToSchema )
 
-$(deriveJSON defaultOptions ''SparseTree)
+instance ToJSON SparseTree where
+  toJSON = \case
+    Stub (Name name)  -> String $ Text.pack name
+    Content (CID cid) -> String $ UTF8.stripN 1 cid
+    Directory dirMap  -> Object $ HashMap.fromList (jsonKV <$> Map.toList dirMap)
+    where
+      jsonKV :: (Tag, SparseTree) -> (Text, Value)
+      jsonKV (tag, subtree) = (jsonTag tag, toJSON subtree)
+
+      jsonTag (Key (Name n))   = Text.pack n
+      jsonTag (Hash (CID cid)) = UTF8.stripN 1 cid

@@ -66,7 +66,7 @@ run :: MonadRIO          cfg m
     -> (IPFS.SparseTree -> m a)
     -> m a
 run form qName cont = case lookupFile "file" form of
-  Nothing -> throwM $ err422 { errBody = "File not processable" }
+  Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } -> do
     Storage.IPFS.addFile fdPayload humanName >>= \case
       Right struct -> cont struct
@@ -75,16 +75,15 @@ run form qName cont = case lookupFile "file" form of
         throwM $ err500 { errBody = "IPFS add error" }
     where
       humanName :: IPFS.Name
-      humanName = name qName fdInputName fdFileName fdFileCType
+      humanName = name qName fdFileName fdFileCType
 
-name :: Maybe IPFS.Name -> Text -> Text -> Text -> IPFS.Name
-name queryName' inputName fileName mime =
+name :: Maybe IPFS.Name -> Text -> Text -> IPFS.Name
+name queryName' fileName mime =
   case queryName' of
-    Nothing              -> IPFS.Name $ name' inputName fileName mime
-    Just (IPFS.Name "")  -> IPFS.Name $ name' inputName fileName mime
+    Nothing              -> IPFS.Name $ name' fileName mime
+    Just (IPFS.Name "")  -> IPFS.Name $ name' fileName mime
     Just ipfsName        -> ipfsName
 
-name' :: Text -> Text -> Text -> String
-name' ""        ""       mime = Text.unpack $ "file." <> lookupExt (encodeUtf8 mime)
-name' ""        fileName _    = Text.unpack fileName
-name' inputName _        _    = Text.unpack inputName
+name' :: Text -> Text -> String
+name' ""       mime = Text.unpack $ "file." <> lookupExt (encodeUtf8 mime)
+name' fileName _    = Text.unpack fileName
