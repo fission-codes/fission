@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bc688c477f8bd8f5fd186e582eb65db09faede7b681b0f98b64c522cb2b1904e
+-- hash: 9c12e485f1a2c26cba2b080295323b4219a41f0b06f36614390d4d4ac1e47411
 
 name:           ipfs-api
 version:        1.0.0
@@ -34,12 +34,14 @@ library
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
+      Fission.Internal.MIME
       Fission.Internal.Orphanage
       Fission.Internal.URL
       Fission.Internal.UTF8
       Fission.IPFS.Error
       Fission.IPFS.Peer
       Fission.IPFS.Process
+      Fission.IPFS.SparseTree
       Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
@@ -102,6 +104,7 @@ library
     , http-client-tls
     , http-media
     , lens
+    , mime-types
     , monad-logger
     , random-bytestring
     , resource-pool
@@ -155,6 +158,7 @@ executable server
     , http-media
     , ipfs-api
     , lens
+    , mime-types
     , monad-logger
     , random-bytestring
     , resource-pool
@@ -214,6 +218,7 @@ test-suite fission-doctest
     , http-media
     , lens
     , lens-aeson
+    , mime-types
     , monad-logger
     , random-bytestring
     , resource-pool
@@ -269,6 +274,7 @@ test-suite fission-lint
     , http-client-tls
     , http-media
     , lens
+    , mime-types
     , monad-logger
     , random-bytestring
     , resource-pool
@@ -309,12 +315,14 @@ test-suite fission-test
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
+      Fission.Internal.MIME
       Fission.Internal.Orphanage
       Fission.Internal.URL
       Fission.Internal.UTF8
       Fission.IPFS.Error
       Fission.IPFS.Peer
       Fission.IPFS.Process
+      Fission.IPFS.SparseTree
       Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
@@ -382,6 +390,7 @@ test-suite fission-test
     , http-media
     , ipfs-api
     , lens
+    , mime-types
     , monad-logger
     , random-bytestring
     , resource-pool
@@ -443,6 +452,7 @@ benchmark fission-benchmark
     , http-media
     , ipfs-api
     , lens
+    , mime-types
     , monad-logger
     , random-bytestring
     , resource-pool

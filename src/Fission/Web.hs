@@ -32,7 +32,7 @@ import qualified Fission.Web.Heroku            as Heroku
 
 type API = Web.Swagger.API :<|> Web.API
 
-app :: Has IPFS.Path       cfg
+app :: Has IPFS.BinPath    cfg
     => Has Web.Host        cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
@@ -64,7 +64,7 @@ mkAuth = do
         :. hku
         :. EmptyContext
 
-server :: Has IPFS.Path     cfg
+server :: Has IPFS.BinPath  cfg
        => Has Web.Host      cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg

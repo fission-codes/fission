@@ -18,8 +18,8 @@ import qualified Fission.Web.IPFS.Upload.Error as IPFS
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-add :: Has IPFS.Path cfg
+add :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
-    => HasLogFunc cfg
-    => RIOServer cfg API
-add raw = Storage.IPFS.addRaw (File.unserialize raw) >>= either IPFS.throwErr pure
+    => HasLogFunc        cfg
+    => RIOServer         cfg API
+add = either IPFS.throwAdd pure <=< Storage.IPFS.addRaw . File.unserialize

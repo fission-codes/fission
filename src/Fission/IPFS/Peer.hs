@@ -18,7 +18,7 @@ import qualified Fission.Internal.UTF8       as UTF8
 all :: MonadRIO cfg m
     => HasProcessContext cfg
     => HasLogFunc cfg
-    => Has IPFS.Path cfg
+    => Has IPFS.BinPath cfg
     => m (Either UnicodeException [IPFS.Peer])
 all = do
   allRaw <- rawList
@@ -29,9 +29,9 @@ all = do
 
   return $ fmap IPFS.Peer <$> peerNamesOrErr
 
-rawList :: MonadRIO cfg m
-        => Has IPFS.Path cfg
+rawList :: MonadRIO          cfg m
+        => Has IPFS.BinPath  cfg
         => HasProcessContext cfg
-        => HasLogFunc cfg
+        => HasLogFunc        cfg
         => m Lazy.ByteString
 rawList = IPFSProc.run' ["bootstrap", "list"]

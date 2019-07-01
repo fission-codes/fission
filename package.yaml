@@ -80,6 +80,7 @@ dependencies:
   - http-client-tls
   - http-media
   - lens
+  - mime-types
   - monad-logger
   - random-bytestring
   - resource-pool

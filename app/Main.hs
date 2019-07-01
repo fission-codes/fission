@@ -35,7 +35,7 @@ main = withStdoutLogger $ \stdOut -> do
   condDebug     <- withFlag "DEBUG_REQS" id logStdoutDev
   _minLogLevel  <- decode .!~ Log.MinLevel LevelDebug
   _host         <- decode .!~ Web.Host "localhost:1337"
-  _ipfsPath     <- decode .!~ IPFS.Path "/usr/local/bin/ipfs"
+  _ipfsPath     <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   _dbPath       <- decode .!~ DB.Path "ipfs-api.sqlite"
   _dbPool       <- simply $ SQLite.connPool _dbPath
 

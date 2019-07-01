@@ -7,7 +7,6 @@ module Fission.IPFS.Types
   , Peer (..)
   , Path (..)
   , SparseTree (..)
-  , linearize
   , Tag (..)
   ) where
 
@@ -17,7 +16,13 @@ import qualified RIO.Text as Text
 import Control.Lens ((.~), (?~))
 import Data.Aeson
 import Data.Aeson.TH
-import Data.Swagger (ToSchema (..), NamedSchema (..), SwaggerType (..), type_, example)
+import Data.Swagger ( NamedSchema (..)
+                    , SwaggerType (..)
+                    , ToParamSchema
+                    , ToSchema (..)
+                    , type_
+                    , example
+                    )
 
 import Servant
 import System.Envy
@@ -40,16 +45,29 @@ newtype Path = Path { unpath :: Text }
   deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
 
+instance MimeRender PlainText Path where
+  mimeRender _ = UTF8.textToLazyBS . unpath
+
+instance MimeRender OctetStream Path where
+  mimeRender _ = UTF8.textToLazyBS . unpath
+
 newtype Name = Name { unName :: String }
   deriving          ( Eq
                     , Generic
                     , Show
                     , Ord
                     )
-  deriving anyclass ( ToSchema )
+  deriving anyclass ( ToParamSchema
+                    , ToSchema
+                    )
   deriving newtype  ( IsString )
 
 $(deriveJSON defaultOptions ''Name)
+
+instance FromHttpApiData Name where
+  parseUrlPiece = \case
+    ""  -> Left "Empty Name field"
+    txt -> Right . Name $ Text.unpack txt
 
 newtype CID = CID { unaddress :: Text }
   deriving          ( Eq
@@ -73,14 +91,20 @@ instance ToSchema CID where
 data Tag
   = Key Name
   | Hash CID
-  deriving          ( Eq
-                    , Generic
-                    , Ord
-                    , Show
-                    )
-  deriving anyclass ( ToSchema )
+  deriving ( Eq
+           , Generic
+           , Ord
+           , Show
+           )
 
 $(deriveJSON defaultOptions ''Tag)
+
+instance FromJSONKey Tag
+instance ToJSONKey Tag
+instance ToSchema Tag
+
+instance FromHttpApiData Tag where
+  parseUrlPiece txt = Key <$> parseUrlPiece txt
 
 -- | Path to the IPFS binary
 newtype BinPath = BinPath { getBinPath :: FilePath }
@@ -132,16 +156,6 @@ data SparseTree
                     , Generic
                     , Show
                     )
+  deriving anyclass ( ToSchema )
 
-linearize :: SparseTree -> Either Text Path -- FIXME serialization error
-linearize = fmap Path . \case
-  Stub    (Name name) -> Right $ UTF8.textShow name
-  Content (CID cid)   -> Right $ textDisplay cid
-  Directory [(tag, value)] ->
-    case linearize value of
-      Left  err         -> Left err
-      Right (Path text) -> Right (fromKey tag <> "/" <> text)
-  Directory _ -> Left "Not linear"
-  where
-    fromKey (Hash (CID cid))  = cid
-    fromKey (Key (Name name)) = UTF8.textShow name
+$(deriveJSON defaultOptions ''SparseTree)

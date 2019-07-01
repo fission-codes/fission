@@ -16,8 +16,8 @@ import           Fission.Web.Server
 
 type API = Simple.API :<|> Multipart.API
 
-add :: Has IPFS.Path cfg
+add :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
-    => HasLogFunc cfg
-    => RIOServer cfg API
+    => HasLogFunc        cfg
+    => RIOServer         cfg API
 add = Simple.add :<|> Multipart.add
