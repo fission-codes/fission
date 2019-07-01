@@ -64,7 +64,11 @@ newtype Name = Name { unName :: String }
                     )
   deriving newtype  ( IsString )
 
-$(deriveJSON defaultOptions {constructorTagModifier = const ""} ''Name)
+instance ToJSON Name where
+  toJSON (Name n) = toJSON n
+
+instance FromJSON Name where
+  parseJSON = withText "IPFSName" (pure . Name . Text.unpack)
 
 instance FromHttpApiData Name where
   parseUrlPiece = \case
@@ -78,7 +82,11 @@ newtype CID = CID { unaddress :: Text }
                     )
   deriving newtype  ( IsString )
 
-$(deriveJSON defaultOptions {constructorTagModifier = const ""} ''CID)
+instance ToJSON CID where
+  toJSON (CID cid) = toJSON cid
+
+instance FromJSON CID where
+  parseJSON = withText "ContentAddress" (pure . CID)
 
 -- | Smart constructor for @CID@
 mkCID :: Text -> CID
@@ -99,7 +107,10 @@ data Tag
            , Show
            )
 
-$(deriveJSON defaultOptions {constructorTagModifier = const ""} ''Tag)
+instance FromJSON Tag
+instance ToJSON Tag where
+  toJSON (Key k)  = toJSON k
+  toJSON (Hash h) = toJSON h
 
 instance FromJSONKey Tag
 instance ToJSONKey Tag
