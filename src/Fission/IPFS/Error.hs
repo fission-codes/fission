@@ -40,6 +40,10 @@ data Add
            , ToJSON
            )
 
+instance Display Add where
+  display (UnexpectedOutput txt) = "Unexpected IPFS output: " <> display txt
+  display err                    = displayShow err
+
 instance ToServantErr Add where
   status = \case
     InvalidFile        -> status422
@@ -59,6 +63,9 @@ data Linearization
            , Show
            , ToJSON
            )
+
+instance Display Linearization where
+  display (NonLinear sparseTree) = "Unable to linearize IPFS result: " <> display sparseTree
 
 instance ToServantErr Linearization where
   status  _ = internalServerError500

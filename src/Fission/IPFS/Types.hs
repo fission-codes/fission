@@ -64,6 +64,9 @@ newtype Name = Name { unName :: String }
                     )
   deriving newtype  ( IsString )
 
+instance Display Name where
+  display = displayShow
+
 instance ToJSON Name where
   toJSON (Name n) = toJSON n
 
@@ -107,6 +110,10 @@ data Tag
            , Show
            )
 
+instance Display Tag where
+  display (Key name) = display name
+  display (Hash cid) = display cid
+
 instance FromJSON Tag
 instance ToJSON Tag where
   toJSON (Key k)  = toJSON k
@@ -135,6 +142,7 @@ newtype Peer = Peer { peer :: Text }
                     , Generic
                     )
   deriving newtype  ( IsString )
+
 $(deriveJSON defaultOptions ''Peer)
 
 instance ToSchema Peer where
@@ -169,6 +177,21 @@ data SparseTree
                     , Show
                     )
   deriving anyclass ( ToSchema )
+
+instance Display (Map Tag SparseTree) where
+  display sparseMap = mconcat
+    [ "{"
+    , foldr (\acc n -> acc <> ", " <> n) mempty (prettyKV <$> Map.toList sparseMap)
+    , "}"
+    ]
+    where
+      prettyKV (k, v) = display k <> " => " <> display v
+
+instance Display SparseTree where
+  display = \case
+    Stub      name -> display name
+    Content   cid  -> display cid
+    Directory dir  -> display dir
 
 instance ToJSON SparseTree where
   toJSON = \case

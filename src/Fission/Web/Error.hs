@@ -24,7 +24,7 @@ throw :: MonadRIO   cfg m
       => ToJSON       err
       => ToServantErr err
       => err
-      -> m ()
+      -> m a
 throw err = do
   when (statusIsServerError $ status err) (logError $ display err)
   throwM $ toServantException err
