@@ -79,6 +79,7 @@ dependencies:
   - http-client
   - http-client-tls
   - http-media
+  - http-types
   - lens
   - mime-types
   - monad-logger
@@ -93,8 +94,9 @@ dependencies:
   - servant-auth-server
   - servant-auth-swagger
   - servant-client
-  - servant-server
+  - servant-exceptions
   - servant-multipart
+  - servant-server
   - servant-swagger
   - servant-swagger-ui
   - streaming-commons

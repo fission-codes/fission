@@ -7,6 +7,7 @@ module Fission.Web.IPFS.Upload.Error
 import RIO
 
 import Servant
+import Servant.Exception
 
 import Fission.IPFS.Error as IPFSError
 import Fission.Internal.Constraint
@@ -39,3 +40,30 @@ throwLinear :: MonadThrow     m
 throwLinear (NonLinear sparseTree) = do
     logError $ "Cannot linearize SparseTree: " <> displayShow sparseTree
     throwM $ err500 { errBody = "Unable to linearize IPFS result" }
+
+instance ToServantErr IPFSError.Linearization where
+  status  _ = 500
+  message _ = "Unable to linearize IPFS result"
+
+instance ToServantErr IPFSError.Add where
+  status = \case
+    InvalidFile        -> 422
+    UnknownError       -> 500
+    UnexpectedOutput _ -> 500
+
+  message = \case
+    InvalidFile        -> "File not processable by IPFS"
+    UnknownError       -> "Unknown IPFS error"
+    UnexpectedOutput _ -> "Unexpected IPFS result"
+
+throwRIO :: MonadRIO   cfg m
+         => HasLogFunc cfg
+         => MonadThrow     m
+         => Display      err
+         => ToServantErr err
+         => err
+         -> m ()
+throwR err = do
+  let servErr = toServantErr err
+  when (errHTTPCode servErr >= 500) (logError $ display err)
+  throwM $ toServantErr err
