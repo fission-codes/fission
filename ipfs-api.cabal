@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 47397068104abfb0426d7583d00438c908a6e4c853fee80b0c1cfa6941d5d9d5
+-- hash: 3b7e98c06c2c37ef8bfb1f1c4bdc4861c7fdd7b9830e9239c01078e7993f6f3d
 
 name:           ipfs-api
-version:        1.0.1
+version:        1.0.2
 category:       API
 homepage:       https://github.com/fission-suite/ipfs-api#readme
 bug-reports:    https://github.com/fission-suite/ipfs-api/issues
@@ -105,6 +105,7 @@ library
     , data-has
     , ekg-wai
     , envy
+    , etc
     , http-client
     , http-client-tls
     , http-media
@@ -160,6 +161,7 @@ executable server
     , data-has
     , ekg-wai
     , envy
+    , etc
     , http-client
     , http-client-tls
     , http-media
@@ -222,6 +224,7 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , etc
     , http-client
     , http-client-tls
     , http-media
@@ -280,6 +283,7 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , etc
     , hlint
     , http-client
     , http-client-tls
@@ -400,6 +404,7 @@ test-suite fission-test
     , data-has
     , ekg-wai
     , envy
+    , etc
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -467,6 +472,7 @@ benchmark fission-benchmark
     , data-has
     , ekg-wai
     , envy
+    , etc
     , http-client
     , http-client-tls
     , http-media
