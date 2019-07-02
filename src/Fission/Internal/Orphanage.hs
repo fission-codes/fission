@@ -69,8 +69,6 @@ instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)
               & securityDefinitions .~ [("basic", SecurityScheme SecuritySchemeBasic Nothing)]
 
-
--- FIXME just ignoring for now
 instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)
               & addConsumes ["multipart" // "form-data"]

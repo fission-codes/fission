@@ -17,7 +17,7 @@ import qualified Fission.IPFS.Peer  as Peer
 
 type API = Get '[JSON] [IPFS.Peer]
 
-index :: Has IPFS.Path     cfg
+index :: Has IPFS.BinPath  cfg
       => HasProcessContext cfg
       => HasLogFunc        cfg
       => RIOServer         cfg API

@@ -13,21 +13,21 @@ import Fission.IPFS.Types as IPFS
 run :: MonadRIO cfg m
     => HasProcessContext cfg
     => HasLogFunc cfg
-    => Has IPFS.Path cfg
+    => Has IPFS.BinPath cfg
     => [Opt]
     -> Lazy.ByteString
     -> m Lazy.ByteString
 run opts input = runHelper opts $ byteStringInput input
 
 run' :: MonadRIO cfg m
-     => Has IPFS.Path cfg
+     => Has IPFS.BinPath cfg
      => HasProcessContext cfg
      => HasLogFunc cfg
      => [Opt]
      -> m Lazy.ByteString
 run' opts = runHelper opts createPipe
 
-runHelper :: Has IPFS.Path cfg
+runHelper :: Has IPFS.BinPath cfg
           => HasProcessContext cfg
           => HasLogFunc cfg
           => MonadRIO cfg m
@@ -35,7 +35,7 @@ runHelper :: Has IPFS.Path cfg
           -> StreamSpec 'STInput stdin
           -> m Lazy.ByteString
 runHelper opts inStream = do
-  IPFS.Path ipfs <- fromConfig
+  IPFS.BinPath ipfs <- fromConfig
 
   proc ipfs opts $ readProcessStdout_
                  . setStdin inStream

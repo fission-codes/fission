@@ -1,5 +1,5 @@
 name: ipfs-api
-version: '1.0.0'
+version: '1.0.1'
 category: API
 author: Brooklyn Zelenka
 maintainer: hello@brooklynzelenka.com
@@ -47,6 +47,7 @@ default-extensions:
   - GeneralizedNewtypeDeriving
   - KindSignatures
   - LambdaCase
+  - LiberalTypeSynonyms
   - MultiParamTypeClasses
   - MultiWayIf
   - NamedFieldPuns
@@ -63,6 +64,7 @@ default-extensions:
   - TypeSynonymInstances
   - TemplateHaskell
   - TypeOperators
+  - ViewPatterns
 
 dependencies:
   - aeson
@@ -77,7 +79,9 @@ dependencies:
   - http-client
   - http-client-tls
   - http-media
+  - http-types
   - lens
+  - mime-types
   - monad-logger
   - random-bytestring
   - resource-pool
@@ -90,8 +94,9 @@ dependencies:
   - servant-auth-server
   - servant-auth-swagger
   - servant-client
-  - servant-server
+  - servant-exceptions
   - servant-multipart
+  - servant-server
   - servant-swagger
   - servant-swagger-ui
   - streaming-commons
