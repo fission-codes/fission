@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 304f96cd9777bec7ed18096ebdf7ee61ad8b7d802e19c41dd923fdfb4f25d344
+-- hash: 47397068104abfb0426d7583d00438c908a6e4c853fee80b0c1cfa6941d5d9d5
 
 name:           ipfs-api
-version:        1.0.0
+version:        1.0.1
 category:       API
 homepage:       https://github.com/fission-suite/ipfs-api#readme
 bug-reports:    https://github.com/fission-suite/ipfs-api/issues

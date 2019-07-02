@@ -15,16 +15,22 @@ import Fission.IPFS.Path.Types
 import Fission.IPFS.SparseTree.Types
 
 linearize :: SparseTree -> Either Error.Linearization Path
-linearize = fmap Path . \case
-  Stub      (Name name)    -> Right $ UTF8.textShow name
-  Content   (CID _)        -> Right ""
-  Directory [(tag, value)] -> fromPath tag <$> linearize value
-  badDir                   -> Left $ Error.NonLinear badDir
+linearize = fmap (Path . wrap "\"") . go
   where
-    fromPath tag (Path "")   = fromKey tag
-    fromPath tag (Path text) = fromKey tag <> "/" <> text
+  wrap :: Text -> Text -> Text
+  wrap outside inside = outside <> inside <> outside
 
-    fromKey :: Tag -> Text
-    fromKey = UTF8.stripN 1 . \case
-      Hash (CID cid)   -> cid
-      Key  (Name name) -> UTF8.textShow name
+  go :: SparseTree -> Either Error.Linearization Text
+  go = \case
+    Stub      (Name name)    -> Right $ UTF8.textShow name
+    Content   (CID _)        -> Right ""
+    Directory [(tag, value)] -> fromPath tag <$> go value
+    badDir                   -> Left $ Error.NonLinear badDir
+    where
+      fromPath tag ""   = fromKey tag
+      fromPath tag text = fromKey tag <> "/" <> text
+
+      fromKey :: Tag -> Text
+      fromKey = UTF8.stripN 1 . \case
+        Hash (CID cid)   -> cid
+        Key  (Name name) -> UTF8.textShow name
