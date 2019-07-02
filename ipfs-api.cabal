@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a08c0d4f06b9651e8c4d946153820a62cc37d9b2a4eb48138d88100096857f7d
+-- hash: 304f96cd9777bec7ed18096ebdf7ee61ad8b7d802e19c41dd923fdfb4f25d344
 
 name:           ipfs-api
 version:        1.0.0
@@ -38,10 +38,16 @@ library
       Fission.Internal.Orphanage
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.CID.Types
       Fission.IPFS.Error
+      Fission.IPFS.Name.Types
+      Fission.IPFS.Path.Types
       Fission.IPFS.Peer
+      Fission.IPFS.Peer.Types
       Fission.IPFS.Process
+      Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
+      Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
@@ -326,10 +332,16 @@ test-suite fission-test
       Fission.Internal.Orphanage
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.CID.Types
       Fission.IPFS.Error
+      Fission.IPFS.Name.Types
+      Fission.IPFS.Path.Types
       Fission.IPFS.Peer
+      Fission.IPFS.Peer.Types
       Fission.IPFS.Process
+      Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
+      Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
       Fission.Log
       Fission.Monitor
