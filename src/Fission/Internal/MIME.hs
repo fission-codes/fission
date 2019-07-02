@@ -12,7 +12,9 @@ import Network.Mime
 lookupExt :: MimeType -> Extension
 lookupExt mime = fromMaybe "blob" (mimeExt !? mime)
 
--- FIXME not one-to-one, will probbaly get some funky results
+-- NOTE not a one-to-one mapping, so we may get some funky results.
+-- Have hand-tested many common types, and am getting the expected extensions.
+-- ~BEZ
 mimeExt :: Map MimeType Extension
 mimeExt = Map.fromList $ swap <$> Map.assocs defaultMimeMap
   where
