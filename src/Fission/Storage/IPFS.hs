@@ -56,11 +56,11 @@ addFile raw name = BS.lines <$> IPFS.Proc.run opts raw >>= pure . \case
            ]
 
 pin :: MonadRIO          cfg m
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => Has IPFS.BinPath  cfg
-        => IPFS.CID
-        -> m (Either IPFS.Error.Add ())
+    => HasProcessContext cfg
+    => HasLogFunc        cfg
+    => Has IPFS.BinPath  cfg
+    => IPFS.CID
+    -> m (Either IPFS.Error.Add ())
 pin (CID cid) = IPFS.Proc.runExitCode ["pin", "add"] (UTF8.textToLazyBS cid) >>= pure . \case
-  ExitSuccess -> Right ()
+  ExitSuccess   -> Right ()
   ExitFailure _ -> Left $ UnexpectedOutput "FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME"
