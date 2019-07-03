@@ -18,10 +18,10 @@ run :: MonadRIO          cfg m
     => HasProcessContext cfg
     => HasLogFunc        cfg
     => Has IPFS.BinPath  cfg
-    => [Opt]
-    -> Lazy.ByteString
+    => Lazy.ByteString
+    -> [Opt]
     -> m Lazy.ByteString
-run opts input = runHelper opts $ byteStringInput input
+run = runHelper byteStringInput
 
 run' :: MonadRIO          cfg m
      => Has IPFS.BinPath  cfg
@@ -29,32 +29,38 @@ run' :: MonadRIO          cfg m
      => HasLogFunc        cfg
      => [Opt]
      -> m Lazy.ByteString
-run' opts = runHelper opts createPipe
+run' = runHelper createPipe
 
 runHelper :: Has IPFS.BinPath  cfg
           => HasProcessContext cfg
           => HasLogFunc        cfg
           => MonadRIO          cfg m
-          => [Opt]
-          -> StreamSpec 'STInput stdin
+          => StreamSpec 'STInput stdin
+          -> [Opt]
           -> m Lazy.ByteString
-runHelper opts inStream = do
-  IPFS.BinPath ipfs <- fromConfig
-
-  proc ipfs opts $ readProcessStdout_
-                 . setStdin inStream
-                 . setStdout byteStringOutput
+runHelper inStream = ipfsProc readProcessStdout_ inStream byteStringOutput
 
 runExitCode :: MonadRIO          cfg m
             => Has IPFS.BinPath  cfg
             => HasProcessContext cfg
             => HasLogFunc        cfg
-            => [Opt]
-            -> StreamSpec 'STInput stdin
+            => StreamSpec 'STInput stdin
+            -> [Opt]
             -> m ExitCode
-runExitCode opts inStream = do
+runExitCode inStream = ipfsProc runProcess inStream createPipe
+
+ipfsProc :: MonadRIO          cfg m
+            => Has IPFS.BinPath  cfg
+            => HasProcessContext cfg
+            => HasLogFunc        cfg
+            => (ProcessConfig stdin stdout () -> m a)
+            -> StreamSpec 'STInput stdin
+            -> StreamSpec 'STOutput stdout
+            -> [Opt]
+            -> m a
+ipfsProc processor inStream outStream opts = do
   IPFS.BinPath ipfs <- fromConfig
 
-  proc ipfs opts $ runProcess
+  proc ipfs opts $ processor
                  . setStdin inStream
-                 . setStdout createPipe
+                 . setStdout outStream
