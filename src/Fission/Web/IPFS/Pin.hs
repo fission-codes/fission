@@ -15,7 +15,8 @@ import qualified Fission.Web.Error    as Web.Err
 import           Fission.Web.Server
 import           Fission.IPFS.CID.Types
 
-type API = Capture "cid" CID :> Put '[PlainText, OctetStream] NoContent
+type API = Capture "cid" CID
+           :> Put '[PlainText, OctetStream] NoContent
 
 put :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg

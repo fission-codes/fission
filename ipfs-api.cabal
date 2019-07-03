@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 47c709c6bfc140b52d9349231e21f92c0dfa9d2f4a38e1b589601c8c159dccb8
+-- hash: 6aca3acca39a2758b7b7ecfb86b00796f497b475645c36ab442d9c29c15d3e71
 
 name:           ipfs-api
 version:        1.0.2
@@ -78,7 +78,6 @@ library
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
-      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -373,7 +372,6 @@ test-suite fission-test
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
-      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart

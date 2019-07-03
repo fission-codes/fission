@@ -50,11 +50,11 @@ runExitCode :: MonadRIO          cfg m
             => HasProcessContext cfg
             => HasLogFunc        cfg
             => [Opt]
-            -> Lazy.ByteString
+            -> StreamSpec 'STInput stdin
             -> m ExitCode
-runExitCode opts input = do
+runExitCode opts inStream = do
   IPFS.BinPath ipfs <- fromConfig
 
   proc ipfs opts $ runProcess
-                 . setStdin (byteStringInput input)
+                 . setStdin inStream
                  . setStdout createPipe

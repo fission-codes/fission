@@ -11,7 +11,6 @@ import Data.Has
 
 import           Fission.IPFS.Types as IPFS
 import           Fission.Web.Server
--- import qualified Fission.Web.IPFS.Peer   as Peer -- TODO delete file
 import qualified Fission.Web.IPFS.Upload as Upload
 import qualified Fission.Web.IPFS.Pin    as Pin
 
