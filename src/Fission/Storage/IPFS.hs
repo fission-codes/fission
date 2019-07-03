@@ -63,4 +63,4 @@ pin :: MonadRIO          cfg m
     -> m (Either IPFS.Error.Add ())
 pin (CID cid) = IPFS.Proc.runExitCode ["pin", "add"] (UTF8.textToLazyBS cid) >>= pure . \case
   ExitSuccess   -> Right ()
-  ExitFailure _ -> Left $ UnexpectedOutput "FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME"
+  ExitFailure _ -> Left UnknownError
