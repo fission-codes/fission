@@ -6,7 +6,7 @@ module Fission.Storage.IPFS
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Process (HasProcessContext, byteStringInput)
+import           RIO.Process (HasProcessContext)
 
 import Data.Has
 import Data.ByteString.Lazy.Char8 as BS
@@ -61,6 +61,6 @@ pin :: MonadRIO          cfg m
     => Has IPFS.BinPath  cfg
     => IPFS.CID
     -> m (Either IPFS.Error.Add ())
-pin (CID cid) = IPFS.Proc.runExitCode ["pin", "add"] (byteStringInput $ UTF8.textToLazyBS cid) >>= pure . \case
+pin (CID cid) = IPFS.Proc.run_ ["pin", "add"] (UTF8.textToLazyBS cid) >>= pure . \case
   ExitSuccess   -> Right ()
   ExitFailure _ -> Left UnknownError
