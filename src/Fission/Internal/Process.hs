@@ -5,7 +5,7 @@ module Fission.Internal.Process
   ) where
 
 import RIO
-import           RIO.Process
+import RIO.Process
 
 import Fission.Internal.Constraint
 
