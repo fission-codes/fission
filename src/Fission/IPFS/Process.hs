@@ -1,7 +1,7 @@
 module Fission.IPFS.Process
   ( run
   , run'
-  , runExitCode
+  , run_
   ) where
 
 import           RIO
@@ -11,56 +11,33 @@ import           RIO.Process
 import Data.Has
 
 import Fission
-import Fission.Internal.Constraint
+import Fission.Internal.Process
 import Fission.IPFS.Types as IPFS
 
-run :: MonadRIO          cfg m
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => Has IPFS.BinPath  cfg
-    => Lazy.ByteString
-    -> [Opt]
-    -> m Lazy.ByteString
-run = runHelper byteStringInput
+run :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> Lazy.ByteString -> m Lazy.ByteString
+run opts arg = runBS (byteStringInput arg) opts
 
-run' :: MonadRIO          cfg m
-     => Has IPFS.BinPath  cfg
-     => HasProcessContext cfg
-     => HasLogFunc        cfg
-     => [Opt]
-     -> m Lazy.ByteString
-run' = runHelper createPipe
+run' :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> m Lazy.ByteString
+run' = runBS createPipe
 
-runHelper :: Has IPFS.BinPath  cfg
-          => HasProcessContext cfg
-          => HasLogFunc        cfg
-          => MonadRIO          cfg m
-          => StreamSpec 'STInput stdin
-          -> [Opt]
-          -> m Lazy.ByteString
-runHelper inStream = ipfsProc readProcessStdout_ inStream byteStringOutput
+run_ :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> Lazy.ByteString -> m ExitCode
+run_ opts arg = runExitCode (byteStringInput arg) opts
 
-runExitCode :: MonadRIO          cfg m
-            => Has IPFS.BinPath  cfg
-            => HasProcessContext cfg
-            => HasLogFunc        cfg
-            => StreamSpec 'STInput stdin
-            -> [Opt]
-            -> m ExitCode
+runBS :: (RIOProc cfg m, Has IPFS.BinPath cfg) => StreamIn stdin -> [Opt] -> m Lazy.ByteString
+runBS inStream = ipfsProc readProcessStdout_ inStream byteStringOutput
+
+runExitCode :: (RIOProc cfg m, Has IPFS.BinPath cfg) => StreamIn stdin -> [Opt] -> m ExitCode
 runExitCode inStream = ipfsProc runProcess inStream createPipe
 
-ipfsProc :: MonadRIO          cfg m
-            => Has IPFS.BinPath  cfg
-            => HasProcessContext cfg
-            => HasLogFunc        cfg
-            => (ProcessConfig stdin stdout () -> m a)
-            -> StreamSpec 'STInput stdin
-            -> StreamSpec 'STOutput stdout
-            -> [Opt]
-            -> m a
+ipfsProc :: RIOProc cfg m
+         => Has IPFS.BinPath cfg
+         => (ProcessConfig stdin stdout () -> m a)
+         -> StreamIn  stdin
+         -> StreamOut stdout
+         -> [Opt]
+         -> m a
 ipfsProc processor inStream outStream opts = do
   IPFS.BinPath ipfs <- fromConfig
-
   proc ipfs opts $ processor
-                 . setStdin inStream
+                 . setStdin  inStream
                  . setStdout outStream
