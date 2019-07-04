@@ -1,6 +1,7 @@
 module Fission.Storage.IPFS
   ( addRaw
   , addFile
+  , pin
   ) where
 
 import           RIO
@@ -53,3 +54,13 @@ addFile raw name = BS.lines <$> IPFS.Proc.run opts raw >>= pure . \case
            , "--stdin-name"
            , unName name
            ]
+
+pin :: MonadRIO          cfg m
+    => HasProcessContext cfg
+    => HasLogFunc        cfg
+    => Has IPFS.BinPath  cfg
+    => IPFS.CID
+    -> m (Either IPFS.Error.Add ())
+pin (CID cid) = IPFS.Proc.run_ ["pin", "add"] (UTF8.textToLazyBS cid) >>= pure . \case
+  ExitSuccess   -> Right ()
+  ExitFailure _ -> Left UnknownError

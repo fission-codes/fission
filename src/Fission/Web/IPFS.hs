@@ -11,14 +11,14 @@ import Data.Has
 
 import           Fission.IPFS.Types as IPFS
 import           Fission.Web.Server
-import qualified Fission.Web.IPFS.Peer   as Peer
 import qualified Fission.Web.IPFS.Upload as Upload
+import qualified Fission.Web.IPFS.Pin    as Pin
 
-type API = {- Root -} Upload.API
-      :<|> "peers" :> Peer.API
+type API = Upload.API
+      :<|> Pin.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
        => Has IPFS.BinPath  cfg
        => RIOServer         cfg API
-server = Upload.add :<|> Peer.index
+server = Upload.add :<|> Pin.put

@@ -8,9 +8,10 @@ import qualified RIO.Text as Text
 
 import Control.Lens ((.~), (?~))
 import Data.Aeson
-import Data.Swagger ( NamedSchema (..)
-                    , SwaggerType (..)
-                    , ToSchema (..)
+import Data.Swagger ( NamedSchema   (..)
+                    , SwaggerType   (..)
+                    , ToParamSchema (..)
+                    , ToSchema      (..)
                     , type_
                     , example
                     )
@@ -20,9 +21,11 @@ import qualified Fission.Internal.UTF8 as UTF8
 
 newtype CID = CID { unaddress :: Text }
   deriving          ( Eq
+                    , Generic
                     , Ord
                     , Show
                     )
+  deriving anyclass ( ToParamSchema )
   deriving newtype  ( IsString )
 
 instance ToJSON CID where
@@ -45,6 +48,9 @@ instance MimeRender PlainText CID where
 
 instance MimeRender OctetStream CID where
   mimeRender _ = UTF8.textToLazyBS . unaddress
+
+instance FromHttpApiData CID where
+  parseUrlPiece = Right . CID
 
 -- | Smart constructor for @CID@
 mkCID :: Text -> CID

@@ -1,42 +1,43 @@
-module Fission.IPFS.Process (run, run') where
+module Fission.IPFS.Process
+  ( run
+  , run'
+  , run_
+  ) where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
-import RIO.Process
+import           RIO.Process
 
 import Data.Has
 
 import Fission
-import Fission.Internal.Constraint
+import Fission.Internal.Process
 import Fission.IPFS.Types as IPFS
 
-run :: MonadRIO cfg m
-    => HasProcessContext cfg
-    => HasLogFunc cfg
-    => Has IPFS.BinPath cfg
-    => [Opt]
-    -> Lazy.ByteString
-    -> m Lazy.ByteString
-run opts input = runHelper opts $ byteStringInput input
+run :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> Lazy.ByteString -> m Lazy.ByteString
+run opts arg = runBS (byteStringInput arg) opts
 
-run' :: MonadRIO cfg m
-     => Has IPFS.BinPath cfg
-     => HasProcessContext cfg
-     => HasLogFunc cfg
-     => [Opt]
-     -> m Lazy.ByteString
-run' opts = runHelper opts createPipe
+run' :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> m Lazy.ByteString
+run' = runBS createPipe
 
-runHelper :: Has IPFS.BinPath cfg
-          => HasProcessContext cfg
-          => HasLogFunc cfg
-          => MonadRIO cfg m
-          => [Opt]
-          -> StreamSpec 'STInput stdin
-          -> m Lazy.ByteString
-runHelper opts inStream = do
+run_ :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> Lazy.ByteString -> m ExitCode
+run_ opts arg = runExitCode (byteStringInput arg) opts
+
+runBS :: (RIOProc cfg m, Has IPFS.BinPath cfg) => StreamIn stdin -> [Opt] -> m Lazy.ByteString
+runBS inStream = ipfsProc readProcessStdout_ inStream byteStringOutput
+
+runExitCode :: (RIOProc cfg m, Has IPFS.BinPath cfg) => StreamIn stdin -> [Opt] -> m ExitCode
+runExitCode inStream = ipfsProc runProcess inStream createPipe
+
+ipfsProc :: RIOProc cfg m
+         => Has IPFS.BinPath cfg
+         => (ProcessConfig stdin stdout () -> m a)
+         -> StreamIn  stdin
+         -> StreamOut stdout
+         -> [Opt]
+         -> m a
+ipfsProc processor inStream outStream opts = do
   IPFS.BinPath ipfs <- fromConfig
-
-  proc ipfs opts $ readProcessStdout_
-                 . setStdin inStream
-                 . setStdout byteStringOutput
+  proc ipfs opts $ processor
+                 . setStdin  inStream
+                 . setStdout outStream
