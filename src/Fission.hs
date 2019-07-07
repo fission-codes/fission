@@ -1,16 +1,17 @@
-module Fission
-  ( fromConfig
-  , simply
-  ) where
+module Fission (fromConfig) where
 
 import RIO
 
 import Data.Has
 
-import qualified Fission.Log as Log
-
+-- | Get a value from the reader config
+--
+-- >>> newtype Example = Example Text deriving Show
+-- >>>
+-- >>> data ExCfg = ExCfg { example :: Text }
+-- >>> instance Has ExCfg Example where hasLens = example
+-- >>>
+-- >>> runRIO (ExCfg "hello world") (fromConfig :: Example)
+-- Example "hello world"
 fromConfig :: (MonadReader cfg m, Has a cfg) => m a
 fromConfig = view hasLens
-
-simply :: RIO LogFunc a -> IO a
-simply = runRIO (mkLogFunc Log.simple)

@@ -1,3 +1,4 @@
+{-# LANGUAGE ApplicativeDo, BangPatterns, BlockArguments, ConstraintKinds, DataKinds, DeriveAnyClass, DeriveFoldable, DeriveFunctor, DeriveGeneric, DeriveLift, DeriveTraversable, DerivingStrategies, FlexibleContexts, FlexibleInstances, FunctionalDependencies, GADTs, GeneralizedNewtypeDeriving, KindSignatures, LambdaCase, LiberalTypeSynonyms, MultiParamTypeClasses, MultiWayIf, NamedFieldPuns, NoImplicitPrelude, NoMonomorphismRestriction, OverloadedStrings, OverloadedLabels, OverloadedLists, RankNTypes, RecordWildCards, ScopedTypeVariables, StandaloneDeriving, TupleSections, TypeSynonymInstances, TemplateHaskell, TypeOperators, ViewPatterns #-}
 module Fission.Environment
   ( withFlag
   , withEnv
@@ -17,16 +18,13 @@ getEnv = decodeEnv >>= \case
   Left msg  -> error msg
   Right val -> return val
 
--- | Fallback value for a monadic lookup
+-- |
 --
 -- >>> Right (Just 9) .!~ 42
 -- Right 9
 --
 -- >>> Right Nothing .!~ 42
 -- Right 42
---
--- >>> Left (Just 9) .!~ 42
--- Left 9
 (.!~) :: Monad m => m (Maybe a) -> a -> m a
 mVal .!~ fallback = pure (fromMaybe fallback) <*> mVal
 
@@ -36,7 +34,6 @@ withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
 withEnv :: String -> a -> (String -> a) -> IO a
 withEnv key fallback transform = pure (maybe fallback transform) <*> lookupEnv key
 
--- | Check if an environment flag is set to 'True' (case-insensitive)
 getFlag :: String -> IO Bool
 getFlag key =
   pure (maybe False $ \flag -> fmap toLower flag == "true") <*> lookupEnv key
