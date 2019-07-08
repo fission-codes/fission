@@ -1,5 +1,6 @@
 {-# LANGUAGE MonoLocalBinds #-}
 
+-- | Top level web application and API
 module Fission.Web
   ( API
   , app
@@ -30,8 +31,10 @@ import qualified Fission.Web.Types   as Web
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
 
+-- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
+-- | The actual web server for 'API'
 app :: Has IPFS.BinPath    cfg
     => Has Web.Host        cfg
     => Has Heroku.ID       cfg
@@ -47,7 +50,11 @@ app cfg = do
   return . serveWithContext api auth
          . Auth.server api cfg
          $ server (Swagger.Host (Text.unpack appHost) Nothing)
+  where
+    api :: Proxy API
+    api = Proxy
 
+-- | Construct an authorization context
 mkAuth :: Has Heroku.ID       cfg
        => Has Heroku.Password cfg
        => HasLogFunc          cfg
@@ -64,6 +71,7 @@ mkAuth = do
         :. hku
         :. EmptyContext
 
+-- | Web handlers for the 'API'
 server :: Has IPFS.BinPath  cfg
        => Has Web.Host      cfg
        => HasProcessContext cfg
@@ -75,6 +83,3 @@ server host' = Web.Swagger.server host'
           :<|> const IPFS.server
           :<|> const Heroku.create
           :<|> pure Ping.pong
-
-api :: Proxy API
-api = Proxy

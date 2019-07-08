@@ -1,3 +1,4 @@
+-- | Users of 'Fission', accounts, properties, &c
 module Fission.User
   ( User (..)
   , Role (..)
@@ -26,7 +27,7 @@ module Fission.User
   , hashID
   ) where
 
-import RIO
+import           RIO
 import qualified RIO.Text as Text
 
 import Control.Lens (makeLenses, (.~))
@@ -44,13 +45,15 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku
 import qualified Fission.Platform.Heroku.Types as Heroku
 
 import           Fission.User.Role
-import           Fission.Security (SecretDigest, Digestable (..))
+import           Fission.Security.Types (SecretDigest)
+import           Fission.Security       (Digestable (..))
 import qualified Fission.Internal.UTF8  as UTF8
 
 import           Fission.Storage.Query
 import           Fission.Storage.Mutate
 import qualified Fission.Storage.Table  as Table
 
+-- | A user account, most likely a developer
 data User = User
   { _userID        :: ID User
   , _role          :: Role
@@ -93,9 +96,11 @@ userID' :*: role'
         :*: insertedAt'
         :*: modifiedAt' = selectors users
 
+-- | The name of the 'users' table
 tableName :: Table.Name User
 tableName = "users"
 
+-- | The 'User' table
 users :: Table User
 users = Table.lensPrefixed (Table.name tableName)
   [ #_userID        :- autoPrimary
@@ -105,6 +110,7 @@ users = Table.lensPrefixed (Table.name tableName)
   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
   ]
 
+-- | Create a new, timestamped entry
 createFresh :: MonadIO m
             => MonadSelda m
             => UUID
@@ -116,7 +122,9 @@ createFresh herokuUUID herokuRegion sekret = transaction do
   hConfId <- insert1 now $ Heroku.AddOn def herokuUUID (Just herokuRegion)
   insert1 now $ User def Regular True (Just hConfId) sekret
 
--- TODO `limit 0 1`
+-- | Find a user by their account secret
+--
+--   TODO `limit 0 1`
 bySecret :: MonadSelda m => Text -> m [User]
 bySecret secret = query do
   user <- select users
@@ -125,5 +133,7 @@ bySecret secret = query do
 
   return user
 
+-- | Create a 'SecretDigest' from the users ID
+--   Barely an obsfucating technique, but enough to hide DB ordering
 hashID :: ID User -> SecretDigest
 hashID uID = Text.take 20 $ digest uID
