@@ -1,3 +1,4 @@
+-- | Top level types
 module Fission.Types (Fission) where
 
 import RIO

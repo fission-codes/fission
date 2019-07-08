@@ -1,3 +1,4 @@
+-- | Configuration types
 module Fission.Config.Types
   ( Config (..)
   , processCtx
@@ -12,7 +13,6 @@ module Fission.Config.Types
   ) where
 
 import RIO
-import RIO.Text (pack)
 import RIO.List (intercalate)
 import RIO.Process (ProcessContext, HasProcessContext (..))
 
@@ -25,17 +25,7 @@ import qualified Fission.Log                   as Log
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 
-data Environment
-  = Test
-  | Development
-  --  | Staging
-  | Production
-  deriving (Eq, Show, Read)
-
-instance Display Environment where
-  display     = displayShow
-  textDisplay = pack . show
-
+-- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
   { _processCtx     :: !ProcessContext
   , _logFunc        :: !LogFunc

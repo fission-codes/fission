@@ -25,7 +25,7 @@ import Database.Selda
 
 import           Fission.Internal.JSON
 
-import qualified Fission.Plan                       as Plan
+import qualified Fission.Plan.Types                 as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.User                       (User)
