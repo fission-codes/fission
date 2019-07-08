@@ -13,24 +13,17 @@ import Servant
 
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
 import           Fission.Web.Server
+import qualified Fission.Web.Types as Web
 
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.Platform.Heroku.Provision  as Provision
 
-import           Fission
+import qualified Fission.Config   as Config
 import           Fission.Security
-import qualified Fission.Random                    as Random
-import qualified Fission.User                      as User
-
-import qualified Fission.Web.Types     as Web
-
---------------------------------------------------------------------------------
+import qualified Fission.Random   as Random
+import qualified Fission.User     as User
 
 type API = "resources" :> CreateAPI
-
-------------
--- CREATE --
-------------
 
 type CreateAPI = ReqBody '[JSON]                     Provision.Request
               :> Post    '[Heroku.MIME.VendorJSONv3] Provision
@@ -40,7 +33,7 @@ create :: HasLogFunc      cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
 create Request {_uuid, _region} = do
-  Web.Host url <- fromConfig
+  Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
   userID       <- User.createFresh _uuid _region secret
 

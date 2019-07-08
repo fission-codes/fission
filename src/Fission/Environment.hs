@@ -1,3 +1,4 @@
+-- | Environment variables
 module Fission.Environment
   ( withFlag
   , withEnv
@@ -12,7 +13,9 @@ import RIO.Char (toLower)
 import System.Environment (lookupEnv)
 import System.Envy
 
--- | Get an environment variable. @error@s if not found.
+import Fission.Internal.Bool
+
+-- | Get an environment variable. 'error's if not found.
 getEnv :: FromEnv a => IO a
 getEnv = decodeEnv >>= \case
   Left  msg -> error msg
@@ -33,19 +36,21 @@ mVal .!~ fallback = pure (fromMaybe fallback) <*> mVal
 
 -- | Switch on an environment flag
 --
--- > withFlag "DEBUG" "nope" "yep"
+-- >>> withFlag "DEBUG" "nope" "yep"
 -- "nope"
 withFlag :: String -> a -> a -> IO a
 withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
 
 -- | Perform actions on an environment variable, with fallback if not available
 --
--- > withEnv "PORT" 80 (* 2)
+-- >>> withEnv "PORT" 80 (* 2)
 -- 80
 withEnv :: String -> a -> (String -> a) -> IO a
 withEnv key fallback transform = pure (maybe fallback transform) <*> lookupEnv key
 
 -- | Check if an environment flag is set to 'True' (case-insensitive)
+--
+-- >>> getFlag ""
+-- False
 getFlag :: String -> IO Bool
-getFlag key =
-  pure (maybe False $ \flag -> fmap toLower flag == "true") <*> lookupEnv key
+getFlag key = pure (maybe False (truthy . fmap toLower)) <*> lookupEnv key

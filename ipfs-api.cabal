@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: da56bf8f1ef8c3041321e67741e313b6343c025ea3164ee12dd5d709892cafc4
+-- hash: dc90c82c5d573603f56803becc319e282c15789fd624664fbe365d921c5dad9a
 
 name:           ipfs-api
 version:        1.0.2
@@ -28,9 +28,10 @@ source-repository head
 
 library
   exposed-modules:
-      Fission
+      Fission.Config
+      Fission.Config.Types
       Fission.Environment
-      Fission.File
+      Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -51,7 +52,9 @@ library
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
       Fission.Log
+      Fission.Log.Types
       Fission.Monitor
+      Fission.Monitor.Types
       Fission.Plan
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
@@ -323,9 +326,10 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Fission
+      Fission.Config
+      Fission.Config.Types
       Fission.Environment
-      Fission.File
+      Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -346,7 +350,9 @@ test-suite fission-test
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
       Fission.Log
+      Fission.Log.Types
       Fission.Monitor
+      Fission.Monitor.Types
       Fission.Plan
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn

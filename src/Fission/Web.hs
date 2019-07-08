@@ -15,7 +15,7 @@ import Database.Selda
 import Servant
 import Data.Swagger as Swagger
 
-import           Fission
+import qualified Fission.Config     as Config
 import           Fission.User
 import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
@@ -43,7 +43,7 @@ app :: Has IPFS.BinPath    cfg
     -> RIO cfg Application
 app cfg = do
   auth             <- mkAuth
-  Web.Host appHost <- fromConfig
+  Web.Host appHost <- Config.get
   return . serveWithContext api auth
          . Auth.server api cfg
          $ server (Swagger.Host (Text.unpack appHost) Nothing)
@@ -54,8 +54,8 @@ mkAuth :: Has Heroku.ID       cfg
        => MonadSelda     (RIO cfg)
        => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
 mkAuth = do
-  Heroku.ID       hkuID   <- fromConfig
-  Heroku.Password hkuPass <- fromConfig
+  Heroku.ID       hkuID   <- Config.get
+  Heroku.Password hkuPass <- Config.get
 
   let hku = Auth.basic hkuID hkuPass
   usr <- Auth.user

@@ -10,7 +10,7 @@ import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 import Network.Wai.Middleware.RequestLogger
 
-import Fission.Types
+import Fission.Config.Types
 import Fission.Storage.SQLite as SQLite
 
 import           Fission.Environment

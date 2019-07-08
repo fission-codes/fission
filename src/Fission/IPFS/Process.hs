@@ -10,9 +10,9 @@ import           RIO.Process
 
 import Data.Has
 
-import Fission
-import Fission.Internal.Process
-import Fission.IPFS.Types as IPFS
+import qualified Fission.Config as Config
+import           Fission.Internal.Process
+import           Fission.IPFS.Types as IPFS
 
 run :: (RIOProc cfg m, Has IPFS.BinPath cfg) => [Opt] -> Lazy.ByteString -> m Lazy.ByteString
 run opts arg = runBS (byteStringInput arg) opts
@@ -37,7 +37,7 @@ ipfsProc :: RIOProc cfg m
          -> [Opt]
          -> m a
 ipfsProc processor inStream outStream opts = do
-  IPFS.BinPath ipfs <- fromConfig
+  IPFS.BinPath ipfs <- Config.get
   proc ipfs opts $ processor
                  . setStdin  inStream
                  . setStdout outStream

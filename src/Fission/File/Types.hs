@@ -1,4 +1,5 @@
-module Fission.File (Serialized (..)) where
+-- | File types
+module Fission.File.Types (Serialized (..)) where
 
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
@@ -8,6 +9,7 @@ import qualified Data.ByteString.Builder as Builder
 import           Data.Swagger
 import           Servant
 
+-- | A file serialized as a lazy bytestring
 newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
   deriving         ( Eq
                    , Show

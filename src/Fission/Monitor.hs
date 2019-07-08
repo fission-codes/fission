@@ -1,3 +1,4 @@
+-- | Application monitoring
 module Fission.Monitor
   ( Config (..)
   , wai
@@ -8,15 +9,7 @@ import RIO
 import System.Envy
 import System.Remote.Monitoring.Wai
 
-data Config = Config
-  { ekgHost :: ByteString
-  , ekgPort :: Int
-  } deriving (Generic, Show)
-
-instance DefConfig Config where
-  defConfig = Config "localhost" 9630
-
-instance FromEnv Config
+import Fission.Monitor.Types
 
 wai :: HasLogFunc env => RIO env ()
 wai = liftIO (decodeEnv :: IO (Either String Config)) >>= \case

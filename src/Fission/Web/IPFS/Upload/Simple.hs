@@ -11,7 +11,7 @@ import Servant
 
 import           Fission.Web.Server
 import qualified Fission.Web.Error    as Web.Err
-import qualified Fission.File         as File
+import qualified Fission.File.Types   as File
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
 
