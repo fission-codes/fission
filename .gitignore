@@ -6,6 +6,7 @@
 *.csr
 *.sqlite
 *.db
+.doctest-tmp/
 addon-manifest.json
 
 ### Haskell ###
