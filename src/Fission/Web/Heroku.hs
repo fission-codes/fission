@@ -18,10 +18,11 @@ import qualified Fission.Web.Types as Web
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.Platform.Heroku.Provision  as Provision
 
-import qualified Fission.Config   as Config
-import           Fission.Security
-import qualified Fission.Random   as Random
-import qualified Fission.User     as User
+import qualified Fission.Config as Config
+import qualified Fission.Random as Random
+import qualified Fission.User   as User
+
+import Fission.Security.Types (Secret (..))
 
 type API = "resources" :> CreateAPI
 

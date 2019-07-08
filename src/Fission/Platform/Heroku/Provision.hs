@@ -24,12 +24,11 @@ import Data.Swagger hiding (name)
 import Database.Selda
 
 import           Fission.Internal.JSON
-
 import qualified Fission.Plan.Types                 as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
+import           Fission.Security.Types
 import           Fission.User                       (User)
-import Fission.Security
 
 data Request = Request
   { _callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.

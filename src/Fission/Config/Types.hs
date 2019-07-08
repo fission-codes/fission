@@ -21,7 +21,7 @@ import Data.Has
 
 import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
-import qualified Fission.Log                   as Log
+import qualified Fission.Log.Types             as Log
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 

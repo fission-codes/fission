@@ -1,9 +1,13 @@
 -- | Application configuration and top-level 'RIO' helpers
-module Fission.Config (get) where
+module Fission.Config
+  ( get
+  , module Fission.Config.Types
+  ) where
 
 import RIO
 
 import Data.Has
+import Fission.Config.Types
 
 -- $setup
 -- >>> import Data.Has

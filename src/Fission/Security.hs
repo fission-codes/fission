@@ -3,6 +3,8 @@ module Fission.Security
   ( mkSecret
   , toSecret
   , Digestable (..)
+  , SecretDigest
+  , Secret (unSecret)
   ) where
 
 import RIO
