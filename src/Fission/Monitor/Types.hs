@@ -5,9 +5,10 @@ import RIO
 
 import System.Envy
 
+-- | Monitor configuration
 data Config = Config
-  { ekgHost :: ByteString
-  , ekgPort :: Int
+  { ekgHost :: ByteString -- ^ EKG host name
+  , ekgPort :: Int        -- ^ EKG port
   } deriving ( Generic
              , FromEnv
              , Show
@@ -15,5 +16,3 @@ data Config = Config
 
 instance DefConfig Config where
   defConfig = Config "localhost" 9630
-
--- instance FromEnv Config
