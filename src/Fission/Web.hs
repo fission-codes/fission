@@ -31,6 +31,8 @@ import qualified Fission.Web.Types   as Web
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
 
+import qualified Fission.Storage.Types         as DB
+
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
@@ -41,6 +43,7 @@ app :: Has IPFS.BinPath    cfg
     => Has Heroku.Password cfg
     => HasProcessContext   cfg
     => HasLogFunc          cfg
+    => Has DB.Pool         cfg
     => MonadSelda     (RIO cfg)
     =>     cfg
     -> RIO cfg Application
@@ -75,11 +78,12 @@ mkAuth = do
 server :: Has IPFS.BinPath  cfg
        => Has Web.Host      cfg
        => HasProcessContext cfg
+       => Has DB.Pool       cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
        => Swagger.Host
        -> RIOServer         cfg API
 server host' = Web.Swagger.server host'
-          :<|> const IPFS.server
+          :<|> IPFS.server
           :<|> const Heroku.create
           :<|> pure Ping.pong
