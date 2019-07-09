@@ -10,17 +10,25 @@ import Data.Has
 import Fission.Config.Types
 
 -- $setup
+--
+-- >>> import RIO
 -- >>> import Data.Has
--- >>> import qualified Fission.Config as Config
+-- >>>
+-- >>> :set -XBlockArguments
 -- >>> :set -XMultiParamTypeClasses
 
 -- | Get a value from the reader config
 --
---   >>> newtype Example = Example Text deriving Show
---   >>> data ExCfg = ExCfg { example :: Example }
---   >>> instance Has ExCfg Example where hasLens = example
+--   >>> data Field = Field Text
+--   >>> data Cfg = Cfg Field
 --   >>>
---   >>> runRIO (ExCfg "hello world") (get :: Example)
---   Example "hello world"
+--   >>> instance Has Field Cfg where hasLens = \f (Cfg field) -> Cfg <$> f field
+--   >>>
+--   >>> :{
+--   >>>   runRIO (Cfg $ Field "hello world") do
+--   >>>     Field txt <- get
+--   >>>     return txt
+--   >>> :}
+--   "hello world"
 get :: (MonadReader cfg m, Has a cfg) => m a
 get = view hasLens

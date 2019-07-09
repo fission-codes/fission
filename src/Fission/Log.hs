@@ -16,6 +16,11 @@ import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 import           Fission.Log.Types
 
+-- $setup
+-- >>> import RIO
+-- >>> import GHC.Stack (callStack)
+-- >>> :set -XOverloadedStrings
+
 -- | Filter for log message output to a certain level
 atLevel :: MonadRIO     cfg m
         => Has MinLevel cfg
@@ -35,8 +40,8 @@ atLevel cs src lvl msg = do
 --
 --   === Example
 --
---   >>> simple callStack "app" LevelDebug "This is a log message"
---   *** Debug ***  | This is a log message
+--   >>> simple callStack ("myapp" :: LogSource) LevelDebug "This is a log message"
+--   *** Debug *** myapp | This is a log message
 simple :: MonadIO m => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
 simple _ src lvl msg =
   BS.putStr . Text.encodeUtf8 $ mconcat
@@ -53,8 +58,8 @@ simple _ src lvl msg =
 --
 --   === Example
 --
---   >>> short callStack "app" LevelDebug "This is a log message"
---   Debug: This is a log message
+--   >>> short LevelDebug
+--   "Debug"
 short :: LogLevel -> Text
 short = \case
   LevelDebug     -> "Debug"

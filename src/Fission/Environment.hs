@@ -30,7 +30,10 @@ getEnv = decodeEnv >>= \case
 -- Right 42
 --
 -- >>> Left (Just 9) .!~ 42
--- Left 9
+-- Left (Just 9)
+--
+-- >>> Left Nothing .!~ 42
+-- Left Nothing
 (.!~) :: Monad m => m (Maybe a) -> a -> m a
 mVal .!~ fallback = pure (fromMaybe fallback) <*> mVal
 
@@ -43,8 +46,8 @@ withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
 
 -- | Perform actions on an environment variable, with fallback if not available
 --
--- >>> withEnv "PORT" 80 (* 2)
--- 80
+-- >>> withEnv "HOST" "my.host" (drop 1)
+-- "my.host"
 withEnv :: String -> a -> (String -> a) -> IO a
 withEnv key fallback transform = pure (maybe fallback transform) <*> lookupEnv key
 

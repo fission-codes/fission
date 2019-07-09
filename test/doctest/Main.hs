@@ -39,7 +39,7 @@ setup tmp src = do
     go :: FilePath -> ByteString -> DirTree ByteString -> IO ()
     go dirPath exts' = \case
       Failed { err } ->
-        error "boom"
+        error $ show err
 
       Dir { name, contents } -> do
         let path = dirPath <> "/" <> name
