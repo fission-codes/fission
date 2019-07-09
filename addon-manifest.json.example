@@ -1,0 +1,31 @@
+{
+  "id": "interplanetary-fission",
+  "api": {
+    "regions": [
+      "dublin",
+      "eu",
+      "frankfurt",
+      "oregon",
+      "sydney",
+      "tokyo",
+      "us",
+      "virginia"
+    ],
+    "version": "3",
+    "password": "CHANGE ME!",
+    "requires": [],
+    "sso_salt": "CHANGE ME!",
+    "production": {
+      "sso_url": "CHANGE ME!",
+      "base_url": "CHANGE ME!"
+    },
+    "config_vars": [
+      "INTERPLANETARY_FISSION_URL",
+      "INTERPLANETARY_FISSION_USERNAME",
+      "INTERPLANETARY_FISSION_PASSWORD"
+    ],
+    "config_vars_prefix": "INTERPLANETARY_FISSION"
+  },
+  "name": "FISSION IPFS",
+  "$base": CHANGE_ME_TO_NUMBER
+}
