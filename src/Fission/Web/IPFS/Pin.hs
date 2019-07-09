@@ -46,7 +46,7 @@ pin uID cid = Storage.IPFS.pin cid >>= \case
   Left err -> Web.Err.throw err
   Right ()  -> do
     void $ UserCID.createFresh uID cid
-    pure NoContent
+    return NoContent
 
 unpin :: Has IPFS.BinPath  cfg
       => HasProcessContext cfg

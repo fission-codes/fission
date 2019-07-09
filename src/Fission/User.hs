@@ -47,6 +47,9 @@ import qualified Fission.Platform.Heroku.Types as Heroku
 import           Fission.User.Role
 import           Fission.Security.Types (SecretDigest)
 import           Fission.Security       (Digestable (..))
+
+import           Fission.Internal.Constraint
+import           Fission.Internal.Orphanage ()
 import qualified Fission.Internal.UTF8  as UTF8
 
 import           Fission.Storage.Query
@@ -111,8 +114,9 @@ users = Table.lensPrefixed (Table.name tableName)
   ]
 
 -- | Create a new, timestamped entry
-createFresh :: MonadIO m
-            => MonadSelda m
+createFresh :: MonadRIO    cfg m
+            => MonadSelda     m
+            => HasLogFunc cfg
             => UUID
             -> Heroku.Region
             -> SecretDigest
@@ -120,7 +124,10 @@ createFresh :: MonadIO m
 createFresh herokuUUID herokuRegion sekret = transaction do
   now     <- liftIO getCurrentTime
   hConfId <- insert1 now $ Heroku.AddOn def herokuUUID (Just herokuRegion)
-  insert1 now $ User def Regular True (Just hConfId) sekret
+
+  uid <- insert1 now $ User def Regular True (Just hConfId) sekret
+  logInfo $ "Inserted user " <> display uid
+  return uid
 
 -- | Find a user by their account secret
 --

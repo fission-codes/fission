@@ -33,6 +33,9 @@ import           Fission.User (User (..))
 import           Fission.Storage.Mutate
 import qualified Fission.Storage.Table  as Table
 
+import Fission.Internal.Constraint
+import Fission.Internal.Orphanage ()
+
 -- | A user account, most likely a developer
 data UserCID = UserCID
   { _userCID       :: ID UserCID
@@ -80,11 +83,14 @@ userCIDs = Table.lensPrefixed (Table.name tableName)
   ]
 
 -- | Create a new, timestamped entry
-createFresh :: MonadIO m
-            => MonadSelda m
+createFresh :: MonadRIO   cfg m
+            => HasLogFunc cfg
+            => MonadSelda     m
             => ID User
             -> CID
             -> m (ID UserCID)
 createFresh userID (CID cidTxt) = transaction do
   now <- liftIO getCurrentTime
-  insert1 now $ UserCID def userID cidTxt
+  ucid <- insert1 now $ UserCID def userID cidTxt
+  logInfo $ "Inserted user CID " <> display ucid
+  return ucid

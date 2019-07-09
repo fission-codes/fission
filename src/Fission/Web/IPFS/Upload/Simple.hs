@@ -7,19 +7,28 @@ import RIO
 import RIO.Process (HasProcessContext)
 
 import Data.Has
+import Database.Selda
 import Servant
 
 import           Fission.Web.Server
 import qualified Fission.Web.Error    as Web.Err
-import qualified Fission.File.Types   as File
+import           Fission.File.Types   as File
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
+import           Fission.User
+import qualified Fission.User.CID     as UserCID
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 add :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
+    => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg
-    => RIOServer         cfg API
-add = either Web.Err.throw pure <=< Storage.IPFS.addRaw . File.unserialize
+    => ID User
+    -> RIOServer         cfg API
+add uid (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
+  Left err -> Web.Err.throw err
+  Right cid -> do
+    void $ UserCID.createFresh uid cid -- FIXME check if already exists
+    return cid

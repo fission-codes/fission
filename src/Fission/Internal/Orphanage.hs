@@ -38,6 +38,9 @@ instance Bounded UUID where
   minBound = Partial.fromJust $ UUID.fromString "00000000-0000-0000-0000-000000000000"
   maxBound = Partial.fromJust $ UUID.fromString "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
 
+instance Display (ID a) where
+  display = display . fromId
+
 instance ToJSON (ID a) where
   toJSON = Number . fromIntegral . fromId
 
