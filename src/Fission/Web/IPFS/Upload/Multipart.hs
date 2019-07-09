@@ -24,7 +24,7 @@ import qualified Fission.IPFS.Types      as IPFS
 import qualified Fission.Storage.IPFS    as Storage.IPFS
 import qualified Fission.Web.Error       as Web.Err
 import           Fission.User
-import qualified Fission.User.CID     as UserCID
+import           Fission.User.CID     as User.CID
 
 type API = TextAPI :<|> JSONAPI
 
@@ -53,8 +53,20 @@ textAdd :: Has IPFS.BinPath  cfg
         -> RIOServer         cfg TextAPI
 textAdd uID form queryName = run form queryName $ \sparse ->
   case IPFS.linearize sparse of
-    Right x   -> pure x
-    Left  err -> Web.Err.throw err
+    Left err ->
+      Web.Err.throw err
+
+    Right hash ->
+      transaction do
+        results <- query do
+          ucids <- select userCIDs
+          restrict $ ucids ! #_userFK .== literal uid
+                 .&& ucids ! #_cid    .== text hash
+          return ucids
+
+        when (results == []) (void $ User.CID.createFresh uid newCID)
+        return hash
+
 
 jsonAdd :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
@@ -78,7 +90,7 @@ run uid form qName cont = case lookupFile "file" form of
     Storage.IPFS.addFile fdPayload humanName >>= \case
       Left  err    -> Web.Err.throw err
       Right struct -> do
-        void $ UserCID.createFresh uid cid -- FIXME check if already exists, find the new CID
+        void $ User.CID.createFresh uid cid -- FIXME check if already exists, find the new CID
         cont struct
     where
       humanName :: IPFS.Name

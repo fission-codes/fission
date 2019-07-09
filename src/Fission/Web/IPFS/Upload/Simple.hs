@@ -16,7 +16,7 @@ import           Fission.File.Types   as File
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
 import           Fission.User
-import qualified Fission.User.CID     as UserCID
+import           Fission.User.CID     as User.CID
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
@@ -28,7 +28,16 @@ add :: Has IPFS.BinPath  cfg
     => ID User
     -> RIOServer         cfg API
 add uid (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
-  Left err -> Web.Err.throw err
-  Right cid -> do
-    void $ UserCID.createFresh uid cid -- FIXME check if already exists
-    return cid
+  Left err ->
+    Web.Err.throw err
+
+  Right newCID@(IPFS.CID hash) ->
+    transaction do
+      results <- query do
+        ucids <- select userCIDs
+        restrict $ ucids ! #_userFK .== literal uid
+               .&& ucids ! #_cid    .== text hash
+        return ucids
+
+      when (results == []) (void $ User.CID.createFresh uid newCID)
+      return newCID

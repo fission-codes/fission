@@ -7,6 +7,7 @@ import RIO
 import RIO.Process (HasProcessContext)
 
 import Data.Has
+import Database.Selda
 import Servant
 
 import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
