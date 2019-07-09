@@ -1,6 +1,8 @@
 module Fission.Web.IPFS.Pin
   ( API
-  , put
+  , server
+  , pin
+  , unpin
   ) where
 
 import RIO
@@ -15,11 +17,28 @@ import qualified Fission.Web.Error    as Web.Err
 import           Fission.Web.Server
 import           Fission.IPFS.CID.Types
 
-type API = Capture "cid" CID
+type API = PinAPI :<|> UnpinAPI
+
+type PinAPI = Capture "cid" CID
            :> Put '[PlainText, OctetStream] NoContent
 
-put :: Has IPFS.BinPath  cfg
+type UnpinAPI = Capture "cid" CID
+             :> Delete '[PlainText, OctetStream] NoContent
+
+server :: Has IPFS.BinPath  cfg
+       => HasProcessContext cfg
+       => HasLogFunc        cfg
+       => RIOServer         cfg API
+server = pin :<|> unpin
+
+pin :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
     => HasLogFunc        cfg
-    => RIOServer         cfg API
-put = either Web.Err.throw (pure . const NoContent) <=< Storage.IPFS.pin
+    => RIOServer         cfg PinAPI
+pin = either Web.Err.throw (pure . const NoContent) <=< Storage.IPFS.pin
+
+unpin :: Has IPFS.BinPath  cfg
+      => HasProcessContext cfg
+      => HasLogFunc        cfg
+      => RIOServer         cfg UnpinAPI
+unpin = either Web.Err.throw (pure . const NoContent) <=< Storage.IPFS.pin

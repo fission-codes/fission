@@ -21,4 +21,4 @@ server :: HasLogFunc        cfg
        => HasProcessContext cfg
        => Has IPFS.BinPath  cfg
        => RIOServer         cfg API
-server = Upload.add :<|> Pin.put
+server = Upload.add :<|> Pin.server
