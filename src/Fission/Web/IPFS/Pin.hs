@@ -41,4 +41,4 @@ unpin :: Has IPFS.BinPath  cfg
       => HasProcessContext cfg
       => HasLogFunc        cfg
       => RIOServer         cfg UnpinAPI
-unpin = either Web.Err.throw (pure . const NoContent) <=< Storage.IPFS.pin
+unpin = either Web.Err.throw (pure . const NoContent) <=< Storage.IPFS.unpin
