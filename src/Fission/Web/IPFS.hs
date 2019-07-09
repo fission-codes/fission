@@ -16,14 +16,11 @@ import qualified Fission.Web.IPFS.Upload as Upload
 import qualified Fission.Web.IPFS.Pin    as Pin
 import           Fission.User
 
-import qualified Fission.Storage.Types         as DB
-
 type API = Upload.API
       :<|> Pin.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
-       => Has DB.Pool       cfg
        => MonadSelda   (RIO cfg)
        => Has IPFS.BinPath  cfg
        => User

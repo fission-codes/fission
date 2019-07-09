@@ -19,7 +19,6 @@ import           Fission.Web.Server
 import           Fission.IPFS.CID.Types
 import qualified Fission.User.CID     as UserCID
 import           Fission.User
-import qualified Fission.Storage.Types         as DB
 
 type API = PinAPI :<|> UnpinAPI
 
@@ -31,7 +30,6 @@ type UnpinAPI = Capture "cid" CID
 
 server :: Has IPFS.BinPath  cfg
        => HasProcessContext cfg
-       => Has DB.Pool       cfg
        => MonadSelda   (RIO cfg)
        => HasLogFunc        cfg
        => User
@@ -40,7 +38,6 @@ server User { _userID } = pin _userID :<|> unpin _userID
 
 pin :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
-    => Has DB.Pool       cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg
     => ID User
