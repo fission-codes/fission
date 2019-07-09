@@ -12,10 +12,10 @@ import Data.Pool
 import Database.Selda
 import Database.Selda.SQLite
 
-import Fission
 import Fission.Internal.Constraint
 import Fission.Internal.Orphanage ()
 
+import qualified Fission.Config        as Config
 import qualified Fission.Storage.Table as Table
 import qualified Fission.Log           as Log
 import qualified Fission.Storage.Types as DB
@@ -27,7 +27,7 @@ setupTable :: MonadRIO cfg m
            -> TableName
            -> m ()
 setupTable tbl tblName = do
-  DB.Path db <- fromConfig
+  DB.Path db <- Config.get
   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB " <> displayShow db
   liftIO . withSQLite db $ createTable tbl
 

@@ -10,8 +10,7 @@ import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 import Network.Wai.Middleware.RequestLogger
 
-import Fission
-import Fission.Types
+import Fission.Config.Types
 import Fission.Storage.SQLite as SQLite
 
 import           Fission.Environment
@@ -37,7 +36,7 @@ main = withStdoutLogger $ \stdOut -> do
   _host         <- decode .!~ Web.Host "localhost:1337"
   _ipfsPath     <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   _dbPath       <- decode .!~ DB.Path "ipfs-api.sqlite"
-  _dbPool       <- simply $ SQLite.connPool _dbPath
+  _dbPool       <- RIO.runSimpleApp $ SQLite.connPool _dbPath
 
   let
     _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id

@@ -28,7 +28,7 @@ import Servant.Multipart
 import Servant.Swagger
 import Servant.Swagger.Internal
 
-import           Fission
+import qualified Fission.Config        as Config
 import qualified Fission.Storage.Types as DB
 
 instance Enum    UUID
@@ -56,7 +56,7 @@ instance FromJSON (ID a) where
 
 instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
   seldaConnection = do
-    DB.Pool pool <- fromConfig
+    DB.Pool pool <- Config.get
     liftIO $ withResource pool pure
 
 instance HasLogFunc (LogFunc, b) where

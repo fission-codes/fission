@@ -6,6 +6,7 @@
 *.csr
 *.sqlite
 *.db
+.doctest-tmp/
 addon-manifest.json
 
 ### Haskell ###
@@ -296,7 +297,6 @@ StyleCopReport.xml
 *.tmp
 *.tmp_proj
 *_wpftmp.csproj
-*.log
 *.vspscc
 *.vssscc
 .builds

@@ -1,3 +1,4 @@
+-- | Application logging
 module Fission.Log
   ( MinLevel (..)
   , atLevel
@@ -6,30 +7,22 @@ module Fission.Log
   ) where
 
 import           RIO
-import           RIO.Char (toLower)
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
 
 import Data.Has
-import System.Envy
 
+import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
-import qualified Fission.Internal.UTF8 as UTF8
+import           Fission.Log.Types
 
-newtype MinLevel = MinLevel LogLevel
-  deriving (Eq, Show)
+-- $setup
+-- >>> import RIO
+-- >>> import GHC.Stack (callStack)
+-- >>> :set -XOverloadedStrings
 
-instance FromEnv MinLevel where
-  fromEnv = do
-    levelEnv <- env "MIN_LOG_LEVEL" .!= "debug"
-    pure . MinLevel $ case fmap toLower levelEnv of
-      "debug" -> LevelDebug
-      "error" -> LevelError
-      "info"  -> LevelInfo
-      "warn"  -> LevelWarn
-      other   -> LevelOther (UTF8.textShow (other :: String))
-
-atLevel :: MonadRIO cfg m
+-- | Filter for log message output to a certain level
+atLevel :: MonadRIO     cfg m
         => Has MinLevel cfg
         => CallStack
         -> LogSource
@@ -37,10 +30,18 @@ atLevel :: MonadRIO cfg m
         -> Utf8Builder
         -> m ()
 atLevel cs src lvl msg = do
-  MinLevel minLevel <- view hasLens
+  MinLevel minLevel <- Config.get
   when (lvl >= minLevel) $
     liftIO $ simple cs src lvl msg
 
+-- | A simple logger format
+--
+--   Includes a newline
+--
+--   === Example
+--
+--   >>> simple callStack ("myapp" :: LogSource) LevelDebug "This is a log message"
+--   *** Debug *** myapp | This is a log message
 simple :: MonadIO m => CallStack -> LogSource -> LogLevel -> Utf8Builder -> m ()
 simple _ src lvl msg =
   BS.putStr . Text.encodeUtf8 $ mconcat
@@ -53,6 +54,12 @@ simple _ src lvl msg =
     , "\n"
     ]
 
+-- | Short logger format
+--
+--   === Example
+--
+--   >>> short LevelDebug
+--   "Debug"
 short :: LogLevel -> Text
 short = \case
   LevelDebug     -> "Debug"

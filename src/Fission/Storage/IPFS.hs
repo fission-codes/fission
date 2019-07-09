@@ -9,7 +9,7 @@ import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process (HasProcessContext)
 
 import Data.Has
-import Data.ByteString.Lazy.Char8 as BS
+import Data.ByteString.Lazy.Char8 as CL
 
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8       as UTF8
@@ -23,7 +23,7 @@ addRaw :: MonadRIO          cfg m
        => Has IPFS.BinPath  cfg
        => Lazy.ByteString
        -> m (Either IPFS.Error.Add IPFS.CID)
-addRaw raw = BS.lines <$> IPFS.Proc.run ["add", "-q"] raw >>= pure . \case
+addRaw raw = IPFS.Proc.run ["add", "-q"] raw <&> CL.lines <&> \case
   [cid] -> Right . mkCID $ UTF8.textShow cid
   bad   -> Left . UnexpectedOutput $ UTF8.textShow bad
 
@@ -34,7 +34,7 @@ addFile :: MonadRIO          cfg m
         => Lazy.ByteString
         -> IPFS.Name
         -> m (Either IPFS.Error.Add IPFS.SparseTree)
-addFile raw name = BS.lines <$> IPFS.Proc.run opts raw >>= pure . \case
+addFile raw name = IPFS.Proc.run opts raw <&> CL.lines <&> \case
   [inner, outer] ->
     let
       sparseTree  = Directory [(Hash rootCID, fileWrapper)]
@@ -61,6 +61,6 @@ pin :: MonadRIO          cfg m
     => Has IPFS.BinPath  cfg
     => IPFS.CID
     -> m (Either IPFS.Error.Add ())
-pin (CID cid) = IPFS.Proc.run_ ["pin", "add"] (UTF8.textToLazyBS cid) >>= pure . \case
+pin (CID cid) = IPFS.Proc.run_ ["pin", "add"] (UTF8.textToLazyBS cid) <&> \case
   ExitSuccess   -> Right ()
   ExitFailure _ -> Left UnknownError

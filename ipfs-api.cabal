@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: da56bf8f1ef8c3041321e67741e313b6343c025ea3164ee12dd5d709892cafc4
+-- hash: 49acd5c29daba282496bc451df564f839754dbab3814f7b98d2a87a7b7796ab2
 
 name:           ipfs-api
 version:        1.0.2
@@ -28,9 +28,10 @@ source-repository head
 
 library
   exposed-modules:
-      Fission
+      Fission.Config
+      Fission.Config.Types
       Fission.Environment
-      Fission.File
+      Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -51,8 +52,10 @@ library
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
       Fission.Log
+      Fission.Log.Types
       Fission.Monitor
-      Fission.Plan
+      Fission.Monitor.Types
+      Fission.Plan.Types
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
       Fission.Platform.Heroku.AddOn.Manifest
@@ -61,6 +64,7 @@ library
       Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
+      Fission.Security.Types
       Fission.Storage.IPFS
       Fission.Storage.Mutate
       Fission.Storage.Query
@@ -323,9 +327,10 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Fission
+      Fission.Config
+      Fission.Config.Types
       Fission.Environment
-      Fission.File
+      Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -346,8 +351,10 @@ test-suite fission-test
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
       Fission.Log
+      Fission.Log.Types
       Fission.Monitor
-      Fission.Plan
+      Fission.Monitor.Types
+      Fission.Plan.Types
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
       Fission.Platform.Heroku.AddOn.Manifest
@@ -356,6 +363,7 @@ test-suite fission-test
       Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
+      Fission.Security.Types
       Fission.Storage.IPFS
       Fission.Storage.Mutate
       Fission.Storage.Query

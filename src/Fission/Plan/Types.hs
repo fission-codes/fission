@@ -1,4 +1,5 @@
-module Fission.Plan (Tier (..)) where
+-- | User payment plans
+module Fission.Plan.Types (Tier (..)) where
 
 import RIO
 import RIO.Text as Text
