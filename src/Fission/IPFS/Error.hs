@@ -55,14 +55,15 @@ instance ToServantErr Add where
     UnknownError       -> "Unknown IPFS error"
     UnexpectedOutput _ -> "Unexpected IPFS result"
 
-data Linearization
-  = NonLinear SparseTree
-  deriving ( Exception
-           , Eq
-           , Generic
-           , Show
-           , ToJSON
-           )
+-- NOTE Will not stay as a newtype in the long term
+newtype Linearization = NonLinear SparseTree
+  deriving          ( Eq
+                    , Generic
+                    , Show
+                    )
+  deriving anyclass ( Exception
+                    , ToJSON
+                    )
 
 instance Display Linearization where
   display (NonLinear sparseTree) = "Unable to linearize IPFS result: " <> display sparseTree
