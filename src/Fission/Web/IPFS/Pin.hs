@@ -42,17 +42,28 @@ pin :: Has IPFS.BinPath  cfg
     => HasLogFunc        cfg
     => ID User
     -> RIOServer         cfg PinAPI
-pin uID cid = do
-  result <- Storage.IPFS.pin cid
-  case result of
-    Left err -> Web.Err.throw err
-    Right ()  -> do
-      void $ UserCID.createFresh uID cid
-      pure NoContent
+pin uID cid = Storage.IPFS.pin cid >>= \case
+  Left err -> Web.Err.throw err
+  Right ()  -> do
+    void $ UserCID.createFresh uID cid
+    pure NoContent
 
 unpin :: Has IPFS.BinPath  cfg
       => HasProcessContext cfg
       => HasLogFunc        cfg
+      => MonadSelda   (RIO cfg)
       => ID User
       -> RIOServer         cfg UnpinAPI
-unpin userID = either Web.Err.throw (pure . const NoContent) <=< Storage.IPFS.unpin
+unpin uID cid = transaction do
+  -- delete userCID
+  -- lookup how many refs to that CID remain
+  -- if 0, then unpin, else noop
+
+   deleteFrom userCIDs $ \ucid ->
+     ucid ! #id .== just ...
+
+  -- Storage.IPFS.unpin cid >>= \case
+  -- Left err -> Web.Err.throw err
+  -- Right ()  -> do
+  --   void $ UserCID.createFresh uID cid
+  --   pure NoContent
