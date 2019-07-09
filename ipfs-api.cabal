@@ -4,7 +4,13 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
+<<<<<<< HEAD
 -- hash: a4dbbd7a8577e96aa5411d2d7b72f3c3ca0b583876907979d27c008f6ceb9b35
+||||||| merged common ancestors
+-- hash: 49acd5c29daba282496bc451df564f839754dbab3814f7b98d2a87a7b7796ab2
+=======
+-- hash: d359f59b52611443d8b774377e0f62d4064110c582d0b1ab7bace4ed58fd98d8
+>>>>>>> Define table
 
 name:           ipfs-api
 version:        1.0.2
@@ -73,6 +79,7 @@ library
       Fission.Storage.Types
       Fission.Types
       Fission.User
+      Fission.User.CID
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
@@ -371,6 +378,7 @@ test-suite fission-test
       Fission.Storage.Types
       Fission.Types
       Fission.User
+      Fission.User.CID
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
