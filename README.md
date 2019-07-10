@@ -22,7 +22,7 @@ brew service start ipfs
 mv addon-manifest.json.example addon-manifest.json
 
 # Dev Web Server
-export VERBOSE=true
+export RIO_VERBOSE=true
 stack run server
 
 # Local Request
