@@ -17,7 +17,6 @@ import Fission.Internal.Orphanage ()
 
 import qualified Fission.Config        as Config
 import qualified Fission.Storage.Table as Table
-import qualified Fission.Log           as Log
 import qualified Fission.Storage.Types as DB
 
 setupTable :: MonadRIO cfg m
@@ -43,8 +42,7 @@ connPool (DB.Path {getPath = path}) = do
 
 -- HLint can't handle BlockArguments _yet_
 makeTable :: DB.Path -> Table t -> Table.Name t -> IO ()
-makeTable dbPath' tbl tblName = runRIO logger do
-  pool <- connPool dbPath'
+makeTable dbPath' tbl tblName = runSimpleApp do
+  pool   <- connPool dbPath'
+  logger <- view logFuncL
   runRIO (logger, pool, dbPath') $ setupTable tbl (Table.name tblName)
-  where
-    logger  = mkLogFunc Log.simple

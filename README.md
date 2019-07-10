@@ -45,11 +45,11 @@ Default: `1337`
 
 The port to run the web server on.
 
-### `VERBOSE`
+### `RIO_VERBOSE`
 
 Default: `false`
 
-Log with colours and more output
+Log with colours and more output. Prefixed by `RIO_` to make it compatible with `SimpleApp`.
 
 ### `PRETTY_REQS`
 

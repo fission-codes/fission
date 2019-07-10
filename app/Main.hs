@@ -37,7 +37,7 @@ main = do
   _dbPool      <- RIO.runSimpleApp $ SQLite.connPool _dbPath
 
   condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
-  isVerbose   <- getFlag "VERBOSE"
+  isVerbose   <- getFlag "RIO_VERBOSE"
   logOptions' <- logOptionsHandle stdout isVerbose
   let logOpts = setLogUseTime True logOptions'
 
