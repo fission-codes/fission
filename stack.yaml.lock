@@ -12,6 +12,20 @@ packages:
   original:
     hackage: alex-3.2.4
 - completed:
+    hackage: beam-migrate-0.4.0.1@sha256:c53948a84972f67e97ba9c56f3dda9abfed556ba2f1672dc3070eb2512791efb,4920
+    pantry-tree:
+      size: 1720
+      sha256: 7ab124f3ac3c74bf5b342d2ef73c9ef3c13ddd7b0804aea340423ceb1baf72a1
+  original:
+    hackage: beam-migrate-0.4.0.1
+- completed:
+    hackage: beam-sqlite-0.4.0.0@sha256:00504aa701bd000eb2a9df2214c46bc81a8244b41fb2bee16433adf16b89a94f,2750
+    pantry-tree:
+      size: 618
+      sha256: 182b944bdc2c787f0c4069125508357440c04261251b2581038b60b6481a901a
+  original:
+    hackage: beam-sqlite-0.4.0.0
+- completed:
     hackage: ekg-wai-0.1.0.3@sha256:d6b62107589f7ddd30b6c56dbb22f9904e274fd9ce24807db76833fab9506c9e,1992
     pantry-tree:
       size: 1343

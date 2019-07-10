@@ -25,6 +25,8 @@ import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 import qualified Fission.Platform.Heroku.Types          as Heroku
 
+import Database.Beam.Migrate
+
 main :: IO ()
 main = do
   Web.Port port <- getEnv

@@ -69,6 +69,9 @@ dependencies:
   - aeson
   - aeson-casing
   - base
+  - beam-core
+  - beam-sqlite
+  - beam-migrate
   - cryptonite
   - bytestring
   - data-default-class
