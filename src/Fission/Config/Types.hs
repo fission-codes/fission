@@ -3,7 +3,6 @@ module Fission.Config.Types
   ( Config (..)
   , processCtx
   , logFunc
-  , minLogLevel
   , ipfsPath
   , host
   , dbPath
@@ -21,7 +20,6 @@ import Data.Has
 
 import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
-import qualified Fission.Log.Types             as Log
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 
@@ -29,7 +27,6 @@ import qualified Fission.Platform.Heroku.Types as Heroku
 data Config = Config
   { _processCtx     :: !ProcessContext
   , _logFunc        :: !LogFunc
-  , _minLogLevel    :: !Log.MinLevel
   , _ipfsPath       :: !IPFS.BinPath
   , _host           :: !Host
   , _dbPath         :: !DB.Path
@@ -45,7 +42,6 @@ instance Show Config where
     [ "Config {"
     , "  _processCtx     = **SOME PROC CONTEXT**"
     , "  _logFunc        = **SOME LOG FUNCTION**"
-    , "  _minLogLevel    = " <> show _minLogLevel
     , "  _ipfsPath       = " <> show _ipfsPath
     , "  _host           = " <> show _host
     , "  _dbPath         = " <> show _dbPath
@@ -63,9 +59,6 @@ instance HasLogFunc Config where
 
 instance Has IPFS.BinPath Config where
   hasLens = ipfsPath
-
-instance Has Log.MinLevel Config where
-  hasLens = minLogLevel
 
 instance Has DB.Path Config where
   hasLens = dbPath

@@ -18,15 +18,19 @@ in a familiar, compatible way
 brew install ipfs
 brew service start ipfs
 
-# Web Server
+# Enable sample Heroku config
+mv addon-manifest.json.example addon-manifest.json
+
+# Dev Web Server
+export VERBOSE=true
 stack run server
 
 # Local Request
 curl \
   -H "Content-Type: text/plain;charset=utf-8" \
   -H "Authorization: Basic Q0hBTkdFTUU6U1VQRVJTRUNSRVQ=" \
-  -d"hello world" \
-  http://localhost:1337/ipfs/
+  -d "hello world" \
+  http://localhost:1337/ipfs
 ```
 
 # Configuration
@@ -41,7 +45,36 @@ Default: `1337`
 
 The port to run the web server on.
 
-# Live Monitoring
+### `VERBOSE`
+
+Default: `false`
+
+Log with colours and more output
+
+### `PRETTY_REQS`
+
+Default: `false`
+
+Log HTTP requests in easy-to-read multiline format
+
+### `DB_PATH`
+
+Default: `ipfs-api.sqlite`
+
+Path to the SQLite databse
+
+### `IPFS_PATH`
+
+Default: `/usr/local/bin/ipfs`
+
+Path to the local IPFS binary
+
+
+### `MONITOR`
+
+Default: `false`
+
+Live monitoring dashboard
 
 ```
 export MONITOR=true
