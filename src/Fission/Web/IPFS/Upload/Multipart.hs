@@ -7,7 +7,7 @@ module Fission.Web.IPFS.Upload.Multipart
 
 import           RIO
 import           RIO.Process (HasProcessContext)
-import           RIO.Set  as Set
+import           RIO.List
 import qualified RIO.Text as Text
 
 import Data.Has
@@ -24,9 +24,10 @@ import qualified Fission.IPFS.SparseTree as IPFS
 import qualified Fission.IPFS.Types      as IPFS
 import qualified Fission.Storage.IPFS    as Storage.IPFS
 import qualified Fission.Web.Error       as Web.Err
+
 import           Fission.User
-import           Fission.User.CID     as User.CID
-import           Fission.User.CID     as User.CID
+import           Fission.User.CID
+import           Fission.User.CID.Query
 import Fission.IPFS.CID.Types as IPFS.CID
 import Fission.Storage.Mutate
 
@@ -85,25 +86,8 @@ run uID form qName cont = case lookupFile "file" form of
   Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
-      Left err ->
-        Web.Err.throw err
-
-      Right struct -> do
-        void $ transaction do
-          let hashes = IPFS.CID.unaddress <$> IPFS.cids struct
-
-          results <- query do
-            uCIDs <- select userCIDs
-            restrict $ uCIDs ! #_userFK .== literal uID
-                   .&& uCIDs ! #_cid `isIn` (text <$> hashes)
-            return $ uCIDs ! #_cid
-
-          let resultSet = Set.fromList results
-          let hashSet   = Set.fromList hashes
-          let newHashes = Set.toList (hashSet \\ resultSet)
-          insertX' (UserCID def uID <$> newHashes)
-
-        cont struct
+      Left err     -> Web.Err.throw err
+      Right struct -> insertNewHashes uID struct >> cont struct
     where
       humanName :: IPFS.Name
       humanName = name qName fdFileName fdFileCType
@@ -118,3 +102,9 @@ name queryName' fileName mime =
 plainName :: Text -> Text -> String
 plainName ""       mime = Text.unpack $ "file." <> lookupExt (encodeUtf8 mime)
 plainName fileName _    = Text.unpack fileName
+
+insertNewHashes :: MonadSelda m => ID User -> IPFS.SparseTree -> m (ID UserCID)
+insertNewHashes uID struct = transaction do
+  let hashes = IPFS.CID.unaddress <$> IPFS.cids struct
+  results <- query $ select userCIDs >>= inUserCIDs uID hashes
+  insertX' $ UserCID def uID <$> hashes \\ results

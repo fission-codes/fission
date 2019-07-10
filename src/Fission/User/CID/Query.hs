@@ -1,26 +1,22 @@
 -- | 'User.CID' DB mutations
-module Fission.User.CID.Mutation where
+module Fission.User.CID.Query where
+  -- ( inUserCIDs
+  -- , byUser
+  -- , matchingCIDs
+  -- ) where
 
 import RIO
 
-import Database.Selda as Selda
+import Database.Selda
 
 import Fission.User
-import Fission.User.CID as User.CID
+import Fission.User.CID
 
-inUserCIDs :: Functor  collection
-          => Selda.Set collection
-          => ID User
-          -> collection Text
-          -> Query s (Col s Text)
-inUserCIDs uID hashes = do
-  uCIDs <- select userCIDs
+inUserCIDs uID targetHashes uCIDs = do
   restrict $ uCIDs `byUser` uID
-         .&& uCIDs `preexistingHashes` hashes
+         .&& uCIDs `matchingCIDs` targetHashes
   return $ uCIDs ! #_cid
 
--- byUser ::
-uCIDs `byUser` uID = uCIDs ! #_userFK .== literal uID
+row `byUser` uID = row ! #_userFK .== literal uID
 
-preexistingHashes :: Functor collection => Selda.Set collection => Row s t -> collection Text -> Col s Bool
-preexistingHashes uCIDs hashes = uCIDs ! #_cid `isIn` (text <$> hashes)
+row `matchingCIDs` hashes = row ! #_cid `isIn` (text <$> hashes)
