@@ -2,9 +2,11 @@ module Fission.IPFS.SparseTree
   ( SparseTree (..)
   , Error.Linearization (..)
   , linearize
+  , cids
   ) where
 
-import RIO
+import           RIO
+import qualified RIO.Map as Map
 
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Error    as Error
@@ -34,3 +36,12 @@ linearize = fmap (Path . wrap "\"") . go
       fromKey = UTF8.stripN 1 . \case
         Hash (CID cid)   -> cid
         Key  (Name name) -> UTF8.textShow name
+
+-- | Get all CIDs from a 'SparseTree' (all levels)
+cids :: SparseTree -> [CID]
+cids = cids' []
+
+cids' :: [CID] -> SparseTree -> [CID]
+cids' acc (Stub _)       = acc
+cids' acc (Content cid)  = cid : acc
+cids' acc (Directory kv) = Map.elems kv >>= \subtree -> cids subtree <> acc

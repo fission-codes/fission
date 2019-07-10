@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 801898bc264e24c618f02b8bc57ad139f3c6e5edfe612f7fed42eecb1920ebfb
+-- hash: e4c491af74e0b3a71be8f2147691390a02e420feb5dbb1374ea15ef36111d48c
 
 name:           ipfs-api
 version:        1.0.2
@@ -40,6 +40,7 @@ library
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.CID.Query
       Fission.IPFS.CID.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
@@ -74,6 +75,7 @@ library
       Fission.Types
       Fission.User
       Fission.User.CID
+      Fission.User.CID.Query
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth
@@ -339,6 +341,7 @@ test-suite fission-test
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.CID.Query
       Fission.IPFS.CID.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
@@ -373,6 +376,7 @@ test-suite fission-test
       Fission.Types
       Fission.User
       Fission.User.CID
+      Fission.User.CID.Query
       Fission.User.Role
       Fission.Web
       Fission.Web.Auth

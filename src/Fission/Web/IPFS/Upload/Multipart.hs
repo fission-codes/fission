@@ -5,8 +5,9 @@ module Fission.Web.IPFS.Upload.Multipart
   , textAdd
   ) where
 
-import RIO
-import RIO.Process (HasProcessContext)
+import           RIO
+import           RIO.Process (HasProcessContext)
+import           RIO.Set  as Set
 import qualified RIO.Text as Text
 
 import Data.Has
@@ -25,6 +26,9 @@ import qualified Fission.Storage.IPFS    as Storage.IPFS
 import qualified Fission.Web.Error       as Web.Err
 import           Fission.User
 import           Fission.User.CID     as User.CID
+import           Fission.User.CID     as User.CID
+import Fission.IPFS.CID.Types as IPFS.CID
+import Fission.Storage.Mutate
 
 type API = TextAPI :<|> JSONAPI
 
@@ -40,6 +44,7 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add :: Has IPFS.BinPath  cfg
+    => MonadSelda   (RIO cfg)
     => HasProcessContext cfg
     => HasLogFunc        cfg
     => User
@@ -48,34 +53,26 @@ add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 
 textAdd :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
+        => MonadSelda   (RIO cfg)
         => HasLogFunc        cfg
         => ID User
         -> RIOServer         cfg TextAPI
-textAdd uID form queryName = run form queryName $ \sparse ->
+textAdd uID form queryName = run uID form queryName $ \sparse ->
   case IPFS.linearize sparse of
-    Left err ->
-      Web.Err.throw err
+    Right hash -> pure hash
+    Left err   -> Web.Err.throw err
 
-    Right hash ->
-      transaction do
-        results <- query do
-          ucids <- select userCIDs
-          restrict $ ucids ! #_userFK .== literal uid
-                 .&& ucids ! #_cid    .== text hash
-          return ucids
-
-        when (results == []) (void $ User.CID.createFresh uid newCID)
-        return hash
-
-
-jsonAdd :: Has IPFS.BinPath  cfg
+jsonAdd :: MonadSelda   (RIO cfg)
+        => Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
-        => RIOServer         cfg JSONAPI
-jsonAdd form queryName = run form queryName pure
+        => ID User
+        -> RIOServer         cfg JSONAPI
+jsonAdd uID form queryName = run uID form queryName pure
 
 run :: MonadRIO          cfg m
     => MonadThrow            m
+    => MonadSelda            m
     => Has IPFS.BinPath  cfg
     => HasProcessContext cfg
     => HasLogFunc        cfg
@@ -84,13 +81,28 @@ run :: MonadRIO          cfg m
     -> Maybe IPFS.Name
     -> (IPFS.SparseTree -> m a)
     -> m a
-run uid form qName cont = case lookupFile "file" form of
+run uID form qName cont = case lookupFile "file" form of
   Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
-      Left  err    -> Web.Err.throw err
+      Left err ->
+        Web.Err.throw err
+
       Right struct -> do
-        void $ User.CID.createFresh uid cid -- FIXME check if already exists, find the new CID
+        void $ transaction do
+          let hashes = IPFS.CID.unaddress <$> IPFS.cids struct
+
+          results <- query do
+            uCIDs <- select userCIDs
+            restrict $ uCIDs ! #_userFK .== literal uID
+                   .&& uCIDs ! #_cid `isIn` (text <$> hashes)
+            return $ uCIDs ! #_cid
+
+          let resultSet = Set.fromList results
+          let hashSet   = Set.fromList hashes
+          let newHashes = Set.toList (hashSet \\ resultSet)
+          insertX' (UserCID def uID <$> newHashes)
+
         cont struct
     where
       humanName :: IPFS.Name

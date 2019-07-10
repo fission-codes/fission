@@ -45,6 +45,7 @@ pin :: Has IPFS.BinPath  cfg
 pin uID cid = Storage.IPFS.pin cid >>= \case
   Left err -> Web.Err.throw err
   Right ()  -> do
+    -- FIXME check if already exists for this user
     void $ UserCID.createFresh uID cid
     return NoContent
 
