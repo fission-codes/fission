@@ -17,11 +17,10 @@ inUserCIDs uID targetHashes uCIDs = do
          .&& uCIDs `inCIDs` targetHashes
   return $ uCIDs ! #_cid
 
-eqUserCID uID taregtHash uCIDs = do
-  uCIDs <- select userCIDs
+eqUserCID uID targetHash uCIDs = do
   restrict $ uCIDs `byUser` uID
          .&& uCIDs `eqCID` targetHash
-  return ucids
+  return uCIDs -- FIXME Will this work, or just return the initial value?!
 
 row `byUser` uID = row ! #_userFK .== literal uID
 
