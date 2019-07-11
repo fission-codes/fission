@@ -14,9 +14,16 @@ import Fission.User.CID
 
 inUserCIDs uID targetHashes uCIDs = do
   restrict $ uCIDs `byUser` uID
-         .&& uCIDs `matchingCIDs` targetHashes
+         .&& uCIDs `inCIDs` targetHashes
   return $ uCIDs ! #_cid
+
+eqUserCID uID taregtHash uCIDs = do
+  uCIDs <- select userCIDs
+  restrict $ uCIDs `byUser` uID
+         .&& uCIDs `eqCID` targetHash
+  return ucids
 
 row `byUser` uID = row ! #_userFK .== literal uID
 
-row `matchingCIDs` hashes = row ! #_cid `isIn` (text <$> hashes)
+row `eqCID`  hash = row ! #_cid .== text hash
+row `inCIDs` hashes = row ! #_cid `isIn` (text <$> hashes)

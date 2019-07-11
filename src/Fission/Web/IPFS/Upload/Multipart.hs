@@ -7,29 +7,25 @@ module Fission.Web.IPFS.Upload.Multipart
 
 import           RIO
 import           RIO.Process (HasProcessContext)
-import           RIO.List
 import qualified RIO.Text as Text
 
-import Data.Has
-import Database.Selda
+import           Data.Has
+import           Database.Selda
 
-import Servant
-import Servant.Multipart
+import           Servant
+import           Servant.Multipart
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.MIME
 
+import           Fission.User
+import           Fission.User.CID.Mutation as User.CID
 import           Fission.Web.Server
+
 import qualified Fission.IPFS.SparseTree as IPFS
 import qualified Fission.IPFS.Types      as IPFS
 import qualified Fission.Storage.IPFS    as Storage.IPFS
 import qualified Fission.Web.Error       as Web.Err
-
-import           Fission.User
-import           Fission.User.CID
-import           Fission.User.CID.Query
-import Fission.IPFS.CID.Types as IPFS.CID
-import Fission.Storage.Mutate
 
 type API = TextAPI :<|> JSONAPI
 
@@ -87,7 +83,7 @@ run uID form qName cont = case lookupFile "file" form of
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
       Left err     -> Web.Err.throw err
-      Right struct -> insertNewHashes uID struct >> cont struct
+      Right struct -> User.CID.insertNewX uID (IPFS.cids struct) >> cont struct
     where
       humanName :: IPFS.Name
       humanName = name qName fdFileName fdFileCType
@@ -102,9 +98,3 @@ name queryName' fileName mime =
 plainName :: Text -> Text -> String
 plainName ""       mime = Text.unpack $ "file." <> lookupExt (encodeUtf8 mime)
 plainName fileName _    = Text.unpack fileName
-
-insertNewHashes :: MonadSelda m => ID User -> IPFS.SparseTree -> m (ID UserCID)
-insertNewHashes uID struct = transaction do
-  let hashes = IPFS.CID.unaddress <$> IPFS.cids struct
-  results <- query $ select userCIDs >>= inUserCIDs uID hashes
-  insertX' $ UserCID def uID <$> hashes \\ results

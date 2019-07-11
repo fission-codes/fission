@@ -33,11 +33,6 @@ add uid (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
 
   Right newCID@(IPFS.CID hash) ->
     transaction do
-      results <- query do
-        ucids <- select userCIDs
-        restrict $ ucids ! #_userFK .== literal uid
-               .&& ucids ! #_cid    .== text hash
-        return ucids
-
+      results <- query $ select userCIDs >>= inUserCIDs uID hashes
       when (results == []) (void $ User.CID.createFresh uid newCID)
       return newCID
