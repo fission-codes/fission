@@ -65,7 +65,9 @@ unpin :: Has IPFS.BinPath  cfg
 unpin uID cID@(CID { unaddress = hash }) = do
   void . transaction $ deleteFrom_ userCIDs (eqUserCID uID hash)
 
-  -- FIXME can be much more efficent with `count` but waiting for next release of Selda
-  remaining <- query $ select userCIDs `suchThat` eqUserCID uID hash
+  remaining <- query
+            . limit 0 1
+            $ select userCIDs `suchThat` eqUserCID uID hash
+
   when (null remaining) (either Web.Err.throw pure =<< Storage.IPFS.unpin cID)
   return NoContent

@@ -11,6 +11,10 @@ import RIO
 
 import Database.Selda
 
+import Fission.User.Types
+import Fission.User.CID.Types
+
+inUserCIDs :: ID User -> [Text] -> Row s UserCID -> Col s Bool
 inUserCIDs uID targetHashes uCIDs =
       uCIDs `byUser` uID
   .&& uCIDs `inCIDs` targetHashes

@@ -4,7 +4,6 @@ module Fission.Web.Auth
   , basic
   , user
   , checkUser
-  -- , heroku
   ) where
 
 import RIO
@@ -53,12 +52,12 @@ checkUser :: HasLogFunc cfg
           => BasicAuthData
           -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
-  mayUsr <- getOne $ query do
-    usr <- select User.users
-    restrict $ User.bySecret usr (decodeUtf8Lenient password)
-    return usr
+  mayUser <- getOne
+          . query
+          . limit 0 1
+          $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
 
-  maybe (return NoSuchUser) checkID mayUsr
+  maybe (pure NoSuchUser) checkID mayUser
 
   where
     checkID :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
