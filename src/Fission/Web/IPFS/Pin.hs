@@ -67,6 +67,18 @@ unpin :: Has IPFS.BinPath  cfg
 unpin uID cid@(CID { unaddress = hash }) =
   transaction do
     deleteFrom_ userCIDs (eqUserCID uID hash)
-    when lookupAnyMatchingCID $ Storage.IPFS.unpin cid
 
-  return NoContent
+    remainingCount <- query $ aggregate do
+      -- FIXME it;s late I'm not making much sense
+        uCIDs <- select userCIDs
+        groupBy (uCIDs ! #_cid)
+        restrict $ uCIDs `byCID` hash
+        return $ count #_userFK
+      --   uCIDs <- select userCIDs
+      --   restrict $ uCIDs `byCID` hash
+      --   count #_userCID
+      -- return n
+
+    when (remainingCount == 0) (void $ Storage.IPFS.unpin cid)
+
+    return NoContent
