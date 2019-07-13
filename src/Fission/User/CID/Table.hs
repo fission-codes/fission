@@ -3,8 +3,6 @@ module Fission.User.CID.Table
   , userCIDs
   ) where
 
-import RIO
-
 import Database.Selda
 
 import           Fission.User.CID.Types

@@ -62,7 +62,7 @@ unpin :: Has IPFS.BinPath  cfg
       => MonadSelda   (RIO cfg)
       => ID User
       -> RIOServer         cfg UnpinAPI
-unpin uID cID@(CID { unaddress = hash }) = do
+unpin uID cID@CID { unaddress = hash } = do
   void . transaction $ deleteFrom_ userCIDs (eqUserCID uID hash)
 
   remaining <- query
