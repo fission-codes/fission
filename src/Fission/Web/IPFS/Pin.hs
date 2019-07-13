@@ -64,21 +64,15 @@ unpin :: Has IPFS.BinPath  cfg
       => MonadSelda   (RIO cfg)
       => ID User
       -> RIOServer         cfg UnpinAPI
-unpin uID cid@(CID { unaddress = hash }) =
-  transaction do
-    deleteFrom_ userCIDs (eqUserCID uID hash)
+unpin uID cid@(CID { unaddress = hash }) = do
+  void . transaction $ deleteFrom_ userCIDs (eqUserCID uID hash)
 
-    remainingCount <- query $ aggregate do
-      -- FIXME it;s late I'm not making much sense
-        uCIDs <- select userCIDs
-        groupBy (uCIDs ! #_cid)
-        restrict $ uCIDs `byCID` hash
-        return $ count #_userFK
-      --   uCIDs <- select userCIDs
-      --   restrict $ uCIDs `byCID` hash
-      --   count #_userCID
-      -- return n
+  -- FIXME can be much more efficent with `count` but waiting for next release of Selda
+  remaining <- query do
+    uCIDs <- select userCIDs
+    restrict $ eqUserCID uID hash uCIDs
+    return uCIDs
 
-    when (remainingCount == 0) (void $ Storage.IPFS.unpin cid)
+  when (null remaining) (Storage.IPFS.unpin cid >>= either Web.Err.throw pure)
 
-    return NoContent
+  return NoContent

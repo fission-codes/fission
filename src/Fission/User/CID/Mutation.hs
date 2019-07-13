@@ -36,10 +36,14 @@ createX :: MonadSelda m => ID User -> [CID] -> m Int
 createX uID cids = do
   let hashes = IPFS.CID.unaddress <$> cids
 
+  -- results <- query do
+  --   uCIDs <- select Table.userCIDs `suchThat`
+  --   restrict $ inUserCIDs uID hashes
+  --   return $ uCIDs ! #_cid
+
   results <- query do
-    uCIDs <- select Table.userCIDs
-    restrict $ inUserCIDs uID hashes uCIDs
-    return $ uCIDs ! #_cid
+    match <- select Table.userCIDs `suchThat` inUserCIDs uID hashes
+    return $ match ! #_cid
 
   now <- liftIO getCurrentTime
   let new = \hash -> Timestamp.add now $ UserCID def uID hash

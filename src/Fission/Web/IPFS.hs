@@ -25,4 +25,4 @@ server :: HasLogFunc        cfg
        => Has IPFS.BinPath  cfg
        => User
        -> RIOServer         cfg API
-server usr = Upload.add :<|> Pin.server usr
+server usr = Upload.add usr :<|> Pin.server usr
