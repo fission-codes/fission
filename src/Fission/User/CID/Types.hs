@@ -1,4 +1,4 @@
-module Fission.User.CID.Types where
+module Fission.User.CID.Types (UserCID (..)) where
 
 import RIO
 

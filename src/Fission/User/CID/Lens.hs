@@ -1,6 +1,10 @@
-module Fission.User.CID.Lens where
-
-import RIO
+module Fission.User.CID.Lens
+  ( userCID
+  , userFK
+  , cid
+  , insertedAt
+  , modifiedAt
+  ) where
 
 import Control.Lens (makeLenses)
 
