@@ -1,9 +1,9 @@
-module Fission.User.Security where
+module Fission.User.Security (hashID) where
 
 import           RIO
 import qualified RIO.Text as Text
 
-import Database.Selda
+import Database.Selda (ID)
 
 import Fission.Security
 import Fission.User.Types
