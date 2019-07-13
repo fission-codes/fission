@@ -33,27 +33,28 @@ create :: HasLogFunc      cfg
        => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
-create Request {_uuid, _region} = do
-  Web.Host url <- Config.get
-  secret       <- liftIO $ Random.text 200
-  userID       <- User.createFresh _uuid _region secret
+create Request {_uuid, _region} =
+  transaction do
+    Web.Host url <- Config.get
+    secret       <- liftIO $ Random.text 200
+    userID       <- User.create _uuid _region secret
 
-  logInfo $ mconcat
-    [ "Provisioned UUID: "
-    , displayShow _uuid
-    , " as "
-    , displayShow userID
-    ]
+    logInfo $ mconcat
+      [ "Provisioned UUID: "
+      , displayShow _uuid
+      , " as "
+      , displayShow userID
+      ]
 
-  let
-    userConfig = Heroku.UserConfig
-      { Heroku._interplanetaryFissionUrl      = url <> "/ipfs"
-      , Heroku._interplanetaryFissionUsername = User.hashID userID
-      , Heroku._interplanetaryFissionPassword = Secret secret
+    let
+      userConfig = Heroku.UserConfig
+        { Heroku._interplanetaryFissionUrl      = url <> "/ipfs"
+        , Heroku._interplanetaryFissionUsername = User.hashID userID
+        , Heroku._interplanetaryFissionPassword = Secret secret
+        }
+
+    return Provision
+      { _id      = userID
+      , _config  = userConfig
+      , _message = "Successfully provisioned Interplanetary FISSION!"
       }
-
-  return Provision
-    { _id      = userID
-    , _config  = userConfig
-    , _message = "Successfully provisioned Interplanetary FISSION!"
-    }

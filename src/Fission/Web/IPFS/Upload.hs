@@ -10,6 +10,7 @@ import Data.Has
 import Database.Selda
 import Servant
 
+import           Fission.Internal.Orphanage ()
 import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
 import qualified Fission.IPFS.Types   as IPFS
@@ -21,6 +22,7 @@ type API = Simple.API :<|> Multipart.API
 add :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
     => HasLogFunc        cfg
+    => MonadSelda   (RIO cfg)
     => User
     -> RIOServer         cfg API
 add usr = Simple.add usr :<|> Multipart.add usr

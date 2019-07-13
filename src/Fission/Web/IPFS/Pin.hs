@@ -8,7 +8,9 @@ module Fission.Web.IPFS.Pin
 import RIO
 import RIO.Process (HasProcessContext)
 
+import Data.Bifunctor
 import Data.Has
+import Data.Time
 import Database.Selda
 import Servant
 
@@ -17,8 +19,11 @@ import qualified Fission.Storage.IPFS as Storage.IPFS
 import qualified Fission.Web.Error    as Web.Err
 import           Fission.Web.Server
 import           Fission.IPFS.CID.Types
-import qualified Fission.User.CID     as UserCID
+import           Fission.User.CID     as UserCID
 import           Fission.User
+
+import Fission.User.CID
+import Fission.Timestamp
 
 type API = PinAPI :<|> UnpinAPI
 
@@ -42,11 +47,15 @@ pin :: Has IPFS.BinPath  cfg
     => HasLogFunc        cfg
     => ID User
     -> RIOServer         cfg PinAPI
-pin uID cid = Storage.IPFS.pin cid >>= \case
+pin uID cid@(CID hash) = Storage.IPFS.pin cid >>= \case
   Left err -> Web.Err.throw err
   Right ()  -> do
-    -- FIXME check if already exists for this user
-    void $ UserCID.createFresh uID cid
+    now <- liftIO getCurrentTime
+
+    transaction $
+      insertUnless userCIDs (eqUserCID uID hash)
+        [UserCID def uID hash <@ now]
+
     return NoContent
 
 unpin :: Has IPFS.BinPath  cfg
@@ -55,16 +64,9 @@ unpin :: Has IPFS.BinPath  cfg
       => MonadSelda   (RIO cfg)
       => ID User
       -> RIOServer         cfg UnpinAPI
-unpin uID cid = transaction do
-  -- delete userCID
-  -- lookup how many refs to that CID remain
-  -- if 0, then unpin, else noop
+unpin uID cid@(CID { unaddress = hash }) =
+  transaction do
+    deleteFrom_ userCIDs (eqUserCID uID hash)
+    when lookupAnyMatchingCID $ Storage.IPFS.unpin cid
 
-   deleteFrom userCIDs $ \ucid ->
-     ucid ! #id .== just ...
-
-  -- Storage.IPFS.unpin cid >>= \case
-  -- Left err -> Web.Err.throw err
-  -- Right ()  -> do
-  --   void $ UserCID.createFresh uID cid
-  --   pure NoContent
+  return NoContent

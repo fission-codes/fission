@@ -16,7 +16,7 @@ import           Fission.File.Types   as File
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
 import           Fission.User
-import           Fission.User.CID     as User.CID
+import           Fission.User.CID.Mutation as UserCID
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
@@ -25,14 +25,8 @@ add :: Has IPFS.BinPath  cfg
     => HasProcessContext cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg
-    => ID User
+    => User
     -> RIOServer         cfg API
-add uid (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
-  Left err ->
-    Web.Err.throw err
-
-  Right newCID@(IPFS.CID hash) ->
-    transaction do
-      results <- query $ select userCIDs >>= inUserCIDs uID hashes
-      when (results == []) (void $ User.CID.createFresh uid newCID)
-      return newCID
+add User { _userID } (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
+  Left err -> Web.Err.throw err
+  Right newCID -> transaction $ UserCID.createX _userID [newCID] >> return newCID

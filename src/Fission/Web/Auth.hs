@@ -13,6 +13,8 @@ import Database.Selda
 import Servant
 
 import Fission.Internal.Orphanage ()
+import Fission.Internal.Constraint
+
 import Fission.Storage.Query
 import Fission.User as User
 import Fission.Web.Server
@@ -38,9 +40,10 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          then Authorized username
          else Unauthorized
 
-user :: HasLogFunc cfg
+user :: MonadRIO        cfg m
+     => HasLogFunc      cfg
      => MonadSelda (RIO cfg)
-     => RIO cfg (BasicAuthCheck User)
+     => m (BasicAuthCheck User)
 user = do
   cfg <- ask
   return $ BasicAuthCheck (runRIO cfg . checkUser)
@@ -50,10 +53,15 @@ checkUser :: HasLogFunc cfg
           => BasicAuthData
           -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
-  mayUsr <- getOne . User.bySecret $ decodeUtf8Lenient password
+  mayUsr <- getOne $ query do
+    usr <- select User.users
+    restrict $ User.bySecret usr (decodeUtf8Lenient password)
+    return usr
+
   maybe (return NoSuchUser) checkID mayUsr
 
   where
+    checkID :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
     checkID usr =
       if encodeUtf8 (hashID $ usr ^. userID) == username
          then return (Authorized usr)

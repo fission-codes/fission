@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1f1e4ecbadd00bbe75b809067fb42c8a62c759d7b4e0956322cb803eb0a01258
+-- hash: 5c053a2d22a03d96864430d443eab00f51e5b3556cbab0018d663e9efcbeb3cd
 
 name:           ipfs-api
 version:        1.0.2
@@ -40,7 +40,6 @@ library
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
-      Fission.IPFS.CID.Query
       Fission.IPFS.CID.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
@@ -57,7 +56,11 @@ library
       Fission.Plan.Types
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.AddOn.Lens
       Fission.Platform.Heroku.AddOn.Manifest
+      Fission.Platform.Heroku.AddOn.Selector
+      Fission.Platform.Heroku.AddOn.Table
+      Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
       Fission.Platform.Heroku.UserConfig
@@ -65,19 +68,30 @@ library
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
-      Fission.Storage.Mutate
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Timestamp
       Fission.Types
       Fission.User
       Fission.User.CID
+      Fission.User.CID.Lens
       Fission.User.CID.Mutation
       Fission.User.CID.Query
+      Fission.User.CID.Selector
+      Fission.User.CID.Table
+      Fission.User.CID.Types
+      Fission.User.Lens
+      Fission.User.Mutate
+      Fission.User.Query
       Fission.User.Role
+      Fission.User.Security
+      Fission.User.Selector
+      Fission.User.Table
+      Fission.User.Types
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
@@ -342,7 +356,6 @@ test-suite fission-test
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
-      Fission.IPFS.CID.Query
       Fission.IPFS.CID.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
@@ -359,7 +372,11 @@ test-suite fission-test
       Fission.Plan.Types
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.AddOn.Lens
       Fission.Platform.Heroku.AddOn.Manifest
+      Fission.Platform.Heroku.AddOn.Selector
+      Fission.Platform.Heroku.AddOn.Table
+      Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
       Fission.Platform.Heroku.UserConfig
@@ -367,19 +384,30 @@ test-suite fission-test
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
-      Fission.Storage.Mutate
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Timestamp
       Fission.Types
       Fission.User
       Fission.User.CID
+      Fission.User.CID.Lens
       Fission.User.CID.Mutation
       Fission.User.CID.Query
+      Fission.User.CID.Selector
+      Fission.User.CID.Table
+      Fission.User.CID.Types
+      Fission.User.Lens
+      Fission.User.Mutate
+      Fission.User.Query
       Fission.User.Role
+      Fission.User.Security
+      Fission.User.Selector
+      Fission.User.Table
+      Fission.User.Types
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
