@@ -1,5 +1,8 @@
 -- | Database mutations for 'UserCID's
-module Fission.User.CID.Mutation where
+module Fission.User.CID.Mutation
+  ( create
+  , createX
+  ) where
 
 import RIO
 import RIO.List ((\\))
@@ -7,15 +10,14 @@ import RIO.List ((\\))
 import Data.Time      (getCurrentTime)
 import Database.Selda
 
-import Fission.Internal.Constraint
 import Fission.IPFS.CID.Types      as IPFS.CID
-
-import Fission.User           (User)
-import Fission.User.CID.Query
-import qualified Fission.User.CID.Table as Table
-import Fission.User.CID.Types
-
+import Fission.Internal.Constraint
 import Fission.Timestamp as Timestamp
+import Fission.User           (User)
+
+import           Fission.User.CID.Query
+import qualified Fission.User.CID.Table as Table
+import           Fission.User.CID.Types
 
 -- | Create a new, timestamped entry
 create :: MonadRIO   cfg m
