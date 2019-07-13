@@ -83,7 +83,7 @@ run uID form qName cont = case lookupFile "file" form of
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
       Left err     -> Web.Err.throw err
-      Right struct -> User.CID.createX uID (IPFS.cids struct) >> cont struct
+      Right struct -> User.CID.createX uID (IPFS.cIDs struct) >> cont struct
     where
       humanName :: IPFS.Name
       humanName = toName qName fdFileName fdFileCType
