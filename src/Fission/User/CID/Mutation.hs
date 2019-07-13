@@ -43,5 +43,5 @@ createX uID cids = do
     return $ match ! #_cid
 
   now <- liftIO getCurrentTime
-  let fresh = \hash -> Timestamp.add now $ UserCID def uID hash
+  let fresh = Timestamp.add now . UserCID def uID
   insert Table.userCIDs $ fresh <$> hashes \\ results
