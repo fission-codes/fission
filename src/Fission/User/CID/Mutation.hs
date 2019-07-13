@@ -35,13 +35,15 @@ create userID (CID hash) = do
 
 -- | Create new 'UserCID's, ignoring existing values (set-like)
 createX :: MonadSelda m => ID User -> [CID] -> m Int
-createX uID cids = do
-  let hashes = IPFS.CID.unaddress <$> cids
-
+createX uID (fmap IPFS.CID.unaddress -> hashes) = do
   results <- query do
     match <- select Table.userCIDs `suchThat` inUserCIDs uID hashes
     return $ match ! #_cid
 
   now <- liftIO getCurrentTime
-  let fresh = Timestamp.add now . UserCID def uID
-  insert Table.userCIDs $ fresh <$> hashes \\ results
+
+  let
+    mkFresh = Timestamp.add now . UserCID def uID
+    newCIDs = hashes \\ results
+
+  insert Table.userCIDs $ mkFresh <$> newCIDs
