@@ -8,7 +8,6 @@ module Fission.Web.IPFS.Pin
 import RIO
 import RIO.Process (HasProcessContext)
 
-import Data.Bifunctor
 import Data.Has
 import Data.Time
 import Database.Selda
@@ -22,7 +21,6 @@ import           Fission.IPFS.CID.Types
 import           Fission.User.CID     as UserCID
 import           Fission.User
 
-import Fission.User.CID
 import Fission.Timestamp
 
 type API = PinAPI :<|> UnpinAPI
@@ -47,12 +45,12 @@ pin :: Has IPFS.BinPath  cfg
     => HasLogFunc        cfg
     => ID User
     -> RIOServer         cfg PinAPI
-pin uID cid@(CID hash) = Storage.IPFS.pin cid >>= \case
+pin uID cID@(CID hash) = Storage.IPFS.pin cID >>= \case
   Left err -> Web.Err.throw err
   Right ()  -> do
     now <- liftIO getCurrentTime
 
-    transaction $
+    void . transaction $
       insertUnless userCIDs (eqUserCID uID hash)
         [UserCID def uID hash <@ now]
 
@@ -64,7 +62,7 @@ unpin :: Has IPFS.BinPath  cfg
       => MonadSelda   (RIO cfg)
       => ID User
       -> RIOServer         cfg UnpinAPI
-unpin uID cid@(CID { unaddress = hash }) = do
+unpin uID cID@(CID { unaddress = hash }) = do
   void . transaction $ deleteFrom_ userCIDs (eqUserCID uID hash)
 
   -- FIXME can be much more efficent with `count` but waiting for next release of Selda
@@ -73,6 +71,5 @@ unpin uID cid@(CID { unaddress = hash }) = do
     restrict $ eqUserCID uID hash uCIDs
     return uCIDs
 
-  when (null remaining) (Storage.IPFS.unpin cid >>= either Web.Err.throw pure)
-
+  when (null remaining) (either Web.Err.throw pure =<< Storage.IPFS.unpin cID)
   return NoContent
