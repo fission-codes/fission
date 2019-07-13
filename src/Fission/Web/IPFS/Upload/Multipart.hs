@@ -82,8 +82,12 @@ run uID form qName cont = case lookupFile "file" form of
   Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
-      Left err     -> Web.Err.throw err
-      Right struct -> User.CID.createX uID (IPFS.cIDs struct) >> cont struct
+      Left err ->
+        Web.Err.throw err
+
+      Right struct -> do
+        void . transaction $ User.CID.createX uID (IPFS.cIDs struct)
+        cont struct
     where
       humanName :: IPFS.Name
       humanName = toName qName fdFileName fdFileCType
