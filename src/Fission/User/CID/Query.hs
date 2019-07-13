@@ -19,10 +19,16 @@ inUserCIDs uID targetHashes uCIDs =
       uCIDs `byUser` uID
   .&& uCIDs `inCIDs` targetHashes
 
+eqUserCID :: ID User -> Text -> Row s UserCID -> Col s Bool
 eqUserCID uID targetHash uCIDs =
       uCIDs `byUser` uID
   .&& uCIDs `byCID` targetHash
 
-row `byUser` uID    = row ! #_userFK .== literal uID
-row `byCID`  hash   = row ! #_cid    .== text hash
+byUser :: Row s UserCID -> ID User -> Col s Bool
+row `byUser` uID = row ! #_userFK .== literal uID
+
+byCID :: Row s UserCID -> Text -> Col s Bool
+row `byCID`  hash = row ! #_cid    .== text hash
+
+inCIDs :: Row s UserCID -> [Text] -> Col s Bool
 row `inCIDs` hashes = row ! #_cid `isIn` fmap text hashes
