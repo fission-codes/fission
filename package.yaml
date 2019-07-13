@@ -1,4 +1,4 @@
-name: ipfs-api
+name: fission-web-api
 version: '1.0.2'
 category: API
 author: Brooklyn Zelenka
@@ -6,7 +6,7 @@ maintainer: hello@brooklynzelenka.com
 copyright: © 2019 Brooklyn Zelenka
 license: AGPL-3.0-or-later
 license-file: LICENSE
-github: fission-suite/ipfs-api
+github: fission-suite/web-api
 tested-with: GHC==8.6.4
 extra-source-files:
   - README.md
@@ -25,7 +25,6 @@ ghc-options:
   - -Wredundant-constraints
   # Prettier Development
   - -fhide-source-paths
-  # - -fprint-unicode-syntax
 
 default-extensions:
   - ApplicativeDo
@@ -116,11 +115,11 @@ library:
   source-dirs: src
 
 executables:
-  server:
+  fission-web:
     main: Main.hs
     source-dirs: app
     dependencies:
-      - ipfs-api
+      - fission-web-api
       - wai-logger
     ghc-options:
       - -threaded
@@ -163,7 +162,7 @@ tests:
       - hspec
       - hspec-wai
       - hspec-wai-json
-      - ipfs-api
+      - fission-web-api
       - tasty
       - tasty-hunit
       - tasty-hspec
@@ -178,7 +177,7 @@ tests:
   #     - -fhpc
   #   dependencies:
   #     - base
-  #     - ipfs-api
+  #     - fission-web-api
   #     - process
   #     - regex-compat
 
@@ -187,7 +186,7 @@ tests:
   #   source-dirs: test/doc-coverage
   #   dependencies:
   #     - doctest
-  #     - ipfs-api
+  #     - fission-web-api
   #     - process
   #     - regex-compat
 
@@ -210,4 +209,4 @@ benchmarks:
       - -O2
     dependencies:
       - criterion
-      - ipfs-api
+      - fission-web-api

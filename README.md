@@ -23,7 +23,7 @@ mv addon-manifest.json.example addon-manifest.json
 
 # Dev Web Server
 export RIO_VERBOSE=true
-stack run server
+stack run fission-web
 
 # Local Request
 curl \
