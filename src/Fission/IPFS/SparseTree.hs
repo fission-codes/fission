@@ -5,8 +5,7 @@ module Fission.IPFS.SparseTree
   , cids
   ) where
 
-import           RIO
-import qualified RIO.Map as Map
+import RIO
 
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Error    as Error
@@ -44,4 +43,4 @@ cids = cids' []
 cids' :: [CID] -> SparseTree -> [CID]
 cids' acc (Stub _)       = acc
 cids' acc (Content cid)  = cid : acc
-cids' acc (Directory kv) = Map.elems kv >>= \subtree -> cids subtree <> acc
+cids' acc (Directory kv) = foldr (mappend . cids) acc kv
