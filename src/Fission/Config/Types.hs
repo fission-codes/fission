@@ -17,7 +17,7 @@ import RIO.Process (ProcessContext, HasProcessContext (..))
 
 import Control.Lens (makeLenses)
 import Data.Has
-
+import Database.Beam.Migrate
 import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB

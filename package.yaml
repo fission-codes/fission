@@ -66,6 +66,7 @@ default-extensions:
   - ViewPatterns
 
 dependencies:
+  - sqlite-simple
   - aeson
   - aeson-casing
   - base
@@ -156,7 +157,7 @@ tests:
       - test
       - test/testsuite
     ghc-options:
-      - -fhpc
+      # - -fhpc
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
