@@ -16,6 +16,7 @@ import Fission.Config.Types
 -- >>>
 -- >>> :set -XBlockArguments
 -- >>> :set -XMultiParamTypeClasses
+-- >>> :set -XOverloadedStrings
 
 -- | Get a value from the reader config
 --
