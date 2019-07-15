@@ -4,13 +4,13 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a4dbbd7a8577e96aa5411d2d7b72f3c3ca0b583876907979d27c008f6ceb9b35
+-- hash: 9316cc8e8a085b1490a9f7258b79814bca76123d083432b3a1bcb2828910c0cf
 
-name:           ipfs-api
-version:        1.0.2
+name:           fission-web-api
+version:        1.1.0
 category:       API
-homepage:       https://github.com/fission-suite/ipfs-api#readme
-bug-reports:    https://github.com/fission-suite/ipfs-api/issues
+homepage:       https://github.com/fission-suite/web-api#readme
+bug-reports:    https://github.com/fission-suite/web-api/issues
 author:         Brooklyn Zelenka
 maintainer:     hello@brooklynzelenka.com
 copyright:      © 2019 Brooklyn Zelenka
@@ -24,7 +24,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/fission-suite/ipfs-api
+  location: https://github.com/fission-suite/web-api
 
 library
   exposed-modules:
@@ -56,7 +56,11 @@ library
       Fission.Plan.Types
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.AddOn.Lens
       Fission.Platform.Heroku.AddOn.Manifest
+      Fission.Platform.Heroku.AddOn.Selector
+      Fission.Platform.Heroku.AddOn.Table
+      Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
       Fission.Platform.Heroku.UserConfig
@@ -64,16 +68,30 @@ library
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
-      Fission.Storage.Mutate
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Timestamp
       Fission.Types
       Fission.User
+      Fission.User.CID
+      Fission.User.CID.Lens
+      Fission.User.CID.Mutation
+      Fission.User.CID.Query
+      Fission.User.CID.Selector
+      Fission.User.CID.Table
+      Fission.User.CID.Types
+      Fission.User.Lens
+      Fission.User.Mutate
+      Fission.User.Query
       Fission.User.Role
+      Fission.User.Security
+      Fission.User.Selector
+      Fission.User.Table
+      Fission.User.Types
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
@@ -94,7 +112,7 @@ library
       Fission.Web.Tls
       Fission.Web.Types
   other-modules:
-      Paths_ipfs_api
+      Paths_fission_web_api
   hs-source-dirs:
       src
   default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
@@ -146,10 +164,10 @@ library
     , word8
   default-language: Haskell2010
 
-executable server
+executable fission-web
   main-is: Main.hs
   other-modules:
-      Paths_ipfs_api
+      Paths_fission_web_api
   hs-source-dirs:
       app
   default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
@@ -164,11 +182,11 @@ executable server
     , data-has
     , ekg-wai
     , envy
+    , fission-web-api
     , http-client
     , http-client-tls
     , http-media
     , http-types
-    , ipfs-api
     , lens
     , mime-types
     , monad-logger
@@ -206,7 +224,7 @@ test-suite fission-doctest
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Paths_ipfs_api
+      Paths_fission_web_api
   hs-source-dirs:
       test/doctest
   default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
@@ -269,7 +287,7 @@ test-suite fission-lint
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Paths_ipfs_api
+      Paths_fission_web_api
   hs-source-dirs:
       test/lint
   default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
@@ -354,7 +372,11 @@ test-suite fission-test
       Fission.Plan.Types
       Fission.Platform.Heroku
       Fission.Platform.Heroku.AddOn
+      Fission.Platform.Heroku.AddOn.Lens
       Fission.Platform.Heroku.AddOn.Manifest
+      Fission.Platform.Heroku.AddOn.Selector
+      Fission.Platform.Heroku.AddOn.Table
+      Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
       Fission.Platform.Heroku.UserConfig
@@ -362,16 +384,30 @@ test-suite fission-test
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
-      Fission.Storage.Mutate
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
       Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Timestamp
       Fission.Types
       Fission.User
+      Fission.User.CID
+      Fission.User.CID.Lens
+      Fission.User.CID.Mutation
+      Fission.User.CID.Query
+      Fission.User.CID.Selector
+      Fission.User.CID.Table
+      Fission.User.CID.Types
+      Fission.User.Lens
+      Fission.User.Mutate
+      Fission.User.Query
       Fission.User.Role
+      Fission.User.Security
+      Fission.User.Selector
+      Fission.User.Table
+      Fission.User.Types
       Fission.Web
       Fission.Web.Auth
       Fission.Web.Client
@@ -391,7 +427,7 @@ test-suite fission-test
       Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
-      Paths_ipfs_api
+      Paths_fission_web_api
   hs-source-dirs:
       src
       test
@@ -408,6 +444,7 @@ test-suite fission-test
     , data-has
     , ekg-wai
     , envy
+    , fission-web-api
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -415,7 +452,6 @@ test-suite fission-test
     , http-client-tls
     , http-media
     , http-types
-    , ipfs-api
     , lens
     , mime-types
     , monad-logger
@@ -459,7 +495,7 @@ benchmark fission-benchmark
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Paths_ipfs_api
+      Paths_fission_web_api
   hs-source-dirs:
       benchmark
   default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
@@ -475,11 +511,11 @@ benchmark fission-benchmark
     , data-has
     , ekg-wai
     , envy
+    , fission-web-api
     , http-client
     , http-client-tls
     , http-media
     , http-types
-    , ipfs-api
     , lens
     , mime-types
     , monad-logger

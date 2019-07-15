@@ -1,139 +1,18 @@
--- | Users of 'Fission', accounts, properties, &c
+-- | Users of 'Fission'
 module Fission.User
-  ( User (..)
-  , Role (..)
-  -- Selectors
-  , userID'
-  , role'
-  , active'
-  , herokuAddOnId'
-  , secretDigest'
-  , insertedAt'
-  , modifiedAt'
-  -- Lenses
-  , userID
-  , role
-  , active
-  , herokuAddOnId
-  , secretDigest
-  , insertedAt
-  , modifiedAt
-  -- Table
-  , users
-  , tableName
-  -- Helpers
-  , createFresh
-  , bySecret
-  , hashID
+  ( module Fission.User.Lens
+  , module Fission.User.Mutate
+  , module Fission.User.Query
+  , module Fission.User.Security
+  , module Fission.User.Selector
+  , module Fission.User.Table
+  , module Fission.User.Types
   ) where
 
-import           RIO
-import qualified RIO.Text as Text
-
-import Control.Lens (makeLenses, (.~))
-import Database.Selda
-import Data.Time (getCurrentTime)
-import Data.UUID (UUID)
-import Data.Swagger
-
-import qualified Fission.Platform.Heroku.AddOn as Heroku
-  ( AddOn (..)
-  , addOns
-  , addOnID'
-  )
-
-import qualified Fission.Platform.Heroku.Types as Heroku
-
-import           Fission.User.Role
-import           Fission.Security.Types (SecretDigest)
-import           Fission.Security       (Digestable (..))
-import qualified Fission.Internal.UTF8  as UTF8
-
-import           Fission.Storage.Query
-import           Fission.Storage.Mutate
-import qualified Fission.Storage.Table  as Table
-
--- | A user account, most likely a developer
-data User = User
-  { _userID        :: ID User
-  , _role          :: Role
-  , _active        :: Bool
-  , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
-  , _secretDigest  :: SecretDigest
-  , _insertedAt    :: UTCTime
-  , _modifiedAt    :: UTCTime
-  } deriving ( Show
-             , Eq
-             , Generic
-             , SqlRow
-             )
-
-makeLenses ''User
-
-instance DBInsertable User where
-  insertX t partRs = insertWithPK users $ fmap (insertStamp t) partRs
-
-instance Digestable (ID User) where
-  digest = digest . UTF8.textShow
-
-instance ToSchema (ID User) where
-  declareNamedSchema _ =
-     return $ NamedSchema (Just "UserID")
-            $ mempty & type_ .~ SwaggerInteger
-
-userID'        :: Selector User (ID User)
-role'          :: Selector User Role
-active'        :: Selector User Bool
-herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
-secretDigest'  :: Selector User SecretDigest
-insertedAt'    :: Selector User UTCTime
-modifiedAt'    :: Selector User UTCTime
-
-userID' :*: role'
-        :*: active'
-        :*: herokuAddOnId'
-        :*: secretDigest'
-        :*: insertedAt'
-        :*: modifiedAt' = selectors users
-
--- | The name of the 'users' table
-tableName :: Table.Name User
-tableName = "users"
-
--- | The 'User' table
-users :: Table User
-users = Table.lensPrefixed (Table.name tableName)
-  [ #_userID        :- autoPrimary
-  , #_active        :- index
-  , #_secretDigest  :- index
-  , #_secretDigest  :- unique
-  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
-  ]
-
--- | Create a new, timestamped entry
-createFresh :: MonadIO m
-            => MonadSelda m
-            => UUID
-            -> Heroku.Region
-            -> SecretDigest
-            -> m (ID User)
-createFresh herokuUUID herokuRegion sekret = transaction do
-  now     <- liftIO getCurrentTime
-  hConfId <- insert1 now $ Heroku.AddOn def herokuUUID (Just herokuRegion)
-  insert1 now $ User def Regular True (Just hConfId) sekret
-
--- | Find a user by their account secret
---
---   TODO `limit 0 1`
-bySecret :: MonadSelda m => Text -> m [User]
-bySecret secret = query do
-  user <- select users
-  restrict $ user `is'` #_active
-         .&& user ! #_secretDigest .== text secret
-
-  return user
-
--- | Create a 'SecretDigest' from the users ID
---   Barely an obsfucating technique, but enough to hide DB ordering
-hashID :: ID User -> SecretDigest
-hashID uID = Text.take 20 $ digest uID
+import Fission.User.Lens
+import Fission.User.Mutate
+import Fission.User.Query
+import Fission.User.Security
+import Fission.User.Selector
+import Fission.User.Table
+import Fission.User.Types

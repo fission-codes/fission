@@ -5,18 +5,23 @@ module Fission.Web.IPFS.Upload.Multipart
   , textAdd
   ) where
 
-import RIO
-import RIO.Process (HasProcessContext)
+import           RIO
+import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 
-import Data.Has
-import Servant
-import Servant.Multipart
+import           Data.Has
+import           Database.Selda
+
+import           Servant
+import           Servant.Multipart
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.MIME
 
+import           Fission.User
+import           Fission.User.CID.Mutation as User.CID
 import           Fission.Web.Server
+
 import qualified Fission.IPFS.SparseTree as IPFS
 import qualified Fission.IPFS.Types      as IPFS
 import qualified Fission.Storage.IPFS    as Storage.IPFS
@@ -36,47 +41,59 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add :: Has IPFS.BinPath  cfg
+    => MonadSelda   (RIO cfg)
     => HasProcessContext cfg
     => HasLogFunc        cfg
-    => RIOServer         cfg API
-add = textAdd :<|> jsonAdd
+    => User
+    -> RIOServer         cfg API
+add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 
 textAdd :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
+        => MonadSelda   (RIO cfg)
         => HasLogFunc        cfg
-        => RIOServer         cfg TextAPI
-textAdd form queryName = run form queryName $ \sparse ->
+        => ID User
+        -> RIOServer         cfg TextAPI
+textAdd uID form queryName = run uID form queryName $ \sparse ->
   case IPFS.linearize sparse of
-    Right x   -> pure x
-    Left  err -> Web.Err.throw err
+    Right hash -> pure hash
+    Left err   -> Web.Err.throw err
 
-jsonAdd :: Has IPFS.BinPath  cfg
+jsonAdd :: MonadSelda   (RIO cfg)
+        => Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
-        => RIOServer         cfg JSONAPI
-jsonAdd form queryName = run form queryName pure
+        => ID User
+        -> RIOServer         cfg JSONAPI
+jsonAdd uID form queryName = run uID form queryName pure
 
 run :: MonadRIO          cfg m
     => MonadThrow            m
+    => MonadSelda            m
     => Has IPFS.BinPath  cfg
     => HasProcessContext cfg
     => HasLogFunc        cfg
-    => MultipartData Mem
+    => ID User
+    -> MultipartData Mem
     -> Maybe IPFS.Name
     -> (IPFS.SparseTree -> m a)
     -> m a
-run form qName cont = case lookupFile "file" form of
+run uID form qName cont = case lookupFile "file" form of
   Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
-      Right struct -> cont struct
-      Left  err    -> Web.Err.throw err
+      Left err ->
+        Web.Err.throw err
+
+      Right struct -> do
+        void . transaction $ User.CID.createX uID (IPFS.cIDs struct)
+        cont struct
     where
       humanName :: IPFS.Name
-      humanName = name qName fdFileName fdFileCType
+      humanName = toName qName fdFileName fdFileCType
 
-name :: Maybe IPFS.Name -> Text -> Text -> IPFS.Name
-name queryName' fileName mime =
+toName :: Maybe IPFS.Name -> Text -> Text -> IPFS.Name
+toName queryName' fileName mime =
   case queryName' of
     Nothing              -> IPFS.Name $ plainName fileName mime
     Just (IPFS.Name "")  -> IPFS.Name $ plainName fileName mime

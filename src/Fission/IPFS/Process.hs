@@ -2,6 +2,9 @@ module Fission.IPFS.Process
   ( run
   , run'
   , run_
+  , runExitCode
+  , runErr
+  , runErr'
   ) where
 
 import           RIO
@@ -29,7 +32,21 @@ runBS inStream = ipfsProc readProcessStdout_ inStream byteStringOutput
 runExitCode :: (RIOProc cfg m, Has IPFS.BinPath cfg) => StreamIn stdin -> [Opt] -> m ExitCode
 runExitCode inStream = ipfsProc runProcess inStream createPipe
 
-ipfsProc :: RIOProc cfg m
+runErr' :: RIOProc     cfg m
+      => Has BinPath cfg
+      => [Opt]
+      -> Lazy.ByteString
+      -> m (ExitCode, Lazy.ByteString)
+runErr' opts arg = runErr (byteStringInput arg) opts
+
+runErr :: RIOProc cfg m
+       => Has BinPath cfg
+       => StreamIn stdin
+       -> [Opt]
+       -> m (ExitCode, Lazy.ByteString)
+runErr inStream = ipfsProc readProcessStderr inStream byteStringOutput
+
+ipfsProc :: RIOProc          cfg m
          => Has IPFS.BinPath cfg
          => (ProcessConfig stdin stdout () -> m a)
          -> StreamIn  stdin

@@ -1,10 +1,10 @@
-![](https://github.com/fission-suite/ipfs-api/raw/master/assets/logo.png?sanitize=true)
+![](https://github.com/fission-suite/web-api/raw/master/assets/logo.png?sanitize=true)
 
 # FISSION IPFS Web API
 
-[![Build Status](https://travis-ci.org/fission-suite/ipfs-api.svg?branch=master)](https://travis-ci.org/fission-suite/ipfs-api)
+[![Build Status](https://travis-ci.org/fission-suite/web-api.svg?branch=master)](https://travis-ci.org/fission-suite/web-api)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/fission-suite/blob/master/LICENSE)
-[![Maintainability](https://api.codeclimate.com/v1/badges/44fb6a8a0cfd88bc41ef/maintainability)](https://codeclimate.com/github/fission-suite/ipfs-api/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/44fb6a8a0cfd88bc41ef/maintainability)](https://codeclimate.com/github/fission-suite/web-api/maintainability)
 [![Built by FISSION](https://img.shields.io/badge/⌘-Built_by_FISSION-purple.svg)](https://fission.codes)
 [![Discord](https://img.shields.io/discord/478735028319158273.svg)](https://discord.gg/zAQBDEq)
 
@@ -23,7 +23,7 @@ mv addon-manifest.json.example addon-manifest.json
 
 # Dev Web Server
 export RIO_VERBOSE=true
-stack run server
+stack run fission-web
 
 # Local Request
 curl \
@@ -59,7 +59,7 @@ Log HTTP requests in easy-to-read multiline format
 
 ### `DB_PATH`
 
-Default: `ipfs-api.sqlite`
+Default: `web-api.sqlite`
 
 Path to the SQLite databse
 

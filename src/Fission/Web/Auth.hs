@@ -4,7 +4,6 @@ module Fission.Web.Auth
   , basic
   , user
   , checkUser
-  -- , heroku
   ) where
 
 import RIO
@@ -13,6 +12,8 @@ import Database.Selda
 import Servant
 
 import Fission.Internal.Orphanage ()
+import Fission.Internal.Constraint
+
 import Fission.Storage.Query
 import Fission.User as User
 import Fission.Web.Server
@@ -38,9 +39,10 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          then Authorized username
          else Unauthorized
 
-user :: HasLogFunc cfg
+user :: MonadRIO        cfg m
+     => HasLogFunc      cfg
      => MonadSelda (RIO cfg)
-     => RIO cfg (BasicAuthCheck User)
+     => m (BasicAuthCheck User)
 user = do
   cfg <- ask
   return $ BasicAuthCheck (runRIO cfg . checkUser)
@@ -50,10 +52,15 @@ checkUser :: HasLogFunc cfg
           => BasicAuthData
           -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
-  mayUsr <- getOne . User.bySecret $ decodeUtf8Lenient password
-  maybe (return NoSuchUser) checkID mayUsr
+  mayUser <- getOne
+          . query
+          . limit 0 1
+          $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
+
+  maybe (pure NoSuchUser) checkID mayUser
 
   where
+    checkID :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
     checkID usr =
       if encodeUtf8 (hashID $ usr ^. userID) == username
          then return (Authorized usr)

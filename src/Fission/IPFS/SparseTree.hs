@@ -2,6 +2,7 @@ module Fission.IPFS.SparseTree
   ( SparseTree (..)
   , Error.Linearization (..)
   , linearize
+  , cIDs
   ) where
 
 import RIO
@@ -34,3 +35,9 @@ linearize = fmap (Path . wrap "\"") . go
       fromKey = UTF8.stripN 1 . \case
         Hash (CID cid)   -> cid
         Key  (Name name) -> UTF8.textShow name
+
+-- | Get all CIDs from a 'SparseTree' (all levels)
+cIDs :: (Monoid (f CID), Applicative f) => SparseTree -> f CID
+cIDs (Stub _)       = mempty
+cIDs (Content cid)  = pure cid
+cIDs (Directory kv) = foldMap cIDs kv

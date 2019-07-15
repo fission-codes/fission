@@ -1,13 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 
-module Fission.Storage.SQLite.Internal (traceAll) where
+module Fission.Storage.SQLite.Internal (traceTable) where
 
 import RIO
 
 import Database.Selda
 import Database.Selda.SQLite
 
-traceAll :: (Show a, Relational a) => Table a -> IO ()
-traceAll tbl = withSQLite "ipfs-api.sqlite" do
+traceTable :: (Show a, Relational a) => Table a -> IO ()
+traceTable tbl = withSQLite "web-api.sqlite" do
   rows <- query (select tbl)
   forM_ rows (traceIO . textDisplay . displayShow)

@@ -23,6 +23,7 @@ newtype CID = CID { unaddress :: Text }
   deriving          ( Eq
                     , Generic
                     , Ord
+                    , Read
                     , Show
                     )
   deriving anyclass ( ToParamSchema )

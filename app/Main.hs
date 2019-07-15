@@ -33,7 +33,7 @@ main = do
   _processCtx  <- mkDefaultProcessContext
   _host        <- decode .!~ Web.Host "localhost:1337"
   _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
-  _dbPath      <- decode .!~ DB.Path "ipfs-api.sqlite"
+  _dbPath      <- decode .!~ DB.Path "web-api.sqlite"
   _dbPool      <- RIO.runSimpleApp $ SQLite.connPool _dbPath
 
   condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
