@@ -61,17 +61,26 @@ pin :: MonadRIO          cfg m
     => HasLogFunc        cfg
     => Has IPFS.BinPath  cfg
     => IPFS.CID
-    -> m (Either IPFS.Error.Add ())
-pin (CID cid) = IPFS.Proc.run_ ["pin", "add"] (UTF8.textToLazyBS cid) <&> \case
-  ExitSuccess   -> Right ()
+    -> m (Either IPFS.Error.Add CID)
+pin cid@(CID hash) = IPFS.Proc.run_ ["pin", "add"] (UTF8.textToLazyBS hash) <&> \case
+  ExitSuccess   -> Right cid
   ExitFailure _ -> Left UnknownError
 
+-- | Unpin a CID
 unpin :: MonadRIO          cfg m
       => HasProcessContext cfg
       => HasLogFunc        cfg
       => Has IPFS.BinPath  cfg
       => IPFS.CID
-      -> m (Either IPFS.Error.Add ())
-unpin (CID cid) = IPFS.Proc.run_ ["pin", "rm"] (UTF8.textToLazyBS cid) <&> \case
-  ExitSuccess   -> Right ()
-  ExitFailure _ -> Left UnknownError
+      -> m (Either IPFS.Error.Add CID)
+unpin cid@(CID hash) = IPFS.Proc.runErr' ["pin", "rm"] (UTF8.textToLazyBS hash) >>= \case
+  (ExitSuccess, _) -> do
+    logDebug $ "Unpinned CID " <> display hash
+    return $ Right cid
+
+  (ExitFailure _, Lazy.take 17 -> "Error: not pinned") -> do
+    logDebug $ "Cannot unpin CID " <> display hash <> " because it was not pinned"
+    return $ Right cid
+
+  _ ->
+    return $ Left UnknownError

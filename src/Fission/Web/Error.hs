@@ -1,4 +1,8 @@
-module Fission.Web.Error (ensureUnicode, throw) where
+module Fission.Web.Error
+  ( checkUnicode
+  , ensure
+  , throw
+  ) where
 
 import RIO
 
@@ -12,9 +16,9 @@ import Servant.Exception
 
 import Fission.Internal.Constraint
 
-ensureUnicode :: (MonadThrow m, Show a) => Either a b -> m b
-ensureUnicode (Right ok) = pure ok
-ensureUnicode (Left err) = throwM $ err500 { errBody = UTF8.showLazyBS err }
+checkUnicode :: (MonadThrow m, Show a) => Either a b -> m b
+checkUnicode (Right ok) = pure ok
+checkUnicode (Left err) = throwM $ err500 { errBody = UTF8.showLazyBS err }
 
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg
@@ -28,3 +32,14 @@ throw :: MonadRIO   cfg m
 throw err = do
   when (statusIsServerError $ status err) (logError $ display err)
   throwM $ toServantException err
+
+ensure :: MonadRIO   cfg m
+       => HasLogFunc cfg
+       => MonadThrow     m
+       => Display      err
+       => Exception    err
+       => ToJSON       err
+       => ToServantErr err
+       => Either err b
+       -> m ()
+ensure = either throw (pure . const ())

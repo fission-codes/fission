@@ -9,7 +9,6 @@ import RIO
 import RIO.Process (HasProcessContext)
 
 import Data.Has
-import Data.Time
 import Database.Selda
 import Servant
 
@@ -21,15 +20,13 @@ import           Fission.IPFS.CID.Types
 import           Fission.User.CID     as UserCID
 import           Fission.User
 
-import Fission.Timestamp
-
 type API = PinAPI :<|> UnpinAPI
 
 type PinAPI = Capture "cid" CID
            :> Put '[PlainText, OctetStream] NoContent
 
 type UnpinAPI = Capture "cid" CID
-             :> Delete '[PlainText, OctetStream] NoContent
+             :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server :: Has IPFS.BinPath  cfg
        => HasProcessContext cfg
@@ -45,16 +42,9 @@ pin :: Has IPFS.BinPath  cfg
     => HasLogFunc        cfg
     => ID User
     -> RIOServer         cfg PinAPI
-pin uID cID@(CID hash) = Storage.IPFS.pin cID >>= \case
+pin uID _cid = Storage.IPFS.pin _cid >>= \case
   Left err -> Web.Err.throw err
-  Right ()  -> do
-    now <- liftIO getCurrentTime
-
-    void . transaction $
-      insertUnless userCIDs (eqUserCID uID hash)
-        [UserCID def uID hash <@ now]
-
-    return NoContent
+  Right _  -> UserCID.create uID _cid >> pure NoContent
 
 unpin :: Has IPFS.BinPath  cfg
       => HasProcessContext cfg
@@ -62,12 +52,13 @@ unpin :: Has IPFS.BinPath  cfg
       => MonadSelda   (RIO cfg)
       => ID User
       -> RIOServer         cfg UnpinAPI
-unpin uID cID@CID { unaddress = hash } = do
-  void . transaction $ deleteFrom_ userCIDs (eqUserCID uID hash)
+unpin uID _cid@CID { unaddress = hash } = do
+  void $ deleteFrom_ userCIDs (eqUserCID uID hash)
 
   remaining <- query
             . limit 0 1
             $ select userCIDs `suchThat` eqUserCID uID hash
 
-  when (null remaining) (either Web.Err.throw pure =<< Storage.IPFS.unpin cID)
+  when (null remaining) $ Storage.IPFS.unpin _cid >>= Web.Err.ensure
+
   return NoContent

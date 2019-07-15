@@ -25,25 +25,43 @@ create :: MonadRIO   cfg m
        => MonadSelda     m
        => ID User
        -> CID
-       -> m (ID UserCID)
+       -> m (Maybe (ID UserCID))
 create userID (CID hash) = do
-  now  <- liftIO getCurrentTime
-  uCID <- insertWithPK Table.userCIDs [UserCID def userID hash <@ now]
+  now   <- liftIO getCurrentTime
+  mayID <- insertUnless Table.userCIDs (eqUserCID userID hash)
+            [UserCID def userID hash <@ now]
 
-  logInfo $ "Inserted user CID " <> display uCID
-  return uCID
+  logDebug $ case mayID of
+    Nothing  -> "UserCID already exists for " <> display hash
+    Just _id -> "Inserted a new UserCID for CID " <> display hash
+
+  return mayID
 
 -- | Create new 'UserCID's, ignoring existing values (set-like)
-createX :: MonadSelda m => ID User -> [CID] -> m Int
+createX :: MonadRIO   cfg m
+        => MonadSelda     m
+        => HasLogFunc cfg
+        => ID User
+        -> [CID]
+        -> m [CID]
 createX uID (fmap IPFS.CID.unaddress -> hashes) = do
   results <- query do
-    match <- select Table.userCIDs `suchThat` inUserCIDs uID hashes
-    return $ match ! #_cid
+    uCIDs <- select Table.userCIDs `suchThat` inUserCIDs uID hashes
+    return $ uCIDs ! #_cid
 
   now <- liftIO getCurrentTime
 
   let
-    mkFresh = Timestamp.add now . UserCID def uID
-    newCIDs = hashes \\ results
+    mkFresh   = Timestamp.add now . UserCID def uID
+    newHashes = hashes \\ results
 
-  insert Table.userCIDs $ mkFresh <$> newCIDs
+  insert Table.userCIDs $ mkFresh <$> newHashes
+
+  logDebug $ mconcat
+    [ "Created "
+    , display (length newHashes)
+    , " new UserCID(s): "
+    , displayShow newHashes
+    ]
+
+  return $ CID <$> newHashes
