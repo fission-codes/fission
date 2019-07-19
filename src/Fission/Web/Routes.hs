@@ -1,8 +1,9 @@
 module Fission.Web.Routes
   ( API
-  , IPFSRoute
   , HerokuRoute
+  , IPFSRoute
   , PingRoute
+  , PublicAPI
   ) where
 
 import RIO
@@ -15,6 +16,8 @@ import qualified Fission.Web.Ping   as Ping
 import qualified Fission.Web.Heroku as Heroku
 
 type API = IPFSRoute :<|> HerokuRoute :<|> PingRoute
+
+type PublicAPI = IPFSRoute
 
 type IPFSRoute = "ipfs"
                  :> BasicAuth "registered users" User
