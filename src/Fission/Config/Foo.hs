@@ -57,6 +57,6 @@ foo = do
   conn <- open "shoppingcart1.db"
   runBeamSqliteDebug (const $ pure ()) {- for debug output -} conn $ runInsert $
     insert (_shoppingCartUsers shoppingCartDb) $
-    insertValues [ User "james@example.com" "James" "Smith" "b4cc344d25a2efe540adbf2678e2304c" {- james -}
+    insertValues [ User "jAmes@example.com" "James" "Smith" "b4cc344d25a2efe540adbf2678e2304c" {- james -}
                 , User "betty@example.com" "Betty" "Jones" "82b054bd83ffad9b6cf8bdb98ce3cc2f" {- betty -}
                 , User "sam@example.com" "Sam" "Taylor" "332532dcfaa1cbf61e2a266bd723612c" {- sam -} ]
