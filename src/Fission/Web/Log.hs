@@ -45,4 +45,4 @@ mkSettings logger port = defaultSettings
                        & setLogger (fromLogFunc logger)
 
 fromLogFunc :: LogFunc -> ApacheLogger
-fromLogFunc logger = \r s mi -> runRIO logger (rioApacheLogger r s mi)
+fromLogFunc logger r s mi = runRIO logger $ rioApacheLogger r s mi

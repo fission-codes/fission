@@ -1,6 +1,8 @@
+{-# LANGUAGE UndecidableInstances #-}
 -- | Configuration types
 module Fission.Config.Types
   ( Config (..)
+  , Logger (..)
   , processCtx
   , logFunc
   , ipfsPath
@@ -13,11 +15,13 @@ module Fission.Config.Types
 
 import RIO
 import RIO.List (intercalate)
-import RIO.Process (ProcessContext, HasProcessContext (..))
+import RIO.Process (ProcessContext)
 
 import Control.Lens (makeLenses)
 import Data.Has
+
 import           Fission.Web.Types
+import           Fission.Log
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
@@ -25,7 +29,7 @@ import qualified Fission.Platform.Heroku.Types as Heroku
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
   { _processCtx     :: !ProcessContext
-  , _logFunc        :: !LogFunc
+  , _logger         :: !Logger
   , _ipfsPath       :: !IPFS.BinPath
   , _host           :: !Host
   , _dbPath         :: !DB.Path
@@ -50,11 +54,14 @@ instance Show Config where
     , "}"
     ]
 
-instance HasProcessContext Config where
-  processContextL = processCtx
+instance Has ProcessContext Config where
+  hasLens = processCtx
+
+instance Has Logger Config where
+  hasLens = logger
 
 instance HasLogFunc Config where
-  logFuncL = logFunc
+  logFuncL = hasLens . logFunc
 
 instance Has IPFS.BinPath Config where
   hasLens = ipfsPath
