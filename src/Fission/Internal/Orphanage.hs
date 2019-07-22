@@ -12,7 +12,6 @@ import RIO.Process (ProcessContext, HasProcessContext (..))
 import Control.Lens
 
 import Data.Has
-import Data.Pool
 import Data.Swagger
 
 import Network.HTTP.Media.MediaType
@@ -22,16 +21,20 @@ import Servant.Multipart
 import Servant.Swagger
 import Servant.Swagger.Internal
 
-import qualified Fission.Config        as Config
+import           Fission.Log.Types
 import qualified Fission.Storage.Types as DB
 
 import Database.Beam
 import Database.Beam.Sqlite
 
-import Fission.Log
+import Fission.Storage.SQLite.Internal
+import Fission.Log.Lens
 
 instance {-# OVERLAPPING #-} Has ProcessContext cfg => HasProcessContext cfg where
   processContextL = hasLens
+
+instance {-# OVERLAPPING #-} Has Logger cfg => HasLogFunc cfg where
+  logFuncL = hasLens . logFunc
 
 instance (Has Logger cfg, Has DB.Pool cfg) => MonadBeam Sqlite (RIO cfg) where
   runNoReturn     = nt . runNoReturn
@@ -41,14 +44,6 @@ instance (Has Logger cfg, Has DB.Pool cfg) => MonadBeam Sqlite (RIO cfg) where
     cfg <- ask
     let sqlAction = fmap (runRIO cfg) action . nt
     nt $ runReturningMany sql sqlAction
-
-nt :: (Has Logger cfg, Has DB.Pool cfg) => SqliteM a -> RIO cfg a
-nt action = do
-  DB.Pool pool  <- Config.get
-  Logger logger <- Config.get
-  let runLogger = runRIO logger . logDebug . displayShow
-  liftIO . withResource pool $ \conn ->
-    runReaderT (runSqliteM action) (runLogger, conn)
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)

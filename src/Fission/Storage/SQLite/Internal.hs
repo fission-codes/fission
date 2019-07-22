@@ -1,13 +1,20 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
-
-module Fission.Storage.SQLite.Internal (traceTable) where
+module Fission.Storage.SQLite.Internal (nt) where
 
 import RIO
 
-import Database.Selda
-import Database.Selda.SQLite
+import Data.Has
+import Data.Pool
 
-traceTable :: (Show a, Relational a) => Table a -> IO ()
-traceTable tbl = withSQLite "web-api.sqlite" do
-  rows <- query (select tbl)
-  forM_ rows (traceIO . textDisplay . displayShow)
+import Database.Beam.Sqlite
+
+import qualified Fission.Config        as Config
+import           Fission.Log.Types
+import qualified Fission.Storage.Types as DB
+
+nt :: (Has Logger cfg, Has DB.Pool cfg) => SqliteM a -> RIO cfg a
+nt action = do
+  DB.Pool pool  <- Config.get
+  Logger logger <- Config.get
+  let runLogger = runRIO logger . logDebug . displayShow
+  liftIO . withResource pool $ \conn ->
+    runReaderT (runSqliteM action) (runLogger, conn)

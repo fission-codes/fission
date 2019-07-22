@@ -1,12 +1,7 @@
 module Fission.Log
-  ( Logger (..)
-  , logFunc
+  ( module Fission.Log.Lens
+  , module Fission.Log.Types
   ) where
 
-import RIO
-
-import Control.Lens (makeLenses)
-
-newtype Logger = Logger { _logFunc :: LogFunc}
-
-makeLenses ''Logger
+import Fission.Log.Lens
+import Fission.Log.Types

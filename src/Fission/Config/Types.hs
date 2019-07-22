@@ -1,8 +1,6 @@
-{-# LANGUAGE UndecidableInstances #-}
 -- | Configuration types
 module Fission.Config.Types
   ( Config (..)
-  , Logger (..)
   , processCtx
   , logFunc
   , ipfsPath
