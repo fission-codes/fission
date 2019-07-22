@@ -5,6 +5,8 @@
 
 module Fission.Internal.Orphanage () where
 
+import GHC.Stack
+
 import RIO
 import RIO.Orphans ()
 import qualified RIO.Partial as Partial
@@ -36,6 +38,7 @@ import Database.Beam.Backend
 import Database.Beam.Sqlite
 
 import Fission.Internal.Constraint
+import Fission.Config.Types
 
 instance Enum    UUID
 -- instance SqlType UUID
@@ -63,13 +66,24 @@ instance Bounded UUID where
 --     where
 --       errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
 
-instance Has DB.Pool cfg => MonadBeam Sqlite (RIO cfg) where
-  runReturningMany sql = do
-    DB.Pool pool <- Config.get
-    liftIO $ withResource pool undefined -- $ runReturningManyb
-  -- seldaConnection = do
-  --   DB.Pool pool <- Config.get
-  --   liftIO $ withResource pool pure
+-- instance MonadBeamInsertReturning Sqlite (RIO cfg) where
+--   runInsertReturningList = nt . runInsertReturningList
+
+instance (HasLogFunc cfg, Has DB.Pool cfg) => MonadBeam Sqlite (RIO cfg) where
+  runNoReturn = nt . runNoReturn
+  runReturningOne = nt . runReturningOne
+  runReturningMany sql action = do
+    cfg <- ask
+    let sqlAction = fmap (runRIO cfg) action . nt
+    nt $ runReturningMany sql sqlAction
+
+nt :: (HasLogFunc cfg, Has DB.Pool cfg) => SqliteM a -> RIO cfg a
+nt action = do
+  DB.Pool pool <- Config.get
+  logger <- RIO.view logFuncL
+  let runLogger = runRIO logger . logDebug . displayShow
+  liftIO . withResource pool $ \conn ->
+    runReaderT (runSqliteM action) (runLogger, conn)
 
 instance HasLogFunc (LogFunc, b) where
   logFuncL = _1
