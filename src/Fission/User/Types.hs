@@ -1,8 +1,8 @@
 module Fission.User.Types
-  ( User
-  , UserID
+  ( ID
+  , User
   , UserT (..)
-  )where
+  ) where
 
 import RIO
 

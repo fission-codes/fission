@@ -11,6 +11,7 @@ import Data.Pool
 
 import Database.Selda
 import Database.Selda.SQLite
+import Database.SQLite.Simple as SQLite
 
 import Fission.Internal.Constraint
 import Fission.Internal.Orphanage ()
@@ -46,3 +47,11 @@ makeTable dbPath' tbl tblName = runSimpleApp do
   pool   <- connPool dbPath'
   logger <- view logFuncL
   runRIO (logger, pool, dbPath') $ setupTable tbl (Table.name tblName)
+
+withDB :: MonadRIO    cfg m
+       => Has DB.Pool cfg
+       => (SQLite.Connection -> IO a)
+       -> m a
+withDB doStuff = do
+  DB.Pool pool <- Config.get
+  liftIO $ withResource pool doStuff

@@ -1,4 +1,8 @@
-module Fission.Platform.Heroku.AddOn.Types (AddOn (..)) where
+module Fission.Platform.Heroku.AddOn.Types
+  ( AddOn
+  , AddOnT (..)
+  , ID
+  ) where
 
 import RIO
 

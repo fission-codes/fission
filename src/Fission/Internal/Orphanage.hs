@@ -18,8 +18,8 @@ import Data.Pool
 import Data.Swagger
 import Data.UUID as UUID
 
-import Database.Selda
-import Database.Selda.Backend
+-- import Database.Selda
+-- import Database.Selda.Backend
 
 import Network.HTTP.Media.MediaType
 
@@ -31,36 +31,44 @@ import Servant.Swagger.Internal
 import qualified Fission.Config        as Config
 import qualified Fission.Storage.Types as DB
 
+import Database.Beam
+import Database.Beam.Backend
+
+import Fission.Internal.Constraint
+
 instance Enum    UUID
-instance SqlType UUID
+-- instance SqlType UUID
 
 instance Bounded UUID where
   minBound = Partial.fromJust $ UUID.fromString "00000000-0000-0000-0000-000000000000"
   maxBound = Partial.fromJust $ UUID.fromString "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
 
-instance Display (ID a) where
-  display = display . fromId
+-- instance Display (ID a) where
+--   display = display . fromId
 
-instance ToJSON (ID a) where
-  toJSON = Number . fromIntegral . fromId
+-- instance ToJSON (ID a) where
+--   toJSON = Number . fromIntegral . fromId
 
-instance FromJSON (ID a) where
-  parseJSON = \case
-    num@(Number n) ->
-      case toBoundedInteger n of
-        Nothing -> errMsg num
-        Just i  -> return $ toId i
+-- instance FromJSON (ID a) where
+--   parseJSON = \case
+--     num@(Number n) ->
+--       case toBoundedInteger n of
+--         Nothing -> errMsg num
+--         Just i  -> return $ toId i
 
-    invalid ->
-      errMsg invalid
+--     invalid ->
+--       errMsg invalid
 
-    where
-      errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
+--     where
+--       errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
 
-instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
-  seldaConnection = do
-    DB.Pool pool <- Config.get
-    liftIO $ withResource pool pure
+-- instance (MonadRIO cfg m, BeamBackend be, Has DB.Pool cfg) => MonadBeam be m where
+--   runReturningMany = do
+--     DB.Pool pool <- Config.get
+--     liftIO $ withResource pool pure
+--   -- seldaConnection = do
+--   --   DB.Pool pool <- Config.get
+--   --   liftIO $ withResource pool pure
 
 instance HasLogFunc (LogFunc, b) where
   logFuncL = _1

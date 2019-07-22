@@ -1,19 +1,18 @@
 module Fission.Storage.Types
   ( Path (..)
   , Pool (..)
-  , SeldaPool
   ) where
 
 import RIO
 
 import qualified Data.Pool              as Database
 import           Data.Swagger           (ToSchema)
-import           Database.Selda.Backend (SeldaConnection)
+import           Database.SQLite.Simple as SQLite
 import           System.Envy
 
-type SeldaPool = Database.Pool SeldaConnection
+type SQLPool = Database.Pool SQLite.Connection
 
-newtype Pool = Pool { getPool :: SeldaPool }
+newtype Pool = Pool { getPool :: SQLPool }
   deriving Show
 
 newtype Path = Path { getPath :: FilePath }
