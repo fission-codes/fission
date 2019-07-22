@@ -33,6 +33,7 @@ import qualified Fission.Storage.Types as DB
 
 import Database.Beam
 import Database.Beam.Backend
+import Database.Beam.Sqlite
 
 import Fission.Internal.Constraint
 
@@ -62,13 +63,13 @@ instance Bounded UUID where
 --     where
 --       errMsg = modifyFailure ("parsing ID failed, " <>) . typeMismatch "Number"
 
--- instance (MonadRIO cfg m, BeamBackend be, Has DB.Pool cfg) => MonadBeam be m where
---   runReturningMany = do
---     DB.Pool pool <- Config.get
---     liftIO $ withResource pool pure
---   -- seldaConnection = do
---   --   DB.Pool pool <- Config.get
---   --   liftIO $ withResource pool pure
+instance Has DB.Pool cfg => MonadBeam Sqlite (RIO cfg) where
+  runReturningMany sql = do
+    DB.Pool pool <- Config.get
+    liftIO $ withResource pool undefined -- $ runReturningManyb
+  -- seldaConnection = do
+  --   DB.Pool pool <- Config.get
+  --   liftIO $ withResource pool pure
 
 instance HasLogFunc (LogFunc, b) where
   logFuncL = _1
