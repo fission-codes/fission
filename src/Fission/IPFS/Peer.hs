@@ -22,7 +22,7 @@ all :: MonadRIO          cfg m
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
     => m (Either IPFS.Peer.Error [IPFS.Peer])
-all = rawList >>= pure . \case
+all = rawList <&> \case
   (ExitSuccess, allRaw, _) ->
     case UTF8.encode allRaw of
       Left  _    -> Left . DecodeFailure $ show allRaw

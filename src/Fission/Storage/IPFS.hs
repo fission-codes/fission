@@ -106,10 +106,8 @@ pin cid@(CID hash) = IPFS.Proc.runErr' ["pin", "add"] (UTF8.textToLazyBS hash) >
     logDebug $ "Pinned CID " <> display hash
     return $ Right cid
 
-  (ExitFailure _, errStr) -> do
-    let err = UnknownAddErr $ UTF8.textShow errStr
-    logError $ display err
-    return $ Left err
+  (ExitFailure _, errStr) ->
+    logLeft errStr
 
 -- | Unpin a CID
 unpin :: MonadRIO          cfg m
@@ -128,7 +126,11 @@ unpin cid@(CID hash) = IPFS.Proc.runErr' ["pin", "rm"] (UTF8.textToLazyBS hash) 
     logDebug $ "Cannot unpin CID " <> display hash <> " because it was not pinned"
     return $ Right cid
 
-  (ExitFailure _, errStr) -> do
-    let err = UnknownAddErr $ UTF8.textShow errStr
-    logError $ display err
-    return $ Left err
+  (ExitFailure _, errStr) ->
+    logLeft errStr
+
+logLeft :: (MonadRIO cfg m, HasLogFunc cfg, Show a) => a -> m (Either IPFS.Error.Add b)
+logLeft errStr = do
+  let err = UnknownAddErr $ UTF8.textShow errStr
+  logError $ display err
+  return $ Left err
