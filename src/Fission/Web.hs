@@ -20,6 +20,7 @@ import qualified Fission.Config     as Config
 import           Fission.User
 import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
+import           Fission.File.Types ()
 
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.IPFS    as IPFS
@@ -36,6 +37,7 @@ type API = Web.Swagger.API :<|> Web.API
 
 -- | The actual web server for 'API'
 app :: Has IPFS.BinPath    cfg
+    => Has IPFS.Timeout    cfg
     => Has Web.Host        cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
@@ -73,6 +75,7 @@ mkAuth = do
 
 -- | Web handlers for the 'API'
 server :: Has IPFS.BinPath  cfg
+       => Has IPFS.Timeout  cfg
        => Has Web.Host      cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg
