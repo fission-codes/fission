@@ -29,6 +29,7 @@ type UnpinAPI = Capture "cid" CID
              :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server :: Has IPFS.BinPath  cfg
+       => Has IPFS.Timeout  cfg
        => HasProcessContext cfg
        => MonadSelda   (RIO cfg)
        => HasLogFunc        cfg
@@ -37,6 +38,7 @@ server :: Has IPFS.BinPath  cfg
 server User { _userID } = pin _userID :<|> unpin _userID
 
 pin :: Has IPFS.BinPath  cfg
+    => Has IPFS.Timeout  cfg
     => HasProcessContext cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg
@@ -47,6 +49,7 @@ pin uID _cid = Storage.IPFS.pin _cid >>= \case
   Right _  -> UserCID.create uID _cid >> pure NoContent
 
 unpin :: Has IPFS.BinPath  cfg
+      => Has IPFS.Timeout  cfg
       => HasProcessContext cfg
       => HasLogFunc        cfg
       => MonadSelda   (RIO cfg)
@@ -59,6 +62,6 @@ unpin uID _cid@CID { unaddress = hash } = do
             . limit 0 1
             $ select userCIDs `suchThat` eqUserCID uID hash
 
-  when (null remaining) $ Storage.IPFS.unpin _cid >>= Web.Err.ensure
+  when (null remaining) $ Storage.IPFS.unpin _cid >>= void . Web.Err.ensure
 
   return NoContent

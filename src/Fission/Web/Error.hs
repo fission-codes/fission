@@ -19,9 +19,9 @@ ensure :: MonadRIO   cfg m
        => Exception    err
        => ToJSON       err
        => ToServantErr err
-       => Either err b
-       -> m ()
-ensure = either throw (pure . const ())
+       => Either err a
+       -> m a
+ensure = either throw pure
 
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg

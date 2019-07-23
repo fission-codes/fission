@@ -22,6 +22,7 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 add :: Has IPFS.BinPath  cfg
+    => Has IPFS.Timeout  cfg
     => HasProcessContext cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg

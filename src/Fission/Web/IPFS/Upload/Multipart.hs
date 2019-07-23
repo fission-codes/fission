@@ -41,6 +41,7 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add :: Has IPFS.BinPath  cfg
+    => Has IPFS.Timeout  cfg
     => MonadSelda   (RIO cfg)
     => HasProcessContext cfg
     => HasLogFunc        cfg
@@ -49,6 +50,7 @@ add :: Has IPFS.BinPath  cfg
 add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 
 textAdd :: Has IPFS.BinPath  cfg
+        => Has IPFS.Timeout  cfg
         => HasProcessContext cfg
         => MonadSelda   (RIO cfg)
         => HasLogFunc        cfg
@@ -61,6 +63,7 @@ textAdd uID form queryName = run uID form queryName $ \sparse ->
 
 jsonAdd :: MonadSelda   (RIO cfg)
         => Has IPFS.BinPath  cfg
+        => Has IPFS.Timeout  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => ID User
@@ -71,6 +74,7 @@ run :: MonadRIO          cfg m
     => MonadThrow            m
     => MonadSelda            m
     => Has IPFS.BinPath  cfg
+    => Has IPFS.Timeout  cfg
     => HasProcessContext cfg
     => HasLogFunc        cfg
     => ID User
