@@ -31,15 +31,16 @@ get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \ca
   (ExitSuccess, contents, _) ->
     return . Right $ File.Serialized contents
 
-  (ExitFailure _, _, Lazy.isPrefixOf "Error: invalid 'ipfs ref' path" -> True) ->
-    return . Left $ InvalidCID hash
+  (ExitFailure _, _, stdErr)
+    | Lazy.isPrefixOf "Error: invalid 'ipfs ref' path" stdErr ->
+        return . Left $ InvalidCID hash
 
-  (ExitFailure _, _, Lazy.isSuffixOf "context deadline exceeded" -> True) -> do
-    Timeout seconds <- Config.get
-    return . Left $ TimedOut cid seconds
+    | Lazy.isSuffixOf "context deadline exceeded" stdErr -> do
+        Timeout seconds <- Config.get
+        return . Left $ TimedOut cid seconds
 
-  (ExitFailure _, _, errStr) ->
-    return . Left . UnknownGetErr $ UTF8.textShow errStr
+    | otherwise ->
+        return . Left . UnknownGetErr $ UTF8.textShow stdErr
 
 addRaw :: MonadRIO          cfg m
        => HasProcessContext cfg
