@@ -35,6 +35,9 @@ data UserT f = User
              , Beamable
              )
 
+instance Show (PrimaryKey Heroku.AddOnT (Nullable Identity)) where
+  show _ = "Some ID"
+
 type User = UserT Identity
 deriving instance Show User
 

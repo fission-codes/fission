@@ -1,5 +1,6 @@
+{-# LANGUAGE ImpredicativeTypes #-}
 module Fission.User.Lens
-  ( userID
+  ( iD
   , role
   , active
   , herokuAddOnId
@@ -10,6 +11,17 @@ module Fission.User.Lens
 
 import Control.Lens (makeLenses)
 
-import Fission.User.Types
+import           Database.Beam
+import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+import           Fission.User.Types
 
-makeLenses ''User
+makeLenses ''UserT
+
+-- User
+--   (LensFor iD)
+--   (LensFor role)
+--   (LensFor active )
+--   (Heroku.AddOn.ID (LensFor herokuAddOnId))
+--   (LensFor secretDigest)
+--   (LensFor insertedAt)
+--   (LensFor modifiedAt) = tableLenses

@@ -1,25 +1,25 @@
-module Fission.User.Table
-  ( name
-  , users
-  ) where
+module Fission.User.Table where
+--   ( name
+--   , users
+--   ) where
 
-import Database.Selda
+-- import Database.Selda
 
-import qualified Fission.Platform.Heroku.AddOn as Heroku
-import           Fission.Internal.Orphanage ()
-import qualified Fission.Storage.Table  as Table
-import           Fission.User.Types
+-- import qualified Fission.Platform.Heroku.AddOn as Heroku
+-- import           Fission.Internal.Orphanage ()
+-- import qualified Fission.Storage.Table  as Table
+-- import           Fission.User.Types
 
--- | The name of the 'users' table
-name :: Table.Name User
-name = "users"
+-- -- | The name of the 'users' table
+-- name :: Table.Name User
+-- name = "users"
 
--- | The 'User' table
-users :: Table User
-users = Table.lensPrefixed (Table.name name)
-  [ #_userID        :- autoPrimary
-  , #_active        :- index
-  , #_secretDigest  :- index
-  , #_secretDigest  :- unique
-  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
-  ]
+-- -- | The 'User' table
+-- users :: Table User
+-- users = Table.lensPrefixed (Table.name name)
+--   [ #_userID        :- autoPrimary
+--   , #_active        :- index
+--   , #_secretDigest  :- index
+--   , #_secretDigest  :- unique
+--   , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
+--   ]

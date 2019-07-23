@@ -1,5 +1,5 @@
 module Fission.User.CID.Lens
-  ( userCID
+  ( iD
   , userFK
   , cid
   , insertedAt
@@ -10,4 +10,4 @@ import Control.Lens (makeLenses)
 
 import Fission.User.CID.Types
 
-makeLenses ''UserCID
+makeLenses ''UserCIDT

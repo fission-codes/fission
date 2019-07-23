@@ -7,14 +7,12 @@ module Fission.Internal.Process
 import RIO
 import RIO.Process
 
-import Data.Has
-
 import Fission.Internal.Constraint
 import Fission.Config.Types ()
 
-type RIOProc cfg m = ( MonadRIO           cfg m
-                     , Has ProcessContext cfg
-                     , Has LogFunc         cfg
+type RIOProc cfg m = ( MonadRIO          cfg m
+                     , HasProcessContext cfg
+                     , HasLogFunc        cfg
                      )
 
 type StreamIn  stdin  = StreamSpec 'STInput  stdin

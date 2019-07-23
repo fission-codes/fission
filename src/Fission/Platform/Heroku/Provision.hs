@@ -28,7 +28,7 @@ import qualified Fission.Plan.Types                 as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.Security.Types
-import           Fission.User                       (User)
+import           Fission.User                       as User
 
 data Request = Request
   { _callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -102,11 +102,11 @@ From Heroku
 -}
 
 data Provision = Provision
-  { _id      :: ID User           -- ^ User ID
+  { _id      :: User.ID           -- ^ User ID
   , _config  :: Heroku.UserConfig -- ^ Heroku env var payload
   , _message :: Text              -- ^ A helpful human-readable message
-  } deriving ( Eq
-             , Show
+  } deriving (
+              Show
              , Generic
              )
 
@@ -115,7 +115,7 @@ $(deriveJSON lens_snake_case ''Provision)
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    uId    <- declareSchemaRef (Proxy :: Proxy (ID User))
+    uId    <- declareSchemaRef (Proxy :: Proxy (User.ID))
     usrCfg <- declareSchemaRef (Proxy :: Proxy Heroku.UserConfig)
     txt    <- declareSchemaRef (Proxy :: Proxy Text)
     return $ NamedSchema (Just "HerokuProvision") $ mempty

@@ -13,6 +13,7 @@ import           RIO.Process
 
 import Data.Has
 
+import Fission.Internal.Orphanage ()
 import qualified Fission.Config as Config
 import           Fission.Internal.Process
 import           Fission.IPFS.Types as IPFS

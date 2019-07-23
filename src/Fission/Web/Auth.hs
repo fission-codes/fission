@@ -52,24 +52,25 @@ checkUser :: HasLogFunc cfg
           => BasicAuthData
           -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
-  mayUser <- getOne
-          . query
-          . limit 0 1
-          $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
+  mayUser <- undefined -- getOne
+          -- . query
+          -- . limit 0 1
+          -- $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
 
-  maybe (pure NoSuchUser) checkID mayUser
+  -- maybe (pure NoSuchUser) checkID mayUser
+  undefined
 
-  where
-    checkID :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
-    checkID usr =
-      if encodeUtf8 (hashID $ usr ^. userID) == username
-         then return (Authorized usr)
-         else do
-           logWarn $ mconcat
-             [ "Unauthorized user! HashedID: "
-             , displayBytesUtf8 username
-             , ", secret: "
-             , displayBytesUtf8 password
-             ]
+  -- where
+  --   checkID :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
+  --   checkID usr =
+  --     if encodeUtf8 (hashID $ usr ^. userID) == username
+  --        then return (Authorized usr)
+  --        else do
+  --          logWarn $ mconcat
+  --            [ "Unauthorized user! HashedID: "
+  --            , displayBytesUtf8 username
+  --            , ", secret: "
+  --            , displayBytesUtf8 password
+  --            ]
 
-           return Unauthorized
+  --          return Unauthorized

@@ -17,7 +17,7 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku
 import qualified Fission.Platform.Heroku.Types as Heroku
 
 import           Fission.User.Role
-import           Fission.User.Types
+import           Fission.User.Types as User
 import qualified Fission.User.Table as Table
 
 -- | Create a new, timestamped entry
@@ -27,15 +27,16 @@ create :: MonadRIO    cfg m
        => UUID
        -> Heroku.Region
        -> SecretDigest
-       -> m (ID User)
+       -> m User.ID
 create herokuUUID herokuRegion sekret = do
   now <- liftIO getCurrentTime
 
-  hConfId <- insertWithPK Heroku.addOns
-    [Heroku.AddOn def herokuUUID (Just herokuRegion) <@ now]
+  undefined
+  -- hConfId <- insertWithPK Heroku.addOns
+  --   [Heroku.AddOn def herokuUUID (Just herokuRegion) <@ now]
 
-  uID <- insertWithPK Table.users
-    [User def Regular True (Just hConfId) sekret <@ now]
+  -- uID <- insertWithPK Table.users
+  --   [User def Regular True (Just hConfId) sekret <@ now]
 
-  logInfo $ "Inserted user " <> display uID
-  return uID
+  -- logInfo $ "Inserted user " <> display uID
+  -- return uID

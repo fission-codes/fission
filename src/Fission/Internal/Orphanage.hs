@@ -30,8 +30,10 @@ import Database.Beam.Sqlite
 import Fission.Storage.SQLite.Internal
 import Fission.Log.Lens
 
-instance {-# OVERLAPPING #-} Has ProcessContext cfg => HasProcessContext cfg where
-  processContextL = hasLens
+import Fission.Config.Types
+
+instance {-# OVERLAPPING #-} Has ProcessCtx cfg => HasProcessContext cfg where
+  processContextL = hasLens . procFunc
 
 instance {-# OVERLAPPING #-} Has Logger cfg => HasLogFunc cfg where
   logFuncL = hasLens . logFunc

@@ -1,6 +1,8 @@
 -- | Configuration types
 module Fission.Config.Types
   ( Config (..)
+  , ProcessCtx (..)
+  , procFunc
   , processCtx
   , logFunc
   , ipfsPath
@@ -24,9 +26,11 @@ import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 
+newtype ProcessCtx = ProcessCtx { _procFunc :: ProcessContext}
+
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { _processCtx     :: !ProcessContext
+  { _processCtx     :: !ProcessCtx
   , _logger         :: !Logger
   , _ipfsPath       :: !IPFS.BinPath
   , _host           :: !Host
@@ -37,6 +41,7 @@ data Config = Config
   }
 
 makeLenses ''Config
+makeLenses ''ProcessCtx
 
 instance Show Config where
   show Config {..} = intercalate "\n"
@@ -52,7 +57,9 @@ instance Show Config where
     , "}"
     ]
 
-instance Has ProcessContext Config where
+instance Has ProcessCtx Config where
+
+-- instance Has ProcessContext Config where
   hasLens = processCtx
 
 instance Has Logger Config where

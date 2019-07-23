@@ -1,27 +1,43 @@
-module Fission.User.CID.Types (UserCID (..)) where
+module Fission.User.CID.Types
+  ( UserCIDT (..)
+  , UserCID
+  , ID
+  ) where
 
 import RIO
 
-import Control.Lens   ((.~))
+import Control.Lens  ((.~))
 import Data.Swagger
-import Database.Selda
+import Database.Beam
 
-import Fission.User (User (..))
+import Data.Time.Clock
+
+import Fission.User (UserT)
 
 -- | A user account, most likely a developer
-data UserCID = UserCID
-  { _userCID    :: ID UserCID
-  , _userFK     :: ID User
-  , _cid        :: Text -- SqlType for CID was getting hairy
-  , _insertedAt :: UTCTime
-  , _modifiedAt :: UTCTime
-  } deriving ( Show
-             , Eq
-             , Generic
-             , SqlRow
+data UserCIDT f = UserCID
+  { _ID         :: C f Int
+  , _userFK     :: PrimaryKey UserT f
+  , _cid        :: C f Text -- SqlType for CID was getting hairy
+  , _insertedAt :: C f UTCTime
+  , _modifiedAt :: C f UTCTime
+  } deriving ( Generic
+             , Beamable
              )
 
-instance ToSchema (ID UserCID) where
+type UserCID = UserCIDT Identity
+deriving instance Show UserCID
+
+type ID = PrimaryKey UserCIDT Identity
+deriving instance Show ID
+
+instance Table UserCIDT where
+  data PrimaryKey UserCIDT f = ID (C f Int)
+    deriving (Generic, Beamable)
+
+  primaryKey = ID . _ID
+
+instance ToSchema ID where
   declareNamedSchema _ =
      return $ NamedSchema (Just "UserCID")
             $ mempty & type_ .~ SwaggerInteger
