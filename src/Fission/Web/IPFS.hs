@@ -11,13 +11,16 @@ import Database.Selda
 import Servant
 
 import           Fission.IPFS.Types        as IPFS
+import           Fission.User
+
 import           Fission.Web.Server
+import qualified Fission.Web.IPFS.CID      as CID
 import qualified Fission.Web.IPFS.Upload   as Upload
 import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
-import           Fission.User
 
-type API = Upload.API
+type API = "cids" :> CID.API
+      :<|> Upload.API
       :<|> Download.API
       :<|> Pin.API
 
@@ -28,6 +31,7 @@ server :: HasLogFunc        cfg
        => Has IPFS.Timeout  cfg
        => User
        -> RIOServer         cfg API
-server usr = Upload.add usr
+server usr = CID.allForUser usr
+        :<|> Upload.add usr
         :<|> Download.get
         :<|> Pin.server usr
