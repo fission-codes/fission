@@ -28,7 +28,7 @@ byUser :: Row s UserCID -> ID User -> Col s Bool
 row `byUser` uID = row ! #_userFK .== literal uID
 
 byCID :: Row s UserCID -> Text -> Col s Bool
-row `byCID`  hash = row ! #_cid    .== text hash
+row `byCID`  hash = row ! #_cid .== text hash
 
 inCIDs :: Row s UserCID -> [Text] -> Col s Bool
 row `inCIDs` hashes = row ! #_cid `isIn` fmap text hashes

@@ -5,9 +5,10 @@
 
 module Fission.Internal.Orphanage () where
 
-import RIO
-import RIO.Orphans ()
-import qualified RIO.Partial as Partial
+import           RIO
+import           RIO.Orphans ()
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Partial         as Partial
 
 import Control.Lens
 
@@ -30,6 +31,7 @@ import Servant.Swagger.Internal
 
 import qualified Fission.Config        as Config
 import qualified Fission.Storage.Types as DB
+import qualified Fission.Internal.UTF8 as UTF8
 
 instance Enum    UUID
 instance SqlType UUID
@@ -70,6 +72,12 @@ instance HasLogFunc (LogFunc, b) where
 
 instance HasLogFunc (LogFunc, b, c) where
   logFuncL = _1
+
+instance MimeRender PlainText a => MimeRender PlainText [a] where
+  mimeRender proxy values = "["<> meat <>"]"
+    where
+      meat :: Lazy.ByteString
+      meat =  Lazy.intercalate "," $ (UTF8.stripNBS 1 . mimeRender proxy) <$> values
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)

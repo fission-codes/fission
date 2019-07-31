@@ -7,8 +7,8 @@ module Fission.Web
   , server
   ) where
 
-import RIO
-import RIO.Process (HasProcessContext)
+import           RIO
+import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 
 import Data.Has
@@ -21,6 +21,7 @@ import           Fission.User
 import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
 import           Fission.File.Types ()
+import           Fission.Internal.Orphanage ()
 
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.IPFS    as IPFS

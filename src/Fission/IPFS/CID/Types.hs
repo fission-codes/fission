@@ -30,7 +30,7 @@ newtype CID = CID { unaddress :: Text }
   deriving newtype  ( IsString )
 
 instance ToJSON CID where
-  toJSON (CID cid) = toJSON cid
+  toJSON (CID cid) = toJSON . UTF8.stripN 1 $ cid
 
 instance FromJSON CID where
   parseJSON = withText "ContentAddress" (pure . CID)
