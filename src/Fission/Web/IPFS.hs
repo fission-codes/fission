@@ -1,5 +1,8 @@
 module Fission.Web.IPFS
   ( API
+  , AuthedAPI
+  , PublicAPI
+  , authed
   , server
   ) where
 
@@ -19,19 +22,33 @@ import qualified Fission.Web.IPFS.Upload   as Upload
 import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
 
-type API = "cids" :> CID.API
-      :<|> Upload.API
-      :<|> Download.API
-      :<|> Pin.API
+type API = AuthedAPI
+      :<|> PublicAPI
+
+type AuthedAPI = BasicAuth "registered users" User
+                 :> AuthedAPI'
+
+type AuthedAPI' = "cids" :> CID.API
+             :<|> Upload.API
+             :<|> Pin.API
+
+type PublicAPI = Download.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
        => MonadSelda   (RIO cfg)
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
-       => User
-       -> RIOServer         cfg API
-server usr = CID.allForUser usr
+       => RIOServer         cfg API
+server = authed
+    :<|> Download.get
+
+authed :: HasLogFunc        cfg
+       => HasProcessContext cfg
+       => MonadSelda   (RIO cfg)
+       => Has IPFS.BinPath  cfg
+       => Has IPFS.Timeout  cfg
+       => RIOServer         cfg AuthedAPI
+authed usr = CID.allForUser usr
         :<|> Upload.add usr
-        :<|> Download.get
         :<|> Pin.server usr
