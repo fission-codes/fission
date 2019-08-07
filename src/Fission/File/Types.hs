@@ -25,8 +25,14 @@ instance ToSchema Serialized where
 instance Display Serialized where
   display = Utf8Builder . Builder.lazyByteString . unserialize
 
+instance MimeRender PlainText Serialized where
+  mimeRender _proxy = unserialize
+
 instance MimeUnrender PlainText Serialized where
   mimeUnrender _proxy = Right . Serialized
+
+instance MimeRender OctetStream Serialized where
+  mimeRender _proxy = unserialize
 
 instance MimeUnrender OctetStream Serialized where
   mimeUnrender _proxy = Right . Serialized

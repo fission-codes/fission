@@ -8,6 +8,7 @@ module Fission.IPFS.Types
   , Path (..)
   , SparseTree (..)
   , Tag (..)
+  , Timeout (..)
   ) where
 
 import RIO
@@ -32,3 +33,9 @@ newtype BinPath = BinPath { getBinPath :: FilePath }
 
 instance FromEnv BinPath where
   fromEnv = BinPath <$> env "IPFS_PATH"
+
+newtype Timeout = Timeout { getSeconds :: Natural }
+  deriving Show
+
+instance FromEnv Timeout where
+  fromEnv = Timeout . fromIntegral <$> (env "IPFS_TIMEOUT" :: Parser Int)

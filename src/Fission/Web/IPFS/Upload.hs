@@ -20,6 +20,7 @@ import           Fission.User
 type API = Simple.API :<|> Multipart.API
 
 add :: Has IPFS.BinPath  cfg
+    => Has IPFS.Timeout  cfg
     => HasProcessContext cfg
     => HasLogFunc        cfg
     => MonadSelda   (RIO cfg)

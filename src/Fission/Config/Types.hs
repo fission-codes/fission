@@ -4,6 +4,7 @@ module Fission.Config.Types
   , processCtx
   , logFunc
   , ipfsPath
+  , ipfsTimeout
   , host
   , dbPath
   , dbPool
@@ -28,6 +29,7 @@ data Config = Config
   { _processCtx     :: !ProcessContext
   , _logFunc        :: !LogFunc
   , _ipfsPath       :: !IPFS.BinPath
+  , _ipfsTimeout    :: !IPFS.Timeout
   , _host           :: !Host
   , _dbPath         :: !DB.Path
   , _dbPool         :: !DB.Pool
@@ -43,6 +45,7 @@ instance Show Config where
     , "  _processCtx     = **SOME PROC CONTEXT**"
     , "  _logFunc        = **SOME LOG FUNCTION**"
     , "  _ipfsPath       = " <> show _ipfsPath
+    , "  _ipfsTimeout    = " <> show _ipfsTimeout
     , "  _host           = " <> show _host
     , "  _dbPath         = " <> show _dbPath
     , "  _dbPool         = " <> show _dbPool
@@ -59,6 +62,9 @@ instance HasLogFunc Config where
 
 instance Has IPFS.BinPath Config where
   hasLens = ipfsPath
+
+instance Has IPFS.Timeout Config where
+  hasLens = ipfsTimeout
 
 instance Has DB.Path Config where
   hasLens = dbPath

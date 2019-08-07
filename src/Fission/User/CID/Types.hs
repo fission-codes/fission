@@ -8,7 +8,7 @@ import Database.Selda
 
 import Fission.User (User (..))
 
--- | A user account, most likely a developer
+-- | A relationship of 'CID' to a 'User'
 data UserCID = UserCID
   { _userCID    :: ID UserCID
   , _userFK     :: ID User
