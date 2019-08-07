@@ -10,18 +10,17 @@ import RIO
 
 import Servant
 
-import           Fission.User
 import qualified Fission.Web.IPFS   as IPFS
 import qualified Fission.Web.Ping   as Ping
 import qualified Fission.Web.Heroku as Heroku
 
-type API = IPFSRoute :<|> HerokuRoute :<|> PingRoute
+type API = IPFSRoute
+      :<|> HerokuRoute
+      :<|> PingRoute
 
 type PublicAPI = IPFSRoute
 
-type IPFSRoute = "ipfs"
-                 :> BasicAuth "registered users" User
-                 :> IPFS.API
+type IPFSRoute = "ipfs" :> IPFS.API
 
 type HerokuRoute = "heroku"
                    :> BasicAuth "heroku add-on api" ByteString
