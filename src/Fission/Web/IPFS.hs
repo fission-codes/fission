@@ -22,7 +22,8 @@ import qualified Fission.Web.IPFS.Upload   as Upload
 import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
 
-type API = PublicAPI :<|> AuthedAPI
+type API = AuthedAPI
+      :<|> PublicAPI
 
 type AuthedAPI = BasicAuth "registered users" User
                  :> AuthedAPI'
@@ -38,10 +39,9 @@ server :: HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
-       -- => User
        => RIOServer         cfg API
-server = Download.get
-        :<|> authed
+server = authed
+    :<|> Download.get
 
 authed :: HasLogFunc        cfg
        => HasProcessContext cfg
