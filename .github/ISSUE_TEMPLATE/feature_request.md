@@ -15,6 +15,10 @@ NB: Feature requests will only be considered if they solve a pain
 
 Describe the pain that this feature will solve
 
+### Impact
+
+The impact of not having this feature
+
 ## Solution
 
 Describe the solution

@@ -13,6 +13,10 @@ assignees: ''
 
 Describe the immediate problem
 
+### Impact
+
+The impact that this bug has
+
 ## Solution
 
 Describe the sort of fix that would solve the issue
