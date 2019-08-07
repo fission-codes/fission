@@ -1,6 +1,14 @@
 Your issue may already be reported!
 Please search on the [issue track](../) before creating one.
 
+# Summary
+
+## Problem
+
+## Solution
+
+# Details 
+
 ## Expected Behavior
 <!--- If you're describing a bug, tell us what should happen -->
 <!--- If you're suggesting a change/improvement, tell us how it should work -->
@@ -31,4 +39,3 @@ Please search on the [issue track](../) before creating one.
 * Browser Name and version:
 * Operating System and version (desktop or mobile):
 * Link to your project:
-
