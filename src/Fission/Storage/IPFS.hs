@@ -53,7 +53,7 @@ addRaw raw =
   IPFS.Proc.run ["add", "-q"] raw <&> \case
     (ExitSuccess, result, _) ->
       case CL.lines result of
-        [cid] -> Right . mkCID $ UTF8.textShow cid
+        [cid] -> Right . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
         bad   -> Left . UnexpectedOutput $ UTF8.textShow bad
 
     (ExitFailure _, _, err) ->
@@ -76,7 +76,7 @@ addFile raw name =
             sparseTree  = Directory [(Hash rootCID, fileWrapper)]
             fileWrapper = Directory [(fileName, Content fileCID)]
             rootCID     = CID $ UTF8.textShow outer
-            fileCID     = CID $ UTF8.textShow inner
+            fileCID     = CID . UTF8.stripN 1 $ UTF8.textShow inner
             fileName    = Key name
           in
             Right sparseTree
