@@ -16,11 +16,8 @@ import Fission.IPFS.Path.Types
 import Fission.IPFS.SparseTree.Types
 
 linearize :: SparseTree -> Either Error.Linearization Path
-linearize = fmap (Path . wrap "\"") . go
+linearize = fmap Path . go
   where
-  wrap :: Text -> Text -> Text
-  wrap outside inside = outside <> inside <> outside
-
   go :: SparseTree -> Either Error.Linearization Text
   go = \case
     Stub      (Name name)    -> Right $ UTF8.textShow name
