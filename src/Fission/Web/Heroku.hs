@@ -48,7 +48,7 @@ create Request {_uuid, _region} =
 
     let
       userConfig = Heroku.UserConfig
-        { Heroku._interplanetaryFissionUrl      = url <> "/ipfs"
+        { Heroku._interplanetaryFissionUrl      = url
         , Heroku._interplanetaryFissionUsername = User.hashID userID
         , Heroku._interplanetaryFissionPassword = Secret secret
         }
