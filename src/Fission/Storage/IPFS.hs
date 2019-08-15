@@ -75,7 +75,7 @@ addFile raw name =
           let
             sparseTree  = Directory [(Hash rootCID, fileWrapper)]
             fileWrapper = Directory [(fileName, Content fileCID)]
-            rootCID     = CID . UTF8.stripN 1 $ UTF8.textShow outer
+            rootCID     = CID $ UTF8.textShow outer
             fileCID     = CID . UTF8.stripN 1 $ UTF8.textShow inner
             fileName    = Key name
           in
