@@ -135,7 +135,7 @@ instance ToSchema Provision where
         }
 
       cfgEx = Heroku.UserConfig
-        { _interplanetaryFissionUrl      = "https://hostless.dev/ipfs"
+        { _interplanetaryFissionUrl      = "https://hostless.dev"
         , _interplanetaryFissionUsername = "c74bd95b8555275277d4"
         , _interplanetaryFissionPassword = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
         }
