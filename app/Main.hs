@@ -59,7 +59,7 @@ main = do
       logDebug $ "Configured with: " <> displayShow config
 
       let runner = if isTLS
-                      then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt") -- tlsCert tlsKey)
+                      then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
                       else runSettings
 
       liftIO . runner (Web.Log.mkSettings _logFunc port) . condDebug =<< Web.app =<< ask
