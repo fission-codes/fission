@@ -109,6 +109,7 @@ dependencies:
   - wai-extra
   - wai-logger
   - warp
+  - warp-tls
   - word8
 
 library:

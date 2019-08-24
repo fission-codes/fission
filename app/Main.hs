@@ -7,6 +7,7 @@ import Data.Aeson (decodeFileStrict)
 import System.Envy
 
 import Network.Wai.Handler.Warp
+import Network.Wai.Handler.WarpTLS
 import Network.Wai.Middleware.RequestLogger
 
 import Fission.Config.Types
@@ -32,6 +33,7 @@ main = do
 
   _processCtx  <- mkDefaultProcessContext
   _host        <- decode .!~ Web.Host "localhost:1337"
+  _host        <- decode .!~ Web.Host "localhost:1337"
   _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   _ipfsTimeout <- decode .!~ IPFS.Timeout 150
   _dbPath      <- decode .!~ DB.Path "web-api.sqlite"
@@ -42,6 +44,8 @@ main = do
   logOptions' <- logOptionsHandle stdout isVerbose
   let logOpts = setLogUseTime True logOptions'
 
+  isTLS <- getFlag "TLS"
+
   withLogFunc logOpts $ \_logFunc -> do
     let
       _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
@@ -51,8 +55,14 @@ main = do
     runRIO config do
       condMonitor
       logDebug $ "Servant port is " <> display port
+      logDebug $ "TLS is " <> if isTLS then "on" else "off"
       logDebug $ "Configured with: " <> displayShow config
-      liftIO . runSettings (Web.Log.mkSettings _logFunc port) . condDebug =<< Web.app =<< ask
+
+      let runner = if isTLS
+                      then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt") -- tlsCert tlsKey)
+                      else runSettings
+
+      liftIO . runner (Web.Log.mkSettings _logFunc port) . condDebug =<< Web.app =<< ask
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
