@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0db4b89c8028c41a9cb746581ebcea43c21b5bab8cfefd372a4027c9f23c5b6a
+-- hash: 9635fe5feb587632cb184ebf9351faeca77e7cd8cddd761c0c647eb3a4034b00
 
 name:           fission-web-api
-version:        1.3.2
+version:        1.4.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -169,6 +169,7 @@ library
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
   default-language: Haskell2010
 
@@ -225,6 +226,7 @@ executable fission-web
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
   default-language: Haskell2010
 
@@ -287,6 +289,7 @@ test-suite fission-doctest
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
     , yaml
   default-language: Haskell2010
@@ -345,6 +348,7 @@ test-suite fission-lint
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
   default-language: Haskell2010
 
@@ -504,6 +508,7 @@ test-suite fission-test
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
   default-language: Haskell2010
 
@@ -562,5 +567,6 @@ benchmark fission-benchmark
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
   default-language: Haskell2010

@@ -8,6 +8,8 @@
 *.db
 .doctest-tmp/
 addon-manifest.json
+domain-key.txt
+domain-crt.txt
 
 ### Haskell ###
 dist
