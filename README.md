@@ -46,6 +46,14 @@ Default: `1337`
 
 The port to run the web server on.
 
+### `TLS`
+
+Default: `false`
+
+Run the server with TLS enabled.
+
+_NB: `PORT` needs to be set separately._
+
 ### `RIO_VERBOSE`
 
 Default: `false`
