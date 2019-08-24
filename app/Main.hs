@@ -33,7 +33,6 @@ main = do
 
   _processCtx  <- mkDefaultProcessContext
   _host        <- decode .!~ Web.Host "localhost:1337"
-  _host        <- decode .!~ Web.Host "localhost:1337"
   _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   _ipfsTimeout <- decode .!~ IPFS.Timeout 150
   _dbPath      <- decode .!~ DB.Path "web-api.sqlite"
