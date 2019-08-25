@@ -19,14 +19,16 @@ type CatAPI = CIDArg :> Get '[PlainText] File.Serialized
 catApi :: Proxy CatAPI
 catApi = Proxy
 
-type PinAddAPI = "add"
-                   :> CIDArg
-                   :> Put '[JSON] Text -- Not actually Text! Just for testing!
+type PinAddAPI
+  = "add"
+    :> CIDArg
+    :> Put '[JSON] Text -- Not actually Text! Just for testing!
 
-type PinRmAPI = "rm"
-                  :> CIDArg
-                  :> RecursiveFlag
-                  :> Delete '[JSON] Text -- Not actually Text! Just for testing!
+type PinRmAPI
+  = "rm"
+    :> CIDArg
+    :> RecursiveFlag
+    :> Delete '[JSON] Text -- Not actually Text! Just for testing!
 
 type PinAPI = PinAddAPI :<|> PinRmAPI
 
@@ -38,8 +40,8 @@ type NestedAPI = "api" :> "v0" :> API
 api :: Proxy API
 api = Proxy
 
-pinRm ::  Text -> Bool -> ClientM Text
-pinAdd :: Text ->        ClientM Text
-cat ::    Text ->        ClientM Serialized
+cat   :: Text ->        ClientM Serialized
+pin   :: Text ->        ClientM Text
+unpin :: Text -> Bool -> ClientM Text
 
-cat :<|> (pinAdd :<|> pinRm) = client api
+cat :<|> (pin :<|> unpin) = client api
