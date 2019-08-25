@@ -89,10 +89,10 @@ addFile raw name =
 
     where
       opts = [ "add"
-            , "-wq"
-            , "--stdin-name"
-            , unName name
-            ]
+             , "-wq"
+             , "--stdin-name"
+             , unName name
+             ]
 
 pin :: MonadRIO          cfg m
     => HasProcessContext cfg
