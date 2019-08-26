@@ -77,7 +77,7 @@ instance MimeRender PlainText a => MimeRender PlainText [a] where
   mimeRender proxy values = "["<> meat <>"]"
     where
       meat :: Lazy.ByteString
-      meat =  Lazy.intercalate "," $ (UTF8.stripNBS 1 . mimeRender proxy) <$> values
+      meat =  Lazy.intercalate "," $ mimeRender proxy <$> values
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)
