@@ -1,6 +1,7 @@
 -- | Web error handling, common patterns, and other helpers
 module Fission.Web.Error
   ( ensure
+  , ensure_
   , throw
   ) where
 
@@ -8,7 +9,9 @@ import RIO
 
 import Data.Aeson
 import Network.HTTP.Types.Status
+
 import Servant.Exception
+import Servant.Server.Internal.ServantErr
 
 import Fission.Internal.Constraint
 
@@ -22,6 +25,13 @@ ensure :: MonadRIO   cfg m
        => Either err a
        -> m a
 ensure = either throw pure
+
+ensure_ :: MonadRIO   cfg m
+        => MonadThrow     m
+        => ServantErr
+        -> Maybe a
+        -> m a
+ensure_ err = maybe (throwM err) pure
 
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg

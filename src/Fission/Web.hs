@@ -85,5 +85,5 @@ server :: Has IPFS.BinPath  cfg
        -> RIOServer         cfg API
 server host' = Web.Swagger.server host'
           :<|> IPFS.server
-          :<|> const Heroku.create
+          :<|> const Heroku.server
           :<|> pure Ping.pong
