@@ -31,7 +31,6 @@ import Servant.Swagger.Internal
 
 import qualified Fission.Config        as Config
 import qualified Fission.Storage.Types as DB
-import qualified Fission.Internal.UTF8 as UTF8
 
 instance Enum    UUID
 instance SqlType UUID

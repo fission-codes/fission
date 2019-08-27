@@ -1,4 +1,7 @@
-module Fission.User.Mutate (create) where
+module Fission.User.Mutate
+  ( create
+  , deactivate
+  ) where
 
 import           RIO
 
@@ -17,6 +20,7 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku
 import qualified Fission.Platform.Heroku.Types as Heroku
 
 import           Fission.User.Role
+import           Fission.User.Selector
 import           Fission.User.Types
 import qualified Fission.User.Table as Table
 
@@ -39,3 +43,15 @@ create herokuUUID herokuRegion sekret = do
 
   logInfo $ "Inserted user " <> display uID
   return uID
+
+deactivate :: MonadRIO    cfg m
+           => MonadSelda      m
+           => HasLogFunc cfg
+           => ID User
+           -> m Bool
+deactivate userID = do
+  n <- update Table.users (userID' `is` userID) $
+        \user -> user `with` [active' := false]
+
+  logInfo $ "Deactivated user ID: " <> display userID
+  return $ n > 0

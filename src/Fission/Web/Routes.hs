@@ -23,6 +23,7 @@ type PublicAPI = IPFSRoute
 type IPFSRoute = "ipfs" :> IPFS.API
 
 type HerokuRoute = "heroku"
+                   :> "resources"
                    :> BasicAuth "heroku add-on api" ByteString
                    :> Heroku.API
 

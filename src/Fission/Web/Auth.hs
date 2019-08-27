@@ -52,11 +52,7 @@ checkUser :: HasLogFunc cfg
           => BasicAuthData
           -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
-  mayUser <- getOne
-          . query
-          . limit 0 1
-          $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
-
+  mayUser <- findOne $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
   maybe (pure NoSuchUser) checkID mayUser
 
   where
