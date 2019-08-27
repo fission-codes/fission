@@ -22,7 +22,6 @@ findOne :: MonadSelda m
         -> m (Maybe (Res (OuterCols a)))
 findOne = fmap headMaybe . query . limit 0 1
 
-
 oneEq :: MonadSelda m
       => Relational t
       => SqlType r

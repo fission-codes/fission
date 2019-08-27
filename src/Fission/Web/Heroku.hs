@@ -100,7 +100,11 @@ deprovision uuid' = do
   let err = Web.Err.ensure_ err404
 
   AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
-  User  {_userID}  <- err =<< Query.oneEq Table.users  User.herokuAddOnID' (Just _addOnID)
+  User  {_userID}  <- err =<< Query.findOne do
+    user <- select Table.users
+    restrict $ user ! #_herokuAddOnId .== literal (Just _addOnID)
+           .&& user ! #_active        .== true
+    return user
 
   usersCIDs <- query do
     uCIDs <- select Table.userCIDs
