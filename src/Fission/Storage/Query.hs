@@ -2,7 +2,7 @@ module Fission.Storage.Query
   ( is'
   , all'
   , findOne
-  , oneBy
+  , oneEq
   ) where
 
 import RIO

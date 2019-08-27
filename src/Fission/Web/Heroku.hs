@@ -83,7 +83,7 @@ delete :: HasLogFunc      cfg
        => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg DeleteAPI
-delete userID uuid =
+delete uuid =
   Query.oneEq Table.addOns uuid' uuid >>= \case
     Nothing ->
       throwM err404
