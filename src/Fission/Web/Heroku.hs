@@ -92,7 +92,7 @@ deprovision uuid' =
                                , User.active'        := false
                                ]
 
-        logInfo $ "Deactivated " <> nUsers <> "user(s)"
+        logInfo $ "Deactivated " <> display nUsers <> "user(s)"
 
         if nUsers == 0
            then -- Don't prevent deprovision
