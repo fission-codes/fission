@@ -34,22 +34,22 @@ import           Fission.Platform.Heroku.AddOn.Types
 
 import           Fission.Security.Types (Secret (..))
 
-type API = CreateAPI :<|> DeleteAPI
+type API = ProvisionAPI :<|> DeprovisionAPI
 
-type CreateAPI = ReqBody '[JSON]                     Provision.Request
-              :> Post    '[Heroku.MIME.VendorJSONv3] Provision
+type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
+                 :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
 server :: HasLogFunc      cfg
        => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
-server = create :<|> delete
+server = provision :<|> deprovision
 
-create :: HasLogFunc      cfg
-       => Has Web.Host    cfg
-       => MonadSelda (RIO cfg)
-       => RIOServer       cfg CreateAPI
-create Request {_uuid, _region} = do
+provision :: HasLogFunc      cfg
+          => Has Web.Host    cfg
+          => MonadSelda (RIO cfg)
+          => RIOServer       cfg ProvisionAPI
+provision Request {_uuid, _region} = do
   Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
   userID       <- User.create _uuid _region secret
@@ -74,26 +74,32 @@ create Request {_uuid, _region} = do
     , _message = "Successfully provisioned Interplanetary FISSION!"
     }
 
-type DeleteAPI = Capture "addon_id" UUID
-              :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
+type DeprovisionAPI = Capture "addon_id" UUID
+                   :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
 
-delete :: HasLogFunc      cfg
-       => MonadSelda (RIO cfg)
-       => RIOServer       cfg DeleteAPI
-delete uuid' =
+deprovision :: HasLogFunc      cfg
+            => MonadSelda (RIO cfg)
+            => RIOServer       cfg DeprovisionAPI
+deprovision uuid' =
   Query.oneEq Table.addOns AddOn.uuid' uuid' >>= \case
     Nothing ->
       throwM err404
 
     Just AddOn {_addOnID} -> do
       transaction do
-        deleteFrom_ Table.addOns $ AddOn.uuid' `is` uuid'
-        Query.oneEq Table.users User.herokuAddOnId' (Just _addOnID) >>= \case
-          Nothing -> do
-            logError $ "Unable to find a user for Heroku AddOn " <> displayShow uuid'
-            return ()
+        nUsers <- update Table.users (User.herokuAddOnId' `is` Just _addOnID) $ \user ->
+                   user `with` [ User.herokuAddOnId' := literal Nothing
+                               , User.active'        := false
+                               ]
 
-          Just User {_userID} ->
-            void $ User.deactivate _userID
+        logInfo $ "Deactivated " <> nUsers <> "user(s)"
+
+        if nUsers == 0
+           then -- Don't prevent deprovision
+             logError $ "No user for Heroku AddOn with UUID " <> displayShow uuid'
+
+           else do -- Checked exists above
+             deleteFrom_ Table.addOns (AddOn.uuid' `is` uuid')
+             logInfo $ "Deprovisioned Heroku AddOn with UUID " <> displayShow uuid'
 
       return NoContent
