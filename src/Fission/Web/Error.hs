@@ -9,8 +9,9 @@ import RIO
 
 import Data.Aeson
 import Network.HTTP.Types.Status
+
 import Servant.Exception
-import Servant.Server
+import Servant.Server.Internal.ServantErr
 
 import Fission.Internal.Constraint
 
@@ -25,10 +26,12 @@ ensure :: MonadRIO   cfg m
        -> m a
 ensure = either throw pure
 
-ensure_ :: MonadThrow m => Maybe a -> m a
-ensure_ = \case
-  Nothing -> throwM err404
-  Just a  -> pure a
+ensure_ :: MonadRIO   cfg m
+        => MonadThrow     m
+        => ServantErr
+        -> Maybe a
+        -> m a
+ensure_ err = maybe (throwM err) pure
 
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg

@@ -97,10 +97,11 @@ deprovision :: MonadSelda   (RIO cfg)
             => Has IPFS.Timeout  cfg
             => RIOServer         cfg DeprovisionAPI
 deprovision uuid' = do
-  AddOn {_addOnID} <- Web.Err.ensure_ =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
-  User  {_userID}  <- Web.Err.ensure_ =<< Query.oneEq Table.users  User.herokuAddOnID' (Just _addOnID)
+  let err = Web.Err.ensure_ err404
 
-  -- CID counts for UserCIDs that the user touches
+  AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
+  User  {_userID}  <- err =<< Query.oneEq Table.users  User.herokuAddOnID' (Just _addOnID)
+
   usersCIDs <- query do
     uCIDs <- select Table.userCIDs
     restrict (uCIDs ! #_userFK .== literal _userID)
@@ -122,8 +123,8 @@ deprovision uuid' = do
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
   forM_ toUnpin $ IPFS.unpin >=> \case
-    Left err -> do
-      logError $ "Unable to unpin CID: " <> display err
+    Left ipfsMsg -> do
+      logError $ "Unable to unpin CID: " <> display ipfsMsg
       return ()
 
     Right _ ->
