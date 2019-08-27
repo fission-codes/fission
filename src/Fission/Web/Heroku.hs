@@ -26,7 +26,6 @@ import qualified Fission.Storage.Query as Query
 
 import qualified Fission.User       as User
 import qualified Fission.User.Table as Table
-import           Fission.User.Types
 
 import qualified Fission.Platform.Heroku.AddOn       as AddOn
 import qualified Fission.Platform.Heroku.AddOn.Table as Table
