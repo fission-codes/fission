@@ -2,7 +2,7 @@
 
 module Fission.Web.Heroku
   ( API
-  , create
+  , server
   ) where
 
 import           RIO
@@ -10,11 +10,7 @@ import           RIO
 import           Data.Has
 import           Data.UUID
 import           Database.Selda
-
 import           Servant
-import           Servant.API
-
-import Network.HTTP.Types
 
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
 import           Fission.Web.Server
@@ -26,13 +22,15 @@ import           Fission.Platform.Heroku.Provision  as Provision
 import qualified Fission.Config as Config
 import qualified Fission.Random as Random
 
-import           Fission.Storage.Query
+import qualified Fission.Storage.Query as Query
 
-import           Fission.User       as User
+import qualified Fission.User       as User
 import qualified Fission.User.Table as Table
+import           Fission.User.Types
 
-import           Fission.Platform.Heroku.AddOn       as AddOn
+import qualified Fission.Platform.Heroku.AddOn       as AddOn
 import qualified Fission.Platform.Heroku.AddOn.Table as Table
+import           Fission.Platform.Heroku.AddOn.Types
 
 import           Fission.Security.Types (Secret (..))
 
@@ -45,7 +43,7 @@ server :: HasLogFunc      cfg
        => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
-server = undefined
+server = create :<|> delete
 
 create :: HasLogFunc      cfg
        => Has Web.Host    cfg
@@ -77,27 +75,25 @@ create Request {_uuid, _region} = do
     }
 
 type DeleteAPI = Capture "addon_id" UUID
-              :> DeleteNoContent '[] NoContent
+              :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
 
 delete :: HasLogFunc      cfg
-       => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg DeleteAPI
-delete uuid =
-  Query.oneEq Table.addOns uuid' uuid >>= \case
+delete uuid' =
+  Query.oneEq Table.addOns AddOn.uuid' uuid' >>= \case
     Nothing ->
       throwM err404
 
     Just AddOn {_addOnID} -> do
       transaction do
-        deleteFrom_ Table.addOns (uuid' `is` uuid)
-
-        Query.oneEq Table.users herokuAddOnId' (Just _addOnID) >>= \case
+        deleteFrom_ Table.addOns $ AddOn.uuid' `is` uuid'
+        Query.oneEq Table.users User.herokuAddOnId' (Just _addOnID) >>= \case
           Nothing -> do
-            logError "Unable to find a user for Heroku AddOn " <> displayShow uuid
+            logError $ "Unable to find a user for Heroku AddOn " <> displayShow uuid'
             return ()
 
           Just User {_userID} ->
-            User.deactivate _userID
+            void $ User.deactivate _userID
 
       return NoContent
