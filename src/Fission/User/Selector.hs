@@ -2,7 +2,7 @@ module Fission.User.Selector
   ( userID'
   , role'
   , active'
-  , herokuAddOnId'
+  , herokuAddOnID'
   , secretDigest'
   , insertedAt'
   , modifiedAt'
@@ -23,14 +23,14 @@ import Fission.User.Types
 userID'        :: Selector User (ID User)
 role'          :: Selector User Role
 active'        :: Selector User Bool
-herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
+herokuAddOnID' :: Selector User (Maybe (ID Heroku.AddOn))
 secretDigest'  :: Selector User SecretDigest
 insertedAt'    :: Selector User UTCTime
 modifiedAt'    :: Selector User UTCTime
 
 userID' :*: role'
         :*: active'
-        :*: herokuAddOnId'
+        :*: herokuAddOnID'
         :*: secretDigest'
         :*: insertedAt'
         :*: modifiedAt' = selectors users

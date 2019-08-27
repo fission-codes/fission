@@ -6,15 +6,17 @@ module Fission.Web.Heroku
   ) where
 
 import           RIO
+import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Data.UUID
-import           Database.Selda
+import           Database.Selda as Selda
 import           Servant
 
+import qualified Fission.Web.Error       as Web.Err
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
 import           Fission.Web.Server
-import qualified Fission.Web.Types as Web
+import qualified Fission.Web.Types       as Web
 
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.Platform.Heroku.Provision  as Provision
@@ -24,8 +26,14 @@ import qualified Fission.Random as Random
 
 import qualified Fission.Storage.Query as Query
 
+import           Fission.User.Types
 import qualified Fission.User       as User
 import qualified Fission.User.Table as Table
+
+import           Fission.IPFS.CID.Types
+
+import qualified Fission.User.CID       as UserCID
+import qualified Fission.User.CID.Table as Table
 
 import qualified Fission.Platform.Heroku.AddOn       as AddOn
 import qualified Fission.Platform.Heroku.AddOn.Table as Table
@@ -33,15 +41,21 @@ import           Fission.Platform.Heroku.AddOn.Types
 
 import           Fission.Security.Types (Secret (..))
 
+import           Fission.IPFS.Types          as IPFS
+import           Fission.Storage.IPFS as IPFS
+
 type API = ProvisionAPI :<|> DeprovisionAPI
 
 type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
                  :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
-server :: HasLogFunc      cfg
-       => Has Web.Host    cfg
-       => MonadSelda (RIO cfg)
-       => RIOServer       cfg API
+server :: HasLogFunc        cfg
+       => Has Web.Host      cfg
+       => Has IPFS.BinPath  cfg
+       => Has IPFS.Timeout  cfg
+       => MonadSelda   (RIO cfg)
+       => HasProcessContext cfg
+       => RIOServer         cfg API
 server = provision :<|> deprovision
 
 provision :: HasLogFunc      cfg
@@ -76,29 +90,43 @@ provision Request {_uuid, _region} = do
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
 
-deprovision :: HasLogFunc      cfg
-            => MonadSelda (RIO cfg)
-            => RIOServer       cfg DeprovisionAPI
-deprovision uuid' =
-  Query.oneEq Table.addOns AddOn.uuid' uuid' >>= \case
-    Nothing ->
-      throwM err404
+deprovision :: MonadSelda   (RIO cfg)
+            => HasLogFunc        cfg
+            => HasProcessContext cfg
+            => Has IPFS.BinPath  cfg
+            => Has IPFS.Timeout  cfg
+            => RIOServer         cfg DeprovisionAPI
+deprovision uuid' = do
+  AddOn {_addOnID} <- Web.Err.ensure_ =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
+  User  {_userID}  <- Web.Err.ensure_ =<< Query.oneEq Table.users  User.herokuAddOnID' (Just _addOnID)
 
-    Just AddOn {_addOnID} -> do
-      transaction do
-        nUsers <- update Table.users (User.herokuAddOnId' `is` Just _addOnID) $ \user ->
-                   user `with` [ User.herokuAddOnId' := literal Nothing
-                               , User.active'        := false
-                               ]
+  -- CID counts for UserCIDs that the user touches
+  usersCIDs <- query do
+    uCIDs <- select Table.userCIDs
+    restrict (uCIDs ! #_userFK .== literal _userID)
+    return (uCIDs ! UserCID.cid')
 
-        logInfo $ "Deactivated " <> display nUsers <> "user(s)"
+  cidOccur <- query do
+    (liveCID' :*: occurences') <- aggregate do
+      uCIDs <- select Table.userCIDs
+      theCID <- groupBy (uCIDs ! UserCID.cid')
+      return (theCID :*: count (uCIDs ! UserCID.cid'))
 
-        if nUsers == 0
-           then -- Don't prevent deprovision
-             logError $ "No user for Heroku AddOn with UUID " <> displayShow uuid'
+    restrict (liveCID' `isIn` fmap literal usersCIDs)
+    return (liveCID' :*: occurences')
 
-           else do -- Checked exists above
-             deleteFrom_ Table.addOns (AddOn.uuid' `is` uuid')
-             logInfo $ "Deprovisioned Heroku AddOn with UUID " <> displayShow uuid'
+  transaction do
+    deleteFrom_ Table.userCIDs (UserCID.userFK' `is` _userID)
+    deleteFrom_ Table.users    (User.userID'    `is` _userID)
+    deleteFrom_ Table.addOns   (AddOn.uuid'     `is` uuid')
 
-      return NoContent
+  let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
+  forM_ toUnpin $ IPFS.unpin >=> \case
+    Left err -> do
+      logError $ "Unable to unpin CID: " <> display err
+      return ()
+
+    Right _ ->
+      return ()
+
+  return NoContent
