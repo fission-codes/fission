@@ -1,27 +1,29 @@
 module Main (main) where
 
-import RIO
-import RIO.Process (mkDefaultProcessContext)
+import           RIO
+import           RIO.Process (mkDefaultProcessContext)
 
-import Data.Aeson (decodeFileStrict)
-import System.Envy
+import           Data.Aeson (decodeFileStrict)
+import           System.Envy
 
-import Network.Wai.Handler.Warp
-import Network.Wai.Handler.WarpTLS
-import Network.Wai.Middleware.RequestLogger
-import Network.Wai.Middleware.Cors
+import           Network.Wai.Handler.Warp
+import           Network.Wai.Handler.WarpTLS
+import           Network.Wai.Middleware.RequestLogger
 
-import Fission.Config.Types
-import Fission.Storage.SQLite as SQLite
+import           Fission.Config.Types
+import           Fission.Storage.SQLite as SQLite
 
 import           Fission.Environment
 import           Fission.Internal.Orphanage ()
+
 import           Fission.Storage.Types as DB
 import qualified Fission.IPFS.Types    as IPFS
 import qualified Fission.Monitor       as Monitor
+
 import qualified Fission.Web           as Web
-import qualified Fission.Web.Types     as Web
+import qualified Fission.Web.CORS      as CORS
 import qualified Fission.Web.Log       as Web.Log
+import qualified Fission.Web.Types     as Web
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
@@ -63,7 +65,7 @@ main = do
                       else runSettings
 
       liftIO . runner (Web.Log.mkSettings _logFunc port)
-             . simpleCors
+             . CORS.middleware
              . condDebug
              =<< Web.app
              =<< ask
