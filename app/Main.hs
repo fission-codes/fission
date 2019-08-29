@@ -9,6 +9,7 @@ import System.Envy
 import Network.Wai.Handler.Warp
 import Network.Wai.Handler.WarpTLS
 import Network.Wai.Middleware.RequestLogger
+import Network.Wai.Middleware.Cors
 
 import Fission.Config.Types
 import Fission.Storage.SQLite as SQLite
@@ -25,18 +26,6 @@ import qualified Fission.Web.Log       as Web.Log
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 import qualified Fission.Platform.Heroku.Types          as Heroku
-
-
-
-
-
-
-
-
-
-
-----------------------
-import Network.Wai.Middleware.Cors
 
 main :: IO ()
 main = do
