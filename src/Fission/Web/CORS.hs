@@ -18,6 +18,7 @@ policy = simpleCorsResourcePolicy { corsMethods = allowedMethods }
 
 allowedMethods :: [Method]
 allowedMethods = [ methodGet
+                 , methodDelete
                  , methodHead
                  , methodOptions
                  , methodPatch
