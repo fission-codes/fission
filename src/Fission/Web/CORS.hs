@@ -17,4 +17,4 @@ policy :: CorsResourcePolicy
 policy = simpleCorsResourcePolicy { corsMethods = allowedMethods }
 
 allowedMethods :: [HTTP.Method]
-allowedMethods = "PUT" : simpleMethods
+allowedMethods = "PUT" : "DELETE" : simpleMethods
