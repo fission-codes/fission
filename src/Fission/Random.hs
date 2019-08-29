@@ -33,7 +33,6 @@ urlSpecials =
   fmap (==)
     [ _asterisk
     , _comma
-    , _dollar
     , _exclam
     , _hyphen
     , _parenleft
