@@ -26,6 +26,18 @@ import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 import qualified Fission.Platform.Heroku.Types          as Heroku
 
+
+
+
+
+
+
+
+
+
+----------------------
+import Network.Wai.Middleware.Cors
+
 main :: IO ()
 main = do
   Web.Port port <- getEnv
@@ -61,7 +73,11 @@ main = do
                       then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
                       else runSettings
 
-      liftIO . runner (Web.Log.mkSettings _logFunc port) . condDebug =<< Web.app =<< ask
+      liftIO . runner (Web.Log.mkSettings _logFunc port)
+             . simpleCors
+             . condDebug
+             =<< Web.app
+             =<< ask
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do

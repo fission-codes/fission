@@ -106,6 +106,7 @@ dependencies:
   - uuid
   - uuid-types
   - wai
+  - wai-cors
   - wai-extra
   - wai-logger
   - warp

@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0671ca31c91717fe9fc7e89a07ecbbaa7f8b62032025ee4f1848c09b91dfbf5c
+-- hash: c88152437ae22bb8883452ec89d3d00d852fb53feb125b5352a857bbdc308cc5
 
 name:           fission-web-api
 version:        1.5.0
@@ -166,6 +166,7 @@ library
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -223,6 +224,7 @@ executable fission-web
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -286,6 +288,7 @@ test-suite fission-doctest
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -345,6 +348,7 @@ test-suite fission-lint
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -505,6 +509,7 @@ test-suite fission-test
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
@@ -564,6 +569,7 @@ benchmark fission-benchmark
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
