@@ -9,6 +9,7 @@ import System.Envy
 import Network.Wai.Handler.Warp
 import Network.Wai.Handler.WarpTLS
 import Network.Wai.Middleware.RequestLogger
+import Network.Wai.Middleware.Cors
 
 import Fission.Config.Types
 import Fission.Storage.SQLite as SQLite
@@ -61,7 +62,11 @@ main = do
                       then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
                       else runSettings
 
-      liftIO . runner (Web.Log.mkSettings _logFunc port) . condDebug =<< Web.app =<< ask
+      liftIO . runner (Web.Log.mkSettings _logFunc port)
+             . simpleCors
+             . condDebug
+             =<< Web.app
+             =<< ask
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
