@@ -6,7 +6,7 @@ module Fission.Web.CORS
 
 import RIO
 
-import qualified Network.HTTP.Types          as HTTP
+import           Network.HTTP.Types
 import qualified Network.Wai                 as WAI
 import           Network.Wai.Middleware.Cors
 
@@ -16,5 +16,12 @@ middleware = cors (const $ Just simpleCorsResourcePolicy)
 policy :: CorsResourcePolicy
 policy = simpleCorsResourcePolicy { corsMethods = allowedMethods }
 
-allowedMethods :: [HTTP.Method]
-allowedMethods = "PUT" : "DELETE" : simpleMethods
+allowedMethods :: [Method]
+allowedMethods = [ methodGet
+                 , methodDelete
+                 , methodHead
+                 , methodOptions
+                 , methodPatch
+                 , methodPost
+                 , methodPut
+                 ]
