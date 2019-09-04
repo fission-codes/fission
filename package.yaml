@@ -99,6 +99,7 @@ dependencies:
   - servant-swagger
   - servant-swagger-ui
   - streaming-commons
+  - streamly
   - swagger2
   - text
   - time

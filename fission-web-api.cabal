@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6b3aed3a240db86d28fde94c612ff51c661b996b8f13350e1a1184a4e857f1ea
+-- hash: bb1071e43f2c20e430acb6df4c6bd575e9ba376b72cffd2a5c57c304fbe4bf61
 
 name:           fission-web-api
 version:        1.6.0
@@ -164,6 +164,7 @@ library
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
@@ -222,6 +223,7 @@ executable fission-web
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
@@ -286,6 +288,7 @@ test-suite fission-doctest
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
@@ -346,6 +349,7 @@ test-suite fission-lint
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
@@ -506,6 +510,7 @@ test-suite fission-test
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , tasty
     , tasty-hspec
@@ -572,6 +577,7 @@ benchmark fission-benchmark
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time

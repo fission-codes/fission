@@ -9,11 +9,13 @@ module Fission.IPFS.Types
   , SparseTree (..)
   , Tag (..)
   , Timeout (..)
+  , URL (..)
   ) where
 
 import RIO
 
 import Data.Swagger (ToSchema (..))
+import Servant.Client as Client
 import System.Envy
 
 import Fission.IPFS.CID.Types
@@ -33,6 +35,12 @@ newtype BinPath = BinPath { getBinPath :: FilePath }
 
 instance FromEnv BinPath where
   fromEnv = BinPath <$> env "IPFS_PATH"
+
+newtype URL = URL { getURL :: Client.BaseUrl }
+  deriving ( Eq
+           , Generic
+           , Show
+           )
 
 newtype Timeout = Timeout { getSeconds :: Natural }
   deriving Show

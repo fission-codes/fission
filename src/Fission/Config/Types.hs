@@ -29,6 +29,7 @@ data Config = Config
   { _processCtx     :: !ProcessContext
   , _logFunc        :: !LogFunc
   , _ipfsPath       :: !IPFS.BinPath
+  , _ipfsURL        :: !IPFS.URL
   , _ipfsTimeout    :: !IPFS.Timeout
   , _host           :: !Host
   , _dbPath         :: !DB.Path
@@ -45,6 +46,7 @@ instance Show Config where
     , "  _processCtx     = **SOME PROC CONTEXT**"
     , "  _logFunc        = **SOME LOG FUNCTION**"
     , "  _ipfsPath       = " <> show _ipfsPath
+    , "  _ipfsURL        = " <> show _ipfsURL
     , "  _ipfsTimeout    = " <> show _ipfsTimeout
     , "  _host           = " <> show _host
     , "  _dbPath         = " <> show _dbPath
@@ -62,6 +64,9 @@ instance HasLogFunc Config where
 
 instance Has IPFS.BinPath Config where
   hasLens = ipfsPath
+
+instance Has IPFS.URL Config where
+  hasLens = ipfsURL
 
 instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
