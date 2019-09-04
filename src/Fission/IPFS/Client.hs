@@ -28,8 +28,13 @@ pin ::   Text        -> Streaming.ClientM Text
 unpin :: Text -> Bool -> Streaming.ClientM Text
 cat :<|> pin :<|> unpin = Streaming.client (Proxy :: Proxy API)
 
--- env manager = Streaming.clientEnv manager "localhost:5001"
-
-run = do
+run :: NFData a => Streaming.ClientM a -> IO (Either Streaming.ServantError a)
+run query = do
   manager <- HTTP.newManager HTTP.defaultManagerSettings
-  Streaming.runClientM (Streaming.mkClientEnv manager)
+  let env = (Streaming.mkClientEnv manager (Streaming.BaseUrl Streaming.Http "localhost" 8081 ""))
+  Streaming.runClientM query env
+
+
+{-
+It allows using this module's ClientM in a direct style. The NFData constraint however prevents using this function with genuine streaming response types (SourceT, Conduit, pipes Proxy or Machine). For those you have to use withClientM.
+-}
