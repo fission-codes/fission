@@ -12,6 +12,7 @@ import qualified RIO.Text as Text
 import           Data.Has
 import           Database.Selda
 
+import qualified Network.HTTP.Client as HTTP
 import           Servant
 import           Servant.Multipart
 
@@ -26,72 +27,74 @@ import qualified Fission.IPFS.SparseTree as IPFS
 import qualified Fission.IPFS.Types      as IPFS
 import qualified Fission.Storage.IPFS    as Storage.IPFS
 import qualified Fission.Web.Error       as Web.Err
+import qualified Fission.File.Types      as File
 
-type API = TextAPI :<|> JSONAPI
+import           Fission.IPFS.CID.Types
+import qualified Fission.IPFS.Client    as IPFS.Client
+import qualified Fission.IPFS.Types     as IPFS
+
+type API = TextAPI -- :<|> JSONAPI
 
 type TextAPI = FileRequest
                :> NameQuery
                :> Post '[OctetStream, PlainText] IPFS.Path
 
-type JSONAPI = FileRequest
-               :> NameQuery
-               :> Post '[JSON] IPFS.SparseTree
+-- type JSONAPI = FileRequest
+--                :> NameQuery
+--                :> Post '[JSON] IPFS.SparseTree
 
 type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
-add :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
+add :: Has IPFS.URL      cfg
+    => Has HTTP.Manager  cfg
     => MonadSelda   (RIO cfg)
-    => HasProcessContext cfg
     => HasLogFunc        cfg
     => User
     -> RIOServer         cfg API
-add User { _userID } = textAdd _userID :<|> jsonAdd _userID
+add User { _userID } = textAdd _userID -- :<|> jsonAdd _userID
 
-textAdd :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
+textAdd :: Has IPFS.URL      cfg
+        => Has HTTP.Manager  cfg
         => MonadSelda   (RIO cfg)
         => HasLogFunc        cfg
         => ID User
         -> RIOServer         cfg TextAPI
-textAdd uID form queryName = run uID form queryName $ \sparse ->
-  case IPFS.linearize sparse of
-    Right hash -> pure hash
-    Left err   -> Web.Err.throw err
+textAdd uID form queryName = run uID form queryName
+  -- run uID form queryName $ \sparse ->
+    -- case IPFS.linearize sparse of
+    --   Right hash -> pure hash
+    --   Left err   -> Web.Err.throw err
 
-jsonAdd :: MonadSelda   (RIO cfg)
-        => Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => ID User
-        -> RIOServer         cfg JSONAPI
-jsonAdd uID form queryName = run uID form queryName pure
+-- jsonAdd :: MonadSelda   (RIO cfg)
+--         => Has IPFS.URL      cfg
+--         => HasLogFunc        cfg
+--         => Has HTTP.Manager  cfg
+--         => ID User
+--         -> RIOServer         cfg JSONAPI
+-- jsonAdd uID form queryName = run uID form queryName pure
 
 run :: MonadRIO          cfg m
     => MonadThrow            m
     => MonadSelda            m
-    => Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => HasProcessContext cfg
+    => Has IPFS.URL      cfg
+    => Has HTTP.Manager  cfg
     => HasLogFunc        cfg
     => ID User
     -> MultipartData Mem
     -> Maybe IPFS.Name
-    -> (IPFS.SparseTree -> m a)
-    -> m a
-run uID form qName cont = case lookupFile "file" form of
+    -- -> (IPFS.SparseTree -> m a)
+    -> m CID
+run uID form qName = case lookupFile "file" form of
   Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } ->
-    Storage.IPFS.addFile fdPayload humanName >>= \case
+    IPFS.Client.run (IPFS.Client.add fdPayload) >>= \case  --humanName >>= \case
       Left err ->
         Web.Err.throw err
 
-      Right struct -> do
-        void . transaction $ User.CID.createX uID (IPFS.cIDs struct)
-        cont struct
+      Right hash -> do
+        void . transaction $ User.CID.create uID hash
+        return $ CID hash
     where
       humanName :: IPFS.Name
       humanName = toName qName fdFileName fdFileCType

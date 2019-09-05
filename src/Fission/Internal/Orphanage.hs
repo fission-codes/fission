@@ -23,8 +23,11 @@ import Database.Selda
 import Database.Selda.Backend
 
 import Network.HTTP.Media.MediaType
+import Network.HTTP.Types.Status
 
 import Servant
+import Servant.Client as C
+import Servant.Exception
 import Servant.Multipart
 import Servant.Swagger
 import Servant.Swagger.Internal
@@ -44,6 +47,36 @@ instance Display Natural where
 
 instance Display (ID a) where
   display = display . fromId
+
+instance Display ServantError where
+  display = \case
+    FailureResponse C.Response {responseBody} ->
+      displayShow responseBody
+
+    DecodeFailure txt C.Response {responseBody} ->
+      display txt <> " - " <> displayShow responseBody
+
+    UnsupportedContentType _ C.Response {responseBody} ->
+      displayShow responseBody
+
+    InvalidContentTypeHeader resp ->
+      displayShow resp
+
+    ConnectionError txt ->
+      display txt
+
+instance ToJSON ServantError where
+  toJSON = String . textDisplay
+
+instance ToServantErr ServantError where
+  status = \case
+    FailureResponse          _   -> status400
+    DecodeFailure            _ _ -> status400
+    UnsupportedContentType   _ _ -> status415
+    InvalidContentTypeHeader _   -> status415
+    ConnectionError          _   -> status500
+
+  message = textDisplay
 
 instance ToJSON (ID a) where
   toJSON = Number . fromIntegral . fromId
@@ -71,6 +104,9 @@ instance HasLogFunc (LogFunc, b) where
 
 instance HasLogFunc (LogFunc, b, c) where
   logFuncL = _1
+
+instance MimeRender PlainText Lazy.ByteString where
+  mimeRender _proxy = id
 
 instance MimeRender PlainText a => MimeRender PlainText [a] where
   mimeRender proxy values = "["<> meat <>"]"

@@ -6,5 +6,5 @@ module Fission.IPFS.Client.Param
 import RIO
 import Servant
 
-type CID = QueryParam' '[Required, Strict] "cid" Text
+type CID = QueryParam' '[Required, Strict] "arg" Text
 type IsRecursive = QueryFlag "recursive"

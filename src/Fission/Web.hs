@@ -11,10 +11,11 @@ import           RIO
 import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 
-import Data.Has
-import Database.Selda
-import Servant
-import Data.Swagger as Swagger
+import           Data.Has
+import           Database.Selda
+import           Data.Swagger as Swagger
+import qualified Network.HTTP.Client as HTTP
+import           Servant
 
 import qualified Fission.Config     as Config
 import           Fission.User
@@ -39,6 +40,8 @@ type API = Web.Swagger.API :<|> Web.API
 -- | The actual web server for 'API'
 app :: Has IPFS.BinPath    cfg
     => Has IPFS.Timeout    cfg
+    => Has IPFS.URL        cfg
+    => Has HTTP.Manager  cfg
     => Has Web.Host        cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
@@ -77,6 +80,8 @@ mkAuth = do
 -- | Web handlers for the 'API'
 server :: Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
+       => Has HTTP.Manager  cfg
+       => Has IPFS.URL      cfg
        => Has Web.Host      cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg

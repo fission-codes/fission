@@ -7,6 +7,7 @@ import           Data.Aeson (decodeFileStrict)
 import           Servant.Client
 import           System.Envy
 
+import qualified Network.HTTP.Client as HTTP
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
@@ -42,8 +43,9 @@ main = do
   _dbPath      <- decode .!~ DB.Path "web-api.sqlite"
   _dbPool      <- RIO.runSimpleApp $ SQLite.connPool _dbPath
 
-  ipfsURLRaw  <- withEnv "IPFS_URL" "http://localhost:5001" id
-  _ipfsURL <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
+  _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+  ipfsURLRaw   <- withEnv "IPFS_URL" "http://localhost:5001" id
+  _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
 
   condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
   isVerbose   <- getFlag "RIO_VERBOSE"

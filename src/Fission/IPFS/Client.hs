@@ -7,7 +7,8 @@ module Fission.IPFS.Client
   , unpin
   ) where
 
-import RIO
+import           RIO
+import qualified RIO.ByteString.Lazy as Lazy
 
 import Data.Has
 
@@ -17,6 +18,7 @@ import           Servant.Client
 
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
+import           Fission.Internal.Orphanage ()
 
 import qualified Fission.File.Types      as File
 import qualified Fission.IPFS.Types      as IPFS
@@ -35,19 +37,22 @@ type V0API = "add" :> Add.API
         :<|> "cat" :> Cat.API
         :<|> "pin" :> Pin.API
 
-add ::   File.Serialized -> ClientM CID
-cat ::   Text            -> ClientM File.Serialized
-pin ::   Text            -> ClientM Pin.Response
+add   :: Lazy.ByteString -> ClientM CID
+cat   :: Text            -> ClientM File.Serialized
+pin   :: Text            -> ClientM Pin.Response
 unpin :: Text -> Bool     -> ClientM Pin.Response
 
-add :<|> cat :<|> pin :<|> unpin = client (Proxy :: Proxy API)
+add :<|> cat
+    :<|> pin
+    :<|> unpin = client (Proxy :: Proxy API)
 
 -- NOTE: May want to move these to streaming in the future
-run :: MonadRIO     cfg m
-    => Has IPFS.URL cfg
+run :: MonadRIO         cfg m
+    => Has IPFS.URL     cfg
+    => Has HTTP.Manager cfg
     => ClientM a
     -> m (Either ServantError a)
 run query = do
   IPFS.URL url <- Config.get
-  manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+  manager :: HTTP.Manager <- Config.get
   liftIO . runClientM query $ mkClientEnv manager url

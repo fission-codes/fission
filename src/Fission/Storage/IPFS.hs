@@ -14,13 +14,15 @@ import Data.Has
 import Data.ByteString.Lazy.Char8 as CL
 
 import qualified Fission.Config              as Config
-import           Fission.IPFS.Error          as IPFS.Error
-import           Fission.IPFS.Types          as IPFS
 import           Fission.Internal.Constraint
 import           Fission.Internal.Process
 import qualified Fission.File.Types          as File
-import qualified Fission.IPFS.Process        as IPFS.Proc
 import qualified Fission.Internal.UTF8       as UTF8
+
+import qualified Fission.IPFS.Process        as IPFS.Proc
+import           Fission.IPFS.Error          as IPFS.Error
+import           Fission.IPFS.Types          as IPFS
+import qualified Fission.IPFS.Client         as IPFS.Client
 
 get :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg
@@ -101,6 +103,8 @@ pin :: MonadRIO          cfg m
     => Has IPFS.Timeout  cfg
     => IPFS.CID
     -> m (Either IPFS.Error.Add CID)
+-- pin cid@(CID hash) = IPFS.Client.run IPFS.Client.pin hash >>=
+--   Left
 pin cid@(CID hash) = IPFS.Proc.runErr' ["pin", "add"] (UTF8.textToLazyBS hash) >>= \case
   (ExitSuccess, _) -> do
     logDebug $ "Pinned CID " <> display hash

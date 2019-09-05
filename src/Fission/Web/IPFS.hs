@@ -11,6 +11,7 @@ import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Database.Selda
+import qualified Network.HTTP.Client as HTTP
 import Servant
 
 import           Fission.IPFS.Types        as IPFS
@@ -35,9 +36,11 @@ type AuthedAPI' = "cids" :> CID.API
 type PublicAPI = Download.API
 
 server :: HasLogFunc        cfg
+       => Has HTTP.Manager  cfg
        => HasProcessContext cfg
        => MonadSelda   (RIO cfg)
        => Has IPFS.BinPath  cfg
+       => Has IPFS.URL      cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg API
 server = authed
@@ -46,7 +49,9 @@ server = authed
 authed :: HasLogFunc        cfg
        => HasProcessContext cfg
        => MonadSelda   (RIO cfg)
+       => Has HTTP.Manager  cfg
        => Has IPFS.BinPath  cfg
+       => Has IPFS.URL      cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg AuthedAPI
 authed usr = CID.allForUser usr
