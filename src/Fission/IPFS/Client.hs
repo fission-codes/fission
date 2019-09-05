@@ -53,6 +53,6 @@ run :: MonadRIO         cfg m
     => ClientM a
     -> m (Either ServantError a)
 run query = do
-  IPFS.URL url <- Config.get
+  IPFS.URL url           <- Config.get
   manager :: HTTP.Manager <- Config.get
   liftIO . runClientM query $ mkClientEnv manager url

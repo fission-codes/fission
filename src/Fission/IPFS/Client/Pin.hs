@@ -2,7 +2,7 @@ module Fission.IPFS.Client.Pin
   ( API
   , AddAPI
   , RemoveAPI
-  , Response
+  , Response (..)
   ) where
 
 import RIO
