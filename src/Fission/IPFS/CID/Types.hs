@@ -5,6 +5,9 @@ module Fission.IPFS.CID.Types
 
 import           RIO
 import qualified RIO.Text as Text
+import qualified RIO.ByteString.Lazy as Lazy
+
+-- import Data.Text.Encoding as Text
 
 import Control.Lens ((.~), (?~))
 import Data.Aeson
@@ -52,6 +55,12 @@ instance MimeRender PlainText CID where
 
 instance MimeRender OctetStream CID where
   mimeRender _ = UTF8.textToLazyBS . unaddress
+
+instance MimeUnrender PlainText CID where
+  mimeUnrender _proxy bs =
+    case decodeUtf8' $ Lazy.toStrict bs of
+      Left err  -> Left $ show err
+      Right txt -> Right $ CID txt
 
 instance FromHttpApiData CID where
   parseUrlPiece = Right . CID

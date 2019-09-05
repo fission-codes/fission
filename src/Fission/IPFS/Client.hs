@@ -1,10 +1,11 @@
 module Fission.IPFS.Client
   ( API
+  , add
   , cat
   , pin
   , run
   , unpin
-  )where
+  ) where
 
 import RIO
 
@@ -12,13 +13,15 @@ import Data.Has
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
-import qualified Servant.Client.Streaming as Streaming
+import           Servant.Client
 
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 
 import qualified Fission.File.Types      as File
 import qualified Fission.IPFS.Types      as IPFS
+import           Fission.IPFS.CID.Types
+
 import qualified Fission.IPFS.Client.Add as Add
 import qualified Fission.IPFS.Client.Cat as Cat
 import qualified Fission.IPFS.Client.Pin as Pin
@@ -28,25 +31,23 @@ type API
   :> "v0"
   :> V0API
 
-type V0API = "cat" :> Cat.API
-        :<|> "add" :> Add.API
+type V0API = "add" :> Add.API
+        :<|> "cat" :> Cat.API
         :<|> "pin" :> Pin.API
 
-cat ::   Text        -> Streaming.ClientM File.Serialized
-pin ::   Text        -> Streaming.ClientM Text
-unpin :: Text -> Bool -> Streaming.ClientM Text
-cat :<|> pin :<|> unpin = Streaming.client (Proxy :: Proxy API)
+add ::   File.Serialized -> ClientM CID
+cat ::   Text            -> ClientM File.Serialized
+pin ::   Text            -> ClientM Pin.Response
+unpin :: Text -> Bool     -> ClientM Pin.Response
 
-run :: MonadRIO cfg m
-    => NFData a
+add :<|> cat :<|> pin :<|> unpin = client (Proxy :: Proxy API)
+
+-- NOTE: May want to move these to streaming in the future
+run :: MonadRIO     cfg m
     => Has IPFS.URL cfg
-    => Streaming.ClientM a
-    -> m (Either Streaming.ServantError a)
+    => ClientM a
+    -> m (Either ServantError a)
 run query = do
   IPFS.URL url <- Config.get
   manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
-  liftIO . Streaming.runClientM query $ Streaming.mkClientEnv manager url
-
-{-
-It allows using this module's ClientM in a direct style. The NFData constraint however prevents using this function with genuine streaming response types (SourceT, Conduit, pipes Proxy or Machine). For those you have to use withClientM.
--}
+  liftIO . runClientM query $ mkClientEnv manager url
