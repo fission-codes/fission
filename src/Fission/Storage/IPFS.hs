@@ -15,15 +15,12 @@ import Data.ByteString.Lazy.Char8 as CL
 
 import qualified Network.HTTP.Client as HTTP
 
-import Servant.Client
-
 import qualified Fission.Config              as Config
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage ()
 import           Fission.Internal.Process
 import qualified Fission.File.Types          as File
 import qualified Fission.Internal.UTF8       as UTF8
-import qualified Fission.Web.Error           as Web.Err
 import qualified Fission.IPFS.Client.Pin     as Pin
 import qualified Fission.IPFS.Process        as IPFS.Proc
 import           Fission.IPFS.Error          as IPFS.Error
@@ -63,8 +60,8 @@ addRaw raw =
   IPFS.Proc.run ["add", "-q"] raw >>= \case
     (ExitSuccess, result, _) ->
       case CL.lines result of
-        bad   -> return . Left . UnexpectedOutput $ UTF8.textShow bad
         [cid] -> pin . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
+        bad   -> return . Left . UnexpectedOutput $ UTF8.textShow bad
 
     (ExitFailure _, _, err) ->
       return . Left . UnknownAddErr $ UTF8.textShow err
