@@ -10,7 +10,9 @@ import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Database.Selda
-import Servant
+
+import qualified Network.HTTP.Client as HTTP
+import           Servant
 
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Storage.IPFS as Storage.IPFS
@@ -30,6 +32,8 @@ type UnpinAPI = Capture "cid" CID
 
 server :: Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
+       => Has HTTP.Manager  cfg
+       => Has IPFS.URL      cfg
        => HasProcessContext cfg
        => MonadSelda   (RIO cfg)
        => HasLogFunc        cfg
@@ -39,6 +43,8 @@ server User { _userID } = pin _userID :<|> unpin _userID
 
 pin :: Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
+    => Has HTTP.Manager  cfg
+    => Has IPFS.URL      cfg
     => HasProcessContext cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg
@@ -50,6 +56,8 @@ pin uID _cid = Storage.IPFS.pin _cid >>= \case
 
 unpin :: Has IPFS.BinPath  cfg
       => Has IPFS.Timeout  cfg
+      => Has HTTP.Manager  cfg
+      => Has IPFS.URL      cfg
       => HasProcessContext cfg
       => HasLogFunc        cfg
       => MonadSelda   (RIO cfg)

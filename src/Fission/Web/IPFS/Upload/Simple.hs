@@ -8,7 +8,9 @@ import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Database.Selda
-import Servant
+
+import qualified Network.HTTP.Client as HTTP
+import           Servant
 
 import           Fission.Web.Server
 import qualified Fission.Web.Error    as Web.Err
@@ -23,6 +25,8 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
 
 add :: Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
+    => Has HTTP.Manager  cfg
+    => Has IPFS.URL      cfg
     => HasProcessContext cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg

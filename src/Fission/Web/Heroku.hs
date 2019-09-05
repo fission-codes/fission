@@ -6,11 +6,12 @@ module Fission.Web.Heroku
   ) where
 
 import           RIO
-import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Data.UUID
 import           Database.Selda as Selda
+
+import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import qualified Fission.Web.Error       as Web.Err
@@ -51,10 +52,9 @@ type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
 
 server :: HasLogFunc        cfg
        => Has Web.Host      cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
+       => Has HTTP.Manager  cfg
+       => Has IPFS.URL      cfg
        => MonadSelda   (RIO cfg)
-       => HasProcessContext cfg
        => RIOServer         cfg API
 server = provision :<|> deprovision
 
@@ -92,9 +92,8 @@ type DeprovisionAPI = Capture "addon_id" UUID
 
 deprovision :: MonadSelda   (RIO cfg)
             => HasLogFunc        cfg
-            => HasProcessContext cfg
-            => Has IPFS.BinPath  cfg
-            => Has IPFS.Timeout  cfg
+            => Has HTTP.Manager  cfg
+            => Has IPFS.URL      cfg
             => RIOServer         cfg DeprovisionAPI
 deprovision uuid' = do
   let err = Web.Err.ensure_ err404

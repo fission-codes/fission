@@ -72,30 +72,38 @@ addRaw raw =
 addFile :: MonadRIO          cfg m
         => HasProcessContext cfg
         => HasLogFunc        cfg
+        => Has HTTP.Manager  cfg
+        => Has IPFS.URL      cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => Lazy.ByteString
         -> IPFS.Name
         -> m (Either IPFS.Error.Add IPFS.SparseTree)
 addFile raw name =
-  IPFS.Proc.run opts raw <&> \case
-    (ExitSuccess, result, _) ->
-      case CL.lines result of
-        [inner, outer] ->
-          let
-            sparseTree  = Directory [(Hash rootCID, fileWrapper)]
-            fileWrapper = Directory [(fileName, Content fileCID)]
-            rootCID     = CID $ UTF8.textShow outer
-            fileCID     = CID . UTF8.stripN 1 $ UTF8.textShow inner
-            fileName    = Key name
-          in
-            Right sparseTree
+  IPFS.Proc.run opts raw >>= \case
+    (ExitSuccess, result, _) -> do
+      pin (mkCID $ UTF8.textShow result) >>= \case
+        Left err ->
+          return . Left . UnknownAddErr $ UTF8.textShow err
 
-        bad ->
-          Left . UnexpectedOutput $ UTF8.textShow bad
+        Right _ ->
+          case CL.lines result of
+            [inner, outer] ->
+              let
+                sparseTree  = Directory [(Hash rootCID, fileWrapper)]
+                fileWrapper = Directory [(fileName, Content fileCID)]
+                rootCID     = CID $ UTF8.textShow outer
+                fileCID     = CID . UTF8.stripN 1 $ UTF8.textShow inner
+                fileName    = Key name
+              in
+                return $ Right sparseTree
+
+            bad ->
+              return . Left . UnexpectedOutput $ UTF8.textShow bad
+
 
     (ExitFailure _, _, err) ->
-      Left . UnknownAddErr $ UTF8.textShow err
+      return . Left . UnknownAddErr $ UTF8.textShow err
 
     where
       opts = [ "add"
@@ -130,17 +138,17 @@ unpin :: MonadRIO          cfg m
       => HasLogFunc        cfg
       => IPFS.CID
       -> m (Either IPFS.Error.Add CID)
-unpin cid@(CID hash) = IPFS.Client.run (IPFS.Client.unpin hash) >>= \case
+unpin cid@(CID hash) = IPFS.Client.run (IPFS.Client.unpin hash False) >>= \case
   Right Pin.Response { cids } ->
     case cids of
-      [cid] -> do
+      [cid'] -> do
         logDebug $ "Pinned CID " <> display hash
-        return $ Right cid
+        return $ Right cid'
 
       _ ->
         logLeft $ UnexpectedOutput $ UTF8.textShow cids
 
-  Left err -> do
+  Left _ -> do
     logDebug $ "Cannot unpin CID " <> display hash <> " because it was not pinned"
     return $ Right cid
 
