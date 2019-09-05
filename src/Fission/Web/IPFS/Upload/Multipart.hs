@@ -12,6 +12,7 @@ import qualified RIO.Text as Text
 import           Data.Has
 import           Database.Selda
 
+import qualified Network.HTTP.Client as HTTP
 import           Servant
 import           Servant.Multipart
 
@@ -42,6 +43,8 @@ type NameQuery   = QueryParam "name" IPFS.Name
 
 add :: Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
+    => Has HTTP.Manager  cfg
+    => Has IPFS.URL      cfg
     => MonadSelda   (RIO cfg)
     => HasProcessContext cfg
     => HasLogFunc        cfg
@@ -51,6 +54,8 @@ add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 
 textAdd :: Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
+        => Has HTTP.Manager  cfg
+        => Has IPFS.URL      cfg
         => HasProcessContext cfg
         => MonadSelda   (RIO cfg)
         => HasLogFunc        cfg
@@ -64,6 +69,8 @@ textAdd uID form queryName = run uID form queryName $ \sparse ->
 jsonAdd :: MonadSelda   (RIO cfg)
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
+        => Has HTTP.Manager  cfg
+        => Has IPFS.URL      cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => ID User
@@ -73,6 +80,8 @@ jsonAdd uID form queryName = run uID form queryName pure
 run :: MonadRIO          cfg m
     => MonadThrow            m
     => MonadSelda            m
+    => Has HTTP.Manager  cfg
+    => Has IPFS.URL      cfg
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
     => HasProcessContext cfg

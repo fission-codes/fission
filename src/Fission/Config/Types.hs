@@ -16,8 +16,9 @@ import RIO
 import RIO.List (intercalate)
 import RIO.Process (ProcessContext, HasProcessContext (..))
 
-import Control.Lens (makeLenses)
-import Data.Has
+import           Control.Lens (makeLenses)
+import           Data.Has
+import qualified Network.HTTP.Client as HTTP
 
 import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
@@ -28,7 +29,9 @@ import qualified Fission.Platform.Heroku.Types as Heroku
 data Config = Config
   { _processCtx     :: !ProcessContext
   , _logFunc        :: !LogFunc
+  , _httpManager    :: !HTTP.Manager
   , _ipfsPath       :: !IPFS.BinPath
+  , _ipfsURL        :: !IPFS.URL
   , _ipfsTimeout    :: !IPFS.Timeout
   , _host           :: !Host
   , _dbPath         :: !DB.Path
@@ -44,7 +47,9 @@ instance Show Config where
     [ "Config {"
     , "  _processCtx     = **SOME PROC CONTEXT**"
     , "  _logFunc        = **SOME LOG FUNCTION**"
+    , "  _httpManager    = **SOME HTTP MANAGER**"
     , "  _ipfsPath       = " <> show _ipfsPath
+    , "  _ipfsURL        = " <> show _ipfsURL
     , "  _ipfsTimeout    = " <> show _ipfsTimeout
     , "  _host           = " <> show _host
     , "  _dbPath         = " <> show _dbPath
@@ -60,8 +65,14 @@ instance HasProcessContext Config where
 instance HasLogFunc Config where
   logFuncL = logFunc
 
+instance Has HTTP.Manager Config where
+  hasLens = httpManager
+
 instance Has IPFS.BinPath Config where
   hasLens = ipfsPath
+
+instance Has IPFS.URL Config where
+  hasLens = ipfsURL
 
 instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
