@@ -19,6 +19,7 @@ import           Fission.Internal.Constraint
 
 import qualified Fission.File.Types      as File
 import qualified Fission.IPFS.Types      as IPFS
+import qualified Fission.IPFS.Client.Add as Add
 import qualified Fission.IPFS.Client.Cat as Cat
 import qualified Fission.IPFS.Client.Pin as Pin
 
@@ -28,6 +29,7 @@ type API
   :> V0API
 
 type V0API = "cat" :> Cat.API
+        :<|> "add" :> Add.API
         :<|> "pin" :> Pin.API
 
 cat ::   Text        -> Streaming.ClientM File.Serialized
