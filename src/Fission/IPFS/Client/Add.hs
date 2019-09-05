@@ -6,5 +6,5 @@ import Servant
 
 import Fission.IPFS.CID.Types (CID)
 
-type API = ReqBody '[PlainText] Lazy.ByteString -- Text
+type API = ReqBody '[PlainText] Lazy.ByteString
         :> Post    '[PlainText] CID
