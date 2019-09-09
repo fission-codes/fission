@@ -8,8 +8,8 @@ import System.Exit            (exitSuccess)
 arguments :: [String]
 arguments =
     [ "benchmark"
-    , "app"
-    , "src"
+    , "fission-web"
+    , "library"
     , "test/testsuite"
     ]
 

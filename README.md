@@ -87,7 +87,7 @@ Live monitoring dashboard
 
 ```
 export MONITOR=true
-stack run server
+stack run fission-web
 open http://localhost:9630
 ```
 

@@ -15,7 +15,7 @@ import Test.DocTest         (doctest)
 main :: IO ()
 main = do
   let tmp = ".doctest-tmp"
-  setup tmp "src"
+  setup tmp "library"
 
   source <- glob tmp
   doctest source

@@ -115,12 +115,12 @@ dependencies:
   - word8
 
 library:
-  source-dirs: src
+  source-dirs: library
 
 executables:
   fission-web:
     main: Main.hs
-    source-dirs: app
+    source-dirs: fission-web
     dependencies:
       - fission-web-api
       - wai-logger
@@ -152,7 +152,7 @@ tests:
   fission-test:
     main: Main.hs
     source-dirs:
-      - src
+      - library
       - test
       - test/testsuite
     ghc-options:
