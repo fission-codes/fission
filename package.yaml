@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '1.6.0'
+version: '1.7.0'
 category: API
 author: Brooklyn Zelenka
 maintainer: hello@brooklynzelenka.com
@@ -137,7 +137,7 @@ executables:
 
   fission-cli:
     main: Main.hs
-    source-dirs: cli
+    source-dirs: fission-cli
     dependencies:
       - fission-web-api
       - wai-logger
