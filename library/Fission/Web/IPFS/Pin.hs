@@ -6,7 +6,6 @@ module Fission.Web.IPFS.Pin
   ) where
 
 import RIO
-import RIO.Process (HasProcessContext)
 
 import Data.Has
 import Database.Selda
@@ -30,22 +29,16 @@ type PinAPI = Capture "cid" CID
 type UnpinAPI = Capture "cid" CID
              :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
-server :: Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => Has HTTP.Manager  cfg
+server :: Has HTTP.Manager  cfg
        => Has IPFS.URL      cfg
-       => HasProcessContext cfg
        => MonadSelda   (RIO cfg)
        => HasLogFunc        cfg
        => User
        -> RIOServer         cfg API
 server User { _userID } = pin _userID :<|> unpin _userID
 
-pin :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => Has HTTP.Manager  cfg
+pin :: Has HTTP.Manager  cfg
     => Has IPFS.URL      cfg
-    => HasProcessContext cfg
     => MonadSelda   (RIO cfg)
     => HasLogFunc        cfg
     => ID User
@@ -54,11 +47,8 @@ pin uID _cid = Storage.IPFS.pin _cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> UserCID.create uID _cid >> pure NoContent
 
-unpin :: Has IPFS.BinPath  cfg
-      => Has IPFS.Timeout  cfg
-      => Has HTTP.Manager  cfg
+unpin :: Has HTTP.Manager  cfg
       => Has IPFS.URL      cfg
-      => HasProcessContext cfg
       => HasLogFunc        cfg
       => MonadSelda   (RIO cfg)
       => ID User

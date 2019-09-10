@@ -84,6 +84,7 @@ dependencies:
   - lens
   - mime-types
   - monad-logger
+  - optparse-applicative
   - random-bytestring
   - resource-pool
   - rio
@@ -123,6 +124,20 @@ executables:
   fission-web:
     main: Main.hs
     source-dirs: fission-web
+    dependencies:
+      - fission-web-api
+      - wai-logger
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -flate-specialise
+      - -with-rtsopts=-N
+      - -with-rtsopts=-T
+      - -O2
+
+  fission-cli:
+    main: Main.hs
+    source-dirs: cli
     dependencies:
       - fission-web-api
       - wai-logger
