@@ -1,5 +1,7 @@
-module Fission.CLI where
-
+module Fission.CLI
+  ( cli
+  , commands
+  ) where
 
 import RIO
 import RIO.ByteString
@@ -73,7 +75,7 @@ exit =
 printer :: IO ()
 printer = do
   ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
-  putStr $ "Hello world" <> (encodeUtf8 . UTF8.textShow . fromJust $ unicodeByName "rocket")
+  putStr $ "Hello world \xe2\x9c\x8b"
   ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
   putStr $ "\nDone" <> rocket <> "\n"
   loading

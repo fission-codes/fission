@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9b92ac21b511e4baad71a38c7f3260cac9917233d84d1660f6df737c16433992
+-- hash: a5d85fa5e177526b73304153eaa16f73bc661f0c605856d45280fdc3980f83d1
 
 name:           fission-web-api
 version:        1.7.0
@@ -143,7 +143,6 @@ library
     , data-default-class
     , data-has
     , ekg-wai
-    , emoji
     , envy
     , fsnotify
     , http-client
@@ -207,7 +206,6 @@ executable fission-cli
     , data-default-class
     , data-has
     , ekg-wai
-    , emoji
     , envy
     , fission-web-api
     , fsnotify
@@ -272,7 +270,6 @@ executable fission-web
     , data-default-class
     , data-has
     , ekg-wai
-    , emoji
     , envy
     , fission-web-api
     , fsnotify
@@ -343,7 +340,6 @@ test-suite fission-doctest
     , directory-tree
     , doctest
     , ekg-wai
-    , emoji
     , envy
     , fsnotify
     , http-client
@@ -410,7 +406,6 @@ test-suite fission-lint
     , data-default-class
     , data-has
     , ekg-wai
-    , emoji
     , envy
     , fsnotify
     , hlint
@@ -577,7 +572,6 @@ test-suite fission-test
     , data-default-class
     , data-has
     , ekg-wai
-    , emoji
     , envy
     , fission-web-api
     , fsnotify
@@ -652,7 +646,6 @@ benchmark fission-benchmark
     , data-default-class
     , data-has
     , ekg-wai
-    , emoji
     , envy
     , fission-web-api
     , fsnotify
