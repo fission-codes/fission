@@ -19,6 +19,13 @@ packages:
   original:
     hackage: ekg-wai-0.1.0.3
 - completed:
+    hackage: emoji-0.1.0.2@sha256:d995572a5c7dcd28f98eb15c6e387a7b3bda1ac2477ab0d9dba8580d5d7b161f,1273
+    pantry-tree:
+      size: 437
+      sha256: dd9ea90a631342e5db0fc21331ade4d563a685e9125d5a3989eefa8e1b96c6c6
+  original:
+    hackage: emoji-0.1.0.2
+- completed:
     hackage: happy-1.19.10@sha256:ab3e5fe71647b039ade49c03ff5e5eaa362730d9ba5549f55858a0cf81237931,5180
     pantry-tree:
       size: 8033

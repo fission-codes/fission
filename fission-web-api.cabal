@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 782709c11500862d33e314b51dbd8c01d2c734e00dd63d89e85cc7a2b01aa9b9
+-- hash: 9b92ac21b511e4baad71a38c7f3260cac9917233d84d1660f6df737c16433992
 
 name:           fission-web-api
-version:        1.6.0
+version:        1.7.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -28,6 +28,8 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.CLI
+      Fission.CLI.Types
       Fission.Config
       Fission.Config.Types
       Fission.Environment
@@ -134,13 +136,16 @@ library
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
+    , emoji
     , envy
+    , fsnotify
     , http-client
     , http-client-tls
     , http-media
@@ -149,6 +154,7 @@ library
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -170,6 +176,7 @@ library
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
@@ -193,14 +200,17 @@ executable fission-cli
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
+    , emoji
     , envy
     , fission-web-api
+    , fsnotify
     , http-client
     , http-client-tls
     , http-media
@@ -209,6 +219,7 @@ executable fission-cli
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -230,6 +241,7 @@ executable fission-cli
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
@@ -253,14 +265,17 @@ executable fission-web
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
+    , emoji
     , envy
     , fission-web-api
+    , fsnotify
     , http-client
     , http-client-tls
     , http-media
@@ -269,6 +284,7 @@ executable fission-web
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -290,6 +306,7 @@ executable fission-web
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
@@ -316,6 +333,7 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -325,7 +343,9 @@ test-suite fission-doctest
     , directory-tree
     , doctest
     , ekg-wai
+    , emoji
     , envy
+    , fsnotify
     , http-client
     , http-client-tls
     , http-media
@@ -335,6 +355,7 @@ test-suite fission-doctest
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -356,6 +377,7 @@ test-suite fission-doctest
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
@@ -381,13 +403,16 @@ test-suite fission-lint
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
+    , emoji
     , envy
+    , fsnotify
     , hlint
     , http-client
     , http-client-tls
@@ -397,6 +422,7 @@ test-suite fission-lint
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -418,6 +444,7 @@ test-suite fission-lint
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
@@ -434,6 +461,8 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.CLI
+      Fission.CLI.Types
       Fission.Config
       Fission.Config.Types
       Fission.Environment
@@ -541,14 +570,17 @@ test-suite fission-test
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
     , data-default-class
     , data-has
     , ekg-wai
+    , emoji
     , envy
     , fission-web-api
+    , fsnotify
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -560,6 +592,7 @@ test-suite fission-test
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -611,6 +644,7 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , criterion
@@ -618,8 +652,10 @@ benchmark fission-benchmark
     , data-default-class
     , data-has
     , ekg-wai
+    , emoji
     , envy
     , fission-web-api
+    , fsnotify
     , http-client
     , http-client-tls
     , http-media
@@ -628,6 +664,7 @@ benchmark fission-benchmark
     , mime-types
     , monad-logger
     , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -649,6 +686,7 @@ benchmark fission-benchmark
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types

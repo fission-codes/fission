@@ -70,13 +70,16 @@ default-extensions:
 dependencies:
   - aeson
   - aeson-casing
+  - ansi-terminal
   - base
   - cryptonite
   - bytestring
   - data-default-class
   - data-has
   - ekg-wai
+  - emoji
   - envy
+  - fsnotify
   - http-client
   - http-client-tls
   - http-media
@@ -85,6 +88,7 @@ dependencies:
   - mime-types
   - monad-logger
   - optparse-applicative
+  - optparse-simple
   - random-bytestring
   - resource-pool
   - rio
@@ -106,6 +110,7 @@ dependencies:
   - swagger2
   - text
   - time
+  - transformers
   - unliftio
   - uuid
   - uuid-types
