@@ -1,7 +1,8 @@
-module Fission.CLI.Types where
+module Fission.CLI.Types (CommandM) where
 
-import RIO
+import Options.Applicative as OA
 
--- data Command
---   = Watch (Maybe Directory)
---   | Deploy
+import Control.Monad.Trans.Except
+import Control.Monad.Trans.Writer.Lazy
+
+type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()

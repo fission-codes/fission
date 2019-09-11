@@ -77,7 +77,6 @@ dependencies:
   - data-default-class
   - data-has
   - ekg-wai
-  - emoji
   - envy
   - fsnotify
   - http-client
