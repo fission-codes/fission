@@ -5,9 +5,6 @@ module Fission.CLI
 
 import RIO
 import RIO.ByteString
-import RIO.Partial
-
-import qualified Fission.Internal.UTF8 as UTF8
 
 -- import System.FSNotify
 
@@ -24,7 +21,7 @@ cli cmds =
     "0.0.1"
     "Top lines about what the CLI is for"
     "This CLI does some cool stuff"
-    OA.empty
+    noop
     cmds
 
 commands :: MonadIO m => CommandM (m ())
@@ -50,9 +47,9 @@ print :: MonadIO m => CommandM (m ())
 print =
   addCommand
     "print"
-    "Don't run the printer"
-    (const $ putStr "hallo")
-    OA.empty
+    "Run the printer"
+    (const printer)
+    noop
 
 exit :: MonadIO m => CommandM (m ())
 exit =
@@ -64,21 +61,21 @@ exit =
         "now"
         "Exit immedietly"
         (\_ -> putStr "exiting!\n")
-        OA.empty
+        noop
 
       addCommand
         "later"
         "Exit soon"
         (\_ -> putStr "exiting...\n")
-        OA.empty
+        noop
 
-printer :: IO ()
+printer :: MonadIO m => m ()
 printer = do
-  ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
   putStr $ "Hello world \xe2\x9c\x8b"
-  ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
   putStr $ "\nDone" <> rocket <> "\n"
-  loading
+  liftIO loading
 
 rocket :: ByteString
 rocket = "\xF0\x9F\x9A\x80"
@@ -101,3 +98,6 @@ reset = do
 
 delay :: Int
 delay = 50000
+
+noop :: Applicative m => m ()
+noop = pure ()
