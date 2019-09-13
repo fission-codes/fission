@@ -6,7 +6,7 @@ okBox :: Text
 okBox = "\xD83C\xDD97"
 
 okHand :: Text
-okHand = "\xD83D\DC4C"
+okHand = "\x0001F44C"
 
 rocket :: Text
 rocket = "\xD83D\xDE80"

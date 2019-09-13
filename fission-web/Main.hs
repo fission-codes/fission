@@ -48,7 +48,7 @@ main = do
   _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
 
   condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
-  isVerbose   <- getFlag "RIO_VERBOSE"
+  isVerbose   <- getFlag "RIO_VERBOSE" -- TODO FISSION_VERBOSE or VERBOSE
   logOptions' <- logOptionsHandle stdout isVerbose
   let logOpts = setLogUseTime True logOptions'
 
