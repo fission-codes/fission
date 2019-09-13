@@ -37,19 +37,21 @@ import Fission.CLI
 main :: IO ()
 main = do
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+  verbose     <- isJust <$> lookupEnv "RIO_VERBOSE"
+  logOptions  <- logOptionsHandle stderr verbose
 
   isTLS <- getFlag "FISSION_TLS" -- TODO default to true
   path  <- withEnv "FISSION_ROOT" "" id
   host  <- withEnv "FISSION_HOST" "localhost" id -- TODO default to prod
   port  <- withEnv "FISSION_PORT" (if isTLS then 80 else 443) Partial.read
 
-  let scheme  = if isTLS then Https else Http
-  let baseURL = BaseUrl scheme host port path
-  let auth    = BasicAuthData username (BS.pack password)
+  let scheme = if isTLS then Https else Http
+  let url    = BaseUrl scheme host port path
 
-  verbose    <- isJust <$> lookupEnv "RIO_VERBOSE"
-  logOptions <- logOptionsHandle stderr verbose
   withLogFunc logOptions $ \logger -> do
-    let cfg = Config (Fission.Auth.run httpManager baseUrl) logger
-    (_, run) <- cli cfg commands
+    let cfg = Config
+                { _fissionAPI = ClientRunner $ Fission.Auth.run httpManager url
+                , _logFunc    = logger
+                }
+    (_, run) <- cli cfg
     run

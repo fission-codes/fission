@@ -1,10 +1,14 @@
 module Fission.CLI
   ( cli
+  , ClientRunner (..)
   , Config (..)
   ) where
 
 import RIO
 import RIO.ByteString
+
+import Control.Lens (makeLenses)
+import qualified Fission.Config as Config
 
 import Data.Has
 
@@ -33,15 +37,23 @@ import Fission.CLI.Types
 import Fission.Environment
 import Fission.Web.Auth.Client as Fission.Auth
 
-data Config a = Config
-  { _fissionAPI :: ClientM a -> IO (Either ServantError a)
-  , _logFunc    :: LogFunc
+newtype ClientRunner = ClientRunner
+  { getRunner :: forall a. ClientM a -> IO (Either ServantError a) }
+
+data Config = Config
+  { _fissionAPI :: !ClientRunner
+  , _logFunc    :: !LogFunc
   }
 
-cli :: MonadRIO cfg m
-    => HasLogFunc cfg
-    => cfg
-    -> IO ((), m ())
+makeLenses ''Config
+
+instance HasLogFunc Config where
+  logFuncL = logFunc
+
+instance Has ClientRunner Config where
+  hasLens = fissionAPI
+
+cli :: MonadIO m => Config -> IO ((), m ())
 cli cfg =
   simpleOptions version description detail noop do
     login cfg
@@ -53,10 +65,7 @@ cli cfg =
     description = "Top lines about what the CLI is for"
     detail      = "This CLI does some cool stuff"
 
-login :: MonadRIO   cfg m
-      => HasLogFunc cfg
-      => cfg
-      -> CommandM (m ())
+login :: MonadIO m => Config -> CommandM (m ())
 login cfg =
   addCommand
     "login"
@@ -64,46 +73,33 @@ login cfg =
     (const $ runRIO cfg login')
     noop
 
-login' :: MonadRIO   cfg m
-       => HasLogFunc cfg
+login' :: MonadRIO         cfg m
+       => HasLogFunc       cfg
+       => Has ClientRunner cfg
        => m ()
 login' = do
   logDebug "Starting login sequence"
 
   putStr "Username: "
   username <- getLine
-  rawPass  <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
+  rawPass  <- liftIO . runInputT defaultSettings $
+    getPassword (Just '•') "Password: "
 
   case rawPass of
     Nothing  -> putStr "Unable to read password"
     Just password -> do
       putStr "\n"
+      logDebug "Attempting API verification"
+      ClientRunner runner <- Config.get
+      let auth = BasicAuthData username $ BS.pack password
 
-      isTLS <- liftIO $ getFlag "FISSION_TLS"
-      path  <- liftIO $ withEnv "FISSION_ROOT" "" id
-      host  <- liftIO $ withEnv "FISSION_HOST" "localhost" id
-      mayPort <- liftIO $ withEnv "FISSION_PORT" (Just $ if isTLS then 80 else 443) readMaybe
+      liftIO (runner $ Fission.Auth.verify auth) >>= \case
+        Right _ok ->
+          putStr $ encodeUtf8 Emoji.okHand <> " Logged in as " <> username
 
-      case mayPort of
-        Nothing ->
-          putStr "Internal Error: Unable to find authentication port"
-
-        Just port -> do
-          let scheme  = if isTLS then Https else Http
-          let baseUrl = BaseUrl scheme host port path
-          let auth    = BasicAuthData username (BS.pack password)
-
-          logDebug "Attempting API verification"
-          httpManager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
-          httpResult  <- liftIO . Fission.Auth.run httpManager baseUrl $ Fission.Auth.verify auth
-
-          case httpResult of
-            Right _ok ->
-              putStr $ encodeUtf8 Emoji.okHand <> " Logged in as " <> username
-
-            Left err -> do
-              logDebug $ displayShow err
-              putStr $ encodeUtf8 Emoji.prohibited <> " Authorization failed"
+        Left err -> do
+          logDebug $ displayShow err
+          putStr $ encodeUtf8 Emoji.prohibited <> " Authorization failed"
 
 greet :: MonadIO m => CommandM (m ())
 greet =
