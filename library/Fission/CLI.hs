@@ -10,10 +10,18 @@ import RIO.ByteString
 
 import qualified System.Console.ANSI as ANSI
 
+import           System.Console.Haskeline
+import qualified System.Console.Haskeline.MonadException as HL
+
 import Options.Applicative as OA
 import Options.Applicative.Simple
 
+import qualified Fission.Emoji as Emoji
+import Fission.Internal.Constraint
 import Fission.CLI.Types
+
+-- instance HL.MonadException (RIO cfg) where
+--   controlIO = ReaderT
 
 cli :: CommandM (m ()) -> IO ((), m ())
 cli cmds =
@@ -26,9 +34,35 @@ cli cmds =
 
 commands :: MonadIO m => CommandM (m ())
 commands = do
+  login
   greet
   print
   exit
+
+login :: MonadIO m => CommandM (m ())
+login =
+  addCommand
+    "login"
+    "Add your Fission credentials"
+    (const $ runSimpleApp login')
+    noop
+
+login' :: MonadRIO   cfg m
+       => HasLogFunc cfg
+       => m ()
+login' = do
+  logDebug "Starting login sequence..."
+
+  putStr "Username: "
+  rawUsername <- getLine
+
+  rawPassword <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
+
+  logDebug "Attempting verification..."
+
+  -- Validate against
+
+  putStr $ (encodeUtf8 Emoji.okBox) <> " Logged in as " <> rawUsername
 
 greet :: MonadIO m => CommandM (m ())
 greet =
@@ -74,11 +108,8 @@ printer = do
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
   putStr $ "Hello world \xe2\x9c\x8b"
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-  putStr $ "\nDone" <> rocket <> "\n"
+  putStr $ "\nDone" <> encodeUtf8 Emoji.rocket <> "\n"
   liftIO loading
-
-rocket :: ByteString
-rocket = "\xF0\x9F\x9A\x80"
 
 loading :: IO ()
 loading = forever do

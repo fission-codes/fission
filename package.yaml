@@ -79,6 +79,7 @@ dependencies:
   - ekg-wai
   - envy
   - fsnotify
+  - haskeline
   - http-client
   - http-client-tls
   - http-media
