@@ -8,6 +8,14 @@ import RIO.ByteString
 
 -- import System.FSNotify
 
+import qualified Data.ByteString.Char8 as BS
+
+import Servant
+import Servant.Client
+import Servant.API
+
+import qualified Network.HTTP.Client as HTTP
+
 import qualified System.Console.ANSI as ANSI
 
 import           System.Console.Haskeline
@@ -19,6 +27,8 @@ import Options.Applicative.Simple
 import qualified Fission.Emoji as Emoji
 import Fission.Internal.Constraint
 import Fission.CLI.Types
+
+import Fission.Web.Auth.Client as Fission.Auth
 
 -- instance HL.MonadException (RIO cfg) where
 --   controlIO = ReaderT
@@ -54,15 +64,25 @@ login' = do
   logDebug "Starting login sequence..."
 
   putStr "Username: "
-  rawUsername <- getLine
+  username <- getLine
 
   rawPassword <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
+  let password = case rawPassword of
+                   Nothing  -> "12345"
+                   Just str -> BS.pack str
 
   logDebug "Attempting verification..."
 
+  httpManager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+
+  result <- liftIO $ Fission.Auth.run httpManager (BaseUrl Http "localhost" 1337 "") . Fission.Auth.verify $ BasicAuthData username password
+
+  case result of
+    Left err -> logError $ RIO.display err
+    Right ok -> logDebug "logged in ok"
   -- Validate against
 
-  putStr $ (encodeUtf8 Emoji.okBox) <> " Logged in as " <> rawUsername
+  putStr $ (encodeUtf8 Emoji.okBox) <> " Logged in as " <> username
 
 greet :: MonadIO m => CommandM (m ())
 greet =

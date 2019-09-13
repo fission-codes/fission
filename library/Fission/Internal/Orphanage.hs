@@ -6,8 +6,8 @@
 module Fission.Internal.Orphanage () where
 
 import           RIO
-import           RIO.Orphans ()
 import qualified RIO.ByteString.Lazy as Lazy
+import           RIO.Orphans ()
 import qualified RIO.Partial         as Partial
 
 import Control.Lens

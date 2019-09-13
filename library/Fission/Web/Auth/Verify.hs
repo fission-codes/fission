@@ -10,9 +10,7 @@ import Servant
 
 import Fission.Web.Server
 
-type Head = Verb 'HEAD 200
-
-type API = Head '[JSON] ()
+type API = Get '[JSON] Bool
 
 verify :: RIOServer cfg API
-verify = pure ()
+verify = pure True

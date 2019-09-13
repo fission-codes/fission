@@ -18,8 +18,9 @@ import           Fission.Web.Server
 type API = SwaggerSchemaUI "docs" "docs.json"
 
 server :: Host -> RIOServer cfg API
-server appHost =
-  hoistServer (Proxy :: Proxy API) fromHandler . swaggerSchemaUIServer $ docs appHost
+server appHost = hoistServer (Proxy :: Proxy API) fromHandler
+               . swaggerSchemaUIServer
+               $ docs appHost
 
 docs :: Host -> Swagger
 docs = Docs.ipfs . Docs.app (Proxy :: Proxy Web.PublicAPI)

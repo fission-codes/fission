@@ -4,8 +4,9 @@ module Fission.IPFS.CID.Types
   ) where
 
 import           RIO
-import qualified RIO.Text as Text
+import           RIO.Char
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 -- import Data.Text.Encoding as Text
 
@@ -61,6 +62,12 @@ instance MimeUnrender PlainText CID where
     case decodeUtf8' $ Lazy.toStrict bs of
       Left err  -> Left $ show err
       Right txt -> Right $ CID txt
+
+instance MimeUnrender PlainText [CID] where
+  mimeUnrender proxy bs = sequence cids
+    where
+      cids :: [Either String CID]
+      cids = mimeUnrender proxy <$> Lazy.split (fromIntegral $ ord ',') bs
 
 instance FromHttpApiData CID where
   parseUrlPiece = Right . CID
