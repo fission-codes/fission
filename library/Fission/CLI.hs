@@ -1,10 +1,12 @@
 module Fission.CLI
   ( cli
-  , commands
+  , Config (..)
   ) where
 
 import RIO
 import RIO.ByteString
+
+import Data.Has
 
 -- import System.FSNotify
 
@@ -28,61 +30,80 @@ import qualified Fission.Emoji as Emoji
 import Fission.Internal.Constraint
 import Fission.CLI.Types
 
+import Fission.Environment
 import Fission.Web.Auth.Client as Fission.Auth
 
--- instance HL.MonadException (RIO cfg) where
---   controlIO = ReaderT
+data Config a = Config
+  { _fissionAPI :: ClientM a -> IO (Either ServantError a)
+  , _logFunc    :: LogFunc
+  }
 
-cli :: CommandM (m ()) -> IO ((), m ())
-cli cmds =
-  simpleOptions
-    "0.0.1"
-    "Top lines about what the CLI is for"
-    "This CLI does some cool stuff"
-    noop
-    cmds
+cli :: MonadRIO cfg m
+    => HasLogFunc cfg
+    => cfg
+    -> IO ((), m ())
+cli cfg =
+  simpleOptions version description detail noop do
+    login cfg
+    greet
+    print
+    exit
+  where
+    version     = "0.0.1"
+    description = "Top lines about what the CLI is for"
+    detail      = "This CLI does some cool stuff"
 
-commands :: MonadIO m => CommandM (m ())
-commands = do
-  login
-  greet
-  print
-  exit
-
-login :: MonadIO m => CommandM (m ())
-login =
+login :: MonadRIO   cfg m
+      => HasLogFunc cfg
+      => cfg
+      -> CommandM (m ())
+login cfg =
   addCommand
     "login"
     "Add your Fission credentials"
-    (const $ runSimpleApp login')
+    (const $ runRIO cfg login')
     noop
 
 login' :: MonadRIO   cfg m
        => HasLogFunc cfg
        => m ()
 login' = do
-  logDebug "Starting login sequence..."
+  logDebug "Starting login sequence"
 
   putStr "Username: "
   username <- getLine
+  rawPass  <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
 
-  rawPassword <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
-  let password = case rawPassword of
-                   Nothing  -> "12345"
-                   Just str -> BS.pack str
+  case rawPass of
+    Nothing  -> putStr "Unable to read password"
+    Just password -> do
+      putStr "\n"
 
-  logDebug "Attempting verification..."
+      isTLS <- liftIO $ getFlag "FISSION_TLS"
+      path  <- liftIO $ withEnv "FISSION_ROOT" "" id
+      host  <- liftIO $ withEnv "FISSION_HOST" "localhost" id
+      mayPort <- liftIO $ withEnv "FISSION_PORT" (Just $ if isTLS then 80 else 443) readMaybe
 
-  httpManager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+      case mayPort of
+        Nothing ->
+          putStr "Internal Error: Unable to find authentication port"
 
-  result <- liftIO $ Fission.Auth.run httpManager (BaseUrl Http "localhost" 1337 "") . Fission.Auth.verify $ BasicAuthData username password
+        Just port -> do
+          let scheme  = if isTLS then Https else Http
+          let baseUrl = BaseUrl scheme host port path
+          let auth    = BasicAuthData username (BS.pack password)
 
-  case result of
-    Left err -> logError $ RIO.display err
-    Right ok -> logDebug "logged in ok"
-  -- Validate against
+          logDebug "Attempting API verification"
+          httpManager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+          httpResult  <- liftIO . Fission.Auth.run httpManager baseUrl $ Fission.Auth.verify auth
 
-  putStr $ (encodeUtf8 Emoji.okBox) <> " Logged in as " <> username
+          case httpResult of
+            Right _ok ->
+              putStr $ encodeUtf8 Emoji.okHand <> " Logged in as " <> username
+
+            Left err -> do
+              logDebug $ displayShow err
+              putStr $ encodeUtf8 Emoji.prohibited <> " Authorization failed"
 
 greet :: MonadIO m => CommandM (m ())
 greet =
