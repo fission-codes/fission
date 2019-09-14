@@ -121,6 +121,7 @@ dependencies:
   - warp
   - warp-tls
   - word8
+  - yaml
 
 library:
   source-dirs: library

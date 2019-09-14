@@ -12,6 +12,7 @@ import qualified RIO.Partial         as Partial
 
 import Control.Lens
 
+import Data.Aeson
 import Data.Aeson.Types
 import Data.Scientific
 import Data.Has
@@ -113,6 +114,12 @@ instance MimeRender PlainText a => MimeRender PlainText [a] where
     where
       meat :: Lazy.ByteString
       meat =  Lazy.intercalate "," $ mimeRender proxy <$> values
+
+instance ToJSON BasicAuthData where
+  toJSON (BasicAuthData username password) =
+    Object [ ("username", String $ decodeUtf8Lenient username)
+           , ("password", String $ decodeUtf8Lenient password)
+           ]
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)

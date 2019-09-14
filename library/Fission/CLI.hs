@@ -4,17 +4,22 @@ module Fission.CLI
   , Config (..)
   ) where
 
-import RIO
-import RIO.ByteString
+import           RIO
+import           RIO.ByteString
+import           RIO.Directory
+import           RIO.File
+import           RIO.FilePath
+import qualified RIO.ByteString.Lazy as Lazy
+
+import           Data.Aeson
+import           Data.Aeson.Encoding
+import qualified Data.ByteString.Char8 as BS
+import           Data.Has
+import qualified Data.Yaml as Yaml
 
 import Control.Lens (makeLenses)
-import qualified Fission.Config as Config
-
-import Data.Has
 
 -- import System.FSNotify
-
-import qualified Data.ByteString.Char8 as BS
 
 import Servant
 import Servant.Client
@@ -23,7 +28,6 @@ import Servant.API
 import qualified Network.HTTP.Client as HTTP
 
 import qualified System.Console.ANSI as ANSI
-
 import           System.Console.Haskeline
 import qualified System.Console.Haskeline.MonadException as HL
 
@@ -31,11 +35,11 @@ import Options.Applicative as OA
 import Options.Applicative.Simple
 
 import qualified Fission.Emoji as Emoji
-import Fission.Internal.Constraint
-import Fission.CLI.Types
-
-import Fission.Environment
-import Fission.Web.Auth.Client as Fission.Auth
+import           Fission.Internal.Constraint
+import           Fission.CLI.Types
+import qualified Fission.Config as Config
+import           Fission.Environment
+import           Fission.Web.Auth.Client as Fission.Auth
 
 newtype ClientRunner = ClientRunner
   { getRunner :: forall a. ClientM a -> IO (Either ServantError a) }
@@ -59,7 +63,7 @@ cli cfg =
     login cfg
     greet
     print
-    exit
+
   where
     version     = "0.0.1"
     description = "Top lines about what the CLI is for"
@@ -74,6 +78,7 @@ login cfg =
     noop
 
 login' :: MonadRIO         cfg m
+       => MonadUnliftIO        m
        => HasLogFunc       cfg
        => Has ClientRunner cfg
        => m ()
@@ -82,11 +87,10 @@ login' = do
 
   putStr "Username: "
   username <- getLine
-  rawPass  <- liftIO . runInputT defaultSettings $
-    getPassword (Just '•') "Password: "
+  rawPass  <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
 
   case rawPass of
-    Nothing  -> putStr "Unable to read password"
+    Nothing -> putStr "Unable to read password"
     Just password -> do
       putStr "\n"
       logDebug "Attempting API verification"
@@ -94,7 +98,10 @@ login' = do
       let auth = BasicAuthData username $ BS.pack password
 
       liftIO (runner $ Fission.Auth.verify auth) >>= \case
-        Right _ok ->
+        Right _ok -> do
+          home <- getHomeDirectory
+          let path = home </> ".fission.yaml"
+          writeBinaryFileDurable path $ Yaml.encode auth
           putStr $ encodeUtf8 Emoji.okHand <> " Logged in as " <> username
 
         Left err -> do

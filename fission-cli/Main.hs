@@ -30,5 +30,6 @@ main = do
                 { _fissionAPI = ClientRunner $ Fission.Auth.run httpManager url
                 , _logFunc    = logger
                 }
+    runRIO cfg . logDebug $ "Requests will be made to " <> displayShow url
     (_, runCLI) <- cli cfg
     runCLI

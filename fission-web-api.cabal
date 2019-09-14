@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 31bc86285547b88fc70e5425b624f760b53d321f900dc02b321c26cd258bd89e
+-- hash: 5fcc92daae1582286d0a454ff88cb0607d42870621a7417eefa5e1393e89119a
 
 name:           fission-web-api
 version:        1.7.0
@@ -189,6 +189,7 @@ library
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 executable fission-cli
@@ -254,6 +255,7 @@ executable fission-cli
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 executable fission-web
@@ -319,6 +321,7 @@ executable fission-web
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-doctest
@@ -457,6 +460,7 @@ test-suite fission-lint
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-test
@@ -634,6 +638,7 @@ test-suite fission-test
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 benchmark fission-benchmark
@@ -701,4 +706,5 @@ benchmark fission-benchmark
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
