@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5fcc92daae1582286d0a454ff88cb0607d42870621a7417eefa5e1393e89119a
+-- hash: 77e9f48050231a766b184a9eaeb5ea08fa3b0138b6b2c2ff1f46cbcc37746ea9
 
 name:           fission-web-api
 version:        1.7.0
@@ -29,12 +29,17 @@ source-repository head
 library
   exposed-modules:
       Fission.CLI
+      Fission.CLI.Auth
+      Fission.CLI.Cursor
+      Fission.CLI.Loader
+      Fission.CLI.Login
       Fission.CLI.Types
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
       Fission.File.Types
+      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -107,6 +112,7 @@ library
       Fission.Web.Auth
       Fission.Web.Auth.Client
       Fission.Web.Auth.Verify
+      Fission.Web.Client
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku
@@ -468,12 +474,17 @@ test-suite fission-test
   main-is: Main.hs
   other-modules:
       Fission.CLI
+      Fission.CLI.Auth
+      Fission.CLI.Cursor
+      Fission.CLI.Loader
+      Fission.CLI.Login
       Fission.CLI.Types
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
       Fission.File.Types
+      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -546,6 +557,7 @@ test-suite fission-test
       Fission.Web.Auth
       Fission.Web.Auth.Client
       Fission.Web.Auth.Verify
+      Fission.Web.Client
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku

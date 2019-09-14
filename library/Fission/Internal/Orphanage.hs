@@ -115,11 +115,19 @@ instance MimeRender PlainText a => MimeRender PlainText [a] where
       meat :: Lazy.ByteString
       meat =  Lazy.intercalate "," $ mimeRender proxy <$> values
 
+instance FromJSON ByteString where
+  parseJSON = withText "ByteString" (pure . encodeUtf8)
+
 instance ToJSON BasicAuthData where
   toJSON (BasicAuthData username password) =
     Object [ ("username", String $ decodeUtf8Lenient username)
            , ("password", String $ decodeUtf8Lenient password)
            ]
+
+instance FromJSON BasicAuthData where
+  parseJSON = withObject "BasicAuthData" \obj ->
+    BasicAuthData <$> obj .: "username"
+                  <*> obj .: "password"
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)

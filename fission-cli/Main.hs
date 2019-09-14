@@ -7,9 +7,10 @@ import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 import           System.Environment  (lookupEnv)
 
-import Fission.CLI             as CLI
+import Fission.CLI         as CLI
+import Fission.CLI.Types   as CLI
 import Fission.Environment
-import Fission.Web.Auth.Client as Fission.Auth
+import Fission.Web.Client  as Client
 
 main :: IO ()
 main = do
@@ -19,7 +20,7 @@ main = do
 
   isTLS <- getFlag "FISSION_TLS"
   path  <- withEnv "FISSION_ROOT" "" id
-  host  <- withEnv "FISSION_HOST" "localhost" id -- TODO default to prod
+  host  <- withEnv "FISSION_HOST" "runfission.com" id
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
 
   let scheme = if isTLS then Https else Http
@@ -27,7 +28,7 @@ main = do
 
   withLogFunc logOptions $ \logger -> do
     let cfg = CLI.Config
-                { _fissionAPI = ClientRunner $ Fission.Auth.run httpManager url
+                { _fissionAPI = ClientRunner $ Client.request httpManager url
                 , _logFunc    = logger
                 }
     runRIO cfg . logDebug $ "Requests will be made to " <> displayShow url
