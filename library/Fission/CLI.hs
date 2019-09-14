@@ -6,10 +6,11 @@ module Fission.CLI
 
 import           RIO
 import           RIO.ByteString
+import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Directory
 import           RIO.File
 import           RIO.FilePath
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.List as List
 
 import           Data.Aeson
 import           Data.Aeson.Encoding
@@ -17,6 +18,7 @@ import qualified Data.ByteString.Char8 as BS
 import           Data.Has
 import qualified Data.Yaml as Yaml
 
+import Control.Concurrent
 import Control.Lens (makeLenses)
 
 -- import System.FSNotify
@@ -84,7 +86,6 @@ login' :: MonadRIO         cfg m
        => m ()
 login' = do
   logDebug "Starting login sequence"
-
   putStr "Username: "
   username <- getLine
   rawPass  <- liftIO . runInputT defaultSettings $ getPassword (Just '•') "Password: "
@@ -92,21 +93,34 @@ login' = do
   case rawPass of
     Nothing -> putStr "Unable to read password"
     Just password -> do
-      putStr "\n"
       logDebug "Attempting API verification"
       ClientRunner runner <- Config.get
       let auth = BasicAuthData username $ BS.pack password
 
-      liftIO (runner $ Fission.Auth.verify auth) >>= \case
+      liftIO ANSI.hideCursor
+
+      liftIO $ ANSI.cursorForward 3
+      liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+      putStr "Verifying your credentials..."
+      liftIO $ ANSI.setCursorColumn 0
+
+      result <- liftIO . withLoader $ runner $ Fission.Auth.verify auth
+
+      liftIO ANSI.showCursor
+
+      case result of
         Right _ok -> do
           home <- getHomeDirectory
           let path = home </> ".fission.yaml"
           writeBinaryFileDurable path $ Yaml.encode auth
-          putStr $ encodeUtf8 Emoji.okHand <> " Logged in as " <> username
+
+          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
+          putText $ Emoji.whiteHeavyCheckMark <> " Logged in successfully!"
 
         Left err -> do
           logDebug $ displayShow err
-          putStr $ encodeUtf8 Emoji.prohibited <> " Authorization failed"
+          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+          putText $ Emoji.prohibited <> " Authorization failed"
 
 greet :: MonadIO m => CommandM (m ())
 greet =
@@ -156,19 +170,45 @@ printer = do
   liftIO loading
 
 loading :: IO ()
-loading = forever do
-  putStr "\xE2\x96\x98"-- "▝"
-  reset
-  putStr "\xE2\x96\x9D" -- "▘"
-  reset
-  putStr "\xE2\x96\x97" -- "▗"
-  reset
-  putStr "\xE2\x96\x96" -- "▖"
-  reset
+loading = forever
+        . (const prep <=< sequence_)
+        . List.intersperse prep
+        $ fmap putText
+            [ Emoji.clock0100
+            , Emoji.clock0200
+            , Emoji.clock0300
+            , Emoji.clock0400
+            , Emoji.clock0500
+            , Emoji.clock0600
+            , Emoji.clock0700
+            , Emoji.clock0800
+            , Emoji.clock0900
+            , Emoji.clock1000
+            , Emoji.clock1100
+            , Emoji.clock1200
+            ]
+
+-- put :: MonadIO m => Puttable txt => txt -> m ()
+
+putText :: MonadIO m => Text -> m ()
+putText = putStr . encodeUtf8
+
+withLoader :: IO a -> IO a
+withLoader = RIO.bracket (forkIO loading) cleanup . const
+  where
+    cleanup :: ThreadId -> IO ()
+    cleanup pid = do
+      killThread pid
+      reset
 
 reset :: IO ()
 reset = do
-  threadDelay delay
+  ANSI.cursorBackward 4
+  ANSI.clearLine
+
+prep :: IO ()
+prep = do
+  RIO.threadDelay delay
   ANSI.cursorBackward 4
 
 delay :: Int
