@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 77e9f48050231a766b184a9eaeb5ea08fa3b0138b6b2c2ff1f46cbcc37746ea9
+-- hash: b8a6861ccc14599547cb0bf3d791ae484372b9bf68f5dc859a3cac4d6a40165b
 
 name:           fission-web-api
 version:        1.7.0
@@ -113,6 +113,7 @@ library
       Fission.Web.Auth.Client
       Fission.Web.Auth.Verify
       Fission.Web.Client
+      Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku
@@ -558,6 +559,7 @@ test-suite fission-test
       Fission.Web.Auth.Client
       Fission.Web.Auth.Verify
       Fission.Web.Client
+      Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku

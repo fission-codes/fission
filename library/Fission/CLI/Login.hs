@@ -19,7 +19,9 @@ import           Fission.Internal.Constraint
 
 import qualified Fission.Emoji           as Emoji
 import qualified Fission.Config          as Config
+
 import           Fission.Web.Auth.Client as Fission.Auth
+import qualified Fission.Web.Client.Types as Client
 
 import qualified Fission.CLI.Auth   as Auth
 import qualified Fission.CLI.Cursor as Cursor
@@ -37,7 +39,7 @@ command cfg =
 login :: MonadRIO         cfg m
       => MonadUnliftIO        m
       => HasLogFunc       cfg
-      => Has ClientRunner cfg
+      => Has Client.Runner cfg
       => m ()
 login = do
   logDebug "Starting login sequence"
@@ -49,7 +51,7 @@ login = do
 
     Just password -> do
       logDebug "Attempting API verification"
-      ClientRunner runner <- Config.get
+      Client.Runner runner <- Config.get
       let auth = BasicAuthData username $ BS.pack password
 
       authResult <- Cursor.withHidden $ liftIO do

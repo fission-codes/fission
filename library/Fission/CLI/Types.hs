@@ -1,6 +1,5 @@
 module Fission.CLI.Types
-  ( ClientRunner (..)
-  , CommandM
+  ( CommandM
   , Config (..)
   ) where
 
@@ -11,15 +10,13 @@ import Control.Lens (makeLenses)
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Writer.Lazy
 import Options.Applicative as OA
-import Servant.Client
+
+import qualified Fission.Web.Client.Types as Client
 
 type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
 
-newtype ClientRunner = ClientRunner
-  { getRunner :: forall a. ClientM a -> IO (Either ServantError a) }
-
 data Config = Config
-  { _fissionAPI :: !ClientRunner
+  { _fissionAPI :: !Client.Runner
   , _logFunc    :: !LogFunc
   }
 
@@ -28,5 +25,5 @@ makeLenses ''Config
 instance HasLogFunc Config where
   logFuncL = logFunc
 
-instance Has ClientRunner Config where
+instance Has Client.Runner Config where
   hasLens = fissionAPI
