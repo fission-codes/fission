@@ -1,10 +1,15 @@
-module Fission.Web.Client (request) where
+module Fission.Web.Client
+  ( module Fission.Web.Client.Request
+  , module Fission.Web.Client.Types
+  ) where
 
 import RIO
 
-import qualified Network.HTTP.Client as HTTP
-
 import Servant.Client
 
-request :: HTTP.Manager -> BaseUrl -> ClientM a -> IO (Either ServantError a)
-request manager url query = runClientM query $ mkClientEnv manager url
+import Fission.Web.Client.Request
+import Fission.Web.Client.Types
+
+import Fission.Web.Routes
+
+-- x = client (Proxy :: Proxy API)

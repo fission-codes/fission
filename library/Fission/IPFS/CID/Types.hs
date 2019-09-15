@@ -31,7 +31,9 @@ newtype CID = CID { unaddress :: Text }
                     , Show
                     )
   deriving anyclass ( ToParamSchema )
-  deriving newtype  ( IsString )
+  deriving newtype  ( IsString
+                    , ToHttpApiData
+                    )
 
 instance ToJSON CID where
   toJSON (CID cid) = toJSON $ normalize cid

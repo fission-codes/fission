@@ -1,5 +1,7 @@
 module Fission.Web.IPFS.Pin
   ( API
+  , PinAPI
+  , UnpinAPI
   , server
   , pin
   , unpin
@@ -24,10 +26,10 @@ import           Fission.User
 type API = PinAPI :<|> UnpinAPI
 
 type PinAPI = Capture "cid" CID
-           :> Put '[PlainText, OctetStream] NoContent
+           :> Put '[PlainText, OctetStream] Bool
 
 type UnpinAPI = Capture "cid" CID
-             :> DeleteAccepted '[PlainText, OctetStream] NoContent
+             :> DeleteAccepted '[PlainText, OctetStream] Bool
 
 server :: Has HTTP.Manager  cfg
        => Has IPFS.URL      cfg

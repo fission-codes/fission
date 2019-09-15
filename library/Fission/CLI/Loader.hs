@@ -28,12 +28,12 @@ reset = do
   ANSI.cursorBackward 4
   ANSI.clearLine
 
-prep :: Natural -> IO ()
+prep :: MonadIO m => Natural -> m ()
 prep delay = do
   RIO.threadDelay $ fromIntegral delay
-  ANSI.cursorBackward 4
+  liftIO $ ANSI.cursorBackward 4
 
-loading :: Natural -> IO ()
+loading :: MonadIO m => Natural -> m ()
 loading delay = forever
         . (const (prep delay) <=< sequence_)
         . List.intersperse (prep delay)

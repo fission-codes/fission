@@ -2,12 +2,9 @@ module Fission.CLI.Login (command, login) where
 
 import           RIO
 import           RIO.ByteString
-import           RIO.File
 
 import qualified Data.ByteString.Char8 as BS
 import           Data.Has
-import           Data.Aeson
-import qualified Data.Yaml as Yaml
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
@@ -62,19 +59,12 @@ login = do
         withLoader 5000 . runner $ Fission.Auth.verify auth
 
       case authResult of
-        Right _ok -> success auth
-        Left  err -> failure err
+        Right _ok -> do
+          Auth.set auth
+          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
+          putText $ Emoji.whiteHeavyCheckMark <> " Logged in successfully!"
 
-success :: (MonadUnliftIO m, ToJSON a) => a -> m ()
-success auth = do
-  path <- Auth.getCachePath
-  writeBinaryFileDurable path $ Yaml.encode auth
-
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
-  putText $ Emoji.whiteHeavyCheckMark <> " Logged in successfully!"
-
-failure :: (MonadRIO cfg m, HasLogFunc cfg, Show a) => a -> m ()
-failure err = do
-  logDebug $ displayShow err
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-  putText $ Emoji.prohibited <> " Authorization failed"
+        Left err -> do
+          logDebug $ displayShow err
+          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+          putText $ Emoji.prohibited <> " Authorization failed"

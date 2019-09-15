@@ -1,10 +1,12 @@
 module Fission.CLI.Auth
-  ( getAuth
-  , getCachePath
+  ( cachePath
+  , get
+  , set
   ) where
 
-import RIO
+import RIO           hiding (set)
 import RIO.Directory
+import RIO.File
 import RIO.FilePath
 
 import qualified Data.Yaml as Yaml
@@ -12,10 +14,15 @@ import           Servant
 
 import Fission.Internal.Orphanage ()
 
-getAuth :: MonadIO m => m (Either Yaml.ParseException BasicAuthData)
-getAuth = liftIO . Yaml.decodeFileEither =<< getCachePath
+get :: MonadIO m => m (Either Yaml.ParseException BasicAuthData)
+get = liftIO . Yaml.decodeFileEither =<< cachePath
 
-getCachePath :: MonadIO m => m FilePath
-getCachePath = do
+set :: MonadUnliftIO m => BasicAuthData -> m ()
+set auth = do
+  path <- cachePath
+  writeBinaryFileDurable path $ Yaml.encode auth
+
+cachePath :: MonadIO m => m FilePath
+cachePath = do
   home <- getHomeDirectory
   return $ home </> ".fission.yaml"

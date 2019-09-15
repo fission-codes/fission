@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b8a6861ccc14599547cb0bf3d791ae484372b9bf68f5dc859a3cac4d6a40165b
+-- hash: 71401819b8a58d4d289067e2f6fcc1bd7e411785f872b7e125475db5b8062d39
 
 name:           fission-web-api
 version:        1.7.0
@@ -34,6 +34,7 @@ library
       Fission.CLI.Loader
       Fission.CLI.Login
       Fission.CLI.Types
+      Fission.CLI.Up
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
@@ -113,6 +114,7 @@ library
       Fission.Web.Auth.Client
       Fission.Web.Auth.Verify
       Fission.Web.Client
+      Fission.Web.Client.Request
       Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.Error
@@ -120,6 +122,7 @@ library
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
+      Fission.Web.IPFS.Client
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -186,6 +189,7 @@ library
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -252,6 +256,7 @@ executable fission-cli
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -318,6 +323,7 @@ executable fission-web
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -390,6 +396,7 @@ test-suite fission-doctest
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -457,6 +464,7 @@ test-suite fission-lint
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -480,6 +488,7 @@ test-suite fission-test
       Fission.CLI.Loader
       Fission.CLI.Login
       Fission.CLI.Types
+      Fission.CLI.Up
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
@@ -559,6 +568,7 @@ test-suite fission-test
       Fission.Web.Auth.Client
       Fission.Web.Auth.Verify
       Fission.Web.Client
+      Fission.Web.Client.Request
       Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.Error
@@ -566,6 +576,7 @@ test-suite fission-test
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
+      Fission.Web.IPFS.Client
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -642,6 +653,7 @@ test-suite fission-test
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -710,6 +722,7 @@ benchmark fission-benchmark
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types

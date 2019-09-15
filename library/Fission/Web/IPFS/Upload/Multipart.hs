@@ -1,5 +1,7 @@
 module Fission.Web.IPFS.Upload.Multipart
   ( API
+  , FileRequest
+  , NameQuery
   , add
   , jsonAdd
   , textAdd

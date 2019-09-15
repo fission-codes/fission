@@ -2,8 +2,6 @@ module Fission.Web.Auth.Client (verify) where
 
 import RIO
 
-import qualified Network.HTTP.Client as HTTP
-
 import Servant
 import Servant.Client
 
