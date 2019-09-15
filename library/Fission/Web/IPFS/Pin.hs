@@ -26,10 +26,10 @@ import           Fission.User
 type API = PinAPI :<|> UnpinAPI
 
 type PinAPI = Capture "cid" CID
-           :> Put '[PlainText, OctetStream] Bool
+           :> Put '[PlainText, OctetStream] NoContent
 
 type UnpinAPI = Capture "cid" CID
-             :> DeleteAccepted '[PlainText, OctetStream] Bool
+             :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server :: Has HTTP.Manager  cfg
        => Has IPFS.URL      cfg
