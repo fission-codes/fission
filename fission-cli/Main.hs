@@ -5,7 +5,9 @@ import qualified RIO.Partial as Partial
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
-import           System.Environment  (lookupEnv)
+
+import System.Environment (lookupEnv)
+import System.FSNotify
 
 import           Fission.CLI
 import qualified Fission.CLI.Types   as CLI
@@ -27,10 +29,11 @@ main = do
   let scheme = if isTLS then Https else Http
   let url    = BaseUrl scheme host port path
 
-  withLogFunc logOptions $ \logger -> do
+  withManager \mgr -> withLogFunc logOptions \logger -> do
     let cfg = CLI.Config
                 { _fissionAPI = Client.Runner $ Client.request httpManager url
                 , _logFunc    = logger
+                , _watchMgr   = mgr
                 }
     runRIO cfg . logDebug $ "Requests will be made to " <> displayShow url
     (_, runCLI) <- cli cfg

@@ -7,6 +7,7 @@ import           Options.Applicative.Simple
 import           Fission.Internal.Applicative
 
 import qualified Fission.CLI.Login as Login
+import qualified Fission.CLI.Watch as Watch
 import           Fission.CLI.Types
 import qualified Fission.CLI.Up    as Up
 
@@ -15,6 +16,7 @@ cli :: MonadIO m => Config -> IO ((), m ())
 cli cfg =
   simpleOptions version description detail noop do
     Login.command cfg
+    Watch.command cfg
     Up.command    cfg
   where
     version     = "1.7.0"
