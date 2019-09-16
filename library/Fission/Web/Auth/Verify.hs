@@ -6,7 +6,6 @@ module Fission.Web.Auth.Verify
 import RIO
 
 import Servant
--- import Servant.API
 
 import Fission.Web.Server
 

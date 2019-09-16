@@ -16,7 +16,6 @@ import Data.ByteString.Lazy.Char8 as CL
 import qualified Network.HTTP.Client as HTTP
 
 import           Fission.Internal.Constraint
--- import           Fission.Internal.Orphanage ()
 import           Fission.Internal.Process
 import qualified Fission.Internal.UTF8       as UTF8
 

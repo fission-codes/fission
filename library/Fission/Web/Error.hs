@@ -9,7 +9,6 @@ module Fission.Web.Error
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
--- import Data.Aeson
 import Network.HTTP.Types.Status
 import Servant.Server
 
