@@ -13,12 +13,16 @@ newtype Host = Host { getHost :: Text }
                     , Show
                     , Generic
                     )
-  deriving anyclass FromEnv
   deriving newtype  IsString
+
+instance FromEnv Host where
+  fromEnv _ = Host <$> env "HOST"
 
 newtype Port = Port { port :: Warp.Port }
   deriving          ( Show
                     , Eq
                     , Generic
                     )
-  deriving anyclass FromEnv
+
+instance FromEnv Port where
+  fromEnv _ = Port <$> env "PORT"
