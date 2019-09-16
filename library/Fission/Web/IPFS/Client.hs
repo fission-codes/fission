@@ -1,26 +1,34 @@
-module Fission.Web.IPFS.Client where
-  -- ( pin
-  -- , unpin
-  -- ) where
+module Fission.Web.IPFS.Client
+  ( Request (..)
+  , request
+  ) where
 
 import RIO
 
 import Servant
 import Servant.Client
 
+import qualified Fission.File.Types as File
 import           Fission.IPFS.CID.Types
-import qualified Fission.Web.IPFS     as IPFS
-import qualified Fission.Web.IPFS.Pin as IPFS
+import qualified Fission.Web.IPFS as IPFS
+import           Fission.Web.Routes (IPFSPrefix)
 
-type Prefix   = "ipfs" :> IPFS.Auth
+type API = IPFSPrefix :> IPFS.Auth :> IPFS.SimpleAPI
 
-type PinAPI   = Prefix :> IPFS.PinAPI
-type UnpinAPI = Prefix :> IPFS.UnpinAPI
+data Request = Request
+  { unpin  :: CID             -> ClientM NoContent
+  , pin    :: CID             -> ClientM NoContent
+  , upload :: File.Serialized -> ClientM CID
+  , cids   :: ClientM [CID]
+  }
 
--- pin :: BasicAuthData -> CID -> ClientM NoContent
--- pin :: CID -> ClientM NoContent
--- pin = client (Proxy :: Proxy PinAPI)
+withAuth :: HasClient ClientM api
+         => Client ClientM api ~ (BasicAuthData -> t2)
+         => BasicAuthData
+         -> Proxy api -> t2
+withAuth basicAuth proxy = client proxy basicAuth
 
--- -- unpin :: BasicAuthData -> CID -> ClientM NoContent
--- -- unpin :: CID -> ClientM NoContent
--- unpin = client (Proxy :: Proxy UnpinAPI)
+request :: BasicAuthData -> Request
+request ba = Request {..}
+  where
+    cids :<|> upload :<|> pin :<|> unpin = withAuth ba (Proxy :: Proxy API)

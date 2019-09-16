@@ -2,6 +2,7 @@ module Fission.Web.Routes
   ( API
   , AuthRoute
   , HerokuRoute
+  , IPFSPrefix
   , IPFSRoute
   , PingRoute
   , PublicAPI
@@ -36,6 +37,7 @@ type HerokuRoute = "heroku"
                    :> BasicAuth "heroku add-on api" ByteString
                    :> Heroku.API
 
-type IPFSRoute = "ipfs" :> IPFS.API
+type IPFSRoute  = IPFSPrefix :> IPFS.API
+type IPFSPrefix = "ipfs"
 
 type PingRoute = "ping" :> Ping.API

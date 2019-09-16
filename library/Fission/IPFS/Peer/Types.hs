@@ -2,7 +2,7 @@ module Fission.IPFS.Peer.Types (Peer (..)) where
 
 import RIO
 
-import Control.Lens ((.~), (?~))
+import Control.Lens ((?~))
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Swagger ( NamedSchema (..)

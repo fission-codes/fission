@@ -5,17 +5,20 @@ import           RIO.ByteString
 
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
-
-import Turtle
+import qualified System.Console.ANSI as ANSI
+import           Turtle
 
 import           Fission.Internal.Applicative
 import           Fission.Internal.Constraint
 
-import qualified Fission.Web.Client       as Client
-import qualified Fission.Web.IPFS.Client  as Fission
+import qualified Fission.Web.Client      as Client
+import qualified Fission.Web.IPFS.Client as Fission
 import           Fission.IPFS.CID.Types
-import qualified Fission.Config           as Config
+import qualified Fission.Config          as Config
+import qualified Fission.Emoji           as Emoji
+import qualified Fission.Web.IPFS.Client as Fission
 
+import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
@@ -34,7 +37,9 @@ up :: MonadRIO         cfg m
    => m ()
 up = do
   logDebug "Starting single pin"
-  addCurrentDir >>= \case
+  dir <- addCurrentDir
+
+  case dir of
     Left bad ->
       logError $ display bad
 
@@ -42,16 +47,30 @@ up = do
       hash <- strict out
       logDebug $ display hash
 
-      -- Client.Runner runner <- Config.get
-      -- res <- liftIO . withLoader 5000 . runner $ Fission.pin $ CID hash
-      -- case res of
-      --   Right _ -> do
-      --     logDebug "YEP"
-      --   Left err -> do
-      --     logError $ displayShow err
+      authOrErr <- Auth.get
+      case authOrErr of
+        Left err -> do
+          logError $ displayShow err
+          ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+          putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
+          ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+          putStr "fission-cli login"
 
-      -- auth <- Auth.get
-      return ()
+        Right auth -> do
+          Client.Runner runner <- Config.get
+
+          res <- liftIO . withLoader 5000
+                       . runner
+                       . Fission.pin (Fission.request auth)
+                       $ CID hash
+
+          case res of
+            Right _ -> do
+              logDebug "YEP"
+            Left err -> do
+              logError $ displayShow err
+
+          return ()
 
 addCurrentDir :: MonadIO m => m (Either Text (Shell Line))
 addCurrentDir = do

@@ -3,7 +3,8 @@ module Fission.Web.IPFS
   , Auth
   , AuthedAPI
   , PublicAPI
-  , SimpleAuthedAPI
+  , SimpleAPI
+  , UnauthedAPI
   , authed
   , server
   ) where
@@ -32,17 +33,15 @@ type API = AuthedAPI
 
 type Auth = BasicAuth "registered users" User
 
-type AuthedAPI = Auth :> AuthedAPI'
+type AuthedAPI = Auth :> UnauthedAPI
 
-type AuthedAPI' = "cids" :> CID.API
-             :<|> Upload.API
-             :<|> Pin.API
+type UnauthedAPI = "cids" :> CID.API
+              :<|> Upload.API
+              :<|> Pin.API
 
-type SimpleAuthedAPI = "ipfs" :> Auth :> SimpleAuthedAPI'
-
-type SimpleAuthedAPI' = "cids" :> CID.API
-                    :<|> Upload.Simple.API
-                    :<|> Pin.API
+type SimpleAPI = "cids" :> CID.API
+            :<|> Upload.Simple.API
+            :<|> Pin.API
 
 type PublicAPI = Download.API
 
