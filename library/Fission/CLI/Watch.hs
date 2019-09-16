@@ -20,7 +20,7 @@ import           Fission.IPFS.CID.Types
 import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
 
-import qualified Fission.CLI.Auth   as Auth
+import           Fission.CLI.Up (up)
 import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
@@ -42,10 +42,17 @@ watcher :: MonadRIO          cfg m
 watcher = do
   logDebug "Starting single pin"
   mgr <- Config.get
-  void . liftIO $ watchTree mgr "." (const True) \event ->
-    putText . Text.pack $ show event
+  cfg <- ask
+  dir <- encodeString <$> pwd
+  putText $ Emoji.eyes <> " Watching " <> Text.pack dir <> " for changes..."
 
-  forever $ threadDelay 1000000
+  up
+
+  liftIO $ watchTree mgr dir (const True) . const $ runRIO cfg do
+    putStr "\n"
+    up
+
+  forever $ threadDelay 10000
     -- case event of
     --   Added   filePath time bool ->
     --   Modified filePath time bool ->

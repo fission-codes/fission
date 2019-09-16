@@ -14,6 +14,9 @@ whiteHeavyCheckMark = "\x00002705"
 rocket :: Text
 rocket = "\xD83D\xDE80"
 
+eyes :: Text
+eyes = "\x0001F440"
+
 prohibited :: Text
 prohibited = "\x26D4"
 

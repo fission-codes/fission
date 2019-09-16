@@ -59,7 +59,7 @@ up = do
           let cid = CID hash
           logDebug $ "Pinning " <> displayShow cid
 
-          res <- liftIO . withLoader 5000
+          res <- liftIO . withLoader 50000
                        . runner
                        . Fission.pin (Fission.request auth)
                        $ CID hash
@@ -67,6 +67,7 @@ up = do
           case res of
             Right _ -> do
               putText $ Emoji.rocket <> " Your current working directory is now live"
+              putText $ Emoji.okHand <> " " <> hash
 
             Left err -> do
               logError $ displayShow err
@@ -77,12 +78,11 @@ up = do
                 , "Fission support at https://github.com/fission-suite/web-api/issues/new"
                 ]
 
-          return ()
 
 -- | Add the current working directory to IPFS locally
 addCurrentDir :: MonadIO m => m (Either Text (Shell Line))
 addCurrentDir = do
   dir <- pwd
   return $ case toText dir of
-    Right txt -> Right . inproc "ipfs" ["add", "-q"] . pure $ unsafeTextToLine txt
+    Right txt -> Right $ inproc "ipfs" ["add", "-HQr", txt] (pure "")
     Left  bad -> Left bad

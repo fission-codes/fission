@@ -3,7 +3,8 @@ module Main (main) where
 import           RIO
 import qualified RIO.Partial as Partial
 
-import qualified Network.HTTP.Client as HTTP
+import qualified Network.HTTP.Client     as HTTP
+import qualified Network.HTTP.Client.TLS as HTTP
 import           Servant.Client
 
 import System.Environment (lookupEnv)
@@ -17,7 +18,6 @@ import qualified Fission.Web.Client as Client
 
 main :: IO ()
 main = do
-  httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   verbose     <- isJust <$> lookupEnv "RIO_VERBOSE"
   logOptions  <- logOptionsHandle stderr verbose
 
@@ -25,6 +25,10 @@ main = do
   path  <- withEnv "FISSION_ROOT" "" id
   host  <- withEnv "FISSION_HOST" "runfission.com" id
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
+
+  httpManager <- HTTP.newManager if isTLS
+                                   then HTTP.tlsManagerSettings
+                                   else HTTP.defaultManagerSettings
 
   let scheme = if isTLS then Https else Http
   let url    = BaseUrl scheme host port path
