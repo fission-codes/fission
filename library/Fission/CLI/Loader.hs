@@ -52,7 +52,5 @@ loading delay = forever
             , Emoji.clock1200
             ]
 
--- put :: MonadIO m => Puttable txt => txt -> m ()
-
 putText :: MonadIO m => Text -> m ()
 putText = putStr . encodeUtf8
