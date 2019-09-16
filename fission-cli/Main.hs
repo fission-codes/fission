@@ -11,8 +11,7 @@ import           Fission.CLI
 import qualified Fission.CLI.Types   as CLI
 import           Fission.Environment
 
-import qualified Fission.Web.Client       as Client
-import qualified Fission.Web.Client.Types as Client
+import qualified Fission.Web.Client as Client
 
 main :: IO ()
 main = do

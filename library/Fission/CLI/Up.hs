@@ -11,14 +11,12 @@ import           Turtle hiding ((<&>), err)
 
 import           Fission.Internal.Applicative
 import           Fission.Internal.Constraint
-import           Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
 import           Fission.IPFS.CID.Types
 import qualified Fission.Config          as Config
 import qualified Fission.Emoji           as Emoji
-import qualified Fission.Web.IPFS.Client as Fission
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Loader
@@ -32,9 +30,8 @@ command cfg =
     (const $ runRIO cfg up)
     noop
 
-up :: MonadRIO         cfg m
-   => MonadUnliftIO        m
-   => HasLogFunc       cfg
+up :: MonadRIO          cfg m
+   => HasLogFunc        cfg
    => Has Client.Runner cfg
    => m ()
 up = do

@@ -1,7 +1,6 @@
 module Main (main) where
 
 import           RIO
-import qualified RIO.Partial as Partial
 import           RIO.Process (mkDefaultProcessContext)
 
 import           Data.Aeson (decodeFileStrict)
