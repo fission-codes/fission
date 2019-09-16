@@ -1,6 +1,7 @@
 module Main (main) where
 
 import           RIO
+import qualified RIO.Partial as Partial
 import           RIO.Process (mkDefaultProcessContext)
 
 import           Data.Aeson (decodeFileStrict)
@@ -16,7 +17,7 @@ import           Fission.Config.Types
 import           Fission.Storage.SQLite as SQLite
 
 import           Fission.Environment
--- import           Fission.Internal.Orphanage ()
+import           Fission.Internal.Orphanage.RIO ()
 
 import           Fission.Storage.Types as DB
 import qualified Fission.IPFS.Types    as IPFS
@@ -33,7 +34,6 @@ import qualified Fission.Platform.Heroku.Types          as Heroku
 
 main :: IO ()
 main = do
-  Web.Port port <- getEnv
   Just manifest <- decodeFileStrict "./addon-manifest.json"
 
   _processCtx  <- mkDefaultProcessContext
@@ -53,6 +53,7 @@ main = do
   let logOpts = setLogUseTime True logOptions'
 
   isTLS <- getFlag "TLS"
+  Web.Port port <- decode .!~ (Web.Port $ if isTLS then 443 else 80)
 
   withLogFunc logOpts $ \_logFunc -> do
     let

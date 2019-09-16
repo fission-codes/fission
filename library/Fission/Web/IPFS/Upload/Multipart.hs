@@ -106,7 +106,7 @@ run uID form qName cont = case lookupFile "file" form of
         Web.Err.throw err
 
       Right struct -> do
-        void . transaction $ User.CID.createX uID (IPFS.cIDs struct)
+        void $ User.CID.createX uID (IPFS.cIDs struct)
         cont struct
     where
       humanName :: IPFS.Name
