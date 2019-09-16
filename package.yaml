@@ -100,7 +100,6 @@ dependencies:
   - servant-auth-server
   - servant-auth-swagger
   - servant-client
-  - servant-exceptions
   - servant-multipart
   - servant-server
   - servant-swagger

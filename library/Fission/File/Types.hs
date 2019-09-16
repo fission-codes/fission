@@ -19,8 +19,8 @@ newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
 
 instance ToSchema Serialized where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "Serialized File") $ mempty
-            & type_ .~ SwaggerString
+     return $ NamedSchema (Just "Serialized File")
+            $ mempty & type_ ?~ SwaggerString
 
 instance Display Serialized where
   display = Utf8Builder . Builder.lazyByteString . unserialize

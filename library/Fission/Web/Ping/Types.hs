@@ -23,7 +23,7 @@ newtype Pong = Pong { unPong :: Text }
 instance ToSchema Pong where
   declareNamedSchema _ =
      return $ NamedSchema (Just "Pong") $ mempty
-            & type_       .~ SwaggerString
+            & type_       ?~ SwaggerString
             & description ?~ "A simple response"
             & example     ?~ toJSON (Pong "pong")
 

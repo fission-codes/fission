@@ -9,9 +9,11 @@ import RIO
 import qualified Data.Pool              as Database
 import           Data.Swagger           (ToSchema)
 import           Database.Selda.Backend (SeldaConnection)
-import           System.Envy
+import           Database.Selda.SQLite
 
-type SeldaPool = Database.Pool SeldaConnection
+import System.Envy
+
+type SeldaPool = Database.Pool (SeldaConnection SQLite)
 
 newtype Pool = Pool { getPool :: SeldaPool }
   deriving Show
@@ -20,8 +22,7 @@ newtype Path = Path { getPath :: FilePath }
   deriving          ( Show
                     , Generic
                     )
-  deriving anyclass ( ToSchema )
+  deriving anyclass ( FromEnv
+                    , ToSchema
+                    )
   deriving newtype  ( IsString )
-
-instance FromEnv Path where
-  fromEnv = Path <$> env "DB_PATH"

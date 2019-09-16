@@ -12,7 +12,9 @@ import Control.Lens
 import Data.Swagger
 import Servant.Swagger
 
-import qualified Fission.Web.Routes as Web
+import           Fission.Internal.Orphanage.BasicAuth ()
+import           Fission.Internal.Orphanage.MultipartForm ()
+import qualified Fission.Web.Routes                       as Web
 
 app :: HasSwagger api => Proxy api -> Host -> Swagger
 app proxy appHost = toSwagger proxy

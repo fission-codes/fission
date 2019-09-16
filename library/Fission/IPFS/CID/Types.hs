@@ -10,7 +10,7 @@ import qualified RIO.Text            as Text
 
 -- import Data.Text.Encoding as Text
 
-import Control.Lens ((.~), (?~))
+import Control.Lens ((?~))
 import Data.Aeson
 import Data.Swagger ( NamedSchema   (..)
                     , SwaggerType   (..)
@@ -47,7 +47,7 @@ instance FromJSON CID where
 instance ToSchema CID where
   declareNamedSchema _ =
      return $ NamedSchema (Just "IPFS Address") $ mempty
-            & type_   .~ SwaggerString
+            & type_   ?~ SwaggerString
             & example ?~ "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
 
 instance Display CID where

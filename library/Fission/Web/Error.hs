@@ -1,34 +1,37 @@
 -- | Web error handling, common patterns, and other helpers
 module Fission.Web.Error
-  ( ensure
+  ( ToServerError (..)
+  , ensure
   , ensure_
   , throw
   ) where
 
-import RIO
+import           RIO
+import qualified RIO.ByteString.Lazy as Lazy
 
-import Data.Aeson
+-- import Data.Aeson
 import Network.HTTP.Types.Status
-
-import Servant.Exception
-import Servant.Server.Internal.ServantErr
+import Servant.Server
 
 import Fission.Internal.Constraint
+
+class ToServerError err where
+  toServerError :: err -> ServerError
 
 ensure :: MonadRIO   cfg m
        => HasLogFunc cfg
        => MonadThrow     m
-       => Display      err
-       => Exception    err
-       => ToJSON       err
-       => ToServantErr err
+       => Display       err
+       -- => Exception     err
+       -- => ToJSON        err
+       => ToServerError err
        => Either err a
        -> m a
 ensure = either throw pure
 
 ensure_ :: MonadRIO   cfg m
         => MonadThrow     m
-        => ServantErr
+        => ServerError
         -> Maybe a
         -> m a
 ensure_ err = maybe (throwM err) pure
@@ -36,12 +39,16 @@ ensure_ err = maybe (throwM err) pure
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg
       => MonadThrow     m
-      => Display      err
-      => Exception    err
-      => ToJSON       err
-      => ToServantErr err
+      => Display       err
+      -- => Exception     err
+      -- => ToJSON        err
+      => ToServerError err
       => err
       -> m a
 throw err = do
-  when (statusIsServerError $ status err) (logError $ display err)
-  throwM $ toServantException err
+  let
+    serverError@(ServerError {..}) = toServerError err
+    status      = Status errHTTPCode (Lazy.toStrict errBody)
+
+  when (statusIsServerError status) (logError $ display err)
+  throwM serverError

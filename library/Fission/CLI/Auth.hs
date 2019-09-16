@@ -12,7 +12,7 @@ import RIO.FilePath
 import qualified Data.Yaml as Yaml
 import           Servant
 
-import Fission.Internal.Orphanage ()
+import Fission.Internal.Orphanage.BasicAuthData ()
 
 get :: MonadIO m => m (Either Yaml.ParseException BasicAuthData)
 get = liftIO . Yaml.decodeFileEither =<< cachePath

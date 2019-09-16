@@ -13,7 +13,7 @@ import Database.Selda
 import Database.Selda.SQLite
 
 import Fission.Internal.Constraint
-import Fission.Internal.Orphanage ()
+import Fission.Internal.Orphanage.Tuple ()
 
 import qualified Fission.Config        as Config
 import qualified Fission.Storage.Table as Table
@@ -45,4 +45,4 @@ makeTable :: DB.Path -> Table t -> Table.Name t -> IO ()
 makeTable dbPath' tbl tblName = runSimpleApp do
   pool   <- connPool dbPath'
   logger <- view logFuncL
-  runRIO (logger, pool, dbPath') $ setupTable tbl (Table.name tblName)
+  runRIO (logger, pool, dbPath') . setupTable tbl $ Table.name tblName

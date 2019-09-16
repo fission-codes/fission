@@ -11,8 +11,9 @@ module Fission.User.Selector
 import RIO
 
 import Database.Selda
+import Database.Selda.MakeSelectors
 
-import           Fission.Internal.Orphanage ()
+-- import           Fission.Internal.Orphanage ()
 import qualified Fission.Platform.Heroku.AddOn.Types as Heroku
 import           Fission.Security.Types              (SecretDigest)
 

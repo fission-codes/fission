@@ -12,7 +12,7 @@ import Database.Selda
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 
-import           Fission.Internal.Orphanage ()
+-- import           Fission.Internal.Orphanage ()
 import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
 import qualified Fission.IPFS.Types   as IPFS

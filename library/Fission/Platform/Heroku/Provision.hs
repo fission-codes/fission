@@ -52,7 +52,7 @@ instance ToSchema Request where
     stringSchema <- declareSchemaRef (Proxy :: Proxy String)
     uuidSchema   <- declareSchemaRef (Proxy :: Proxy UUID)
     return $ NamedSchema (Just "ProvisionRequest") $ mempty
-      & type_       .~ SwaggerObject
+      & type_       ?~ SwaggerObject
       & title       ?~ "Heroku Provisioning Request"
       & description ?~ "Request from Heroku to provision a new user"
       & properties  .~ [ ("callbackUrl", stringSchema)
@@ -119,7 +119,7 @@ instance ToSchema Provision where
     usrCfg <- declareSchemaRef (Proxy :: Proxy Heroku.UserConfig)
     txt    <- declareSchemaRef (Proxy :: Proxy Text)
     return $ NamedSchema (Just "HerokuProvision") $ mempty
-           & type_    .~ SwaggerObject
+           & type_      ?~ SwaggerObject
            & properties .~
                [ ("id",      uId)
                , ("config",  usrCfg)

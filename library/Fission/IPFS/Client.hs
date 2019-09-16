@@ -18,7 +18,7 @@ import           Servant.Client
 
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
-import           Fission.Internal.Orphanage ()
+import           Fission.Internal.Orphanage.ByteString.Lazy ()
 
 import qualified Fission.File.Types      as File
 import qualified Fission.IPFS.Types      as IPFS
@@ -51,7 +51,7 @@ run :: MonadRIO         cfg m
     => Has IPFS.URL     cfg
     => Has HTTP.Manager cfg
     => ClientM a
-    -> m (Either ServantError a)
+    -> m (Either ClientError a)
 run query = do
   IPFS.URL url           <- Config.get
   manager :: HTTP.Manager <- Config.get

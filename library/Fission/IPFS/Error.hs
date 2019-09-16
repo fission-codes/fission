@@ -8,11 +8,13 @@ module Fission.IPFS.Error
 import RIO
 
 import Data.Aeson
-import Network.HTTP.Types.Status
-import Servant.Exception
+-- import Network.HTTP.Types.Status
+import Servant.Server
 
-import Fission.Internal.Orphanage ()
-import Fission.IPFS.Types
+-- import           Fission.Internal.Orphanage ()
+import qualified Fission.Internal.UTF8 as UTF8
+import           Fission.IPFS.Types
+import           Fission.Web.Error
 
 data Error
   = AddErr Add
@@ -25,14 +27,11 @@ data Error
            , ToJSON
            )
 
-instance ToServantErr Error where
-  status (AddErr           addErr) = status addErr
-  status (GetErr           getErr) = status getErr
-  status (LinearizationErr linErr) = status linErr
-
-  message (AddErr           addErr) = message addErr
-  message (GetErr           getErr) = message getErr
-  message (LinearizationErr linErr) = message linErr
+instance ToServerError Error where
+  toServerError = \case
+    AddErr           addErr -> toServerError addErr
+    GetErr           getErr -> toServerError getErr
+    LinearizationErr linErr -> toServerError linErr
 
 data Get
   = InvalidCID Text
@@ -62,16 +61,16 @@ instance Display Get where
     UnknownGetErr raw ->
       "Unknwon IPFS get error: " <> display raw
 
-instance ToServantErr Get where
-  status = \case
-    InvalidCID _    -> unprocessableEntity422
-    TimedOut _ _    -> requestTimeout408
-    UnknownGetErr _ -> internalServerError500
-
-  message = \case
-    invalid@(InvalidCID _) -> textDisplay invalid
-    tOut@(TimedOut _ _)    -> textDisplay tOut
-    UnknownGetErr _        -> "Unknown IPFS error"
+instance ToServerError Get where
+  toServerError = \case
+    InvalidCID txt          -> err422 { errBody = UTF8.textToLazyBS txt }
+    UnknownGetErr _         -> err500 { errBody = "Unknown IPFS error" }
+    (TimedOut (CID hash) _) ->
+      ServerError { errHTTPCode     = 408
+                  , errReasonPhrase = "Time out"
+                  , errBody         = "IPFS timed out looking for " <> UTF8.textToLazyBS hash
+                  , errHeaders      = []
+                  }
 
 data Add
   = InvalidFile
@@ -90,16 +89,11 @@ instance Display Add where
     UnexpectedOutput txt -> "Unexpected IPFS output: " <> display txt
     UnknownAddErr    txt -> "Unknown IPFS add error: " <> display txt
 
-instance ToServantErr Add where
-  status = \case
-    InvalidFile        -> status422
-    UnknownAddErr    _ -> internalServerError500
-    UnexpectedOutput _ -> internalServerError500
-
-  message = \case
-    InvalidFile        -> "File not processable by IPFS"
-    UnknownAddErr    _ -> "Unknown IPFS error"
-    UnexpectedOutput _ -> "Unexpected IPFS result"
+instance ToServerError Add where
+  toServerError = \case
+    InvalidFile        -> err422 { errBody = "File not processable by IPFS" }
+    UnknownAddErr    _ -> err500 { errBody = "Unknown IPFS error" }
+    UnexpectedOutput _ -> err500 { errBody = "Unexpected IPFS result" }
 
 -- NOTE Will not stay as a newtype in the long term
 newtype Linearization = NonLinear SparseTree
@@ -114,6 +108,5 @@ newtype Linearization = NonLinear SparseTree
 instance Display Linearization where
   display (NonLinear sparseTree) = "Unable to linearize IPFS result: " <> display sparseTree
 
-instance ToServantErr Linearization where
-  status  _ = internalServerError500
-  message _ = "Unable to linearize IPFS result"
+instance ToServerError Linearization where
+  toServerError _ = err500 { errBody = "Unable to linearize IPFS result" }

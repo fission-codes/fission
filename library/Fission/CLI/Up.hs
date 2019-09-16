@@ -42,13 +42,13 @@ up = do
       hash <- strict out
       logDebug $ display hash
 
-      Client.Runner runner <- Config.get
-      res <- liftIO . withLoader 5000 . runner $ Fission.pin $ CID hash
-      case res of
-        Right _ -> do
-          logDebug "YEP"
-        Left err -> do
-          logError $ displayShow err
+      -- Client.Runner runner <- Config.get
+      -- res <- liftIO . withLoader 5000 . runner $ Fission.pin $ CID hash
+      -- case res of
+      --   Right _ -> do
+      --     logDebug "YEP"
+      --   Left err -> do
+      --     logError $ displayShow err
 
       -- auth <- Auth.get
       return ()

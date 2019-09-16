@@ -5,7 +5,7 @@ module Fission.Platform.Heroku.AddOn.Table
 
 import Database.Selda (Table, Attr (..), autoPrimary)
 
-import           Fission.Internal.Orphanage ()
+-- import           Fission.Internal.Orphanage ()
 import qualified Fission.Storage.Table         as Table
 
 import Fission.Platform.Heroku.AddOn.Types

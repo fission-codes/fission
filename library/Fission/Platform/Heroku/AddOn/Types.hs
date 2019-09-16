@@ -5,7 +5,7 @@ import RIO
 import Data.UUID
 import Database.Selda
 
-import Fission.Internal.Orphanage ()
+-- import Fission.Internal.Orphanage ()
 import Fission.Platform.Heroku.Types (Region (..))
 
 data AddOn = AddOn

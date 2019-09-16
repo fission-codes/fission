@@ -1,7 +1,7 @@
-module Fission.Web.IPFS.Client
-  ( pin
-  , unpin
-  ) where
+module Fission.Web.IPFS.Client where
+  -- ( pin
+  -- , unpin
+  -- ) where
 
 import RIO
 
@@ -19,8 +19,8 @@ type UnpinAPI = Prefix :> IPFS.UnpinAPI
 
 -- pin :: BasicAuthData -> CID -> ClientM NoContent
 -- pin :: CID -> ClientM NoContent
-pin = client (Proxy :: Proxy PinAPI)
+-- pin = client (Proxy :: Proxy PinAPI)
 
--- unpin :: BasicAuthData -> CID -> ClientM NoContent
--- unpin :: CID -> ClientM NoContent
-unpin = client (Proxy :: Proxy UnpinAPI)
+-- -- unpin :: BasicAuthData -> CID -> ClientM NoContent
+-- -- unpin :: CID -> ClientM NoContent
+-- unpin = client (Proxy :: Proxy UnpinAPI)

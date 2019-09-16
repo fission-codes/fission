@@ -15,12 +15,13 @@ import Data.ByteString.Lazy.Char8 as CL
 
 import qualified Network.HTTP.Client as HTTP
 
-import qualified Fission.Config              as Config
 import           Fission.Internal.Constraint
-import           Fission.Internal.Orphanage ()
+-- import           Fission.Internal.Orphanage ()
 import           Fission.Internal.Process
-import qualified Fission.File.Types          as File
 import qualified Fission.Internal.UTF8       as UTF8
+
+import qualified Fission.Config              as Config
+import qualified Fission.File.Types          as File
 import qualified Fission.IPFS.Client.Pin     as Pin
 import qualified Fission.IPFS.Process        as IPFS.Proc
 import           Fission.IPFS.Error          as IPFS.Error

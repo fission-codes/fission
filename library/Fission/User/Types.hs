@@ -2,7 +2,7 @@ module Fission.User.Types (User (..))where
 
 import RIO
 
-import Control.Lens   ((.~))
+import Control.Lens   ((?~))
 import Data.Swagger
 import Database.Selda
 
@@ -12,8 +12,8 @@ import Fission.Security       (Digestable (..))
 import Fission.Security.Types (SecretDigest)
 import Fission.User.Role
 
-import           Fission.Internal.Orphanage ()
-import qualified Fission.Internal.UTF8      as UTF8
+-- import           Fission.Internal.Orphanage ()
+import qualified Fission.Internal.UTF8 as UTF8
 
 -- | A user account, most likely a developer
 data User = User
@@ -36,4 +36,4 @@ instance Digestable (ID User) where
 instance ToSchema (ID User) where
   declareNamedSchema _ =
      return $ NamedSchema (Just "UserID")
-            $ mempty & type_ .~ SwaggerInteger
+            $ mempty & type_ ?~ SwaggerInteger

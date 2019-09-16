@@ -8,7 +8,7 @@ import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
 
 import           Fission.Internal.Constraint
-import           Fission.Internal.Orphanage ()
+import           Fission.Internal.Orphanage.ID ()
 
 import           Fission.Security.Types (SecretDigest)
 import           Fission.Timestamp as Timestamp

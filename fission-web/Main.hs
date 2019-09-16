@@ -16,7 +16,7 @@ import           Fission.Config.Types
 import           Fission.Storage.SQLite as SQLite
 
 import           Fission.Environment
-import           Fission.Internal.Orphanage ()
+-- import           Fission.Internal.Orphanage ()
 
 import           Fission.Storage.Types as DB
 import qualified Fission.IPFS.Types    as IPFS

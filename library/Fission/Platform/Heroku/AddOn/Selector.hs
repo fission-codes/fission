@@ -11,6 +11,7 @@ import RIO
 
 import Data.UUID
 import Database.Selda
+import Database.Selda.MakeSelectors
 
 import Fission.Platform.Heroku.Types (Region (..))
 

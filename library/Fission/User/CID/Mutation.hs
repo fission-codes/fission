@@ -6,6 +6,7 @@ module Fission.User.CID.Mutation
 
 import RIO
 import RIO.List ((\\))
+import RIO.Orphans ()
 
 import Data.Time      (getCurrentTime)
 import Database.Selda
@@ -23,6 +24,7 @@ import           Fission.User.CID.Types
 create :: MonadRIO   cfg m
        => HasLogFunc cfg
        => MonadSelda     m
+       => MonadMask      m
        => ID User
        -> CID
        -> m (Maybe (ID UserCID))

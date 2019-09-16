@@ -23,5 +23,5 @@ $(deriveJSON defaultOptions ''Peer)
 instance ToSchema Peer where
   declareNamedSchema _ =
      return $ NamedSchema (Just "IPFS Peer") $ mempty
-            & type_   .~ SwaggerString
+            & type_   ?~ SwaggerString
             & example ?~ "/ip4/178.62.158.247/tcp/4001/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd"

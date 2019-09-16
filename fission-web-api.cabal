@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 71401819b8a58d4d289067e2f6fcc1bd7e411785f872b7e125475db5b8062d39
+-- hash: 38f3d7704ea21f81c6a751bf64da212e967a9395e589905cf731922b840e5c4f
 
 name:           fission-web-api
 version:        1.7.0
@@ -45,7 +45,15 @@ library
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.MIME
-      Fission.Internal.Orphanage
+      Fission.Internal.Orphanage.BasicAuth
+      Fission.Internal.Orphanage.BasicAuthData
+      Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ID
+      Fission.Internal.Orphanage.MultipartForm
+      Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PlainText
+      Fission.Internal.Orphanage.Tuple
+      Fission.Internal.Orphanage.UUID
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
@@ -178,7 +186,6 @@ library
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -245,7 +252,6 @@ executable fission-cli
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -312,7 +318,6 @@ executable fission-web
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -385,7 +390,6 @@ test-suite fission-doctest
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -453,7 +457,6 @@ test-suite fission-lint
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -499,7 +502,15 @@ test-suite fission-test
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.MIME
-      Fission.Internal.Orphanage
+      Fission.Internal.Orphanage.BasicAuth
+      Fission.Internal.Orphanage.BasicAuthData
+      Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ID
+      Fission.Internal.Orphanage.MultipartForm
+      Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PlainText
+      Fission.Internal.Orphanage.Tuple
+      Fission.Internal.Orphanage.UUID
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
@@ -637,7 +648,6 @@ test-suite fission-test
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -711,7 +721,6 @@ benchmark fission-benchmark
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
