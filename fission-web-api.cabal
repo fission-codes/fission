@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b781218013f674966b40700ac34cbc6d17a35c02beb7f3f74075305c62d05eb6
+-- hash: 5789a2b09f7cd87926c71b43dc4a42d4c8aa60ee76e91979e8887de4ad0e9eec
 
 name:           fission-web-api
-version:        1.6.0
+version:        1.7.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -28,15 +28,33 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.CLI
+      Fission.CLI.Auth
+      Fission.CLI.Cursor
+      Fission.CLI.Loader
+      Fission.CLI.Login
+      Fission.CLI.Types
+      Fission.CLI.Up
       Fission.Config
       Fission.Config.Types
+      Fission.Emoji
       Fission.Environment
       Fission.File.Types
+      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.MIME
-      Fission.Internal.Orphanage
+      Fission.Internal.Orphanage.BasicAuth
+      Fission.Internal.Orphanage.BasicAuthData
+      Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ID
+      Fission.Internal.Orphanage.MultipartForm
+      Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PlainText
+      Fission.Internal.Orphanage.RIO
+      Fission.Internal.Orphanage.Tuple
+      Fission.Internal.Orphanage.UUID
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
@@ -76,7 +94,6 @@ library
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
-      Fission.Storage.IPFSClient
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
@@ -103,12 +120,18 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Auth.Client
+      Fission.Web.Auth.Verify
+      Fission.Web.Client
+      Fission.Web.Client.Request
+      Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
+      Fission.Web.IPFS.Client
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -134,6 +157,7 @@ library
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -141,6 +165,8 @@ library
     , data-has
     , ekg-wai
     , envy
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
@@ -148,6 +174,8 @@ library
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -159,7 +187,6 @@ library
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -169,6 +196,8 @@ library
     , swagger2
     , text
     , time
+    , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -179,6 +208,73 @@ library
     , warp
     , warp-tls
     , word8
+    , yaml
+  default-language: Haskell2010
+
+executable fission-cli
+  main-is: Main.hs
+  other-modules:
+      Paths_fission_web_api
+  hs-source-dirs:
+      fission-cli
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
+  build-depends:
+      aeson
+    , aeson-casing
+    , ansi-terminal
+    , base
+    , bytestring
+    , cryptonite
+    , data-default-class
+    , data-has
+    , ekg-wai
+    , envy
+    , fission-web-api
+    , fsnotify
+    , haskeline
+    , http-client
+    , http-client-tls
+    , http-media
+    , http-types
+    , lens
+    , mime-types
+    , monad-logger
+    , optparse-applicative
+    , optparse-simple
+    , random-bytestring
+    , resource-pool
+    , rio
+    , rio-orphans
+    , scientific
+    , selda
+    , selda-sqlite
+    , servant
+    , servant-auth-server
+    , servant-auth-swagger
+    , servant-client
+    , servant-multipart
+    , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , streaming-commons
+    , streamly
+    , swagger2
+    , text
+    , time
+    , transformers
+    , turtle
+    , unliftio
+    , uuid
+    , uuid-types
+    , wai
+    , wai-cors
+    , wai-extra
+    , wai-logger
+    , warp
+    , warp-tls
+    , word8
+    , yaml
   default-language: Haskell2010
 
 executable fission-web
@@ -192,6 +288,7 @@ executable fission-web
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -200,6 +297,8 @@ executable fission-web
     , ekg-wai
     , envy
     , fission-web-api
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
@@ -207,6 +306,8 @@ executable fission-web
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -218,7 +319,6 @@ executable fission-web
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -228,6 +328,8 @@ executable fission-web
     , swagger2
     , text
     , time
+    , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -238,6 +340,7 @@ executable fission-web
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-doctest
@@ -254,6 +357,7 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -264,6 +368,8 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
@@ -272,6 +378,8 @@ test-suite fission-doctest
     , lens-aeson
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -283,7 +391,6 @@ test-suite fission-doctest
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -293,6 +400,8 @@ test-suite fission-doctest
     , swagger2
     , text
     , time
+    , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -318,6 +427,7 @@ test-suite fission-lint
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -325,6 +435,8 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , fsnotify
+    , haskeline
     , hlint
     , http-client
     , http-client-tls
@@ -333,6 +445,8 @@ test-suite fission-lint
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -344,7 +458,6 @@ test-suite fission-lint
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -354,6 +467,8 @@ test-suite fission-lint
     , swagger2
     , text
     , time
+    , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -364,21 +479,40 @@ test-suite fission-lint
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.CLI
+      Fission.CLI.Auth
+      Fission.CLI.Cursor
+      Fission.CLI.Loader
+      Fission.CLI.Login
+      Fission.CLI.Types
+      Fission.CLI.Up
       Fission.Config
       Fission.Config.Types
+      Fission.Emoji
       Fission.Environment
       Fission.File.Types
+      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.MIME
-      Fission.Internal.Orphanage
+      Fission.Internal.Orphanage.BasicAuth
+      Fission.Internal.Orphanage.BasicAuthData
+      Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ID
+      Fission.Internal.Orphanage.MultipartForm
+      Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PlainText
+      Fission.Internal.Orphanage.RIO
+      Fission.Internal.Orphanage.Tuple
+      Fission.Internal.Orphanage.UUID
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
@@ -418,7 +552,6 @@ test-suite fission-test
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
-      Fission.Storage.IPFSClient
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
@@ -445,12 +578,18 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Auth.Client
+      Fission.Web.Auth.Verify
+      Fission.Web.Client
+      Fission.Web.Client.Request
+      Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
+      Fission.Web.IPFS.Client
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -477,6 +616,7 @@ test-suite fission-test
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -485,6 +625,8 @@ test-suite fission-test
     , ekg-wai
     , envy
     , fission-web-api
+    , fsnotify
+    , haskeline
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -495,6 +637,8 @@ test-suite fission-test
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -506,7 +650,6 @@ test-suite fission-test
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -522,6 +665,7 @@ test-suite fission-test
     , text
     , time
     , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -532,6 +676,7 @@ test-suite fission-test
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 benchmark fission-benchmark
@@ -546,6 +691,7 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , criterion
@@ -555,6 +701,8 @@ benchmark fission-benchmark
     , ekg-wai
     , envy
     , fission-web-api
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
@@ -562,6 +710,8 @@ benchmark fission-benchmark
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
     , resource-pool
     , rio
@@ -573,7 +723,6 @@ benchmark fission-benchmark
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
@@ -583,6 +732,8 @@ benchmark fission-benchmark
     , swagger2
     , text
     , time
+    , transformers
+    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -593,4 +744,5 @@ benchmark fission-benchmark
     , warp
     , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010

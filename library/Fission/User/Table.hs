@@ -6,7 +6,6 @@ module Fission.User.Table
 import Database.Selda
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
-import           Fission.Internal.Orphanage ()
 import qualified Fission.Storage.Table  as Table
 import           Fission.User.Types
 

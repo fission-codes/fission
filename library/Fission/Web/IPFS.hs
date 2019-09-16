@@ -1,7 +1,10 @@
 module Fission.Web.IPFS
   ( API
+  , Auth
   , AuthedAPI
   , PublicAPI
+  , SimpleAPI
+  , UnauthedAPI
   , authed
   , server
   ) where
@@ -19,20 +22,26 @@ import           Fission.IPFS.Types        as IPFS
 import           Fission.User
 
 import           Fission.Web.Server
-import qualified Fission.Web.IPFS.CID      as CID
-import qualified Fission.Web.IPFS.Upload   as Upload
-import qualified Fission.Web.IPFS.Download as Download
-import qualified Fission.Web.IPFS.Pin      as Pin
+import qualified Fission.Web.IPFS.CID           as CID
+import qualified Fission.Web.IPFS.Upload        as Upload
+import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
+import qualified Fission.Web.IPFS.Download      as Download
+import qualified Fission.Web.IPFS.Pin           as Pin
 
 type API = AuthedAPI
       :<|> PublicAPI
 
-type AuthedAPI = BasicAuth "registered users" User
-                 :> AuthedAPI'
+type Auth = BasicAuth "registered users" User
 
-type AuthedAPI' = "cids" :> CID.API
-             :<|> Upload.API
-             :<|> Pin.API
+type AuthedAPI = Auth :> UnauthedAPI
+
+type UnauthedAPI = "cids" :> CID.API
+              :<|> Upload.API
+              :<|> Pin.API
+
+type SimpleAPI = "cids" :> CID.API
+            :<|> Upload.Simple.API
+            :<|> Pin.API
 
 type PublicAPI = Download.API
 

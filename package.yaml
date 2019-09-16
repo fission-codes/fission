@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '1.6.0'
+version: '1.7.0'
 category: API
 author: Brooklyn Zelenka
 maintainer: hello@brooklynzelenka.com
@@ -70,6 +70,7 @@ default-extensions:
 dependencies:
   - aeson
   - aeson-casing
+  - ansi-terminal
   - base
   - cryptonite
   - bytestring
@@ -77,6 +78,8 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - fsnotify
+  - haskeline
   - http-client
   - http-client-tls
   - http-media
@@ -84,6 +87,8 @@ dependencies:
   - lens
   - mime-types
   - monad-logger
+  - optparse-applicative
+  - optparse-simple
   - random-bytestring
   - resource-pool
   - rio
@@ -95,7 +100,6 @@ dependencies:
   - servant-auth-server
   - servant-auth-swagger
   - servant-client
-  - servant-exceptions
   - servant-multipart
   - servant-server
   - servant-swagger
@@ -105,6 +109,8 @@ dependencies:
   - swagger2
   - text
   - time
+  - transformers
+  - turtle
   - unliftio
   - uuid
   - uuid-types
@@ -115,6 +121,7 @@ dependencies:
   - warp
   - warp-tls
   - word8
+  - yaml
 
 library:
   source-dirs: library
@@ -123,6 +130,20 @@ executables:
   fission-web:
     main: Main.hs
     source-dirs: fission-web
+    dependencies:
+      - fission-web-api
+      - wai-logger
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -flate-specialise
+      - -with-rtsopts=-N
+      - -with-rtsopts=-T
+      - -O2
+
+  fission-cli:
+    main: Main.hs
+    source-dirs: fission-cli
     dependencies:
       - fission-web-api
       - wai-logger

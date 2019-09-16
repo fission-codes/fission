@@ -19,7 +19,9 @@ newtype Path = Path { unpath :: Text }
                     , Ord
                     )
   deriving anyclass ( ToSchema )
-  deriving newtype  ( IsString )
+  deriving newtype  ( IsString
+                    , ToHttpApiData
+                    )
 
 instance MimeRender PlainText Path where
   mimeRender _ = UTF8.textToLazyBS . unpath

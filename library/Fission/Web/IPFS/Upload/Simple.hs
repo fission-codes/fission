@@ -34,7 +34,7 @@ add :: Has IPFS.BinPath  cfg
     -> RIOServer         cfg API
 add User { _userID } (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
   Right newCID -> do
-    void . transaction $ UserCID.createX _userID [newCID]
+    void $ UserCID.createX _userID [newCID]
     return newCID
 
   Left err ->

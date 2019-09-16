@@ -18,6 +18,8 @@ import Data.Swagger (ToSchema (..))
 import Servant.Client as Client
 import System.Envy
 
+import Fission.Internal.Orphanage.Natural ()
+
 import Fission.IPFS.CID.Types
 import Fission.IPFS.Name.Types
 import Fission.IPFS.Path.Types
@@ -30,11 +32,10 @@ newtype BinPath = BinPath { getBinPath :: FilePath }
   deriving          ( Show
                     , Generic
                     )
-  deriving anyclass ( ToSchema )
+  deriving anyclass ( ToSchema
+                    , FromEnv
+                    )
   deriving newtype  ( IsString )
-
-instance FromEnv BinPath where
-  fromEnv = BinPath <$> env "IPFS_PATH"
 
 newtype URL = URL { getURL :: Client.BaseUrl }
   deriving ( Eq
@@ -43,7 +44,8 @@ newtype URL = URL { getURL :: Client.BaseUrl }
            )
 
 newtype Timeout = Timeout { getSeconds :: Natural }
-  deriving Show
-
-instance FromEnv Timeout where
-  fromEnv = Timeout . fromIntegral <$> (env "IPFS_TIMEOUT" :: Parser Int)
+  deriving          ( Eq
+                    , Show
+                    , Generic
+                    )
+  deriving anyclass FromEnv

@@ -4,12 +4,13 @@ module Fission.IPFS.CID.Types
   ) where
 
 import           RIO
-import qualified RIO.Text as Text
+import           RIO.Char
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 -- import Data.Text.Encoding as Text
 
-import Control.Lens ((.~), (?~))
+import Control.Lens ((?~))
 import Data.Aeson
 import Data.Swagger ( NamedSchema   (..)
                     , SwaggerType   (..)
@@ -30,7 +31,9 @@ newtype CID = CID { unaddress :: Text }
                     , Show
                     )
   deriving anyclass ( ToParamSchema )
-  deriving newtype  ( IsString )
+  deriving newtype  ( IsString
+                    , ToHttpApiData
+                    )
 
 instance ToJSON CID where
   toJSON (CID cid) = toJSON $ normalize cid
@@ -44,7 +47,7 @@ instance FromJSON CID where
 instance ToSchema CID where
   declareNamedSchema _ =
      return $ NamedSchema (Just "IPFS Address") $ mempty
-            & type_   .~ SwaggerString
+            & type_   ?~ SwaggerString
             & example ?~ "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
 
 instance Display CID where
@@ -61,6 +64,12 @@ instance MimeUnrender PlainText CID where
     case decodeUtf8' $ Lazy.toStrict bs of
       Left err  -> Left $ show err
       Right txt -> Right $ CID txt
+
+instance MimeUnrender PlainText [CID] where
+  mimeUnrender proxy bs = sequence cids
+    where
+      cids :: [Either String CID]
+      cids = mimeUnrender proxy <$> Lazy.split (fromIntegral $ ord ',') bs
 
 instance FromHttpApiData CID where
   parseUrlPiece = Right . CID

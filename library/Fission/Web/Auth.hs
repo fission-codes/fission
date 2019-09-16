@@ -11,9 +11,7 @@ import RIO
 import Database.Selda
 import Servant
 
-import Fission.Internal.Orphanage ()
 import Fission.Internal.Constraint
-
 import Fission.Storage.Query
 import Fission.User as User
 import Fission.Web.Server

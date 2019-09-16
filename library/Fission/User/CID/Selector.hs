@@ -7,6 +7,7 @@ module Fission.User.CID.Selector
   ) where
 
 import Database.Selda
+import Database.Selda.MakeSelectors
 
 import Fission.User.CID.Table
 import Fission.User.CID.Types

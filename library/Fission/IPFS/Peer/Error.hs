@@ -2,10 +2,9 @@ module Fission.IPFS.Peer.Error (Error (..)) where
 
 import RIO
 
-import Network.HTTP.Types.Status
-import Servant.Exception
+import Servant.Server
 
-import Fission.Internal.Orphanage ()
+import Fission.Web.Error
 
 data Error
   = DecodeFailure String
@@ -21,11 +20,7 @@ instance Display Error where
     DecodeFailure err -> "Unable to decode: " <> displayShow err
     UnknownErr    txt -> "Unknown IPFS peer list error: " <> display txt
 
-instance ToServantErr Error where
-  status = \case
-    DecodeFailure _ -> internalServerError500
-    UnknownErr    _ -> internalServerError500
-
-  message = \case
-    DecodeFailure _ -> "Peer list decode error"
-    UnknownErr    _ -> "Unknown peer list error"
+instance ToServerError Error where
+  toServerError = \case
+    DecodeFailure _ -> err500 { errBody = "Peer list decode error" }
+    UnknownErr    _ -> err500 { errBody = "Unknown peer list error" }

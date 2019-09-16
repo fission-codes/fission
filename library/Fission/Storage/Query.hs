@@ -9,6 +9,7 @@ import RIO
 import RIO.List (headMaybe)
 
 import Database.Selda
+import Database.Selda.Backend
 
 is' :: Row s t -> Selector t Bool -> Col s Bool
 is' row prop = row ! prop .== true
@@ -18,7 +19,7 @@ all' row = foldr (\prop acc -> acc .&& prop row) true
 
 findOne :: MonadSelda m
         => Result (OuterCols a)
-        => Query (Inner s) a
+        => Query (Inner (Backend m)) a
         -> m (Maybe (Res (OuterCols a)))
 findOne = fmap headMaybe . query . limit 0 1
 
