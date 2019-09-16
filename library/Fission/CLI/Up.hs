@@ -26,7 +26,7 @@ command :: MonadIO m => Config -> CommandM (m ())
 command cfg =
   addCommand
     "up"
-    "Keep your file up"
+    "Keep your directory up"
     (const $ runRIO cfg up)
     noop
 
