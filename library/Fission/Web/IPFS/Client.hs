@@ -24,6 +24,7 @@ data Request = Request
   , cids   :: ClientM [CID]
   }
 
+-- | Generate authenticate client functions
 request :: BasicAuthData -> Request
 request ba = Request {..}
   where

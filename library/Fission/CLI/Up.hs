@@ -1,3 +1,4 @@
+-- | File sync, IPFS-style
 module Fission.CLI.Up (command, up) where
 
 import           RIO
@@ -22,14 +23,16 @@ import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
+-- | The command to attach to the CLI tree
 command :: MonadIO m => Config -> CommandM (m ())
 command cfg =
   addCommand
     "up"
-    "Keep your directory up"
+    "Keep your current working directory up"
     (const $ runRIO cfg up)
     noop
 
+-- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
    => HasLogFunc        cfg
    => Has Client.Runner cfg
@@ -76,6 +79,7 @@ up = do
 
           return ()
 
+-- | Add the current working directory to IPFS locally
 addCurrentDir :: MonadIO m => m (Either Text (Shell Line))
 addCurrentDir = do
   dir <- pwd

@@ -10,6 +10,7 @@ import qualified Fission.CLI.Login as Login
 import           Fission.CLI.Types
 import qualified Fission.CLI.Up    as Up
 
+-- | Top-level CLI description
 cli :: MonadIO m => Config -> IO ((), m ())
 cli cfg =
   simpleOptions version description detail noop do

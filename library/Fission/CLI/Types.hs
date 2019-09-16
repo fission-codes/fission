@@ -13,8 +13,10 @@ import Options.Applicative as OA
 
 import qualified Fission.Web.Client.Types as Client
 
+-- | The action to attach to the command interface and description
 type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
 
+-- | The configuration used for the CLI application
 data Config = Config
   { _fissionAPI :: !Client.Runner
   , _logFunc    :: !LogFunc

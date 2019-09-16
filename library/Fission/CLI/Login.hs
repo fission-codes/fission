@@ -1,3 +1,4 @@
+-- | Login command
 module Fission.CLI.Login (command, login) where
 
 import           RIO
@@ -25,6 +26,7 @@ import qualified Fission.CLI.Cursor as Cursor
 import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
+-- | The command to attach to the CLI tree
 command :: MonadIO m => Config -> CommandM (m ())
 command cfg =
   addCommand
@@ -33,6 +35,7 @@ command cfg =
     (const $ runRIO cfg login)
     noop
 
+-- | Login (i.e. save credentials to disk). Validates credentials agianst the server.
 login :: MonadRIO         cfg m
       => MonadUnliftIO        m
       => HasLogFunc       cfg
