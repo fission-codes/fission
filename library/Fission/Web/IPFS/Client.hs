@@ -23,9 +23,10 @@ data Request = Request
   }
 
 withAuth :: HasClient ClientM api
-         => Client ClientM api ~ (BasicAuthData -> t2)
+         => Client ClientM api ~ (BasicAuthData -> clients)
          => BasicAuthData
-         -> Proxy api -> t2
+         -> Proxy api
+         -> clients
 withAuth basicAuth proxy = client proxy basicAuth
 
 request :: BasicAuthData -> Request

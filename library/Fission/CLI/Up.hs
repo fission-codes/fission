@@ -2,14 +2,16 @@ module Fission.CLI.Up (command, up) where
 
 import           RIO
 import           RIO.ByteString
+import qualified RIO.Text as Text
 
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
 import qualified System.Console.ANSI as ANSI
-import           Turtle
+import           Turtle hiding ((<&>), err)
 
 import           Fission.Internal.Applicative
 import           Fission.Internal.Constraint
+import           Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
@@ -37,27 +39,25 @@ up :: MonadRIO         cfg m
    => m ()
 up = do
   logDebug "Starting single pin"
-  dir <- addCurrentDir
-
-  case dir of
+  addCurrentDir >>= \case
     Left bad ->
       logError $ display bad
 
     Right out -> do
-      hash <- strict out
-      logDebug $ display hash
-
+      hash      <- Text.stripEnd <$> strict out
       authOrErr <- Auth.get
       case authOrErr of
         Left err -> do
           logError $ displayShow err
-          ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
           putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
-          ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
           putStr "fission-cli login"
 
         Right auth -> do
           Client.Runner runner <- Config.get
+          let cid = CID hash
+          logDebug $ "Pinning " <> displayShow cid
 
           res <- liftIO . withLoader 5000
                        . runner
@@ -66,9 +66,16 @@ up = do
 
           case res of
             Right _ -> do
-              logDebug "YEP"
+              putText $ Emoji.rocket <> " Your current working directory is now live"
+
             Left err -> do
               logError $ displayShow err
+              liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+              putText $ mconcat
+                [ Emoji.prohibited
+                , " Something went wrong. Please try again or file a bug report with "
+                , "Fission support at https://github.com/fission-suite/web-api/issues/new"
+                ]
 
           return ()
 
