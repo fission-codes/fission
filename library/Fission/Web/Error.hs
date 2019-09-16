@@ -21,8 +21,6 @@ ensure :: MonadRIO   cfg m
        => HasLogFunc cfg
        => MonadThrow     m
        => Display       err
-       -- => Exception     err
-       -- => ToJSON        err
        => ToServerError err
        => Either err a
        -> m a
@@ -39,8 +37,6 @@ throw :: MonadRIO   cfg m
       => HasLogFunc cfg
       => MonadThrow     m
       => Display       err
-      -- => Exception     err
-      -- => ToJSON        err
       => ToServerError err
       => err
       -> m a
