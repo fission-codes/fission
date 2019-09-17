@@ -55,5 +55,5 @@ withEnv key fallback transform = pure (maybe fallback transform) <*> lookupEnv k
 --
 -- >>> getFlag ""
 -- False
-getFlag :: String -> IO Bool
-getFlag key = pure (maybe False (truthy . fmap toLower)) <*> lookupEnv key
+getFlag :: String -> IO (Maybe Bool)
+getFlag key = fmap (truthy . fmap toLower) <$> lookupEnv key

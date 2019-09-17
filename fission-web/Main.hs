@@ -47,11 +47,11 @@ main = do
   _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
 
   condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
-  isVerbose   <- getFlag "RIO_VERBOSE" -- TODO FISSION_VERBOSE or VERBOSE
+  isVerbose   <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
   logOptions' <- logOptionsHandle stdout isVerbose
   let logOpts = setLogUseTime True logOptions'
 
-  isTLS <- getFlag "TLS"
+  isTLS <- getFlag "TLS" .!~ True
   Web.Port port <- decode .!~ (Web.Port $ if isTLS then 443 else 80)
 
   withLogFunc logOpts $ \_logFunc -> do
@@ -78,5 +78,5 @@ main = do
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
-  monitorFlag <- liftIO $ getFlag "MONITOR"
+  monitorFlag <- liftIO $ getFlag "MONITOR" .!~ False
   when monitorFlag Monitor.wai
