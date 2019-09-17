@@ -32,10 +32,11 @@ newtype BinPath = BinPath { getBinPath :: FilePath }
   deriving          ( Show
                     , Generic
                     )
-  deriving anyclass ( ToSchema
-                    , FromEnv
-                    )
+  deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
+
+instance FromEnv BinPath where
+  fromEnv _ = BinPath <$> env "IPFS_PATH"
 
 newtype URL = URL { getURL :: Client.BaseUrl }
   deriving ( Eq
@@ -48,4 +49,6 @@ newtype Timeout = Timeout { getSeconds :: Natural }
                     , Show
                     , Generic
                     )
-  deriving anyclass FromEnv
+
+instance FromEnv Timeout where
+  fromEnv _ = Timeout <$> env "IPFS_TIMEOUT"

@@ -22,7 +22,8 @@ newtype Path = Path { getPath :: FilePath }
   deriving          ( Show
                     , Generic
                     )
-  deriving anyclass ( FromEnv
-                    , ToSchema
-                    )
+  deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
+ 
+instance FromEnv Path where
+  fromEnv _ = Path <$> env "DB_PATH"

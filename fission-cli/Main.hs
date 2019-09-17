@@ -19,7 +19,7 @@ main = do
   verbose     <- isJust <$> lookupEnv "RIO_VERBOSE"
   logOptions  <- logOptionsHandle stderr verbose
 
-  isTLS <- getFlag "FISSION_TLS"
+  isTLS <- getFlag "FISSION_TLS" .!~ True
   path  <- withEnv "FISSION_ROOT" "" id
   host  <- withEnv "FISSION_HOST" "runfission.com" id
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read

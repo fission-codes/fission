@@ -36,7 +36,7 @@ main = do
   Just manifest <- decodeFileStrict "./addon-manifest.json"
 
   _processCtx  <- mkDefaultProcessContext
-  _host        <- decode .!~ Web.Host "localhost:1337"
+  _host        <- decode .!~ Web.Host "https://runfission.com"
   _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   _ipfsTimeout <- decode .!~ IPFS.Timeout 150
   _dbPath      <- decode .!~ DB.Path "web-api.sqlite"
@@ -47,11 +47,11 @@ main = do
   _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
 
   condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
-  isVerbose   <- getFlag "RIO_VERBOSE" -- TODO FISSION_VERBOSE or VERBOSE
+  isVerbose   <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
   logOptions' <- logOptionsHandle stdout isVerbose
   let logOpts = setLogUseTime True logOptions'
 
-  isTLS <- getFlag "TLS"
+  isTLS <- getFlag "TLS" .!~ True
   Web.Port port <- decode .!~ (Web.Port $ if isTLS then 443 else 80)
 
   withLogFunc logOpts $ \_logFunc -> do
@@ -78,5 +78,5 @@ main = do
 
 condMonitor :: HasLogFunc cfg => RIO cfg ()
 condMonitor = do
-  monitorFlag <- liftIO $ getFlag "MONITOR"
+  monitorFlag <- liftIO $ getFlag "MONITOR" .!~ False
   when monitorFlag Monitor.wai
