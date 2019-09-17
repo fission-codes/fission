@@ -54,6 +54,6 @@ withEnv key fallback transform = pure (maybe fallback transform) <*> lookupEnv k
 -- | Check if an environment flag is set to 'True' (case-insensitive)
 --
 -- >>> getFlag ""
--- False
+-- Nothing
 getFlag :: String -> IO (Maybe Bool)
 getFlag key = fmap (truthy . fmap toLower) <$> lookupEnv key
