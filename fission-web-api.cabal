@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5789a2b09f7cd87926c71b43dc4a42d4c8aa60ee76e91979e8887de4ad0e9eec
+-- hash: 4ae39188385a84c31c0008232a33a45622c983e26e1b01be0e85972352d01e0c
 
 name:           fission-web-api
 version:        1.7.0
@@ -75,8 +75,6 @@ library
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
-      Fission.Log.Lens
-      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -132,6 +130,7 @@ library
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
       Fission.Web.IPFS.Client
+      Fission.Web.IPFS.Dag
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -533,8 +532,6 @@ test-suite fission-test
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
-      Fission.Log.Lens
-      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -590,6 +587,7 @@ test-suite fission-test
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
       Fission.Web.IPFS.Client
+      Fission.Web.IPFS.Dag
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload

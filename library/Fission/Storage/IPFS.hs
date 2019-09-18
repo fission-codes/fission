@@ -4,6 +4,7 @@ module Fission.Storage.IPFS
   , get
   , pin
   , unpin
+  , dagput
   ) where
 
 import           RIO
@@ -154,3 +155,19 @@ logLeft errStr = do
   let err = UnknownAddErr $ UTF8.textShow errStr
   logError $ display err
   return $ Left err
+
+dagput :: MonadRIO cfg m
+        => HasProcessContext cfg
+        => HasLogFunc cfg
+        => Has HTTP.Manager  cfg
+        => Has IPFS.URL      cfg
+        => Has IPFS.BinPath  cfg
+        => Has IPFS.Timeout  cfg
+        => Lazy.ByteString
+        -> m (Either IPFS.Error.Add IPFS.CID)
+dagput raw = IPFS.Proc.run ["dag", "put", "-f", "dag-pb"] raw >>= \case
+  (ExitSuccess, result, _) ->
+    case CL.lines result of
+      [cid] ->  pin . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
+      bad   -> return . Left . UnexpectedOutput $ UTF8.textShow bad
+  (ExitFailure _, _, err) -> return . Left . UnknownAddErr $ UTF8.textShow err
