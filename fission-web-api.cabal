@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5789a2b09f7cd87926c71b43dc4a42d4c8aa60ee76e91979e8887de4ad0e9eec
+-- hash: 4e4767eb469c3d341a411a405115ba9cc4831042a83789f882641c0f2aa92695
 
 name:           fission-web-api
-version:        1.7.0
+version:        1.8.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -75,8 +75,6 @@ library
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
-      Fission.Log.Lens
-      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -94,6 +92,8 @@ library
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
+      Fission.Storage.IPFS.DAG
+      Fission.Storage.IPFS.Pin
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
@@ -132,6 +132,7 @@ library
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
       Fission.Web.IPFS.Client
+      Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -533,8 +534,6 @@ test-suite fission-test
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
-      Fission.Log.Lens
-      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -552,6 +551,8 @@ test-suite fission-test
       Fission.Security
       Fission.Security.Types
       Fission.Storage.IPFS
+      Fission.Storage.IPFS.DAG
+      Fission.Storage.IPFS.Pin
       Fission.Storage.Query
       Fission.Storage.SQLite
       Fission.Storage.SQLite.Internal
@@ -590,6 +591,7 @@ test-suite fission-test
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
       Fission.Web.IPFS.Client
+      Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload

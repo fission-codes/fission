@@ -18,7 +18,8 @@ import           Fission.Web.Routes (IPFSPrefix)
 type API = IPFSPrefix :> IPFS.Auth :> IPFS.SimpleAPI
 
 data Request = Request
-  { unpin  :: CID             -> ClientM NoContent
+  { dagput :: File.Serialized -> ClientM CID
+  , unpin  :: CID             -> ClientM NoContent
   , pin    :: CID             -> ClientM NoContent
   , upload :: File.Serialized -> ClientM CID
   , cids   :: ClientM [CID]
@@ -28,4 +29,4 @@ data Request = Request
 request :: BasicAuthData -> Request
 request ba = Request {..}
   where
-    cids :<|> upload :<|> pin :<|> unpin = Client.withAuth ba (Proxy :: Proxy API)
+    cids :<|> upload :<|> (pin :<|> unpin) :<|> dagput = Client.withAuth ba (Proxy :: Proxy API)
