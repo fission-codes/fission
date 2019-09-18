@@ -27,7 +27,7 @@ import qualified Fission.Web.IPFS.Upload        as Upload
 import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
 import qualified Fission.Web.IPFS.Download      as Download
 import qualified Fission.Web.IPFS.Pin           as Pin
-import qualified Fission.Web.IPFS.Dag           as Dag
+import qualified Fission.Web.IPFS.DAG           as DAG
 
 type API = AuthedAPI
       :<|> PublicAPI
@@ -39,12 +39,12 @@ type AuthedAPI = Auth :> UnauthedAPI
 type UnauthedAPI = "cids" :> CID.API
               :<|> Upload.API
               :<|> Pin.API
-              :<|> "dag" :> Dag.API
+              :<|> "dag" :> DAG.API
 
 type SimpleAPI = "cids" :> CID.API
             :<|> Upload.Simple.API
             :<|> Pin.API
-            :<|> "dag" :> Dag.API
+            :<|> "dag" :> DAG.API
 
 type PublicAPI = Download.API
 
@@ -70,4 +70,4 @@ authed :: HasLogFunc        cfg
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
-        :<|> Dag.put usr
+        :<|> DAG.put usr

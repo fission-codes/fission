@@ -1,4 +1,4 @@
-module Fission.Web.IPFS.Dag
+module Fission.Web.IPFS.DAG
   ( API
   , put
   )
