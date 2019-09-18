@@ -39,12 +39,12 @@ type AuthedAPI = Auth :> UnauthedAPI
 type UnauthedAPI = "cids" :> CID.API
               :<|> Upload.API
               :<|> Pin.API
-              :<|> ("dag" :> Dag.API)
+              :<|> "dag" :> Dag.API
 
 type SimpleAPI = "cids" :> CID.API
             :<|> Upload.Simple.API
             :<|> Pin.API
-            :<|> ("dag" :> Dag.API)
+            :<|> "dag" :> Dag.API
 
 type PublicAPI = Download.API
 

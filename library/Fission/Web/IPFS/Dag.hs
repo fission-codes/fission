@@ -19,7 +19,7 @@ import           Fission.Web.Server
 import           Fission.File.Types   as File
 
 import qualified Fission.IPFS.Types      as IPFS
-import qualified Fission.Storage.IPFS    as Storage.IPFS
+import qualified Fission.Storage.IPFS.DAG    as Storage.IPFS.DAG
 import qualified Fission.Web.Error       as Web.Err
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
@@ -34,7 +34,7 @@ put :: Has IPFS.BinPath  cfg
     => HasLogFunc        cfg
     => User
     -> RIOServer         cfg API
-put User { _userID } (Serialized rawData) = Storage.IPFS.dagput rawData >>= \case
+put User { _userID } (Serialized rawData) = Storage.IPFS.DAG.put rawData >>= \case
   Right newCID -> do
     void $ User.CID.createX _userID [newCID]
     return newCID
