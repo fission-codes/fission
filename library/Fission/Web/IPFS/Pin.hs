@@ -12,15 +12,15 @@ import RIO
 import Data.Has
 import Database.Selda
 
-import qualified Network.HTTP.Client as HTTP
+import qualified Network.HTTP.Client      as HTTP
 import           Servant
 
-import qualified Fission.IPFS.Types   as IPFS
-import qualified Fission.Storage.IPFS as Storage.IPFS
-import qualified Fission.Web.Error    as Web.Err
+import qualified Fission.IPFS.Types       as IPFS
+import qualified Fission.Storage.IPFS.Pin as IPFS.Pin
+import qualified Fission.Web.Error        as Web.Err
 import           Fission.Web.Server
 import           Fission.IPFS.CID.Types
-import           Fission.User.CID     as UserCID
+import           Fission.User.CID         as UserCID
 import           Fission.User
 
 type API = PinAPI :<|> UnpinAPI
@@ -45,7 +45,7 @@ pin :: Has HTTP.Manager  cfg
     => HasLogFunc        cfg
     => ID User
     -> RIOServer         cfg PinAPI
-pin uID _cid = Storage.IPFS.pin _cid >>= \case
+pin uID _cid = IPFS.Pin.add _cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> UserCID.create uID _cid >> pure NoContent
 
@@ -62,6 +62,6 @@ unpin uID _cid@CID { unaddress = hash } = do
             . limit 0 1
             $ select userCIDs `suchThat` eqUserCID uID hash
 
-  when (null remaining) $ Storage.IPFS.unpin _cid >>= void . Web.Err.ensure
+  when (null remaining) $ IPFS.Pin.rm _cid >>= void . Web.Err.ensure
 
   return NoContent

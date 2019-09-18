@@ -43,7 +43,7 @@ import           Fission.Platform.Heroku.AddOn.Types
 import           Fission.Security.Types (Secret (..))
 
 import           Fission.IPFS.Types          as IPFS
-import           Fission.Storage.IPFS as IPFS
+import           Fission.Storage.IPFS.Pin as IPFS.Pin
 
 type API = ProvisionAPI :<|> DeprovisionAPI
 
@@ -125,7 +125,7 @@ deprovision uuid' = do
     deleteFrom_ Table.addOns   (AddOn.uuid'     `is` uuid')
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
-  forM_ toUnpin $ IPFS.unpin >=> \case
+  forM_ toUnpin $ IPFS.Pin.rm >=> \case
     Left ipfsMsg -> do
       logError $ "Unable to unpin CID: " <> display ipfsMsg
       return ()

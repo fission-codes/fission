@@ -1,6 +1,6 @@
 module Fission.Storage.IPFS.Pin
-  ( pin
-  , unpin
+  ( add
+  , rm
   ) where
 
 import           RIO
@@ -17,13 +17,13 @@ import           Fission.IPFS.Error          as IPFS.Error
 import           Fission.IPFS.Types          as IPFS
 import qualified Fission.IPFS.Client         as IPFS.Client
 
-pin :: MonadRIO          cfg m
+add :: MonadRIO          cfg m
     => HasLogFunc        cfg
     => Has HTTP.Manager  cfg
     => Has IPFS.URL      cfg
     => IPFS.CID
     -> m (Either IPFS.Error.Add CID)
-pin (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
+add (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
   Right Pin.Response { cids } ->
     case cids of
       [cid] -> do
@@ -37,13 +37,13 @@ pin (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
     logLeft err
 
 -- | Unpin a CID
-unpin :: MonadRIO          cfg m
+rm :: MonadRIO          cfg m
       => Has HTTP.Manager  cfg
       => Has IPFS.URL      cfg
       => HasLogFunc        cfg
       => IPFS.CID
       -> m (Either IPFS.Error.Add CID)
-unpin cid@(CID hash) = IPFS.Client.run (IPFS.Client.unpin hash False) >>= \case
+rm cid@(CID hash) = IPFS.Client.run (IPFS.Client.unpin hash False) >>= \case
   Right Pin.Response { cids } ->
     case cids of
       [cid'] -> do
