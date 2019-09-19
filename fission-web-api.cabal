@@ -4,7 +4,6 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 89451e6d2830db89c858fe6dd69fc5289f28a8ddce9e3a0fa3cd9fec09096ad7
 
 name:           fission-web-api
 version:        1.8.0
@@ -97,10 +96,10 @@ library
       Fission.Storage.IPFS
       Fission.Storage.IPFS.DAG
       Fission.Storage.IPFS.Pin
+      Fission.Storage.PostgreSQL
+      Fission.Storage.PostgreSQL.Internal
+      Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
-      Fission.Storage.SQLite
-      Fission.Storage.SQLite.Internal
-      Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
       Fission.Timestamp
@@ -186,7 +185,7 @@ library
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -252,7 +251,7 @@ executable fission-cli
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -318,7 +317,7 @@ executable fission-web
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -390,7 +389,7 @@ test-suite fission-doctest
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -457,7 +456,7 @@ test-suite fission-lint
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -558,10 +557,10 @@ test-suite fission-test
       Fission.Storage.IPFS
       Fission.Storage.IPFS.DAG
       Fission.Storage.IPFS.Pin
+      Fission.Storage.PostgreSQL
+      Fission.Storage.PostgreSQL.Internal
+      Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
-      Fission.Storage.SQLite
-      Fission.Storage.SQLite.Internal
-      Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
       Fission.Timestamp
@@ -652,7 +651,7 @@ test-suite fission-test
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -725,7 +724,7 @@ benchmark fission-benchmark
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger

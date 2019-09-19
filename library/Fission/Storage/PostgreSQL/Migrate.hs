@@ -1,5 +1,5 @@
 -- | Table creation and migration sequences
-module Fission.Storage.SQLite.Migrate
+module Fission.Storage.PostgreSQL.Migrate
   ( Mutation
   , mutations
   ) where
@@ -7,10 +7,11 @@ module Fission.Storage.SQLite.Migrate
 import RIO
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn.Table
-import           Fission.Storage.SQLite        (makeTable)
+import           Fission.Storage.PostgreSQL    (makeTable)
 import           Fission.Storage.Types         as DB
 import qualified Fission.User.CID.Table        as UserCID.Table
 import qualified Fission.User.Table            as User.Table
+import           Database.Selda.PostgreSQL
 
 -- | Table creation or migration
 type Mutation = IO ()
@@ -24,8 +25,18 @@ type Mutation = IO ()
 -- | All migrations, in order
 --
 --  NB To run after a certain point: `sequence_ . drop n`
-mutations :: DB.Path -> [Mutation]
-mutations db =
+--  This oughta be refactored but I couldn't get it to work
+mutations :: Text
+  -> Int
+  -> Text
+  -> Maybe Text
+  -> Maybe Text
+  -> Maybe Text
+  -> [Mutation]
+mutations h p d s u pass =  mutations' $ DB.PGInfo $ (PGConnectInfo h p d s u pass)
+
+mutations' :: DB.PGInfo -> [Mutation]
+mutations' db =
   [ makeTable db Heroku.AddOn.Table.addOns Heroku.AddOn.Table.name
   , makeTable db User.Table.users          User.Table.name
   , makeTable db UserCID.Table.userCIDs    UserCID.Table.name

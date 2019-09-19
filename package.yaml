@@ -98,7 +98,7 @@ dependencies:
   - rio-orphans
   - scientific
   - selda
-  - selda-sqlite
+  - selda-postgresql
   - servant
   - servant-auth-server
   - servant-auth-swagger

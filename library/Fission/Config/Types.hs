@@ -6,7 +6,7 @@ module Fission.Config.Types
   , ipfsPath
   , ipfsTimeout
   , host
-  , dbPath
+  , pgInfo
   , dbPool
   , herokuID
   , herokuPassword
@@ -34,7 +34,7 @@ data Config = Config
   , _ipfsURL        :: !IPFS.URL
   , _ipfsTimeout    :: !IPFS.Timeout
   , _host           :: !Host
-  , _dbPath         :: !DB.Path
+  , _pgInfo         :: !DB.PGInfo
   , _dbPool         :: !DB.Pool
   , _herokuID       :: !Heroku.ID
   , _herokuPassword :: !Heroku.Password
@@ -52,7 +52,7 @@ instance Show Config where
     , "  _ipfsURL        = " <> show _ipfsURL
     , "  _ipfsTimeout    = " <> show _ipfsTimeout
     , "  _host           = " <> show _host
-    , "  _dbPath         = " <> show _dbPath
+    , "  _pgInfo         = " <> show _pgInfo
     , "  _dbPool         = " <> show _dbPool
     , "  _herokuID       = " <> show _herokuID
     , "  _herokuPassword = " <> show _herokuPassword
@@ -77,8 +77,8 @@ instance Has IPFS.URL Config where
 instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
 
-instance Has DB.Path Config where
-  hasLens = dbPath
+instance Has DB.PGInfo Config where
+  hasLens = pgInfo
 
 instance Has DB.Pool Config where
   hasLens = dbPool

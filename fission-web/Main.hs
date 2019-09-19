@@ -1,5 +1,6 @@
 module Main (main) where
 
+import           Prelude
 import           RIO
 import           RIO.Process (mkDefaultProcessContext)
 
@@ -13,7 +14,8 @@ import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
 import           Fission.Config.Types
-import           Fission.Storage.SQLite as SQLite
+import           Fission.Storage.PostgreSQL as PostgreSQL
+import           Database.Selda.PostgreSQL
 
 import           Fission.Environment
 import           Fission.Internal.Orphanage.RIO ()
@@ -30,6 +32,7 @@ import qualified Fission.Web.Types     as Web
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 import qualified Fission.Platform.Heroku.Types          as Heroku
+import qualified Data.Text as Text
 
 main :: IO ()
 main = do
@@ -39,8 +42,14 @@ main = do
   _host        <- decode .!~ Web.Host "https://runfission.com"
   _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   _ipfsTimeout <- decode .!~ IPFS.Timeout 150
-  _dbPath      <- decode .!~ DB.Path "web-api.sqlite"
-  _dbPool      <- RIO.runSimpleApp $ SQLite.connPool _dbPath
+  _pgHost <- withEnv "PG_HOST" "web-api.cn1u7it7btqm.us-east-1.rds.amazonaws.com" Text.pack
+  _pgPort <- withEnv "PG_PORT" 5432 (fromInteger . Prelude.read)
+  _pgDatabase <- withEnv "PG_DATABASE" "web-api" Text.pack
+  _pgSchema <- withEnv "PG_SCHEMA" Nothing (Just . Text.pack)
+  _pgUsername <- withEnv "PG_USERNAME" Nothing (Just . Text.pack)
+  _pgPassword <- withEnv "PG_PASSWORD" Nothing (Just . Text.pack)
+  _pgInfo <- pure $ DB.PGInfo $ PGConnectInfo _pgHost _pgPort _pgDatabase _pgSchema _pgUsername _pgPassword
+  _dbPool      <- RIO.runSimpleApp $ PostgreSQL.connPool _pgInfo
 
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   ipfsURLRaw   <- withEnv "IPFS_URL" "http://localhost:5001" id

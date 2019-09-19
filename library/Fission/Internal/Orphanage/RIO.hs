@@ -12,13 +12,13 @@ import Data.Has
 import Data.Pool
 
 import Database.Selda.Backend.Internal
-import Database.Selda.SQLite
+import Database.Selda.PostgreSQL
 
 import qualified Fission.Config as Config
 import qualified Fission.Storage.Types as DB
 
 instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
- type Backend (RIO cfg) = SQLite
+ type Backend (RIO cfg) = PG
 
  withConnection action = do
     DB.Pool pool <- Config.get
