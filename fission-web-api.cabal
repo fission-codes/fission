@@ -4,6 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
+-- hash: 1b0b3f358238f59d4b22550076794f910b6cd748e00a0ccd757adad7af70ade5
 
 name:           fission-web-api
 version:        1.8.0
@@ -39,6 +40,7 @@ library
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
+      Fission.Environment.Types
       Fission.File.Types
       Fission.Internal.Applicative
       Fission.Internal.Bool
@@ -51,6 +53,7 @@ library
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
       Fission.Internal.Orphanage.Tuple
@@ -287,7 +290,7 @@ executable fission-web
   hs-source-dirs:
       fission-web
   default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -optc-ffast-math -optc-O3 -O2
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -flate-specialise -rtsopts -with-rtsopts=-N -with-rtsopts=-T -optc-ffast-math -optc-O3 -O2
   build-depends:
       aeson
     , aeson-casing
@@ -500,6 +503,7 @@ test-suite fission-test
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
+      Fission.Environment.Types
       Fission.File.Types
       Fission.Internal.Applicative
       Fission.Internal.Bool
@@ -512,6 +516,7 @@ test-suite fission-test
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
       Fission.Internal.Orphanage.Tuple

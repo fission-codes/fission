@@ -25,6 +25,11 @@ import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 
+-- data EnvVars = EnvVars
+--   { ipfs :: IPFS
+
+--   }
+
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
   { _processCtx     :: !ProcessContext
