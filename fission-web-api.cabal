@@ -4,15 +4,17 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4e4767eb469c3d341a411a405115ba9cc4831042a83789f882641c0f2aa92695
+-- hash: 28b4d9906e8d9b1cea63d98c514a515c3a5754d03525572cc03baf0449c84182
 
 name:           fission-web-api
 version:        1.8.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
-author:         Brooklyn Zelenka
-maintainer:     hello@brooklynzelenka.com
+author:         Brooklyn Zelenka,
+                Daniel Holmgren
+maintainer:     brooklyn@fission.codes,
+                daniel@fission.codes
 copyright:      © 2019 Brooklyn Zelenka
 license:        AGPL-3.0-or-later
 license-file:   LICENSE
@@ -75,6 +77,8 @@ library
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
+      Fission.Log.Lens
+      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -534,6 +538,8 @@ test-suite fission-test
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
       Fission.IPFS.Types
+      Fission.Log.Lens
+      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
