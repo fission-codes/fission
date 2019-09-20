@@ -138,10 +138,12 @@ executables:
       - wai-logger
     ghc-options:
       - -threaded
-      - -rtsopts
       - -flate-specialise
+      - -rtsopts
       - -with-rtsopts=-N
       - -with-rtsopts=-T
+      - -optc-ffast-math
+      - -optc-O3
       - -O2
 
   fission-cli:
@@ -152,10 +154,12 @@ executables:
       - wai-logger
     ghc-options:
       - -threaded
-      - -rtsopts
       - -flate-specialise
+      - -rtsopts
       - -with-rtsopts=-N
       - -with-rtsopts=-T
+      - -optc-ffast-math
+      - -optc-O3
       - -O2
 
 tests:
