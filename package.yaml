@@ -1,13 +1,13 @@
 name: fission-web-api
 version: '1.8.0'
 category: API
-author: 
+author:
   - Brooklyn Zelenka
   - Daniel Holmgren
-maintainer: 
+maintainer:
   - brooklyn@fission.codes
   - daniel@fission.codes
-copyright: © 2019 Brooklyn Zelenka
+copyright: © 2019 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/web-api
