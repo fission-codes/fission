@@ -1,6 +1,5 @@
 module Main (main) where
 
-import           Prelude
 import           RIO
 import           RIO.Process (mkDefaultProcessContext)
 
