@@ -1,13 +1,10 @@
 module Main (main) where
 
 import           RIO
-import qualified RIO.Partial as Partial
 import           RIO.Process (mkDefaultProcessContext)
-import qualified RIO.Text as Text
 
 import           Data.Aeson (decodeFileStrict)
 import qualified Data.Yaml as Yaml
-import           Database.Selda.PostgreSQL
 import           Servant.Client
 import           System.Envy
 
