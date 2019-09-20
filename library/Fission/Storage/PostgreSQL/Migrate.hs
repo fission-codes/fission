@@ -6,12 +6,12 @@ module Fission.Storage.PostgreSQL.Migrate
 
 import RIO
 
+import           Database.Selda.PostgreSQL
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn.Table
 import           Fission.Storage.PostgreSQL    (makeTable)
 import           Fission.Storage.Types         as DB
 import qualified Fission.User.CID.Table        as UserCID.Table
 import qualified Fission.User.Table            as User.Table
-import           Database.Selda.PostgreSQL
 
 -- | Table creation or migration
 type Mutation = IO ()
@@ -33,7 +33,7 @@ mutations :: Text
   -> Maybe Text
   -> Maybe Text
   -> [Mutation]
-mutations h p d s u pass =  mutations' $ DB.PGInfo $ (PGConnectInfo h p d s u pass)
+mutations h p d s u pass =  mutations' $ DB.PGInfo $ PGConnectInfo h p d s u pass
 
 mutations' :: DB.PGInfo -> [Mutation]
 mutations' db =
