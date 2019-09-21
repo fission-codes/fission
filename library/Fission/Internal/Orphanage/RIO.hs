@@ -1,6 +1,4 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.Internal.Orphanage.RIO () where
@@ -18,8 +16,8 @@ import qualified Fission.Config as Config
 import qualified Fission.Storage.Types as DB
 
 instance Has DB.Pool cfg => MonadSelda (RIO cfg) where
- type Backend (RIO cfg) = PG
+  type Backend (RIO cfg) = PG
 
- withConnection action = do
+  withConnection action = do
     DB.Pool pool <- Config.get
     withResource pool action
