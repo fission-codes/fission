@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9b2c6384a31792b559e892a7a47cafc040851c81b38388d97c28e337813ebe1e
+-- hash: aaeb8b8804d1053ff53037674cf2e441326e7a829890c9918f992aac3d1e75fa
 
 name:           fission-web-api
 version:        1.8.0
@@ -61,12 +61,14 @@ library
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.BinPath.Types
       Fission.IPFS.CID.Types
       Fission.IPFS.Client
       Fission.IPFS.Client.Add
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
+      Fission.IPFS.Config.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -77,7 +79,9 @@ library
       Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
+      Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
+      Fission.IPFS.URL.Types
       Fission.Log.Lens
       Fission.Log.Types
       Fission.Monitor
@@ -130,6 +134,7 @@ library
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
+      Fission.Web.Config.Types
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku
@@ -524,12 +529,14 @@ test-suite fission-test
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.BinPath.Types
       Fission.IPFS.CID.Types
       Fission.IPFS.Client
       Fission.IPFS.Client.Add
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
+      Fission.IPFS.Config.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -540,7 +547,9 @@ test-suite fission-test
       Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
+      Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
+      Fission.IPFS.URL.Types
       Fission.Log.Lens
       Fission.Log.Types
       Fission.Monitor
@@ -593,6 +602,7 @@ test-suite fission-test
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
+      Fission.Web.Config.Types
       Fission.Web.CORS
       Fission.Web.Error
       Fission.Web.Heroku

@@ -1,14 +1,24 @@
-module Fission.Environment.Types where
+module Fission.Environment.Types (Environment (..)) where
 
--- import RIO
+import RIO hiding (timeout)
 
--- import Data.Aeson
--- import Database.Selda.PostgreSQL
+import Data.Aeson
+import Database.Selda.PostgreSQL
 
--- import Fission.Internal.Orphanage.PGConnectInfo ()
+import qualified Fission.IPFS.Config.Types as IPFS
+import qualified Fission.Web.Config.Types  as Web
 
--- data Environment = Environment
---   { webEnv  :: Web
---   , ipfsEnv :: IPFS
---   , pgEnv   :: PGConnectInfo
---   }
+import Fission.Internal.Orphanage.PGConnectInfo ()
+
+data Environment = Environment
+  { web  :: !Web.Config
+  , ipfs :: !IPFS.Config
+  , pg   :: !PGConnectInfo
+  }
+
+instance FromJSON Environment where
+  parseJSON = withObject "Environment" \obj -> do
+    web  <- parseJSON $ Object obj
+    ipfs <- parseJSON $ Object obj
+    pg   <- parseJSON $ Object obj
+    return $ Environment {..}

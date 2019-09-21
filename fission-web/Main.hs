@@ -33,18 +33,28 @@ import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
 import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
 import qualified Fission.Platform.Heroku.Types          as Heroku
 
+
+
+
+
+
+import Fission.Environment.Types
+import Database.Selda.PostgreSQL
+
+import qualified Fission.IPFS.Config.Types as IPFS
+import qualified Fission.Web.Config.Types  as Web
+
 main :: IO ()
 main = do
   Just  manifest   <- decodeFileStrict "./addon-manifest.json"
-  Right pgConnInfo <- Yaml.decodeFileEither "./pg_settings.yaml"
+  Right (Environment { web = Web.Config {..}, ipfs = IPFS.Config {..}, pg = PGConnectInfo {..}}) <- Yaml.decodeFileEither "./env.yaml"
 
-  let _pgInfo = DB.PGInfo pgConnInfo
+  -- let _pgInfo = DB.PGInfo pgConnInfo
   _dbPool      <- RIO.runSimpleApp $ PG.connPool _pgInfo
-
   _processCtx  <- mkDefaultProcessContext
-  _host        <- decode .!~ Web.Host "https://runfission.com"
-  _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
-  _ipfsTimeout <- decode .!~ IPFS.Timeout 150
+  -- _host        <- decode .!~ Web.Host "https://runfission.com"
+  -- _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
+  -- _ipfsTimeout <- decode .!~ IPFS.Timeout 150
 
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   ipfsURLRaw   <- withEnv "IPFS_URL" "http://localhost:5001" id

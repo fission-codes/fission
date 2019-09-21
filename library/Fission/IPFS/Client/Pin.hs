@@ -30,5 +30,5 @@ newtype Response = Response { cids :: [CID] }
   deriving (Eq, Show)
 
 instance FromJSON Response where
-  parseJSON = withObject "Pin Response" \v ->
-    Response <$> v .: "Pins"
+  parseJSON = withObject "Pin Response" \obj ->
+    Response <$> obj .: "Pins"
