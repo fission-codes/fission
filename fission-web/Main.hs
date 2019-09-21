@@ -5,8 +5,6 @@ import           RIO.Process (mkDefaultProcessContext)
 
 import           Data.Aeson (decodeFileStrict)
 import qualified Data.Yaml as Yaml
-import           Servant.Client
-import           System.Envy
 
 import qualified Network.HTTP.Client as HTTP
 import           Network.Wai.Handler.Warp
@@ -19,31 +17,23 @@ import           Fission.Environment
 import           Fission.Internal.Orphanage.RIO ()
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
-import           Fission.Storage.Types      as DB
-import           Fission.Storage.PostgreSQL as PG
-import qualified Fission.IPFS.Types         as IPFS
+import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.Monitor            as Monitor
 
 import qualified Fission.Web       as Web
 import qualified Fission.Web.CORS  as CORS
 import qualified Fission.Web.Log   as Web.Log
-import qualified Fission.Web.Types as Web
+-- import qualified Fission.Web.Types as Web
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
-import           Fission.Platform.Heroku.AddOn.Manifest hiding (id)
+import           Fission.Platform.Heroku.AddOn.Manifest (api, password)
 import qualified Fission.Platform.Heroku.Types          as Heroku
 
-
-
-
-
-
 import Fission.Environment.Types
-import Database.Selda.PostgreSQL
 
-import qualified Fission.IPFS.Config.Types    as IPFSCfg
-import qualified Fission.Storage.Config.Types as StorageCfg
-import qualified Fission.Web.Config.Types     as WebCfg
+import qualified Fission.IPFS.Config.Types    as IPFS
+import qualified Fission.Storage.Config.Types as Storage
+import qualified Fission.Web.Config.Types     as Web
 
 main :: IO ()
 main = do
@@ -51,55 +41,40 @@ main = do
   Right env      <- Yaml.decodeFileEither "./env.yaml"
 
   let
-    _port          = env ^. web     . WebCfg.port
-    _host          = env ^. web     . WebCfg.host
-    _ipfsPath      = env ^. ipfs    . IPFSCfg.binPath
-    _ipfsTimeout   = env ^. ipfs    . IPFSCfg.timeout
-    _ipfsURL       = env ^. ipfs    . IPFSCfg.url
-    _pgConnectInfo = env ^. storage . StorageCfg.pgConnectInfo
+    Storage.Config {..} = env ^. storage
+    Web.Config     {..} = env ^. web
 
-  -- let _pgInfo = DB.PGInfo pgConnInfo
-  _dbPool      <- RIO.runSimpleApp $ PG.connPool _pgInfo
+    _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
+    _herokuPassword = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
+
+    _ipfsPath    = env ^. ipfs . IPFS.binPath
+    _ipfsURL     = env ^. ipfs . IPFS.url
+    _ipfsTimeout = env ^. ipfs . IPFS.timeout
+
+  _dbPool      <- RIO.runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-  -- _host        <- decode .!~ Web.Host "https://runfission.com"
-  -- _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
-  -- _ipfsTimeout <- decode .!~ IPFS.Timeout 150
-  -- ipfsURLRaw   <- withEnv "IPFS_URL" "http://localhost:5001" id
-  -- _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
 
-  -- condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
-  isVerbose   <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
+  isVerbose  <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
+  logOptions <- logOptionsHandle stdout isVerbose
 
-  logOptions' <- logOptionsHandle stdout isVerbose
-  let logOpts = setLogUseTime True logOptions'
-
-  -- isTLS <- getFlag "TLS" .!~ True
-  -- Web.Port port <- decode .!~ (Web.Port $ if isTLS then 443 else 80)
-
-  withLogFunc logOpts $ \_logFunc -> do
-    let
-      _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
-      _herokuPassword = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
-      config          = Config {..}
+  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> do
+    let config = Config {..}
 
     runRIO config do
-      condMonitor
-      logDebug $ "Servant port is " <> display _port
-      logDebug $ "TLS is " <> if env ^. web . isTLS then "on" else "off"
+      when (env ^. web . Web.monitor) Monitor.wai
       logDebug $ "Configured with: " <> displayShow config
 
-      let runner = if isTLS
-                      then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
-                      else runSettings
+      let
+        runner =
+          if env ^. web . Web.isTLS
+             then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
+             else runSettings
 
-      liftIO . runner (Web.Log.mkSettings _logFunc _port)
+        condDebug = if env ^. web . Web.pretty then id else logStdoutDev
+
+      liftIO . runner (Web.Log.mkSettings _logFunc (Web.port _port))
              . CORS.middleware
              . condDebug
              =<< Web.app
              =<< ask
-
-condMonitor :: HasLogFunc cfg => RIO cfg ()
-condMonitor = do
-  monitorFlag <- liftIO $ getFlag "MONITOR" .!~ False
-  when monitorFlag Monitor.wai

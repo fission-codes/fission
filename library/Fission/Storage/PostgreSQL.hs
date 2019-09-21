@@ -34,11 +34,11 @@ setupTable tbl tblName = do
 connPool :: MonadRIO   cfg m
          => HasLogFunc cfg
          => Int
-         -> NominalDiffTime
          -> Int
+         -> NominalDiffTime
          -> PGConnectInfo
          -> m DB.Pool
-connPool stripeCount connTTL connsPerStripe pgInfo@(PGConnectInfo {..}) = do
+connPool stripeCount connsPerStripe connTTL pgInfo@(PGConnectInfo {..}) = do
   logDebug $ "Establishing DB pool for " <> displayShow pgDatabase
 
   rawPool <- liftIO $ createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
