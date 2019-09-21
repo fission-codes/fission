@@ -5,6 +5,7 @@ module Fission.Storage.PostgreSQL
   ) where
 
 import RIO
+import RIO.Time
 
 import Data.Has
 import Data.Pool
@@ -21,28 +22,33 @@ import qualified Fission.Storage.Types as DB
 
 setupTable :: MonadRIO cfg m
            => HasLogFunc cfg
-           => Has DB.PGInfo cfg
+           => Has PGConnectInfo cfg
            => Table b
            -> TableName
            -> m ()
 setupTable tbl tblName = do
-  pgInfo <- DB.getPGInfo <$> Config.get
+  pgInfo <- Config.get
   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB"
   liftIO . withPostgreSQL pgInfo $ createTable tbl
 
--- TODO make configurable
-connPool :: HasLogFunc cfg => DB.PGInfo -> RIO cfg DB.Pool
-connPool pgInfo = do
-  -- logDebug $ "Establishing DB pool for " <> displayShow path
+connPool :: MonadRIO   cfg m
+         => HasLogFunc cfg
+         => Int
+         -> NominalDiffTime
+         -> Int
+         -> PGConnectInfo
+         -> m DB.Pool
+connPool stripeCount connTTL connsPerStripe pgInfo@(PGConnectInfo {..}) = do
+  logDebug $ "Establishing DB pool for " <> displayShow pgDatabase
 
-  rawPool <- liftIO $ createPool (pgOpen $ DB.getPGInfo pgInfo) seldaClose 4 2 10 -- config these
+  rawPool <- liftIO $ createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
   logDebug $ "DB pool stats: " <> displayShow rawPool
 
   return $ DB.Pool rawPool
 
--- HLint can't handle BlockArguments _yet_
-makeTable :: DB.PGInfo -> Table t -> Table.Name t -> IO ()
+-- NOTE HLint can't handle BlockArguments _yet_
+makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
 makeTable pgInfo' tbl tblName = runSimpleApp do
-  pool   <- connPool pgInfo'
+  pool   <- connPool 1 1 1 pgInfo'
   logger <- view logFuncL
   runRIO (logger, pool, pgInfo') . setupTable tbl $ Table.name tblName

@@ -1,24 +1,32 @@
-module Fission.Environment.Types (Environment (..)) where
+-- | External app configuration ("knobs")
+module Fission.Environment.Types
+  ( Environment (..)
+  , ipfs
+  , storage
+  , web
+  ) where
 
 import RIO hiding (timeout)
 
 import Data.Aeson
-import Database.Selda.PostgreSQL
+import Control.Lens (makeLenses)
 
-import qualified Fission.IPFS.Config.Types as IPFS
-import qualified Fission.Web.Config.Types  as Web
-
-import Fission.Internal.Orphanage.PGConnectInfo ()
+import qualified Fission.IPFS.Config.Types    as IPFS
+import qualified Fission.Storage.Config.Types as Storage
+import qualified Fission.Web.Config.Types     as Web
 
 data Environment = Environment
-  { web  :: !Web.Config
-  , ipfs :: !IPFS.Config
-  , pg   :: !PGConnectInfo
-  }
+  { _ipfs    :: !IPFS.Config    -- ^ IPFS configuration
+  , _storage :: !Storage.Config -- ^ Storage/DB configuration
+  , _web     :: !Web.Config     -- ^ Web configuration
+  } deriving Show
+
+makeLenses ''Environment
 
 instance FromJSON Environment where
   parseJSON = withObject "Environment" \obj -> do
-    web  <- parseJSON $ Object obj
-    ipfs <- parseJSON $ Object obj
-    pg   <- parseJSON $ Object obj
+    _ipfs    <- parseJSON . Object =<< obj .: "ipfs"
+    _storage <- parseJSON . Object =<< obj .: "postgresql"
+    _web     <- parseJSON . Object =<< obj .: "web"
+
     return $ Environment {..}

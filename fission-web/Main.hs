@@ -41,32 +41,41 @@ import qualified Fission.Platform.Heroku.Types          as Heroku
 import Fission.Environment.Types
 import Database.Selda.PostgreSQL
 
-import qualified Fission.IPFS.Config.Types as IPFS
-import qualified Fission.Web.Config.Types  as Web
+import qualified Fission.IPFS.Config.Types    as IPFSCfg
+import qualified Fission.Storage.Config.Types as StorageCfg
+import qualified Fission.Web.Config.Types     as WebCfg
 
 main :: IO ()
 main = do
-  Just  manifest   <- decodeFileStrict "./addon-manifest.json"
-  Right (Environment { web = Web.Config {..}, ipfs = IPFS.Config {..}, pg = PGConnectInfo {..}}) <- Yaml.decodeFileEither "./env.yaml"
+  Just  manifest <- decodeFileStrict "./addon-manifest.json"
+  Right env      <- Yaml.decodeFileEither "./env.yaml"
+
+  let
+    _port          = env ^. web     . WebCfg.port
+    _host          = env ^. web     . WebCfg.host
+    _ipfsPath      = env ^. ipfs    . IPFSCfg.binPath
+    _ipfsTimeout   = env ^. ipfs    . IPFSCfg.timeout
+    _ipfsURL       = env ^. ipfs    . IPFSCfg.url
+    _pgConnectInfo = env ^. storage . StorageCfg.pgConnectInfo
 
   -- let _pgInfo = DB.PGInfo pgConnInfo
   _dbPool      <- RIO.runSimpleApp $ PG.connPool _pgInfo
   _processCtx  <- mkDefaultProcessContext
+  _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   -- _host        <- decode .!~ Web.Host "https://runfission.com"
   -- _ipfsPath    <- decode .!~ IPFS.BinPath "/usr/local/bin/ipfs"
   -- _ipfsTimeout <- decode .!~ IPFS.Timeout 150
+  -- ipfsURLRaw   <- withEnv "IPFS_URL" "http://localhost:5001" id
+  -- _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
 
-  _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-  ipfsURLRaw   <- withEnv "IPFS_URL" "http://localhost:5001" id
-  _ipfsURL     <- IPFS.URL <$> parseBaseUrl ipfsURLRaw
-
-  condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
+  -- condDebug   <- withFlag "PRETTY_REQS" id logStdoutDev
   isVerbose   <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
+
   logOptions' <- logOptionsHandle stdout isVerbose
   let logOpts = setLogUseTime True logOptions'
 
-  isTLS <- getFlag "TLS" .!~ True
-  Web.Port port <- decode .!~ (Web.Port $ if isTLS then 443 else 80)
+  -- isTLS <- getFlag "TLS" .!~ True
+  -- Web.Port port <- decode .!~ (Web.Port $ if isTLS then 443 else 80)
 
   withLogFunc logOpts $ \_logFunc -> do
     let
@@ -76,15 +85,15 @@ main = do
 
     runRIO config do
       condMonitor
-      logDebug $ "Servant port is " <> display port
-      logDebug $ "TLS is " <> if isTLS then "on" else "off"
+      logDebug $ "Servant port is " <> display _port
+      logDebug $ "TLS is " <> if env ^. web . isTLS then "on" else "off"
       logDebug $ "Configured with: " <> displayShow config
 
       let runner = if isTLS
                       then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
                       else runSettings
 
-      liftIO . runner (Web.Log.mkSettings _logFunc port)
+      liftIO . runner (Web.Log.mkSettings _logFunc _port)
              . CORS.middleware
              . condDebug
              =<< Web.app

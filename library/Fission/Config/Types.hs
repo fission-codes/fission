@@ -6,7 +6,7 @@ module Fission.Config.Types
   , ipfsPath
   , ipfsTimeout
   , host
-  , pgInfo
+  , pgConnectInfo
   , dbPool
   , herokuID
   , herokuPassword
@@ -18,17 +18,14 @@ import RIO.Process (ProcessContext, HasProcessContext (..))
 
 import           Control.Lens (makeLenses)
 import           Data.Has
+import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
 
 import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
-
--- data EnvVars = EnvVars
---   { ipfs :: IPFS
-
---   }
+import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
@@ -39,7 +36,7 @@ data Config = Config
   , _ipfsURL        :: !IPFS.URL
   , _ipfsTimeout    :: !IPFS.Timeout
   , _host           :: !Host
-  , _pgInfo         :: !DB.PGInfo
+  , _pgConnectInfo  :: !PGConnectInfo
   , _dbPool         :: !DB.Pool
   , _herokuID       :: !Heroku.ID
   , _herokuPassword :: !Heroku.Password
@@ -57,7 +54,7 @@ instance Show Config where
     , "  _ipfsURL        = " <> show _ipfsURL
     , "  _ipfsTimeout    = " <> show _ipfsTimeout
     , "  _host           = " <> show _host
-    , "  _pgInfo         = " <> show _pgInfo
+    , "  _pgConnectInfo  = " <> show _pgConnectInfo
     , "  _dbPool         = " <> show _dbPool
     , "  _herokuID       = " <> show _herokuID
     , "  _herokuPassword = " <> show _herokuPassword
@@ -82,8 +79,8 @@ instance Has IPFS.URL Config where
 instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
 
-instance Has DB.PGInfo Config where
-  hasLens = pgInfo
+instance Has PGConnectInfo Config where
+  hasLens = pgConnectInfo
 
 instance Has DB.Pool Config where
   hasLens = dbPool

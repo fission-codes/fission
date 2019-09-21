@@ -7,6 +7,8 @@ import RIO
 import Data.Aeson
 import Database.Selda.PostgreSQL
 
+deriving instance Show PGConnectInfo
+
 instance FromJSON PGConnectInfo where
   parseJSON = withObject "PGConnectInfo" \obj -> do
     pgDatabase <- obj .:  "database"
