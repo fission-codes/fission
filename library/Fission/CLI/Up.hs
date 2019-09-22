@@ -5,7 +5,7 @@ import           RIO
 import           RIO.ByteString
 import qualified RIO.Text as Text
 
-import           Data.Has
+import           SuperRecord
 import           Options.Applicative.Simple (addCommand)
 import qualified System.Console.ANSI as ANSI
 import           Turtle hiding ((<&>), err)
@@ -32,10 +32,14 @@ command cfg =
     (const $ runRIO cfg up)
     noop
 
+type label ^. cfg = Has "clientRunner" cfg
+type a =.= b = a b
+
 -- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
    => HasLogFunc        cfg
-   => Has Client.Runner cfg
+   -- => Has "clientRunner" cfg Client.Runner -- idea: "clientRunner" ^. cfg == Client.Runner
+   => "clientRunner" ^. cfg =.= Client.Runner -- idea: "clientRunner" ^. cfg == Client.Runner
    => m ()
 up = do
   logDebug "Starting single pin"
@@ -55,7 +59,7 @@ up = do
           putStr "fission-cli login"
 
         Right auth -> do
-          Client.Runner runner <- Config.get
+          Client.Runner runner <- asksR #clientRunner
           let cid = CID hash
           logDebug $ "Pinning " <> displayShow cid
 

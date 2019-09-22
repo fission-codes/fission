@@ -24,25 +24,25 @@ type PathAPI = Capture "cid" IPFS.CID
 type QueryAPI = QueryParam "cid" IPFS.CID
              :> Get '[OctetStream, PlainText] File.Serialized
 
-get :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => RIOServer         cfg API
+get :: Has "ipfsPath" cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => HasProcessContext (Rec cfg)
+    => HasLogFunc        (Rec cfg)
+    => RIOServer         (Rec cfg) API
 get = pathGet :<|> queryGet
 
-queryGet :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => RIOServer         cfg QueryAPI
+queryGet :: Has "ipfsPath" cfg IPFS.BinPath
+         => Has "ipfsTimeout" cfg IPFS.Timeout
+         => HasProcessContext (Rec cfg)
+         => HasLogFunc        (Rec cfg)
+         => RIOServer         (Rec cfg) QueryAPI
 queryGet = \case
   Just cid -> Storage.IPFS.get cid >>= Web.Err.ensure
   Nothing  -> throwM err404
 
-pathGet :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => RIOServer         cfg PathAPI
+pathGet :: Has "ipfsPath" cfg IPFS.BinPath
+        => Has "ipfsTimeout" cfg IPFS.Timeout
+        => HasProcessContext (Rec cfg)
+        => HasLogFunc        (Rec cfg)
+        => RIOServer         (Rec cfg) PathAPI
 pathGet cid = Storage.IPFS.get cid >>= Web.Err.ensure

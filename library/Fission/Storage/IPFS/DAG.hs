@@ -5,7 +5,7 @@ import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 import Data.ByteString.Lazy.Char8 as CL
 
 import qualified Network.HTTP.Client as HTTP
@@ -18,13 +18,13 @@ import           Fission.IPFS.Error          as IPFS.Error
 import           Fission.IPFS.Types          as IPFS
 import           Fission.Storage.IPFS.Pin    as IPFS.Pin
 
-put :: MonadRIO cfg m
-        => HasProcessContext cfg
-        => HasLogFunc cfg
-        => Has HTTP.Manager  cfg
-        => Has IPFS.URL      cfg
-        => Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
+put :: MonadRIO (Rec cfg) m
+        => HasProcessContext (Rec cfg) m
+        => HasLogFunc (Rec cfg)
+        => Has "httpManager" cfg HTTP.Manager
+        => Has "ipfsURL" cfg IPFS.URL
+        => Has "ipfsPath" cfg IPFS.BinPath
+        => Has "ipfsTimeout" cfg IPFS.Timeout
         => Lazy.ByteString
         -> m (Either IPFS.Error.Add IPFS.CID)
 put raw = IPFS.Proc.run ["dag", "put", "-f", "dag-pb"] raw >>= \case

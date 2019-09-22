@@ -5,7 +5,7 @@ module Fission.Storage.IPFS.Pin
 
 import           RIO
 
-import Data.Has
+import SuperRecord
 
 import qualified Network.HTTP.Client as HTTP
 
@@ -17,10 +17,10 @@ import           Fission.IPFS.Error          as IPFS.Error
 import           Fission.IPFS.Types          as IPFS
 import qualified Fission.IPFS.Client         as IPFS.Client
 
-add :: MonadRIO          cfg m
-    => HasLogFunc        cfg
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
+add :: MonadRIO          (Rec cfg) m
+    => HasLogFunc        (Rec cfg)
+    => Has "httpManager" cfg HTTP.Manager
+    => Has "ipfsURL"     cfg IPFS.URL
     => IPFS.CID
     -> m (Either IPFS.Error.Add CID)
 add (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
@@ -37,10 +37,10 @@ add (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
     logLeft err
 
 -- | Unpin a CID
-rm :: MonadRIO          cfg m
-      => Has HTTP.Manager  cfg
-      => Has IPFS.URL      cfg
-      => HasLogFunc        cfg
+rm :: MonadRIO          (Rec cfg) m
+      => Has "httpManager" cfg HTTP.Manager
+      => Has "ipfsURL" cfg IPFS.URL
+      => HasLogFunc    (Rec cfg)
       => IPFS.CID
       -> m (Either IPFS.Error.Add CID)
 rm cid@(CID hash) = IPFS.Client.run (IPFS.Client.unpin hash False) >>= \case
@@ -62,4 +62,3 @@ logLeft errStr = do
   let err = UnknownAddErr $ UTF8.textShow errStr
   logError $ display err
   return $ Left err
-

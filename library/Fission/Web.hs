@@ -11,7 +11,7 @@ import           RIO
 import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 
-import           Data.Has
+import           SuperRecord
 import           Database.Selda
 import           Data.Swagger as Swagger
 import qualified Network.HTTP.Client as HTTP
@@ -39,16 +39,17 @@ import qualified Fission.Web.Heroku            as Heroku
 type API = Web.Swagger.API :<|> Web.API
 
 -- | The actual web server for 'API'
-app :: Has IPFS.BinPath    cfg
-    => Has IPFS.Timeout    cfg
-    => Has IPFS.URL        cfg
-    => Has HTTP.Manager  cfg
-    => Has Web.Host        cfg
-    => Has Heroku.ID       cfg
-    => Has Heroku.Password cfg
-    => HasProcessContext   cfg
-    => HasLogFunc          cfg
-    => MonadSelda     (RIO cfg)
+app :: HasOf [ "ipfsPath"    := IPFS.BinPath
+            , "ipfsTimeout" := IPFS.Timeout
+            , "ipfsURL" := IPFS.URL
+            , "httpManager" := HTTP.Manager
+            , "host" := Web.Host
+            , "herokuID" := Heroku.ID
+            , "herokuPassword" := Heroku.Password
+            ] cfg
+    => HasProcessContext   (Rec cfg)
+    => HasLogFunc          (Rec cfg)
+    => MonadSelda     (RIO (Rec cfg))
     =>     cfg
     -> RIO cfg Application
 app cfg = do
@@ -62,10 +63,10 @@ app cfg = do
     api = Proxy
 
 -- | Construct an authorization context
-mkAuth :: Has Heroku.ID       cfg
-       => Has Heroku.Password cfg
-       => HasLogFunc          cfg
-       => MonadSelda     (RIO cfg)
+mkAuth :: Has "herokuID" cfg Heroku.ID
+       => Has "herokuPassword" cfg Heroku.Password
+       => HasLogFunc          (Rec cfg)
+       => MonadSelda     (RIO (Rec cfg))
        => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
 mkAuth = do
   Heroku.ID       hkuID   <- Config.get
@@ -79,16 +80,16 @@ mkAuth = do
         :. EmptyContext
 
 -- | Web handlers for the 'API'
-server :: Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has Web.Host      cfg
-       => HasProcessContext cfg
-       => HasLogFunc        cfg
-       => MonadSelda   (RIO cfg)
+server :: Has "ipfsPath" cfg IPFS.BinPath
+       => Has "ipfsTimeout" cfg IPFS.Timeout
+       => Has "httpManager" cfg HTTP.Manager
+       => Has "ipfsURL" cfg IPFS.URL
+       => Has "host" cfg Web.Host
+       => HasProcessContext (Rec cfg)
+       => HasLogFunc        (Rec cfg)
+       => MonadSelda   (RIO (Rec cfg))
        => Swagger.Host
-       -> RIOServer         cfg API
+       -> RIOServer         (Rec cfg) API
 server host' = Web.Swagger.server host'
           :<|> IPFS.server
           :<|> const Heroku.server

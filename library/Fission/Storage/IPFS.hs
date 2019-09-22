@@ -8,7 +8,7 @@ import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 import Data.ByteString.Lazy.Char8 as CL
 
 import qualified Network.HTTP.Client as HTTP
@@ -24,13 +24,14 @@ import           Fission.IPFS.Error          as IPFS.Error
 import           Fission.IPFS.Types          as IPFS
 import qualified Fission.Storage.IPFS.Pin    as IPFS.Pin
 
-addRaw :: MonadRIO          cfg m
-       => HasProcessContext cfg
-       => HasLogFunc        cfg
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
+addRaw :: MonadRIO          (Rec cfg) m
+       => HasProcessContext (Rec cfg)
+       => HasLogFunc        (Rec cfg)
+       => HasOf [ "httpManager" := HTTP.Manager
+               , "ipfsURL"     := IPFS.URL
+               , "ipfsPath"    := IPFS.BinPath
+               , "ipfsTimeout" := IPFS.Timeout
+               ]  cfg
        => Lazy.ByteString
        -> m (Either IPFS.Error.Add IPFS.CID)
 addRaw raw =
@@ -43,13 +44,13 @@ addRaw raw =
     (ExitFailure _, _, err) ->
       return . Left . UnknownAddErr $ UTF8.textShow err
 
-addFile :: MonadRIO          cfg m
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => Has HTTP.Manager  cfg
-        => Has IPFS.URL      cfg
-        => Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
+addFile :: MonadRIO          (Rec cfg) m
+        => HasProcessContext (Rec cfg)
+        => HasLogFunc        (Rec cfg)
+        => Has "httpManager" cfg HTTP.Manager
+        => Has "ipfsURL"     cfg IPFS.URL
+        => Has "ipfsPath"    cfg IPFS.BinPath
+        => Has "ipfsTimeout" cfg IPFS.Timeout
         => Lazy.ByteString
         -> IPFS.Name
         -> m (Either IPFS.Error.Add IPFS.SparseTree)
@@ -86,9 +87,9 @@ addFile raw name =
              , unName name
              ]
 
-get :: RIOProc           cfg m
-    => Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
+get :: RIOProc           (Rec cfg) m
+    => Has "ipfsPath"    cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg IPFS.Timeout
     => IPFS.CID
     -> m (Either IPFS.Error.Get File.Serialized)
 get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \case
@@ -105,4 +106,3 @@ get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \ca
 
     | otherwise ->
         return . Left . UnknownGetErr $ UTF8.textShow stdErr
-

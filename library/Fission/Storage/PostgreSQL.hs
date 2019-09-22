@@ -7,7 +7,7 @@ module Fission.Storage.PostgreSQL
 import RIO
 import RIO.Time
 
-import Data.Has
+import SuperRecord
 import Data.Pool
 
 import Database.Selda
@@ -20,14 +20,14 @@ import qualified Fission.Config        as Config
 import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 
-setupTable :: MonadRIO cfg m
-           => HasLogFunc cfg
-           => Has PGConnectInfo cfg
+setupTable :: MonadRIO (Rec cfg) m
+           => HasLogFunc (Rec cfg)
+           => Has "pgConnectInfo" cfg PGConnectInfo
            => Table b
            -> TableName
            -> m ()
 setupTable tbl tblName = do
-  pgInfo <- Config.get
+  pgInfo <- asksR #pgConnectInfo
   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB"
   liftIO . withPostgreSQL pgInfo $ createTable tbl
 

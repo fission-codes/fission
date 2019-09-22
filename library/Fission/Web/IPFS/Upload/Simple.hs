@@ -6,7 +6,7 @@ module Fission.Web.IPFS.Upload.Simple
 import RIO
 import RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 import Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
@@ -23,15 +23,15 @@ import           Fission.User.CID.Mutation as UserCID
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-add :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => HasProcessContext cfg
-    => MonadSelda   (RIO cfg)
-    => HasLogFunc        cfg
+add :: Has "ipfsPath" cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => Has "httpManager" cfg HTTP.Manager
+    => Has "ipfsURL" cfg IPFS.URL
+    => HasProcessContext (Rec cfg)
+    => MonadSelda   (RIO (Rec cfg))
+    => HasLogFunc        (Rec cfg)
     => User
-    -> RIOServer         cfg API
+    -> RIOServer         (Rec cfg) API
 add User { _userID } (Serialized rawData) = Storage.IPFS.addRaw rawData >>= \case
   Right newCID -> do
     void $ UserCID.createX _userID [newCID]

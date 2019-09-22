@@ -11,7 +11,7 @@ import           RIO
 import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 
-import           Data.Has
+import           SuperRecord
 import           Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
@@ -43,56 +43,55 @@ type JSONAPI = FileRequest
 type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
-add :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => MonadSelda   (RIO cfg)
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
+add :: Has "ipfsPath" cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => Has "httpManager" cfg HTTP.Manager
+    => Has "ipfsURL" cfg IPFS.URL
+    => MonadSelda   (RIO (Rec cfg))
+    => HasProcessContext (Rec cfg)
+    => HasLogFunc        (Rec cfg)
     => User
-    -> RIOServer         cfg API
+    -> RIOServer         (Rec cfg) API
 add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 
-textAdd :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => Has HTTP.Manager  cfg
-        => Has IPFS.URL      cfg
-        => HasProcessContext cfg
-        => MonadSelda   (RIO cfg)
-        -- => MonadRIO          cfg m
-        -- => MonadMask             m
-        => HasLogFunc        cfg
+textAdd :: HasOf [ "ipfsPath"    := IPFS.BinPath
+                , "ipfsTimeout" := IPFS.Timeout
+                , "httpManager" := HTTP.Manager
+                , "ipfsURL"     := IPFS.URL
+                ] cfg
+        => HasProcessContext (Rec cfg)
+        => MonadSelda   (RIO (Rec cfg))
+        => HasLogFunc        (Rec cfg)
         => ID User
-        -> RIOServer         cfg TextAPI
+        -> RIOServer         (Rec cfg) TextAPI
 textAdd uID form queryName = run uID form queryName $ \sparse ->
   case IPFS.linearize sparse of
     Right hash -> pure hash
     Left err   -> Web.Err.throw err
 
-jsonAdd :: MonadSelda   (RIO cfg)
-        -- => MonadRIO          cfg m
-        -- => MonadMask             m
-        => Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => Has HTTP.Manager  cfg
-        => Has IPFS.URL      cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
+jsonAdd :: MonadSelda   (RIO (Rec cfg))
+        => HasOf [ "ipfsPath"    := IPFS.BinPath
+                , "ipfsTimeout" := IPFS.Timeout
+                , "httpManager" := HTTP.Manager
+                , "ipfsURL"     := IPFS.URL
+                ] cfg
+        => HasProcessContext (Rec cfg)
+        => HasLogFunc        (Rec cfg)
         => ID User
-        -> RIOServer         cfg JSONAPI
+        -> RIOServer         (Rec cfg) JSONAPI
 jsonAdd uID form queryName = run uID form queryName pure
 
-run :: MonadRIO          cfg m
+run :: MonadRIO          (Rec cfg) m
     => MonadMask             m
-    -- => MonadThrow            m
     => MonadSelda            m
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
+    => HasOf [ "httpManager" := HTTP.Manager
+            , "ipfsTimeout" := IPFS.Timeout
+            , "httpManager" := HTTP.Manager
+            , "ipfsURL"     := IPFS.URL
+            , "unusedConstraint" := Int
+            ] cfg
+    => HasProcessContext (Rec cfg)
+    => HasLogFunc        (Rec cfg)
     => ID User
     -> MultipartData Mem
     -> Maybe IPFS.Name

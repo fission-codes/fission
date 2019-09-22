@@ -5,7 +5,7 @@ import           RIO
 import           RIO.ByteString
 
 import qualified Data.ByteString.Char8 as BS
-import           Data.Has
+import           SuperRecord
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
@@ -36,10 +36,10 @@ command cfg =
     noop
 
 -- | Login (i.e. save credentials to disk). Validates credentials agianst the server.
-login :: MonadRIO         cfg m
+login :: MonadRIO   (Rec cfg) m
       => MonadUnliftIO        m
-      => HasLogFunc       cfg
-      => Has Client.Runner cfg
+      => HasLogFunc       (Rec cfg)
+      => Has "clientRunner" cfg Client.Runner
       => m ()
 login = do
   logDebug "Starting login sequence"
@@ -51,7 +51,7 @@ login = do
 
     Just password -> do
       logDebug "Attempting API verification"
-      Client.Runner runner <- Config.get
+      Client.Runner runner <- asksR #clientRunner
       let auth = BasicAuthData username $ BS.pack password
 
       authResult <- Cursor.withHidden $ liftIO do
