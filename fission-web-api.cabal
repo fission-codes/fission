@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 10975a639937617ef6d166f8b700e137f6ea1496c6ecd665bbd6beab55d9cee4
+-- hash: efd8ed8a0f89d5b8326cb1cc5e7ff1c31fccb8907578c923b303964a3af96c0d
 
 name:           fission-web-api
 version:        1.9.0
@@ -68,7 +68,7 @@ library
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
-      Fission.IPFS.Config.Types
+      Fission.IPFS.Environment.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -100,7 +100,7 @@ library
       Fission.Random
       Fission.Security
       Fission.Security.Types
-      Fission.Storage.Config.Types
+      Fission.Storage.Environment.Types
       Fission.Storage.IPFS
       Fission.Storage.IPFS.DAG
       Fission.Storage.IPFS.Pin
@@ -135,8 +135,8 @@ library
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
-      Fission.Web.Config.Types
       Fission.Web.CORS
+      Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
@@ -537,7 +537,7 @@ test-suite fission-test
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
-      Fission.IPFS.Config.Types
+      Fission.IPFS.Environment.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -569,7 +569,7 @@ test-suite fission-test
       Fission.Random
       Fission.Security
       Fission.Security.Types
-      Fission.Storage.Config.Types
+      Fission.Storage.Environment.Types
       Fission.Storage.IPFS
       Fission.Storage.IPFS.DAG
       Fission.Storage.IPFS.Pin
@@ -604,8 +604,8 @@ test-suite fission-test
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
-      Fission.Web.Config.Types
       Fission.Web.CORS
+      Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME

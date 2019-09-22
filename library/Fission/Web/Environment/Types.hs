@@ -1,6 +1,6 @@
 -- | Web app config
-module Fission.Web.Config.Types
-  ( Config (..)
+module Fission.Web.Environment.Types
+  ( Environment (..)
   , host
   , isTLS
   , monitor
@@ -16,7 +16,7 @@ import Data.Aeson
 import qualified Fission.Web.Types as Web
 
 -- | Configuration for the web application
-data Config = Config
+data Environment = Environment
   { _host    :: !Web.Host -- ^ Web app's host
   , _port    :: !Web.Port -- ^ Web app's port
   , _isTLS   :: !Bool     -- ^ Run over TLS
@@ -24,9 +24,9 @@ data Config = Config
   , _monitor :: !Bool     -- ^ Live monitor application
   } deriving Show
 
-makeLenses ''Config
+makeLenses ''Environment
 
-instance FromJSON Config where
+instance FromJSON Environment where
   parseJSON = withObject "Web Config" \obj -> do
     _monitor <- obj .:? "monitor" .!= False
     _pretty  <- obj .:? "pretty"  .!= False
@@ -34,4 +34,4 @@ instance FromJSON Config where
     _port    <- obj .:? "port"    .!= Web.Port if _isTLS then 443 else 80
     _host    <- obj .:  "host"
 
-    return $ Config {..}
+    return $ Environment {..}

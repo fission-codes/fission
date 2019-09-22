@@ -1,6 +1,6 @@
 -- | App configuration for IPFS
-module Fission.IPFS.Config.Types
-  ( Config (..)
+module Fission.IPFS.Environment.Types
+  ( Environment (..)
   , binPath
   , timeout
   , url
@@ -14,18 +14,18 @@ import Data.Aeson
 import qualified Fission.IPFS.Types as IPFS
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
-data Config = Config
+data Environment = Environment
   { _url     :: !IPFS.URL     -- ^ IPFS client URL (may be remote)
   , _timeout :: !IPFS.Timeout -- ^ IPFS timeout in seconds
   , _binPath :: !IPFS.BinPath -- ^ Path to local IPFS binary
   } deriving Show
 
-makeLenses ''Config
+makeLenses ''Environment
 
-instance FromJSON Config where
-  parseJSON = withObject "IPFS.Config" \obj -> do
+instance FromJSON Environment where
+  parseJSON = withObject "IPFS.Environment" \obj -> do
     _timeout <- obj .:? "timeout" .!= 3600
     _binPath <- obj .:? "binPath" .!= "/usr/local/bin/ipfs"
     _url     <- obj .:  "url" >>= parseJSON . String
 
-    return $ Config {..}
+    return $ Environment {..}

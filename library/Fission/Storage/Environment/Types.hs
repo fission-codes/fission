@@ -1,5 +1,5 @@
-module Fission.Storage.Config.Types
-  ( Config (..)
+module Fission.Storage.Environment.Types
+  ( Environment (..)
   , connTTL
   , connsPerStripe
   , pgConnectInfo
@@ -16,20 +16,20 @@ import Database.Selda.PostgreSQL
 import Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | Configuration for the web application
-data Config = Config
+data Environment = Environment
   { _pgConnectInfo  :: !PGConnectInfo  -- ^ PostgreSQL configuration
   , _stripeCount    :: !Int             -- ^ Number of database stripes
   , _connsPerStripe :: !Int             -- ^ Maximum number of concurrent connections per stripe
   , _connTTL        :: !NominalDiffTime -- ^ Maxiumum connection time
   } deriving Show
 
-makeLenses ''Config
+makeLenses ''Environment
 
-instance FromJSON Config where
-  parseJSON = withObject "Storage.Config" \obj -> do
+instance FromJSON Environment where
+  parseJSON = withObject "Storage.Environment" \obj -> do
     _pgConnectInfo  <- obj .: "postgresql" >>= parseJSON . Object
     _stripeCount    <- obj .: "stripeCount"
     _connsPerStripe <- obj .: "connsPerStripe"
     _connTTL        <- obj .: "connTTL"
 
-    return $ Config {..}
+    return $ Environment {..}

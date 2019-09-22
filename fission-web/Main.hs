@@ -11,11 +11,7 @@ import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
-import           Fission.Config.Types
-
-import           Fission.Environment
 import           Fission.Internal.Orphanage.RIO ()
-import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.Monitor            as Monitor
@@ -25,15 +21,15 @@ import qualified Fission.Web.CORS  as CORS
 import qualified Fission.Web.Log   as Web.Log
 import qualified Fission.Web.Types as Web
 
-import qualified Fission.Platform.Heroku.AddOn.Manifest as Manifest
-import           Fission.Platform.Heroku.AddOn.Manifest (api, password)
-import qualified Fission.Platform.Heroku.Types          as Heroku
+import qualified Fission.Platform.Heroku.AddOn.Manifest as Hku
+import qualified Fission.Platform.Heroku.Types          as Hku
 
-import Fission.Environment.Types
-
-import qualified Fission.IPFS.Config.Types    as IPFS
-import qualified Fission.Storage.Config.Types as Storage
-import qualified Fission.Web.Config.Types     as WebCfg
+import           Fission.Config.Types
+import           Fission.Environment
+import           Fission.Environment.Types
+import           Fission.IPFS.Environment.Types    as IPFS
+import qualified Fission.Storage.Environment.Types as Storage
+import qualified Fission.Web.Environment.Types     as Web
 
 main :: IO ()
 main = do
@@ -44,14 +40,14 @@ main = do
 
     Right env -> do
       let
-        Storage.Config {..} = env ^. storage
-        WebCfg.Config  {..} = env ^. web
+        Storage.Environment {..} = env ^. storage
+        Web.Environment     {..} = env ^. web
 
-        _herokuID       = Heroku.ID       . encodeUtf8 $ manifest ^. Manifest.id
-        _herokuPassword = Heroku.Password . encodeUtf8 $ manifest ^. api ^. password
+        _herokuID       = Hku.ID       . encodeUtf8 $ manifest ^. Hku.id
+        _herokuPassword = Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password
 
-        _ipfsPath    = env ^. ipfs . IPFS.binPath
-        _ipfsURL     = env ^. ipfs . IPFS.url
+        _ipfsPath    = env ^. ipfs . binPath
+        _ipfsURL     = env ^. ipfs . url
         _ipfsTimeout = env ^. ipfs . IPFS.timeout
 
       _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
@@ -60,21 +56,21 @@ main = do
 
       isVerbose  <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
       logOptions <- logOptionsHandle stdout isVerbose
-      withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> do
-        runRIO Config {..} do
-          when (env ^. web . WebCfg.monitor) Monitor.wai
-          logDebug . displayShow =<< ask
 
-          let
-            runner =
-              if env ^. web . WebCfg.isTLS
-                then runTLS (tlsSettings "domain-crt.txt" "domain-key.txt")
-                else runSettings
+      withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO Config {..} do
+        let
+          Web.Port port' = _port
+          webLogger      = Web.Log.mkSettings _logFunc port'
+          runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
+          condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
-            condDebug = if env ^. web . WebCfg.pretty then id else logStdoutDev
+        when (env ^. web . Web.monitor) Monitor.wai
+        logDebug . displayShow =<< ask
+        liftIO . runner webLogger
+               . CORS.middleware
+               . condDebug
+               =<< Web.app
+               =<< ask
 
-          liftIO . runner (Web.Log.mkSettings _logFunc (Web.port _port))
-                . CORS.middleware
-                . condDebug
-                =<< Web.app
-                =<< ask
+tlsSettings' :: TLSSettings
+tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"

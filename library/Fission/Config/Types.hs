@@ -12,9 +12,9 @@ module Fission.Config.Types
   , herokuPassword
   ) where
 
-import RIO
-import RIO.List (intercalate)
-import RIO.Process (ProcessContext, HasProcessContext (..))
+import           RIO
+import           RIO.List (intercalate)
+import           RIO.Process (ProcessContext, HasProcessContext (..))
 
 import           Control.Lens (makeLenses)
 import           Data.Has
