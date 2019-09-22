@@ -27,7 +27,11 @@ import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => Config -> CommandM (m ())
+command :: MonadRIO           (Rec cfg) m
+        => HasLogFunc         (Rec cfg)
+        => Has "fissionAPI" cfg Client.Runner
+        => (Rec cfg)
+        -> CommandM (m ())
 command cfg =
   addCommand
     "login"
@@ -39,7 +43,7 @@ command cfg =
 login :: MonadRIO   (Rec cfg) m
       => MonadUnliftIO        m
       => HasLogFunc       (Rec cfg)
-      => Has "clientRunner" cfg Client.Runner
+      => Has "fissionAPI" cfg Client.Runner
       => m ()
 login = do
   logDebug "Starting login sequence"
@@ -51,7 +55,7 @@ login = do
 
     Just password -> do
       logDebug "Attempting API verification"
-      Client.Runner runner <- asksR #clientRunner
+      Client.Runner runner <- asksR #fissionAPI
       let auth = BasicAuthData username $ BS.pack password
 
       authResult <- Cursor.withHidden $ liftIO do

@@ -86,9 +86,9 @@ run :: MonadRIO          (Rec cfg) m
     => MonadSelda            m
     => HasOf [ "httpManager" := HTTP.Manager
             , "ipfsTimeout" := IPFS.Timeout
+            , "ipfsPath"    := IPFS.BinPath
             , "httpManager" := HTTP.Manager
             , "ipfsURL"     := IPFS.URL
-            , "unusedConstraint" := Int
             ] cfg
     => HasProcessContext (Rec cfg)
     => HasLogFunc        (Rec cfg)

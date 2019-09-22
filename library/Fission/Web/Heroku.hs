@@ -63,7 +63,7 @@ provision :: HasLogFunc      (Rec cfg)
           => MonadSelda (RIO (Rec cfg))
           => RIOServer       (Rec cfg) ProvisionAPI
 provision Request {_uuid, _region} = do
-  Web.Host url <- Config.get
+  Web.Host url <- asksR #host
   secret       <- liftIO $ Random.text 200
   userID       <- User.create _uuid _region secret
 

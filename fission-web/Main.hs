@@ -48,7 +48,6 @@ main = do
 
   let Storage.Environment {..} = env ^. storage
 
-  _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
@@ -60,30 +59,38 @@ main = do
             SR.& #ipfsTimeout    := (env ^. ipfs . IPFS.timeout)
             SR.& #host           := (env ^. web  . Web.host)
             SR.& #pgConnectInfo  := _pgConnectInfo
-            SR.& #dbPool         := _dbPool
             SR.& #herokuID       := (Hku.ID       . encodeUtf8 $ manifest ^. Hku.id)
             SR.& #herokuPassword := (Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password)
             SR.& rnil
 
-    cfg =      #processCtx       := _processCtx
-          SR.& #httpManager := _httpManager
-          SR.& visibleRec
 
-  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO (#logFunc := _logFunc SR.& cfg) do
-    logDebug $ displayShow visibleRec
+  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> do
+    let logger = #logFunc := _logFunc
+
+    _dbPool <- runRIO (logger SR.& rnil) $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
 
     let
-      Web.Port port' = env ^. web . WebEnv.port
-      webLogger      = Web.Log.mkSettings _logFunc port'
-      runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
-      condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
+      cfg = #processCtx     := _processCtx
+          SR.& #httpManager := _httpManager
+          SR.& #dbPool      := _dbPool
+          SR.& logger
+          SR.& visibleRec
 
-    when (env ^. web . Web.monitor) Monitor.wai
-    liftIO . runner webLogger
-           . CORS.middleware
-           . condDebug
-           =<< Web.app
-           =<< ask
+    runRIO cfg do
+      logDebug $ displayShow visibleRec
+
+      let
+        Web.Port port' = env ^. web . WebEnv.port
+        webLogger      = Web.Log.mkSettings _logFunc port'
+        runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
+        condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
+
+      when (env ^. web . Web.monitor) Monitor.wai
+      liftIO . runner webLogger
+            . CORS.middleware
+            . condDebug
+            =<< Web.app
+            =<< ask
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"

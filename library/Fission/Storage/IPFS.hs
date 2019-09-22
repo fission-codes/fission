@@ -8,7 +8,7 @@ import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process (HasProcessContext)
 
-import SuperRecord
+import SuperRecord hiding (get)
 import Data.ByteString.Lazy.Char8 as CL
 
 import qualified Network.HTTP.Client as HTTP
@@ -17,7 +17,6 @@ import           Fission.Internal.Constraint
 import           Fission.Internal.Process
 import qualified Fission.Internal.UTF8       as UTF8
 
-import qualified Fission.Config              as Config
 import qualified Fission.File.Types          as File
 import qualified Fission.IPFS.Process        as IPFS.Proc
 import           Fission.IPFS.Error          as IPFS.Error
@@ -101,7 +100,7 @@ get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \ca
         return . Left $ InvalidCID hash
 
     | Lazy.isSuffixOf "context deadline exceeded" stdErr -> do
-        Timeout seconds <- Config.get
+        Timeout seconds <- asksR #ipfsTimeout
         return . Left $ TimedOut cid seconds
 
     | otherwise ->

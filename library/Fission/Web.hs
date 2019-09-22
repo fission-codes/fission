@@ -50,11 +50,11 @@ app :: HasOf [ "ipfsPath"    := IPFS.BinPath
     => HasProcessContext   (Rec cfg)
     => HasLogFunc          (Rec cfg)
     => MonadSelda     (RIO (Rec cfg))
-    =>     cfg
-    -> RIO cfg Application
+    =>     (Rec cfg)
+    -> RIO (Rec cfg) Application
 app cfg = do
   auth             <- mkAuth
-  Web.Host appHost <- Config.get
+  Web.Host appHost <- asksR #host
   return . serveWithContext api auth
          . Auth.server api cfg
          $ server (Swagger.Host (Text.unpack appHost) Nothing)
@@ -67,10 +67,10 @@ mkAuth :: Has "herokuID" cfg Heroku.ID
        => Has "herokuPassword" cfg Heroku.Password
        => HasLogFunc          (Rec cfg)
        => MonadSelda     (RIO (Rec cfg))
-       => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
+       => RIO (Rec cfg) (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
 mkAuth = do
-  Heroku.ID       hkuID   <- Config.get
-  Heroku.Password hkuPass <- Config.get
+  Heroku.ID       hkuID   <- asksR #herokuID
+  Heroku.Password hkuPass <- asksR #herokuPassword
 
   let hku = Auth.basic hkuID hkuPass
   usr <- Auth.user

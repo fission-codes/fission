@@ -24,7 +24,12 @@ import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => Config -> CommandM (m ())
+-- command :: MonadIO m => Config -> CommandM (m ())
+command :: MonadRIO           (Rec cfg) m
+        => HasLogFunc         (Rec cfg)
+        => Has "fissionAPI" cfg Client.Runner
+        => (Rec cfg)
+        -> CommandM (m ())
 command cfg =
   addCommand
     "up"
@@ -32,14 +37,10 @@ command cfg =
     (const $ runRIO cfg up)
     noop
 
-type label ^. cfg = Has "clientRunner" cfg
-type a =.= b = a b
-
 -- | Sync the current working directory to the server over IPFS
-up :: MonadRIO          cfg m
-   => HasLogFunc        cfg
-   -- => Has "clientRunner" cfg Client.Runner -- idea: "clientRunner" ^. cfg == Client.Runner
-   => "clientRunner" ^. cfg =.= Client.Runner -- idea: "clientRunner" ^. cfg == Client.Runner
+up :: MonadRIO           (Rec cfg) m
+   => HasLogFunc         (Rec cfg)
+   => Has "fissionAPI" cfg Client.Runner
    => m ()
 up = do
   logDebug "Starting single pin"
@@ -59,7 +60,7 @@ up = do
           putStr "fission-cli login"
 
         Right auth -> do
-          Client.Runner runner <- asksR #clientRunner
+          Client.Runner runner <- asksR #fissionAPI
           let cid = CID hash
           logDebug $ "Pinning " <> displayShow cid
 

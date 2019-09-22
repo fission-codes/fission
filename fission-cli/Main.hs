@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 module Main (main) where
 
 import           RIO
@@ -6,6 +8,8 @@ import qualified RIO.Partial as Partial
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 import           System.Environment  (lookupEnv)
+
+import SuperRecord as SR
 
 import           Fission.CLI
 import qualified Fission.CLI.Types   as CLI
@@ -28,10 +32,14 @@ main = do
   let url    = BaseUrl scheme host port path
 
   withLogFunc logOptions $ \logger -> do
-    let cfg = CLI.Config
-                { _fissionAPI = Client.Runner $ Client.request httpManager url
-                , _logFunc    = logger
-                }
+    let cfg = #fissionAPI := Client.Runner (Client.request httpManager url)
+         SR.& #logFunc    := logger
+         SR.& rnil
+
     runRIO cfg . logDebug $ "Requests will be made to " <> displayShow url
     (_, runCLI) <- cli cfg
-    runCLI
+    runRIO cfg runCLI
+
+
+instance Has "logFunc" cfg LogFunc => HasLogFunc (Rec cfg) where
+  logFuncL = SR.lens #logFunc

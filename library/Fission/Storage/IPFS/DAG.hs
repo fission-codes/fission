@@ -19,7 +19,7 @@ import           Fission.IPFS.Types          as IPFS
 import           Fission.Storage.IPFS.Pin    as IPFS.Pin
 
 put :: MonadRIO (Rec cfg) m
-        => HasProcessContext (Rec cfg) m
+        => HasProcessContext (Rec cfg)
         => HasLogFunc (Rec cfg)
         => Has "httpManager" cfg HTTP.Manager
         => Has "ipfsURL" cfg IPFS.URL
