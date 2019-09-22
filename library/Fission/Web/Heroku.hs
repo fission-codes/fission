@@ -7,7 +7,7 @@ module Fission.Web.Heroku
 
 import           RIO
 
-import           Data.Has
+import           SuperRecord
 import           Data.UUID
 import           Database.Selda as Selda
 
@@ -50,18 +50,18 @@ type API = ProvisionAPI :<|> DeprovisionAPI
 type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
                  :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
-server :: HasLogFunc        cfg
-       => Has Web.Host      cfg
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => MonadSelda   (RIO cfg)
-       => RIOServer         cfg API
+server :: HasLogFunc        (Rec cfg)
+       => Has "host" cfg Web.Host
+       => Has "httpManager" cfg HTTP.Manager
+       => Has "ipfsURL" cfg IPFS.URL
+       => MonadSelda   (RIO (Rec cfg))
+       => RIOServer         (Rec cfg) API
 server = provision :<|> deprovision
 
-provision :: HasLogFunc      cfg
-          => Has Web.Host    cfg
-          => MonadSelda (RIO cfg)
-          => RIOServer       cfg ProvisionAPI
+provision :: HasLogFunc      (Rec cfg)
+          => Has "host" cfg Web.Host
+          => MonadSelda (RIO (Rec cfg))
+          => RIOServer       (Rec cfg) ProvisionAPI
 provision Request {_uuid, _region} = do
   Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
@@ -90,11 +90,11 @@ provision Request {_uuid, _region} = do
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
 
-deprovision :: MonadSelda   (RIO cfg)
-            => HasLogFunc        cfg
-            => Has HTTP.Manager  cfg
-            => Has IPFS.URL      cfg
-            => RIOServer         cfg DeprovisionAPI
+deprovision :: MonadSelda   (RIO (Rec cfg))
+            => HasLogFunc        (Rec cfg)
+            => Has "httpManager" cfg HTTP.Manager
+            => Has "ipfsURL"     cfg IPFS.URL
+            => RIOServer         (Rec cfg) DeprovisionAPI
 deprovision uuid' = do
   let err = Web.Err.ensure_ err404
 

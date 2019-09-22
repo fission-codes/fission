@@ -12,7 +12,7 @@ module Fission.Web.IPFS
 import RIO
 import RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 import Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
@@ -48,25 +48,25 @@ type SimpleAPI = "cids" :> CID.API
 
 type PublicAPI = Download.API
 
-server :: HasLogFunc        cfg
-       => HasProcessContext cfg
-       => MonadSelda   (RIO cfg)
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => RIOServer         cfg API
+server :: HasLogFunc             (Rec cfg)
+       => HasProcessContext      (Rec cfg)
+       => MonadSelda        (RIO (Rec cfg))
+       => Has "httpManager"           cfg HTTP.Manager
+       => Has "ipfsURL"               cfg IPFS.URL
+       => Has "ipfsPath"              cfg IPFS.BinPath
+       => Has "ipfsTimeout"           cfg IPFS.Timeout
+       => RIOServer    (Rec cfg) API
 server = authed
     :<|> Download.get
 
-authed :: HasLogFunc        cfg
-       => HasProcessContext cfg
-       => MonadSelda   (RIO cfg)
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => RIOServer         cfg AuthedAPI
+authed :: HasLogFunc        (Rec cfg)
+       => HasProcessContext (Rec cfg)
+       => MonadSelda   (RIO (Rec cfg))
+       => Has "httpManager"      cfg HTTP.Manager
+       => Has "ipfsURL"          cfg IPFS.URL
+       => Has "ipfsPath"         cfg IPFS.BinPath
+       => Has "ipfsTimeout"      cfg IPFS.Timeout
+       => RIOServer     (Rec cfg) AuthedAPI
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr

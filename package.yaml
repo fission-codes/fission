@@ -111,6 +111,7 @@ dependencies:
   - streaming-commons
   - streamly
   - swagger2
+  - superrecord
   - text
   - time
   - transformers

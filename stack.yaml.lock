@@ -26,6 +26,13 @@ packages:
   original:
     hackage: happy-1.19.10
 - completed:
+    hackage: superrecord-0.5.0.1@sha256:ef0dd316eda7761da831071f729aec3373b44d223b818f9b078be9fba1378b95,2476
+    pantry-tree:
+      size: 766
+      sha256: b99024fd8f7d24a2bd419f174596e81c4b6aaf581852416d7a1cd4f31bc7b767
+  original:
+    hackage: superrecord-0.5.0.1
+- completed:
     hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
     pantry-tree:
       size: 284

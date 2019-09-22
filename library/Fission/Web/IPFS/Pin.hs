@@ -9,7 +9,7 @@ module Fission.Web.IPFS.Pin
 
 import RIO
 
-import Data.Has
+import SuperRecord
 import Database.Selda
 
 import qualified Network.HTTP.Client      as HTTP
@@ -31,30 +31,30 @@ type PinAPI = Capture "cid" CID
 type UnpinAPI = Capture "cid" CID
              :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
-server :: Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => MonadSelda   (RIO cfg)
-       => HasLogFunc        cfg
+server :: Has "httpManager" cfg HTTP.Manager
+       => Has "ipfsURL" cfg IPFS.URL
+       => MonadSelda   (RIO (Rec cfg))
+       => HasLogFunc        (Rec cfg)
        => User
-       -> RIOServer         cfg API
+       -> RIOServer         (Rec cfg) API
 server User { _userID } = pin _userID :<|> unpin _userID
 
-pin :: Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => MonadSelda   (RIO cfg)
-    => HasLogFunc        cfg
+pin :: Has "httpManager" cfg HTTP.Manager
+    => Has "ipfsURL" cfg IPFS.URL
+    => MonadSelda   (RIO (Rec cfg))
+    => HasLogFunc        (Rec cfg)
     => ID User
-    -> RIOServer         cfg PinAPI
+    -> RIOServer         (Rec cfg) PinAPI
 pin uID _cid = IPFS.Pin.add _cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> UserCID.create uID _cid >> pure NoContent
 
-unpin :: Has HTTP.Manager  cfg
-      => Has IPFS.URL      cfg
-      => HasLogFunc        cfg
-      => MonadSelda   (RIO cfg)
+unpin :: Has "httpManager" cfg HTTP.Manager
+      => Has "ipfsURL" cfg IPFS.URL
+      => HasLogFunc        (Rec cfg)
+      => MonadSelda   (RIO (Rec cfg))
       => ID User
-      -> RIOServer         cfg UnpinAPI
+      -> RIOServer         (Rec cfg) UnpinAPI
 unpin uID _cid@CID { unaddress = hash } = do
   void $ deleteFrom_ userCIDs (eqUserCID uID hash)
 

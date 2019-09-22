@@ -6,7 +6,7 @@ module Fission.Web.IPFS.Upload
 import RIO
 import RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 import Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
@@ -20,13 +20,13 @@ import           Fission.User
 
 type API = Simple.API :<|> Multipart.API
 
-add :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => MonadSelda   (RIO cfg)
+add :: Has "ipfsPath" cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => Has "httpManager" cfg HTTP.Manager
+    => Has "ipfsURL" cfg IPFS.URL
+    => HasProcessContext (Rec cfg)
+    => HasLogFunc        (Rec cfg)
+    => MonadSelda   (RIO (Rec cfg))
     => User
-    -> RIOServer         cfg API
+    -> RIOServer         (Rec cfg) API
 add usr = Simple.add usr :<|> Multipart.add usr

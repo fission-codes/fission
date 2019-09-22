@@ -10,7 +10,7 @@ module Fission.IPFS.Client
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
-import Data.Has
+import SuperRecord
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
@@ -47,12 +47,12 @@ add :<|> cat
     :<|> unpin = client (Proxy :: Proxy API)
 
 -- NOTE: May want to move these to streaming in the future
-run :: MonadRIO         cfg m
-    => Has IPFS.URL     cfg
-    => Has HTTP.Manager cfg
+run :: MonadRIO         (Rec cfg) m
+    => Has "ipfsURL"     cfg IPFS.URL
+    => Has "httpManager" cfg HTTP.Manager
     => ClientM a
     -> m (Either ClientError a)
 run query = do
-  IPFS.URL url           <- Config.get
-  manager :: HTTP.Manager <- Config.get
+  IPFS.URL url <- asksR #ipfsURL
+  manager      <- asksR #httpManager
   liftIO . runClientM query $ mkClientEnv manager url

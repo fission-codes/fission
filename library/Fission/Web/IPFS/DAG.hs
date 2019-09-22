@@ -7,7 +7,7 @@ where
 import           RIO
 import           RIO.Process (HasProcessContext)
 
-import           Data.Has
+import           SuperRecord
 import           Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
@@ -25,15 +25,15 @@ import qualified Fission.Web.Error       as Web.Err
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-put :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => HasProcessContext cfg
-    => MonadSelda   (RIO cfg)
-    => HasLogFunc        cfg
+put :: Has "ipfsPath" cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => Has "httpManager" cfg HTTP.Manager
+    => Has "ipfsURL" cfg IPFS.URL
+    => HasProcessContext (Rec cfg)
+    => MonadSelda   (RIO (Rec cfg))
+    => HasLogFunc        (Rec cfg)
     => User
-    -> RIOServer         cfg API
+    -> RIOServer         (Rec cfg) API
 put User { _userID } (Serialized rawData) = Storage.IPFS.DAG.put rawData >>= \case
   Right newCID -> do
     void $ User.CID.createX _userID [newCID]

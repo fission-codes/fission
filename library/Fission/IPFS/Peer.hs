@@ -8,7 +8,7 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 import           RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 
 import           Fission.Internal.Constraint
 import qualified Fission.IPFS.Process        as IPFSProc
@@ -16,11 +16,11 @@ import qualified Fission.IPFS.Types          as IPFS
 import           Fission.IPFS.Peer.Error     as IPFS.Peer
 import qualified Fission.Internal.UTF8       as UTF8
 
-all :: MonadRIO          cfg m
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
+all :: MonadRIO          (Rec cfg) m
+    => HasProcessContext (Rec cfg)
+    => HasLogFunc        (Rec cfg)
+    => Has "ipfsPath"         cfg IPFS.BinPath
+    => Has "ipfsTimeout"      cfg IPFS.Timeout
     => m (Either IPFS.Peer.Error [IPFS.Peer])
 all = rawList <&> \case
   (ExitSuccess, allRaw, _) ->
@@ -31,10 +31,10 @@ all = rawList <&> \case
   (ExitFailure _, _, err) ->
     Left . UnknownErr $ UTF8.textShow err
 
-rawList :: MonadRIO          cfg m
-        => Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
+rawList :: MonadRIO          (Rec cfg) m
+        => Has "ipfsPath"         cfg IPFS.BinPath
+        => Has "ipfsTimeout"      cfg IPFS.Timeout
+        => HasProcessContext (Rec cfg)
+        => HasLogFunc        (Rec cfg)
         => m (ExitCode, Lazy.ByteString, Lazy.ByteString)
 rawList = IPFSProc.run' ["bootstrap", "list"]

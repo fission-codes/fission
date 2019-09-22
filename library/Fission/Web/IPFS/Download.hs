@@ -6,7 +6,7 @@ module Fission.Web.IPFS.Download
 import RIO
 import RIO.Process (HasProcessContext)
 
-import Data.Has
+import SuperRecord
 import Servant
 
 import           Fission.Web.Server
