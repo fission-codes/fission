@@ -49,10 +49,12 @@ main = do
   _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-  isVerbose    <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
+  isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
   logOptions   <- logOptionsHandle stdout isVerbose
 
   withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO Config {..} do
+    logDebug . displayShow =<< ask
+
     let
       Web.Port port' = _port
       webLogger      = Web.Log.mkSettings _logFunc port'
@@ -60,7 +62,6 @@ main = do
       condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
     when (env ^. web . Web.monitor) Monitor.wai
-    logDebug . displayShow =<< ask
     liftIO . runner webLogger
            . CORS.middleware
            . condDebug
