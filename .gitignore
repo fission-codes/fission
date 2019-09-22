@@ -8,6 +8,7 @@
 *.db
 .doctest-tmp/
 addon-manifest.json
+env.yaml
 domain-key.txt
 domain-crt.txt
 

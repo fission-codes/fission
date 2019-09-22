@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '1.8.0'
+version: '1.9.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -65,6 +65,7 @@ default-extensions:
   - ScopedTypeVariables
   - StandaloneDeriving
   - TupleSections
+  - TypeFamilies
   - TypeSynonymInstances
   - TemplateHaskell
   - TypeOperators
@@ -98,7 +99,7 @@ dependencies:
   - rio-orphans
   - scientific
   - selda
-  - selda-sqlite
+  - selda-postgresql
   - servant
   - servant-auth-server
   - servant-auth-swagger
