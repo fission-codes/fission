@@ -9,20 +9,20 @@ import RIO.Directory
 import RIO.File
 import RIO.FilePath
 
-import qualified Data.Yaml as Yaml
+import qualified Data.Yaml as YAML
 import           Servant
 
 import Fission.Internal.Orphanage.BasicAuthData ()
 
 -- | Retrieve auth from the user's system
-get :: MonadIO m => m (Either Yaml.ParseException BasicAuthData)
-get = liftIO . Yaml.decodeFileEither =<< cachePath
+get :: MonadIO m => m (Either YAML.ParseException BasicAuthData)
+get = liftIO . YAML.decodeFileEither =<< cachePath
 
 -- | Write user's auth to a local on-system path
 set :: MonadUnliftIO m => BasicAuthData -> m ()
 set auth = do
   path <- cachePath
-  writeBinaryFileDurable path $ Yaml.encode auth
+  writeBinaryFileDurable path $ YAML.encode auth
 
 -- | Absolute path of the auth cache on disk
 cachePath :: MonadIO m => m FilePath

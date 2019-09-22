@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: efd8ed8a0f89d5b8326cb1cc5e7ff1c31fccb8907578c923b303964a3af96c0d
+-- hash: 257e0982d3864fa4cfa8e1b8a7d9d9309655113c6642f576808624437c6c7c36
 
 name:           fission-web-api
 version:        1.9.0
@@ -105,7 +105,6 @@ library
       Fission.Storage.IPFS.DAG
       Fission.Storage.IPFS.Pin
       Fission.Storage.PostgreSQL
-      Fission.Storage.PostgreSQL.Internal
       Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
       Fission.Storage.Table
@@ -574,7 +573,6 @@ test-suite fission-test
       Fission.Storage.IPFS.DAG
       Fission.Storage.IPFS.Pin
       Fission.Storage.PostgreSQL
-      Fission.Storage.PostgreSQL.Internal
       Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
       Fission.Storage.Table
