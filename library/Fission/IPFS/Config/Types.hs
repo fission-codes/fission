@@ -23,9 +23,9 @@ data Config = Config
 makeLenses ''Config
 
 instance FromJSON Config where
-  parseJSON = withObject "IPFS Config" \obj -> do
-    _url     <- obj .:  "url"
+  parseJSON = withObject "IPFS.Config" \obj -> do
     _timeout <- obj .:? "timeout" .!= 3600
     _binPath <- obj .:? "binPath" .!= "/usr/local/bin/ipfs"
+    _url     <- obj .:  "url" >>= parseJSON . String
 
     return $ Config {..}

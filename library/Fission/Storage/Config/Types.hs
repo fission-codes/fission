@@ -26,8 +26,8 @@ data Config = Config
 makeLenses ''Config
 
 instance FromJSON Config where
-  parseJSON = withObject "Database Config" \obj -> do
-    _pgConnectInfo  <- parseJSON . Object =<< obj .: "postgresql"
+  parseJSON = withObject "Storage.Config" \obj -> do
+    _pgConnectInfo  <- obj .: "postgresql" >>= parseJSON . Object
     _stripeCount    <- obj .: "stripeCount"
     _connsPerStripe <- obj .: "connsPerStripe"
     _connTTL        <- obj .: "connTTL"
