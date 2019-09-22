@@ -53,9 +53,8 @@ main = do
       _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
       _processCtx  <- mkDefaultProcessContext
       _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-
-      isVerbose  <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
-      logOptions <- logOptionsHandle stdout isVerbose
+      isVerbose    <- getFlag "RIO_VERBOSE" .!~ False -- TODO FISSION_VERBOSE or VERBOSE
+      logOptions   <- logOptionsHandle stdout isVerbose
 
       withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO Config {..} do
         let
