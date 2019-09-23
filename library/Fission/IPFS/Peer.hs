@@ -20,7 +20,7 @@ all :: MonadRIO          (Rec cfg) m
     => HasProcessContext (Rec cfg)
     => HasLogFunc        (Rec cfg)
     => Has "ipfsPath"         cfg IPFS.BinPath
-    => Has "ipfsTimeout"      cfg Int
+    => Has "ipfsTimeout"      cfg Natural
     => m (Either IPFS.Peer.Error [IPFS.Peer])
 all = rawList <&> \case
   (ExitSuccess, allRaw, _) ->
@@ -33,7 +33,7 @@ all = rawList <&> \case
 
 rawList :: MonadRIO          (Rec cfg) m
         => Has "ipfsPath"         cfg IPFS.BinPath
-        => Has "ipfsTimeout"      cfg IPFS.Timeout
+        => Has "ipfsTimeout"      cfg Natural
         => HasProcessContext (Rec cfg)
         => HasLogFunc        (Rec cfg)
         => m (ExitCode, Lazy.ByteString, Lazy.ByteString)

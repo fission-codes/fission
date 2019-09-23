@@ -15,8 +15,10 @@ import           SuperRecord
 
 import           Database.Selda
 import           Data.Swagger as Swagger
+
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+import qualified Servant.Client      as Client
 
 import           Fission.User
 import           Fission.Web.Server
@@ -40,10 +42,10 @@ type API = Web.Swagger.API :<|> Web.API
 
 -- | The actual web server for 'API'
 app :: HasOf [ "ipfsPath"    := IPFS.BinPath
-            , "ipfsTimeout" := IPFS.Timeout
-            , "ipfsURL" := IPFS.URL
+            , "ipfsTimeout" := Natural
+            , "ipfsURL"     := Client.BaseUrl
             , "httpManager" := HTTP.Manager
-            , "host" := Web.Host
+            , "host"        := Web.Host
             , "herokuID" := Heroku.ID
             , "herokuPassword" := Heroku.Password
             ] cfg
@@ -80,11 +82,11 @@ mkAuth = do
         :. EmptyContext
 
 -- | Web handlers for the 'API'
-server :: Has "ipfsPath" cfg IPFS.BinPath
-       => Has "ipfsTimeout" cfg IPFS.Timeout
-       => Has "httpManager" cfg HTTP.Manager
-       => Has "ipfsURL" cfg IPFS.URL
-       => Has "host" cfg Web.Host
+server :: Has "ipfsPath"         cfg IPFS.BinPath
+       => Has "ipfsTimeout"      cfg Natural
+       => Has "httpManager"      cfg HTTP.Manager
+       => Has "ipfsURL"          cfg Client.BaseUrl
+       => Has "host"             cfg Web.Host
        => HasProcessContext (Rec cfg)
        => HasLogFunc        (Rec cfg)
        => MonadSelda   (RIO (Rec cfg))

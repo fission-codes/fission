@@ -11,6 +11,7 @@ import Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+import qualified Servant.Client      as Client
 
 import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
@@ -20,10 +21,10 @@ import           Fission.User
 
 type API = Simple.API :<|> Multipart.API
 
-add :: Has "ipfsPath" cfg IPFS.BinPath
-    => Has "ipfsTimeout" cfg IPFS.Timeout
+add :: Has "ipfsPath"    cfg IPFS.BinPath
+    => Has "ipfsTimeout" cfg Natural
     => Has "httpManager" cfg HTTP.Manager
-    => Has "ipfsURL" cfg IPFS.URL
+    => Has "ipfsURL"     cfg Client.BaseUrl
     => HasProcessContext (Rec cfg)
     => HasLogFunc        (Rec cfg)
     => MonadSelda   (RIO (Rec cfg))

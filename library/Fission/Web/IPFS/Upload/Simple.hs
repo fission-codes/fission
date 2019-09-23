@@ -25,7 +25,7 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 add :: Has "ipfsPath"         cfg IPFS.BinPath
-    => Has "ipfsTimeout"      cfg Int
+    => Has "ipfsTimeout"      cfg Natural
     => Has "httpManager"      cfg HTTP.Manager
     => Has "ipfsURL"          cfg Client.BaseUrl
     => HasProcessContext (Rec cfg)

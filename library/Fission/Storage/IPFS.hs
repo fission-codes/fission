@@ -30,7 +30,7 @@ addRaw :: MonadRIO          (Rec cfg) m
        => HasOf [ "httpManager" := HTTP.Manager
                , "ipfsURL"     := Client.BaseUrl
                , "ipfsPath"    := IPFS.BinPath
-               , "ipfsTimeout" := IPFS.Timeout
+               , "ipfsTimeout" := Natural
                ]  cfg
        => Lazy.ByteString
        -> m (Either IPFS.Error.Add IPFS.CID)
@@ -50,7 +50,7 @@ addFile :: MonadRIO          (Rec cfg) m
         => Has "httpManager" cfg HTTP.Manager
         => Has "ipfsURL"     cfg Client.BaseUrl
         => Has "ipfsPath"    cfg IPFS.BinPath
-        => Has "ipfsTimeout" cfg IPFS.Timeout
+        => Has "ipfsTimeout" cfg Natural
         => Lazy.ByteString
         -> IPFS.Name
         -> m (Either IPFS.Error.Add IPFS.SparseTree)
@@ -89,7 +89,7 @@ addFile raw name =
 
 get :: RIOProc           (Rec cfg) m
     => Has "ipfsPath"    cfg IPFS.BinPath
-    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => Has "ipfsTimeout" cfg Natural
     => IPFS.CID
     -> m (Either IPFS.Error.Get File.Serialized)
 get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \case
@@ -101,7 +101,7 @@ get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \ca
         return . Left $ InvalidCID hash
 
     | Lazy.isSuffixOf "context deadline exceeded" stdErr -> do
-        Timeout seconds <- asksR #ipfsTimeout
+        seconds <- asksR #ipfsTimeout
         return . Left $ TimedOut cid seconds
 
     | otherwise ->

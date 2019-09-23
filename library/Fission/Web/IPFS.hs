@@ -55,7 +55,7 @@ server :: HasLogFunc             (Rec cfg)
        => Has "httpManager"           cfg HTTP.Manager
        => Has "ipfsURL"               cfg Client.BaseUrl
        => Has "ipfsPath"              cfg IPFS.BinPath
-       => Has "ipfsTimeout"           cfg Int
+       => Has "ipfsTimeout"           cfg Natural
        => RIOServer    (Rec cfg) API
 server = authed
     :<|> Download.get
@@ -66,7 +66,7 @@ authed :: HasLogFunc        (Rec cfg)
        => Has "httpManager"      cfg HTTP.Manager
        => Has "ipfsURL"          cfg Client.BaseUrl
        => Has "ipfsPath"         cfg IPFS.BinPath
-       => Has "ipfsTimeout"      cfg Int
+       => Has "ipfsTimeout"      cfg Natural
        => RIOServer         (Rec cfg) AuthedAPI
 authed usr = CID.allForUser usr
         :<|> Upload.add usr

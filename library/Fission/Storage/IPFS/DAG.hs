@@ -25,7 +25,7 @@ put :: MonadRIO (Rec cfg) m
     => Has "httpManager" cfg HTTP.Manager
     => Has "ipfsURL"     cfg Client.BaseUrl
     => Has "ipfsPath"    cfg IPFS.BinPath
-    => Has "ipfsTimeout" cfg IPFS.Timeout
+    => Has "ipfsTimeout" cfg Natural
     => Lazy.ByteString
     -> m (Either IPFS.Error.Add IPFS.CID)
 put raw = IPFS.Proc.run ["dag", "put", "-f", "dag-pb"] raw >>= \case

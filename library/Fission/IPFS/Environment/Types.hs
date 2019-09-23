@@ -17,7 +17,7 @@ import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
   { _url     :: !Client.BaseUrl -- ^ IPFS client URL (may be remote)
-  , _timeout :: !Int            -- ^ IPFS timeout in seconds
+  , _timeout :: !Natural        -- ^ IPFS timeout in seconds
   , _binPath :: !IPFS.BinPath   -- ^ Path to local IPFS binary
   } deriving Show
 
