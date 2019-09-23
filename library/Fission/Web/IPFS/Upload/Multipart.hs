@@ -16,6 +16,7 @@ import           Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+import qualified Servant.Client      as Client
 import           Servant.Multipart
 
 import           Fission.Internal.Constraint
@@ -43,10 +44,10 @@ type JSONAPI = FileRequest
 type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
-add :: Has "ipfsPath" cfg IPFS.BinPath
-    => Has "ipfsTimeout" cfg IPFS.Timeout
-    => Has "httpManager" cfg HTTP.Manager
-    => Has "ipfsURL" cfg IPFS.URL
+add :: Has "ipfsPath"         cfg IPFS.BinPath
+    => Has "ipfsTimeout"      cfg Int
+    => Has "httpManager"      cfg HTTP.Manager
+    => Has "ipfsURL"          cfg Client.BaseUrl
     => MonadSelda   (RIO (Rec cfg))
     => HasProcessContext (Rec cfg)
     => HasLogFunc        (Rec cfg)
@@ -57,7 +58,7 @@ add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 textAdd :: HasOf [ "ipfsPath"    := IPFS.BinPath
                 , "ipfsTimeout" := IPFS.Timeout
                 , "httpManager" := HTTP.Manager
-                , "ipfsURL"     := IPFS.URL
+                , "ipfsURL"     := Client.BaseUrl
                 ] cfg
         => HasProcessContext (Rec cfg)
         => MonadSelda   (RIO (Rec cfg))
@@ -73,7 +74,7 @@ jsonAdd :: MonadSelda   (RIO (Rec cfg))
         => HasOf [ "ipfsPath"    := IPFS.BinPath
                 , "ipfsTimeout" := IPFS.Timeout
                 , "httpManager" := HTTP.Manager
-                , "ipfsURL"     := IPFS.URL
+                , "ipfsURL"     := Client.BaseUrl
                 ] cfg
         => HasProcessContext (Rec cfg)
         => HasLogFunc        (Rec cfg)
@@ -88,7 +89,7 @@ run :: MonadRIO          (Rec cfg) m
             , "ipfsTimeout" := IPFS.Timeout
             , "ipfsPath"    := IPFS.BinPath
             , "httpManager" := HTTP.Manager
-            , "ipfsURL"     := IPFS.URL
+            , "ipfsURL"     := Client.BaseUrl
             ] cfg
     => HasProcessContext (Rec cfg)
     => HasLogFunc        (Rec cfg)

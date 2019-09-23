@@ -9,16 +9,17 @@ module Fission.Web.IPFS
   , server
   ) where
 
-import RIO
-import RIO.Process (HasProcessContext)
+import           RIO
+import           RIO.Process (HasProcessContext)
 
-import SuperRecord
-import Database.Selda
+import           Database.Selda
+import           SuperRecord
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+import qualified Servant.Client      as Client
 
-import           Fission.IPFS.Types        as IPFS
+import           Fission.IPFS.Types as IPFS
 import           Fission.User
 
 import           Fission.Web.Server
@@ -52,9 +53,9 @@ server :: HasLogFunc             (Rec cfg)
        => HasProcessContext      (Rec cfg)
        => MonadSelda        (RIO (Rec cfg))
        => Has "httpManager"           cfg HTTP.Manager
-       => Has "ipfsURL"               cfg IPFS.URL
+       => Has "ipfsURL"               cfg Client.BaseUrl
        => Has "ipfsPath"              cfg IPFS.BinPath
-       => Has "ipfsTimeout"           cfg IPFS.Timeout
+       => Has "ipfsTimeout"           cfg Int
        => RIOServer    (Rec cfg) API
 server = authed
     :<|> Download.get
@@ -63,10 +64,10 @@ authed :: HasLogFunc        (Rec cfg)
        => HasProcessContext (Rec cfg)
        => MonadSelda   (RIO (Rec cfg))
        => Has "httpManager"      cfg HTTP.Manager
-       => Has "ipfsURL"          cfg IPFS.URL
+       => Has "ipfsURL"          cfg Client.BaseUrl
        => Has "ipfsPath"         cfg IPFS.BinPath
-       => Has "ipfsTimeout"      cfg IPFS.Timeout
-       => RIOServer     (Rec cfg) AuthedAPI
+       => Has "ipfsTimeout"      cfg Int
+       => RIOServer         (Rec cfg) AuthedAPI
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr

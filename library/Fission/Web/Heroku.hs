@@ -13,6 +13,7 @@ import           Database.Selda as Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+import qualified Servant.Client      as Client
 
 import qualified Fission.Web.Error       as Web.Err
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
@@ -50,15 +51,15 @@ type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
                  :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
 server :: HasLogFunc        (Rec cfg)
-       => Has "host" cfg Web.Host
-       => Has "httpManager" cfg HTTP.Manager
-       => Has "ipfsURL" cfg IPFS.URL
+       => Has "host"             cfg Web.Host
+       => Has "httpManager"      cfg HTTP.Manager
+       => Has "ipfsURL"          cfg Client.BaseUrl
        => MonadSelda   (RIO (Rec cfg))
        => RIOServer         (Rec cfg) API
 server = provision :<|> deprovision
 
 provision :: HasLogFunc      (Rec cfg)
-          => Has "host" cfg Web.Host
+          => Has "host"           cfg Web.Host
           => MonadSelda (RIO (Rec cfg))
           => RIOServer       (Rec cfg) ProvisionAPI
 provision Request {_uuid, _region} = do
@@ -92,7 +93,7 @@ type DeprovisionAPI = Capture "addon_id" UUID
 deprovision :: MonadSelda   (RIO (Rec cfg))
             => HasLogFunc        (Rec cfg)
             => Has "httpManager" cfg HTTP.Manager
-            => Has "ipfsURL"     cfg IPFS.URL
+            => Has "ipfsURL"     cfg Client.BaseUrl
             => RIOServer         (Rec cfg) DeprovisionAPI
 deprovision uuid' = do
   let err = Web.Err.ensure_ err404
