@@ -1,9 +1,11 @@
 module Main (main) where
 
 import           RIO
+import           RIO.ByteString (putStr)
 import           RIO.Process (mkDefaultProcessContext)
 
 import qualified Data.Aeson as JSON
+import           Data.Aeson.Encode.Pretty
 import qualified Data.Yaml  as YAML
 
 import qualified Network.HTTP.Client as HTTP
@@ -44,42 +46,42 @@ main = do
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   isVerbose   <- getFlag "RIO_VERBOSE" .!~ False
   logOptions  <- logOptionsHandle stdout isVerbose
-  logFunc     <- withLogFunc (setLogUseTime True logOptions) pure
-
-  let
-    logger     = #logFunc := logFunc
-    visibleRec = #ipfsPath       := (env ^. ipfs . binPath)
-            SR.& #ipfsURL        := (env ^. ipfs . url)
-            SR.& #ipfsTimeout    := (env ^. ipfs . IPFS.timeout)
-            SR.& #host           := (env ^. web  . Web.host)
-            SR.& #pgConnectInfo  := _pgConnectInfo
-            SR.& #herokuID       := (Hku.ID       . encodeUtf8 $ manifest ^. Hku.id)
-            SR.& #herokuPassword := (Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password)
-            SR.& rnil
-
-  dbPool <- runRIO (logger SR.& rnil) $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
-
-  let
-    cfg =    #processCtx  := processCtx
-        SR.& #httpManager := httpManager
-        SR.& #dbPool      := dbPool
-        SR.& logger
-        SR.& visibleRec
-
-  runRIO cfg do
-    logDebug $ displayShow visibleRec
+  withLogFunc (setLogUseTime True logOptions) \logFunc -> do
 
     let
-      webLogger = Web.Log.mkSettings logFunc (env ^. web . WebEnv.port)
-      runner    = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
-      condDebug = if env ^. web . Web.pretty then id else logStdoutDev
+      logger = #logFunc := logFunc
 
-    when (env ^. web . Web.monitor) Monitor.wai
-    liftIO . runner webLogger
-          . CORS.middleware
-          . condDebug
-          =<< Web.app
-          =<< ask
+      visibleRec = #ipfsPath       := (env ^. ipfs . binPath)
+              SR.& #ipfsURL        := (env ^. ipfs . url)
+              SR.& #ipfsTimeout    := (env ^. ipfs . IPFS.timeout)
+              SR.& #host           := (env ^. web  . Web.host)
+              SR.& rnil
+
+    dbPool <- runRIO (logger SR.& rnil) $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
+
+    let
+      cfg =    #processCtx  := processCtx
+          SR.& #httpManager := httpManager
+          SR.& #dbPool      := dbPool
+          SR.& #herokuID       := (Hku.ID       . encodeUtf8 $ manifest ^. Hku.id)
+          SR.& #herokuPassword := (Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password)
+          SR.& logger
+          SR.& visibleRec
+
+    runRIO cfg do
+      logDebug $ display $ encodePretty visibleRec
+
+      let
+        webLogger = Web.Log.mkSettings logFunc (env ^. web . WebEnv.port)
+        runner    = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
+        condDebug = if env ^. web . Web.pretty then id else logStdoutDev
+
+      when (env ^. web . Web.monitor) Monitor.wai
+      liftIO . runner webLogger
+            . CORS.middleware
+            . condDebug
+            =<< Web.app
+            =<< ask
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"

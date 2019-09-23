@@ -14,11 +14,10 @@ newtype BinPath = BinPath { getBinPath :: FilePath }
                     , Generic
                     )
   deriving anyclass ( ToSchema )
-  deriving newtype  ( IsString )
+  deriving newtype  ( IsString
+                    , ToJSON
+                    , FromJSON
+                    )
 
 instance FromEnv BinPath where
   fromEnv _ = BinPath <$> env "IPFS_PATH"
-
-instance FromJSON BinPath where
-  parseJSON = withText "IPFS.BinPath" \txt ->
-    BinPath <$> parseJSON (String txt)

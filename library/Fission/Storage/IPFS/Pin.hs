@@ -5,9 +5,10 @@ module Fission.Storage.IPFS.Pin
 
 import           RIO
 
-import SuperRecord
+import           SuperRecord
 
 import qualified Network.HTTP.Client as HTTP
+import qualified Servant.Client      as Client
 
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8       as UTF8
@@ -20,7 +21,7 @@ import qualified Fission.IPFS.Client         as IPFS.Client
 add :: MonadRIO          (Rec cfg) m
     => HasLogFunc        (Rec cfg)
     => Has "httpManager" cfg HTTP.Manager
-    => Has "ipfsURL"     cfg IPFS.URL
+    => Has "ipfsURL"     cfg Client.BaseUrl
     => IPFS.CID
     -> m (Either IPFS.Error.Add CID)
 add (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
@@ -38,9 +39,9 @@ add (CID hash) = IPFS.Client.run (IPFS.Client.pin hash) >>= \case
 
 -- | Unpin a CID
 rm :: MonadRIO          (Rec cfg) m
-      => Has "httpManager" cfg HTTP.Manager
-      => Has "ipfsURL" cfg IPFS.URL
-      => HasLogFunc    (Rec cfg)
+      => Has "httpManager"   cfg HTTP.Manager
+      => Has "ipfsURL"       cfg Client.BaseUrl
+      => HasLogFunc     (Rec cfg)
       => IPFS.CID
       -> m (Either IPFS.Error.Add CID)
 rm cid@(CID hash) = IPFS.Client.run (IPFS.Client.unpin hash False) >>= \case

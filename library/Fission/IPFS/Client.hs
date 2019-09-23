@@ -14,13 +14,12 @@ import           SuperRecord
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
-import           Servant.Client
+import           Servant.Client as Client
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.ByteString.Lazy ()
 
 import qualified Fission.File.Types      as File
-import qualified Fission.IPFS.Types      as IPFS
 import           Fission.IPFS.CID.Types
 
 import qualified Fission.IPFS.Client.Add as Add
@@ -45,13 +44,12 @@ add :<|> cat
     :<|> pin
     :<|> unpin = client (Proxy :: Proxy API)
 
--- NOTE: May want to move these to streaming in the future
 run :: MonadRIO         (Rec cfg) m
-    => Has "ipfsURL"     cfg IPFS.URL
+    => Has "ipfsURL"     cfg Client.BaseUrl
     => Has "httpManager" cfg HTTP.Manager
     => ClientM a
     -> m (Either ClientError a)
 run query = do
-  IPFS.URL url <- asksR #ipfsURL
-  manager      <- asksR #httpManager
+  url     <- asksR #ipfsURL
+  manager <- asksR #httpManager
   liftIO . runClientM query $ mkClientEnv manager url

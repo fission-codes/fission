@@ -74,6 +74,7 @@ default-extensions:
 dependencies:
   - aeson
   - aeson-casing
+  - aeson-pretty
   - ansi-terminal
   - base
   - cryptonite

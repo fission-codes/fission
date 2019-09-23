@@ -6,18 +6,19 @@ module Fission.IPFS.Environment.Types
   , url
   ) where
 
-import RIO hiding (timeout)
+import           RIO hiding (timeout)
 
-import Control.Lens (makeLenses)
-import Data.Aeson
+import           Control.Lens (makeLenses)
+import           Data.Aeson
+import qualified Servant.Client as Client
 
 import qualified Fission.IPFS.Types as IPFS
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
-  { _url     :: !IPFS.URL     -- ^ IPFS client URL (may be remote)
-  , _timeout :: !IPFS.Timeout -- ^ IPFS timeout in seconds
-  , _binPath :: !IPFS.BinPath -- ^ Path to local IPFS binary
+  { _url     :: !Client.BaseUrl -- ^ IPFS client URL (may be remote)
+  , _timeout :: !Int            -- ^ IPFS timeout in seconds
+  , _binPath :: !IPFS.BinPath   -- ^ Path to local IPFS binary
   } deriving Show
 
 makeLenses ''Environment

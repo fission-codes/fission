@@ -12,6 +12,7 @@ import           Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+import qualified Servant.Client      as Client
 
 import           Fission.User
 import           Fission.User.CID.Mutation as User.CID
@@ -25,10 +26,10 @@ import qualified Fission.Web.Error       as Web.Err
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-put :: Has "ipfsPath" cfg IPFS.BinPath
+put :: Has "ipfsPath"    cfg IPFS.BinPath
     => Has "ipfsTimeout" cfg IPFS.Timeout
     => Has "httpManager" cfg HTTP.Manager
-    => Has "ipfsURL" cfg IPFS.URL
+    => Has "ipfsURL"     cfg Client.BaseUrl
     => HasProcessContext (Rec cfg)
     => MonadSelda   (RIO (Rec cfg))
     => HasLogFunc        (Rec cfg)

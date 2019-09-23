@@ -8,10 +8,11 @@ import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process (HasProcessContext)
 
-import SuperRecord hiding (get)
-import Data.ByteString.Lazy.Char8 as CL
+import           SuperRecord hiding (get)
+import           Data.ByteString.Lazy.Char8 as CL
 
 import qualified Network.HTTP.Client as HTTP
+import qualified Servant.Client      as Client
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.Process
@@ -27,7 +28,7 @@ addRaw :: MonadRIO          (Rec cfg) m
        => HasProcessContext (Rec cfg)
        => HasLogFunc        (Rec cfg)
        => HasOf [ "httpManager" := HTTP.Manager
-               , "ipfsURL"     := IPFS.URL
+               , "ipfsURL"     := Client.BaseUrl
                , "ipfsPath"    := IPFS.BinPath
                , "ipfsTimeout" := IPFS.Timeout
                ]  cfg
@@ -47,7 +48,7 @@ addFile :: MonadRIO          (Rec cfg) m
         => HasProcessContext (Rec cfg)
         => HasLogFunc        (Rec cfg)
         => Has "httpManager" cfg HTTP.Manager
-        => Has "ipfsURL"     cfg IPFS.URL
+        => Has "ipfsURL"     cfg Client.BaseUrl
         => Has "ipfsPath"    cfg IPFS.BinPath
         => Has "ipfsTimeout" cfg IPFS.Timeout
         => Lazy.ByteString

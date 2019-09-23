@@ -2,6 +2,7 @@ module Fission.IPFS.Path.Types (Path (..)) where
 
 import RIO
 
+import Data.Aeson
 import Data.Swagger (ToSchema (..))
 import Servant
 
@@ -21,6 +22,8 @@ newtype Path = Path { unpath :: Text }
   deriving anyclass ( ToSchema )
   deriving newtype  ( IsString
                     , ToHttpApiData
+                    , FromJSON
+                    , ToJSON
                     )
 
 instance MimeRender PlainText Path where
