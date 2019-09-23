@@ -11,9 +11,8 @@ import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process
 
-import SuperRecord
+import           SuperRecord
 
-import qualified Fission.Config as Config
 import           Fission.Internal.Process
 import           Fission.IPFS.Types as IPFS
 

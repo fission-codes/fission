@@ -1,9 +1,5 @@
 -- | Top level types
-module Fission.Types (Fission) where
-
-import RIO
-
-import Fission.Config.Types
+module Fission.Types where
 
 -- | Top-level application type
-type Fission = RIO Config
+-- type Fission = RIO Rec a

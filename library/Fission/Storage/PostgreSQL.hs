@@ -8,16 +8,11 @@ import RIO
 import RIO.Time
 
 import Data.Pool
-import SuperRecord
-
-import Database.Selda
 import Database.Selda.PostgreSQL
+-- import SuperRecord
 
-import Fission.Internal.Constraint
 import Fission.Internal.Orphanage.Tuple ()
 
-import qualified Fission.Config        as Config
-import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 
 -- setupTable :: MonadRIO (Rec cfg) m
@@ -31,13 +26,7 @@ import qualified Fission.Storage.Types as DB
 --   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB"
 --   liftIO . withPostgreSQL pgInfo $ createTable tbl
 
-connPool :: MonadRIO   (Rec cfg) m
-         => HasLogFunc (Rec cfg)
-         => Int
-         -> Int
-         -> NominalDiffTime
-         -> PGConnectInfo
-         -> m DB.Pool
+connPool :: MonadIO m => Int -> Int -> NominalDiffTime -> PGConnectInfo -> m DB.Pool
 connPool stripeCount connsPerStripe connTTL pgInfo@(PGConnectInfo {..}) = do
   rawPool <- liftIO $ createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
   return $ DB.Pool rawPool

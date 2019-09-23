@@ -22,7 +22,6 @@ import qualified Fission.Web.Types       as Web
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.Platform.Heroku.Provision  as Provision
 
-import qualified Fission.Config as Config
 import qualified Fission.Random as Random
 
 import qualified Fission.Storage.Query as Query

@@ -16,7 +16,6 @@ import           Fission.Internal.Constraint
 import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
 import           Fission.IPFS.CID.Types
-import qualified Fission.Config          as Config
 import qualified Fission.Emoji           as Emoji
 
 import qualified Fission.CLI.Auth as Auth

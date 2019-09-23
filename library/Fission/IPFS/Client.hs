@@ -10,13 +10,12 @@ module Fission.IPFS.Client
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
-import SuperRecord
+import           SuperRecord
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 import           Servant.Client
 
-import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.ByteString.Lazy ()
 

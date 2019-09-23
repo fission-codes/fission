@@ -15,8 +15,7 @@ import           System.Console.Haskeline
 import           Fission.Internal.Applicative
 import           Fission.Internal.Constraint
 
-import qualified Fission.Emoji           as Emoji
-import qualified Fission.Config          as Config
+import qualified Fission.Emoji as Emoji
 
 import           Fission.Web.Auth.Client as Fission.Auth
 import qualified Fission.Web.Client.Types as Client

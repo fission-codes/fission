@@ -12,12 +12,12 @@ import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 
 import           SuperRecord
+
 import           Database.Selda
 import           Data.Swagger as Swagger
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 
-import qualified Fission.Config     as Config
 import           Fission.User
 import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
