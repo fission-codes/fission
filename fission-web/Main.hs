@@ -58,7 +58,7 @@ main = do
           cfg =  #processCtx     := processCtx
             SR.& #httpManager    := httpManager
             SR.& #dbPool         := dbPool
-            SR.& #herokuID       := (SR.get #id heroku)
+            SR.& #herokuID       := (heroku ^. SR.lens #id)
             SR.& #herokuPassword := (heroku ^. SR.lens #api . SR.lens #password)
             SR.& #logFunc        := logFunc
             SR.& baseCfg
