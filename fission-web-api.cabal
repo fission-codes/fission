@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0a154d25f3f91d4f736cc8d9474146cfdf78174ff47deed2c7fa770708afb318
+-- hash: 718c67d1ee8e8b237cf3d4abaf4624c28c027e990a1e6b2e908d5414ebcbccbf
 
 name:           fission-web-api
 version:        1.9.0
@@ -48,6 +48,7 @@ library
       Fission.Internal.Orphanage.BasicAuth
       Fission.Internal.Orphanage.BasicAuthData
       Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ByteString.Strict
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
@@ -67,7 +68,7 @@ library
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
-      Fission.IPFS.Environment.Types
+      Fission.IPFS.Config.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -167,7 +168,6 @@ library
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring
@@ -234,7 +234,6 @@ executable fission-cli
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring
@@ -302,7 +301,6 @@ executable fission-web
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring
@@ -373,7 +371,6 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring
@@ -445,7 +442,6 @@ test-suite fission-lint
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring
@@ -525,6 +521,7 @@ test-suite fission-test
       Fission.Internal.Orphanage.BasicAuth
       Fission.Internal.Orphanage.BasicAuthData
       Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ByteString.Strict
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
@@ -544,7 +541,7 @@ test-suite fission-test
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
-      Fission.IPFS.Environment.Types
+      Fission.IPFS.Config.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -645,7 +642,6 @@ test-suite fission-test
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring
@@ -722,7 +718,6 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , aeson-casing
-    , aeson-pretty
     , ansi-terminal
     , base
     , bytestring

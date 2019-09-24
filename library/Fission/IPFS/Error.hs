@@ -52,7 +52,7 @@ instance Display Get where
         [ "Unable to find CID "
         , display hash
         , " before the timeout of "
-        , display sec
+        , displayShow sec
         , " seconds."
         ]
 

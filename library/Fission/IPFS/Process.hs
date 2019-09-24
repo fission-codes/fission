@@ -17,7 +17,7 @@ import           Fission.Internal.Process
 import           Fission.IPFS.Types as IPFS
 
 run :: RIOProc      (Rec cfg) m
-    => Has "ipfsPath"    cfg IPFS.BinPath
+    => Has "ipfsPath"    cfg FilePath
     => Has "ipfsTimeout" cfg Natural
     => [Opt]
     -> Lazy.ByteString
@@ -25,14 +25,14 @@ run :: RIOProc      (Rec cfg) m
 run opts arg = runBS (byteStringInput arg) opts
 
 run' :: RIOProc (Rec cfg) m
-     => Has "ipfsPath"    cfg IPFS.BinPath
+     => Has "ipfsPath"    cfg FilePath
      => Has "ipfsTimeout" cfg Natural
      => [Opt]
      -> m (ExitCode, Lazy.ByteString, Lazy.ByteString)
 run' = runBS createPipe
 
 run_ :: RIOProc          (Rec cfg) m
-     => Has "ipfsPath"    cfg IPFS.BinPath
+     => Has "ipfsPath"    cfg FilePath
      => Has "ipfsTimeout" cfg Natural
      => [Opt]
      -> Lazy.ByteString
@@ -40,7 +40,7 @@ run_ :: RIOProc          (Rec cfg) m
 run_ opts arg = runExitCode (byteStringInput arg) opts
 
 runBS :: RIOProc (Rec cfg) m
-      => Has "ipfsPath"    cfg IPFS.BinPath
+      => Has "ipfsPath"    cfg FilePath
       => Has "ipfsTimeout" cfg Natural
       => StreamIn stdin
       -> [Opt]
@@ -48,7 +48,7 @@ runBS :: RIOProc (Rec cfg) m
 runBS inStream = ipfsProc readProcess inStream byteStringOutput
 
 runExitCode :: RIOProc      (Rec cfg) m
-            => Has "ipfsPath"    cfg IPFS.BinPath
+            => Has "ipfsPath"    cfg FilePath
             => Has "ipfsTimeout" cfg Natural
             => StreamIn stdin
             -> [Opt]
@@ -56,7 +56,7 @@ runExitCode :: RIOProc      (Rec cfg) m
 runExitCode inStream = ipfsProc runProcess inStream createPipe
 
 runErr' :: RIOProc      (Rec cfg) m
-        => Has "ipfsPath"    cfg IPFS.BinPath
+        => Has "ipfsPath"    cfg FilePath
         => Has "ipfsTimeout" cfg Natural
         => [Opt]
         -> Lazy.ByteString
@@ -64,7 +64,7 @@ runErr' :: RIOProc      (Rec cfg) m
 runErr' opts arg = runErr (byteStringInput arg) opts
 
 runErr :: RIOProc      (Rec cfg) m
-       => Has "ipfsPath"    cfg IPFS.BinPath
+       => Has "ipfsPath"    cfg FilePath
        => Has "ipfsTimeout" cfg Natural
        => StreamIn stdin
        -> [Opt]
@@ -72,7 +72,7 @@ runErr :: RIOProc      (Rec cfg) m
 runErr inStream = ipfsProc readProcessStderr inStream byteStringOutput
 
 ipfsProc :: RIOProc      (Rec cfg) m
-         => Has "ipfsPath"    cfg IPFS.BinPath
+         => Has "ipfsPath"    cfg FilePath
          => Has "ipfsTimeout" cfg Natural
          => (ProcessConfig stdin stdout () -> m a)
          -> StreamIn  stdin
@@ -80,7 +80,7 @@ ipfsProc :: RIOProc      (Rec cfg) m
          -> [Opt]
          -> m a
 ipfsProc processor inStream outStream opts = do
-  IPFS.BinPath ipfs <- asksR #ipfsPath
+  ipfs <- asksR #ipfsPath
   secs <- asksR #ipfsTimeout
   let opts' = ("--timeout=" <> show secs <> "s") : opts
   proc ipfs opts' $ processor

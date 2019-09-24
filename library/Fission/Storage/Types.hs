@@ -1,6 +1,7 @@
 module Fission.Storage.Types
-  ( Pool (..)
-  , SeldaPool
+  (-- Pool (..)
+  -- SeldaPool
+  Pool
   ) where
 
 import RIO
@@ -10,6 +11,7 @@ import           Database.Selda.Backend    (SeldaConnection)
 import           Database.Selda.PostgreSQL
 
 type SeldaPool = Database.Pool (SeldaConnection PG)
+type Pool = Database.Pool (SeldaConnection PG)
 
-newtype Pool = Pool { getPool :: SeldaPool }
-  deriving Show
+-- new Pool = Pool { getPool :: SeldaPool }
+  -- deriving Show

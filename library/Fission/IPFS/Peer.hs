@@ -19,7 +19,7 @@ import qualified Fission.Internal.UTF8       as UTF8
 all :: MonadRIO          (Rec cfg) m
     => HasProcessContext (Rec cfg)
     => HasLogFunc        (Rec cfg)
-    => Has "ipfsPath"         cfg IPFS.BinPath
+    => Has "ipfsPath"         cfg FilePath
     => Has "ipfsTimeout"      cfg Natural
     => m (Either IPFS.Peer.Error [IPFS.Peer])
 all = rawList <&> \case
@@ -32,7 +32,7 @@ all = rawList <&> \case
     Left . UnknownErr $ UTF8.textShow err
 
 rawList :: MonadRIO          (Rec cfg) m
-        => Has "ipfsPath"         cfg IPFS.BinPath
+        => Has "ipfsPath"         cfg FilePath
         => Has "ipfsTimeout"      cfg Natural
         => HasProcessContext (Rec cfg)
         => HasLogFunc        (Rec cfg)

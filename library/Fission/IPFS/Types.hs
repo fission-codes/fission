@@ -1,7 +1,7 @@
 -- | Types related to IPFS
 module Fission.IPFS.Types
-  ( BinPath (..)
-  , CID (..)
+  ( -- BinPath (..)
+  CID (..)
   , mkCID
   , Name (..)
   , Opt
@@ -13,7 +13,7 @@ module Fission.IPFS.Types
   -- , URL (..)
   ) where
 
-import Fission.IPFS.BinPath.Types
+-- import Fission.IPFS.BinPath.Types
 import Fission.IPFS.CID.Types
 import Fission.IPFS.Name.Types
 import Fission.IPFS.Path.Types

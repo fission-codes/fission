@@ -41,7 +41,7 @@ import qualified Fission.Web.Heroku            as Heroku
 type API = Web.Swagger.API :<|> Web.API
 
 -- | The actual web server for 'API'
-app :: HasOf [ "ipfsPath"    := IPFS.BinPath
+app :: HasOf [ "ipfsPath"    := FilePath
             , "ipfsTimeout" := Natural
             , "ipfsURL"     := Client.BaseUrl
             , "httpManager" := HTTP.Manager
@@ -82,7 +82,7 @@ mkAuth = do
         :. EmptyContext
 
 -- | Web handlers for the 'API'
-server :: Has "ipfsPath"         cfg IPFS.BinPath
+server :: Has "ipfsPath"         cfg FilePath
        => Has "ipfsTimeout"      cfg Natural
        => Has "httpManager"      cfg HTTP.Manager
        => Has "ipfsURL"          cfg Client.BaseUrl

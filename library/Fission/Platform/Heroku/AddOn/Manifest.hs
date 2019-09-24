@@ -1,37 +1,54 @@
 module Fission.Platform.Heroku.AddOn.Manifest
-  ( Manifest (..)
-  , id
-  , name
-  , api
-  , API (..)
-  , password
-  , ssoSalt
+  ( Manifest -- (..)
+  , Fields
+  -- , id
+  -- , name
+  -- , api
+  -- , API -- (..)
+  -- , password
+  -- , ssoSalt
   ) where
 
 import RIO hiding (id)
 
-import Control.Lens (makeLenses)
-import Data.Aeson.TH
+-- import Control.Lens (makeLenses)
+-- import Data.Aeson.TH
+import SuperRecord as SR
 
-import Fission.Internal.JSON
+import qualified Fission.Platform.Heroku.Types as Heroku
 
-data API = API
-  { _password :: Text
-  , _ssoSalt  :: Text
-  } deriving ( Show
-             , Eq
-             )
+-- import Fission.Internal.JSON
 
-makeLenses ''API
-$(deriveJSON lens_snake_case ''API)
+-- data API = API
+--   { _password :: Text
+--   , _ssoSalt  :: Text
+--   } deriving ( Show
+--              , Eq
+--              )
 
-data Manifest = Manifest
-  { _id   :: Text
-  , _name :: Text
-  , _api  :: API
-  } deriving ( Show
-             , Eq
-             )
+-- makeLenses ''API
+-- $(deriveJSON lens_snake_case ''API)
 
-makeLenses ''Manifest
-$(deriveJSON lens_snake_case ''Manifest)
+-- type API = Rec '[ "password" := Text
+--                 , "sso_salt" := Text
+--                 ]
+
+-- data Manifest = Manifest
+--   { _id   :: Text
+--   , _name :: Text
+--   , _api  :: API
+--   } deriving ( Show
+--              , Eq
+--              )
+
+-- makeLenses ''Manifest
+-- $(deriveJSON lens_snake_case ''Manifest)
+
+type APIFields = '["password" := Heroku.Password]
+
+type Fields = '[ "id"   := Heroku.ID
+               , "name" := Text
+               , "api"  := Rec APIFields
+               ]
+
+type Manifest = Rec Fields

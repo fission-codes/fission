@@ -11,15 +11,25 @@ import Database.Selda (SqlType)
 import Data.Aeson
 import Data.Swagger as Swagger
 
+import Fission.Internal.Orphanage.ByteString.Strict ()
+
 -- | Heroku add-on ID (from @addon-manifest.json@)
 newtype ID = ID { getID :: ByteString }
-  deriving         (Eq, Show)
-  deriving newtype IsString
+  deriving         ( Eq
+                   , Show
+                   )
+  deriving newtype ( IsString
+                   , FromJSON
+                   )
 
 -- | Heroku add-on password (from @addon-manifest.json@)
 newtype Password = Password { getPassword :: ByteString }
-  deriving         (Eq, Show)
-  deriving newtype IsString
+  deriving         ( Eq
+                   , Show
+                   )
+  deriving newtype ( IsString
+                   , FromJSON
+                   )
 
 -- | Location of Heroku server requesting keys
 data Region

@@ -24,7 +24,7 @@ put :: MonadRIO (Rec cfg) m
     => HasLogFunc (Rec cfg)
     => Has "httpManager" cfg HTTP.Manager
     => Has "ipfsURL"     cfg Client.BaseUrl
-    => Has "ipfsPath"    cfg IPFS.BinPath
+    => Has "ipfsPath"    cfg FilePath
     => Has "ipfsTimeout" cfg Natural
     => Lazy.ByteString
     -> m (Either IPFS.Error.Add IPFS.CID)

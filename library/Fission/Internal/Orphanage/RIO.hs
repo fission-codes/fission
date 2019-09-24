@@ -18,5 +18,5 @@ instance Has "dbPool" cfg DB.Pool => MonadSelda (RIO (Rec cfg)) where
   type Backend (RIO (Rec cfg)) = PG
 
   withConnection action = do
-    DB.Pool pool <- asksR #dbPool
+    pool <- asksR #dbPool
     withResource pool action

@@ -54,7 +54,7 @@ server :: HasLogFunc             (Rec cfg)
        => MonadSelda        (RIO (Rec cfg))
        => Has "httpManager"           cfg HTTP.Manager
        => Has "ipfsURL"               cfg Client.BaseUrl
-       => Has "ipfsPath"              cfg IPFS.BinPath
+       => Has "ipfsPath"              cfg FilePath
        => Has "ipfsTimeout"           cfg Natural
        => RIOServer    (Rec cfg) API
 server = authed
@@ -65,7 +65,7 @@ authed :: HasLogFunc        (Rec cfg)
        => MonadSelda   (RIO (Rec cfg))
        => Has "httpManager"      cfg HTTP.Manager
        => Has "ipfsURL"          cfg Client.BaseUrl
-       => Has "ipfsPath"         cfg IPFS.BinPath
+       => Has "ipfsPath"         cfg FilePath
        => Has "ipfsTimeout"      cfg Natural
        => RIOServer         (Rec cfg) AuthedAPI
 authed usr = CID.allForUser usr

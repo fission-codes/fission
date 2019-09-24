@@ -44,7 +44,7 @@ type JSONAPI = FileRequest
 type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
-add :: Has "ipfsPath"         cfg IPFS.BinPath
+add :: Has "ipfsPath"         cfg FilePath
     => Has "ipfsTimeout"      cfg Natural
     => Has "httpManager"      cfg HTTP.Manager
     => Has "ipfsURL"          cfg Client.BaseUrl
@@ -55,7 +55,7 @@ add :: Has "ipfsPath"         cfg IPFS.BinPath
     -> RIOServer         (Rec cfg) API
 add User { _userID } = textAdd _userID :<|> jsonAdd _userID
 
-textAdd :: HasOf [ "ipfsPath"    := IPFS.BinPath
+textAdd :: HasOf [ "ipfsPath"    := FilePath
                 , "ipfsTimeout" := Natural
                 , "httpManager" := HTTP.Manager
                 , "ipfsURL"     := Client.BaseUrl
@@ -71,7 +71,7 @@ textAdd uID form queryName = run uID form queryName $ \sparse ->
     Left err   -> Web.Err.throw err
 
 jsonAdd :: MonadSelda   (RIO (Rec cfg))
-        => HasOf [ "ipfsPath"    := IPFS.BinPath
+        => HasOf [ "ipfsPath"    := FilePath
                 , "ipfsTimeout" := Natural
                 , "httpManager" := HTTP.Manager
                 , "ipfsURL"     := Client.BaseUrl
@@ -87,7 +87,7 @@ run :: MonadRIO          (Rec cfg) m
     => MonadSelda            m
     => HasOf [ "httpManager" := HTTP.Manager
             , "ipfsTimeout" := Natural
-            , "ipfsPath"    := IPFS.BinPath
+            , "ipfsPath"    := FilePath
             , "httpManager" := HTTP.Manager
             , "ipfsURL"     := Client.BaseUrl
             ] cfg

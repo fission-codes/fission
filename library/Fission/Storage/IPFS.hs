@@ -29,7 +29,7 @@ addRaw :: MonadRIO          (Rec cfg) m
        => HasLogFunc        (Rec cfg)
        => HasOf [ "httpManager" := HTTP.Manager
                , "ipfsURL"     := Client.BaseUrl
-               , "ipfsPath"    := IPFS.BinPath
+               , "ipfsPath"    := FilePath
                , "ipfsTimeout" := Natural
                ]  cfg
        => Lazy.ByteString
@@ -49,7 +49,7 @@ addFile :: MonadRIO          (Rec cfg) m
         => HasLogFunc        (Rec cfg)
         => Has "httpManager" cfg HTTP.Manager
         => Has "ipfsURL"     cfg Client.BaseUrl
-        => Has "ipfsPath"    cfg IPFS.BinPath
+        => Has "ipfsPath"    cfg FilePath
         => Has "ipfsTimeout" cfg Natural
         => Lazy.ByteString
         -> IPFS.Name
@@ -88,7 +88,7 @@ addFile raw name =
              ]
 
 get :: RIOProc           (Rec cfg) m
-    => Has "ipfsPath"    cfg IPFS.BinPath
+    => Has "ipfsPath"    cfg FilePath
     => Has "ipfsTimeout" cfg Natural
     => IPFS.CID
     -> m (Either IPFS.Error.Get File.Serialized)

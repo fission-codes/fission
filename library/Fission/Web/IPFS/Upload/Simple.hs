@@ -24,7 +24,7 @@ import           Fission.User.CID.Mutation as UserCID
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-add :: Has "ipfsPath"         cfg IPFS.BinPath
+add :: Has "ipfsPath"         cfg FilePath
     => Has "ipfsTimeout"      cfg Natural
     => Has "httpManager"      cfg HTTP.Manager
     => Has "ipfsURL"          cfg Client.BaseUrl

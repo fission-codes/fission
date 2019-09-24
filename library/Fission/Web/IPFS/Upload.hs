@@ -21,7 +21,7 @@ import           Fission.User
 
 type API = Simple.API :<|> Multipart.API
 
-add :: Has "ipfsPath"    cfg IPFS.BinPath
+add :: Has "ipfsPath"    cfg FilePath
     => Has "ipfsTimeout" cfg Natural
     => Has "httpManager" cfg HTTP.Manager
     => Has "ipfsURL"     cfg Client.BaseUrl

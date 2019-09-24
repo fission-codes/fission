@@ -26,7 +26,7 @@ import qualified Fission.Web.Error       as Web.Err
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-put :: Has "ipfsPath"    cfg IPFS.BinPath
+put :: Has "ipfsPath"    cfg FilePath
     => Has "ipfsTimeout" cfg Natural
     => Has "httpManager" cfg HTTP.Manager
     => Has "ipfsURL"     cfg Client.BaseUrl
