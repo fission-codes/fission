@@ -1,33 +1,32 @@
 -- | External app configuration ("knobs")
 module Fission.Environment.Types
-  ( Fields -- Environment (..)
-  -- , ipfs
-  -- , storage
-  -- , web
+  ( Environment (..)
+  , ipfs
+  , storage
+  , web
   ) where
 
--- import RIO hiding (timeout)
+import RIO hiding (timeout)
 
--- import Control.Lens (makeLenses)
--- import Data.Aeson
-import SuperRecord  as SR
+import Data.Aeson
+import Control.Lens (makeLenses)
 
-import qualified Fission.IPFS.Config.Types              as IPFS
--- import qualified Fission.Platform.Heroku.AddOn.Manifest as Heroku
-import qualified Fission.Storage.Environment.Types      as Storage
-import qualified Fission.Web.Environment.Types          as Web
+import qualified Fission.IPFS.Environment.Types    as IPFS
+import qualified Fission.Storage.Environment.Types as Storage
+import qualified Fission.Web.Environment.Types     as Web
 
-type Fields = '[ "ipfs"    := Rec IPFS.Fields    -- ^ IPFS configuration
-               , "storage" := Rec Storage.Fields -- ^ Storage/DB configuration
-               , "web"     := Rec Web.Fields     -- ^ Web configuration
-               ]
+data Environment = Environment
+  { _ipfs    :: !IPFS.Environment    -- ^ IPFS configuration
+  , _storage :: !Storage.Environment -- ^ Storage/DB configuration
+  , _web     :: !Web.Environment     -- ^ Web configuration
+  } deriving Show
 
--- -- makeLenses ''Environment
+makeLenses ''Environment
 
--- instance FromJSON Environment where
---   parseJSON = withObject "Environment" \obj -> do
---     _ipfs    <- parseJSON . Object =<< obj .: "ipfs"
---     _storage <- parseJSON . Object =<< obj .: "storage"
---     _web     <- parseJSON . Object =<< obj .: "web"
+instance FromJSON Environment where
+  parseJSON = withObject "Environment" \obj -> do
+    _ipfs    <- parseJSON . Object =<< obj .: "ipfs"
+    _storage <- parseJSON . Object =<< obj .: "storage"
+    _web     <- parseJSON . Object =<< obj .: "web"
 
---     return $ Environment {..}
+    return $ Environment {..}

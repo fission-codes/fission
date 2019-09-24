@@ -26,8 +26,6 @@ main = do
   host  <- withEnv "FISSION_HOST" "runfission.com" id
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
 
-  let
-
   withLogFunc logOptions $ \logger -> do
     let
       url = BaseUrl (if isTLS then Https else Http) host port path

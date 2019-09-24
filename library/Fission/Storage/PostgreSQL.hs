@@ -7,43 +7,50 @@ module Fission.Storage.PostgreSQL
 import RIO
 import RIO.Time
 
+-- import Data.Has
 import Data.Pool
+
+-- import Database.Selda
 import Database.Selda.PostgreSQL
+
 import SuperRecord
 
--- import Fission.Internal.Orphanage.Tuple ()
+import Fission.Internal.Constraint
+import Fission.Internal.Orphanage.Tuple ()
 
-import           Fission.Internal.Constraint
+-- import qualified Fission.Config        as Config
+-- import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 
--- setupTable :: MonadRIO (Rec cfg) m
---            => HasLogFunc (Rec cfg)
---            => Has "pgConnectInfo" cfg PGConnectInfo
+-- setupTable :: MonadRIO cfg m
+--            => HasLogFunc cfg
+--            => Has PGConnectInfo cfg
 --            => Table b
 --            -> TableName
 --            -> m ()
 -- setupTable tbl tblName = do
---   pgInfo <- asksR #pgConnectInfo
+--   pgInfo <- Config.get
 --   logInfo $ "Creating table `" <> displayShow tblName <> "` in DB"
 --   liftIO . withPostgreSQL pgInfo $ createTable tbl
 
--- connPool :: MonadRIO cfg m => Int -> Int -> NominalDiffTime -> PGConnectInfo -> m DB.Pool
-connPool :: MonadRIO (Rec cfg) m
-         => HasOf [ "stripeCount"    := Int
-                 , "connsPerStripe" := Int
-                 , "connTTL"        := NominalDiffTime
-                 , "postgresql"     := PGConnectInfo
-                 ] cfg
-         => m DB.Pool
-connPool = do
-  stripeCount    <- asksR #stripeCount
-  connsPerStripe <- asksR #connsPerStripe
-  connTTL        <- asksR #connTTL
-  pgInfo         <- asksR #postgresql
-  liftIO $ createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
+connPool :: MonadRIO   (Rec cfg) m
+         => HasLogFunc (Rec cfg)
+         => Int
+         -> Int
+         -> NominalDiffTime
+         -> PGConnectInfo
+         -> m DB.Pool
+connPool stripeCount connsPerStripe connTTL pgInfo@(PGConnectInfo {..}) = do
+  logDebug $ "Establishing DB pool for " <> displayShow pgDatabase
 
+  pool <- liftIO $ createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
+  logDebug $ "DB pool stats: " <> displayShow pool
+
+  return pool
+
+-- -- NOTE HLint can't handle BlockArguments _yet_
 -- makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
--- makeTable pgInfo' tbl tblName = runRIO (SuperRecord.& rnil) do
+-- makeTable pgInfo' tbl tblName = runSimpleApp do
 --   pool   <- connPool 1 1 1 pgInfo'
 --   logger <- view logFuncL
 --   runRIO (logger, pool, pgInfo') . setupTable tbl $ Table.name tblName

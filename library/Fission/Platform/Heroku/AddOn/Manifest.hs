@@ -1,54 +1,52 @@
 module Fission.Platform.Heroku.AddOn.Manifest
-  ( Manifest -- (..)
-  , Fields
-  -- , id
-  -- , name
-  -- , api
-  -- , API -- (..)
-  -- , password
-  -- , ssoSalt
+  ( Manifest (..)
+  , id
+  , name
+  , api
+  , API (..)
+  , password
+  , ssoSalt
   ) where
 
 import RIO hiding (id)
 
--- import Control.Lens (makeLenses)
--- import Data.Aeson.TH
-import SuperRecord as SR
+import Control.Lens (makeLenses)
+import Data.Aeson
 
-import qualified Fission.Platform.Heroku.Types as Heroku
+import Fission.Platform.Heroku.Types as Heroku
 
--- import Fission.Internal.JSON
+data API = API
+  { _password :: Heroku.Password
+  , _ssoSalt  :: Text
+  }
+  deriving ( Show
+           , Eq
+           )
 
--- data API = API
---   { _password :: Text
---   , _ssoSalt  :: Text
---   } deriving ( Show
---              , Eq
---              )
+makeLenses ''API
 
--- makeLenses ''API
--- $(deriveJSON lens_snake_case ''API)
+instance FromJSON API where
+  parseJSON = withObject "Heroku.Manifest.API" \obj -> do
+    _password <- obj .: "password"
+    _ssoSalt  <- obj .: "sso_salt"
 
--- type API = Rec '[ "password" := Text
---                 , "sso_salt" := Text
---                 ]
+    return API {..}
 
--- data Manifest = Manifest
---   { _id   :: Text
---   , _name :: Text
---   , _api  :: API
---   } deriving ( Show
---              , Eq
---              )
+data Manifest = Manifest
+  { _id   :: Heroku.ID
+  , _name :: Text
+  , _api  :: API
+  }
+  deriving ( Show
+           , Eq
+           )
 
--- makeLenses ''Manifest
--- $(deriveJSON lens_snake_case ''Manifest)
+makeLenses ''Manifest
 
-type APIFields = '["password" := Heroku.Password]
+instance FromJSON Manifest where
+  parseJSON = withObject "Heroku.Manifest" \obj -> do
+    _id   <- obj .: "id"
+    _name <- obj .: "name"
+    _api  <- obj .: "api" >>= parseJSON . Object
 
-type Fields = '[ "id"   := Heroku.ID
-               , "name" := Text
-               , "api"  := Rec APIFields
-               ]
-
-type Manifest = Rec Fields
+    return Manifest {..}
