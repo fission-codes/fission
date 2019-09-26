@@ -2,7 +2,6 @@
 module Fission.CLI.Up (command, up) where
 
 import           RIO
-import           RIO.ByteString
 import qualified RIO.Text as Text
 
 import           Data.Has
@@ -10,7 +9,7 @@ import           Options.Applicative.Simple (addCommand)
 import qualified System.Console.ANSI as ANSI
 import           Turtle hiding ((<&>), err)
 
-import           Fission.Internal.Applicative
+import           Fission.Internal.Applicative -- TODO delete me!
 import           Fission.Internal.Constraint
 
 import qualified Fission.Web.Client      as Client
@@ -39,43 +38,32 @@ up :: MonadRIO          cfg m
    => m ()
 up = do
   logDebug "Starting single IPFS add locally"
-  addCurrentDir >>= \case
-    Left bad ->
-      logError $ display bad
+  addCurrentDir \hash -> Auth.withAuth \auth -> do
+    Client.Runner runner <- Config.get
+    logDebug $ "Remote pinning " <> display hash
 
-    Right out -> do
-      hash   <- Text.stripEnd <$> strict out
-      result <- Auth.get
-      case result of
-        Left err -> do
-          logError $ displayShow err
-          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-          putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
-          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-          putStr "fission-cli login"
+    liftIO (withLoader 50000 . runner $ Fission.pin (Fission.request auth) (CID hash)) >>= \case
+      Left err -> do
+        logError $ displayShow err
+        liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+        putText $ mconcat
+          [ Emoji.prohibited
+          , " Something went wrong. Please try again or file a bug report with "
+          , "Fission support at https://github.com/fission-suite/web-api/issues/new"
+          ]
 
-        Right auth -> do
-          Client.Runner runner <- Config.get
-          let cid = CID hash
-          logDebug $ "Remote pinning " <> displayShow cid
+      Right _ -> do
+        putText $ "\n" <> Emoji.rocket <> "Your current working directory is now live"
+        putText $ "\n" <> Emoji.okHand <> hash  <> "\n"
 
-          liftIO (withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid) >>= \case
-            Left err -> do
-              logError $ displayShow err
-              liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-              putText $ mconcat
-                [ Emoji.prohibited
-                , " Something went wrong. Please try again or file a bug report with "
-                , "Fission support at https://github.com/fission-suite/web-api/issues/new"
-                ]
-
-            Right _ -> do
-              putText $ "\n" <> Emoji.rocket <> "Your current working directory is now live"
-              putText $ "\n" <> Emoji.okHand <> hash  <> "\n"
+addCurrentDir :: (MonadRIO cfg m, HasLogFunc cfg) => (Text -> m ()) -> m ()
+addCurrentDir action = addCurrentDir' >>= \case
+  Left  err -> logError $ display err
+  Right out -> strict out <&> Text.stripEnd >>= action
 
 -- | Add the current working directory to IPFS locally
-addCurrentDir :: MonadIO m => m (Either Text (Shell Line))
-addCurrentDir = do
+addCurrentDir' :: MonadIO m => m (Either Text (Shell Line))
+addCurrentDir' = do
   dir <- pwd
   return $ case toText dir of
     Right txt -> Right $ inproc "ipfs" ["add", "-HQr", txt] (pure "")
