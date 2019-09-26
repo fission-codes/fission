@@ -38,15 +38,15 @@ up :: MonadRIO          cfg m
    => Has Client.Runner cfg
    => m ()
 up = do
-  logDebug "Starting single pin"
+  logDebug "Starting single IPFS add locally"
   addCurrentDir >>= \case
     Left bad ->
       logError $ display bad
 
     Right out -> do
-      hash      <- Text.stripEnd <$> strict out
-      authOrErr <- Auth.get
-      case authOrErr of
+      hash   <- Text.stripEnd <$> strict out
+      result <- Auth.get
+      case result of
         Left err -> do
           logError $ displayShow err
           liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
@@ -57,18 +57,9 @@ up = do
         Right auth -> do
           Client.Runner runner <- Config.get
           let cid = CID hash
-          logDebug $ "Pinning " <> displayShow cid
+          logDebug $ "Remote pinning " <> displayShow cid
 
-          res <- liftIO . withLoader 50000
-                       . runner
-                       . Fission.pin (Fission.request auth)
-                       $ CID hash
-
-          case res of
-            Right _ -> do
-              putText $ Emoji.rocket <> " Your current working directory is now live"
-              putText $ Emoji.okHand <> " " <> hash
-
+          liftIO (withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid) >>= \case
             Left err -> do
               logError $ displayShow err
               liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
@@ -78,6 +69,9 @@ up = do
                 , "Fission support at https://github.com/fission-suite/web-api/issues/new"
                 ]
 
+            Right _ -> do
+              putText $ "\n" <> Emoji.rocket <> "Your current working directory is now live"
+              putText $ "\n" <> Emoji.okHand <> hash  <> "\n"
 
 -- | Add the current working directory to IPFS locally
 addCurrentDir :: MonadIO m => m (Either Text (Shell Line))

@@ -3,7 +3,7 @@ module Fission.CLI.Types
   , Config (..)
   , fissionAPI
   , logFunc
-  , watchMgr
+  -- , watchMgr
   ) where
 
 import RIO
@@ -24,7 +24,6 @@ type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
 data Config = Config
   { _fissionAPI :: !Client.Runner
   , _logFunc    :: !LogFunc
-  , _watchMgr   :: !WatchManager
   }
 
 makeLenses ''Config
@@ -34,6 +33,3 @@ instance HasLogFunc Config where
 
 instance Has Client.Runner Config where
   hasLens = fissionAPI
-
-instance Has WatchManager Config where
-  hasLens = watchMgr
