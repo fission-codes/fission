@@ -50,7 +50,7 @@ watcher = Auth.withAuth \auth -> do
   up
 
   liftIO $ FS.withManager \watchMgr -> do
-    currentHash <- newMVar "No hash yet"
+    hashCache <- newMVar "No hash yet"
 
     void $ FS.watchTree watchMgr dir (const True) . const $ runRIO cfg do
       logDebug "FIRED"
@@ -59,11 +59,10 @@ watcher = Auth.withAuth \auth -> do
       newHash <- Text.stripEnd <$> strict rawOut
       logDebug $ "New CID: " <> display newHash
 
-      oldHash <- takeMVar currentHash
+      oldHash <- swapMVar hashCache newHash
       logDebug $ "Old CID: " <> display oldHash
 
       when (oldHash /= newHash) do
-        putMVar currentHash newHash
         logDebug $ "Remote pinning " <> display newHash
 
         liftIO (withLoader 50000 . runner $ Fission.pin (Fission.request auth) (CID newHash)) >>= \case
