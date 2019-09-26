@@ -19,7 +19,7 @@ cli cfg =
     Watch.command cfg
     Up.command    cfg
   where
-    version     = "1.7.0"
+    version     = "1.10.0"
     description = "CLI to interact with Fission services"
     detail      = mconcat [ "Fission makes developing, deploying, updating "
                           , "and iterating on web applications quick and easy."

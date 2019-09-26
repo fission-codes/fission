@@ -2,7 +2,7 @@
 module Fission.Web.Error
   ( ToServerError (..)
   , ensure
-  , ensure_
+  , ensureM
   , throw
   ) where
 

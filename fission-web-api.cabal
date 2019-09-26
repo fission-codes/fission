@@ -4,23 +4,24 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c257eb58aa35d6b94162075cee7a4d3adeb3b73ec35371b82a2a9522bb4f2f79
+-- hash: 8ab820a1972c1d5701ba6fd0a437bbea7cd30b103e34c0e204c77fe9498f3400
 
 name:           fission-web-api
-version:        1.8.0
+version:        1.10.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
-author:         Brooklyn Zelenka
-maintainer:     hello@brooklynzelenka.com
-copyright:      © 2019 Brooklyn Zelenka
+author:         Brooklyn Zelenka,
+                Daniel Holmgren
+maintainer:     brooklyn@fission.codes,
+                daniel@fission.codes
+copyright:      © 2019 Fission Internet Software Services for Open Networks Inc.
 license:        AGPL-3.0-or-later
 license-file:   LICENSE
-tested-with:    GHC==8.6.4
+tested-with:    GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -40,6 +41,7 @@ library
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
+      Fission.Environment.Types
       Fission.File.Types
       Fission.Internal.Applicative
       Fission.Internal.Bool
@@ -52,6 +54,7 @@ library
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
       Fission.Internal.Orphanage.Tuple
@@ -59,12 +62,14 @@ library
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.BinPath.Types
       Fission.IPFS.CID.Types
       Fission.IPFS.Client
       Fission.IPFS.Client.Add
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
+      Fission.IPFS.Environment.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -75,7 +80,9 @@ library
       Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
+      Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
+      Fission.IPFS.URL.Types
       Fission.Log.Lens
       Fission.Log.Types
       Fission.Monitor
@@ -94,11 +101,13 @@ library
       Fission.Random
       Fission.Security
       Fission.Security.Types
+      Fission.Storage.Environment.Types
       Fission.Storage.IPFS
+      Fission.Storage.IPFS.DAG
+      Fission.Storage.IPFS.Pin
+      Fission.Storage.PostgreSQL
+      Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
-      Fission.Storage.SQLite
-      Fission.Storage.SQLite.Internal
-      Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
       Fission.Timestamp
@@ -127,12 +136,14 @@ library
       Fission.Web.Client.Request
       Fission.Web.Client.Types
       Fission.Web.CORS
+      Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
       Fission.Web.IPFS.Client
+      Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -153,7 +164,7 @@ library
       Paths_fission_web_api
   hs-source-dirs:
       library
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -183,7 +194,7 @@ library
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -218,8 +229,8 @@ executable fission-cli
       Paths_fission_web_api
   hs-source-dirs:
       fission-cli
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -flate-specialise -rtsopts -with-rtsopts=-N -with-rtsopts=-T -optc-ffast-math -optc-O3 -O2
   build-depends:
       aeson
     , aeson-casing
@@ -249,7 +260,7 @@ executable fission-cli
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -284,8 +295,8 @@ executable fission-web
       Paths_fission_web_api
   hs-source-dirs:
       fission-web
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -flate-specialise -rtsopts -with-rtsopts=-N -with-rtsopts=-T -optc-ffast-math -optc-O3 -O2
   build-depends:
       aeson
     , aeson-casing
@@ -315,7 +326,7 @@ executable fission-web
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -351,7 +362,7 @@ test-suite fission-doctest
       Paths_fission_web_api
   hs-source-dirs:
       test/doctest
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
@@ -387,7 +398,7 @@ test-suite fission-doctest
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -423,7 +434,7 @@ test-suite fission-lint
       Paths_fission_web_api
   hs-source-dirs:
       test/lint
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
@@ -454,7 +465,7 @@ test-suite fission-lint
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -499,6 +510,7 @@ test-suite fission-test
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
+      Fission.Environment.Types
       Fission.File.Types
       Fission.Internal.Applicative
       Fission.Internal.Bool
@@ -511,6 +523,7 @@ test-suite fission-test
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
       Fission.Internal.Orphanage.Tuple
@@ -518,12 +531,14 @@ test-suite fission-test
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.BinPath.Types
       Fission.IPFS.CID.Types
       Fission.IPFS.Client
       Fission.IPFS.Client.Add
       Fission.IPFS.Client.Cat
       Fission.IPFS.Client.Param
       Fission.IPFS.Client.Pin
+      Fission.IPFS.Environment.Types
       Fission.IPFS.Error
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
@@ -534,7 +549,9 @@ test-suite fission-test
       Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
+      Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
+      Fission.IPFS.URL.Types
       Fission.Log.Lens
       Fission.Log.Types
       Fission.Monitor
@@ -553,11 +570,13 @@ test-suite fission-test
       Fission.Random
       Fission.Security
       Fission.Security.Types
+      Fission.Storage.Environment.Types
       Fission.Storage.IPFS
+      Fission.Storage.IPFS.DAG
+      Fission.Storage.IPFS.Pin
+      Fission.Storage.PostgreSQL
+      Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
-      Fission.Storage.SQLite
-      Fission.Storage.SQLite.Internal
-      Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
       Fission.Timestamp
@@ -586,12 +605,14 @@ test-suite fission-test
       Fission.Web.Client.Request
       Fission.Web.Client.Types
       Fission.Web.CORS
+      Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
       Fission.Web.IPFS.Client
+      Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
@@ -613,7 +634,7 @@ test-suite fission-test
       library
       test
       test/testsuite
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -647,7 +668,7 @@ test-suite fission-test
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
@@ -688,7 +709,7 @@ benchmark fission-benchmark
       Paths_fission_web_api
   hs-source-dirs:
       benchmark
-  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
@@ -720,7 +741,7 @@ benchmark fission-benchmark
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
