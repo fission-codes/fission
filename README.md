@@ -17,7 +17,7 @@ in a familiar, compatible way
 ```shell
 # IPFS on MacOS, otherwise https://docs.ipfs.io/introduction/install/
 brew install ipfs
-brew service start ipfs
+brew services start ipfs
 
 # Enable sample Heroku config
 mv addon-manifest.json.example addon-manifest.json
