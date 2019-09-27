@@ -1,5 +1,6 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Up (command, up) where
+-- module Fission.CLI.Up (command, up) where
+module Fission.CLI.Up where
 
 import           RIO
 import qualified RIO.Text as Text
