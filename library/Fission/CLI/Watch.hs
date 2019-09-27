@@ -3,6 +3,7 @@ module Fission.CLI.Watch (command, watcher) where
 
 import           RIO
 import qualified RIO.Text as Text
+import           RIO.Time
 
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
@@ -44,39 +45,67 @@ watcher = Auth.withAuth \auth -> do
   Client.Runner runner <- Config.get
   rawDir <- pwd
   let dir = encodeString rawDir
-  let Right txtDir = toText rawDir
   putText $ Emoji.eyes <> " Watching " <> Text.pack dir <> " for changes...\n"
 
+  -- CID initialHash <- up
+  -- hashCache       <- newMVar initialHash
   up
+  hashCache       <- newMVar "NOTHING YET"
+  timeCache       <- newMVar =<< getCurrentTime
 
   liftIO $ FS.withManager \watchMgr -> do
-    hashCache <- newMVar "No hash yet"
+    void . FS.watchTree watchMgr dir (const True) . const $ runRIO cfg do
+      now <- getCurrentTime
+      logDebug $ "FIRED at " <> displayShow now
 
-    void $ FS.watchTree watchMgr dir (const True) . const $ runRIO cfg do
-      logDebug "FIRED"
+      oldTime <- readMVar timeCache
 
-      rawOut  <- return $ inproc "ipfs" ["add", "-HQr", txtDir] (pure "")
-      newHash <- Text.stripEnd <$> strict rawOut
-      logDebug $ "New CID: " <> display newHash
+      if diffUTCTime now oldTime < 0.4 -- dohertyPicoSeconds
+         then do
+           logDebug "Fired within Dhority threshold"
+           return ()
+         else do
+           void $ swapMVar timeCache now
+           threadDelay dohertyMicroSeconds -- Wait for all events to fire in sliding window
 
-      oldHash <- swapMVar hashCache newHash
-      logDebug $ "Old CID: " <> display oldHash
+           case toText rawDir of
+             Left err -> logError $ displayShow err
+             Right txtDir -> do
+               rawOut  <- return $ inproc "ipfs" ["add", "-HQr", txtDir] (pure "")
+               newHash <- Text.stripEnd <$> strict rawOut
+               logDebug $ "New CID: " <> display newHash
 
-      when (oldHash /= newHash) do
-        logDebug $ "Remote pinning " <> display newHash
+               oldHash <- swapMVar hashCache newHash
+               logDebug $ "Old CID: " <> display oldHash
 
-        liftIO (withLoader 50000 . runner $ Fission.pin (Fission.request auth) (CID newHash)) >>= \case
-          Left err -> do
-            logError $ displayShow err
-            liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-            putText $ mconcat
-              [ Emoji.prohibited
-              , " Something went wrong. Please try again or file a bug report with "
-              , "Fission support at https://github.com/fission-suite/web-api/issues/new"
-              ]
+               when (oldHash /= newHash) do
+                 logDebug $ "Remote pinning " <> display newHash
 
-          Right _ -> do
-            putText $ Emoji.rocket <> "Your current working directory is now live\n"
-            putText $ Emoji.okHand <> newHash  <> "\n"
+                 liftIO (withLoader 50000 . runner . Fission.pin (Fission.request auth) $ CID newHash) >>= \case
+                   Left err -> do
+                     return $ inproc "ipfs" ["swarm", "connect", "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+                     liftIO (withLoader 50000 . runner . Fission.pin (Fission.request auth) $ CID newHash) >>= \case
+                       Right _ -> do
+                         putText $ Emoji.rocket <> "Your current working directory is now live\n"
+                         putText $ Emoji.okHand <> newHash  <> "\n\n"
+
+                       Left err -> do
+                         logError $ displayShow err
+                         liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+                         putText $ mconcat
+                           [ Emoji.prohibited
+                           , " Something went wrong. Please try again or file a bug report with "
+                           , "Fission support at https://github.com/fission-suite/web-api/issues/new"
+                           ]
+
+                   Right _ -> do
+                     putText $ Emoji.rocket <> "Your current working directory is now live\n"
+                     putText $ Emoji.okHand <> newHash  <> "\n\n"
 
     forever $ liftIO $ threadDelay 1000000 -- Sleep until interupted by user
+
+dohertyPicoSeconds :: NominalDiffTime
+dohertyPicoSeconds = 400000000000
+
+dohertyMicroSeconds :: Int
+dohertyMicroSeconds = 400000

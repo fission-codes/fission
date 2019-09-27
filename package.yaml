@@ -95,6 +95,7 @@ dependencies:
   - optparse-simple
   - random-bytestring
   - resource-pool
+  - retry
   - rio
   - rio-orphans
   - scientific

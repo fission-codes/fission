@@ -34,7 +34,7 @@ addRaw :: MonadRIO          cfg m
        => Lazy.ByteString
        -> m (Either IPFS.Error.Add IPFS.CID)
 addRaw raw =
-  IPFS.Proc.run ["add", "-q"] raw >>= \case
+  IPFS.Proc.run ["add", "-HQ"] raw >>= \case
     (ExitSuccess, result, _) ->
       case CL.lines result of
         [cid] -> IPFS.Pin.add . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
@@ -105,4 +105,3 @@ get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \ca
 
     | otherwise ->
         return . Left . UnknownGetErr $ UTF8.textShow stdErr
-
