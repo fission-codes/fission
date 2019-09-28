@@ -1,5 +1,6 @@
 module Fission.Storage.IPFS
-  ( addRaw
+  ( addDir
+  , addRaw
   , addFile
   , get
   ) where
@@ -85,6 +86,20 @@ addFile raw name =
              , "--stdin-name"
              , unName name
              ]
+
+addDir :: RIOProc           cfg m
+       => Has IPFS.Timeout  cfg
+       => Has IPFS.BinPath  cfg
+       => FilePath
+       -> m (Either IPFS.Error.Add CID)
+addDir path = IPFS.Proc.run ["add", "-HQr"] (CL.pack path) >>= pure . \case
+    (ExitSuccess, result, _) ->
+      case CL.lines result of
+        [cid] -> Right . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
+        bad   -> Left . UnexpectedOutput $ UTF8.textShow bad
+
+    (ExitFailure _, _, err) ->
+      Left . UnknownAddErr $ UTF8.textShow err
 
 get :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg

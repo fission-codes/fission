@@ -115,7 +115,6 @@ dependencies:
   - text
   - time
   - transformers
-  - turtle
   - unliftio
   - uuid
   - uuid-types

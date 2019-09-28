@@ -1,20 +1,22 @@
 -- | File sync, IPFS-style
--- module Fission.CLI.Up (command, up) where
-module Fission.CLI.Up where
+module Fission.CLI.Up (command, up, up') where
 
 import           RIO
-import qualified RIO.Text as Text
+import           RIO.Directory
+import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
 import qualified System.Console.ANSI as ANSI
-import           Turtle hiding ((<&>), err)
 
 import           Servant
 import           Servant.Client
 
-import           Fission.Internal.Applicative -- TODO delete me!
 import           Fission.Internal.Constraint
+
+import qualified Fission.Storage.IPFS as IPFS
+import qualified Fission.IPFS.Peer    as IPFS.Peer
+import qualified Fission.IPFS.Types   as IPFS
 
 import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
@@ -27,29 +29,43 @@ import           Fission.CLI.Loader
 import           Fission.CLI.Types
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => Config -> CommandM (m ())
+command :: MonadIO m
+        => HasLogFunc        cfg
+        => HasProcessContext cfg
+        => Has IPFS.BinPath  cfg
+        => Has IPFS.Timeout  cfg
+        => Has Client.Runner cfg
+        => cfg
+        -> CommandM (m ())
 command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
     (const $ runRIO cfg up)
-    noop
+    (pure ())
 
 -- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
    => HasLogFunc        cfg
+   => HasProcessContext cfg
+   => Has IPFS.Timeout  cfg
+   => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
    => m ()
 up = do
   logDebug "Starting single IPFS add locally"
-  dir <- pwd
+  dir <- getCurrentDirectory
   Client.Runner runner <- Config.get
   Auth.withAuth \auth ->
-    addDir dir \cid ->
-      void $ up' auth runner cid
+    IPFS.addDir dir >>= \case
+      Left err  -> logError $ displayShow err
+      Right cid -> void $ up' auth runner cid
 
-up' :: MonadRIO cfg m
-    => HasLogFunc cfg
+up' :: MonadRIO          cfg m
+    => HasLogFunc        cfg
+    => HasProcessContext cfg
+    => Has IPFS.BinPath  cfg
+    => Has IPFS.Timeout  cfg
     => Show a
     => BasicAuthData
     -> (ClientM NoContent -> IO (Either a b))
@@ -64,30 +80,13 @@ up' auth runner cid@(CID hash) = do
 
     Left _ -> do
       logError "Failed to pin remotely, attempting to reconnect to IPFS"
-      void $ strict reconnect
-      pinner runner auth cid >>= \case
+      IPFS.Peer.connect IPFS.Peer.fission >> pinner runner auth cid >>= \case
         Right _ -> do
           putSuccess hash
           return $ Right cid
         Left err -> do
           putError err
           return $ Left err
-
-addDir :: (MonadRIO cfg m, HasLogFunc cfg) => Turtle.FilePath -> (CID -> m ()) -> m ()
-addDir dir action =
-  case addDir' dir of
-    Left err ->
-      logError $ display err
-    Right out -> do
-      hash <- strict out
-      action . CID $ Text.stripEnd hash
-
--- | Add the current working directory to IPFS locally
-addDir' :: Turtle.FilePath -> Either Text (Shell Line)
-addDir' dir = recursiveAdd <$> toText dir
-
-recursiveAdd :: Text -> Shell Line
-recursiveAdd txtPath = inproc "ipfs" ["add", "-HQr", txtPath] (pure "")
 
 pinner :: MonadIO m => (ClientM NoContent -> IO a) -> BasicAuthData -> CID -> m a
 pinner runner auth cid =
@@ -110,6 +109,3 @@ putSuccess :: MonadIO m => Text -> m ()
 putSuccess hash = do
   putText $ Emoji.rocket <> "Your current working directory is now live\n"
   putText $ Emoji.okHand <> hash  <> "\n"
-
-reconnect :: Shell Line
-reconnect = inproc "ipfs" ["swarm", "connect", "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"] (pure "")

@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: feab0621652cda07e24f78ff252cfed097a08e01d7e2bc85643fb5725815bc71
+-- hash: 613ea9ab1200b939072bfbb35531a3efdcd20db720bf6b0d35b30c04e572767b
 
 name:           fission-web-api
 version:        1.10.0
@@ -210,7 +210,6 @@ library
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -277,7 +276,6 @@ executable fission-cli
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -344,7 +342,6 @@ executable fission-web
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -417,7 +414,6 @@ test-suite fission-doctest
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -485,7 +481,6 @@ test-suite fission-lint
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -694,7 +689,6 @@ test-suite fission-test
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -763,7 +757,6 @@ benchmark fission-benchmark
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
