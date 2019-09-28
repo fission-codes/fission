@@ -61,15 +61,15 @@ watcher = do
 
     Right initCID ->
       Auth.withAuth \auth ->
-      up' auth runner initCID >>= \case
-        Left err ->
-          logError $ displayShow err -- "Filaed" -- FIXME
+        up' auth runner initCID >>= \case
+          Left err ->
+            logError $ displayShow err -- "Filaed" -- FIXME
 
-        Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
-          hashCache <- newMVar hash
-          timeCache <- newMVar =<< getCurrentTime
-          handleTreeChanges timeCache hashCache watchMgr cfg dir
-          forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+          Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
+            hashCache <- newMVar hash
+            timeCache <- newMVar =<< getCurrentTime
+            handleTreeChanges timeCache hashCache watchMgr cfg dir
+            forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
 
 dohertyDiffTime :: NominalDiffTime
 dohertyDiffTime = 0.4
