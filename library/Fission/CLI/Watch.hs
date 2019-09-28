@@ -49,6 +49,7 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.Timeout  cfg
         => m ()
 watcher = do
+  cfg <- ask
   dir <- getCurrentDirectory
   Client.Runner runner <- Config.get
 
@@ -65,7 +66,6 @@ watcher = do
           logError $ displayShow err -- "Filaed" -- FIXME
 
         Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
-          cfg       <- ask
           hashCache <- newMVar hash
           timeCache <- newMVar =<< getCurrentTime
           handleTreeChanges timeCache hashCache watchMgr cfg dir
