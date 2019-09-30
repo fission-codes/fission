@@ -92,7 +92,7 @@ addDir :: RIOProc           cfg m
        => Has IPFS.BinPath  cfg
        => FilePath
        -> m (Either IPFS.Error.Add CID)
-addDir path = IPFS.Proc.run ["add", "-HQr"] (CL.pack path) >>= pure . \case
+addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
     (ExitSuccess, result, _) ->
       case CL.lines result of
         [cid] -> Right . mkCID . UTF8.stripN 1 $ UTF8.textShow cid

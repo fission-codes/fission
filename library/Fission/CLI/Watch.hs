@@ -109,6 +109,7 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
             logError $ displayShow err
 
           Right cid@(CID newHash) -> do
+            logDebug $ "NEW HASH>>>>>>>>>>>> " <> display newHash
             oldHash <- swapMVar hashCache newHash
             logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
             when (oldHash /= newHash) $ Auth.withAuth (void . CLI.Pin.run cid)
