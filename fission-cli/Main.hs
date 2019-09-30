@@ -2,24 +2,26 @@ module Main (main) where
 
 import           RIO
 import qualified RIO.Partial as Partial
+import           RIO.Process (mkDefaultProcessContext)
 
 import           Network.HTTP.Client     as HTTP
 import           Network.HTTP.Client.TLS as HTTP
 import           Servant.Client
+import           System.Environment (lookupEnv)
 
-import System.Environment (lookupEnv)
-import qualified System.FSNotify as FS
+import           Fission.Environment
+import qualified Fission.Web.Client as Client
 
 import           Fission.CLI
 import qualified Fission.CLI.Types   as CLI
-import           Fission.Environment
-
-import qualified Fission.Web.Client as Client
 
 main :: IO ()
 main = do
   verbose     <- isJust <$> lookupEnv "RIO_VERBOSE"
   logOptions  <- logOptionsHandle stderr verbose
+  _processCtx <- mkDefaultProcessContext
+
+  _ipfsPath <- withEnv "IPFS_PATH" "" id .!~ False
 
   isTLS   <- getFlag "FISSION_TLS" .!~ True
   path    <- withEnv "FISSION_ROOT" "" id
@@ -35,14 +37,9 @@ main = do
   httpManager <- HTTP.newManager $ rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro timeout }
 
-  withLogFunc logOptions \logger -> do
-  -- FS.withManager \watcher -> withLogFunc logOptions \logger -> do
-    let cfg = CLI.Config
-                { _fissionAPI = Client.Runner $ Client.request httpManager url
-                , _logFunc    = logger
-                -- , _watchMgr   = watcher
-                }
+  let _fissionAPI = Client.Runner $ Client.request httpManager url
 
-    runRIO cfg . logDebug $ "Requests will be made to " <> displayShow url
-    (_, runCLI) <- cli cfg
+  withLogFunc logOptions \_logFunc -> do
+    runRIO _logFunc . logDebug $ "Requests will be made to " <> displayShow url
+    (_, runCLI) <- cli CLI.Config {..}
     runCLI

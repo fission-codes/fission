@@ -9,13 +9,10 @@ import           Data.Has
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
-import qualified System.Console.ANSI as ANSI
 import           System.Console.Haskeline
 
 import           Fission.Internal.Constraint
-import qualified Fission.Internal.UTF8 as UTF8
 
-import qualified Fission.Emoji           as Emoji
 import qualified Fission.Config          as Config
 
 import           Fission.Web.Auth.Client as Fission.Auth
@@ -23,14 +20,17 @@ import qualified Fission.Web.Client.Types as Client
 
 import qualified Fission.CLI.Auth   as Auth
 import qualified Fission.CLI.Cursor as Cursor
-import           Fission.CLI.Loader
 import           Fission.CLI.Types
 import qualified Fission.CLI.Success as CLI.Success
 import qualified Fission.CLI.Error   as CLI.Error
 import qualified Fission.CLI.Wait    as CLI.Wait
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => Config -> CommandM (m ())
+command :: MonadUnliftIO m
+        => HasLogFunc        cfg
+        => Has Client.Runner cfg
+        => cfg
+        -> CommandM (m ())
 command cfg =
   addCommand
     "login"
