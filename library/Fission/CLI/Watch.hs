@@ -65,7 +65,7 @@ watcher = do
     Right initCID ->
       Auth.withAuth $ CLI.Pin.run initCID >=> \case
         Left err ->
-          logError $ displayShow err -- "Filaed" -- FIXME
+          logError $ displayShow err
 
         Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
           hashCache <- newMVar hash

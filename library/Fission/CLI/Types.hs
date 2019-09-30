@@ -22,11 +22,11 @@ type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
 
 -- | The configuration used for the CLI application
 data Config = Config
-  { _fissionAPI :: !Client.Runner
-  , _logFunc    :: !LogFunc
-  , _processCtx :: !ProcessContext
-  , _ipfsPath   :: !IPFS.BinPath
-  , _ipfsTimeout    :: !IPFS.Timeout
+  { _fissionAPI  :: !Client.Runner
+  , _logFunc     :: !LogFunc
+  , _processCtx  :: !ProcessContext
+  , _ipfsPath    :: !IPFS.BinPath
+  , _ipfsTimeout :: !IPFS.Timeout
   }
 
 makeLenses ''Config
