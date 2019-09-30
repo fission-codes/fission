@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 613ea9ab1200b939072bfbb35531a3efdcd20db720bf6b0d35b30c04e572767b
+-- hash: 484adab6b9cf07825876f2093cd6f61ef34cc8579f2881d7d7e5d9b4cc440755
 
 name:           fission-web-api
 version:        1.10.0
@@ -32,10 +32,14 @@ library
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Cursor
+      Fission.CLI.Error
       Fission.CLI.Loader
       Fission.CLI.Login
+      Fission.CLI.Pin
+      Fission.CLI.Success
       Fission.CLI.Types
       Fission.CLI.Up
+      Fission.CLI.Wait
       Fission.CLI.Watch
       Fission.Config
       Fission.Config.Types
@@ -43,7 +47,6 @@ library
       Fission.Environment
       Fission.Environment.Types
       Fission.File.Types
-      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -501,10 +504,14 @@ test-suite fission-test
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Cursor
+      Fission.CLI.Error
       Fission.CLI.Loader
       Fission.CLI.Login
+      Fission.CLI.Pin
+      Fission.CLI.Success
       Fission.CLI.Types
       Fission.CLI.Up
+      Fission.CLI.Wait
       Fission.CLI.Watch
       Fission.Config
       Fission.Config.Types
@@ -512,7 +519,6 @@ test-suite fission-test
       Fission.Environment
       Fission.Environment.Types
       Fission.File.Types
-      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON

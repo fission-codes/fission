@@ -12,8 +12,8 @@ import           Servant
 import qualified System.Console.ANSI as ANSI
 import           System.Console.Haskeline
 
-import           Fission.Internal.Applicative
 import           Fission.Internal.Constraint
+import qualified Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.Emoji           as Emoji
 import qualified Fission.Config          as Config
@@ -25,6 +25,9 @@ import qualified Fission.CLI.Auth   as Auth
 import qualified Fission.CLI.Cursor as Cursor
 import           Fission.CLI.Loader
 import           Fission.CLI.Types
+import qualified Fission.CLI.Success as CLI.Success
+import qualified Fission.CLI.Error   as CLI.Error
+import qualified Fission.CLI.Wait    as CLI.Wait
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m => Config -> CommandM (m ())
@@ -33,12 +36,12 @@ command cfg =
     "login"
     "Add your Fission credentials"
     (const $ runRIO cfg login)
-    noop
+    (pure ())
 
 -- | Login (i.e. save credentials to disk). Validates credentials agianst the server.
-login :: MonadRIO         cfg m
-      => MonadUnliftIO        m
-      => HasLogFunc       cfg
+login :: MonadRIO          cfg m
+      => MonadUnliftIO         m
+      => HasLogFunc        cfg
       => Has Client.Runner cfg
       => m ()
 login = do
@@ -54,20 +57,12 @@ login = do
       Client.Runner runner <- Config.get
       let auth = BasicAuthData username $ BS.pack password
 
-      authResult <- Cursor.withHidden $ liftIO do
-        ANSI.cursorForward 3
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
-        putStr "Verifying your credentials..."
-        ANSI.setCursorColumn 0
-        withLoader 5000 . runner $ Fission.Auth.verify auth
+      authResult <- Cursor.withHidden
+                 . liftIO
+                 . CLI.Wait.waitFor "Verifying your credentials"
+                 . runner
+                 $ Fission.Auth.verify auth
 
       case authResult of
-        Right _ok -> do
-          Auth.set auth
-          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
-          putText $ Emoji.whiteHeavyCheckMark <> " Logged in successfully!"
-
-        Left err -> do
-          logDebug $ displayShow err
-          liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-          putText $ Emoji.prohibited <> " Authorization failed"
+        Right _ok -> Auth.write auth >> CLI.Success.putOk "Logged in"
+        Left  err -> CLI.Error.put err "Authorization failed"

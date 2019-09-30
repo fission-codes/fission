@@ -1,5 +1,6 @@
 module Fission.Internal.UTF8
   ( Textable (..)
+  , putText
   , showLazyBS
   , stripN
   , stripNBS
@@ -9,6 +10,7 @@ module Fission.Internal.UTF8
   ) where
 
 import           RIO
+import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
@@ -44,3 +46,7 @@ stripN n = Text.dropEnd i . Text.drop i
   where
     i :: Int
     i = fromIntegral n
+
+-- | Helper for printing 'Text' to a console
+putText :: MonadIO m => Text -> m ()
+putText = Strict.putStr . encodeUtf8

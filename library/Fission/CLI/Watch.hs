@@ -1,5 +1,9 @@
 -- | Continuous file sync
-module Fission.CLI.Watch (command, watcher) where
+module Fission.CLI.Watch
+  ( command
+  , handleTreeChanges
+  , watcher
+  ) where
 
 import           RIO
 import           RIO.Directory
@@ -9,36 +13,37 @@ import           RIO.Time
 
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
-import qualified System.Console.ANSI as ANSI
 import           System.FSNotify as FS
 
-import           Fission.Internal.Applicative
 import           Fission.Internal.Constraint
+import qualified Fission.Internal.UTF8 as UTF8
 
-import qualified Fission.Config          as Config
-import qualified Fission.Emoji           as Emoji
-import qualified Fission.Web.Client      as Client
-import qualified Fission.Web.IPFS.Client as Fission
-import           Fission.IPFS.CID.Types
-
+import qualified Fission.Emoji        as Emoji
+import qualified Fission.Web.Client   as Client
 import qualified Fission.Storage.IPFS as IPFS
-import qualified Fission.IPFS.Peer    as IPFS.Peer
+
+import           Fission.IPFS.CID.Types
 import qualified Fission.IPFS.Types   as IPFS
 
-import           Fission.CLI.Up hiding (command)
-import           Fission.CLI.Loader
+import qualified Fission.CLI.Pin as CLI.Pin
 import           Fission.CLI.Types
-
 import qualified Fission.CLI.Auth as Auth
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => Config -> CommandM (m ())
+command :: MonadIO m
+        => HasLogFunc        cfg
+        => Has Client.Runner cfg
+        => HasProcessContext cfg
+        => Has IPFS.BinPath  cfg
+        => Has IPFS.Timeout  cfg
+        => cfg
+        -> CommandM (m ())
 command cfg =
   addCommand
     "watch"
     "Keep your working directory in sync with the IPFS network"
     (const $ runRIO cfg watcher)
-    noop
+    (pure ())
 
 -- | Continuously sync the current working directory to the server over IPFS
 watcher :: MonadRIO          cfg m
@@ -51,25 +56,24 @@ watcher :: MonadRIO          cfg m
 watcher = do
   cfg <- ask
   dir <- getCurrentDirectory
-  Client.Runner runner <- Config.get
-
-  putText $ Emoji.eyes <> " Watching " <> Text.pack dir <> " for changes...\n"
+  UTF8.putText $ Emoji.eyes <> " Watching " <> Text.pack dir <> " for changes...\n"
 
   IPFS.addDir dir >>= \case
     Left err ->
       logError $ displayShow err
 
     Right initCID ->
-      Auth.withAuth \auth ->
-        up' auth runner initCID >>= \case
-          Left err ->
-            logError $ displayShow err -- "Filaed" -- FIXME
+      Auth.withAuth $ CLI.Pin.run initCID >=> \case
+        Left err ->
+          logError $ displayShow err -- "Filaed" -- FIXME
 
-          Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
-            hashCache <- newMVar hash
-            timeCache <- newMVar =<< getCurrentTime
-            handleTreeChanges timeCache hashCache watchMgr cfg dir
-            forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+        Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
+          hashCache <- newMVar hash
+          timeCache <- newMVar =<< getCurrentTime
+          void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
+          forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+
+-- NOTE TO SELF:move to a constants moudle of some kind
 
 dohertyDiffTime :: NominalDiffTime
 dohertyDiffTime = 0.4
@@ -77,7 +81,12 @@ dohertyDiffTime = 0.4
 dohertyMicroSeconds :: Int
 dohertyMicroSeconds = 400000
 
-handleTreeChanges :: MVar UTCTime
+handleTreeChanges :: HasLogFunc        cfg
+                  => Has Client.Runner cfg
+                  => HasProcessContext cfg
+                  => Has IPFS.BinPath  cfg
+                  => Has IPFS.Timeout  cfg
+                  => MVar UTCTime
                   -> MVar Text
                   -> WatchManager
                   -> cfg
@@ -89,17 +98,17 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
     oldTime <- readMVar timeCache
 
     if diffUTCTime now oldTime < dohertyDiffTime
-      then do
+      then
         logDebug "Fired within change lock window"
-        return ()
 
       else do
         void $ swapMVar timeCache now
         threadDelay dohertyMicroSeconds -- Wait for all events to fire in sliding window
-        addDir rawDir \cid@(CID newHash) -> do
-          logDebug $ "New CID: " <> display newHash
+        IPFS.addDir dir >>= \case
+          Left err ->
+            logError $ displayShow err
 
-          oldHash <- swapMVar hashCache newHash
-          logDebug $ "Old CID: " <> display oldHash
-
-          when (oldHash /= newHash) (void $ up' auth runner cid)
+          Right cid@(CID newHash) -> do
+            oldHash <- swapMVar hashCache newHash
+            logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
+            when (oldHash /= newHash) $ Auth.withAuth (void . CLI.Pin.run cid)

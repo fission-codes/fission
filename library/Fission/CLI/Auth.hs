@@ -1,8 +1,8 @@
 module Fission.CLI.Auth
   ( cachePath
   , get
-  , set
   , withAuth
+  , write
   ) where
 
 import           RIO           hiding (set)
@@ -16,17 +16,17 @@ import qualified Fission.Emoji           as Emoji
 import qualified Data.Yaml as YAML
 import           Servant
 
-import           Fission.CLI.Loader -- TODO move putText to proper module
-import Fission.Internal.Orphanage.BasicAuthData ()
-import Fission.Internal.Constraint
+import           Fission.Internal.Constraint
+import           Fission.Internal.Orphanage.BasicAuthData ()
+import qualified Fission.Internal.UTF8 as UTF8
 
 -- | Retrieve auth from the user's system
 get :: MonadIO m => m (Either YAML.ParseException BasicAuthData)
 get = liftIO . YAML.decodeFileEither =<< cachePath
 
 -- | Write user's auth to a local on-system path
-set :: MonadUnliftIO m => BasicAuthData -> m ()
-set auth = do
+write :: MonadUnliftIO m => BasicAuthData -> m ()
+write auth = do
   path <- cachePath
   writeBinaryFileDurable path $ YAML.encode auth
 
@@ -44,6 +44,6 @@ withAuth action = get >>= \case
   Left err -> do
     logError $ displayShow err
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-    putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
+    UTF8.putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-    putText "fission-cli login"
+    UTF8.putText "fission-cli login"

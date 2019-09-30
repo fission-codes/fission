@@ -1,0 +1,23 @@
+-- | File sync, IPFS-style
+module Fission.CLI.Error (put, put') where
+
+import           RIO
+
+import qualified System.Console.ANSI as ANSI
+
+import qualified Fission.Emoji         as Emoji
+import           Fission.Internal.Constraint
+import qualified Fission.Internal.UTF8 as UTF8
+
+put :: (MonadRIO cfg m, HasLogFunc cfg, Show err) => err -> Text -> m ()
+put err msg = do
+  logDebug $ displayShow err
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+  UTF8.putText $ Emoji.prohibited <> " " <> msg
+  liftIO $ ANSI.setSGR [ANSI.Reset]
+
+put' :: (MonadRIO cfg m, HasLogFunc cfg, Show err) => err -> m ()
+put' err = put err $ mconcat
+  [ "Something went wrong. Please try again or file a bug report with "
+  , "Fission support at https://github.com/fission-suite/web-api/issues/new"
+  ]

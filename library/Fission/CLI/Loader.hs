@@ -3,18 +3,17 @@ module Fission.CLI.Loader
   ( withLoader
   , reset
   , prep
-  , putText
   , loading
   ) where
 
 import           RIO
-import           RIO.ByteString
-import qualified RIO.List       as List
+import qualified RIO.List as List
 
 import           Control.Concurrent
 import qualified System.Console.ANSI as ANSI
 
-import qualified Fission.Emoji as Emoji
+import qualified Fission.Emoji         as Emoji
+import qualified Fission.Internal.UTF8 as UTF8
 
 -- | Perform actions in the background while displaying a loading indicator
 --
@@ -44,7 +43,7 @@ loading :: MonadIO m => Natural -> m ()
 loading delay = forever
         . (const (prep delay) <=< sequence_)
         . List.intersperse (prep delay)
-        $ fmap putText
+        $ fmap UTF8.putText
             [ Emoji.clock0100
             , Emoji.clock0200
             , Emoji.clock0300
@@ -58,7 +57,3 @@ loading delay = forever
             , Emoji.clock1100
             , Emoji.clock1200
             ]
-
--- | Helper for printing 'Text' to a console
-putText :: MonadIO m => Text -> m ()
-putText = putStr . encodeUtf8
