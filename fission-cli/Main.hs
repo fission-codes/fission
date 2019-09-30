@@ -12,6 +12,9 @@ import           System.Environment (lookupEnv)
 import           Fission.Environment
 import qualified Fission.Web.Client as Client
 
+import qualified Fission.IPFS.BinPath.Types as IPFS
+import qualified Fission.IPFS.Timeout.Types as IPFS
+
 import           Fission.CLI
 import qualified Fission.CLI.Types   as CLI
 
@@ -21,13 +24,14 @@ main = do
   logOptions  <- logOptionsHandle stderr verbose
   _processCtx <- mkDefaultProcessContext
 
-  _ipfsPath <- withEnv "IPFS_PATH" "" id .!~ False
+  _ipfsPath    <- withEnv "IPFS_PATH" (IPFS.BinPath "/usr/local/bin/ipfs") IPFS.BinPath
+  _ipfsTimeout <- withEnv "IPFS_TIMEOUT" (IPFS.Timeout 3600) (IPFS.Timeout . Partial.read)
 
-  isTLS   <- getFlag "FISSION_TLS" .!~ True
-  path    <- withEnv "FISSION_ROOT" "" id
-  host    <- withEnv "FISSION_HOST" "runfission.com" id
-  port    <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
-  timeout <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
+  isTLS <- getFlag "FISSION_TLS" .!~ True
+  path  <- withEnv "FISSION_ROOT" "" id
+  host  <- withEnv "FISSION_HOST" "runfission.com" id
+  port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
+  tOut  <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
 
   let url = BaseUrl (if isTLS then Https else Http) host port path
   let rawHTTPSettings = if isTLS
@@ -35,7 +39,7 @@ main = do
                            else defaultManagerSettings
 
   httpManager <- HTTP.newManager $ rawHTTPSettings
-    { managerResponseTimeout = responseTimeoutMicro timeout }
+    { managerResponseTimeout = responseTimeoutMicro tOut }
 
   let _fissionAPI = Client.Runner $ Client.request httpManager url
 
