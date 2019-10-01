@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bf92f1f811b42deb90740f2201b056606ebfffefba471962229a3d506715cf87
+-- hash: af1a0ebb4181bd502b1c96867a40f04c2d2043afe91012decdf0a5e5a12d0540
 
 name:           fission-web-api
 version:        1.9.0

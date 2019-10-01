@@ -20,7 +20,11 @@ brew install ipfs
 brew services start ipfs
 
 # Enable sample Heroku config
+# Note: You will have to edit this file to input dummy data
 cp addon-manifest.json.example addon-manifest.json
+
+# Setup env file
+cp env.yaml.example env.yaml
 
 # If using Linux, install liblzma-dev
 # sudo apt install liblzma-dev
