@@ -96,7 +96,7 @@ deprovision :: MonadSelda   (RIO cfg)
             => Has IPFS.URL      cfg
             => RIOServer         cfg DeprovisionAPI
 deprovision uuid' = do
-  let err = Web.Err.ensure_ err404
+  let err = Web.Err.ensureM err404
 
   AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
   User  {_userID}  <- err =<< Query.findOne do

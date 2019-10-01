@@ -13,10 +13,13 @@ import Data.Swagger ( NamedSchema (..)
                     )
 
 newtype Peer = Peer { peer :: Text }
-  deriving          ( Show
+  deriving          ( Eq
+                    , Show
                     , Generic
                     )
-  deriving newtype  ( IsString )
+  deriving newtype  ( Display
+                    , IsString
+                    )
 
 $(deriveJSON defaultOptions ''Peer)
 

@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 257e0982d3864fa4cfa8e1b8a7d9d9309655113c6642f576808624437c6c7c36
+-- hash: cc8c6012f648eba2d65544e826ca27b053bc7ec9a49a3e5a25b5fc69bc0db024
 
 name:           fission-web-api
-version:        1.9.0
+version:        1.10.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -31,18 +31,22 @@ library
   exposed-modules:
       Fission.CLI
       Fission.CLI.Auth
-      Fission.CLI.Cursor
-      Fission.CLI.Loader
-      Fission.CLI.Login
-      Fission.CLI.Types
-      Fission.CLI.Up
+      Fission.CLI.Command.Login
+      Fission.CLI.Command.Up
+      Fission.CLI.Command.Watch
+      Fission.CLI.Config.Types
+      Fission.CLI.Display.Cursor
+      Fission.CLI.Display.Error
+      Fission.CLI.Display.Loader
+      Fission.CLI.Display.Success
+      Fission.CLI.Display.Wait
+      Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
       Fission.Environment.Types
       Fission.File.Types
-      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -109,6 +113,7 @@ library
       Fission.Storage.Query
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Time
       Fission.Timestamp
       Fission.Types
       Fission.User
@@ -208,7 +213,6 @@ library
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -274,7 +278,6 @@ executable fission-cli
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -340,7 +343,6 @@ executable fission-web
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -412,7 +414,6 @@ test-suite fission-doctest
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -479,7 +480,6 @@ test-suite fission-lint
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -499,18 +499,22 @@ test-suite fission-test
   other-modules:
       Fission.CLI
       Fission.CLI.Auth
-      Fission.CLI.Cursor
-      Fission.CLI.Loader
-      Fission.CLI.Login
-      Fission.CLI.Types
-      Fission.CLI.Up
+      Fission.CLI.Command.Login
+      Fission.CLI.Command.Up
+      Fission.CLI.Command.Watch
+      Fission.CLI.Config.Types
+      Fission.CLI.Display.Cursor
+      Fission.CLI.Display.Error
+      Fission.CLI.Display.Loader
+      Fission.CLI.Display.Success
+      Fission.CLI.Display.Wait
+      Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
       Fission.Environment
       Fission.Environment.Types
       Fission.File.Types
-      Fission.Internal.Applicative
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
@@ -577,6 +581,7 @@ test-suite fission-test
       Fission.Storage.Query
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Time
       Fission.Timestamp
       Fission.Types
       Fission.User
@@ -686,7 +691,6 @@ test-suite fission-test
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types
@@ -754,7 +758,6 @@ benchmark fission-benchmark
     , text
     , time
     , transformers
-    , turtle
     , unliftio
     , uuid
     , uuid-types

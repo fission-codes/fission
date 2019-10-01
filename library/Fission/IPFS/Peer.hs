@@ -1,6 +1,8 @@
 module Fission.IPFS.Peer
   ( all
   , rawList
+  , connect
+  , fission
   ) where
 
 import           RIO hiding (all)
@@ -8,13 +10,15 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 import           RIO.Process (HasProcessContext)
 
-import Data.Has
+import           Data.Has
 
 import           Fission.Internal.Constraint
+import qualified Fission.Internal.UTF8       as UTF8
+
 import qualified Fission.IPFS.Process        as IPFSProc
 import qualified Fission.IPFS.Types          as IPFS
 import           Fission.IPFS.Peer.Error     as IPFS.Peer
-import qualified Fission.Internal.UTF8       as UTF8
+import           Fission.IPFS.Peer.Types
 
 all :: MonadRIO          cfg m
     => HasProcessContext cfg
@@ -38,3 +42,17 @@ rawList :: MonadRIO          cfg m
         => HasLogFunc        cfg
         => m (ExitCode, Lazy.ByteString, Lazy.ByteString)
 rawList = IPFSProc.run' ["bootstrap", "list"]
+
+connect :: MonadRIO cfg m
+        => HasProcessContext cfg
+        => HasLogFunc cfg
+        => Has IPFS.BinPath cfg
+        => Has IPFS.Timeout cfg
+        => Peer
+        -> m (Either IPFS.Peer.Error ())
+connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyBS peerID) >>= pure . \case
+  (ExitFailure _ , _, _) -> Left $ CannotConnect peer
+  (ExitSuccess   , _, _) -> Right ()
+
+fission :: Peer
+fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

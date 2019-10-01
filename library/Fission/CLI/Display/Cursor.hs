@@ -1,5 +1,5 @@
 -- | Helpers for working with a cursor in a console
-module Fission.CLI.Cursor (withHidden) where
+module Fission.CLI.Display.Cursor (withHidden) where
 
 import RIO
 
