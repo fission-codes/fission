@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 65332c32fa3cb38a9ac9a680fac996f797dce04a7259e72fca5349a1cb59e84c
+-- hash: cc8c6012f648eba2d65544e826ca27b053bc7ec9a49a3e5a25b5fc69bc0db024
 
 name:           fission-web-api
 version:        1.10.0
@@ -194,7 +194,6 @@ library
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
@@ -260,7 +259,6 @@ executable fission-cli
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
@@ -326,7 +324,6 @@ executable fission-web
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
@@ -398,7 +395,6 @@ test-suite fission-doctest
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
@@ -465,7 +461,6 @@ test-suite fission-lint
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
@@ -672,7 +667,6 @@ test-suite fission-test
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
@@ -745,7 +739,6 @@ benchmark fission-benchmark
     , optparse-simple
     , random-bytestring
     , resource-pool
-    , retry
     , rio
     , rio-orphans
     , scientific
