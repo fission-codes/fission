@@ -17,7 +17,7 @@ import qualified Fission.User.CID.Table as Table
 
 import           Fission.Web.Server
 
-type API = Get '[PlainText, JSON] [CID]
+type API = Get '[JSON, PlainText] [CID]
 
 allForUser :: MonadSelda (RIO cfg) => User -> RIOServer cfg API
 allForUser User { _userID } = do
