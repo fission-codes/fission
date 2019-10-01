@@ -16,7 +16,7 @@ import qualified Fission.IPFS.BinPath.Types as IPFS
 import qualified Fission.IPFS.Timeout.Types as IPFS
 
 import           Fission.CLI
-import qualified Fission.CLI.Types   as CLI
+import qualified Fission.CLI.Config.Types   as CLI
 
 main :: IO ()
 main = do

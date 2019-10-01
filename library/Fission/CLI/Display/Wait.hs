@@ -1,12 +1,12 @@
 -- | Wait for an action on the CLI
-module Fission.CLI.Wait (waitFor) where
+module Fission.CLI.Display.Wait (waitFor) where
 
 import RIO
 import RIO.ByteString
 
 import qualified System.Console.ANSI as ANSI
 
-import Fission.CLI.Loader
+import Fission.CLI.Display.Loader
 
 waitFor :: ByteString -> IO a -> IO a
 waitFor msg action = do

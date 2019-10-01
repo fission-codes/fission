@@ -1,5 +1,5 @@
 -- | Continuous file sync
-module Fission.CLI.Watch
+module Fission.CLI.Command.Watch
   ( command
   , handleTreeChanges
   , watcher
@@ -21,13 +21,15 @@ import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.Emoji        as Emoji
 import qualified Fission.Web.Client   as Client
 import qualified Fission.Storage.IPFS as IPFS
+import qualified Fission.Time         as Time
 
 import           Fission.IPFS.CID.Types
-import qualified Fission.IPFS.Types   as IPFS
+import qualified Fission.IPFS.Types as IPFS
 
-import qualified Fission.CLI.Pin as CLI.Pin
-import           Fission.CLI.Types
-import qualified Fission.CLI.Auth as Auth
+import qualified Fission.CLI.Auth          as Auth
+import           Fission.CLI.Config.Types
+import qualified Fission.CLI.Display.Error as CLI.Error
+import qualified Fission.CLI.Pin           as CLI.Pin
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -60,26 +62,18 @@ watcher = do
 
   IPFS.addDir dir >>= \case
     Left err ->
-      logError $ displayShow err
+      CLI.Error.put' $ textDisplay err
 
     Right initCID ->
       Auth.withAuth $ CLI.Pin.run initCID >=> \case
         Left err ->
-          logError $ displayShow err
+          CLI.Error.put' err
 
         Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
           hashCache <- newMVar hash
           timeCache <- newMVar =<< getCurrentTime
           void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
           forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
-
--- NOTE TO SELF:move to a constants moudle of some kind
-
-dohertyDiffTime :: NominalDiffTime
-dohertyDiffTime = 0.4
-
-dohertyMicroSeconds :: Int
-dohertyMicroSeconds = 400000
 
 handleTreeChanges :: HasLogFunc        cfg
                   => Has Client.Runner cfg
@@ -97,16 +91,16 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
 
-    if diffUTCTime now oldTime < dohertyDiffTime
+    if diffUTCTime now oldTime < Time.doherty
       then
         logDebug "Fired within change lock window"
 
       else do
         void $ swapMVar timeCache now
-        threadDelay dohertyMicroSeconds -- Wait for all events to fire in sliding window
+        threadDelay Time.dohertyMicroSeconds -- Wait for all events to fire in sliding window
         IPFS.addDir dir >>= \case
           Left err ->
-            logError $ displayShow err
+            CLI.Error.put' err
 
           Right cid@(CID newHash) -> do
             oldHash <- swapMVar hashCache newHash

@@ -1,4 +1,4 @@
-module Fission.CLI.Types
+module Fission.CLI.Config.Types
   ( CommandM
   , Config (..)
   , fissionAPI

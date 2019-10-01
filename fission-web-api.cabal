@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 484adab6b9cf07825876f2093cd6f61ef34cc8579f2881d7d7e5d9b4cc440755
+-- hash: 65332c32fa3cb38a9ac9a680fac996f797dce04a7259e72fca5349a1cb59e84c
 
 name:           fission-web-api
 version:        1.10.0
@@ -31,16 +31,16 @@ library
   exposed-modules:
       Fission.CLI
       Fission.CLI.Auth
-      Fission.CLI.Cursor
-      Fission.CLI.Error
-      Fission.CLI.Loader
-      Fission.CLI.Login
+      Fission.CLI.Command.Login
+      Fission.CLI.Command.Up
+      Fission.CLI.Command.Watch
+      Fission.CLI.Config.Types
+      Fission.CLI.Display.Cursor
+      Fission.CLI.Display.Error
+      Fission.CLI.Display.Loader
+      Fission.CLI.Display.Success
+      Fission.CLI.Display.Wait
       Fission.CLI.Pin
-      Fission.CLI.Success
-      Fission.CLI.Types
-      Fission.CLI.Up
-      Fission.CLI.Wait
-      Fission.CLI.Watch
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
@@ -113,6 +113,7 @@ library
       Fission.Storage.Query
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Time
       Fission.Timestamp
       Fission.Types
       Fission.User
@@ -503,16 +504,16 @@ test-suite fission-test
   other-modules:
       Fission.CLI
       Fission.CLI.Auth
-      Fission.CLI.Cursor
-      Fission.CLI.Error
-      Fission.CLI.Loader
-      Fission.CLI.Login
+      Fission.CLI.Command.Login
+      Fission.CLI.Command.Up
+      Fission.CLI.Command.Watch
+      Fission.CLI.Config.Types
+      Fission.CLI.Display.Cursor
+      Fission.CLI.Display.Error
+      Fission.CLI.Display.Loader
+      Fission.CLI.Display.Success
+      Fission.CLI.Display.Wait
       Fission.CLI.Pin
-      Fission.CLI.Success
-      Fission.CLI.Types
-      Fission.CLI.Up
-      Fission.CLI.Wait
-      Fission.CLI.Watch
       Fission.Config
       Fission.Config.Types
       Fission.Emoji
@@ -585,6 +586,7 @@ test-suite fission-test
       Fission.Storage.Query
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Time
       Fission.Timestamp
       Fission.Types
       Fission.User

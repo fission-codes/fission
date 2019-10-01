@@ -1,5 +1,5 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Up (command, up) where
+module Fission.CLI.Command.Up (command, up) where
 
 import           RIO
 import           RIO.Directory
@@ -16,7 +16,7 @@ import qualified Fission.Web.Client   as Client
 
 import qualified Fission.CLI.Auth    as Auth
 import qualified Fission.CLI.Pin     as CLI.Pin
-import           Fission.CLI.Types
+import           Fission.CLI.Config.Types
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m

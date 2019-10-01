@@ -1,5 +1,5 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Error (put, put') where
+module Fission.CLI.Display.Error (put, put') where
 
 import           RIO
 

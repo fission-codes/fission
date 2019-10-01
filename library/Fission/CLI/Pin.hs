@@ -5,16 +5,15 @@ module Fission.CLI.Pin
   ) where
 
 import RIO
-import RIO.Process   (HasProcessContext)
+import RIO.Process (HasProcessContext)
 
 import Data.Has
 
 import Servant
 import Servant.Client
 
-import Fission.Internal.Constraint
-
-import qualified Fission.Config          as Config
+import qualified Fission.Config as Config
+import           Fission.Internal.Constraint
 
 import qualified Fission.IPFS.Peer    as IPFS.Peer
 import qualified Fission.IPFS.Types   as IPFS
@@ -23,9 +22,9 @@ import           Fission.IPFS.CID.Types
 import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
 
-import           Fission.CLI.Error   as CLI.Error
-import           Fission.CLI.Success as CLI.Success
-import qualified Fission.CLI.Loader  as CLI
+import           Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Loader  as CLI
+import           Fission.CLI.Display.Success as CLI.Success
 
 run :: MonadRIO          cfg m
     => HasLogFunc        cfg
@@ -38,27 +37,17 @@ run :: MonadRIO          cfg m
     -> m (Either ClientError CID)
 run cid@(CID hash) auth = do
   logDebug $ "Remote pinning " <> display hash
+  IPFS.Peer.connect IPFS.Peer.fission
+
   Client.Runner runner <- Config.get
-
   pin runner auth cid >>= \case
-    Right _ ->
-      success
-
-    Left _ -> do
-      logError "Failed to pin remotely, attempting to reconnect to IPFS"
-      IPFS.Peer.connect IPFS.Peer.fission
-      pin runner auth cid >>= \case
-        Right _ ->
-          success
-
-        Left err -> do
-          CLI.Error.put' err
-          return $ Left err
-  where
-    success :: MonadIO m => m (Either err CID)
-    success = do
+    Right _ -> do
       CLI.Success.live hash
       return $ Right cid
+
+    Left err -> do
+      CLI.Error.put' err
+      return $ Left err
 
 pin :: MonadIO m => (ClientM NoContent -> IO a) -> BasicAuthData -> CID -> m a
 pin runner auth cid =

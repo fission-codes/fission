@@ -1,5 +1,5 @@
 -- | Visual flourishes for indicating a loading state
-module Fission.CLI.Loader
+module Fission.CLI.Display.Loader
   ( withLoader
   , reset
   , prep

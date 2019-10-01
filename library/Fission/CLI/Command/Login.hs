@@ -1,5 +1,5 @@
 -- | Login command
-module Fission.CLI.Login (command, login) where
+module Fission.CLI.Command.Login (command, login) where
 
 import           RIO
 import           RIO.ByteString
@@ -11,19 +11,19 @@ import           Options.Applicative.Simple (addCommand)
 import           Servant
 import           System.Console.Haskeline
 
+import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 
-import qualified Fission.Config          as Config
-
-import           Fission.Web.Auth.Client as Fission.Auth
+import           Fission.Web.Auth.Client  as Fission.Auth
 import qualified Fission.Web.Client.Types as Client
 
-import qualified Fission.CLI.Auth   as Auth
-import qualified Fission.CLI.Cursor as Cursor
-import           Fission.CLI.Types
-import qualified Fission.CLI.Success as CLI.Success
-import qualified Fission.CLI.Error   as CLI.Error
-import qualified Fission.CLI.Wait    as CLI.Wait
+import qualified Fission.CLI.Auth as Auth
+import           Fission.CLI.Config.Types
+
+import qualified Fission.CLI.Display.Cursor  as Cursor
+import qualified Fission.CLI.Display.Success as CLI.Success
+import qualified Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Wait    as CLI.Wait
 
 -- | The command to attach to the CLI tree
 command :: MonadUnliftIO m

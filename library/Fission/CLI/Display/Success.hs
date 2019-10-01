@@ -1,5 +1,5 @@
 -- | Success messages and conditions
-module Fission.CLI.Success
+module Fission.CLI.Display.Success
   ( live
   , putOk
   ) where
@@ -20,3 +20,4 @@ putOk :: MonadIO m => Text -> m ()
 putOk msg = do
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
   UTF8.putText $ Emoji.whiteHeavyCheckMark <> " " <> msg
+  liftIO $ ANSI.setSGR [ANSI.Reset]

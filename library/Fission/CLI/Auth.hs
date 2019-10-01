@@ -11,7 +11,7 @@ import           RIO.File
 import           RIO.FilePath
 
 import qualified System.Console.ANSI as ANSI
-import qualified Fission.Emoji           as Emoji
+import qualified Fission.Emoji       as Emoji
 
 import qualified Data.Yaml as YAML
 import           Servant
