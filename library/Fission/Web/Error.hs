@@ -2,7 +2,7 @@
 module Fission.Web.Error
   ( ToServerError (..)
   , ensure
-  , ensure_
+  , ensureM
   , throw
   ) where
 
@@ -26,12 +26,12 @@ ensure :: MonadRIO   cfg m
        -> m a
 ensure = either throw pure
 
-ensure_ :: MonadRIO   cfg m
+ensureM :: MonadRIO   cfg m
         => MonadThrow     m
         => ServerError
         -> Maybe a
         -> m a
-ensure_ err = maybe (throwM err) pure
+ensureM err = maybe (throwM err) pure
 
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg

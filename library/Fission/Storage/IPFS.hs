@@ -1,5 +1,6 @@
 module Fission.Storage.IPFS
-  ( addRaw
+  ( addDir
+  , addRaw
   , addFile
   , get
   ) where
@@ -34,7 +35,7 @@ addRaw :: MonadRIO          cfg m
        => Lazy.ByteString
        -> m (Either IPFS.Error.Add IPFS.CID)
 addRaw raw =
-  IPFS.Proc.run ["add", "-q"] raw >>= \case
+  IPFS.Proc.run ["add", "-HQ"] raw >>= \case
     (ExitSuccess, result, _) ->
       case CL.lines result of
         [cid] -> IPFS.Pin.add . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
@@ -86,6 +87,20 @@ addFile raw name =
              , unName name
              ]
 
+addDir :: RIOProc           cfg m
+       => Has IPFS.Timeout  cfg
+       => Has IPFS.BinPath  cfg
+       => FilePath
+       -> m (Either IPFS.Error.Add CID)
+addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
+    (ExitSuccess, result, _) ->
+      case CL.lines result of
+        [cid] -> Right . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
+        bad   -> Left . UnexpectedOutput $ UTF8.textShow bad
+
+    (ExitFailure _, _, err) ->
+      Left . UnknownAddErr $ UTF8.textShow err
+
 get :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
@@ -105,4 +120,3 @@ get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \ca
 
     | otherwise ->
         return . Left . UnknownGetErr $ UTF8.textShow stdErr
-
