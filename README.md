@@ -14,29 +14,66 @@ in a familiar, compatible way
 
 # QuickStart
 
+## Install dependencies
 ```shell
 # IPFS on MacOS, otherwise https://docs.ipfs.io/introduction/install/
 brew install ipfs
 brew services start ipfs
 
-# Enable sample Heroku config
-# Note: You will have to edit this file to input dummy data
-cp addon-manifest.json.example addon-manifest.json
-
-# Setup env file
-cp env.yaml.example env.yaml
-
 # If using Linux, install liblzma-dev
 # sudo apt install liblzma-dev
+```
 
+## Setup config
+```shell
+# Enable sample Heroku config
+# Note: You will have to edit this file to input dummy data
+cp docs/example-config/addon-manifest.json.example addon-manifest.json
+
+# Setup env file
+cp docs/example-config/env.yaml.example env.yaml
+```
+
+## Run Server
+```shell
 # Dev Web Server
 export RIO_VERBOSE=true
 stack run fission-web
+```
 
-# Local Request
+## Setup your database
+```shell
+# Create the database
+createdb web_api
+
+# Apply the projects database schema
+stack repl
+λ> import Fission.Storage.PostgreSQL.Migrate
+λ> import Database.Selda.PostgreSQL
+λ> sequence_ $ mutations "localhost" 5432 "web_api" Nothing Nothing Nothing
+```
+
+## Get your FISSION credentials
+_note: you will need to fill out your addon-manifest properly to acquire the appropriate credentials_
+```shell
+curl -u "APP_MANIFEST_ID:APP_MANIFEST_PASSWORD" \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/vnd.heroku-addons+json; version=3" \
+     -X POST http://localhost:1337/heroku/resources/ \
+     -d '{
+           "name"         : "my-awesome-app",
+           "uuid"         : "01234567-89ab-cdef-0123-456789abcdef",
+           "plan"         : "free",
+           "callback_url" : "http://foo.bar.quux",
+           "region"       : "amazon-web-services::ap-northeast-1"
+         }' | json_pp
+```
+
+## Send your first request
+```shell
 curl \
   -H "Content-Type: text/plain;charset=utf-8" \
-  -H "Authorization: Basic Q0hBTkdFTUU6U1VQRVJTRUNSRVQ=" \
+  -u "FISSION_USERNAME:FISSION_PASSWORD" \
   -d "hello world" \
   http://localhost:1337/ipfs
 ```
