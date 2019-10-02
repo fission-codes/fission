@@ -54,5 +54,12 @@ connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyB
   (ExitFailure _ , _, _) -> Left $ CannotConnect peer
   (ExitSuccess   , _, _) -> Right ()
 
+knownGood = IPFSProc.run ["id"] "" >>= pure . \case
+  (ExitFailure _ , _, err) ->
+    Left $ UnknownErr $ UTF8.textShow err
+
+  (ExitSuccess , rawOut, _) -> do
+    Right rawOut
+
 fission :: Peer
 fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

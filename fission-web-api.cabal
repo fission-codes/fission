@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc8c6012f648eba2d65544e826ca27b053bc7ec9a49a3e5a25b5fc69bc0db024
+-- hash: 726a0f644b4888eb2321b3a04f0b4c2d327401ad933a5f817b1cedffe9ea9185
 
 name:           fission-web-api
 version:        1.10.0
@@ -74,6 +74,7 @@ library
       Fission.IPFS.Client.Pin
       Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -149,6 +150,7 @@ library
       Fission.Web.IPFS.Client
       Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -542,6 +544,7 @@ test-suite fission-test
       Fission.IPFS.Client.Pin
       Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -617,6 +620,7 @@ test-suite fission-test
       Fission.Web.IPFS.Client
       Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
