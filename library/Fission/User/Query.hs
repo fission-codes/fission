@@ -9,5 +9,5 @@ import Fission.User.Types
 
 -- | Find a user by their account secret
 bySecret :: Text -> Row s User -> Col s Bool
-bySecret secret user = user `is'` #_active
-                   .&& user ! #_secretDigest .== text secret
+bySecret secret user = (user `is'` #_active)
+                   .&& (user ! #_secretDigest .== text secret)
