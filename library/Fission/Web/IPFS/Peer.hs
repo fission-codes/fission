@@ -14,9 +14,9 @@ import Fission.Web.Server
 
 type API = Get '[JSON, PlainText, OctetStream] [Peer]
 
-all :: HasLogFunc        cfg
-    => HasProcessContext cfg
-    => RIOServer cfg API
-all = do
-  rawPeers <- IPFSProc.run' ["id"] -- ipfs id
-  return $ filter rawPeers func
+-- all :: HasLogFunc        cfg
+--     => HasProcessContext cfg
+--     => RIOServer cfg API
+-- all = do
+--   rawPeers <- IPFSProc.run' ["id"] -- ipfs id
+--   return $ filter rawPeers func

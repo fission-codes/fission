@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 726a0f644b4888eb2321b3a04f0b4c2d327401ad933a5f817b1cedffe9ea9185
+-- hash: b35f5b4c3b99189d66713b5c3c4a51b0c2b3f209994e9699526a75f42f159e9c
 
 name:           fission-web-api
 version:        1.10.0
@@ -49,6 +49,7 @@ library
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
+      Fission.Internal.Debug
       Fission.Internal.JSON
       Fission.Internal.MIME
       Fission.Internal.Orphanage.BasicAuth
@@ -519,6 +520,7 @@ test-suite fission-test
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
+      Fission.Internal.Debug
       Fission.Internal.JSON
       Fission.Internal.MIME
       Fission.Internal.Orphanage.BasicAuth

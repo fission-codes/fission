@@ -3,6 +3,7 @@ module Fission.IPFS.Peer
   , rawList
   , connect
   , fission
+  , knownGood
   ) where
 
 import           RIO hiding (all)
@@ -54,6 +55,7 @@ connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyB
   (ExitFailure _ , _, _) -> Left $ CannotConnect peer
   (ExitSuccess   , _, _) -> Right ()
 
+knownGood :: (MonadIO m, MonadReader cfg m, HasProcessContext cfg, HasLogFunc cfg, Has IPFS.BinPath cfg, Has IPFS.Timeout cfg) => m (Either Error Lazy.ByteString)
 knownGood = IPFSProc.run ["id"] "" >>= pure . \case
   (ExitFailure _ , _, err) ->
     Left $ UnknownErr $ UTF8.textShow err
