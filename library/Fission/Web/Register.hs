@@ -10,7 +10,7 @@ import           RIO
 import           Database.Selda as Selda
 
 import           Servant
-import Data.Has
+import           Data.Has
 import qualified Fission.Config as Config
 
 import           Fission.Web.Server

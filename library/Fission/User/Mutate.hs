@@ -39,7 +39,7 @@ create sekret = do
   logInfo $ "Inserted user " <> display uID
   return uID
 
--- | Create a new, timestamped entry
+-- | Create a new, timestamped entry and heroku add-on
 createWithHeroku :: MonadRIO    cfg m
        => MonadSelda      m
        => HasLogFunc cfg
@@ -58,4 +58,3 @@ createWithHeroku herokuUUID herokuRegion sekret = do
 
   logInfo $ "Inserted user " <> display uID
   return uID
-
