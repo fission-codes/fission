@@ -13,7 +13,6 @@ import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types          as Hku
 
-
 runFissionApp :: RIO Config a -> IO a
 runFissionApp action = do
   logOptions   <- logOptionsHandle stdout True
