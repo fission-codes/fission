@@ -28,6 +28,7 @@ import qualified Fission.Web.Auth        as Auth
 import qualified Fission.Web.Auth.Verify as Auth
 import qualified Fission.Web.IPFS        as IPFS
 import qualified Fission.Web.Ping        as Ping
+import qualified Fission.Web.Register    as Register
 import qualified Fission.Web.Routes      as Web
 import qualified Fission.Web.Swagger     as Web.Swagger
 import qualified Fission.Web.Types       as Web
@@ -94,3 +95,4 @@ server host' = Web.Swagger.server host'
           :<|> const Heroku.server
           :<|> const Auth.verify
           :<|> pure Ping.pong
+          :<|> Register.register

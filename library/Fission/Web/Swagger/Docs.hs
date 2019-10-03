@@ -4,6 +4,7 @@ module Fission.Web.Swagger.Docs
   , ipfs
   , heroku
   , ping
+  , register
   ) where
 
 import RIO
@@ -53,3 +54,8 @@ ping :: Swagger -> Swagger
 ping = applyTagsFor ops  ["Ping" & description ?~ "Check for liveness"]
   where
     ops = subOperations (Proxy :: Proxy Web.PingRoute) (Proxy :: Proxy Web.API)
+
+register :: Swagger -> Swagger
+register = applyTagsFor ops  ["Register" & description ?~ "Register and provision a user"]
+  where
+    ops = subOperations (Proxy :: Proxy Web.RegisterRoute) (Proxy :: Proxy Web.API)

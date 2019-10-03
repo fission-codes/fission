@@ -1,5 +1,5 @@
-module Fission.Platform.Heroku.UserConfig
-  ( UserConfig (..)
+module Fission.Platform.User
+  ( Config (..)
   , interplanetaryFissionUrl
   , interplanetaryFissionPassword
   , interplanetaryFissionUsername
@@ -15,7 +15,7 @@ import Data.Swagger as Swagger
 import Fission.Internal.JSON
 import Fission.Security
 
-data UserConfig = UserConfig
+data Config = Config
   { _interplanetaryFissionUrl      :: Text
   , _interplanetaryFissionUsername :: Text
   , _interplanetaryFissionPassword :: Secret
@@ -24,10 +24,10 @@ data UserConfig = UserConfig
              , Generic
              )
 
-makeLenses ''UserConfig
-$(deriveJSON lens_SCREAMING_SNAKE_CASE ''UserConfig)
+makeLenses ''Config
+$(deriveJSON lens_SCREAMING_SNAKE_CASE ''Config)
 
-instance ToSchema UserConfig where
+instance ToSchema Config where
   declareNamedSchema = genericDeclareNamedSchema
     $ (fromAesonOptions lens_SCREAMING_SNAKE_CASE)
       { Swagger.constructorTagModifier = camelCase }

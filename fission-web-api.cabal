@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc8c6012f648eba2d65544e826ca27b053bc7ec9a49a3e5a25b5fc69bc0db024
+-- hash: e7c90b652888d4b7ca0e99c5d431f6b00ebfd4a0ce1142d88f13ff6aa7929a99
 
 name:           fission-web-api
 version:        1.10.0
@@ -100,7 +100,7 @@ library
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
+      Fission.Platform.User
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -156,6 +156,7 @@ library
       Fission.Web.Log
       Fission.Web.Ping
       Fission.Web.Ping.Types
+      Fission.Web.Register
       Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
@@ -566,7 +567,7 @@ test-suite fission-test
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
+      Fission.Platform.User
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -622,6 +623,7 @@ test-suite fission-test
       Fission.Web.Log
       Fission.Web.Ping
       Fission.Web.Ping.Types
+      Fission.Web.Register
       Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
