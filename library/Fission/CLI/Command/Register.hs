@@ -14,6 +14,9 @@ import           Fission.Internal.Constraint
 import qualified Fission.Web.Auth.Client  as Fission.Auth
 import qualified Fission.Web.Client.Types as Client
 
+import qualified Fission.User.Provision.Types  as User
+import qualified Fission.Security.Types       as Security
+
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
 
@@ -21,9 +24,6 @@ import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
-
-import qualified Fission.Platform.User  as User
-import qualified Fission.Security.Types as Security
 
 -- | The command to attach to the CLI tree
 command :: MonadUnliftIO m
