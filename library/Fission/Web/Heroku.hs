@@ -19,7 +19,6 @@ import qualified Fission.Web.Heroku.MIME as Heroku.MIME
 import           Fission.Web.Server
 import qualified Fission.Web.Types       as Web
 
-import qualified Fission.Platform.User              as User
 import           Fission.Platform.Heroku.Provision  as Provision
 
 import qualified Fission.Config as Config
@@ -28,8 +27,9 @@ import qualified Fission.Random as Random
 import qualified Fission.Storage.Query as Query
 
 import           Fission.User.Types
-import qualified Fission.User       as User
-import qualified Fission.User.Table as Table
+import qualified Fission.User                 as User
+import qualified Fission.User.Table           as Table
+import qualified Fission.User.Provision.Types as User
 
 import           Fission.IPFS.CID.Types
 
@@ -75,7 +75,7 @@ provision Request {_uuid, _region} = do
     ]
 
   let
-    userConfig = User.Config
+    userConfig = User.Provision
       { _interplanetaryFissionUrl      = url
       , _interplanetaryFissionUsername = User.hashID userID
       , _interplanetaryFissionPassword = Secret secret

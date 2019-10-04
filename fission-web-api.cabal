@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e7c90b652888d4b7ca0e99c5d431f6b00ebfd4a0ce1142d88f13ff6aa7929a99
+-- hash: 3c8290c58105e993b312f1892ef687ae69e27f1055f23fad52f4c08bdb710a58
 
 name:           fission-web-api
 version:        1.10.0
@@ -100,7 +100,6 @@ library
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.User
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -126,6 +125,7 @@ library
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -567,7 +567,6 @@ test-suite fission-test
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.User
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -593,6 +592,7 @@ test-suite fission-test
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security

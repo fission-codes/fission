@@ -15,16 +15,16 @@ import qualified Fission.Config as Config
 
 import           Fission.Web.Server
 import qualified Fission.Web.Types       as Web
-import           Fission.Platform.User as User
 
 import qualified Fission.Random as Random
 
-import qualified Fission.User       as User
+import qualified Fission.User                 as User
+import qualified Fission.User.Provision.Types as User
 
 import           Fission.Security.Types (Secret (..))
 
 
-type API =  Post    '[JSON] User.Config
+type API =  Post    '[JSON] User.Provision
 
 register :: HasLogFunc       cfg
           => Has Web.Host    cfg
@@ -40,7 +40,7 @@ register = do
     , displayShow userID
     ]
   
-  return User.Config
+  return User.Provision
     { _interplanetaryFissionUrl      = url
     , _interplanetaryFissionUsername = User.hashID userID
     , _interplanetaryFissionPassword = Secret secret

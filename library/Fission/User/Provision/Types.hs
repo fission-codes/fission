@@ -1,5 +1,5 @@
-module Fission.Platform.User
-  ( Config (..)
+module Fission.User.Provision.Types
+  ( Provision (..)
   , interplanetaryFissionUrl
   , interplanetaryFissionPassword
   , interplanetaryFissionUsername
@@ -15,7 +15,7 @@ import Data.Swagger as Swagger
 import Fission.Internal.JSON
 import Fission.Security
 
-data Config = Config
+data Provision = Provision
   { _interplanetaryFissionUrl      :: Text
   , _interplanetaryFissionUsername :: Text
   , _interplanetaryFissionPassword :: Secret
@@ -24,10 +24,10 @@ data Config = Config
              , Generic
              )
 
-makeLenses ''Config
-$(deriveJSON lens_SCREAMING_SNAKE_CASE ''Config)
+makeLenses ''Provision
+$(deriveJSON lens_SCREAMING_SNAKE_CASE ''Provision)
 
-instance ToSchema Config where
+instance ToSchema Provision where
   declareNamedSchema = genericDeclareNamedSchema
     $ (fromAesonOptions lens_SCREAMING_SNAKE_CASE)
       { Swagger.constructorTagModifier = camelCase }
