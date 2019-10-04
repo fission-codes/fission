@@ -39,15 +39,26 @@ command cfg =
     (pure ())
 
 -- | Register and login (i.e. save credentials to disk)
-register :: MonadRIO          cfg m
-      => MonadUnliftIO         m
-      => HasLogFunc        cfg
-      => Has Client.Runner cfg
-      => m ()
-register = do
+register :: MonadRIO       cfg m
+        => MonadUnliftIO         m
+        => HasLogFunc        cfg
+        => Has Client.Runner cfg
+        => m ()
+register = Auth.get >>= \case
+  Right _auth -> 
+    CLI.Success.putOk "Already registered. Remove your credentials at ~/.fission.yaml if you want to re-register"
+  
+  Left _err ->
+    register'
+
+register' :: MonadRIO cfg m
+          => MonadUnliftIO         m
+          => HasLogFunc        cfg
+          => Has Client.Runner cfg
+          => m ()
+register' = do
   logDebug "Starting registration sequence"
   Client.Runner runner <- Config.get
-
   registerResult <- Cursor.withHidden
                   . liftIO
                   . CLI.Wait.waitFor "Registering"
@@ -62,5 +73,5 @@ register = do
       let username = encodeUtf8 $ user ^. User.interplanetaryFissionUsername
       let password = encodeUtf8 $ Security.unSecret $ user ^. User.interplanetaryFissionPassword
       let auth = BasicAuthData username password
-      Auth.write auth >> CLI.Success.putOk "Registerd & logged in"
+      Auth.write auth >> CLI.Success.putOk "Registered & logged in"
     Left  err -> CLI.Error.put err "Registeration failed"
