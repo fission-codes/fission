@@ -77,15 +77,18 @@ getExternalAddress :: (MonadIO m
   , Has IPFS.BinPath cfg
   , Has IPFS.Timeout cfg)
   => m (Either Error [Peer])
-getExternalAddress = IPFSProc.run ["id"] "" >>= pure . \case
-  (ExitFailure _ , _, err) ->
-    Left $ UnknownErr $ UTF8.textShow err
+getExternalAddress = IPFSProc.run ["id"] "" >>= \result -> do
+  logError $ "IN HERE: " <> displayShow result
+  case result of
+    (ExitFailure _ , _, err) ->
+      return $ Left $ UnknownErr $ UTF8.textShow err
 
-  (ExitSuccess , rawOut, _) -> do
-    -- TODO break into a get ipfs info function, a get address function then a filter function
-    let ipfsInfo = JSON.decode rawOut
-    let filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
-    Right filteredAddrs
+    (ExitSuccess , rawOut, _) -> do
+      -- TODO break into a get ipfs info function, a get address function then a filter function
+      logInfo ">>>>>>>>>>>>"
+      let ipfsInfo = JSON.decode rawOut
+      let filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
+      return $ Right filteredAddrs
 
 fission :: Peer
 fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

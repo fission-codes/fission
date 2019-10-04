@@ -14,16 +14,18 @@ import Fission.Web.Server
 import qualified Fission.IPFS.Types          as IPFS
 import qualified Fission.Web.Error       as Web.Err
 
-type API = Get '[JSON, PlainText, OctetStream] [IPFS.Peer]
+type API = Get '[OctetStream] [IPFS.Peer]
 
 get :: Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg API
-get = getExternalAddress >>= \case
-  Right peers -> return peers
-  Left err ->  Web.Err.throw err
+get = getExternalAddress >>= \res -> do
+  logInfo $ "GET ENDPOINT: " <> displayShow res
+  case res of
+    Right peers -> return peers
+    Left err ->  Web.Err.throw err
 
 
   -- do

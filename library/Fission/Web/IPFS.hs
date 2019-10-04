@@ -58,9 +58,7 @@ server :: HasLogFunc        cfg
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg API
-server = authed
-    :<|> Download.get
-    :<|> Peer.get
+server = authed :<|> public
 
 authed :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -74,3 +72,14 @@ authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
         :<|> DAG.put usr -- Question: why is the function naming convention so all over the place?
+
+public :: HasLogFunc        cfg
+       => HasProcessContext cfg
+       => MonadSelda   (RIO cfg)
+       => Has HTTP.Manager  cfg
+       => Has IPFS.URL      cfg
+       => Has IPFS.BinPath  cfg
+       => Has IPFS.Timeout  cfg
+       => RIOServer         cfg PublicAPI
+public = Download.get
+    :<|> Peer.get
