@@ -10,9 +10,10 @@ import           Options.Applicative.Simple
 import qualified Fission.Web.Client   as Client
 import qualified Fission.IPFS.Types   as IPFS
 
-import qualified Fission.CLI.Command.Login as Login
-import qualified Fission.CLI.Command.Up    as Up
-import qualified Fission.CLI.Command.Watch as Watch
+import qualified Fission.CLI.Command.Login    as Login
+import qualified Fission.CLI.Command.Register as Register
+import qualified Fission.CLI.Command.Up       as Up
+import qualified Fission.CLI.Command.Watch    as Watch
 
 -- | Top-level CLI description
 cli :: MonadUnliftIO m
@@ -25,9 +26,10 @@ cli :: MonadUnliftIO m
     -> IO ((), m ())
 cli cfg =
   simpleOptions version description detail (pure ()) do
-    Login.command cfg
-    Up.command    cfg
-    Watch.command cfg
+    Login.command    cfg
+    Register.command cfg
+    Up.command       cfg
+    Watch.command    cfg
   where
     version     = "1.10.0"
     description = "CLI to interact with Fission services"
