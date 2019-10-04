@@ -48,7 +48,7 @@ type SimpleAPI = "cids" :> CID.API
             :<|> "dag" :> DAG.API
 
 type PublicAPI = Download.API
-            -- :<|> "peers" :> Peer.API
+            :<|> "peers" :> Peer.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -60,7 +60,7 @@ server :: HasLogFunc        cfg
        => RIOServer         cfg API
 server = authed
     :<|> Download.get
-    -- :<|> Peer.get
+    :<|> Peer.get
 
 authed :: HasLogFunc        cfg
        => HasProcessContext cfg

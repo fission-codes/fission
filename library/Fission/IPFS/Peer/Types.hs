@@ -5,12 +5,16 @@ import RIO
 import Control.Lens ((?~))
 import Data.Aeson
 import Data.Aeson.TH
+import Servant
 import Data.Swagger ( NamedSchema (..)
                     , SwaggerType (..)
                     , ToSchema (..)
                     , type_
                     , example
                     )
+
+
+import qualified Fission.Internal.UTF8 as UTF8
 
 newtype Peer = Peer { peer :: Text }
   deriving          ( Eq
@@ -28,3 +32,9 @@ instance ToSchema Peer where
      return $ NamedSchema (Just "IPFS Peer") $ mempty
             & type_   ?~ SwaggerString
             & example ?~ "/ip4/178.62.158.247/tcp/4001/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd"
+
+instance MimeRender PlainText Peer where
+  mimeRender _ = UTF8.textToLazyBS . peer
+
+instance MimeRender OctetStream Peer where
+  mimeRender _ = UTF8.textToLazyBS . peer
