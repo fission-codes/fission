@@ -22,7 +22,7 @@ import           Fission.IPFS.Peer.Error     as IPFS.Peer
 import           Fission.IPFS.Peer.Types
 import           Fission.IPFS.Info.Types
 import qualified Data.Aeson as JSON
-import           Fission.IPFS.Peer.Types
+-- import           Fission.IPFS.Peer.Types
 
 all :: MonadRIO          cfg m
     => HasProcessContext cfg
@@ -77,11 +77,12 @@ getExternalAddress :: (MonadIO m
   , Has IPFS.BinPath cfg
   , Has IPFS.Timeout cfg)
   => m (Either Error [Peer])
-getExternalAddress = IPFSProc.run ["id"] "" >>= \result -> do
+getExternalAddress = IPFSProc.run' ["id"] >>= \result -> do
   logError $ "IN HERE: " <> displayShow result
   case result of
-    (ExitFailure _ , _, err) ->
-      return $ Left $ UnknownErr $ UTF8.textShow err
+    (ExitFailure _ , _, err) -> do
+      logError "BOOM!"
+      return $ Left $ UnknownErr $ "BOOM:" <> UTF8.textShow err
 
     (ExitSuccess , rawOut, _) -> do
       -- TODO break into a get ipfs info function, a get address function then a filter function

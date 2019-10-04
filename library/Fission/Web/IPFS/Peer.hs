@@ -4,9 +4,7 @@ import RIO
 import RIO.Process (HasProcessContext)
 
 import Data.Has
-import Database.Selda
 
-import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import Fission.IPFS.Peer
@@ -21,11 +19,14 @@ get :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg API
-get = getExternalAddress >>= \res -> do
-  logInfo $ "GET ENDPOINT: " <> displayShow res
-  case res of
+get = do
+  logError "STARTED FUNCTION"
+  getExternalAddress >>= \case
+  -- logInfo $ "GET ENDPOINT: " <> displayShow res
     Right peers -> return peers
-    Left err ->  Web.Err.throw err
+    Left err -> do
+      logDebug "hellow world"
+      Web.Err.throw err
 
 
   -- do
