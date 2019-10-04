@@ -67,6 +67,9 @@ isLocal addr = Text.isInfixOf "127." addr || Text.isInfixOf "localhost" addr -- 
 isExternalIP4 :: Text -> Bool
 isExternalIP4 addr = (not $ isLocal addr) && (isIP4 addr)
 
+filterExternalPeers :: [Peer] -> [Peer]
+filterExternalPeers = filter (isExternalIP4 . peer)
+
 getExternalAddress :: (MonadIO m
   , MonadReader cfg m
   , HasProcessContext cfg
@@ -81,8 +84,8 @@ getExternalAddress = IPFSProc.run ["id"] "" >>= pure . \case
   (ExitSuccess , rawOut, _) -> do
     -- TODO break into a get ipfs info function, a get address function then a filter function
     let ipfsInfo = JSON.decode rawOut
-    let filteredAddrs = (filter isExternalIP4) . maybe [""] _addresses $ ipfsInfo
-    Right $ fmap Peer filteredAddrs
+    let filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
+    Right filteredAddrs
 
 fission :: Peer
 fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

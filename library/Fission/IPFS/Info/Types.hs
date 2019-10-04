@@ -10,7 +10,7 @@ import Fission.IPFS.Peer.Types
 data Info = Info
   { _id              :: Text
   , _publicKey       :: Text
-  , _addresses       :: [Text]
+  , _addresses       :: [Peer]
   , _agentVersion    :: Text
   , _protocolVersion :: Text
   } deriving (Show, Eq)
