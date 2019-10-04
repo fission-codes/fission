@@ -3,7 +3,7 @@ module Fission.IPFS.Peer
   , rawList
   , connect
   , fission
-  , knownGood
+  , getExternalAddress
   ) where
 
 import           RIO hiding (all)
@@ -19,6 +19,9 @@ import qualified Fission.Internal.UTF8       as UTF8
 import qualified Fission.IPFS.Process        as IPFSProc
 import qualified Fission.IPFS.Types          as IPFS
 import           Fission.IPFS.Peer.Error     as IPFS.Peer
+import           Fission.IPFS.Peer.Types
+import           Fission.IPFS.Info.Types
+import qualified Data.Aeson as JSON
 import           Fission.IPFS.Peer.Types
 
 all :: MonadRIO          cfg m
@@ -55,13 +58,31 @@ connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyB
   (ExitFailure _ , _, _) -> Left $ CannotConnect peer
   (ExitSuccess   , _, _) -> Right ()
 
-knownGood :: (MonadIO m, MonadReader cfg m, HasProcessContext cfg, HasLogFunc cfg, Has IPFS.BinPath cfg, Has IPFS.Timeout cfg) => m (Either Error Lazy.ByteString)
-knownGood = IPFSProc.run ["id"] "" >>= pure . \case
+isIP4 :: Text -> Bool
+isIP4 = Text.isInfixOf "ip4"
+
+isLocal :: Text -> Bool
+isLocal addr = Text.isInfixOf "127." addr || Text.isInfixOf "localhost" addr -- TODO: Handle localhost
+
+isExternalIP4 :: Text -> Bool
+isExternalIP4 addr = (not $ isLocal addr) && (isIP4 addr)
+
+getExternalAddress :: (MonadIO m
+  , MonadReader cfg m
+  , HasProcessContext cfg
+  , HasLogFunc cfg
+  , Has IPFS.BinPath cfg
+  , Has IPFS.Timeout cfg)
+  => m (Either Error [Peer])
+getExternalAddress = IPFSProc.run ["id"] "" >>= pure . \case
   (ExitFailure _ , _, err) ->
     Left $ UnknownErr $ UTF8.textShow err
 
   (ExitSuccess , rawOut, _) -> do
-    Right rawOut
+    -- TODO break into a get ipfs info function, a get address function then a filter function
+    let ipfsInfo = JSON.decode rawOut
+    let filteredAddrs = (filter isExternalIP4) . maybe [""] _addresses $ ipfsInfo
+    Right $ fmap Peer filteredAddrs
 
 fission :: Peer
 fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

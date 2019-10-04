@@ -42,6 +42,7 @@ cat   :: Text            -> ClientM File.Serialized
 pin   :: Text            -> ClientM Pin.Response
 unpin :: Text -> Bool     -> ClientM Pin.Response
 
+-- QUESTION: WHere the hell does this get called?
 add :<|> cat
     :<|> pin
     :<|> unpin = client (Proxy :: Proxy API)

@@ -28,6 +28,7 @@ import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
 import qualified Fission.Web.IPFS.Download      as Download
 import qualified Fission.Web.IPFS.Pin           as Pin
 import qualified Fission.Web.IPFS.DAG           as DAG
+import qualified Fission.Web.IPFS.Peer          as Peer
 
 type API = AuthedAPI
       :<|> PublicAPI
@@ -47,6 +48,7 @@ type SimpleAPI = "cids" :> CID.API
             :<|> "dag" :> DAG.API
 
 type PublicAPI = Download.API
+            -- :<|> "peers" :> Peer.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -58,6 +60,7 @@ server :: HasLogFunc        cfg
        => RIOServer         cfg API
 server = authed
     :<|> Download.get
+    -- :<|> Peer.get
 
 authed :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -70,4 +73,4 @@ authed :: HasLogFunc        cfg
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
-        :<|> DAG.put usr
+        :<|> DAG.put usr -- Question: why is the function naming convention so all over the place?
