@@ -6,7 +6,7 @@ module Fission.Web.Routes
   , IPFSPrefix
   , IPFSRoute
   , PingRoute
-  , PublicAPI
+  -- , PublicAPI
   ) where
 
 import RIO
