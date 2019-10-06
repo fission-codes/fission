@@ -3,7 +3,6 @@ module Fission.Web.IPFS
   , Auth
   , AuthedAPI
   , PublicAPI
-  , SimpleAPI
   , UnauthedAPI
   , authed
   , public
@@ -25,7 +24,6 @@ import           Fission.User
 import           Fission.Web.Server
 import qualified Fission.Web.IPFS.CID           as CID
 import qualified Fission.Web.IPFS.Upload        as Upload
-import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
 import qualified Fission.Web.IPFS.Download      as Download
 import qualified Fission.Web.IPFS.Pin           as Pin
 import qualified Fission.Web.IPFS.DAG           as DAG

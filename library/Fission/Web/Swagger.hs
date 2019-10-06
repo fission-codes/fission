@@ -27,20 +27,21 @@ docs :: Host -> Swagger
 docs = ipfs
      . heroku
      . ping
+     . auth
      . app (Proxy :: Proxy Web.API)
 
 app :: HasSwagger api => Proxy api -> Host -> Swagger
 app proxy appHost = toSwagger proxy
                   & host               ?~ appHost
                   & schemes            ?~ [Https, Http]
-                  & info . title       .~ "FISSION's IPFS API"
-                  & info . version     .~ "1.0.0"
-                  & info . description ?~ "Easily use IPFS from Web 2.0 applications"
+                  & info . title       .~ "The Fission API"
+                  & info . version     .~ "1.10.0"
+                  & info . description ?~ "Bootstrapped & distributed BaaS with user-controlled data"
                   & info . contact     ?~ fissionContact
                   & info . license     ?~ projectLicense
   where
     fissionContact = mempty
-                   & name  ?~"FISSION Team"
+                   & name  ?~"Team Fission"
                    & url   ?~ URL "https://fission.codes"
                    & email ?~ "support@fission.codes"
 

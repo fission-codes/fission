@@ -6,7 +6,6 @@ module Fission.Web.Routes
   , IPFSPrefix
   , IPFSRoute
   , PingRoute
-  -- , PublicAPI
   ) where
 
 import RIO
@@ -26,8 +25,13 @@ type API = IPFSRoute
 type PublicAPI = IPFSRoute
             :<|> UserRoute
 
-type UserRoute = UserPrefix :> User.API
+type UserRoute  = UserPrefix :> User.API
 type UserPrefix = "user"
+
+type AuthRoute = "auth"
+               :> "verify"
+               :> BasicAuth "existing user" User
+               :> Auth.Verify.API
 
 type HerokuRoute = "heroku"
                    :> "resources"
