@@ -18,9 +18,9 @@ newtype Path = Path { unpath :: Text }
                     , Show
                     , Ord
                     )
-  deriving anyclass ( ToSchema )
   deriving newtype  ( IsString
                     , ToHttpApiData
+                    , ToSchema
                     )
 
 instance MimeRender PlainText Path where

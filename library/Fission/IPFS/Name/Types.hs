@@ -13,10 +13,11 @@ newtype Name = Name { unName :: String }
                     , Show
                     , Ord
                     )
-  deriving anyclass ( ToParamSchema
-                    , ToSchema
+  -- deriving anyclass ( ToParamSchema )
+  deriving newtype  ( IsString
+                    , ToSchema 
+                    , ToParamSchema
                     )
-  deriving newtype  ( IsString )
 
 instance Display Name where
   display = displayShow
