@@ -18,12 +18,10 @@ import Control.Lens (makeLenses, (?~), (.~))
 
 import Data.Maybe
 import Data.Aeson
-import Data.Aeson.TH
 import Data.UUID as UUID
 import Data.Swagger hiding (name)
 import Database.Selda
 
-import           Fission.Internal.JSON
 import qualified Fission.Plan.Types                 as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.User.Provision.Types       as User
@@ -41,11 +39,27 @@ data Request = Request
   , _uuid        :: UUID          -- ^ The unique identifier Heroku uses for the installed add-on. It corresponds with the id field in the Heroku Platform API.
   } deriving ( Eq
              , Show
-             , Generic
              )
 
 makeLenses ''Request
-$(deriveJSON lens_snake_case ''Request)
+
+instance ToJSON Request where
+  toJSON Request {..} = object
+    [ "callback_url" .= _callbackUrl
+    , "name"   .= _name
+    , "plan"   .= _plan
+    , "region" .= _region
+    , "uuid"   .= _uuid
+    ]
+
+instance FromJSON Request where
+  parseJSON = withObject "Heroku.Request" \obj -> do
+    _callbackUrl <- obj .: "callback_url"
+    _name        <- obj .: "name"
+    _plan        <- obj .: "plan"
+    _region      <- obj .: "region"
+    _uuid        <- obj .: "uuid"
+    return Request {..}
 
 instance ToSchema Request where
   declareNamedSchema _ = do
@@ -110,11 +124,16 @@ data Provision = Provision
   , _message :: Text              -- ^ A helpful human-readable message
   } deriving ( Eq
              , Show
-             , Generic
              )
 
 makeLenses ''Provision
-$(deriveJSON lens_snake_case ''Provision)
+
+instance ToJSON Provision where
+  toJSON Provision {..} = object
+    [ "id"      .= _id
+    , "config"  .= _config
+    , "message" .= _message
+    ]
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
@@ -130,7 +149,7 @@ instance ToSchema Provision where
                , ("message", txt)
                , ("peers", ipfsPeers)
                ]
-           & required .~ ["id" , "config"]
+           & required    .~ ["id" , "config"]
            & example     ?~ toJSON provisionEx
            & description ?~ "Provisioned user login information"
     where
@@ -142,9 +161,7 @@ instance ToSchema Provision where
         }
 
       cfgEx = User.Provision
-        { _interplanetaryFissionUrl      = "https://hostless.dev"
-        , _interplanetaryFissionUsername = "c74bd95b8555275277d4"
-        , _interplanetaryFissionPassword = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
+        { _url      = "https://hostless.dev"
+        , _username = "c74bd95b8555275277d4"
+        , _password = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
         }
-
--- TODO data Error = ...

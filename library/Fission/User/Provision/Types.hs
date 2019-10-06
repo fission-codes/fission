@@ -1,33 +1,34 @@
 module Fission.User.Provision.Types
-  ( Provision (..)
-  , interplanetaryFissionUrl
-  , interplanetaryFissionPassword
-  , interplanetaryFissionUsername
+  ( UserConfig (..)
+  , url
+  , password
+  , username
   ) where
 
 import RIO
 
-import Control.Lens
+import Control.Lens (makeLenses)
 import Data.Aeson.Casing
-import Data.Aeson.TH
-import Data.Swagger as Swagger
+import Data.Aeson
+import Data.Swagger as Swagger hiding (url)
 
 import Fission.Internal.JSON
 import Fission.Security
 
 data Provision = Provision
-  { _interplanetaryFissionUrl      :: Text
-  , _interplanetaryFissionUsername :: Text
-  , _interplanetaryFissionPassword :: Secret
+  { _url      :: Text
+  , _username :: Text
+  , _password :: Secret
   } deriving ( Eq
              , Show
              , Generic
              )
 
-makeLenses ''Provision
-$(deriveJSON lens_SCREAMING_SNAKE_CASE ''Provision)
+makeLenses ''UserConfig
 
 instance ToSchema Provision where
-  declareNamedSchema = genericDeclareNamedSchema
-    $ (fromAesonOptions lens_SCREAMING_SNAKE_CASE)
-      { Swagger.constructorTagModifier = camelCase }
+  toJSON UserConfig {..} = object
+    [ "INTERPLANETARY_FISSION_URL"      .= _url
+    , "INTERPLANETARY_FISSION_USERNAME" .= _username
+    , "INTERPLANETARY_FISSION_PASSWORD" .= _password
+    ]

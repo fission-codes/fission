@@ -89,9 +89,9 @@ provision Request {_uuid, _region} = do
 
   let
     userConfig = User.Provision
-      { _interplanetaryFissionUrl      = url
-      , _interplanetaryFissionUsername = User.hashID userID
-      , _interplanetaryFissionPassword = Secret secret
+      { _url      = url
+      , _username = User.hashID userID
+      , _password = Secret secret
       }
 
   return Provision
