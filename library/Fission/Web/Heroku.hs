@@ -98,7 +98,7 @@ provision Request {_uuid, _region} = do
     { _id      = userID
     , _config  = userConfig
     , _peers   = ipfsPeers
-    , _message = "Successfully provisioned Interplanetary FISSION!"
+    , _message = "Successfully provisioned Interplanetary Fission!"
     }
 
 type DeprovisionAPI = Capture "addon_id" UUID
