@@ -11,6 +11,7 @@ import Data.Swagger
 import Servant
 import Servant.Swagger
 import Servant.Swagger.UI
+import Servant.Swagger.Internal.TypeLevel.API (EndpointsList)
 
 import           Fission.Internal.Orphanage.BasicAuth     ()
 import           Fission.Internal.Orphanage.MultipartForm ()
@@ -49,21 +50,38 @@ app proxy appHost = toSwagger proxy
                    & url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"
 
 auth :: Swagger -> Swagger
-auth = applyTagsFor ops  ["Authentication" & description ?~ "Auth actions & verification"]
-  where
-    ops = subOperations (Proxy :: Proxy Web.AuthRoute) (Proxy :: Proxy Web.API)
+auth = makeDocs (Proxy :: Proxy Web.AuthRoute)
+  ["Authentication" & description ?~ "Auth actions & verification"]
 
 heroku :: Swagger -> Swagger
-heroku = applyTagsFor ops  ["Heroku" & description ?~ "Interaction with the Heroku add-on API"]
-  where
-    ops = subOperations (Proxy :: Proxy Web.HerokuRoute) (Proxy :: Proxy Web.API)
+heroku = makeDocs (Proxy :: Proxy Web.HerokuRoute)
+  ["Heroku" & description ?~ "Interaction with the Heroku add-on API"]
 
 ipfs :: Swagger -> Swagger
-ipfs = applyTagsFor ops ["IPFS" & description ?~ "The primary IPFS API"]
-  where
-    ops = subOperations (Proxy :: Proxy Web.IPFSRoute) (Proxy :: Proxy Web.API)
+ipfs = makeDocs (Proxy :: Proxy Web.IPFSRoute)
+  ["IPFS" & description ?~ "The primary IPFS API"]
 
 ping :: Swagger -> Swagger
-ping = applyTagsFor ops  ["Ping" & description ?~ "Check for liveness"]
-  where
-    ops = subOperations (Proxy :: Proxy Web.PingRoute) (Proxy :: Proxy Web.API)
+ping = makeDocs (Proxy :: Proxy Web.PingRoute)
+  ["Ping" & description ?~ "Check for liveness"]
+
+makeDocs :: IsSubAPI   subRoute Web.API
+         => HasSwagger subRoute
+         => Proxy subRoute
+         -> [Tag]
+         -> Swagger
+         -> Swagger
+makeDocs routeProxy = applyTagsFor (subOps routeProxy)
+
+subOps :: IsSubAPI   subRoute Web.API
+       => AllIsElem (EndpointsList subRoute) Web.API
+       => HasSwagger subRoute
+       => Applicative f
+       => Proxy subRoute
+       -> (Operation -> f Operation)
+       ->   Swagger
+       -> f Swagger
+subOps routeProxy = subOperations routeProxy webAPI
+
+webAPI :: Proxy Web.API
+webAPI = Proxy
