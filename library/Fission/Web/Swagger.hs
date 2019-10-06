@@ -8,10 +8,10 @@ import RIO
 import Control.Lens
 import Data.Swagger
 
-import Servant
-import Servant.Swagger
-import Servant.Swagger.UI
-import Servant.Swagger.Internal.TypeLevel.API (EndpointsList)
+import           Servant
+import           Servant.Swagger
+import           Servant.Swagger.UI
+import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 
 import           Fission.Internal.Orphanage.BasicAuth     ()
 import           Fission.Internal.Orphanage.MultipartForm ()
@@ -37,7 +37,7 @@ app proxy appHost = toSwagger proxy
                   & schemes            ?~ [Https, Http]
                   & info . title       .~ "The Fission API"
                   & info . version     .~ "1.10.0"
-                  & info . description ?~ "Bootstrapped & distributed BaaS with user-controlled data"
+                  & info . description ?~ blurb
                   & info . contact     ?~ fissionContact
                   & info . license     ?~ projectLicense
   where
@@ -48,6 +48,8 @@ app proxy appHost = toSwagger proxy
 
     projectLicense = "Apache 2.0"
                    & url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"
+
+    blurb = "Bootstrapped & distributed backend-as-a-service with user-controlled data"
 
 auth :: Swagger -> Swagger
 auth = makeDocs (Proxy :: Proxy Web.AuthRoute)
@@ -65,7 +67,7 @@ ping :: Swagger -> Swagger
 ping = makeDocs (Proxy :: Proxy Web.PingRoute)
   ["Ping" & description ?~ "Check for liveness"]
 
-makeDocs :: IsSubAPI   subRoute Web.API
+makeDocs :: Servant.API.IsSubAPI subRoute Web.API
          => HasSwagger subRoute
          => Proxy subRoute
          -> [Tag]
@@ -73,10 +75,9 @@ makeDocs :: IsSubAPI   subRoute Web.API
          -> Swagger
 makeDocs routeProxy = applyTagsFor (subOps routeProxy)
 
-subOps :: IsSubAPI   subRoute Web.API
-       => AllIsElem (EndpointsList subRoute) Web.API
+subOps :: Applicative f
+       => Servant.API.IsSubAPI subRoute Web.API
        => HasSwagger subRoute
-       => Applicative f
        => Proxy subRoute
        -> (Operation -> f Operation)
        ->   Swagger
