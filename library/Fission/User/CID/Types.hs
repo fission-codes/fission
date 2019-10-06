@@ -2,8 +2,6 @@ module Fission.User.CID.Types (UserCID (..)) where
 
 import RIO
 
-import Control.Lens
-import Data.Swagger
 import Database.Selda
 
 import Fission.User (User (..))
@@ -20,8 +18,3 @@ data UserCID = UserCID
              , Generic
              , SqlRow
              )
-
-instance ToSchema (ID UserCID) where
-  declareNamedSchema _ =
-     return $ NamedSchema (Just "UserCID")
-            $ mempty & type_ ?~ SwaggerInteger

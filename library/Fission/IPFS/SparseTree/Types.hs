@@ -37,8 +37,8 @@ data SparseTree
 instance ToSchema SparseTree where
   declareNamedSchema _ =
      return $ NamedSchema (Just "IPFS Tree") $ mempty 
-       & type_   ?~ SwaggerString
-       & example ?~ toJSON (Directory [(Key "abcdef", Stub "myfile.txt")])
+       & type_       ?~ SwaggerString
+       & example     ?~ toJSON (Directory [(Key "abcdef", Stub "myfile.txt")])
        & description ?~ "A tree of IPFS paths"
 
 instance Display (Map Tag SparseTree) where

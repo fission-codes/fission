@@ -122,7 +122,7 @@ instance ToSchema Provision where
     usrCfg <- declareSchemaRef (Proxy :: Proxy User.Provision)
     ipfsPeers <- declareSchemaRef (Proxy :: Proxy [IPFS.Peer])
     txt    <- declareSchemaRef (Proxy :: Proxy Text)
-    return $ NamedSchema (Just "HerokuProvision") $ mempty
+    return $ NamedSchema (Just "User Provision Response") $ mempty
            & type_      ?~ SwaggerObject
            & properties .~
                [ ("id",      uId)
@@ -131,7 +131,8 @@ instance ToSchema Provision where
                , ("peers", ipfsPeers)
                ]
            & required .~ ["id" , "config"]
-           & example  ?~ toJSON provisionEx
+           & example     ?~ toJSON provisionEx
+           & description ?~ "Provisioned user login information"
     where
       provisionEx = Provision
         { _id      = toId 4213
