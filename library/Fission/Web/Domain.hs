@@ -3,39 +3,37 @@ module Fission.Web.Domain
   , server
   ) where
 
-import           RIO
+import RIO
 
-import           Database.Selda as Selda
+import Data.Has
 
+import qualified Network.HTTP.Client as HTTP
 import           Servant
-import           Data.Has
-import qualified Fission.Config as Config
 
 import           Fission.Web.Server
-import qualified Fission.Web.Types       as Web
-import qualified Fission.AWS.Types       as AWS
-
-import qualified Fission.Random as Random
-
-import qualified Fission.User                 as User
-
-import           Fission.Security.Types (Secret (..))
-
-import qualified Fission.AWS.Types       as AWS
+import qualified Fission.Web.Error    as Web.Err
+import           Fission.File.Types   as File
+import qualified Fission.IPFS.Types   as IPFS
+import qualified Fission.Storage.IPFS as Storage.IPFS
+import           Fission.User as User
+import           Fission.User.CID.Mutation as UserCID
+import           Fission.IPFS.CID.Types
+import qualified Network.AWS.Auth       as AWS
 import qualified Fission.AWS.Route53 as Route53
 
-type API =  Post '[PlainText, OctetStream] NoContent
+type API = Capture "cid" CID
+        :> Post    '[PlainText, OctetStream] NoContent
 
-server :: HasLogFunc       cfg
-          => Has Web.Host    cfg
-          => Has AWS.AccessKey    cfg
-          => Has AWS.SecretKey    cfg
-          => MonadSelda (RIO cfg)
-          => RIOServer       cfg API
-server = do
-  AWS.AccessKey accessKey <- Config.get
-  AWS.SecretKey secretKey <- Config.get
+server :: Has HTTP.Manager  cfg
+       => Has AWS.AccessKey cfg
+       => Has AWS.SecretKey cfg
+       => HasLogFunc        cfg
+       => User
+       -> RIOServer         cfg API
+server User { _userID } cid = do
+  let subdomain = User.hashID _userID
+  Route53.registerDomain subdomain cid
   logDebug "HERE"
-  logDebug $ displayShow accessKey
-  logDebug $ displayShow secretKey
+  logDebug $ displayShow cid
+  logDebug $ displayShow subdomain
   pure NoContent
