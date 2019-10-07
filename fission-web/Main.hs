@@ -29,6 +29,7 @@ import           Fission.Environment.Types
 import           Fission.IPFS.Environment.Types    as IPFS
 import qualified Fission.Storage.Environment.Types as Storage
 import qualified Fission.Web.Environment.Types     as Web
+import qualified Fission.AWS.Environment.Types     as AWS
 
 main :: IO ()
 main = do
@@ -38,6 +39,7 @@ main = do
   let
     Storage.Environment {..} = env ^. storage
     Web.Environment     {..} = env ^. web
+    AWS.Environment     {..} = env ^. aws
 
     _herokuID       = Hku.ID       . encodeUtf8 $ manifest ^. Hku.id
     _herokuPassword = Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password
@@ -45,6 +47,9 @@ main = do
     _ipfsPath    = env ^. ipfs . binPath
     _ipfsURL     = env ^. ipfs . url
     _ipfsTimeout = env ^. ipfs . IPFS.timeout
+    
+    _awsAccessKey = env ^. aws . AWS.accessKey
+    _awsSecretKey = env ^. aws . AWS.secretKey
 
   _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext

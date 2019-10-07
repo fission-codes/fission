@@ -1,6 +1,6 @@
 module Fission.AWS.Route53 
   ( createChangeRequest
-  , createAuth
+  -- , createAuth
   ) where
 
 import RIO
@@ -9,6 +9,7 @@ import Network.AWS.Route53 as Route53
 import Network.AWS.Prelude as AWS
 import Network.AWS.Auth    as AWS.Auth
 import Control.Monad.Trans.AWS
+import           Fission.Internal.Constraint
 
 
 import Control.Lens ((?~))
@@ -27,9 +28,11 @@ createChangeRequest = do
   let zone = ResourceId "Z23P2TYDHT4QDT"
   changeResourceRecordSets zone changes
 
-createAuth :: IO()
-createAuth = do 
-  env <- newEnv $ FromKeys (AccessKey "access") (SecretKey "secret")
-  runResourceT . runAWST env . within NorthVirginia $ do
-    res <- send(createChangeRequest)
-    print res
+-- createAuth :: MonadRIO cfg m
+--           --  => MonadUnliftIO m
+--            => m()
+-- createAuth = do 
+--   env <- newEnv $ FromKeys (AccessKey "access") (SecretKey "secret")
+--   liftIO .runResourceT . runAWST env . within NorthVirginia $ do
+--     res <- send(createChangeRequest)
+--     undefined
