@@ -9,7 +9,6 @@ module Fission.Web
 
 import           RIO
 import           RIO.Process (HasProcessContext)
-import qualified RIO.Text as Text
 
 import           Data.Has
 import           Database.Selda
@@ -57,7 +56,7 @@ app cfg = do
   Web.Host appHost <- Config.get
   return . serveWithContext api auth
          . Auth.server api cfg
-         $ server (Swagger.Host (Text.unpack appHost) Nothing)
+         $ server (Swagger.Host (show appHost) Nothing)
   where
     api :: Proxy API
     api = Proxy

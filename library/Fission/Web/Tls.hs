@@ -3,8 +3,9 @@ module Fission.Web.Tls
   , url
   ) where
 
-import Network.HTTP.Client
 import RIO
+
+import Network.HTTP.Client
 import Servant.Client
 
 run :: Manager -> ClientM a -> String -> IO (Either ClientError a)

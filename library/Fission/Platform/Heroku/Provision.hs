@@ -14,8 +14,9 @@ module Fission.Platform.Heroku.Provision
 
 import RIO hiding (id)
 
-import Control.Lens (makeLenses, (?~), (.~))
+import qualified Servant.Client as Client
 
+import Control.Lens (makeLenses, (?~), (.~))
 import Data.Maybe
 import Data.Aeson
 import Data.UUID as UUID
@@ -161,7 +162,7 @@ instance ToSchema Provision where
         }
 
       cfgEx = User.Provision
-        { _url      = "https://hostless.dev"
+        { _url      = Client.BaseUrl Client.Https "runfission.com" 443 ""
         , _username = "c74bd95b8555275277d4"
         , _password = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
         }

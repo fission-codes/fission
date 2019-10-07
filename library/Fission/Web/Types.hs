@@ -7,18 +7,14 @@ import RIO
 
 import           Data.Aeson
 import qualified Network.Wai.Handler.Warp as Warp
+import           Servant.Client
 import           System.Envy
 
 -- | The hostname of the running application
-newtype Host = Host { getHost :: Text }
+newtype Host = Host { getHost :: BaseUrl }
   deriving          ( Eq
                     , Show
-                    , Generic
                     )
-  deriving newtype  IsString
-
-instance FromEnv Host where
-  fromEnv _ = Host <$> env "HOST"
 
 instance FromJSON Host where
   parseJSON = withText "Web.Host" \txt ->
