@@ -3,6 +3,8 @@ module Main (main) where
 import           RIO
 import           RIO.Process (mkDefaultProcessContext)
 
+import           Flow
+
 import qualified Data.Aeson as JSON
 import qualified Data.Yaml  as YAML
 
@@ -39,20 +41,20 @@ main = do
     Storage.Environment {..} = env ^. storage
     Web.Environment     {..} = env ^. web
 
-    _herokuID       = Hku.ID       . encodeUtf8 $ manifest ^. Hku.id
-    _herokuPassword = Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password
+    _herokuID       = Hku.ID       <. encodeUtf8 <| manifest ^. Hku.id
+    _herokuPassword = Hku.Password <. encodeUtf8 <| manifest ^. Hku.api ^. Hku.password
 
     _ipfsPath    = env ^. ipfs . binPath
     _ipfsURL     = env ^. ipfs . url
     _ipfsTimeout = env ^. ipfs . IPFS.timeout
 
-  _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
+  _dbPool      <- connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo |> runSimpleApp
   _processCtx  <- mkDefaultProcessContext
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
   logOptions   <- logOptionsHandle stdout isVerbose
 
-  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO Config {..} do
+  withLogFunc (setLogUseTime True logOptions) <| \_logFunc -> runRIO Config {..} do
     logDebug . displayShow =<< ask
 
     let
@@ -62,9 +64,9 @@ main = do
       condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
     when (env ^. web . Web.monitor) Monitor.wai
-    liftIO . runner webLogger
-           . CORS.middleware
-           . condDebug
+    liftIO <. runner webLogger
+           <. CORS.middleware
+           <. condDebug
            =<< Web.app
            =<< ask
 

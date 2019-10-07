@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc8c6012f648eba2d65544e826ca27b053bc7ec9a49a3e5a25b5fc69bc0db024
+-- hash: b087f32db6030a0db3922527b9b062d816500d4d40a9ef66c384aff137308510
 
 name:           fission-web-api
 version:        1.10.0
@@ -88,6 +88,8 @@ library
       Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
       Fission.IPFS.URL.Types
+      Fission.Log.Lens
+      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -181,6 +183,7 @@ library
     , data-has
     , ekg-wai
     , envy
+    , flow
     , fsnotify
     , haskeline
     , http-client
@@ -246,6 +249,7 @@ executable fission-cli
     , ekg-wai
     , envy
     , fission-web-api
+    , flow
     , fsnotify
     , haskeline
     , http-client
@@ -311,6 +315,7 @@ executable fission-web
     , ekg-wai
     , envy
     , fission-web-api
+    , flow
     , fsnotify
     , haskeline
     , http-client
@@ -381,6 +386,7 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , flow
     , fsnotify
     , haskeline
     , http-client
@@ -447,6 +453,7 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , flow
     , fsnotify
     , haskeline
     , hlint
@@ -554,6 +561,8 @@ test-suite fission-test
       Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
       Fission.IPFS.URL.Types
+      Fission.Log.Lens
+      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -649,6 +658,7 @@ test-suite fission-test
     , ekg-wai
     , envy
     , fission-web-api
+    , flow
     , fsnotify
     , haskeline
     , hspec
@@ -724,6 +734,7 @@ benchmark fission-benchmark
     , ekg-wai
     , envy
     , fission-web-api
+    , flow
     , fsnotify
     , haskeline
     , http-client

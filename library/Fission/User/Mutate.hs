@@ -1,5 +1,6 @@
 module Fission.User.Mutate (create) where
 
+import           Flow
 import           RIO
 
 import Database.Selda
@@ -37,5 +38,5 @@ create herokuUUID herokuRegion sekret = do
   uID <- insertWithPK Table.users
     [User def Regular True (Just hConfId) sekret <@ now]
 
-  logInfo $ "Inserted user " <> display uID
+  logInfo <| "Inserted user " <> display uID
   return uID

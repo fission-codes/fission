@@ -11,6 +11,7 @@ import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process
 
+import Flow
 import Data.Has
 
 import qualified Fission.Config as Config
@@ -84,6 +85,6 @@ ipfsProc processor inStream outStream opts = do
   IPFS.BinPath ipfs <- Config.get
   IPFS.Timeout secs <- Config.get
   let opts' = ("--timeout=" <> show secs <> "s") : opts
-  proc ipfs opts' $ processor
-                  . setStdin  inStream
-                  . setStdout outStream
+  proc ipfs opts' <| processor
+                  <. setStdin  inStream
+                  <. setStdout outStream
