@@ -33,7 +33,7 @@ import qualified Fission.Web.Routes      as Web
 import qualified Fission.Web.Swagger     as Web.Swagger
 import qualified Fission.Web.Types       as Web
 
-import qualified Fission.AWS.Types       as AWS
+import qualified Network.AWS.Auth       as AWS
 
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
@@ -101,4 +101,4 @@ server host' = Web.Swagger.server host'
           :<|> const Heroku.server
           :<|> const Auth.verify
           :<|> pure Ping.pong
-          :<|> const Domain.server
+          :<|> Domain.server

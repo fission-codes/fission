@@ -29,7 +29,8 @@ import           Fission.Environment.Types
 import           Fission.IPFS.Environment.Types    as IPFS
 import qualified Fission.Storage.Environment.Types as Storage
 import qualified Fission.Web.Environment.Types     as Web
-import qualified Fission.AWS.Environment.Types     as AWS
+
+import qualified Fission.AWS.Environment.Types as AWS
 
 main :: IO ()
 main = do
