@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9ad875cae87ce6b8edffa42e9bbac63415a9dfe8bbb0173424605ea0e1f16945
+-- hash: 79fa752b4cda60a9eb70858b1179eb8c21ed94d4ca2dbdfa666e2d357b148faa
 
 name:           fission-web-api
 version:        1.10.0
@@ -31,11 +31,12 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.AWS.Environment.Types
       Fission.AWS.Route53
+      Fission.AWS.Types
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
-      Fission.CLI.Command.Route
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -142,6 +143,7 @@ library
       Fission.Web.Client.Request
       Fission.Web.Client.Types
       Fission.Web.CORS
+      Fission.Web.Domain
       Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
@@ -514,11 +516,12 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.AWS.Environment.Types
       Fission.AWS.Route53
+      Fission.AWS.Types
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
-      Fission.CLI.Command.Route
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -625,6 +628,7 @@ test-suite fission-test
       Fission.Web.Client.Request
       Fission.Web.Client.Types
       Fission.Web.CORS
+      Fission.Web.Domain
       Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
