@@ -28,7 +28,6 @@ type VerifyRoute = "verify"
 server :: HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
         => Has Web.Host    cfg
-      --  => Has HTTP.Manager  cfg
        => RIOServer         cfg API
 server = Create.server
     :<|> const Verify.server

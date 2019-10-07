@@ -30,14 +30,7 @@ create :: MonadRIO    cfg m
        => HasLogFunc cfg
        => SecretDigest
        -> m (ID User)
-create userSecret = do
-  now <- liftIO getCurrentTime
-
-  uID <- insertWithPK Table.users
-    [User def Regular True Nothing userSecret <@ now]
-
-  logInfo $ "Inserted user " <> display uID
-  return uID
+create userSecret = create' userSecret Nothing
 
 -- | Create a new, timestamped entry and heroku add-on
 createWithHeroku :: MonadRIO    cfg m
@@ -52,9 +45,21 @@ createWithHeroku herokuUUID herokuRegion userSecret = do
 
   hConfId <- insertWithPK Heroku.addOns
     [Heroku.AddOn def herokuUUID (Just herokuRegion) <@ now]
+  
+  create' userSecret (Just hConfId)
+
+-- | Create a new, timestamped entry with optional heroku add-on
+create' :: MonadRIO    cfg m
+       => MonadSelda      m
+       => HasLogFunc cfg
+       => SecretDigest
+       -> Maybe (ID Heroku.AddOn)
+       -> m (ID User)
+create' userSecret herokuUUID = do
+  now <- liftIO getCurrentTime
 
   uID <- insertWithPK Table.users
-    [User def Regular True (Just hConfId) userSecret <@ now]
+    [User def Regular True herokuUUID userSecret <@ now]
 
   logInfo $ "Inserted user " <> display uID
   return uID
