@@ -73,7 +73,7 @@ isExternalIPv4 ip = ip
   & extractIPfromPeerAddress
   & maybe "" Text.pack
   & Net.IPv4.decode
-  <&> Net.IPv4.private
+  <&> Net.IPv4.reserved
   & maybe False not
 
 
@@ -87,20 +87,16 @@ getExternalAddress :: (MonadIO m
   , Has IPFS.BinPath cfg
   , Has IPFS.Timeout cfg)
   => m (Either Error [Peer])
-getExternalAddress = IPFSProc.run' ["id"] >>= \result -> do
-  logError $ "IN HERE: " <> displayShow result
-  case result of
-    (ExitFailure _ , _, err) -> do
-      logError "BOOM!"
+getExternalAddress = IPFSProc.run' ["id"] >>= \case
+    (ExitFailure _ , _, err) ->
       return $ Left $ UnknownErr $ "BOOM:" <> UTF8.textShow err
 
     (ExitSuccess , rawOut, _) -> do
-      -- TODO break into a get ipfs info function, a get address function then a filter function
-      logInfo ">>>>>>>>>>>>"
-      logInfo $ displayShow rawOut
       let ipfsInfo = JSON.decode rawOut
-      logInfo $ displayShow ipfsInfo
       let filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
+
+      logInfo $ displayShow ipfsInfo
+
       return $ Right filteredAddrs
 
 fission :: Peer
