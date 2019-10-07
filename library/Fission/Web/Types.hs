@@ -20,7 +20,7 @@ newtype Host = Host { getHost :: BaseUrl }
                    )
 
 instance Show Host where
- show = show . UTF8.stripNBS 1 . encode
+  show = show . UTF8.stripNBS 1 . encode
 
 -- | Port of the running application
 newtype Port = Port { port :: Warp.Port }
