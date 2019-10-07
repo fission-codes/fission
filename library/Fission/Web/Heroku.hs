@@ -84,6 +84,7 @@ provision Request {_uuid, _region} = do
   return Provision
     { _id      = userID
     , _config  = userConfig
+    -- TODO add peer
     , _message = "Successfully provisioned Interplanetary FISSION!"
     }
 

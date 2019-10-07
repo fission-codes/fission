@@ -11,11 +11,14 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 import           RIO.Process (HasProcessContext)
 
+import           Net.IPv4
+import           Text.Regex
+
 import           Data.Has
-import Net.IPv4
-import Text.Regex
-import Data.List hiding (all)
-import qualified Data.Text as Text
+import           Data.List hiding (all)
+import qualified Data.Text as T
+import qualified Data.Aeson as JSON
+
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8       as UTF8
 
@@ -24,8 +27,6 @@ import qualified Fission.IPFS.Types          as IPFS
 import           Fission.IPFS.Peer.Error     as IPFS.Peer
 import           Fission.IPFS.Peer.Types
 import           Fission.IPFS.Info.Types
-import qualified Data.Aeson as JSON
--- import           Fission.IPFS.Peer.Types
 
 all :: MonadRIO          cfg m
     => HasProcessContext cfg
@@ -61,17 +62,19 @@ connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyB
   (ExitFailure _ , _, _) -> Left $ CannotConnect peer
   (ExitSuccess   , _, _) -> Right ()
 
+peerAddressRe :: Regex
 peerAddressRe = mkRegex "^/ip[46]/([a-zA-Z0-9.:]*)/"
 
+extractIPfromPeerAddress :: String -> Maybe String
 extractIPfromPeerAddress peer = peer
   & matchRegex peerAddressRe
   <&> Data.List.head
 
 isExternalIPv4 :: Text -> Bool
 isExternalIPv4 ip = ip
-  & Text.unpack
+  & T.unpack
   & extractIPfromPeerAddress
-  & maybe "" Text.pack
+  & maybe "" T.pack
   & Net.IPv4.decode
   <&> Net.IPv4.reserved
   & maybe False not

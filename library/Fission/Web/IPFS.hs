@@ -72,8 +72,7 @@ authed :: HasLogFunc        cfg
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
-        :<|> DAG.put usr -- Question: why is the function naming convention so all over the place?
-                         -- Answer: it's not! This is what they're called in IPFS!
+        :<|> DAG.put usr
 
 public :: HasLogFunc        cfg
        => HasProcessContext cfg
