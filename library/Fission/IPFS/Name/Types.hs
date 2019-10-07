@@ -13,9 +13,8 @@ newtype Name = Name { unName :: String }
                     , Show
                     , Ord
                     )
-  -- deriving anyclass ( ToParamSchema )
   deriving newtype  ( IsString
-                    , ToSchema 
+                    , ToSchema
                     , ToParamSchema
                     )
 

@@ -42,5 +42,5 @@ instance FromJSON Manifest where
   parseJSON = withObject "Heroku.Manifest" \obj -> do
     _id   <- obj .: "id"
     _name <- obj .: "name"
-    _api  <- obj .: "api" -- NOTE may need a recursive parse?
+    _api  <- obj .: "api"
     return Manifest {..}
