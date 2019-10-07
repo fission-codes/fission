@@ -10,15 +10,17 @@ import qualified Network.Wai.Handler.Warp as Warp
 import           Servant.Client
 import           System.Envy
 
+import qualified Fission.Internal.UTF8 as UTF8
+
 -- | The hostname of the running application
 newtype Host = Host { getHost :: BaseUrl }
-  deriving          ( Eq
-                    , Show
-                    )
+  deriving         ( Eq )
+  deriving newtype ( ToJSON
+                   , FromJSON
+                   )
 
-instance FromJSON Host where
-  parseJSON = withText "Web.Host" \txt ->
-    Host <$> parseJSON (String txt)
+instance Show Host where
+ show = show . UTF8.stripNBS 1 . encode
 
 -- | Port of the running application
 newtype Port = Port { port :: Warp.Port }

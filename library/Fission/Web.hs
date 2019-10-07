@@ -54,17 +54,15 @@ app :: Has IPFS.BinPath    cfg
     =>     cfg
     -> RIO cfg Application
 app cfg = do
-  auth             <- mkAuth
-  Web.Host appHost <- Config.get
-
-  let
-    api  = Proxy :: Proxy API
-    host = show . UTF8.stripNBS 1 $ JSON.encode appHost
-
+  auth               <- mkAuth
+  appHost :: Web.Host <- Config.get
   return . serveWithContext api auth
          . Auth.server api cfg
          . server
-         $ Swagger.Host host Nothing
+         $ Swagger.Host (show appHost) Nothing
+  where
+    api :: Proxy API
+    api = Proxy
 
 -- | Construct an authorization context
 mkAuth :: Has Heroku.ID       cfg
