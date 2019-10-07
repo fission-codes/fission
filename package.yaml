@@ -76,6 +76,9 @@ default-extensions:
 dependencies:
   - aeson
   - aeson-casing
+  - amazonka
+  - amazonka-core
+  - amazonka-route53
   - ansi-terminal
   - base
   - cryptonite
