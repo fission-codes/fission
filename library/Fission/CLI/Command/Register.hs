@@ -11,7 +11,7 @@ import           Servant
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 
-import qualified Fission.Web.Auth.Client  as Fission.Auth
+import qualified Fission.Web.User.Client  as User.Client
 import qualified Fission.Web.Client.Types as Client
 
 import qualified Fission.User.Provision.Types  as User
@@ -63,7 +63,7 @@ register' = do
                   . liftIO
                   . CLI.Wait.waitFor "Registering"
                   . runner
-                  $ Fission.Auth.register
+                  $ User.Client.register
 
   logDebug $ displayShow registerResult
 
