@@ -28,9 +28,12 @@ import qualified Fission.Web.User        as User
 import qualified Fission.Web.Auth        as Auth
 import qualified Fission.Web.IPFS        as IPFS
 import qualified Fission.Web.Ping        as Ping
+import qualified Fission.Web.Domain      as Domain
 import qualified Fission.Web.Routes      as Web
 import qualified Fission.Web.Swagger     as Web.Swagger
 import qualified Fission.Web.Types       as Web
+
+import qualified Fission.AWS.Types       as AWS
 
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
@@ -42,8 +45,10 @@ type API = Web.Swagger.API :<|> Web.API
 app :: Has IPFS.BinPath    cfg
     => Has IPFS.Timeout    cfg
     => Has IPFS.URL        cfg
-    => Has HTTP.Manager  cfg
+    => Has HTTP.Manager    cfg
     => Has Web.Host        cfg
+    => Has AWS.AccessKey   cfg
+    => Has AWS.SecretKey cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
     => HasProcessContext   cfg
@@ -85,6 +90,8 @@ server :: Has IPFS.BinPath  cfg
        => Has HTTP.Manager  cfg
        => Has IPFS.URL      cfg
        => Has Web.Host      cfg
+       => Has AWS.AccessKey cfg
+       => Has AWS.SecretKey cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
@@ -95,3 +102,4 @@ server host' = Web.Swagger.server host'
           :<|> const Heroku.server
           :<|> User.server
           :<|> pure Ping.pong
+          :<|> const Domain.server
