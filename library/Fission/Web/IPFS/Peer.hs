@@ -12,7 +12,7 @@ import Fission.Web.Server
 import qualified Fission.IPFS.Types          as IPFS
 import qualified Fission.Web.Error       as Web.Err
 
-type API = Get '[OctetStream] [IPFS.Peer]
+type API = Get '[JSON, PlainText, OctetStream] [IPFS.Peer]
 
 get :: Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg

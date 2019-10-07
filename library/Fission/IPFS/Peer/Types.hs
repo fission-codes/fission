@@ -23,9 +23,12 @@ newtype Peer = Peer { peer :: Text }
                     )
   deriving newtype  ( Display
                     , IsString
+                    , FromJSON
                     )
 
-$(deriveJSON defaultOptions ''Peer)
+-- $(deriveJSON defaultOptions ''Peer)
+instance ToJSON Peer where
+  toJSON = String . peer
 
 instance ToSchema Peer where
   declareNamedSchema _ =

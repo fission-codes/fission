@@ -88,6 +88,7 @@ dependencies:
   - http-client-tls
   - http-media
   - http-types
+  - ip
   - lens
   - mime-types
   - monad-logger
@@ -95,6 +96,7 @@ dependencies:
   - optparse-simple
   - random-bytestring
   - resource-pool
+  - regex-compat
   - rio
   - rio-orphans
   - scientific

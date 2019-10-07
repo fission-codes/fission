@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 81c2f9bb24c8090bcfb308a205d77b7570a9cc290bbd2ca8cea79332f11d55a8
+-- hash: 0afa93cd7810084e81acce064a54a8543ca3f50b4ce400922b51a4333e61c3a6
 
 name:           fission-web-api
 version:        1.10.0
@@ -89,8 +89,6 @@ library
       Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
       Fission.IPFS.URL.Types
-      Fission.Log.Lens
-      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -191,12 +189,14 @@ library
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -256,12 +256,14 @@ executable fission-cli
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -321,12 +323,14 @@ executable fission-web
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -391,6 +395,7 @@ test-suite fission-doctest
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , lens-aeson
     , mime-types
@@ -398,6 +403,7 @@ test-suite fission-doctest
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -458,12 +464,14 @@ test-suite fission-lint
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -561,8 +569,6 @@ test-suite fission-test
       Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
       Fission.IPFS.URL.Types
-      Fission.Log.Lens
-      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -668,12 +674,14 @@ test-suite fission-test
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -740,12 +748,14 @@ benchmark fission-benchmark
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans

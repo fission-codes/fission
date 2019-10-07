@@ -12,7 +12,10 @@ import qualified RIO.Text            as Text
 import           RIO.Process (HasProcessContext)
 
 import           Data.Has
-
+import Net.IPv4
+import Text.Regex
+import Data.List hiding (all)
+import qualified Data.Text as Text
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8       as UTF8
 
@@ -58,17 +61,24 @@ connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyB
   (ExitFailure _ , _, _) -> Left $ CannotConnect peer
   (ExitSuccess   , _, _) -> Right ()
 
-isIP4 :: Text -> Bool
-isIP4 = Text.isInfixOf "ip4"
+peerAddressRe = mkRegex "^/ip[46]/([a-zA-Z0-9.:]*)/"
 
-isLocal :: Text -> Bool
-isLocal addr = Text.isInfixOf "127." addr || Text.isInfixOf "localhost" addr -- TODO: Handle localhost
+extractIPfromPeerAddress peer = peer
+  & matchRegex peerAddressRe
+  <&> Data.List.head
 
-isExternalIP4 :: Text -> Bool
-isExternalIP4 addr = (not $ isLocal addr) && (isIP4 addr)
+isExternalIPv4 :: Text -> Bool
+isExternalIPv4 ip = ip
+  & Text.unpack
+  & extractIPfromPeerAddress
+  & maybe "" Text.pack
+  & Net.IPv4.decode
+  <&> Net.IPv4.private
+  & maybe False not
+
 
 filterExternalPeers :: [Peer] -> [Peer]
-filterExternalPeers = filter (isExternalIP4 . peer)
+filterExternalPeers = Data.List.filter (isExternalIPv4 . peer)
 
 getExternalAddress :: (MonadIO m
   , MonadReader cfg m
@@ -87,7 +97,9 @@ getExternalAddress = IPFSProc.run' ["id"] >>= \result -> do
     (ExitSuccess , rawOut, _) -> do
       -- TODO break into a get ipfs info function, a get address function then a filter function
       logInfo ">>>>>>>>>>>>"
+      logInfo $ displayShow rawOut
       let ipfsInfo = JSON.decode rawOut
+      logInfo $ displayShow ipfsInfo
       let filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
       return $ Right filteredAddrs
 
