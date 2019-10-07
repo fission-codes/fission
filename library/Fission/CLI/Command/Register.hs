@@ -70,8 +70,10 @@ register' = do
   case registerResult of
     Right user -> do 
       logDebug $ displayShow user
-      let username = encodeUtf8 $ user ^. User.interplanetaryFissionUsername
-      let password = encodeUtf8 $ Security.unSecret $ user ^. User.interplanetaryFissionPassword
-      let auth = BasicAuthData username password
-      Auth.write auth >> CLI.Success.putOk "Registered & logged in"
+      let
+        username = encodeUtf8 $ user ^. User.interplanetaryFissionUsername
+        password = encodeUtf8 $ Security.unSecret $ user ^. User.interplanetaryFissionPassword
+        auth = BasicAuthData username password
+      Auth.write auth
+      CLI.Success.putOk "Registered & logged in"
     Left  err -> CLI.Error.put err "Registeration failed"
