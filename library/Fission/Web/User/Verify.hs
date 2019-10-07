@@ -1,6 +1,6 @@
-module Fission.Web.Auth.Verify
+module Fission.Web.User.Verify
   ( API
-  , verify
+  , server
   ) where
 
 import RIO
@@ -11,5 +11,5 @@ import Fission.Web.Server
 
 type API = Get '[JSON] Bool
 
-verify :: RIOServer cfg API
-verify = pure True
+server :: RIOServer cfg API
+server = pure True

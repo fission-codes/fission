@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3c8290c58105e993b312f1892ef687ae69e27f1055f23fad52f4c08bdb710a58
+-- hash: 59023b765877a63dbb3776f8ae3bac0663e6ad98790114df2246fe36da5c11cb
 
 name:           fission-web-api
 version:        1.10.0
@@ -134,8 +134,6 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -156,7 +154,6 @@ library
       Fission.Web.Log
       Fission.Web.Ping
       Fission.Web.Ping.Types
-      Fission.Web.Register
       Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
@@ -165,6 +162,10 @@ library
       Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
   other-modules:
       Paths_fission_web_api
   hs-source-dirs:
@@ -601,8 +602,6 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -623,7 +622,6 @@ test-suite fission-test
       Fission.Web.Log
       Fission.Web.Ping
       Fission.Web.Ping.Types
-      Fission.Web.Register
       Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
@@ -632,6 +630,10 @@ test-suite fission-test
       Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
       Paths_fission_web_api
   hs-source-dirs:
       library

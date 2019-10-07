@@ -1,8 +1,8 @@
 {-# LANGUAGE MonoLocalBinds    #-}
 
-module Fission.Web.Register
+module Fission.Web.User.Create
   ( API
-  , register
+  , server
   ) where
 
 import           RIO
@@ -26,11 +26,11 @@ import           Fission.Security.Types (Secret (..))
 
 type API =  Post    '[JSON] User.Provision
 
-register :: HasLogFunc       cfg
+server :: HasLogFunc       cfg
           => Has Web.Host    cfg
           => MonadSelda (RIO cfg)
           => RIOServer       cfg API
-register = do
+server = do
   Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
   userID       <- User.create secret
