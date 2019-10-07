@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc8c6012f648eba2d65544e826ca27b053bc7ec9a49a3e5a25b5fc69bc0db024
+-- hash: 9ad875cae87ce6b8edffa42e9bbac63415a9dfe8bbb0173424605ea0e1f16945
 
 name:           fission-web-api
 version:        1.10.0
@@ -31,9 +31,11 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.AWS.Route53
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Route
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -173,6 +175,9 @@ library
   build-depends:
       aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
@@ -237,6 +242,9 @@ executable fission-cli
   build-depends:
       aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
@@ -302,6 +310,9 @@ executable fission-web
   build-depends:
       aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
@@ -370,6 +381,9 @@ test-suite fission-doctest
     , QuickCheck
     , aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
@@ -439,6 +453,9 @@ test-suite fission-lint
   build-depends:
       aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
@@ -497,9 +514,11 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.AWS.Route53
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Route
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -640,6 +659,9 @@ test-suite fission-test
   build-depends:
       aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
@@ -714,6 +736,9 @@ benchmark fission-benchmark
   build-depends:
       aeson
     , aeson-casing
+    , amazonka
+    , amazonka-core
+    , amazonka-route53
     , ansi-terminal
     , base
     , bytestring
