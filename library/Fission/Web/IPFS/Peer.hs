@@ -19,43 +19,6 @@ get :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg API
-get = do
-  logError "STARTED FUNCTION"
-  getExternalAddress >>= \case
-  -- logInfo $ "GET ENDPOINT: " <> displayShow res
+get = getExternalAddress >>= \case
     Right peers -> return peers
-    Left err -> do
-      logDebug "hellow world"
-      Web.Err.throw err
-
-
-  -- do
-  -- result <- getExternalAddress
-  -- -- This is a joke
-  -- -- why is it so hard to parse an either
-  -- -- god damn haskell
-  -- case result of
-  --   Right peers -> return peers
-  --   Left err ->  Web.Err.throw err
-
-  --   getExternalAddress >>= \result ->
-  --     case result of
-  --       Right peers -> return peers
-  --       Left err ->  Web.Err.throw err
-
-  -- ------
-
-  -- getExternalAddress >>= \case
-  --   Right peers -> return peers
-  --   Left err ->  Web.Err.throw err
-
-
-    -- a -> m b
-    -- b -> m c
-    -- c -> m d
-
-    -- (a -> b) -> m a -> m b
-    -- show -> [1,2,3] -> ["1", "2", "3'"]
-
-    -- (a -> m b) -> m a -> m b
-    -- \x -> [show x, show (x * 10)] -> [1,2,3] -> ["1", "10", "2", "20", "3", "30"]
+    Left err -> Web.Err.throw err

@@ -26,7 +26,6 @@ newtype Peer = Peer { peer :: Text }
                     , FromJSON
                     )
 
--- $(deriveJSON defaultOptions ''Peer)
 instance ToJSON Peer where
   toJSON = String . peer
 
