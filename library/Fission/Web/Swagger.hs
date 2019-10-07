@@ -16,7 +16,7 @@ import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 import           Fission.Internal.Orphanage.BasicAuth     ()
 import           Fission.Internal.Orphanage.MultipartForm ()
 
-import qualified Fission.Web.Routes       as Web
+import qualified Fission.Web.Routes as Web
 import           Fission.Web.Server
 
 type API = SwaggerSchemaUI "docs" "docs.json"
