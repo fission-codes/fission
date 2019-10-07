@@ -25,12 +25,8 @@ import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
-<<<<<<< HEAD
 import qualified Network.AWS.Auth              as AWS
 import qualified Fission.AWS.Types              as AWS
-=======
-import qualified Fission.AWS.Types             as AWS
->>>>>>> start on server route + add aws env vars
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | The top level 'Fission' application 'RIO' configuration
@@ -48,11 +44,8 @@ data Config = Config
   , _herokuPassword :: !Heroku.Password
   , _awsAccessKey   :: !AWS.AccessKey
   , _awsSecretKey   :: !AWS.SecretKey
-<<<<<<< HEAD
   , _awsZoneId      :: !AWS.ZoneId
   , _awsDomainName  :: !AWS.DomainName
-=======
->>>>>>> start on server route + add aws env vars
   }
 
 makeLenses ''Config
@@ -72,13 +65,9 @@ instance Show Config where
     , "  _herokuID       = " <> show _herokuID
     , "  _herokuPassword = " <> show _herokuPassword
     , "  _awsAccessKey   = " <> show _awsAccessKey
-<<<<<<< HEAD
     , "  _awsSecretKey   = HIDDEN"
     , "  _awsZoneId      = " <> show _awsZoneId
     , "  _awsDomainName  = " <> show _awsDomainName
-=======
-    , "  _awsSecretKey   = " <> show _awsSecretKey
->>>>>>> start on server route + add aws env vars
     , "}"
     ]
 
