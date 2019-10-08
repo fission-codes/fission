@@ -89,17 +89,16 @@ getExternalAddress :: MonadRIO          cfg m
                    => HasLogFunc        cfg
                    => Has IPFS.BinPath  cfg
                    => Has IPFS.Timeout  cfg
-                   => m (Either Error [Peer])
+                   => m (Either IPFS.Peer.Error [Peer])
 getExternalAddress = IPFSProc.run' ["id"] >>= \case
     (ExitFailure _ , _, err) ->
-      return $ Left $ UnknownErr $ "BOOM:" <> UTF8.textShow err
+      return $ Left . UnknownErr $ UTF8.textShow err
 
     (ExitSuccess , rawOut, _) -> do
       let
         ipfsInfo      = JSON.decode rawOut
         filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
 
-      logInfo $ displayShow ipfsInfo
       return $ Right filteredAddrs
 
 fission :: Peer
