@@ -48,7 +48,7 @@ type SimpleAPI = "cids" :> CID.API
             :<|> Pin.API
             :<|> "dag" :> DAG.API
 
-type PublicAPI = "peerid" :> Peer.API
+type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
 server :: HasLogFunc        cfg
