@@ -29,6 +29,8 @@ import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.Platform.Heroku.UserConfig as Heroku
 import           Fission.Security.Types
 import           Fission.User                       (User)
+import           Fission.IPFS.Types                 as IPFS
+import           Fission.IPFS.Peer (fission)
 
 data Request = Request
   { _callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -104,6 +106,7 @@ From Heroku
 data Provision = Provision
   { _id      :: ID User           -- ^ User ID
   , _config  :: Heroku.UserConfig -- ^ Heroku env var payload
+  , _peers   :: [IPFS.Peer]       -- ^ IPFS peer list
   , _message :: Text              -- ^ A helpful human-readable message
   } deriving ( Eq
              , Show
@@ -117,6 +120,7 @@ instance ToSchema Provision where
   declareNamedSchema _ = do
     uId    <- declareSchemaRef (Proxy :: Proxy (ID User))
     usrCfg <- declareSchemaRef (Proxy :: Proxy Heroku.UserConfig)
+    ipfsPeers <- declareSchemaRef (Proxy :: Proxy [IPFS.Peer])
     txt    <- declareSchemaRef (Proxy :: Proxy Text)
     return $ NamedSchema (Just "HerokuProvision") $ mempty
            & type_      ?~ SwaggerObject
@@ -124,6 +128,7 @@ instance ToSchema Provision where
                [ ("id",      uId)
                , ("config",  usrCfg)
                , ("message", txt)
+               , ("peers", ipfsPeers)
                ]
            & required .~ ["id" , "config"]
            & example  ?~ toJSON provisionEx
@@ -131,6 +136,7 @@ instance ToSchema Provision where
       provisionEx = Provision
         { _id      = toId 4213
         , _config  = cfgEx
+        , _peers  = [fission]
         , _message = "Provisioned successfully"
         }
 
