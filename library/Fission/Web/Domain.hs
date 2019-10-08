@@ -4,29 +4,25 @@ module Fission.Web.Domain
   ) where
 
 import RIO
-
 import Data.Has
 
-import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import           Fission.Web.Server
-import qualified Fission.Web.Error    as Web.Err
-import           Fission.File.Types   as File
-import qualified Fission.IPFS.Types   as IPFS
-import qualified Fission.Storage.IPFS as Storage.IPFS
-import           Fission.User as User
-import           Fission.User.CID.Mutation as UserCID
+import           Fission.User        as User
 import           Fission.IPFS.CID.Types
-import qualified Network.AWS.Auth       as AWS
+
+import qualified Network.AWS.Auth    as AWS
+import qualified Fission.AWS.Types   as AWS
 import qualified Fission.AWS.Route53 as Route53
 
 type API = Capture "cid" CID
         :> Post    '[PlainText, OctetStream] NoContent
 
-server :: Has HTTP.Manager  cfg
-       => Has AWS.AccessKey cfg
+server :: Has AWS.AccessKey cfg
        => Has AWS.SecretKey cfg
+       => Has AWS.ZoneId    cfg
+       => Has AWS.Domain    cfg
        => HasLogFunc        cfg
        => User
        -> RIOServer         cfg API

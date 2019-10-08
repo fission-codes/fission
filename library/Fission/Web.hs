@@ -33,7 +33,8 @@ import qualified Fission.Web.Routes      as Web
 import qualified Fission.Web.Swagger     as Web.Swagger
 import qualified Fission.Web.Types       as Web
 
-import qualified Network.AWS.Auth       as AWS
+import qualified Network.AWS.Auth  as AWS
+import qualified Fission.AWS.Types as AWS
 
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Fission.Web.Heroku            as Heroku
@@ -49,6 +50,8 @@ app :: Has IPFS.BinPath    cfg
     => Has Web.Host        cfg
     => Has AWS.AccessKey   cfg
     => Has AWS.SecretKey cfg
+    => Has AWS.ZoneId    cfg
+    => Has AWS.Domain    cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
     => HasProcessContext   cfg
@@ -92,6 +95,8 @@ server :: Has IPFS.BinPath  cfg
        => Has Web.Host      cfg
        => Has AWS.AccessKey cfg
        => Has AWS.SecretKey cfg
+       => Has AWS.ZoneId    cfg
+       => Has AWS.Domain    cfg
        => HasProcessContext cfg
        => HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
