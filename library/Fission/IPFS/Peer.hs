@@ -9,14 +9,13 @@ module Fission.IPFS.Peer
 import           RIO hiding (all)
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
+import qualified RIO.List            as List
 import           RIO.Process (HasProcessContext)
 
-import           Net.IPv4
+import qualified Net.IPv4 as IPv4
 import           Text.Regex
 
 import           Data.Has
-import           Data.List hiding (all)
-import qualified Data.Text as T
 import qualified Data.Aeson as JSON
 
 import           Fission.Internal.Constraint
@@ -66,40 +65,37 @@ peerAddressRe :: Regex
 peerAddressRe = mkRegex "^/ip[46]/([a-zA-Z0-9.:]*)/"
 
 extractIPfromPeerAddress :: String -> Maybe String
-extractIPfromPeerAddress peer = peer
-  & matchRegex peerAddressRe
-  <&> Data.List.head
+extractIPfromPeerAddress peer = matchRegex peerAddressRe peer >>= List.headMaybe
 
 isExternalIPv4 :: Text -> Bool
-isExternalIPv4 ip = ip
-  & T.unpack
-  & extractIPfromPeerAddress
-  & maybe "" T.pack
-  & Net.IPv4.decode
-  <&> Net.IPv4.reserved
-  & maybe False not
+isExternalIPv4 ip = maybe False not isReserved
+  where
+    isReserved :: Maybe Bool
+    isReserved = do
+      ipAddress  <- extractIPfromPeerAddress $ Text.unpack ip
+      normalized <- IPv4.decode $ Text.pack ipAddress
+      return $ IPv4.reserved normalized
 
 
 filterExternalPeers :: [Peer] -> [Peer]
-filterExternalPeers = Data.List.filter (isExternalIPv4 . peer)
+filterExternalPeers = filter (isExternalIPv4 . peer)
 
-getExternalAddress :: (MonadIO m
-  , MonadReader cfg m
-  , HasProcessContext cfg
-  , HasLogFunc cfg
-  , Has IPFS.BinPath cfg
-  , Has IPFS.Timeout cfg)
-  => m (Either Error [Peer])
+getExternalAddress :: MonadRIO          cfg m
+                   => HasProcessContext cfg
+                   => HasLogFunc        cfg
+                   => Has IPFS.BinPath  cfg
+                   => Has IPFS.Timeout  cfg
+                   => m (Either Error [Peer])
 getExternalAddress = IPFSProc.run' ["id"] >>= \case
     (ExitFailure _ , _, err) ->
       return $ Left $ UnknownErr $ "BOOM:" <> UTF8.textShow err
 
     (ExitSuccess , rawOut, _) -> do
-      let ipfsInfo = JSON.decode rawOut
-      let filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
+      let
+        ipfsInfo      = JSON.decode rawOut
+        filteredAddrs = filterExternalPeers . maybe [] _addresses $ ipfsInfo
 
       logInfo $ displayShow ipfsInfo
-
       return $ Right filteredAddrs
 
 fission :: Peer
