@@ -14,6 +14,7 @@ import qualified Fission.Web.Error       as Web.Err
 
 type API = Get '[JSON, PlainText, OctetStream] [IPFS.Peer]
 
+-- | Get a list of valid IPFS addresses that a user could use to join our network
 get :: Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => HasProcessContext cfg
