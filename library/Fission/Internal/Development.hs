@@ -26,7 +26,7 @@ import qualified Fission.Platform.Heroku.Types as Hku
      == Example Use
 
      > runOne Fission.IPFS.Peer.all
-     Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     > # Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 runOne :: RIO Config a -> IO a
 runOne action = do
@@ -52,9 +52,10 @@ runOne action = do
      > let runSession = run logFunc dbPool processCtx httpManager
      >
      > runSession Fission.IPFS.Peer.all
-     Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     > # Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     >
      > runSession Fission.IPFS.Peer.connect Fission.peer
-     ()
+     > # ()
 -}
 run :: LogFunc
     -> DB.Pool
@@ -90,16 +91,17 @@ run _logFunc _dbPool _processCtx _httpManager action =
      > (cfg, _) <- mkConfig
      > let run' = runRIO cfg
      > run' Fission.IPFS.Peer.all
-     Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     > # Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     >
      > run' Fission.IPFS.Peer.connect Fission.peer
-     ()
+     > # ()
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
      > (cfg, _) <- mkConfig
      > let run' = runRIO cfg { _ipfsPath = "~/Downloads/ipfs" }
      > run' Fission.IPFS.Peer.all
-     Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     > # Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig :: IO (Config, IO ())
 mkConfig = do
