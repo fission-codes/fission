@@ -48,7 +48,7 @@ rawList :: MonadRIO          cfg m
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => m (ExitCode, Lazy.ByteString, Lazy.ByteString)
-rawList = IPFSProc.run' ["bootstrap", "list"]
+rawList = IPFSProc.run' ["bootstrap", "list"] -- TODO: make "swarm" "peers"
 
 connect :: MonadRIO cfg m
         => HasProcessContext cfg
