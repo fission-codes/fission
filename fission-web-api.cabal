@@ -12,9 +12,11 @@ category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
 author:         Brooklyn Zelenka,
-                Daniel Holmgren
+                Daniel Holmgren,
+                Ben Church
 maintainer:     brooklyn@fission.codes,
-                daniel@fission.codes
+                daniel@fission.codes,
+                ben@fission.codes
 copyright:      © 2019 Fission Internet Software Services for Open Networks Inc.
 license:        AGPL-3.0-or-later
 license-file:   LICENSE
