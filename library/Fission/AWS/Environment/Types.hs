@@ -15,8 +15,6 @@ import Data.Aeson
 
 import qualified Fission.AWS.Types as AWS
 import qualified Network.AWS.Auth as AWS
-import Network.AWS.Route53 as AWS
-import Fission.AWS.Types as AWS
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
