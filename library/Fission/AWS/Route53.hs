@@ -15,7 +15,7 @@ import Fission.AWS.Types   as AWS
 import Control.Monad.Trans.AWS
 
 import Fission.Internal.Constraint
-import  Fission.IPFS.CID.Types
+import Fission.IPFS.CID.Types
 
 
 import Control.Lens ((?~))
@@ -27,16 +27,22 @@ registerDomain :: MonadRIO      cfg m
            => Has AWS.Domain    cfg
            => Text
            -> CID
-           -> m(Bool)
+           -> m(AWS.Domain)
 registerDomain subdomain cid= do 
+  Domain domain <- Config.get
   env <- createEnv
-  let dnslink = "dnslink=/ipfs/" <> (unaddress cid)
-  baseReq <- createChangeRequest Cname subdomain "ipfs.runfission.com"
-  dnslinkReq <- createChangeRequest Txt ("_dnslink." <> subdomain) $ wrapQuotes dnslink
+  let
+    baseUrl    = subdomain <> domain
+    dnslinkUrl = "_dnslink" <> baseUrl
+    dnslink    = "dnslink=/ipfs/" <> (unaddress cid)
+
+  baseReq    <- createChangeRequest Cname baseUrl "ipfs.runfission.com"
+  dnslinkReq <- createChangeRequest Txt dnslinkUrl $ wrapQuotes dnslink
+
   liftIO $ runResourceT . runAWST env . within NorthVirginia $ do
-    _ <- send(baseReq)
-    _ <- send(dnslinkReq)
-    return True
+    void $ send(baseReq)
+    void $ send(dnslinkReq)
+    return $ AWS.Domain baseUrl
 
 createEnv :: MonadRIO           cfg m
            => Has AWS.AccessKey cfg
@@ -49,19 +55,17 @@ createEnv = do
 
 createChangeRequest :: MonadRIO       cfg m
                     => Has AWS.ZoneId cfg
-                    => Has AWS.Domain cfg
                     => RecordType
                     -> Text
                     -> Text
                     -> m(ChangeResourceRecordSets)
-createChangeRequest recordType subdomain content = do
-  Domain domain <- Config.get
+createChangeRequest recordType domain content = do
   ZoneId zoneId <- Config.get
   let
-    recordSet = resourceRecordSet (subdomain <> domain) recordType
-    updated = addValue recordSet content
-    changes = changeBatch $ toNonEmpty [change Upsert updated]
-    zone = ResourceId zoneId
+    recordSet = resourceRecordSet domain recordType
+    updated   = addValue recordSet content
+    changes   = changeBatch $ toNonEmpty [change Upsert updated]
+    zone      = ResourceId zoneId
   return $ changeResourceRecordSets zone changes
 
 addValue :: ResourceRecordSet -> Text -> ResourceRecordSet
