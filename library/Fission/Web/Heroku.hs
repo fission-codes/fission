@@ -74,7 +74,11 @@ provision Request {_uuid, _region} = do
   Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
   userID       <- User.create _uuid _region secret
-  hold <- getExternalAddress
+  ipfsPeers    <- getExternalAddress >>= \case
+                  Right peers ->  pure peers
+                  Left err -> do
+                    logError $ displayShow err
+                    pure []
 
   logInfo $ mconcat
     [ "Provisioned UUID: "
@@ -84,10 +88,6 @@ provision Request {_uuid, _region} = do
     ]
 
   let
-    ipfsPeers = case hold of
-      Right peers -> peers
-      Left _ -> []
-
     userConfig = Heroku.UserConfig
       { Heroku._interplanetaryFissionUrl      = url
       , Heroku._interplanetaryFissionUsername = User.hashID userID

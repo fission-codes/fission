@@ -64,9 +64,11 @@ connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyB
 peerAddressRe :: Regex
 peerAddressRe = mkRegex "^/ip[46]/([a-zA-Z0-9.:]*)/"
 
+-- | Retrieve just the ip address from a peer address
 extractIPfromPeerAddress :: String -> Maybe String
 extractIPfromPeerAddress peer = matchRegex peerAddressRe peer >>= List.headMaybe
 
+-- | True if a given peer address is externally accessable
 isExternalIPv4 :: Text -> Bool
 isExternalIPv4 ip = maybe False not isReserved
   where
@@ -77,9 +79,11 @@ isExternalIPv4 ip = maybe False not isReserved
       return $ IPv4.reserved normalized
 
 
+-- | Filter a list of peers to include only the externally accessable addresses
 filterExternalPeers :: [Peer] -> [Peer]
 filterExternalPeers = filter (isExternalIPv4 . peer)
 
+-- | Get all external ipfs peer addresses
 getExternalAddress :: MonadRIO          cfg m
                    => HasProcessContext cfg
                    => HasLogFunc        cfg
