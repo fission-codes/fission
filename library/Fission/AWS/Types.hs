@@ -1,6 +1,6 @@
 module Fission.AWS.Types
-  ( AccessKey (..)
-  , SecretKey (..)
+  ( Domain (..)
+  , ZoneId (..)
   ) where
 
 import RIO
@@ -9,29 +9,29 @@ import Data.Aeson
 import Data.Swagger (ToSchema (..))
 import Servant
 
-newtype AccessKey = AccessKey { getAccess :: Text }
-  deriving          ( Eq
-                    , Generic
-                    , Show
-                    , Ord
-                    )
+newtype Domain = Domain { getDomain :: Text }
+  deriving ( Eq
+           , Generic
+           , Show
+           , Ord
+           )
   deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
 
-instance FromJSON AccessKey where
-  parseJSON = withText "AWS.AccessKey" \txt ->
-    AccessKey <$> parseJSON (String txt)
+instance FromJSON Domain where
+  parseJSON = withText "AWS.Domain" \txt ->
+    Domain <$> parseJSON (String txt)
 
 
-newtype SecretKey = SecretKey { getSecret :: Text }
-  deriving          ( Eq
-                    , Generic
-                    , Show
-                    , Ord
-                    )
+newtype ZoneId = ZoneId { getZoneId :: Text }
+  deriving ( Eq
+           , Generic
+           , Show
+           , Ord
+           )
   deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
 
-instance FromJSON SecretKey where
-  parseJSON = withText "AWS.SecretKey" \txt ->
-    SecretKey <$> parseJSON (String txt)
+instance FromJSON ZoneId where
+  parseJSON = withText "AWS.ZoneId" \txt ->
+    ZoneId <$> parseJSON (String txt)
