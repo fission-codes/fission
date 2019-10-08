@@ -23,6 +23,7 @@ import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
 import           Fission.File.Types ()
 import           Fission.Internal.Orphanage.PlainText ()
+import           Fission.Internal.Orphanage.OctetStream ()
 
 import qualified Fission.Web.Auth        as Auth
 import qualified Fission.Web.Auth.Verify as Auth

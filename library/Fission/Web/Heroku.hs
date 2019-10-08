@@ -6,6 +6,7 @@ module Fission.Web.Heroku
   ) where
 
 import           RIO
+import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Data.UUID
@@ -44,6 +45,7 @@ import           Fission.Security.Types (Secret (..))
 
 import           Fission.IPFS.Types          as IPFS
 import           Fission.Storage.IPFS.Pin as IPFS.Pin
+import           Fission.IPFS.Peer (getExternalAddress)
 
 type API = ProvisionAPI :<|> DeprovisionAPI
 
@@ -54,18 +56,29 @@ server :: HasLogFunc        cfg
        => Has Web.Host      cfg
        => Has HTTP.Manager  cfg
        => Has IPFS.URL      cfg
+       => HasProcessContext cfg
+       => Has IPFS.BinPath cfg
+       => Has IPFS.Timeout cfg
        => MonadSelda   (RIO cfg)
        => RIOServer         cfg API
 server = provision :<|> deprovision
 
 provision :: HasLogFunc      cfg
           => Has Web.Host    cfg
+          => HasProcessContext cfg
+          => Has IPFS.BinPath cfg
+          => Has IPFS.Timeout cfg
           => MonadSelda (RIO cfg)
           => RIOServer       cfg ProvisionAPI
 provision Request {_uuid, _region} = do
   Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
   userID       <- User.create _uuid _region secret
+  ipfsPeers    <- getExternalAddress >>= \case
+                  Right peers ->  pure peers
+                  Left err -> do
+                    logError $ displayShow err
+                    pure []
 
   logInfo $ mconcat
     [ "Provisioned UUID: "
@@ -84,6 +97,7 @@ provision Request {_uuid, _region} = do
   return Provision
     { _id      = userID
     , _config  = userConfig
+    , _peers   = ipfsPeers
     , _message = "Successfully provisioned Interplanetary FISSION!"
     }
 
