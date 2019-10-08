@@ -26,6 +26,7 @@ import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Network.AWS.Auth              as AWS
+import qualified Fission.AWS.Types              as AWS
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | The top level 'Fission' application 'RIO' configuration
@@ -43,6 +44,8 @@ data Config = Config
   , _herokuPassword :: !Heroku.Password
   , _awsAccessKey   :: !AWS.AccessKey
   , _awsSecretKey   :: !AWS.SecretKey
+  , _awsZoneId      :: !AWS.ZoneId
+  , _awsDomain      :: !AWS.Domain
   }
 
 makeLenses ''Config
@@ -63,6 +66,8 @@ instance Show Config where
     , "  _herokuPassword = " <> show _herokuPassword
     , "  _awsAccessKey   = " <> show _awsAccessKey
     , "  _awsSecretKey   = HIDDEN"
+    , "  _awsZoneId      = " <> show _awsZoneId
+    , "  _awsDomain      = " <> show _awsDomain
     , "}"
     ]
 
@@ -101,6 +106,12 @@ instance Has AWS.AccessKey Config where
 
 instance Has AWS.SecretKey Config where
   hasLens = awsSecretKey
+
+instance Has AWS.ZoneId Config where
+  hasLens = awsZoneId
+
+instance Has AWS.Domain Config where
+  hasLens = awsDomain
 
 instance Has Host Config where
   hasLens = host
