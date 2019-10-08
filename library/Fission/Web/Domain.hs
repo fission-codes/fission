@@ -17,19 +17,15 @@ import qualified Fission.AWS.Types   as AWS
 import qualified Fission.AWS.Route53 as Route53
 
 type API = Capture "cid" CID
-        :> Post    '[PlainText, OctetStream] NoContent
+        :> Post    '[PlainText, OctetStream] AWS.Domain
 
 server :: Has AWS.AccessKey cfg
        => Has AWS.SecretKey cfg
        => Has AWS.ZoneId    cfg
        => Has AWS.Domain    cfg
-       => HasLogFunc        cfg
        => User
        -> RIOServer         cfg API
 server User { _userID } cid = do
   let subdomain = User.hashID _userID
-  Route53.registerDomain subdomain cid
-  logDebug "HERE"
-  logDebug $ displayShow cid
-  logDebug $ displayShow subdomain
-  pure NoContent
+  res <- Route53.registerDomain subdomain cid
+  return res
