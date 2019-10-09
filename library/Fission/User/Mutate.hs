@@ -1,4 +1,8 @@
-module Fission.User.Mutate (create) where
+module Fission.User.Mutate
+  (
+    create,
+    createWithHeroku
+  ) where
 
 import           RIO
 
@@ -24,18 +28,38 @@ import qualified Fission.User.Table as Table
 create :: MonadRIO    cfg m
        => MonadSelda      m
        => HasLogFunc cfg
+       => SecretDigest
+       -> m (ID User)
+create userSecret = create' userSecret Nothing
+
+-- | Create a new, timestamped entry and heroku add-on
+createWithHeroku :: MonadRIO    cfg m
+       => MonadSelda      m
+       => HasLogFunc cfg
        => UUID
        -> Heroku.Region
        -> SecretDigest
        -> m (ID User)
-create herokuUUID herokuRegion sekret = do
+createWithHeroku herokuUUID herokuRegion userSecret = do
   now <- liftIO getCurrentTime
 
   hConfId <- insertWithPK Heroku.addOns
     [Heroku.AddOn def herokuUUID (Just herokuRegion) <@ now]
+  
+  create' userSecret (Just hConfId)
+
+-- | Create a new, timestamped entry with optional heroku add-on
+create' :: MonadRIO    cfg m
+       => MonadSelda      m
+       => HasLogFunc cfg
+       => SecretDigest
+       -> Maybe (ID Heroku.AddOn)
+       -> m (ID User)
+create' userSecret herokuUUID = do
+  now <- liftIO getCurrentTime
 
   uID <- insertWithPK Table.users
-    [User def Regular True (Just hConfId) sekret <@ now]
+    [User def Regular True herokuUUID userSecret <@ now]
 
   logInfo $ "Inserted user " <> display uID
   return uID

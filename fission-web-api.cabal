@@ -102,7 +102,6 @@ library
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -128,6 +127,7 @@ library
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -136,8 +136,6 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -167,6 +165,10 @@ library
       Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
   other-modules:
       Paths_fission_web_api
   hs-source-dirs:
@@ -581,7 +583,6 @@ test-suite fission-test
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -607,6 +608,7 @@ test-suite fission-test
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -615,8 +617,6 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -646,6 +646,10 @@ test-suite fission-test
       Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
       Paths_fission_web_api
   hs-source-dirs:
       library

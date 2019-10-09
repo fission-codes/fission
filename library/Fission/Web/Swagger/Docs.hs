@@ -1,6 +1,6 @@
 module Fission.Web.Swagger.Docs
   ( app
-  , auth
+  , user
   , ipfs
   , heroku
   , ping
@@ -34,10 +34,10 @@ app proxy appHost = toSwagger proxy
     projectLicense = "Apache 2.0"
                    & url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"
 
-auth :: Swagger -> Swagger
-auth = applyTagsFor ops  ["Authentication" & description ?~ "Auth actions & verification"]
+user :: Swagger -> Swagger
+user = applyTagsFor ops  ["User" & description ?~ "User actions & auth verification"]
   where
-    ops = subOperations (Proxy :: Proxy Web.AuthRoute) (Proxy :: Proxy Web.API)
+    ops = subOperations (Proxy :: Proxy Web.UserRoute) (Proxy :: Proxy Web.API)
 
 heroku :: Swagger -> Swagger
 heroku = applyTagsFor ops  ["Heroku" & description ?~ "Interaction with the Heroku add-on API"]

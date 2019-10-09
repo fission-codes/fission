@@ -26,7 +26,7 @@ import Database.Selda
 import           Fission.Internal.JSON
 import qualified Fission.Plan.Types                 as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
-import qualified Fission.Platform.Heroku.UserConfig as Heroku
+import qualified Fission.User.Provision.Types       as User
 import           Fission.Security.Types
 import           Fission.User                       (User)
 import           Fission.IPFS.Types                 as IPFS
@@ -105,7 +105,7 @@ From Heroku
 
 data Provision = Provision
   { _id      :: ID User           -- ^ User ID
-  , _config  :: Heroku.UserConfig -- ^ Heroku env var payload
+  , _config  :: User.Provision    -- ^ Heroku env var payload
   , _peers   :: [IPFS.Peer]       -- ^ IPFS peer list
   , _message :: Text              -- ^ A helpful human-readable message
   } deriving ( Eq
@@ -119,7 +119,7 @@ $(deriveJSON lens_snake_case ''Provision)
 instance ToSchema Provision where
   declareNamedSchema _ = do
     uId    <- declareSchemaRef (Proxy :: Proxy (ID User))
-    usrCfg <- declareSchemaRef (Proxy :: Proxy Heroku.UserConfig)
+    usrCfg <- declareSchemaRef (Proxy :: Proxy User.Provision)
     ipfsPeers <- declareSchemaRef (Proxy :: Proxy [IPFS.Peer])
     txt    <- declareSchemaRef (Proxy :: Proxy Text)
     return $ NamedSchema (Just "HerokuProvision") $ mempty
@@ -140,7 +140,7 @@ instance ToSchema Provision where
         , _message = "Provisioned successfully"
         }
 
-      cfgEx = Heroku.UserConfig
+      cfgEx = User.Provision
         { _interplanetaryFissionUrl      = "https://hostless.dev"
         , _interplanetaryFissionUsername = "c74bd95b8555275277d4"
         , _interplanetaryFissionPassword = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
