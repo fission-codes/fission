@@ -23,9 +23,10 @@ import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
 import           Fission.File.Types ()
 import           Fission.Internal.Orphanage.PlainText ()
+import           Fission.Internal.Orphanage.OctetStream ()
 
+import qualified Fission.Web.User        as User
 import qualified Fission.Web.Auth        as Auth
-import qualified Fission.Web.Auth.Verify as Auth
 import qualified Fission.Web.IPFS        as IPFS
 import qualified Fission.Web.Ping        as Ping
 import qualified Fission.Web.Domain      as Domain
@@ -104,6 +105,6 @@ server :: Has IPFS.BinPath  cfg
 server host' = Web.Swagger.server host'
           :<|> IPFS.server
           :<|> const Heroku.server
-          :<|> const Auth.verify
+          :<|> User.server
           :<|> pure Ping.pong
           :<|> Domain.server

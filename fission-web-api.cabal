@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 79fa752b4cda60a9eb70858b1179eb8c21ed94d4ca2dbdfa666e2d357b148faa
+-- hash: 515be7795be16726041d62bd256e4c7a901fb0922faa807468b40023a071dee2
 
 name:           fission-web-api
 version:        1.10.0
@@ -62,6 +62,7 @@ library
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.OctetStream
       Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
@@ -79,6 +80,7 @@ library
       Fission.IPFS.Client.Pin
       Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -103,7 +105,6 @@ library
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -129,6 +130,7 @@ library
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -137,8 +139,6 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -153,6 +153,7 @@ library
       Fission.Web.IPFS.Client
       Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -168,6 +169,10 @@ library
       Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
   other-modules:
       Paths_fission_web_api
   hs-source-dirs:
@@ -194,12 +199,14 @@ library
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -262,12 +269,14 @@ executable fission-cli
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -330,12 +339,14 @@ executable fission-web
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -403,6 +414,7 @@ test-suite fission-doctest
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , lens-aeson
     , mime-types
@@ -410,6 +422,7 @@ test-suite fission-doctest
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -473,12 +486,14 @@ test-suite fission-lint
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -547,6 +562,7 @@ test-suite fission-test
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.OctetStream
       Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
@@ -564,6 +580,7 @@ test-suite fission-test
       Fission.IPFS.Client.Pin
       Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -588,7 +605,6 @@ test-suite fission-test
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -614,6 +630,7 @@ test-suite fission-test
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -622,8 +639,6 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -638,6 +653,7 @@ test-suite fission-test
       Fission.Web.IPFS.Client
       Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -653,6 +669,10 @@ test-suite fission-test
       Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
       Paths_fission_web_api
   hs-source-dirs:
       library
@@ -684,12 +704,14 @@ test-suite fission-test
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -759,12 +781,14 @@ benchmark fission-benchmark
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans

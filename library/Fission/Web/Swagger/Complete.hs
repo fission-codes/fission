@@ -25,4 +25,5 @@ docs :: Host -> Swagger
 docs = Docs.ipfs
      . Docs.heroku
      . Docs.ping
+     . Docs.user
      . Docs.app (Proxy :: Proxy Web.API)
