@@ -176,15 +176,14 @@ curl -H "Authorization: Basic 012345generatedfrommanifest==" \
 # }
 ```
 
-Encode basic auth from `INTERPLANETARY_FISSION_USERNAME:INTERPLANETARY_FISSION_PASSWORD`
-(e.g. [Basic Authentication Header Generator](https://www.blitter.se/utils/basic-authentication-header-generator/))
+Encode basic auth from `INTERPLANETARY_FISSION_USERNAME:INTERPLANETARY_FISSION_PASSWORD` -- `curl` using the `-u USER:PASS` will encode and add the header for you automatically:
 
 
 ```shell
 curl -i \
      -X POST \
      -H "Content-Type: application/octet-stream" \
-     -H "Authorization: Basic Yzc0YmQ5NWI4NTU1Mjc1Mjc3ZDQ6R1cwU0hCeVBtWTAueStsZyl4N0RlLlBObUp2aDE" \
+     -u 'USER:PASS' \
      -d '{"hi":1}' \
      http://localhost:1337/ipfs
 
@@ -215,12 +214,14 @@ curl -i \
 
 ## Example
 
+Using the `--data-binary` and a /path/to/file can upload binary file types.
+
 ```shell
 curl -i \
     -X POST \
-    -H "Authorization: Basic abcdef==" \
+    -u 'USER:PASS' \
     -H "Content-Type: application/octet-stream" # This line
-    -d '{"hi":1}' \
+    --data-binary @/path/to/file \
     http://localhost:1337/ipfs
 
 # HTTP/1.1 200 OK
@@ -231,3 +232,5 @@ curl -i \
 #
 # QmSeDGD18CLeUyKrATcaCbmH4Z3gyh3SrdgjoYkrxkEmgx
 ```
+
+Note that all of these examples will work with our public api at `hostless.dev/ipfs`. You will need a username and password from our Heroku Add-on.

@@ -13,7 +13,7 @@ put :: (MonadRIO cfg m, HasLogFunc cfg, Show err) => err -> Text -> m ()
 put err msg = do
   logDebug $ displayShow err
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-  UTF8.putText $ Emoji.prohibited <> " " <> msg
+  UTF8.putText $ Emoji.prohibited <> " " <> msg <> "\n"
   liftIO $ ANSI.setSGR [ANSI.Reset]
 
 put' :: (MonadRIO cfg m, HasLogFunc cfg, Show err) => err -> m ()

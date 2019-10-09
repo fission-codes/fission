@@ -6,6 +6,7 @@ module Fission.Web.IPFS
   , SimpleAPI
   , UnauthedAPI
   , authed
+  , public
   , server
   ) where
 
@@ -28,6 +29,7 @@ import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
 import qualified Fission.Web.IPFS.Download      as Download
 import qualified Fission.Web.IPFS.Pin           as Pin
 import qualified Fission.Web.IPFS.DAG           as DAG
+import qualified Fission.Web.IPFS.Peer         as Peer
 
 type API = AuthedAPI
       :<|> PublicAPI
@@ -46,7 +48,8 @@ type SimpleAPI = "cids" :> CID.API
             :<|> Pin.API
             :<|> "dag" :> DAG.API
 
-type PublicAPI = Download.API
+type PublicAPI = "peers" :> Peer.API
+            :<|> Download.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -56,8 +59,7 @@ server :: HasLogFunc        cfg
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg API
-server = authed
-    :<|> Download.get
+server = authed :<|> public
 
 authed :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -71,3 +73,14 @@ authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
         :<|> DAG.put usr
+
+public :: HasLogFunc        cfg
+       => HasProcessContext cfg
+       => MonadSelda   (RIO cfg)
+       => Has HTTP.Manager  cfg
+       => Has IPFS.URL      cfg
+       => Has IPFS.BinPath  cfg
+       => Has IPFS.Timeout  cfg
+       => RIOServer         cfg PublicAPI
+public = Peer.get
+    :<|> Download.get

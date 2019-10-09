@@ -12,7 +12,6 @@ import Fission.Security       (Digestable (..))
 import Fission.Security.Types (SecretDigest)
 import Fission.User.Role
 
--- import           Fission.Internal.Orphanage ()
 import qualified Fission.Internal.UTF8 as UTF8
 
 -- | A user account, most likely a developer

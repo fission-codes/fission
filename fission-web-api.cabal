@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 59023b765877a63dbb3776f8ae3bac0663e6ad98790114df2246fe36da5c11cb
+-- hash: 515be7795be16726041d62bd256e4c7a901fb0922faa807468b40023a071dee2
 
 name:           fission-web-api
 version:        1.10.0
@@ -60,6 +60,7 @@ library
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.OctetStream
       Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
@@ -77,6 +78,7 @@ library
       Fission.IPFS.Client.Pin
       Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -148,6 +150,7 @@ library
       Fission.Web.IPFS.Client
       Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -190,12 +193,14 @@ library
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -255,12 +260,14 @@ executable fission-cli
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -320,12 +327,14 @@ executable fission-web
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -390,6 +399,7 @@ test-suite fission-doctest
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , lens-aeson
     , mime-types
@@ -397,6 +407,7 @@ test-suite fission-doctest
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -457,12 +468,14 @@ test-suite fission-lint
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -528,6 +541,7 @@ test-suite fission-test
       Fission.Internal.Orphanage.ID
       Fission.Internal.Orphanage.MultipartForm
       Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.OctetStream
       Fission.Internal.Orphanage.PGConnectInfo
       Fission.Internal.Orphanage.PlainText
       Fission.Internal.Orphanage.RIO
@@ -545,6 +559,7 @@ test-suite fission-test
       Fission.IPFS.Client.Pin
       Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -616,6 +631,7 @@ test-suite fission-test
       Fission.Web.IPFS.Client
       Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -663,12 +679,14 @@ test-suite fission-test
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
@@ -735,12 +753,14 @@ benchmark fission-benchmark
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
     , optparse-applicative
     , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
