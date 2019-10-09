@@ -1,5 +1,6 @@
 module Fission.Web.Routes
   ( API
+  , UserPrefix
   , UserRoute
   , HerokuRoute
   , IPFSPrefix
@@ -25,7 +26,8 @@ type API = IPFSRoute
 type PublicAPI = IPFSRoute
             :<|> UserRoute
 
-type UserRoute = "user" :> User.API
+type UserRoute = UserPrefix :> User.API
+type UserPrefix = "user"
 
 type HerokuRoute = "heroku"
                    :> "resources"

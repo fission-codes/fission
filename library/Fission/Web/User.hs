@@ -1,6 +1,7 @@
 module Fission.Web.User
   ( server
   , API
+  , RegisterRoute
   , VerifyRoute
   ) where
 
@@ -18,8 +19,10 @@ import qualified Fission.Web.Types       as Web
 
 import Fission.User.Types
 
-type API = Create.API
+type API = RegisterRoute
           :<|> VerifyRoute
+
+type RegisterRoute = Create.API
 
 type VerifyRoute = "verify" 
                   :> BasicAuth "existing user" User

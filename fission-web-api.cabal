@@ -34,6 +34,7 @@ library
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Register
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
