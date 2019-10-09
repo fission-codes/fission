@@ -146,7 +146,6 @@ executables:
     ghc-options:
       - -threaded
       - -flate-specialise
-      - -funbox-strict-fields
       - -rtsopts
       - -with-rtsopts=-N
       - -with-rtsopts=-T
@@ -163,7 +162,6 @@ executables:
     ghc-options:
       - -threaded
       - -flate-specialise
-      - -funbox-strict-fields
       - -rtsopts
       - -with-rtsopts=-N
       - -with-rtsopts=-T
