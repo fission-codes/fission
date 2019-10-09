@@ -3,13 +3,12 @@ module Main (main) where
 import RIO
 
 import Language.Haskell.HLint (hlint)
-import System.Exit            (exitSuccess)
 
 arguments :: [String]
 arguments =
     [ "benchmark"
-    , "app"
-    , "src"
+    , "fission-web"
+    , "library"
     , "test/testsuite"
     ]
 

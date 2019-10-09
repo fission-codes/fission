@@ -4,23 +4,26 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 73a0da2ab30fc1401ca4e120417a64bd929da70fcfc8735f0a61c16328c54ace
+-- hash: 515be7795be16726041d62bd256e4c7a901fb0922faa807468b40023a071dee2
 
 name:           fission-web-api
-version:        1.3.0
+version:        1.10.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
-author:         Brooklyn Zelenka
-maintainer:     hello@brooklynzelenka.com
-copyright:      © 2019 Brooklyn Zelenka
+author:         Brooklyn Zelenka,
+                Daniel Holmgren,
+                Ben Church
+maintainer:     brooklyn@fission.codes,
+                daniel@fission.codes,
+                ben@fission.codes
+copyright:      © 2019 Fission Internet Software Services for Open Networks Inc.
 license:        AGPL-3.0-or-later
 license-file:   LICENSE
-tested-with:    GHC==8.6.4
+tested-with:    GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -28,20 +31,53 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.CLI
+      Fission.CLI.Auth
+      Fission.CLI.Command.Login
+      Fission.CLI.Command.Up
+      Fission.CLI.Command.Watch
+      Fission.CLI.Config.Types
+      Fission.CLI.Display.Cursor
+      Fission.CLI.Display.Error
+      Fission.CLI.Display.Loader
+      Fission.CLI.Display.Success
+      Fission.CLI.Display.Wait
+      Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
+      Fission.Emoji
       Fission.Environment
+      Fission.Environment.Types
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.MIME
-      Fission.Internal.Orphanage
+      Fission.Internal.Orphanage.BasicAuth
+      Fission.Internal.Orphanage.BasicAuthData
+      Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ID
+      Fission.Internal.Orphanage.MultipartForm
+      Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.OctetStream
+      Fission.Internal.Orphanage.PGConnectInfo
+      Fission.Internal.Orphanage.PlainText
+      Fission.Internal.Orphanage.RIO
+      Fission.Internal.Orphanage.Tuple
+      Fission.Internal.Orphanage.UUID
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.BinPath.Types
       Fission.IPFS.CID.Types
+      Fission.IPFS.Client
+      Fission.IPFS.Client.Add
+      Fission.IPFS.Client.Cat
+      Fission.IPFS.Client.Param
+      Fission.IPFS.Client.Pin
+      Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -51,9 +87,9 @@ library
       Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
+      Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
-      Fission.Log.Lens
-      Fission.Log.Types
+      Fission.IPFS.URL.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -70,13 +106,16 @@ library
       Fission.Random
       Fission.Security
       Fission.Security.Types
+      Fission.Storage.Environment.Types
       Fission.Storage.IPFS
+      Fission.Storage.IPFS.DAG
+      Fission.Storage.IPFS.Pin
+      Fission.Storage.PostgreSQL
+      Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
-      Fission.Storage.SQLite
-      Fission.Storage.SQLite.Internal
-      Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Time
       Fission.Timestamp
       Fission.Types
       Fission.User
@@ -97,13 +136,22 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Auth.Client
+      Fission.Web.Auth.Verify
       Fission.Web.Client
+      Fission.Web.Client.Request
+      Fission.Web.Client.Types
+      Fission.Web.CORS
+      Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
+      Fission.Web.IPFS.Client
+      Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -122,12 +170,13 @@ library
   other-modules:
       Paths_fission_web_api
   hs-source-dirs:
-      src
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+      library
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -135,54 +184,65 @@ library
     , data-has
     , ekg-wai
     , envy
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
-executable fission-web
+executable fission-cli
   main-is: Main.hs
   other-modules:
       Paths_fission_web_api
   hs-source-dirs:
-      app
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -flate-specialise -with-rtsopts=-N -with-rtsopts=-T -O2
+      fission-cli
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -flate-specialise -rtsopts -with-rtsopts=-N -with-rtsopts=-T -optc-ffast-math -optc-O3 -O2
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -191,41 +251,118 @@ executable fission-web
     , ekg-wai
     , envy
     , fission-web-api
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
+    , yaml
+  default-language: Haskell2010
+
+executable fission-web
+  main-is: Main.hs
+  other-modules:
+      Paths_fission_web_api
+  hs-source-dirs:
+      fission-web
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -flate-specialise -rtsopts -with-rtsopts=-N -with-rtsopts=-T -optc-ffast-math -optc-O3 -O2
+  build-depends:
+      aeson
+    , aeson-casing
+    , ansi-terminal
+    , base
+    , bytestring
+    , cryptonite
+    , data-default-class
+    , data-has
+    , ekg-wai
+    , envy
+    , fission-web-api
+    , fsnotify
+    , haskeline
+    , http-client
+    , http-client-tls
+    , http-media
+    , http-types
+    , ip
+    , lens
+    , mime-types
+    , monad-logger
+    , optparse-applicative
+    , optparse-simple
+    , random-bytestring
+    , regex-compat
+    , resource-pool
+    , rio
+    , rio-orphans
+    , scientific
+    , selda
+    , selda-postgresql
+    , servant
+    , servant-auth-server
+    , servant-auth-swagger
+    , servant-client
+    , servant-multipart
+    , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , streaming-commons
+    , streamly
+    , swagger2
+    , text
+    , time
+    , transformers
+    , unliftio
+    , uuid
+    , uuid-types
+    , wai
+    , wai-cors
+    , wai-extra
+    , wai-logger
+    , warp
+    , warp-tls
+    , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-doctest
@@ -235,13 +372,14 @@ test-suite fission-doctest
       Paths_fission_web_api
   hs-source-dirs:
       test/doctest
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
     , QuickCheck
     , aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -252,41 +390,50 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , lens-aeson
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
     , yaml
   default-language: Haskell2010
@@ -298,11 +445,12 @@ test-suite fission-lint
       Paths_fission_web_api
   hs-source-dirs:
       test/lint
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -310,62 +458,105 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , fsnotify
+    , haskeline
     , hlint
     , http-client
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.CLI
+      Fission.CLI.Auth
+      Fission.CLI.Command.Login
+      Fission.CLI.Command.Up
+      Fission.CLI.Command.Watch
+      Fission.CLI.Config.Types
+      Fission.CLI.Display.Cursor
+      Fission.CLI.Display.Error
+      Fission.CLI.Display.Loader
+      Fission.CLI.Display.Success
+      Fission.CLI.Display.Wait
+      Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
+      Fission.Emoji
       Fission.Environment
+      Fission.Environment.Types
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
       Fission.Internal.JSON
       Fission.Internal.MIME
-      Fission.Internal.Orphanage
+      Fission.Internal.Orphanage.BasicAuth
+      Fission.Internal.Orphanage.BasicAuthData
+      Fission.Internal.Orphanage.ByteString.Lazy
+      Fission.Internal.Orphanage.ID
+      Fission.Internal.Orphanage.MultipartForm
+      Fission.Internal.Orphanage.Natural
+      Fission.Internal.Orphanage.OctetStream
+      Fission.Internal.Orphanage.PGConnectInfo
+      Fission.Internal.Orphanage.PlainText
+      Fission.Internal.Orphanage.RIO
+      Fission.Internal.Orphanage.Tuple
+      Fission.Internal.Orphanage.UUID
       Fission.Internal.Process
       Fission.Internal.URL
       Fission.Internal.UTF8
+      Fission.IPFS.BinPath.Types
       Fission.IPFS.CID.Types
+      Fission.IPFS.Client
+      Fission.IPFS.Client.Add
+      Fission.IPFS.Client.Cat
+      Fission.IPFS.Client.Param
+      Fission.IPFS.Client.Pin
+      Fission.IPFS.Environment.Types
       Fission.IPFS.Error
+      Fission.IPFS.Info.Types
       Fission.IPFS.Name.Types
       Fission.IPFS.Path.Types
       Fission.IPFS.Peer
@@ -375,9 +566,9 @@ test-suite fission-test
       Fission.IPFS.Process.Types
       Fission.IPFS.SparseTree
       Fission.IPFS.SparseTree.Types
+      Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
-      Fission.Log.Lens
-      Fission.Log.Types
+      Fission.IPFS.URL.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -394,13 +585,16 @@ test-suite fission-test
       Fission.Random
       Fission.Security
       Fission.Security.Types
+      Fission.Storage.Environment.Types
       Fission.Storage.IPFS
+      Fission.Storage.IPFS.DAG
+      Fission.Storage.IPFS.Pin
+      Fission.Storage.PostgreSQL
+      Fission.Storage.PostgreSQL.Migrate
       Fission.Storage.Query
-      Fission.Storage.SQLite
-      Fission.Storage.SQLite.Internal
-      Fission.Storage.SQLite.Migrate
       Fission.Storage.Table
       Fission.Storage.Types
+      Fission.Time
       Fission.Timestamp
       Fission.Types
       Fission.User
@@ -421,13 +615,22 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Auth.Client
+      Fission.Web.Auth.Verify
       Fission.Web.Client
+      Fission.Web.Client.Request
+      Fission.Web.Client.Types
+      Fission.Web.CORS
+      Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
       Fission.Web.Heroku.MIME
       Fission.Web.IPFS
       Fission.Web.IPFS.CID
+      Fission.Web.IPFS.Client
+      Fission.Web.IPFS.DAG
       Fission.Web.IPFS.Download
+      Fission.Web.IPFS.Peer
       Fission.Web.IPFS.Pin
       Fission.Web.IPFS.Upload
       Fission.Web.IPFS.Upload.Multipart
@@ -445,14 +648,15 @@ test-suite fission-test
       Fission.Web.Types
       Paths_fission_web_api
   hs-source-dirs:
-      src
+      library
       test
       test/testsuite
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -fhpc -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , cryptonite
@@ -461,6 +665,8 @@ test-suite fission-test
     , ekg-wai
     , envy
     , fission-web-api
+    , fsnotify
+    , haskeline
     , hspec
     , hspec-wai
     , hspec-wai-json
@@ -468,26 +674,30 @@ test-suite fission-test
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , tasty
     , tasty-hspec
@@ -501,10 +711,13 @@ test-suite fission-test
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010
 
 benchmark fission-benchmark
@@ -514,11 +727,12 @@ benchmark fission-benchmark
       Paths_fission_web_api
   hs-source-dirs:
       benchmark
-  default-extensions: ApplicativeDo BangPatterns BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
+  default-extensions: ApplicativeDo BangPatterns BinaryLiterals BlockArguments ConstraintKinds DataKinds DeriveAnyClass DeriveFoldable DeriveFunctor DeriveGeneric DeriveLift DeriveTraversable DerivingStrategies FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase LiberalTypeSynonyms MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings OverloadedLabels OverloadedLists PostfixOperators RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances TemplateHaskell TypeOperators ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wpartial-fields -Wredundant-constraints -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       aeson
     , aeson-casing
+    , ansi-terminal
     , base
     , bytestring
     , criterion
@@ -528,39 +742,49 @@ benchmark fission-benchmark
     , ekg-wai
     , envy
     , fission-web-api
+    , fsnotify
+    , haskeline
     , http-client
     , http-client-tls
     , http-media
     , http-types
+    , ip
     , lens
     , mime-types
     , monad-logger
+    , optparse-applicative
+    , optparse-simple
     , random-bytestring
+    , regex-compat
     , resource-pool
     , rio
     , rio-orphans
     , scientific
     , selda
-    , selda-sqlite
+    , selda-postgresql
     , servant
     , servant-auth-server
     , servant-auth-swagger
     , servant-client
-    , servant-exceptions
     , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui
     , streaming-commons
+    , streamly
     , swagger2
     , text
     , time
+    , transformers
     , unliftio
     , uuid
     , uuid-types
     , wai
+    , wai-cors
     , wai-extra
     , wai-logger
     , warp
+    , warp-tls
     , word8
+    , yaml
   default-language: Haskell2010

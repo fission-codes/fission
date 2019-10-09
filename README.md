@@ -4,31 +4,75 @@
 
 [![Build Status](https://travis-ci.org/fission-suite/web-api.svg?branch=master)](https://travis-ci.org/fission-suite/web-api)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/fission-suite/blob/master/LICENSE)
-[![Maintainability](https://api.codeclimate.com/v1/badges/44fb6a8a0cfd88bc41ef/maintainability)](https://codeclimate.com/github/fission-suite/web-api/maintainability)
 [![Built by FISSION](https://img.shields.io/badge/⌘-Built_by_FISSION-purple.svg)](https://fission.codes)
 [![Discord](https://img.shields.io/discord/478735028319158273.svg)](https://discord.gg/zAQBDEq)
+[![Discourse](https://img.shields.io/discourse/https/talk.fission.codes/topics)](https://talk.fission.codes)
 
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
 
 # QuickStart
 
+## Install dependencies
 ```shell
 # IPFS on MacOS, otherwise https://docs.ipfs.io/introduction/install/
 brew install ipfs
-brew service start ipfs
+brew services start ipfs
 
+# If using Linux, install liblzma-dev
+# sudo apt install liblzma-dev
+```
+
+## Setup config
+```shell
 # Enable sample Heroku config
-mv addon-manifest.json.example addon-manifest.json
+# Note: You will have to edit this file to input dummy data
+cp example-config/addon-manifest.json.example addon-manifest.json
 
+# Setup env file
+cp example-config/env.yaml.example env.yaml
+```
+
+## Run Server
+```shell
 # Dev Web Server
 export RIO_VERBOSE=true
 stack run fission-web
+```
 
-# Local Request
+## Setup your database
+```shell
+# Create the database
+createdb web_api
+
+# Apply the projects database schema
+stack repl
+λ> import Fission.Storage.PostgreSQL.Migrate
+λ> import Database.Selda.PostgreSQL
+λ> sequence_ $ mutations "localhost" 5432 "web_api" Nothing Nothing Nothing
+```
+
+## Get your FISSION credentials
+_note: you will need to fill out your addon-manifest properly to acquire the appropriate credentials_
+```shell
+curl -u "APP_MANIFEST_ID:APP_MANIFEST_PASSWORD" \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/vnd.heroku-addons+json; version=3" \
+     -X POST http://localhost:1337/heroku/resources/ \
+     -d '{
+           "name"         : "my-awesome-app",
+           "uuid"         : "01234567-89ab-cdef-0123-456789abcdef",
+           "plan"         : "free",
+           "callback_url" : "http://foo.bar.quux",
+           "region"       : "amazon-web-services::ap-northeast-1"
+         }' | json_pp
+```
+
+## Send your first request
+```shell
 curl \
   -H "Content-Type: text/plain;charset=utf-8" \
-  -H "Authorization: Basic Q0hBTkdFTUU6U1VQRVJTRUNSRVQ=" \
+  -u "FISSION_USERNAME:FISSION_PASSWORD" \
   -d "hello world" \
   http://localhost:1337/ipfs
 ```
@@ -44,6 +88,14 @@ Environment variables are set via the command line (e.g. `export PORT=80`)
 Default: `1337`
 
 The port to run the web server on.
+
+### `TLS`
+
+Default: `false`
+
+Run the server with TLS enabled.
+
+_NB: `PORT` needs to be set separately._
 
 ### `RIO_VERBOSE`
 
@@ -78,7 +130,7 @@ Live monitoring dashboard
 
 ```
 export MONITOR=true
-stack run server
+stack run fission-web
 open http://localhost:9630
 ```
 
@@ -119,7 +171,7 @@ curl -H "Authorization: Basic 012345generatedfrommanifest==" \
 #    "config"  : {
 #       "INTERPLANETARY_FISSION_USERNAME" : "c74bd95b8555275277d4",
 #       "INTERPLANETARY_FISSION_PASSWORD" : "GW0SHByPmY0.y+lg)x7De.PNmJvh1",
-#       "INTERPLANETARY_FISSION_URL"      : "localhost:1337/ipfs"
+#       "INTERPLANETARY_FISSION_URL"      : "localhost:1337"
 #    }
 # }
 ```
