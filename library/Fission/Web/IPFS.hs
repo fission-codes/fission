@@ -41,11 +41,6 @@ type UnauthedAPI = "cids" :> CID.API
               :<|> Pin.API
               :<|> "dag" :> DAG.API
 
-type SimpleAPI = "cids" :> CID.API
-            :<|> Upload.Simple.API
-            :<|> Pin.API
-            :<|> "dag" :> DAG.API
-
 type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
@@ -74,9 +69,6 @@ authed usr = CID.allForUser usr
 
 public :: HasLogFunc        cfg
        => HasProcessContext cfg
-       => MonadSelda   (RIO cfg)
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg PublicAPI

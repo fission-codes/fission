@@ -10,7 +10,6 @@ module Fission.Web
 import           RIO
 import           RIO.Process (HasProcessContext)
 
-import qualified Data.Aeson as JSON
 import           Data.Has
 import           Database.Selda
 import           Data.Swagger as Swagger
@@ -24,7 +23,6 @@ import qualified Fission.IPFS.Types as IPFS
 import           Fission.File.Types ()
 import           Fission.Internal.Orphanage.PlainText ()
 import           Fission.Internal.Orphanage.OctetStream ()
-import qualified Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.Web.User        as User
 import qualified Fission.Web.Auth        as Auth
