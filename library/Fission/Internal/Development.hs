@@ -3,6 +3,7 @@ module Fission.Internal.Development
   ( run
   , runOne
   , mkConfig
+  , mkConfig'
   ) where
 
 import           RIO
@@ -81,6 +82,42 @@ run _logFunc _dbPool _processCtx _httpManager action =
 
     _host = "mycoolapp.io"
 
+{- | Setup a complete development configuration with all pure defaults set
+
+     == Example Use
+
+     > dbPool       <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo
+     > processCtx   <- mkDefaultProcessContext
+     > httpManager  <- HTTP.newManager HTTP.defaultManagerSettings
+     > logOptions   <- logOptionsHandle stdout True
+     > (logFunc, _) <- newLogFunc $ setLogUseTime True logOptions
+     >
+     > let cfg = mkConfig dbPool processCtx httpManager logFunc
+     > let run' = runRIO cfg
+     >
+     > run' Fission.IPFS.Peer.all
+     > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+     >
+     > run' Fission.IPFS.Peer.connect Fission.peer
+     > -- ()
+
+     If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
+
+     > let run' = runRIO cfg { _ipfsPath = "~/Downloads/ipfs" }
+     > run' Fission.IPFS.Peer.all
+     > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
+-}
+mkConfig :: DB.Pool -> ProcessContext -> HTTP.Manager -> LogFunc -> Config
+mkConfig _dbPool _processCtx _httpManager _logFunc = Config {..}
+  where
+    _herokuID       = Hku.ID       "HEROKU_ID"
+    _herokuPassword = Hku.Password "HEROKU_PASSWORD"
+    _ipfsPath       = "/usr/local/bin/ipfs"
+    _ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
+    _ipfsTimeout    = IPFS.Timeout 3600
+    _pgConnectInfo  = pgConnectInfo
+    _host           = "mycoolapp.io"
+
 {- | Setup a complete development configuration.
 
      Note that this does not clean up the log function,
@@ -88,7 +125,7 @@ run _logFunc _dbPool _processCtx _httpManager action =
 
      == Example Use
 
-     > (cfg, _) <- mkConfig
+     > (cfg, _) <- mkConfig'
      > let run' = runRIO cfg
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
@@ -98,30 +135,23 @@ run _logFunc _dbPool _processCtx _httpManager action =
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
-     > (cfg, _) <- mkConfig
+     > (cfg, _) <- mkConfig'
      > let run' = runRIO cfg { _ipfsPath = "~/Downloads/ipfs" }
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-mkConfig :: IO (Config, IO ())
-mkConfig = do
-  let
-    _herokuID       = Hku.ID       "HEROKU_ID"
-    _herokuPassword = Hku.Password "HEROKU_PASSWORD"
-    _ipfsPath       = "/usr/local/bin/ipfs"
-    _ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
-    _ipfsTimeout    = IPFS.Timeout 3600
-    _pgConnectInfo  = pgConnectInfo
-    _host           = "mycoolapp.io"
-
-  _dbPool      <- runSimpleApp $ connPool 1 1 3600 _pgConnectInfo
-  _processCtx  <- mkDefaultProcessContext
-  _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+mkConfig' :: IO (Config, IO ())
+mkConfig' = do
+  dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo
+  processCtx  <- mkDefaultProcessContext
+  httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
   -- A bit dirty; doesn't handle teardown
-  logOptions        <- logOptionsHandle stdout True
-  (_logFunc, close) <- newLogFunc $ setLogUseTime True logOptions
-  return (Config {..}, close)
+  logOptions       <- logOptionsHandle stdout True
+  (logFunc, close) <- newLogFunc $ setLogUseTime True logOptions
+
+  let cfg = mkConfig dbPool processCtx httpManager logFunc
+  return (cfg, close)
 
 pgConnectInfo :: PGConnectInfo
 pgConnectInfo = PGConnectInfo "localhost" 5432 "web_api" Nothing Nothing Nothing
