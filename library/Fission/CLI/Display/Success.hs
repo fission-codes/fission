@@ -19,5 +19,5 @@ live hash = do
 putOk :: MonadIO m => Text -> m ()
 putOk msg = do
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
-  UTF8.putText $ Emoji.whiteHeavyCheckMark <> " " <> msg
+  UTF8.putText $ Emoji.whiteHeavyCheckMark <> " " <> msg <> "\n"
   liftIO $ ANSI.setSGR [ANSI.Reset]
