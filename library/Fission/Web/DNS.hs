@@ -6,11 +6,9 @@ module Fission.Web.DNS
 import RIO
 
 import Data.Has
+import Servant
 
-import           Servant
-
-import Fission.Internal.UTF8
-
+import           Fission.Internal.UTF8
 import qualified Fission.Config as Config
 import           Fission.Web.Server
 import           Fission.User        as User
