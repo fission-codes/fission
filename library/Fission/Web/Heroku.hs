@@ -80,7 +80,7 @@ provision Request {_uuid, _region} = do
 
                    Left err -> do
                      logError $ displayShow err
-                     pure []
+                     return []
 
   logInfo $ mconcat
     [ "Provisioned UUID: "
