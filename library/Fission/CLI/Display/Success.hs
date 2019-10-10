@@ -24,5 +24,5 @@ putOk msg = do
 
 dnsUpdated :: MonadIO m => Text -> m ()
 dnsUpdated domain = do
-  UTF8.putText $ Emoji.memo <> " DNS Updated. Check out your site at: \n"
-  UTF8.putText $ Emoji.link <> " " <> domain  <> "\n"
+  UTF8.putText "📝 DNS Updated. Check out your site at: \n"
+  UTF8.putText $ "🔗 " <> domain  <> "\n"
