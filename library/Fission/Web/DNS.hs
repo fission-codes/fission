@@ -22,7 +22,7 @@ import qualified Fission.AWS.Route53 as Route53
 import qualified Network.AWS.Route53 as Route53
 
 type API = Capture "cid" CID
-        :> PostAccepted '[PlainText, OctetStream] AWS.DomainName
+        :> PutAccepted '[PlainText, OctetStream] AWS.DomainName
 
 server :: HasLogFunc         cfg
        => Has AWS.AccessKey  cfg
