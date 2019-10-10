@@ -41,7 +41,11 @@ update cid@(CID hash) auth = do
       CLI.Error.put' err
       return $ Left err
 
-update' :: MonadIO m => (ClientM AWS.DomainName -> IO a) -> BasicAuthData -> CID -> m a
+update' :: MonadIO m
+        => (ClientM AWS.DomainName -> IO a)
+        -> BasicAuthData
+        -> CID
+        -> m a
 update' runner auth cid =
   liftIO . CLI.withLoader 50000
          . runner
