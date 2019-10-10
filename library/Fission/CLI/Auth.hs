@@ -11,7 +11,6 @@ import           RIO.File
 import           RIO.FilePath
 
 import qualified System.Console.ANSI as ANSI
-import qualified Fission.Emoji       as Emoji
 
 import qualified Data.Yaml as YAML
 import           Servant
@@ -44,6 +43,7 @@ withAuth action = get >>= \case
   Left err -> do
     logError $ displayShow err
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-    UTF8.putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
+    UTF8.putText "🚫 Unable to read credentials. Try logging in with "
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
     UTF8.putText "fission-cli login"
+    liftIO $ ANSI.setSGR [ANSI.Reset]

@@ -8,13 +8,11 @@ import RIO
 import Servant
 import Servant.Client
 
-import qualified Fission.Web.User as User
 import qualified Fission.User.Provision.Types as User
-import Fission.Web.Routes (UserPrefix)
+import           Fission.Web.Routes           (UserRoute)
+import qualified Fission.Web.User             as User
 
-type API = UserPrefix :> User.API
-  
-verify :: BasicAuthData -> ClientM Bool
+verify   :: BasicAuthData -> ClientM Bool
 register :: ClientM User.Provision
 
-register :<|> verify = client (Proxy :: Proxy API)
+register :<|> verify = client (Proxy :: Proxy UserRoute)

@@ -1,5 +1,7 @@
 module Fission.Web.IPFS.Client
-  ( Request (..)
+  ( API
+  , Request (..)
+  , SimpleAPI
   , request
   ) where
 
@@ -12,10 +14,20 @@ import qualified Fission.File.Types as File
 import           Fission.IPFS.CID.Types
 
 import qualified Fission.Web.Client as Client
-import qualified Fission.Web.IPFS   as IPFS
 import           Fission.Web.Routes (IPFSPrefix)
 
-type API = IPFSPrefix :> IPFS.Auth :> IPFS.SimpleAPI
+import qualified Fission.Web.IPFS               as IPFS
+import qualified Fission.Web.IPFS.CID           as CID
+import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
+import qualified Fission.Web.IPFS.Pin           as Pin
+import qualified Fission.Web.IPFS.DAG           as DAG
+
+type API = IPFSPrefix :> IPFS.Auth :> SimpleAPI
+
+type SimpleAPI = "cids" :> CID.API
+            :<|> Upload.Simple.API
+            :<|> Pin.API
+            :<|> "dag" :> DAG.API
 
 data Request = Request
   { dagput :: File.Serialized -> ClientM CID

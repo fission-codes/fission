@@ -20,13 +20,13 @@ import qualified Fission.Web.Types       as Web
 import Fission.User.Types
 
 type API = RegisterRoute
-          :<|> VerifyRoute
+      :<|> VerifyRoute
 
 type RegisterRoute = Create.API
 
-type VerifyRoute = "verify" 
-                  :> BasicAuth "existing user" User
-                  :> Verify.API
+type VerifyRoute = "verify"
+                   :> BasicAuth "existing user" User
+                   :> Verify.API
 
 server :: HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
@@ -34,4 +34,3 @@ server :: HasLogFunc        cfg
        => RIOServer         cfg API
 server = Create.server
     :<|> const Verify.server
-

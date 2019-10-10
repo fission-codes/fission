@@ -13,14 +13,15 @@ import           Servant
 newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
   deriving         ( Eq
                    , Show
-                   , Generic
                    )
   deriving newtype ( IsString )
 
 instance ToSchema Serialized where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "Serialized File")
-            $ mempty & type_ ?~ SwaggerString
+     return $ NamedSchema (Just "Serialized File") $ mempty 
+       & type_       ?~ SwaggerString
+       & description ?~ "A typical file's contents"
+       & example     ?~ "hello world"
 
 instance Display Serialized where
   display = Utf8Builder . Builder.lazyByteString . unserialize

@@ -75,10 +75,12 @@ provision Request {_uuid, _region} = do
   secret       <- liftIO $ Random.text 200
   userID       <- User.createWithHeroku _uuid _region secret
   ipfsPeers    <- getExternalAddress >>= \case
-                  Right peers ->  pure peers
-                  Left err -> do
-                    logError $ displayShow err
-                    pure []
+                   Right peers' ->
+                     pure peers'
+
+                   Left err -> do
+                     logError $ displayShow err
+                     return []
 
   logInfo $ mconcat
     [ "Provisioned UUID: "
@@ -89,16 +91,16 @@ provision Request {_uuid, _region} = do
 
   let
     userConfig = User.Provision
-      { _interplanetaryFissionUrl      = url
-      , _interplanetaryFissionUsername = User.hashID userID
-      , _interplanetaryFissionPassword = Secret secret
+      { _url      = url
+      , _username = User.hashID userID
+      , _password = Secret secret
       }
 
   return Provision
     { _id      = userID
     , _config  = userConfig
     , _peers   = ipfsPeers
-    , _message = "Successfully provisioned Interplanetary FISSION!"
+    , _message = "Successfully provisioned Interplanetary Fission!"
     }
 
 type DeprovisionAPI = Capture "addon_id" UUID

@@ -24,24 +24,21 @@ import qualified Fission.User.Provision.Types as User
 import           Fission.Security.Types (Secret (..))
 
 
-type API =  Post    '[JSON] User.Provision
+type API = Post '[JSON] User.Provision
 
-server :: HasLogFunc       cfg
-          => Has Web.Host    cfg
-          => MonadSelda (RIO cfg)
-          => RIOServer       cfg API
+server :: HasLogFunc      cfg
+       => Has Web.Host    cfg
+       => MonadSelda (RIO cfg)
+       => RIOServer       cfg API
 server = do
   Web.Host url <- Config.get
   secret       <- liftIO $ Random.text 200
   userID       <- User.create secret
 
-  logInfo $ mconcat
-    [ "Provisioned user: "
-    , displayShow userID
-    ]
-  
+  logInfo $ "Provisioned user: " <> displayShow userID
+
   return User.Provision
-    { _interplanetaryFissionUrl      = url
-    , _interplanetaryFissionUsername = User.hashID userID
-    , _interplanetaryFissionPassword = Secret secret
+    { _url      = url
+    , _username = User.hashID userID
+    , _password = Secret secret
     }

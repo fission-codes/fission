@@ -18,7 +18,6 @@ import           System.FSNotify as FS
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8 as UTF8
 
-import qualified Fission.Emoji        as Emoji
 import qualified Fission.Web.Client   as Client
 import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.Time         as Time
@@ -58,7 +57,7 @@ watcher :: MonadRIO          cfg m
 watcher = do
   cfg <- ask
   dir <- getCurrentDirectory
-  UTF8.putText $ Emoji.eyes <> " Watching " <> Text.pack dir <> " for changes...\n"
+  UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
   IPFS.addDir dir >>= \case
     Left err ->

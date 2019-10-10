@@ -8,16 +8,15 @@ import RIO
 
 import qualified System.Console.ANSI as ANSI
 
-import qualified Fission.Emoji         as Emoji
 import qualified Fission.Internal.UTF8 as UTF8
 
 live :: MonadIO m => Text -> m ()
 live hash = do
-  UTF8.putText $ Emoji.rocket <> "Now live on the network\n"
-  UTF8.putText $ Emoji.okHand <> hash  <> "\n"
+  UTF8.putText $ "🚀 Now live on the network\n"
+  UTF8.putText $ "👌 " <> hash  <> "\n"
 
 putOk :: MonadIO m => Text -> m ()
 putOk msg = do
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
-  UTF8.putText $ Emoji.whiteHeavyCheckMark <> " " <> msg <> "\n"
+  UTF8.putText $ "✅ " <> msg <> "\n"
   liftIO $ ANSI.setSGR [ANSI.Reset]

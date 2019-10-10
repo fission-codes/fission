@@ -25,8 +25,8 @@ makeLenses ''Environment
 
 instance FromJSON Environment where
   parseJSON = withObject "Environment" \obj -> do
-    _ipfs    <- parseJSON . Object =<< obj .: "ipfs"
-    _storage <- parseJSON . Object =<< obj .: "storage"
-    _web     <- parseJSON . Object =<< obj .: "web"
+    _ipfs    <- obj .: "ipfs"
+    _storage <- obj .: "storage"
+    _web     <- obj .: "web"
 
     return $ Environment {..}

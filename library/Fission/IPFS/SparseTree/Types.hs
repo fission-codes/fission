@@ -8,8 +8,9 @@ import qualified RIO.HashMap as HashMap
 import qualified RIO.Map     as Map
 import qualified RIO.Text    as Text
 
-import Data.Aeson
-import Data.Swagger (ToSchema (..))
+import Control.Lens
+import Data.Aeson 
+import Data.Swagger hiding (Tag, name)
 import Servant
 
 import qualified Fission.Internal.UTF8 as UTF8
@@ -32,7 +33,13 @@ data SparseTree
                     , Generic
                     , Show
                     )
-  deriving anyclass ( ToSchema )
+
+instance ToSchema SparseTree where
+  declareNamedSchema _ =
+     return $ NamedSchema (Just "IPFS Tree") $ mempty 
+       & type_       ?~ SwaggerString
+       & example     ?~ toJSON (Directory [(Key "abcdef", Stub "myfile.txt")])
+       & description ?~ "A tree of IPFS paths"
 
 instance Display (Map Tag SparseTree) where
   display sparseMap =

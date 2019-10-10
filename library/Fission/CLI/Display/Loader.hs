@@ -12,7 +12,6 @@ import qualified RIO.List as List
 import           Control.Concurrent
 import qualified System.Console.ANSI as ANSI
 
-import qualified Fission.Emoji         as Emoji
 import qualified Fission.Internal.UTF8 as UTF8
 
 -- | Perform actions in the background while displaying a loading indicator
@@ -44,16 +43,4 @@ loading delay = forever
         . (const (prep delay) <=< sequence_)
         . List.intersperse (prep delay)
         $ fmap UTF8.putText
-            [ Emoji.clock0100
-            , Emoji.clock0200
-            , Emoji.clock0300
-            , Emoji.clock0400
-            , Emoji.clock0500
-            , Emoji.clock0600
-            , Emoji.clock0700
-            , Emoji.clock0800
-            , Emoji.clock0900
-            , Emoji.clock1000
-            , Emoji.clock1100
-            , Emoji.clock1200
-            ]
+            ["🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛"]

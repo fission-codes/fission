@@ -3,7 +3,6 @@ module Fission.IPFS.BinPath.Types (BinPath (..)) where
 import RIO
 
 import Data.Aeson
-import Data.Swagger (ToSchema (..))
 import System.Envy
 
 import Fission.Internal.Orphanage.Natural ()
@@ -13,7 +12,6 @@ newtype BinPath = BinPath { getBinPath :: FilePath }
   deriving          ( Show
                     , Generic
                     )
-  deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
 
 instance FromEnv BinPath where

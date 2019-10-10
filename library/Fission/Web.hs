@@ -9,7 +9,6 @@ module Fission.Web
 
 import           RIO
 import           RIO.Process (HasProcessContext)
-import qualified RIO.Text as Text
 
 import           Data.Has
 import           Database.Selda
@@ -53,11 +52,12 @@ app :: Has IPFS.BinPath    cfg
     =>     cfg
     -> RIO cfg Application
 app cfg = do
-  auth             <- mkAuth
-  Web.Host appHost <- Config.get
+  auth               <- mkAuth
+  appHost :: Web.Host <- Config.get
   return . serveWithContext api auth
          . Auth.server api cfg
-         $ server (Swagger.Host (Text.unpack appHost) Nothing)
+         . server
+         $ Swagger.Host (show appHost) Nothing
   where
     api :: Proxy API
     api = Proxy

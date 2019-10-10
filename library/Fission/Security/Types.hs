@@ -28,3 +28,4 @@ instance ToSchema Secret where
      return $ NamedSchema (Just "Secret") $ mempty
             & type_   ?~ SwaggerString
             & example ?~ "U)mRvIvI6$L_MkYpme!lfzMte_92M5G912-NUfRmfxhRKx$Rr6aLUxqdqW"
+            & description ?~ "User secret (used for authentication)"
