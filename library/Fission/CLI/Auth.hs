@@ -46,3 +46,4 @@ withAuth action = get >>= \case
     UTF8.putText "🚫 Unable to read credentials. Try logging in with "
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
     UTF8.putText "fission-cli login"
+    liftIO $ ANSI.setSGR [ANSI.Reset]
