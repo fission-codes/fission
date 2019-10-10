@@ -25,11 +25,13 @@ import qualified Fission.Time         as Time
 
 import           Fission.IPFS.CID.Types
 import qualified Fission.IPFS.Types as IPFS
+import qualified Fission.AWS.Types  as AWS
 
 import qualified Fission.CLI.Auth          as Auth
 import           Fission.CLI.Config.Types
 import qualified Fission.CLI.Display.Error as CLI.Error
 import qualified Fission.CLI.Pin           as CLI.Pin
+import qualified Fission.CLI.DNS           as CLI.DNS
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -65,7 +67,7 @@ watcher = do
       CLI.Error.put' $ textDisplay err
 
     Right initCID ->
-      Auth.withAuth $ CLI.Pin.run initCID >=> \case
+      Auth.withAuth (CLI.Pin.run initCID) >>= \case
         Left err ->
           CLI.Error.put' err
 
@@ -105,4 +107,19 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
           Right cid@(CID newHash) -> do
             oldHash <- swapMVar hashCache newHash
             logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
-            when (oldHash /= newHash) $ Auth.withAuth (void . CLI.Pin.run cid)
+            when (oldHash /= newHash) . void $ pinAndUpdateDNS cid
+
+pinAndUpdateDNS :: MonadRIO          cfg m
+                => HasLogFunc        cfg
+                => Has Client.Runner cfg
+                => HasProcessContext cfg
+                => Has IPFS.BinPath  cfg
+                => Has IPFS.Timeout  cfg
+                => CID
+                -> m(Either Auth.CLIError AWS.DomainName)
+pinAndUpdateDNS cid =
+  Auth.withAuth (CLI.Pin.run cid) >>= \case
+    Left err -> do
+      logError $ displayShow err
+      return . Left $ err
+    Right _ -> Auth.withAuth (CLI.DNS.update cid)

@@ -1,5 +1,6 @@
 module Fission.CLI.Auth
-  ( cachePath
+  ( CLIError
+  , cachePath
   , get
   , withAuth
   , write
@@ -15,10 +16,19 @@ import qualified Fission.Emoji       as Emoji
 
 import qualified Data.Yaml as YAML
 import           Servant
+import           Servant.Client
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import qualified Fission.Internal.UTF8 as UTF8
+
+newtype CLIError = CLIError { message :: Text }
+  deriving ( Eq
+           , Generic
+           , Show
+           , Ord
+           )
+  deriving newtype  ( IsString )
 
 -- | Retrieve auth from the user's system
 get :: MonadIO m => m (Either YAML.ParseException BasicAuthData)
@@ -36,10 +46,12 @@ cachePath = do
   home <- getHomeDirectory
   return $ home </> ".fission.yaml"
 
-withAuth :: (MonadRIO cfg m, HasLogFunc cfg) => (BasicAuthData -> m ()) -> m ()
+withAuth :: (MonadRIO cfg m, HasLogFunc cfg) => (BasicAuthData -> m (Either ClientError a)) -> m (Either CLIError a)
 withAuth action = get >>= \case
   Right auth ->
-    action auth
+    action auth >>= \case
+      Right result -> return $ Right result
+      Left err -> return . Left . CLIError . UTF8.textShow $ err
 
   Left err -> do
     logError $ displayShow err
@@ -47,3 +59,4 @@ withAuth action = get >>= \case
     UTF8.putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
     UTF8.putText "fission-cli login"
+    return . Left . CLIError . UTF8.textShow $ err

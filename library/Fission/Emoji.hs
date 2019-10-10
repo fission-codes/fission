@@ -20,6 +20,12 @@ eyes = "\x0001F440"
 prohibited :: Text
 prohibited = "\x26D4"
 
+memo :: Text
+memo = "\x0001F4DD"
+
+link :: Text
+link = "\x0001F517"
+
 quadrantUpperRight :: Text
 quadrantUpperRight = "\x259D"
 

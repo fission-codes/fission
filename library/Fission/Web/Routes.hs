@@ -5,6 +5,7 @@ module Fission.Web.Routes
   , IPFSPrefix
   , IPFSRoute
   , PingRoute
+  , DNSRoute
   , PublicAPI
   ) where
 
