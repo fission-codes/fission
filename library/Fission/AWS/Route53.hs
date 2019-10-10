@@ -5,8 +5,8 @@ module Fission.AWS.Route53
 
 import RIO
 import Servant
-
 import Data.Has
+
 import qualified Fission.Config as Config
 
 import Network.AWS.Route53 as Route53
@@ -43,9 +43,9 @@ createEnv :: MonadRIO           cfg m
            => Has AWS.SecretKey cfg
            => m(Env)
 createEnv = do
-  AccessKey accessKey <- Config.get
-  SecretKey secretKey <- Config.get
-  liftIO $ newEnv $ FromKeys (AccessKey accessKey) (SecretKey secretKey)
+  accessKey :: AccessKey <- Config.get
+  secretKey :: SecretKey <- Config.get
+  liftIO $ newEnv $ FromKeys accessKey secretKey
 
 createChangeRequest :: MonadRIO       cfg m
                     => Has AWS.ZoneId cfg
