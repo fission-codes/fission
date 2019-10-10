@@ -16,6 +16,7 @@ import qualified Fission.Web.Client   as Client
 
 import qualified Fission.CLI.Auth    as Auth
 import qualified Fission.CLI.Pin     as CLI.Pin
+import qualified Fission.CLI.DNS     as CLI.DNS
 import           Fission.CLI.Config.Types
 
 -- | The command to attach to the CLI tree
@@ -46,5 +47,7 @@ up = do
   logDebug "Starting single IPFS add locally"
   dir <- getCurrentDirectory
   IPFS.addDir dir >>= \case
-    Right cid -> Auth.withAuth (void . CLI.Pin.run cid)
     Left  err -> logError $ displayShow err
+    Right cid -> Auth.withAuth (CLI.Pin.run cid) >>= \case
+      Left err -> logError $ displayShow err
+      Right _ -> void $ Auth.withAuth (CLI.DNS.update cid)

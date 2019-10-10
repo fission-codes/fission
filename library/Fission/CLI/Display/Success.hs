@@ -2,6 +2,7 @@
 module Fission.CLI.Display.Success
   ( live
   , putOk
+  , dnsUpdated
   ) where
 
 import RIO
@@ -20,3 +21,8 @@ putOk msg = do
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Green]
   UTF8.putText $ "✅ " <> msg <> "\n"
   liftIO $ ANSI.setSGR [ANSI.Reset]
+
+dnsUpdated :: MonadIO m => Text -> m ()
+dnsUpdated domain = do
+  UTF8.putText $ Emoji.memo <> " DNS Updated. Check out your site at: \n"
+  UTF8.putText $ Emoji.link <> " " <> domain  <> "\n"

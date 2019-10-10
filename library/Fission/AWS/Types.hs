@@ -4,6 +4,7 @@ module Fission.AWS.Types
   ) where
 
 import RIO
+import qualified RIO.ByteString.Lazy as Lazy
 
 import Data.Aeson
 import Data.Swagger (ToSchema (..))
@@ -29,6 +30,12 @@ instance MimeRender PlainText DomainName where
 
 instance MimeRender OctetStream DomainName where
   mimeRender _ = UTF8.textToLazyBS . getDomainName
+
+instance MimeUnrender PlainText DomainName where
+  mimeUnrender _proxy bs =
+    case decodeUtf8' $ Lazy.toStrict bs of
+      Left err  -> Left $ show err
+      Right txt -> Right $ DomainName txt
 
 newtype ZoneId = ZoneId { getZoneId :: Text }
   deriving ( Eq

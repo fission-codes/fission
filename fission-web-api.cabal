@@ -47,6 +47,7 @@ library
       Fission.CLI.Display.Loader
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
+      Fission.CLI.DNS
       Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
@@ -545,6 +546,7 @@ test-suite fission-test
       Fission.CLI.Display.Loader
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
+      Fission.CLI.DNS
       Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
