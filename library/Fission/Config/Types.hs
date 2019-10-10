@@ -45,7 +45,7 @@ data Config = Config
   , _awsAccessKey   :: !AWS.AccessKey
   , _awsSecretKey   :: !AWS.SecretKey
   , _awsZoneId      :: !AWS.ZoneId
-  , _awsDomain      :: !AWS.Domain
+  , _awsDomainName  :: !AWS.DomainName
   }
 
 makeLenses ''Config
@@ -67,7 +67,7 @@ instance Show Config where
     , "  _awsAccessKey   = " <> show _awsAccessKey
     , "  _awsSecretKey   = HIDDEN"
     , "  _awsZoneId      = " <> show _awsZoneId
-    , "  _awsDomain      = " <> show _awsDomain
+    , "  _awsDomainName  = " <> show _awsDomainName
     , "}"
     ]
 
@@ -110,8 +110,8 @@ instance Has AWS.SecretKey Config where
 instance Has AWS.ZoneId Config where
   hasLens = awsZoneId
 
-instance Has AWS.Domain Config where
-  hasLens = awsDomain
+instance Has AWS.DomainName Config where
+  hasLens = awsDomainName
 
 instance Has Host Config where
   hasLens = host
