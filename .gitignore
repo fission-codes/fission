@@ -563,4 +563,5 @@ MigrationBackup/
 
 # End of https://www.gitignore.io/api/vim,emacs,sublimetext,visualstudio
 
-
+# Org mode users
+*.org
