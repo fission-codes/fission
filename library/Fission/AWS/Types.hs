@@ -1,5 +1,5 @@
 module Fission.AWS.Types
-  ( Domain (..)
+  ( DomainName (..)
   , ZoneId (..)
   ) where
 
@@ -11,7 +11,7 @@ import Servant
 
 import qualified Fission.Internal.UTF8 as UTF8
 
-newtype Domain = Domain { getDomain :: Text }
+newtype DomainName = DomainName { getDomainName :: Text }
   deriving ( Eq
            , Generic
            , Show
@@ -20,15 +20,15 @@ newtype Domain = Domain { getDomain :: Text }
   deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
 
-instance FromJSON Domain where
-  parseJSON = withText "AWS.Domain" \txt ->
-    Domain <$> parseJSON (String txt)
+instance FromJSON DomainName where
+  parseJSON = withText "AWS.DomainName" \txt ->
+    DomainName <$> parseJSON (String txt)
 
-instance MimeRender PlainText Domain where
-  mimeRender _ = UTF8.textToLazyBS . getDomain
+instance MimeRender PlainText DomainName where
+  mimeRender _ = UTF8.textToLazyBS . getDomainName
 
-instance MimeRender OctetStream Domain where
-  mimeRender _ = UTF8.textToLazyBS . getDomain
+instance MimeRender OctetStream DomainName where
+  mimeRender _ = UTF8.textToLazyBS . getDomainName
 
 newtype ZoneId = ZoneId { getZoneId :: Text }
   deriving ( Eq
