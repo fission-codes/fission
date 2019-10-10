@@ -28,7 +28,7 @@ docs :: Host -> Swagger
 docs = ipfs
      . heroku
      . ping
-     . auth
+     . user
      . app (Proxy :: Proxy Web.API)
 
 app :: HasSwagger api => Proxy api -> Host -> Swagger
@@ -51,9 +51,9 @@ app proxy appHost = toSwagger proxy
 
     blurb = "Bootstrapped & distributed backend-as-a-service with user-controlled data"
 
-auth :: Swagger -> Swagger
-auth = makeDocs (Proxy :: Proxy Web.AuthRoute)
-  ["Authentication" & description ?~ "Auth actions & verification"]
+user :: Swagger -> Swagger
+user = makeDocs (Proxy :: Proxy Web.UserRoute)
+  ["Users" & description ?~ "Accounts, authentication, and stats"]
 
 heroku :: Swagger -> Swagger
 heroku = makeDocs (Proxy :: Proxy Web.HerokuRoute)

@@ -1,6 +1,5 @@
 module Fission.Web.Routes
   ( API
-  , UserPrefix
   , UserRoute
   , HerokuRoute
   , IPFSPrefix
@@ -12,33 +11,23 @@ import RIO
 
 import Servant
 
-import qualified Fission.Web.IPFS        as IPFS
-import qualified Fission.Web.Ping        as Ping
-import qualified Fission.Web.Heroku      as Heroku
-import qualified Fission.Web.User        as User
+import qualified Fission.Web.IPFS   as IPFS
+import qualified Fission.Web.Ping   as Ping
+import qualified Fission.Web.Heroku as Heroku
+import qualified Fission.Web.User   as User
 
 type API = IPFSRoute
       :<|> HerokuRoute
       :<|> UserRoute
       :<|> PingRoute
 
-type PublicAPI = IPFSRoute
-            :<|> UserRoute
+type UserRoute = "user" :> User.API
+type PingRoute = "ping" :> Ping.API
 
-type UserRoute  = UserPrefix :> User.API
-type UserPrefix = "user"
-
-type AuthRoute = "auth"
-               :> "verify"
-               :> BasicAuth "existing user" User
-               :> Auth.Verify.API
+type IPFSRoute  = IPFSPrefix :> IPFS.API
+type IPFSPrefix = "ipfs"
 
 type HerokuRoute = "heroku"
                    :> "resources"
                    :> BasicAuth "heroku add-on api" ByteString
                    :> Heroku.API
-
-type IPFSRoute  = IPFSPrefix :> IPFS.API
-type IPFSPrefix = "ipfs"
-
-type PingRoute = "ping" :> Ping.API

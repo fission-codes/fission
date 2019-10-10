@@ -9,6 +9,7 @@ module Fission.Platform.Heroku.Provision
   , Provision (..)
   , id
   , config
+  , peers
   , message
   ) where
 

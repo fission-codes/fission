@@ -14,7 +14,7 @@ import           Fission.Internal.Constraint
 import qualified Fission.Web.User.Client  as User.Client
 import qualified Fission.Web.Client.Types as Client
 
-import qualified Fission.User.Provision.Types  as User
+import qualified Fission.User.Provision.Types as Provision
 import qualified Fission.Security.Types       as Security
 
 import qualified Fission.CLI.Auth as Auth
@@ -45,9 +45,9 @@ register :: MonadRIO       cfg m
         => Has Client.Runner cfg
         => m ()
 register = Auth.get >>= \case
-  Right _auth -> 
+  Right _auth ->
     CLI.Success.putOk "Already registered. Remove your credentials at ~/.fission.yaml if you want to re-register"
-  
+
   Left _err ->
     register'
 
@@ -68,12 +68,16 @@ register' = do
   logDebug $ displayShow registerResult
 
   case registerResult of
-    Right user -> do 
+    Right user -> do
       logDebug $ displayShow user
+
       let
-        username = encodeUtf8 $ user ^. User.interplanetaryFissionUsername
-        password = encodeUtf8 $ Security.unSecret $ user ^. User.interplanetaryFissionPassword
-        auth = BasicAuthData username password
+        username = encodeUtf8 $ user ^. Provision.username
+        password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
+        auth     = BasicAuthData username password
+
       Auth.write auth
       CLI.Success.putOk "Registered & logged in"
-    Left  err -> CLI.Error.put err "Registeration failed"
+
+    Left err ->
+      CLI.Error.put err "Registeration failed"

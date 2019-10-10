@@ -1,5 +1,5 @@
 module Fission.User.Provision.Types
-  ( UserConfig (..)
+  ( Provision (..)
   , url
   , password
   , username
@@ -25,10 +25,17 @@ data Provision = Provision
              , Generic
              )
 
-makeLenses ''UserConfig
+makeLenses ''Provision
+
+instance FromJSON Provision where
+  parseJSON = withObject "User.Provision" \obj -> do
+    _url      <- obj .: "INTERPLANETARY_FISSION_URL"
+    _username <- obj .: "INTERPLANETARY_FISSION_USERNAME"
+    _password <- obj .: "INTERPLANETARY_FISSION_PASSWORD"
+    return Provision {..}
 
 instance ToJSON Provision where
-  toJSON UserConfig {..} = object
+  toJSON Provision {..} = object
     [ "INTERPLANETARY_FISSION_URL"      .= _url
     , "INTERPLANETARY_FISSION_USERNAME" .= _username
     , "INTERPLANETARY_FISSION_PASSWORD" .= _password

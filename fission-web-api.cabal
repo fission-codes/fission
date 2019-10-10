@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 356d633a3a60cea8e4f722b3c4ad69e9964e81bc1c0e62ac40fbf06f6d002a6b
+-- hash: 43ce72ae2e319239080e20020064e9fe7e06403f7e4b4f9946362919fb38e8aa
 
 name:           fission-web-api
-version:        1.11.0
+version:        1.12.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -34,6 +34,7 @@ library
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Register
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -104,7 +105,6 @@ library
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -130,6 +130,7 @@ library
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -138,8 +139,6 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -166,6 +165,10 @@ library
       Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
   other-modules:
       Paths_fission_web_api
   hs-source-dirs:
@@ -512,6 +515,7 @@ test-suite fission-test
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Register
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -582,7 +586,6 @@ test-suite fission-test
       Fission.Platform.Heroku.AddOn.Types
       Fission.Platform.Heroku.Provision
       Fission.Platform.Heroku.Types
-      Fission.Platform.Heroku.UserConfig
       Fission.Random
       Fission.Security
       Fission.Security.Types
@@ -608,6 +611,7 @@ test-suite fission-test
       Fission.User.CID.Types
       Fission.User.Lens
       Fission.User.Mutate
+      Fission.User.Provision.Types
       Fission.User.Query
       Fission.User.Role
       Fission.User.Security
@@ -616,8 +620,6 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
-      Fission.Web.Auth.Client
-      Fission.Web.Auth.Verify
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -644,6 +646,10 @@ test-suite fission-test
       Fission.Web.Swagger
       Fission.Web.Tls
       Fission.Web.Types
+      Fission.Web.User
+      Fission.Web.User.Client
+      Fission.Web.User.Create
+      Fission.Web.User.Verify
       Paths_fission_web_api
   hs-source-dirs:
       library

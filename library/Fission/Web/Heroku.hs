@@ -75,10 +75,12 @@ provision Request {_uuid, _region} = do
   secret       <- liftIO $ Random.text 200
   userID       <- User.createWithHeroku _uuid _region secret
   ipfsPeers    <- getExternalAddress >>= \case
-                  Right peers ->  pure peers
-                  Left err -> do
-                    logError $ displayShow err
-                    pure []
+                   Right peers' ->
+                     pure peers'
+
+                   Left err -> do
+                     logError $ displayShow err
+                     pure []
 
   logInfo $ mconcat
     [ "Provisioned UUID: "
