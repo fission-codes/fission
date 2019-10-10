@@ -28,7 +28,7 @@ import qualified Fission.Web.User        as User
 import qualified Fission.Web.Auth        as Auth
 import qualified Fission.Web.IPFS        as IPFS
 import qualified Fission.Web.Ping        as Ping
-import qualified Fission.Web.Domain      as Domain
+import qualified Fission.Web.DNS      as DNS
 import qualified Fission.Web.Routes      as Web
 import qualified Fission.Web.Swagger     as Web.Swagger
 import qualified Fission.Web.Types       as Web
@@ -49,9 +49,9 @@ app :: Has IPFS.BinPath    cfg
     => Has HTTP.Manager    cfg
     => Has Web.Host        cfg
     => Has AWS.AccessKey   cfg
-    => Has AWS.SecretKey cfg
-    => Has AWS.ZoneId    cfg
-    => Has AWS.Domain    cfg
+    => Has AWS.SecretKey   cfg
+    => Has AWS.ZoneId      cfg
+    => Has AWS.DomainName  cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
     => HasProcessContext   cfg
@@ -88,23 +88,23 @@ mkAuth = do
         :. EmptyContext
 
 -- | Web handlers for the 'API'
-server :: Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has Web.Host      cfg
-       => Has AWS.AccessKey cfg
-       => Has AWS.SecretKey cfg
-       => Has AWS.ZoneId    cfg
-       => Has AWS.Domain    cfg
-       => HasProcessContext cfg
-       => HasLogFunc        cfg
-       => MonadSelda   (RIO cfg)
+server :: Has IPFS.BinPath   cfg
+       => Has IPFS.Timeout   cfg
+       => Has HTTP.Manager   cfg
+       => Has IPFS.URL       cfg
+       => Has Web.Host       cfg
+       => Has AWS.AccessKey  cfg
+       => Has AWS.SecretKey  cfg
+       => Has AWS.ZoneId     cfg
+       => Has AWS.DomainName cfg
+       => HasProcessContext  cfg
+       => HasLogFunc         cfg
+       => MonadSelda    (RIO cfg)
        => Swagger.Host
-       -> RIOServer         cfg API
+       -> RIOServer          cfg API
 server host' = Web.Swagger.server host'
           :<|> IPFS.server
           :<|> const Heroku.server
           :<|> User.server
           :<|> pure Ping.pong
-          :<|> Domain.server
+          :<|> DNS.server

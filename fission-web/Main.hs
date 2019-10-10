@@ -49,10 +49,10 @@ main = do
     _ipfsURL     = env ^. ipfs . url
     _ipfsTimeout = env ^. ipfs . IPFS.timeout
     
-    _awsAccessKey = env ^. aws . AWS.accessKey
-    _awsSecretKey = env ^. aws . AWS.secretKey
-    _awsZoneId    = env ^. aws . AWS.zoneId
-    _awsDomain    = env ^. aws . AWS.domain
+    _awsAccessKey  = _accessKey
+    _awsSecretKey  = _secretKey
+    _awsZoneId     = _zoneId
+    _awsDomainName = _domainName
 
   _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext
