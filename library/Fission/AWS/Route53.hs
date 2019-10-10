@@ -30,7 +30,7 @@ registerDomain :: MonadRIO       cfg m
            -> Text
            -> m(Maybe ServerError)
 registerDomain recordType domain content = do 
-  logDebug $ "DNS record at: " <> displayShow domain
+  logDebug $ "Updating DNS record at: " <> displayShow domain
   env <- createEnv
   req <- createChangeRequest recordType domain content
 
