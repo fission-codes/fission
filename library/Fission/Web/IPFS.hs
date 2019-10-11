@@ -36,13 +36,14 @@ type Auth = BasicAuth "registered users" User
 
 type AuthedAPI = Auth :> UnauthedAPI
 
+-- Question : wait... is this just a poorly named variable.... none of these are intended to be accessed with out basic auth?
 type UnauthedAPI = "cids" :> CID.API
               :<|> Upload.API
               :<|> Pin.API
               :<|> "dag" :> DAG.API
+              :<|>  "peers" :> Peer.API
 
-type PublicAPI = "peers" :> Peer.API
-            :<|> Download.API
+type PublicAPI = Download.API
 
 server :: HasLogFunc        cfg
        => HasProcessContext cfg
@@ -66,11 +67,11 @@ authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
         :<|> DAG.put usr
+        :<|> Peer.get
 
 public :: HasLogFunc        cfg
        => HasProcessContext cfg
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg PublicAPI
-public = Peer.get
-    :<|> Download.get
+public = Download.get
