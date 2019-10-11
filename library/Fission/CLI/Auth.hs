@@ -21,7 +21,7 @@ import           Servant.Client
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import qualified Fission.Internal.UTF8 as UTF8
-import           Fission.Config.Types
+import           Fission.CLI.Config.Types
 
 -- | Retrieve auth from the user's system
 get :: MonadIO m => m (Either YAML.ParseException UserConfig)

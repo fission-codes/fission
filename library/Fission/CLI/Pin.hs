@@ -25,6 +25,7 @@ import qualified Fission.Web.IPFS.Client as Fission
 import           Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Loader  as CLI
 import           Fission.CLI.Display.Success as CLI.Success
+import           Fission.CLI.Config.Types
 
 run :: MonadRIO          cfg m
     => HasLogFunc        cfg
@@ -33,7 +34,7 @@ run :: MonadRIO          cfg m
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
     => CID
-    -> Config.UserConfig
+    -> UserConfig
     -> m (Either ClientError CID)
 run cid@(CID hash) auth = do
   logDebug $ "Remote pinning " <> display hash
@@ -49,7 +50,7 @@ run cid@(CID hash) auth = do
       CLI.Error.put' err
       return $ Left err
 
-pin :: MonadUnliftIO m => (ClientM NoContent -> m a) -> Config.UserConfig -> CID -> m a
+pin :: MonadUnliftIO m => (ClientM NoContent -> m a) -> UserConfig -> CID -> m a
 pin runner userConfig cid = do
-  let auth = Config.toBasicAuth userConfig
+  let auth = toBasicAuth userConfig
   CLI.withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid
