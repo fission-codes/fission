@@ -32,9 +32,9 @@ createEnv = do
 
 validate :: ChangeResourceRecordSetsResponse -> Either ServerError ChangeResourceRecordSetsResponse
 validate changeSet
-  | status >= 500 = Left err500 { errBody = "Unkown AWS Error" }
-  | status >= 400 = Left err404 { errBody = "Could not locate AWS Resource" }
-  | otherwise = Right changeSet
+  | status >= 500 = Left err500 { errBody = "Unkown AWS Error", errHTTPCode = status }
+  | status >= 400 = Left err404 { errBody = "Could not locate AWS Resource", errHTTPCode = status }
+  | otherwise    = Right changeSet
   where
     status = changeSet ^. crrsrsResponseStatus
 
