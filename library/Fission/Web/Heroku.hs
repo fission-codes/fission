@@ -79,11 +79,11 @@ provision Request {_uuid, _region} = do
                      logError $ displayShow err
                      return []
 
-  username     <- liftIO $ User.genID 
+  username     <- liftIO $ User.genID
   secret       <- liftIO $ Random.text 200
   User.createWithHeroku _uuid _region username secret >>= \case
     Left err -> Web.Err.throw err
-    Right userID -> do 
+    Right userID -> do
       logInfo $ mconcat
         [ "Provisioned UUID: "
         , displayShow _uuid
@@ -96,12 +96,12 @@ provision Request {_uuid, _region} = do
           { _url      = url
           , _username = User.hashID userID
           , _password = Secret secret
+          , _peers    = ipfsPeers
           }
 
       return Provision
         { _id      = userID
         , _config  = userConfig
-        , _peers   = ipfsPeers
         , _message = "Successfully provisioned Interplanetary Fission!"
         }
 
