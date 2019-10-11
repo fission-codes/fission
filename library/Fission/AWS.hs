@@ -38,6 +38,7 @@ validate changeSet
   where
     status = changeSet ^. crrsrsResponseStatus
 
+-- | Ensure that a request completed, and that the status code is not in an error range
 ensureContent
   :: MonadRIO   cfg m
   => MonadThrow     m
