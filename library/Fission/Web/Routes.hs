@@ -5,6 +5,7 @@ module Fission.Web.Routes
   , IPFSPrefix
   , IPFSRoute
   , PingRoute
+  , DNSRoute
   ) where
 
 import Servant

@@ -146,6 +146,7 @@ library
       Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.DNS
+      Fission.Web.DNS.Client
       Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
@@ -645,6 +646,7 @@ test-suite fission-test
       Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.DNS
+      Fission.Web.DNS.Client
       Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku

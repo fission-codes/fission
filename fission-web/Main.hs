@@ -32,8 +32,6 @@ import qualified Fission.Web.Environment.Types     as Web
 
 import qualified Fission.AWS.Environment.Types as AWS
 
-import qualified Fission.AWS.Environment.Types as AWS
-
 main :: IO ()
 main = do
   Just  manifest <- JSON.decodeFileStrict "./addon-manifest.json"

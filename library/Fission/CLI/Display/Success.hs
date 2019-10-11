@@ -13,7 +13,7 @@ import qualified Fission.Internal.UTF8 as UTF8
 
 live :: MonadIO m => Text -> m ()
 live hash = do
-  UTF8.putText $ "🚀 Now live on the network\n"
+  UTF8.putText "🚀 Now live on the network\n"
   UTF8.putText $ "👌 " <> hash  <> "\n"
 
 putOk :: MonadIO m => Text -> m ()
