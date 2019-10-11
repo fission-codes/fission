@@ -33,14 +33,14 @@ server :: HasLogFunc         cfg
        => Has AWS.DomainName cfg
        => User
        -> RIOServer         cfg API
-server User { _userID } (CID cid) = do
+server User { _userID } (CID hash) = do
   domain :: AWS.DomainName <- Config.get
 
   let
     username   = User.hashID _userID
     baseUrl    = username <> AWS.getDomainName domain
     dnslinkUrl = "_dnslink." <> baseUrl
-    dnslink    = "dnslink=/ipfs/" <> cid
+    dnslink    = "dnslink=/ipfs/" <> hash
 
   ensureContent $ registerDomain Route53.Cname baseUrl "ipfs.runfission.com"
   ensureContent $ registerDomain Route53.Txt dnslinkUrl $ dnslink `wrapIn` "\""
