@@ -37,12 +37,6 @@ ensureM :: MonadRIO   cfg m
         -> m a
 ensureM = either throwM pure
 
--- ensureM :: MonadRIO   cfg m
---         => MonadThrow     m
---         => Either ServerError a
---         -> m a
--- ensureM = either throwM pure
-
 ensureMaybe :: MonadRIO   cfg m
             => MonadThrow     m
             => ServerError
