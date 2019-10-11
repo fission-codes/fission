@@ -13,3 +13,6 @@ instance MimeRender PlainText Lazy.ByteString where
 
 instance FromJSON ByteString where
   parseJSON = withText "ByteString" (pure . encodeUtf8)
+
+instance ToJSON ByteString where
+  toJSON = String . decodeUtf8Lenient

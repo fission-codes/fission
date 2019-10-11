@@ -1,4 +1,4 @@
-module Fission.IPFS.Peer.Types (Peer (..)) where
+module Fission.IPFS.Peer.Types (Peer (..), toByteString) where
 
 import RIO
 
@@ -29,7 +29,10 @@ instance ToSchema Peer where
             & description ?~ "An IPFS peer address"
 
 instance MimeRender PlainText Peer where
-  mimeRender _ = UTF8.textToLazyBS . peer
+  mimeRender _ = toByteString
 
 instance MimeRender OctetStream Peer where
-  mimeRender _ = UTF8.textToLazyBS . peer
+  mimeRender _ = toByteString
+
+-- Question: is there a way the type checker could do this for me?
+toByteString = UTF8.textToLazyBS . peer

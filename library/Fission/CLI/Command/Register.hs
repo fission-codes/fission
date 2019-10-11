@@ -2,9 +2,12 @@
 module Fission.CLI.Command.Register (command, register) where
 
 import           RIO
+<<<<<<< HEAD
 import           RIO.ByteString
 
 import qualified Data.ByteString.Char8 as BS
+=======
+>>>>>>> Save peers to fission yaml
 import           Data.Has
 import qualified Data.Text as T
 
@@ -26,6 +29,8 @@ import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
+import qualified Fission.IPFS.Peer.Types as Peer
+import qualified RIO.ByteString.Lazy as Lazy
 
 -- | The command to attach to the CLI tree
 command :: MonadUnliftIO m
@@ -96,9 +101,16 @@ register' = do
           logDebug $ displayShow user
 
           let
+            -- Question: How could I do this automatically?
+            -- TODO: Move to helper
             username = encodeUtf8 $ user ^. Provision.username
             password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
-            auth     = UserConfig {username = username, password = password}
+            peers    = fmap (Lazy.toStrict . Peer.toByteString) (user ^. Provision.peers) -- Question: Theres got to be a simpler way to convert
+            auth     = UserConfig {
+              username = username,
+              password = password,
+              peers = peers
+            }
 
           Auth.write auth
           CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"
