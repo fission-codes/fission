@@ -31,10 +31,11 @@ createEnv = do
   liftIO $ newEnv $ FromKeys accessKey secretKey
 
 validate :: ChangeResourceRecordSetsResponse -> Either ServerError ChangeResourceRecordSetsResponse
-validate changeSet
-  | status >= 500 = Left err500 { errBody = "Unkown AWS Error", errHTTPCode = status }
-  | status >= 400 = Left err404 { errBody = "Could not locate AWS Resource", errHTTPCode = status }
-  | otherwise    = Right changeSet
+validate changeSet =
+  if status >= 300
+    then Left $ toServerError status
+    else Right changeSet
+
   where
     status = changeSet ^. crrsrsResponseStatus
 
