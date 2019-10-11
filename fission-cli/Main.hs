@@ -27,6 +27,7 @@ main = do
   _ipfsPath    <- withEnv "IPFS_PATH" (IPFS.BinPath "/usr/local/bin/ipfs") IPFS.BinPath
   _ipfsTimeout <- withEnv "IPFS_TIMEOUT" (IPFS.Timeout 3600) (IPFS.Timeout . Partial.read)
 
+  -- TODO: Grab from env.yaml file
   isTLS <- getFlag "FISSION_TLS" .!~ True
   path  <- withEnv "FISSION_ROOT" "" id
   host  <- withEnv "FISSION_HOST" "runfission.com" id
