@@ -47,12 +47,12 @@ packages:
   original:
     hackage: happy-1.19.10
 - completed:
-    hackage: http-client-0.5.14@sha256:4880b27d6741e331454a1d4c887d96ce3d7d625322c8433983a4b1cd08538577,5348
+    hackage: ip-1.5.1@sha256:3378f49b83c8ad034b7719a0a249fdb038682ab2af9e5f56a9e525bb370a97e6,3553
     pantry-tree:
-      size: 2457
-      sha256: 02bcffba9cad572fefb4640f5fc9be68e770b32ab73efcac649db20290994c6d
+      size: 1504
+      sha256: c55e09cf67bd05ca2494911dd9639cc16f3e6654f8b87a5165932615de4f34ea
   original:
-    hackage: http-client-0.5.14
+    hackage: ip-1.5.1
 - completed:
     hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
     pantry-tree:
@@ -60,13 +60,6 @@ packages:
       sha256: f6b89e2e06d38d0a2d73c220648811a54684b476778904416b22f1ccae7eab67
   original:
     hackage: tasty-rerun-1.1.14
-- completed:
-    hackage: ip-1.5.1@sha256:3378f49b83c8ad034b7719a0a249fdb038682ab2af9e5f56a9e525bb370a97e6,3553
-    pantry-tree:
-      size: 1504
-      sha256: c55e09cf67bd05ca2494911dd9639cc16f3e6654f8b87a5165932615de4f34ea
-  original:
-    hackage: ip-1.5.1
 snapshots:
 - completed:
     size: 524127
