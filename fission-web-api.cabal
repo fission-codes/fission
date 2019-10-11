@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 484b94cd299a1489f9f86beabd408acc6fdf1e00e11bca3ac2851dc8d404f576
+-- hash: 0fa29af7cc857e95f6ca0b08ec715b320926a1ad72ea39ee85bee31a9784054b
 
 name:           fission-web-api
 version:        1.13.0
@@ -31,6 +31,7 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.AWS
       Fission.AWS.Environment.Types
       Fission.AWS.Route53
       Fission.AWS.Types
@@ -530,6 +531,7 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.AWS
       Fission.AWS.Environment.Types
       Fission.AWS.Route53
       Fission.AWS.Types

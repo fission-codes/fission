@@ -3,6 +3,7 @@ module Fission.Web.Error
   ( ToServerError (..)
   , ensure
   , ensureM
+  , ensureMaybe
   , throw
   ) where
 
@@ -17,6 +18,9 @@ import Fission.Internal.Constraint
 class ToServerError err where
   toServerError :: err -> ServerError
 
+instance ToServerError ServerError where
+  toServerError = id
+
 ensure :: MonadRIO   cfg m
        => HasLogFunc cfg
        => MonadThrow     m
@@ -28,10 +32,23 @@ ensure = either throw pure
 
 ensureM :: MonadRIO   cfg m
         => MonadThrow     m
-        => ServerError
-        -> Maybe a
+        => Exception err
+        => Either err a
         -> m a
-ensureM err = maybe (throwM err) pure
+ensureM = either throwM pure
+
+-- ensureM :: MonadRIO   cfg m
+--         => MonadThrow     m
+--         => Either ServerError a
+--         -> m a
+-- ensureM = either throwM pure
+
+ensureMaybe :: MonadRIO   cfg m
+            => MonadThrow     m
+            => ServerError
+            -> Maybe a
+            -> m a
+ensureMaybe err = maybe (throwM err) pure
 
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg
@@ -43,7 +60,7 @@ throw :: MonadRIO   cfg m
 throw err = do
   let
     serverError@(ServerError {..}) = toServerError err
-    status      = Status errHTTPCode (Lazy.toStrict errBody)
+    status = Status errHTTPCode $ Lazy.toStrict errBody
 
   when (statusIsServerError status) (logError $ display err)
   throwM serverError
