@@ -24,6 +24,7 @@ import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
+import           Fission.Config.Types
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -56,13 +57,18 @@ login = do
       logDebug "Attempting API verification"
       Client.Runner runner <- Config.get
       let auth = BasicAuthData username $ BS.pack password
-
+      let writeTo = UserConfig {
+        username=username,
+        password=(BS.pack password)
+      }
       authResult <- Cursor.withHidden
                  . liftIO
                  . CLI.Wait.waitFor "Verifying your credentials"
                  . runner
                  $ User.Client.verify auth
 
+
+
       case authResult of
-        Right _ok -> Auth.write auth >> CLI.Success.putOk "Logged in"
+        Right _ok -> Auth.write writeTo >> CLI.Success.putOk "Logged in"
         Left  err -> CLI.Error.put err "Authorization failed"

@@ -22,7 +22,7 @@ import qualified Fission.User.Registration.Types as User
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
-
+import Fission.Config.Types
 import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
@@ -94,5 +94,12 @@ register' = do
           CLI.Error.put err "Authorization failed"
 
         Right _ok -> do
-          Auth.write $ BasicAuthData username (BS.pack password)
+          logDebug $ displayShow user
+
+          let
+            username = encodeUtf8 $ user ^. Provision.username
+            password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
+            auth     = UserConfig {username = username, password = password}
+
+          Auth.write auth
           CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"
