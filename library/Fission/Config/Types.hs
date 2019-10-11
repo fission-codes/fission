@@ -1,7 +1,6 @@
 -- | Configuration types
 module Fission.Config.Types
   ( Config (..)
-  , UserConfig (..)
   , processCtx
   , logFunc
   , ipfsPath
@@ -11,7 +10,6 @@ module Fission.Config.Types
   , dbPool
   , herokuID
   , herokuPassword
-  , toBasicAuth
   ) where
 
 import           RIO
@@ -23,7 +21,6 @@ import           Data.Has
 import           Data.Aeson
 import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
-import           Servant
 import qualified Servant.Client as Client
 
 import           Fission.Web.Types
@@ -121,30 +118,3 @@ instance Has AWS.DomainName Config where
 
 instance Has Host Config where
   hasLens = host
-
--- | TODO move to cli types (idea: DotFile UserDotFileConifg)
--- | The User specific Fission CLI config
-data UserConfig = UserConfig
-  { username :: ByteString
-  , password :: ByteString
-  -- , url      :: ByteString
-  -- , peers    :: [ByteString]
-  }
-  deriving          ( Eq
-                    , Show
-                    )
-
-
-instance ToJSON UserConfig where
-  toJSON (UserConfig username password) =
-    Object [ ("username", String $ decodeUtf8Lenient username)
-            , ("password", String $ decodeUtf8Lenient password)
-            ]
-
-instance FromJSON UserConfig where
-  parseJSON = withObject "UserConfig" \obj ->
-    UserConfig <$> obj .: "username"
-               <*> obj .: "password"
-
-toBasicAuth :: UserConfig -> BasicAuthData
-toBasicAuth usrCfg = BasicAuthData (usrCfg & username) (usrCfg & password)

@@ -22,7 +22,6 @@ import qualified Fission.User.Registration.Types as User
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
-import Fission.Config.Types
 import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error

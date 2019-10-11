@@ -1,21 +1,26 @@
 module Fission.CLI.Config.Types
   ( CommandM
   , Config (..)
+  , UserConfig (..)
   , fissionAPI
   , logFunc
+  , toBasicAuth
   ) where
 
 import RIO
 import RIO.Process (ProcessContext, HasProcessContext (..))
 
 import Data.Has
+import Data.Aeson
 import Control.Lens (makeLenses)
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Writer.Lazy
 import Options.Applicative as OA
+import Servant
 
 import qualified Fission.Web.Client.Types as Client
 import qualified Fission.IPFS.Types       as IPFS
+import Fission.Internal.Orphanage.ByteString.Lazy ()
 
 -- | The action to attach to the command interface and description
 type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
@@ -45,3 +50,31 @@ instance Has IPFS.BinPath Config where
 
 instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
+
+
+-- | TODO move to cli types (idea: DotFile UserDotFileConifg)
+-- | The User specific Fission CLI config
+data UserConfig = UserConfig
+  { username :: ByteString
+  , password :: ByteString
+  -- , url      :: ByteString
+  -- , peers    :: [ByteString]
+  }
+  deriving          ( Eq
+                    , Show
+                    )
+
+
+instance ToJSON UserConfig where
+  toJSON (UserConfig username password) =
+    Object [ ("username", String $ decodeUtf8Lenient username)
+            , ("password", String $ decodeUtf8Lenient password)
+            ]
+
+instance FromJSON UserConfig where
+  parseJSON = withObject "UserConfig" \obj ->
+    UserConfig <$> obj .: "username"
+               <*> obj .: "password"
+
+toBasicAuth :: UserConfig -> BasicAuthData
+toBasicAuth usrCfg = BasicAuthData (usrCfg & username) (usrCfg & password)
