@@ -33,7 +33,7 @@ run :: MonadRIO          cfg m
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
     => CID
-    -> BasicAuthData
+    -> Config.UserConfig
     -> m (Either ClientError CID)
 run cid@(CID hash) auth = do
   logDebug $ "Remote pinning " <> display hash
@@ -49,5 +49,7 @@ run cid@(CID hash) auth = do
       CLI.Error.put' err
       return $ Left err
 
-pin :: MonadUnliftIO m => (ClientM NoContent -> m a) -> BasicAuthData -> CID -> m a
-pin runner auth cid = CLI.withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid
+pin :: MonadUnliftIO m => (ClientM NoContent -> m a) -> Config.UserConfig -> CID -> m a
+pin runner userConfig cid = do
+  let auth = Config.toBasicAuth userConfig
+  CLI.withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid

@@ -22,7 +22,7 @@ data Provision = Provision
   { _url      :: Client.BaseUrl
   , _username :: Text
   , _password :: Secret
-  , _peers   :: [IPFS.Peer]
+  , _peers    :: [IPFS.Peer]
   } deriving ( Eq
              , Show
              , Generic

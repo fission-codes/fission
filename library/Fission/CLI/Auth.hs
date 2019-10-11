@@ -21,13 +21,14 @@ import           Servant.Client
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import qualified Fission.Internal.UTF8 as UTF8
+import           Fission.Config.Types
 
 -- | Retrieve auth from the user's system
-get :: MonadIO m => m (Either YAML.ParseException BasicAuthData)
+get :: MonadIO m => m (Either YAML.ParseException UserConfig)
 get = liftIO . YAML.decodeFileEither =<< cachePath
 
 -- | Write user's auth to a local on-system path
-write :: MonadUnliftIO m => BasicAuthData -> m ()
+write :: MonadUnliftIO m => UserConfig -> m ()
 write auth = do
   path <- cachePath
   writeBinaryFileDurable path $ YAML.encode auth
@@ -56,7 +57,7 @@ removeConfigFile = do
 
 withAuth :: MonadRIO   cfg m
          => HasLogFunc cfg
-         => (BasicAuthData -> m (Either ClientError a))
+         => (UserConfig -> m (Either ClientError a))
          -> m (Either SomeException a)
 withAuth action = get >>= \case
   Right auth ->
