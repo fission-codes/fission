@@ -52,13 +52,12 @@ instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
 
 
--- | TODO move to cli types (idea: DotFile UserDotFileConifg)
 -- | The User specific Fission CLI config
 data UserConfig = UserConfig
   { username :: ByteString
   , password :: ByteString
   -- , url      :: ByteString
-  -- , peers    :: [ByteString]
+  , peers    :: [ByteString]
   }
   deriving          ( Eq
                     , Show
@@ -66,15 +65,22 @@ data UserConfig = UserConfig
 
 
 instance ToJSON UserConfig where
-  toJSON (UserConfig username password) =
-    Object [ ("username", String $ decodeUtf8Lenient username)
-            , ("password", String $ decodeUtf8Lenient password)
-            ]
+  toJSON UserConfig {..} = object
+    [ "username"      .= username
+    , "password"  .= password
+    , "peers" .= peers
+    ]
+  -- toJSON (UserConfig username password peers) =
+  --   Object [ ("username", String $ decodeUtf8Lenient username)
+  --           , ("password", String $ decodeUtf8Lenient password)
+  --           , ("peers", map (String . decodeUtf8Lenient) peers)
+  --           ]
 
 instance FromJSON UserConfig where
   parseJSON = withObject "UserConfig" \obj ->
     UserConfig <$> obj .: "username"
                <*> obj .: "password"
+               <*> obj .: "peers"
 
 toBasicAuth :: UserConfig -> BasicAuthData
 toBasicAuth usrCfg = BasicAuthData (usrCfg & username) (usrCfg & password)
