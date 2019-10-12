@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 711a31699280de223638c0d0d41b21dd372f93f458abe60ad103c4cc04b91a90
+-- hash: 707928aa3e590b0c6bc5bb4f0e100cc235ebf6694b4c04629f78bba137303da7
 
 name:           fission-web-api
 version:        1.10.0
@@ -46,6 +46,7 @@ library
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
       Fission.CLI.DNS
+      Fission.CLI.Error
       Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
@@ -94,6 +95,8 @@ library
       Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
       Fission.IPFS.URL.Types
+      Fission.Log.Lens
+      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -205,6 +208,7 @@ library
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -275,6 +279,7 @@ executable fission-cli
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -345,6 +350,7 @@ executable fission-web
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -421,6 +427,7 @@ test-suite fission-doctest
     , lens-aeson
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -492,6 +499,7 @@ test-suite fission-lint
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -548,6 +556,7 @@ test-suite fission-test
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
       Fission.CLI.DNS
+      Fission.CLI.Error
       Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
@@ -596,6 +605,8 @@ test-suite fission-test
       Fission.IPFS.Timeout.Types
       Fission.IPFS.Types
       Fission.IPFS.URL.Types
+      Fission.Log.Lens
+      Fission.Log.Types
       Fission.Monitor
       Fission.Monitor.Types
       Fission.Plan.Types
@@ -712,6 +723,7 @@ test-suite fission-test
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -789,6 +801,7 @@ benchmark fission-benchmark
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring

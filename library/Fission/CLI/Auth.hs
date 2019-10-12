@@ -53,7 +53,7 @@ withAuth action = get >>= \case
   Right auth ->
     action auth >>= \case
       Right result -> return $ Right result
-      Left err -> return . Left . CLIError . UTF8.textShow $ err
+      Left err -> return . Left . CLIError $ UTF8.textShow err
 
   Left err -> do
     logError $ displayShow err
@@ -61,4 +61,4 @@ withAuth action = get >>= \case
     UTF8.putText $ Emoji.prohibited <> " Unable to read credentials. Try logging in with "
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
     UTF8.putText "fission-cli login"
-    return . Left . CLIError . UTF8.textShow $ err
+    return . Left . CLIError $ UTF8.textShow err
