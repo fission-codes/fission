@@ -18,7 +18,7 @@ import           System.FSNotify as FS
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8 as UTF8
 
-import qualified Fission.Emoji        as Emoji
+import           Fission.Error        as Error
 import qualified Fission.Web.Client   as Client
 import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.Time         as Time
@@ -57,25 +57,18 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => m ()
-watcher = do
-  cfg <- ask
-  dir <- getCurrentDirectory
-  UTF8.putText $ Emoji.eyes <> " Watching " <> Text.pack dir <> " for changes...\n"
+watcher = void $ Error.withHandler CLI.Error.put' do
+  cfg <- liftRIO ask
+  dir <- liftIO getCurrentDirectory
+  liftIO . UTF8.putText $ " Watching " <> Text.pack dir <> " for changes...\n"
 
-  IPFS.addDir dir >>= \case
-    Left err ->
-      CLI.Error.put' $ textDisplay err
-
-    Right initCID ->
-      Auth.withAuth (CLI.Pin.run initCID) >>= \case
-        Left err ->
-          CLI.Error.put' err
-
-        Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
-          hashCache <- newMVar hash
-          timeCache <- newMVar =<< getCurrentTime
-          void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
-          forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+  initCID  <- liftE $ IPFS.addDir dir
+  CID hash <- liftE . Auth.withAuth $ CLI.Pin.run initCID
+  liftIO $ FS.withManager \watchMgr -> do
+    hashCache <- newMVar hash
+    timeCache <- newMVar =<< getCurrentTime
+    void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
+    forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
 
 handleTreeChanges :: HasLogFunc        cfg
                   => Has Client.Runner cfg
