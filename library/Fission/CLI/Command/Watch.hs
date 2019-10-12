@@ -116,7 +116,7 @@ pinAndUpdateDNS :: MonadRIO          cfg m
                 => Has IPFS.BinPath  cfg
                 => Has IPFS.Timeout  cfg
                 => CID
-                -> m(Either Auth.CLIError AWS.DomainName)
+                -> m (Either Auth.CLIError AWS.DomainName)
 pinAndUpdateDNS cid =
   Auth.withAuth (CLI.Pin.run cid) >>= \case
     Left err -> do
