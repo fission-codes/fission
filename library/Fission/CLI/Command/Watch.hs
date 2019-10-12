@@ -64,11 +64,14 @@ watcher = void $ Error.withHandler CLI.Error.put' do
 
   initCID  <- liftE $ IPFS.addDir dir
   CID hash <- liftE . Auth.withAuth $ CLI.Pin.run initCID
+
   liftIO $ FS.withManager \watchMgr -> do
     hashCache <- newMVar hash
     timeCache <- newMVar =<< getCurrentTime
     void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
     forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+
+  return ()
 
 handleTreeChanges :: HasLogFunc        cfg
                   => Has Client.Runner cfg
