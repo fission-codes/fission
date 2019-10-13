@@ -3,6 +3,7 @@ module Fission.Error
   , log
   , runLogged
   , withHandler
+  , handleable
   ) where
 
 import           RIO hiding (log)
@@ -20,6 +21,7 @@ runLogged :: MonadRIO   cfg m
           => Show    err
           => ExceptT err m a
           -> m (Either err a)
+-- maybe runExitLogger
 runLogged actions = withHandler log actions
 
 -- | Run inside an error-aware context, and handle all errors with a specified handler
@@ -39,3 +41,9 @@ liftE :: Functor m
       => m (Either err a)
       -> ExceptT CLI.Error m a
 liftE = ExceptT . fmap Error.embed
+
+handleable :: Functor m
+           => SuperError err CLI.Error
+           => ExceptT err       m a
+           -> ExceptT CLI.Error m a
+handleable = withExceptT Error.toError
