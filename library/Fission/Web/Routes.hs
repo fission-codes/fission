@@ -6,7 +6,6 @@ module Fission.Web.Routes
   , IPFSRoute
   , PingRoute
   , DNSRoute
-  , PublicAPI
   ) where
 
 import Servant
@@ -23,10 +22,6 @@ type API = IPFSRoute
       :<|> UserRoute
       :<|> PingRoute
       :<|> DNSRoute
-
-type PublicAPI = IPFSRoute
-            :<|> UserRoute
-            :<|> DNSRoute
 
 type UserRoute = "user" :> User.API
 type PingRoute = "ping" :> Ping.API
