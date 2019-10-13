@@ -32,6 +32,7 @@ import           Fission.CLI.Config.Types
 import qualified Fission.CLI.Display.Error as CLI.Error
 import qualified Fission.CLI.Pin           as CLI.Pin
 import qualified Fission.CLI.DNS           as CLI.DNS
+import qualified Fission.CLI.Error         as CLI
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -56,8 +57,8 @@ watcher :: MonadRIO          cfg m
         => HasProcessContext cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
-        => m ()
-watcher = void $ Error.withHandler CLI.Error.put' do
+        => m (Either CLI.Error a)
+watcher = Error.withHandler CLI.Error.put' do
   cfg <- liftRIO ask
   dir <- liftIO getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
