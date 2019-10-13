@@ -18,6 +18,7 @@ import           System.FSNotify as FS
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8 as UTF8
 
+import           Fission.Error        as Error
 import qualified Fission.Web.Client   as Client
 import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.Time         as Time
@@ -56,25 +57,21 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => m ()
-watcher = do
-  cfg <- ask
-  dir <- getCurrentDirectory
+watcher = void $ Error.withHandler CLI.Error.put' do
+  cfg <- liftRIO ask
+  dir <- liftIO getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  IPFS.addDir dir >>= \case
-    Left err ->
-      CLI.Error.put' $ textDisplay err
+  initCID  <- liftE $ IPFS.addDir dir
+  CID hash <- liftE . Auth.withAuth $ CLI.Pin.run initCID
 
-    Right initCID ->
-      Auth.withAuth (CLI.Pin.run initCID) >>= \case
-        Left err ->
-          CLI.Error.put' err
+  liftIO $ FS.withManager \watchMgr -> do
+    hashCache <- newMVar hash
+    timeCache <- newMVar =<< getCurrentTime
+    void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
+    forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
 
-        Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
-          hashCache <- newMVar hash
-          timeCache <- newMVar =<< getCurrentTime
-          void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
-          forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+  return ()
 
 handleTreeChanges :: HasLogFunc        cfg
                   => Has Client.Runner cfg
@@ -115,10 +112,12 @@ pinAndUpdateDNS :: MonadRIO          cfg m
                 => Has IPFS.BinPath  cfg
                 => Has IPFS.Timeout  cfg
                 => CID
-                -> m(Either Auth.CLIError AWS.DomainName)
+                -> m (Either Auth.CLIError AWS.DomainName)
 pinAndUpdateDNS cid =
   Auth.withAuth (CLI.Pin.run cid) >>= \case
     Left err -> do
       logError $ displayShow err
       return . Left $ err
-    Right _ -> Auth.withAuth (CLI.DNS.update cid)
+
+    Right _ ->
+      Auth.withAuth (CLI.DNS.update cid)
