@@ -26,11 +26,12 @@ import qualified Fission.Time         as Time
 import           Fission.IPFS.CID.Types
 import qualified Fission.IPFS.Types as IPFS
 
-import qualified Fission.CLI.Auth          as Auth
 import           Fission.CLI.Config.Types
-import qualified Fission.CLI.Pin           as CLI.Pin
-import qualified Fission.CLI.DNS           as CLI.DNS
+import           Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Error
+import qualified Fission.CLI.Auth          as Auth
+import qualified Fission.CLI.DNS           as CLI.DNS
+import qualified Fission.CLI.Pin           as CLI.Pin
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -82,8 +83,8 @@ handleTreeChanges :: HasLogFunc        cfg
                   -> FilePath
                   -> IO StopListening
 handleTreeChanges timeCache hashCache watchMgr cfg dir =
-  FS.watchTree watchMgr dir (const True) $ \_ -> runRIO cfg $ Error.handleWith cliLog do
-    now     <- liftIO getCurrentTime
+  FS.watchTree watchMgr dir (const True) \_ -> runRIO cfg do
+    now     <- getCurrentTime
     oldTime <- readMVar timeCache
 
     if diffUTCTime now oldTime < Time.doherty
@@ -94,10 +95,14 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
         void $ swapMVar timeCache now
         threadDelay Time.dohertyMicroSeconds -- Wait for all events to fire in sliding window
 
-        cid@(CID newHash) <- liftE $ IPFS.addDir dir
-        oldHash           <- swapMVar hashCache newHash
-        logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
+        IPFS.addDir dir >>= \case
+          Left err ->
+            CLI.Error.put' err
 
-        when (oldHash /= newHash) do
-          void . liftE . Auth.withAuth $ CLI.Pin.run    cid
-          void . liftE . Auth.withAuth $ CLI.DNS.update cid
+          Right cid@(CID newHash) -> do
+            oldHash <- swapMVar hashCache newHash
+            logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
+
+            when (oldHash /= newHash) do
+              void . Auth.withAuth $ CLI.Pin.run    cid
+              void . Auth.withAuth $ CLI.DNS.update cid
