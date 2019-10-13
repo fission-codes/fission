@@ -12,7 +12,7 @@ import           RIO
 import           Control.Monad.Except
 
 import           Fission.Error.Class     as Error
-import qualified Fission.CLI.Error.Types as CLI
+-- import qualified Fission.CLI.Error.Types as CLI
 import           Fission.Internal.Constraint
 
 -- | Run inside a context that understands automated error logging.
@@ -85,7 +85,7 @@ handleWith_ errHandler actions = runExceptT actions >>= either errHandler (const
 -- >   b <- liftE actionB
 -- >   return $ a + b
 liftE :: Functor m
-      => SuperError err CLI.Error
-      => m (Either err a)
-      -> ExceptT CLI.Error m a
+      => SuperError subErr supErr
+      => m (Either subErr a)
+      -> ExceptT supErr m a
 liftE = ExceptT . fmap Error.embed
