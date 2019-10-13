@@ -2,12 +2,12 @@ module Fission.Error
   ( liftE
   , withHandler
   , withHandler_
-  , catch
-  , catch_
+  , catchWith
+  , catchWith_
   , runLogged
   ) where
 
-import           RIO hiding (catch)
+import           RIO
 
 import           Control.Monad.Except
 
@@ -24,45 +24,66 @@ runLogged :: MonadRIO   cfg m
           -> m ()
 runLogged actions = withHandler (logError . displayShow) actions
 
+-- | The same as 'withHandler', but with arguments flipped
+--
+-- == Examples
+--
+-- > do
+-- >   a <- actionA
+-- >   b <- actionB
+-- >   return $ a + b
+-- > `catchWith` \case
+-- >   FooErr -> return 1
+-- >   BarErr -> return 2
+-- >   BazErr -> return 3
+catchWith :: Monad m => ExceptT err m a -> (err -> m a) -> m a
+catchWith = flip withHandler
+
+-- | The same as 'withHandler_', but with arguments flipped
+--
+-- == Examples
+--
+-- > do
+-- >   a <- actionA
+-- >   b <- actionB
+-- >   return $ a + b
+-- > `catchWith` \case
+-- >   FooErr -> logError "Didn't work"
+-- >   BarErr -> logError "Really didn't work"
+-- >   BazErr -> logError "Really really eally didn't work"
+catchWith_ :: Monad m => ExceptT err m a -> (err -> m ()) -> m ()
+catchWith_ = flip withHandler_
+
 -- | Run inside an error-aware context, and handle all errors with a specified handler
--- withHandler :: Monad m => (Either e a -> m c) -> ExceptT e m a -> m c
--- withHandler errHandler actions = errHandler =<< runExceptT actions
-
--- withHandler :: Monad m
---             => SuperError subErr supErr
---             => Show supErr
---             => (supErr -> m a)
---             -> ExceptT subErr m a
---             -> m a
--- withHandler = withHandler'
-
-catch :: Monad m
-      -- => SuperError subErr supErr
-      => ExceptT err m a
-      -> (err -> m a)
-      -> m a
-catch = flip withHandler
-
-catch_ :: Monad m
-       -- => SuperError subErr supErr
-       => ExceptT err m a
-       -> (err -> m ())
-       -> m ()
-catch_ = flip withHandler_
-
-withHandler :: Monad m
-            => (err -> m a)
-            -> ExceptT err m a
-            -> m a
+--
+-- == Examples
+--
+-- > withHandler (const . pure 0) do
+-- >   a <- actionA
+-- >   b <- actionB
+-- >   return $ a + b
+withHandler :: Monad m => (err -> m a) -> ExceptT err m a -> m a
 withHandler errHandler actions = runExceptT actions >>= either errHandler pure
 
-withHandler_ :: Monad m
-             => (err -> m ())
-             -> ExceptT err m a
-             -> m ()
+-- | Same as 'withHandler', but always returns @m ()@
+--
+-- == Examples
+--
+-- > withHandler_ (logError . displayShow) do
+-- >   a <- actionA
+-- >   b <- actionB
+-- >   return $ a + b
+withHandler_ :: Monad m => (err -> m ()) -> ExceptT err m a -> m ()
 withHandler_ errHandler actions = runExceptT actions >>= either errHandler (const $ pure ())
 
 -- | Bring an existing 'm (Either e a)' into an error-handling-aware context
+--
+-- == Examples
+--
+-- > withHandler_ (logError . displayShow) do
+-- >   a <- liftE actionA
+-- >   b <- liftE actionB
+-- >   return $ a + b
 liftE :: Functor m
       => SuperError err CLI.Error
       => m (Either err a)

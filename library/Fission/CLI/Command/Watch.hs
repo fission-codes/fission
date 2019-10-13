@@ -59,7 +59,7 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => m ()
-watcher = Error.withHandler cliLog do
+watcher = Error.withHandler_ cliLog do
   cfg <- liftRIO ask
   dir <- liftIO getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
@@ -72,8 +72,6 @@ watcher = Error.withHandler cliLog do
     timeCache <- newMVar =<< getCurrentTime
     void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
     forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
-
-  return ()
 
 handleTreeChanges :: HasLogFunc        cfg
                   => Has Client.Runner cfg
