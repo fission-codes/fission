@@ -11,7 +11,9 @@ import           RIO
 
 import           Control.Monad.Except
 
-import           Fission.Error.Class     as Error
+import qualified Data.Bifunctor as BF
+
+-- import           Fission.Error.Class     as Error
 -- import qualified Fission.CLI.Error.Types as CLI
 import           Fission.Internal.Constraint
 
@@ -84,8 +86,5 @@ handleWith_ errHandler actions = runExceptT actions >>= either errHandler (const
 -- >   a <- liftE actionA
 -- >   b <- liftE actionB
 -- >   return $ a + b
-liftE :: Functor f
-      => SuperError subErr supErr
-      => f (Either subErr a)
-      -> ExceptT supErr f a
-liftE = ExceptT . fmap Error.embed
+liftE :: (Functor m, Exception e) => m (Either e a) -> ExceptT SomeException m a
+liftE = ExceptT . fmap (BF.first toException)

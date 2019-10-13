@@ -27,6 +27,7 @@ newtype CLIError = CLIError { message :: Text }
            , Show
            , Ord
            )
+  deriving anyclass ( Exception )
   deriving newtype  ( IsString )
 
 -- | Retrieve auth from the user's system

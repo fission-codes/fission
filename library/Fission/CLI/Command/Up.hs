@@ -15,12 +15,11 @@ import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Web.Client   as Client
 import           Fission.Error        as Error
 
+import           Fission.CLI.Display.Error as CLI.Error
 import qualified Fission.CLI.Auth    as Auth
 import qualified Fission.CLI.Pin     as CLI.Pin
 import qualified Fission.CLI.DNS     as CLI.DNS
 import           Fission.CLI.Config.Types
-
-import Fission.CLI.Error
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -46,9 +45,11 @@ up :: MonadRIO          cfg m
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
    => m ()
-up = Error.handleWith_ cliLog do
+up = Error.handleWith_ CLI.Error.put' do
   logDebug "Starting single IPFS add locally"
-  dir <- liftIO getCurrentDirectory
+
+  dir <- getCurrentDirectory
   cid <- liftE $ IPFS.addDir dir
-  liftE $ Auth.withAuth (CLI.Pin.run cid)
-  liftE $ Auth.withAuth (CLI.DNS.update cid)
+
+  liftE . Auth.withAuth $ CLI.Pin.run    cid
+  liftE . Auth.withAuth $ CLI.DNS.update cid

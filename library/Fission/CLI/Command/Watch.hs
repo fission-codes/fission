@@ -28,7 +28,6 @@ import qualified Fission.IPFS.Types as IPFS
 
 import           Fission.CLI.Config.Types
 import           Fission.CLI.Display.Error as CLI.Error
-import           Fission.CLI.Error
 import qualified Fission.CLI.Auth          as Auth
 import qualified Fission.CLI.DNS           as CLI.DNS
 import qualified Fission.CLI.Pin           as CLI.Pin
@@ -57,9 +56,9 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => m ()
-watcher = Error.handleWith_ cliLog do
-  cfg <- liftRIO ask
-  dir <- liftIO getCurrentDirectory
+watcher = Error.handleWith_ CLI.Error.put' do
+  cfg <- lift ask
+  dir <- getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
   initCID  <- liftE $ IPFS.addDir dir

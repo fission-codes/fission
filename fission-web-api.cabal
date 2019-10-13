@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 83c3117a36bde79e12ba5b6164cfedcc4ab03c91dbe169fe3cca7f114dd2e3a3
+-- hash: e6b40754240a2e1670183e1464f8b186a45294b4ce3ac2b77ad52c236dcf88de
 
 name:           fission-web-api
 version:        1.14.0
@@ -48,7 +48,6 @@ library
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
       Fission.CLI.DNS
-      Fission.CLI.Error
       Fission.CLI.Error.Types
       Fission.CLI.Pin
       Fission.Config
@@ -56,7 +55,6 @@ library
       Fission.Environment
       Fission.Environment.Types
       Fission.Error
-      Fission.Error.Class
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
@@ -564,7 +562,6 @@ test-suite fission-test
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
       Fission.CLI.DNS
-      Fission.CLI.Error
       Fission.CLI.Error.Types
       Fission.CLI.Pin
       Fission.Config
@@ -572,7 +569,6 @@ test-suite fission-test
       Fission.Environment
       Fission.Environment.Types
       Fission.Error
-      Fission.Error.Class
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
