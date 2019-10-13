@@ -82,8 +82,8 @@ handleTreeChanges :: HasLogFunc        cfg
                   -> FilePath
                   -> IO StopListening
 handleTreeChanges timeCache hashCache watchMgr cfg dir =
-  FS.watchTree watchMgr dir (const True) . const $ runRIO cfg do
-    now     <- getCurrentTime
+  FS.watchTree watchMgr dir (const True) $ \_ -> runRIO cfg $ Error.handleWith cliLog do
+    now     <- liftIO getCurrentTime
     oldTime <- readMVar timeCache
 
     if diffUTCTime now oldTime < Time.doherty
@@ -94,10 +94,10 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
         void $ swapMVar timeCache now
         threadDelay Time.dohertyMicroSeconds -- Wait for all events to fire in sliding window
 
-        Error.handleWith cliLog do
-          cid@(CID newHash) <- liftE $ IPFS.addDir dir
-          oldHash           <- swapMVar hashCache newHash
-          logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
-          when (oldHash /= newHash) do
-            void . liftE . Auth.withAuth $ CLI.Pin.run    cid
-            void . liftE . Auth.withAuth $ CLI.DNS.update cid
+        cid@(CID newHash) <- liftE $ IPFS.addDir dir
+        oldHash           <- swapMVar hashCache newHash
+        logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
+
+        when (oldHash /= newHash) do
+          void . liftE . Auth.withAuth $ CLI.Pin.run    cid
+          void . liftE . Auth.withAuth $ CLI.DNS.update cid
