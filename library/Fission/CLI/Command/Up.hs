@@ -50,25 +50,3 @@ up = void $ Error.runLogged do
   cid <- liftE $ IPFS.addDir dir
   liftE $ Auth.withAuth (CLI.Pin.run cid)
   liftE $ Auth.withAuth (CLI.DNS.update cid)
-
--- liftE :: (Functor m, Error.ToError err) => m (Either err a) -> ExceptT Error.Error m a
--- liftE = ExceptT . fmap Error.eitherCLI
-
--- announceAnyErrors :: (MonadRIO cfg m, HasLogFunc cfg, Show err) => Either err a -> m (Either err a)
--- announceAnyErrors = \case
---   Left err -> do
---     logDebug $ displayShow err
---     return $ Left err
-
---   Right val ->
---     return $ Right val
-
--- runCLI :: (MonadIO m, MonadReader cfg m, HasLogFunc cfg, Show err) => ExceptT err m a -> m (Either err a)
--- runCLI = announceAnyErrors <=< runExceptT
-
--- runCLI_ :: (MonadIO f, MonadReader cfg f, HasLogFunc cfg, Show err) => ExceptT err f a -> f ()
--- runCLI_ = void . runCLI
---   dir <- liftIO getCurrentDirectory
---   cid <- liftE $ IPFS.addDir dir
---   liftE . Auth.withAuth $ CLI.Pin.run cid
---   liftE . Auth.withAuth $ CLI.DNS.update cid
