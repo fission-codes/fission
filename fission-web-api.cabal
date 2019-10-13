@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 03319eb5e39ac1095c5aa1d46c65d214a793cbf553eef2649ac74a6ace13a041
+-- hash: 83c3117a36bde79e12ba5b6164cfedcc4ab03c91dbe169fe3cca7f114dd2e3a3
 
 name:           fission-web-api
 version:        1.14.0
@@ -199,6 +199,7 @@ library
     , data-has
     , ekg-wai
     , envy
+    , exceptions
     , fsnotify
     , haskeline
     , http-client
@@ -269,6 +270,7 @@ executable fission-cli
     , data-has
     , ekg-wai
     , envy
+    , exceptions
     , fission-web-api
     , fsnotify
     , haskeline
@@ -340,6 +342,7 @@ executable fission-web
     , data-has
     , ekg-wai
     , envy
+    , exceptions
     , fission-web-api
     , fsnotify
     , haskeline
@@ -417,6 +420,7 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , exceptions
     , fsnotify
     , haskeline
     , http-client
@@ -489,6 +493,7 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , exceptions
     , fsnotify
     , haskeline
     , hlint
@@ -711,6 +716,7 @@ test-suite fission-test
     , data-has
     , ekg-wai
     , envy
+    , exceptions
     , fission-web-api
     , fsnotify
     , haskeline
@@ -792,6 +798,7 @@ benchmark fission-benchmark
     , data-has
     , ekg-wai
     , envy
+    , exceptions
     , fission-web-api
     , fsnotify
     , haskeline

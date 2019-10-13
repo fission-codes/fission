@@ -1,10 +1,10 @@
-module Fission.Error
-  ( liftE
-  , log
-  , runLogged
-  , withHandler
-  , handleable
-  ) where
+module Fission.Error where
+  -- ( liftE
+  -- , log
+  -- , runLogged
+  -- , withHandler
+  -- , handleable
+  -- ) where
 
 import           RIO hiding (log)
 
@@ -36,14 +36,14 @@ log (Left  err) = do
   return $ Left err
 
 -- | Bring an existing 'm (Either e a)' into an error-handling-aware context
-liftE :: Functor m
-      => SuperError err CLI.Error
-      => m (Either err a)
-      -> ExceptT CLI.Error m a
-liftE = ExceptT . fmap Error.embed
+-- liftE :: Functor m
+--       => SuperError err CLI.Error
+--       => m (Either err a)
+--       -> ExceptT CLI.Error m a
+-- liftE = ExceptT . fmap Error.embed
 
-handleable :: Functor m
-           => SuperError err CLI.Error
-           => ExceptT err       m a
-           -> ExceptT CLI.Error m a
-handleable = withExceptT Error.toError
+-- handleable :: Functor m
+--            => e ~ SomeException --SuperError err CLI.Error
+--            => ExceptT err       m a
+--            -> ExceptT CLI.Error m a
+-- handleable = withExceptT Error.toError

@@ -11,6 +11,9 @@ import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 import           RIO.Time
 
+import qualified Control.Monad.Catch as M
+import Control.Monad.Trans.Except
+
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
 import           System.FSNotify as FS
@@ -57,13 +60,13 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => m ()
-watcher = Error.withHandler CLI.Error.put' do
+watcher = handle (CLI.Error.put' . M.toException) do
   cfg <- liftRIO ask
   dir <- liftIO getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  initCID  <- liftE $ IPFS.addDir dir
-  CID hash <- liftE . Auth.withAuth $ CLI.Pin.run initCID
+  initCID  <- ExceptT <$> IPFS.addDir dir
+  CID hash <- ExceptT <$> Auth.withAuth $ CLI.Pin.run initCID
 
   liftIO $ FS.withManager \watchMgr -> do
     hashCache <- newMVar hash
