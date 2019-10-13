@@ -84,8 +84,8 @@ handleWith_ errHandler actions = runExceptT actions >>= either errHandler (const
 -- >   a <- liftE actionA
 -- >   b <- liftE actionB
 -- >   return $ a + b
-liftE :: Functor m
+liftE :: Functor f
       => SuperError subErr supErr
-      => m (Either subErr a)
-      -> ExceptT supErr m a
+      => f (Either subErr a)
+      -> ExceptT supErr f a
 liftE = ExceptT . fmap Error.embed
