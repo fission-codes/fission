@@ -57,7 +57,7 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.Timeout  cfg
         => m ()
 watcher = Error.handleWith_ CLI.Error.put' do
-  cfg <- lift ask
+  cfg <- ask
   dir <- getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
