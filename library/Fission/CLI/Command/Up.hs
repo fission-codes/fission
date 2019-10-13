@@ -35,7 +35,7 @@ command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
-    (const . void $ runRIO cfg up)
+    (const $ runRIO cfg up)
     (pure ())
 
 -- | Sync the current working directory to the server over IPFS
