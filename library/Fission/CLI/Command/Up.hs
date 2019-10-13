@@ -46,7 +46,7 @@ up :: MonadRIO          cfg m
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
    => m ()
-up = Error.withHandler_ cliLog do
+up = Error.handleWith_ cliLog do
   logDebug "Starting single IPFS add locally"
   dir <- liftIO getCurrentDirectory
   cid <- liftE $ IPFS.addDir dir

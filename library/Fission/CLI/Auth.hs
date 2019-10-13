@@ -45,7 +45,8 @@ cachePath = do
   home <- getHomeDirectory
   return $ home </> ".fission.yaml"
 
-withAuth :: (MonadRIO cfg m, HasLogFunc cfg)
+withAuth :: MonadRIO cfg m
+         => HasLogFunc cfg
          => (BasicAuthData -> m (Either ClientError a))
          -> m (Either CLIError a)
 withAuth action = get >>= \case
