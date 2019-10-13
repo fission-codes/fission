@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0fa29af7cc857e95f6ca0b08ec715b320926a1ad72ea39ee85bee31a9784054b
+-- hash: c1dc1b81e585ee65be87607d7edbcb5330926fd50ec328d0433a2b86a3219118
 
 name:           fission-web-api
 version:        1.13.0
@@ -47,6 +47,8 @@ library
       Fission.CLI.Display.Loader
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
+      Fission.CLI.DNS
+      Fission.CLI.Error
       Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
@@ -147,6 +149,7 @@ library
       Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.DNS
+      Fission.Web.DNS.Client
       Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
@@ -203,6 +206,7 @@ library
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -273,6 +277,7 @@ executable fission-cli
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -343,6 +348,7 @@ executable fission-web
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -419,6 +425,7 @@ test-suite fission-doctest
     , lens-aeson
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -490,6 +497,7 @@ test-suite fission-lint
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -547,6 +555,8 @@ test-suite fission-test
       Fission.CLI.Display.Loader
       Fission.CLI.Display.Success
       Fission.CLI.Display.Wait
+      Fission.CLI.DNS
+      Fission.CLI.Error
       Fission.CLI.Pin
       Fission.Config
       Fission.Config.Types
@@ -647,6 +657,7 @@ test-suite fission-test
       Fission.Web.Client.Types
       Fission.Web.CORS
       Fission.Web.DNS
+      Fission.Web.DNS.Client
       Fission.Web.Environment.Types
       Fission.Web.Error
       Fission.Web.Heroku
@@ -708,6 +719,7 @@ test-suite fission-test
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring
@@ -785,6 +797,7 @@ benchmark fission-benchmark
     , lens
     , mime-types
     , monad-logger
+    , mtl
     , optparse-applicative
     , optparse-simple
     , random-bytestring

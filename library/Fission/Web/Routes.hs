@@ -5,9 +5,17 @@ module Fission.Web.Routes
   , IPFSPrefix
   , IPFSRoute
   , PingRoute
+  , DNSRoute
+  , PublicAPI
   ) where
 
 import Servant
+
+import qualified Fission.Web.IPFS        as IPFS
+import qualified Fission.Web.Ping        as Ping
+import qualified Fission.Web.Heroku      as Heroku
+import qualified Fission.Web.DNS         as DNS
+import qualified Fission.Web.Auth        as Auth
 
 import qualified Fission.Web.IPFS   as IPFS
 import qualified Fission.Web.Ping   as Ping
@@ -21,6 +29,10 @@ type API = IPFSRoute
       :<|> UserRoute
       :<|> PingRoute
       :<|> DNSRoute
+
+type PublicAPI = IPFSRoute
+            :<|> UserRoute
+            :<|> DNSRoute
 
 type UserRoute = "user" :> User.API
 type PingRoute = "ping" :> Ping.API

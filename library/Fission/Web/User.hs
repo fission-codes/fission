@@ -17,11 +17,10 @@ import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.Auth        as Auth
 import qualified Fission.Web.Types       as Web
+import Fission.User.Types
 
-type API = RegisterRoute
-      :<|> VerifyRoute
-
-type RegisterRoute = Create.API
+type API = Create.API
+          :<|> VerifyRoute
 
 type VerifyRoute = "verify"
                   :> Auth.ExistingUser

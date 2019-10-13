@@ -44,7 +44,7 @@ extra-deps:
 - amazonka-route53-1.6.1
 - ekg-wai-0.1.0.3
 - happy-1.19.10
-- http-client-0.5.14 # Peer dependency of amazonka
+- http-client-0.5.14
 - ip-1.5.1
 - tasty-rerun-1.1.14
 
