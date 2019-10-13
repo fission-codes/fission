@@ -20,6 +20,8 @@ import qualified Fission.CLI.Pin     as CLI.Pin
 import qualified Fission.CLI.DNS     as CLI.DNS
 import           Fission.CLI.Config.Types
 
+import Fission.CLI.Error
+
 -- | The command to attach to the CLI tree
 command :: MonadIO m
         => HasLogFunc        cfg
@@ -33,7 +35,7 @@ command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
-    (const $ runRIO cfg up)
+    (const . void $ runRIO cfg up)
     (pure ())
 
 -- | Sync the current working directory to the server over IPFS
@@ -44,7 +46,7 @@ up :: MonadRIO          cfg m
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
    => m ()
-up = void $ Error.runLogged do
+up = Error.withHandler_ cliLog do
   logDebug "Starting single IPFS add locally"
   dir <- liftIO getCurrentDirectory
   cid <- liftE $ IPFS.addDir dir

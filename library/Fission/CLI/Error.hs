@@ -2,28 +2,36 @@ module Fission.CLI.Error where
 
 import RIO
 
-import qualified Fission.CLI.Auth   as Auth
-import qualified Fission.IPFS.Error as IPFS
+import Fission.Internal.Constraint
 
-data Error
-  = AuthErr Auth.CLIError
-  | IPFSErr IPFS.Error
-  deriving ( Exception
-           , Eq
-           , Show
-           )
+import           Fission.CLI.Error.Types
+import qualified Fission.CLI.Display.Error as CLI.Error
 
-class ToError err where
-  toError :: err -> Error
+cliLog :: (MonadRIO cfg m, HasLogFunc cfg) => Error -> m ()
+cliLog = CLI.Error.put'
 
-instance ToError Auth.CLIError where
-  toError authErr = AuthErr authErr
+-- eitherCLI :: ToError err => Either err b -> Either Error b
+-- eitherCLI = either (Left . toError) Right
 
-instance ToError IPFS.Error where
-  toError ipfsErr = IPFSErr ipfsErr
+-- import qualified Fission.CLI.Auth   as Auth
+-- import qualified Fission.IPFS.Error as IPFS
 
-instance ToError IPFS.Add where
-  toError = toError . IPFS.AddErr
+-- data Error
+--   = AuthErr Auth.CLIError
+--   | IPFSErr IPFS.Error
+--   deriving ( Exception
+--            , Eq
+--            , Show
+--            )
 
-eitherCLI :: ToError err => Either err b -> Either Error b
-eitherCLI = either (Left . toError) Right
+-- class ToError err where
+--   toError :: err -> Error
+
+-- instance ToError Auth.CLIError where
+--   toError authErr = AuthErr authErr
+
+-- instance ToError IPFS.Error where
+--   toError ipfsErr = IPFSErr ipfsErr
+
+-- instance ToError IPFS.Add where
+--   toError = toError . IPFS.AddErr

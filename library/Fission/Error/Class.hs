@@ -11,6 +11,9 @@ import qualified Data.Bifunctor as BF
 class SuperError childErr parentErr where
   toError :: childErr -> parentErr
 
+instance SuperError err err where
+  toError = id
+
 -- | Switch context from some leaf errors to the trunk error type
 embed :: SuperError childErr parentErr => Either childErr a -> Either parentErr a
 embed = BF.first toError

@@ -11,9 +11,6 @@ import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 import           RIO.Time
 
-import qualified Control.Monad.Catch as M
-import Control.Monad.Trans.Except
-
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
 import           System.FSNotify as FS
@@ -35,6 +32,8 @@ import           Fission.CLI.Config.Types
 import qualified Fission.CLI.Display.Error as CLI.Error
 import qualified Fission.CLI.Pin           as CLI.Pin
 import qualified Fission.CLI.DNS           as CLI.DNS
+
+import Fission.CLI.Error
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -60,13 +59,13 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => m ()
-watcher = handle (CLI.Error.put' . M.toException) do
+watcher = Error.withHandler cliLog do
   cfg <- liftRIO ask
   dir <- liftIO getCurrentDirectory
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  initCID  <- ExceptT <$> IPFS.addDir dir
-  CID hash <- ExceptT <$> Auth.withAuth $ CLI.Pin.run initCID
+  initCID  <- liftE $ IPFS.addDir dir
+  CID hash <- liftE $ Auth.withAuth $ CLI.Pin.run initCID
 
   liftIO $ FS.withManager \watchMgr -> do
     hashCache <- newMVar hash
