@@ -52,7 +52,7 @@ withAuth action = get >>= \case
   Right auth ->
     action auth >>= \case
       Right result -> return $ Right result
-      Left err -> return . Left . CLIError . UTF8.textShow $ err
+      Left err -> return . wrapCLIError $ err
 
   Left err -> do
     logError $ displayShow err
@@ -61,4 +61,7 @@ withAuth action = get >>= \case
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
     UTF8.putText "fission-cli login"
     liftIO $ ANSI.setSGR [ANSI.Reset]
-    return . Left . CLIError . UTF8.textShow $ err
+    return . wrapCLIError $ err
+
+wrapCLIError :: Show a => a -> Either CLIError b
+wrapCLIError = Left . CLIError . UTF8.textShow

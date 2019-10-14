@@ -4,7 +4,6 @@ module Fission.AWS.Route53
   ) where
 
 import RIO
-import Servant
 
 import Control.Lens ((?~))
 import Data.Has

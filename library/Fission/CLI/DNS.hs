@@ -33,8 +33,8 @@ update cid@(CID hash) auth = do
 
   Client.Runner runner <- Config.get
   update' runner auth cid >>= \case
-    Right domain -> do
-      CLI.Success.dnsUpdated $ AWS.getDomainName domain
+    Right domain@(AWS.DomainName url) -> do
+      CLI.Success.dnsUpdated url
       return $ Right domain
 
     Left err -> do
