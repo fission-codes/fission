@@ -15,6 +15,7 @@ import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 
 import           Fission.Web.User.Client  as User.Client
+import           Fission.Web.IPFS.Client  as IPFS.Client
 import qualified Fission.Web.Client.Types as Client
 
 import qualified Fission.CLI.Auth as Auth
@@ -63,7 +64,7 @@ login = do
                  . liftIO
                  . CLI.Wait.waitFor "Verifying your credentials"
                  . runner
-                 $ User.Client.verify auth
+                 $ IPFS.Client.peers auth
 
       case authResult of
         Right _ok -> Auth.write writeTo >> CLI.Success.putOk "Logged in"
