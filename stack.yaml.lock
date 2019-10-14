@@ -47,6 +47,13 @@ packages:
   original:
     hackage: happy-1.19.10
 - completed:
+    hackage: http-client-0.5.14@sha256:4880b27d6741e331454a1d4c887d96ce3d7d625322c8433983a4b1cd08538577,5348
+    pantry-tree:
+      size: 2457
+      sha256: 02bcffba9cad572fefb4640f5fc9be68e770b32ab73efcac649db20290994c6d
+  original:
+    hackage: http-client-0.5.14
+- completed:
     hackage: ip-1.5.1@sha256:3378f49b83c8ad034b7719a0a249fdb038682ab2af9e5f56a9e525bb370a97e6,3553
     pantry-tree:
       size: 1504
