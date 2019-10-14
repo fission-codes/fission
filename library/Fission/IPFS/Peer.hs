@@ -76,7 +76,8 @@ isExternalIPv4 ip = maybe False not isReserved
     isReserved = do
       ipAddress  <- extractIPfromPeerAddress $ Text.unpack ip
       normalized <- IPv4.decode $ Text.pack ipAddress
-      return $ IPv4.reserved normalized
+      -- TODO: revert to reserved
+      return $ IPv4.private normalized
 
 
 -- | Filter a list of peers to include only the externally accessable addresses

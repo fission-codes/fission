@@ -28,10 +28,10 @@ main = do
   _ipfsTimeout <- withEnv "IPFS_TIMEOUT" (IPFS.Timeout 3600) (IPFS.Timeout . Partial.read)
 
   -- TODO: Grab from env.yaml file
-  isTLS <- getFlag "FISSION_TLS" .!~ True
+  isTLS <- getFlag "FISSION_TLS" .!~ False
   path  <- withEnv "FISSION_ROOT" "" id
-  host  <- withEnv "FISSION_HOST" "runfission.com" id
-  port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
+  host  <- withEnv "FISSION_HOST" "127.0.0.1" id
+  port  <- withEnv "FISSION_PORT" 1337 Partial.read
   tOut  <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
 
   let rawHTTPSettings = if isTLS
