@@ -10,7 +10,7 @@ import           Data.Has
 import           Options.Applicative.Simple (addCommand)
 import           Options.Applicative (strArgument, metavar, help)
 import           System.Console.Haskeline
-import System.Environment
+import           System.Environment
 
 import           Fission.Internal.Constraint
 
@@ -46,7 +46,6 @@ command cfg =
 
 -- | Sync the current working directory to the server over IPFS
 down :: MonadRIO        cfg m
-   => MonadUnliftIO         m
    => HasLogFunc        cfg
    => HasProcessContext cfg
    => Has IPFS.Timeout  cfg
