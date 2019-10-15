@@ -3,6 +3,7 @@ module Fission.Storage.IPFS
   , addRaw
   , addFile
   , get
+  , getContent
   ) where
 
 import           RIO
@@ -56,7 +57,7 @@ addFile :: MonadRIO          cfg m
         -> m (Either IPFS.Error.Add IPFS.SparseTree)
 addFile raw name =
   IPFS.Proc.run opts raw >>= \case
-    (ExitSuccess, result, _) -> do
+    (ExitSuccess, result, _) ->
       IPFS.Pin.add (mkCID $ UTF8.textShow result) >>= \case
         Left err ->
           return . Left . UnknownAddErr $ UTF8.textShow err
@@ -100,6 +101,18 @@ addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
 
     (ExitFailure _, _, err) ->
       Left . UnknownAddErr $ UTF8.textShow err
+
+getContent :: RIOProc           cfg m
+      => Has IPFS.Timeout  cfg
+      => Has IPFS.BinPath  cfg
+      => IPFS.CID
+      -> m (Either IPFS.Error.Get CL.ByteString)
+getContent cid@(IPFS.CID hash) = IPFS.Proc.run ["get"] (UTF8.textToLazyBS hash) >>= \case
+  (ExitSuccess, contents, _) ->
+    return . Right $ contents
+
+  (ExitFailure _, _, stdErr) ->
+    return . Left . UnknownGetErr $ UTF8.textShow stdErr
 
 get :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg

@@ -13,6 +13,7 @@ import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.CLI.Command.Login    as Login
 import qualified Fission.CLI.Command.Register as Register
 import qualified Fission.CLI.Command.Up       as Up
+import qualified Fission.CLI.Command.Down       as Down
 import qualified Fission.CLI.Command.Watch    as Watch
 
 -- | Top-level CLI description
@@ -29,6 +30,7 @@ cli cfg =
     Login.command    cfg
     Register.command cfg
     Up.command       cfg
+    Down.command     cfg
     Watch.command    cfg
   where
     version     = "1.10.0"
