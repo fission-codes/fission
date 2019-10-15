@@ -8,7 +8,6 @@ import RIO
 import           Data.Aeson
 import qualified Network.Wai.Handler.Warp as Warp
 import           Servant.Client
-import           System.Envy
 
 import qualified Fission.Internal.UTF8 as UTF8
 
@@ -28,9 +27,6 @@ newtype Port = Port { port :: Warp.Port }
                     , Eq
                     , Generic
                     )
-
-instance FromEnv Port where
-  fromEnv _ = Port <$> env "PORT"
 
 instance FromJSON Port where
   parseJSON = withScientific "Web.Port" \num ->

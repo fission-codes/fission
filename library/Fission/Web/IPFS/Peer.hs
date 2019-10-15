@@ -1,4 +1,7 @@
-module Fission.Web.IPFS.Peer where
+module Fission.Web.IPFS.Peer
+  ( API
+  , get
+  ) where
 
 import RIO
 import RIO.Process (HasProcessContext)
