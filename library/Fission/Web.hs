@@ -50,7 +50,7 @@ app :: Has IPFS.BinPath    cfg
     => Has Web.Host        cfg
     => Has AWS.AccessKey   cfg
     => Has AWS.SecretKey   cfg
-    => Has AWS.ZoneId      cfg
+    => Has AWS.ZoneID      cfg
     => Has AWS.DomainName  cfg
     => Has Heroku.ID       cfg
     => Has Heroku.Password cfg
@@ -95,7 +95,7 @@ server :: Has IPFS.BinPath   cfg
        => Has Web.Host       cfg
        => Has AWS.AccessKey  cfg
        => Has AWS.SecretKey  cfg
-       => Has AWS.ZoneId     cfg
+       => Has AWS.ZoneID     cfg
        => Has AWS.DomainName cfg
        => HasProcessContext  cfg
        => HasLogFunc         cfg

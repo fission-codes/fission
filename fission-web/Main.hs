@@ -48,10 +48,10 @@ main = do
     _ipfsPath    = env ^. ipfs . binPath
     _ipfsURL     = env ^. ipfs . url
     _ipfsTimeout = env ^. ipfs . IPFS.timeout
-    
+
     _awsAccessKey  = _accessKey
     _awsSecretKey  = _secretKey
-    _awsZoneId     = _zoneId
+    _awsZoneID     = _zoneID
     _awsDomainName = _domainName
 
   _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo

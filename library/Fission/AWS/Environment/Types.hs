@@ -3,7 +3,7 @@ module Fission.AWS.Environment.Types
   ( Environment (..)
   , accessKey
   , secretKey
-  , zoneId
+  , zoneID
   , domainName
   ) where
 
@@ -18,10 +18,10 @@ import qualified Network.AWS.Auth as AWS
 import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
-  { _accessKey  :: !AWS.AccessKey -- ^ AWS Access Key
-  , _secretKey  :: !AWS.SecretKey -- ^ AWS Secret Key
-  , _zoneId     :: !AWS.ZoneId -- ^ AWS Hosted Zone
-  , _domainName :: !AWS.DomainName -- ^ AWS Domain
+  { _accessKey  :: !AWS.AccessKey  -- ^ Access Key
+  , _secretKey  :: !AWS.SecretKey  -- ^ Secret Key
+  , _zoneID     :: !AWS.ZoneID     -- ^ Hosted Zone
+  , _domainName :: !AWS.DomainName -- ^ Domain Name
   }
 
 makeLenses ''Environment
@@ -31,16 +31,16 @@ instance Show Environment where
     [ "Environment {"
     , "  _accessKey  = " <> show _accessKey
     , "  _secretKey  = HIDDEN"
-    , "  _zoneId     = " <> show _zoneId
+    , "  _zoneId     = " <> show _zoneID
     , "  _domainName = " <> show _domainName
     , "}"
     ]
 
 instance FromJSON Environment where
   parseJSON = withObject "AWS.Environment" \obj -> do
-    _accessKey  <- obj .: "accessKey"
-    _secretKey  <- obj .: "secretKey"
-    _zoneId     <- obj .: "zoneId"
-    _domainName <- obj .: "domainName"
+    _accessKey  <- obj .: "access_key"
+    _secretKey  <- obj .: "secret_key"
+    _zoneID     <- obj .: "zone_id"
+    _domainName <- obj .: "domain_name"
 
     return $ Environment {..}

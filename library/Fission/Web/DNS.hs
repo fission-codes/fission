@@ -29,7 +29,7 @@ type API = Capture "cid" CID
 server :: HasLogFunc         cfg
        => Has AWS.AccessKey  cfg
        => Has AWS.SecretKey  cfg
-       => Has AWS.ZoneId     cfg
+       => Has AWS.ZoneID     cfg
        => Has AWS.DomainName cfg
        => User
        -> RIOServer         cfg API

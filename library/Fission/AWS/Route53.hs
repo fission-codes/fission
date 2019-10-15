@@ -24,7 +24,7 @@ registerDomain :: MonadRIO           cfg m
                => HasLogFunc         cfg
                => Has AWS.AccessKey  cfg
                => Has AWS.SecretKey  cfg
-               => Has AWS.ZoneId     cfg
+               => Has AWS.ZoneID     cfg
                => RecordType
                -> Text
                -> Text
@@ -39,13 +39,13 @@ registerDomain recordType domain content = do
     return $ validate res
 
 createChangeRequest :: MonadRIO       cfg m
-                    => Has AWS.ZoneId cfg
+                    => Has AWS.ZoneID cfg
                     => RecordType
                     -> Text
                     -> Text
                     -> m ChangeResourceRecordSets
 createChangeRequest recordType domain content = do
-  ZoneId zoneId <- Config.get
+  ZoneID zoneId <- Config.get
   return $ changeResourceRecordSets (ResourceId zoneId) changes
   where
     recordSet = resourceRecordSet domain recordType

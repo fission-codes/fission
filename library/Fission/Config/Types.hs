@@ -44,7 +44,7 @@ data Config = Config
   , _herokuPassword :: !Heroku.Password
   , _awsAccessKey   :: !AWS.AccessKey
   , _awsSecretKey   :: !AWS.SecretKey
-  , _awsZoneId      :: !AWS.ZoneId
+  , _awsZoneID      :: !AWS.ZoneID
   , _awsDomainName  :: !AWS.DomainName
   }
 
@@ -66,7 +66,7 @@ instance Show Config where
     , "  _herokuPassword = " <> show _herokuPassword
     , "  _awsAccessKey   = " <> show _awsAccessKey
     , "  _awsSecretKey   = HIDDEN"
-    , "  _awsZoneId      = " <> show _awsZoneId
+    , "  _awsZoneId      = " <> show _awsZoneID
     , "  _awsDomainName  = " <> show _awsDomainName
     , "}"
     ]
@@ -107,8 +107,8 @@ instance Has AWS.AccessKey Config where
 instance Has AWS.SecretKey Config where
   hasLens = awsSecretKey
 
-instance Has AWS.ZoneId Config where
-  hasLens = awsZoneId
+instance Has AWS.ZoneID Config where
+  hasLens = awsZoneID
 
 instance Has AWS.DomainName Config where
   hasLens = awsDomainName
