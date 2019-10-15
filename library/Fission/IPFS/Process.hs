@@ -18,6 +18,7 @@ import           Fission.Internal.Process
 import           Fission.IPFS.Types as IPFS
 
 run :: RIOProc cfg m
+    => HasProcessContext cfg
     => Has IPFS.BinPath cfg
     => Has IPFS.Timeout cfg
     => [Opt]

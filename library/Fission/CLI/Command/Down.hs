@@ -22,9 +22,11 @@ import           Fission.IPFS.CID.Types (mkCID)
 import qualified Fission.CLI.Auth    as Auth
 import qualified Fission.CLI.Pin     as CLI.Pin
 import           Fission.CLI.Config.Types
+import qualified Fission.CLI.Display.Wait    as CLI.Wait
+import qualified Fission.CLI.Display.Cursor  as Cursor
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m
+command :: MonadUnliftIO m
         => HasLogFunc        cfg
         => HasProcessContext cfg
         => Has IPFS.BinPath  cfg
@@ -40,7 +42,8 @@ command cfg =
     (strArgument (metavar "ContentID" <> help "The CID of the IPFS object you want to download")) -- I would like to get this value
 
 -- | Sync the current working directory to the server over IPFS
-down :: MonadRIO          cfg m
+down :: MonadRIO        cfg m
+   => MonadUnliftIO         m
    => HasLogFunc        cfg
    => HasProcessContext cfg
    => Has IPFS.Timeout  cfg
@@ -50,6 +53,11 @@ down :: MonadRIO          cfg m
    -> m ()
 down cid = do
   logDebug "TODO START MESSAGE"
-  IPFS.getContent cid >>= \case
+  getResult <- Cursor.withHidden
+              . liftIO
+              . CLI.Wait.waitFor "Retrieving Object..."
+              . IPFS.getContent
+              $ cid
+  getResult & \case
     Right content -> logDebug $ displayShow content
     Left  err -> logError $ displayShow err
