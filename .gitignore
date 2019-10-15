@@ -7,6 +7,7 @@
 *.sqlite
 *.db
 .doctest-tmp/
+*.cabal
 addon-manifest.json
 env.yaml
 domain-key.txt
