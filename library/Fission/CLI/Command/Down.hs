@@ -36,7 +36,7 @@ command cfg =
   addCommand
     "down"
     "pull a ipfs or ipns object down to your system"
-    (const $ runRIO cfg down)
+    (\cid -> runRIO cfg $ down cid)
     (strArgument (metavar "ContentID" <> help "The CID of the IPFS object you want to download")) -- I would like to get this value
 
 -- | Sync the current working directory to the server over IPFS
@@ -46,15 +46,10 @@ down :: MonadRIO          cfg m
    => Has IPFS.Timeout  cfg
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
-   => m ()
-down = do
+   => IPFS.CID
+   -> m ()
+down cid = do
   logDebug "TODO START MESSAGE"
-  putStr "ContentId: "
-  cid <- getLine
-
-  -- let args  = liftIO getArgs
-  -- fmap show args
-
-  cid & decodeUtf8Lenient & mkCID & IPFS.getContent >>= \case
+  IPFS.getContent cid >>= \case
     Right content -> logDebug $ displayShow content
     Left  err -> logError $ displayShow err
