@@ -9,6 +9,7 @@ module Fission.Storage.IPFS
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Process (HasProcessContext)
+import qualified RIO.Text as Text
 
 import Data.Has
 import Data.ByteString.Lazy.Char8 as CL
@@ -107,7 +108,7 @@ getContent :: RIOProc           cfg m
       => Has IPFS.BinPath  cfg
       => IPFS.CID
       -> m (Either IPFS.Error.Get CL.ByteString)
-getContent cid@(IPFS.CID hash) = IPFS.Proc.run ["get"] (UTF8.textToLazyBS hash) >>= \case
+getContent cid@(IPFS.CID hash) = IPFS.Proc.run ["get", Text.unpack hash] "" >>= \case
   (ExitSuccess, contents, _) ->
     return . Right $ contents
 
