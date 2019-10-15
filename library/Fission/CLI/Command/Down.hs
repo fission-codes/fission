@@ -8,7 +8,9 @@ import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Options.Applicative.Simple (addCommand)
+import           Options.Applicative (strArgument, metavar, help)
 import           System.Console.Haskeline
+import System.Environment
 
 import           Fission.Internal.Constraint
 
@@ -35,7 +37,7 @@ command cfg =
     "down"
     "pull a ipfs or ipns object down to your system"
     (const $ runRIO cfg down)
-    (pure ())
+    (strArgument (metavar "ContentID" <> help "The CID of the IPFS object you want to download")) -- I would like to get this value
 
 -- | Sync the current working directory to the server over IPFS
 down :: MonadRIO          cfg m
@@ -49,6 +51,9 @@ down = do
   logDebug "TODO START MESSAGE"
   putStr "ContentId: "
   cid <- getLine
+
+  -- let args  = liftIO getArgs
+  -- fmap show args
 
   cid & decodeUtf8Lenient & mkCID & IPFS.getContent >>= \case
     Right content -> logDebug $ displayShow content

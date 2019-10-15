@@ -103,6 +103,7 @@ addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
     (ExitFailure _, _, err) ->
       Left . UnknownAddErr $ UTF8.textShow err
 
+-- TODO rename to get and cat or something similar. getSingle?
 getContent :: RIOProc           cfg m
       => Has IPFS.Timeout  cfg
       => Has IPFS.BinPath  cfg
