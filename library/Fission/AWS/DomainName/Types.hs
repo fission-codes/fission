@@ -8,7 +8,7 @@ import Servant
 
 import qualified Fission.Internal.UTF8 as UTF8
 
--- | Type safety wrapper for domain names
+-- | Type safety wrapper for Route53 domain names
 newtype DomainName = DomainName { getDomainName :: Text }
   deriving          ( Eq
                     , Generic
