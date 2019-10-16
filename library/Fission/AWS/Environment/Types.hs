@@ -38,9 +38,9 @@ instance Show Environment where
 
 instance FromJSON Environment where
   parseJSON = withObject "AWS.Environment" \obj -> do
-    _accessKey  <- obj .: "access_key"
-    _secretKey  <- obj .: "secret_key"
-    _zoneID     <- obj .: "zone_id"
-    _domainName <- obj .: "domain_name"
+    _accessKey  <- obj .: "accessKey"
+    _secretKey  <- obj .: "secretKey"
+    _zoneID     <- obj .: "zoneId"
+    _domainName <- obj .: "domainName"
 
     return $ Environment {..}
