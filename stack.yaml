@@ -39,10 +39,14 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - alex-3.2.4
+- amazonka-1.6.1
+- amazonka-core-1.6.1
+- amazonka-route53-1.6.1
 - ekg-wai-0.1.0.3
 - happy-1.19.10
-- tasty-rerun-1.1.14
+- http-client-0.5.14 # Peer dependency of amazonka
 - ip-1.5.1
+- tasty-rerun-1.1.14
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

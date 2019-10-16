@@ -7,6 +7,7 @@ module Fission.Internal.UTF8
   , stripNewline
   , textToLazyBS
   , textShow
+  , wrapIn
   ) where
 
 import           RIO
@@ -50,3 +51,6 @@ stripN n = Text.dropEnd i . Text.drop i
 -- | Helper for printing 'Text' to a console
 putText :: MonadIO m => Text -> m ()
 putText = Strict.putStr . encodeUtf8
+
+wrapIn :: Text -> Text -> Text
+wrapIn txt wrapper = wrapper <> txt <> wrapper

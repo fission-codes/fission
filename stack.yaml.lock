@@ -12,6 +12,27 @@ packages:
   original:
     hackage: alex-3.2.4
 - completed:
+    hackage: amazonka-1.6.1@sha256:b2a50a6b87908efa1e1793868495e9b252cbcf99e2d7036b21f9fe1e12dc413d,3420
+    pantry-tree:
+      size: 992
+      sha256: 27e7e545070d3bdb3dc61159b38dcf2229483d083d0020ba446f31ba537a83e3
+  original:
+    hackage: amazonka-1.6.1
+- completed:
+    hackage: amazonka-core-1.6.1@sha256:ad6b06eb5b6847cbfbe4201e78b3fdb7818a42da061c5d0f8af4fdf2494e44b5,4957
+    pantry-tree:
+      size: 3438
+      sha256: a1100a5e07e858cdf60ab52305568e26feef56d360777a6a0a79505b1ae0fb67
+  original:
+    hackage: amazonka-core-1.6.1
+- completed:
+    hackage: amazonka-route53-1.6.1@sha256:a9839d8fc55de06a4fb242bc6597d454251363478909d4fe7dca8832c2a1fd73,5949
+    pantry-tree:
+      size: 14749
+      sha256: 47d8253fc03a0dbef989bd2c6fc8fdf6b46ede0b686111f375dd6f6c94e45b02
+  original:
+    hackage: amazonka-route53-1.6.1
+- completed:
     hackage: ekg-wai-0.1.0.3@sha256:d6b62107589f7ddd30b6c56dbb22f9904e274fd9ce24807db76833fab9506c9e,1992
     pantry-tree:
       size: 1343
@@ -26,12 +47,12 @@ packages:
   original:
     hackage: happy-1.19.10
 - completed:
-    hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
+    hackage: http-client-0.5.14@sha256:4880b27d6741e331454a1d4c887d96ce3d7d625322c8433983a4b1cd08538577,5348
     pantry-tree:
-      size: 284
-      sha256: f6b89e2e06d38d0a2d73c220648811a54684b476778904416b22f1ccae7eab67
+      size: 2457
+      sha256: 02bcffba9cad572fefb4640f5fc9be68e770b32ab73efcac649db20290994c6d
   original:
-    hackage: tasty-rerun-1.1.14
+    hackage: http-client-0.5.14
 - completed:
     hackage: ip-1.5.1@sha256:3378f49b83c8ad034b7719a0a249fdb038682ab2af9e5f56a9e525bb370a97e6,3553
     pantry-tree:
@@ -39,6 +60,13 @@ packages:
       sha256: c55e09cf67bd05ca2494911dd9639cc16f3e6654f8b87a5165932615de4f34ea
   original:
     hackage: ip-1.5.1
+- completed:
+    hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
+    pantry-tree:
+      size: 284
+      sha256: f6b89e2e06d38d0a2d73c220648811a54684b476778904416b22f1ccae7eab67
+  original:
+    hackage: tasty-rerun-1.1.14
 snapshots:
 - completed:
     size: 524127
