@@ -6,5 +6,11 @@ import RIO
 import qualified System.Console.ANSI as ANSI
 
 -- | Perform console actions without a cursor visible
-withHidden :: MonadUnliftIO m => m c -> m c
-withHidden = bracket (liftIO ANSI.hideCursor) (const $ liftIO ANSI.showCursor) . const
+withHidden :: MonadUnliftIO m => m a -> m a
+withHidden action = bracket acquire release \_ -> action
+  where
+    acquire :: MonadIO m => m ()
+    acquire = liftIO ANSI.hideCursor
+
+    release :: MonadIO m => ignored -> m ()
+    release _ = liftIO ANSI.showCursor
