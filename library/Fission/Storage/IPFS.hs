@@ -103,17 +103,14 @@ addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
     (ExitFailure _, _, err) ->
       Left . UnknownAddErr $ UTF8.textShow err
 
-getFileOrDirectory :: RIOProc      cfg m
-      => Has IPFS.Timeout  cfg
-      => Has IPFS.BinPath  cfg
-      => IPFS.CID
-      -> m (Either IPFS.Error.Get CL.ByteString)
-getFileOrDirectory (IPFS.CID hash) = IPFS.Proc.run ["get", Text.unpack hash] "" >>= \case
-  (ExitSuccess, contents, _) ->
-    return . Right $ contents
-
-  (ExitFailure _, _, stdErr) ->
-    return . Left . UnknownGetErr $ UTF8.textShow stdErr
+getContent :: RIOProc      cfg m
+           => Has IPFS.Timeout  cfg
+           => Has IPFS.BinPath  cfg
+           => IPFS.CID
+           -> m (Either IPFS.Error.Get CL.ByteString)
+getContent (IPFS.CID hash) = IPFS.Proc.run ["get", Text.unpack hash] "" >>= pure . \case
+  (ExitSuccess, contents, _) -> Right $ contents
+  (ExitFailure _, _, stdErr) -> Left . UnknownGetErr $ UTF8.textShow stdErr
 
 getFile :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg
