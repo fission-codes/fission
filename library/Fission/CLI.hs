@@ -7,6 +7,8 @@ import           Data.Has
 
 import           Options.Applicative.Simple
 
+import           Fission.Internal.Constraint
+
 import qualified Fission.Web.Client   as Client
 import qualified Fission.IPFS.Types   as IPFS
 
@@ -17,7 +19,8 @@ import qualified Fission.CLI.Command.Down       as Down
 import qualified Fission.CLI.Command.Watch    as Watch
 
 -- | Top-level CLI description
-cli :: MonadUnliftIO m
+cli :: MonadRIO    cfg m
+    => MonadUnliftIO m
     => HasLogFunc        cfg
     => HasProcessContext cfg
     => Has Client.Runner cfg
@@ -33,7 +36,7 @@ cli cfg =
     Down.command     cfg
     Watch.command    cfg
   where
-    version     = "1.10.0"
+    version     = "1.14.0"
     description = "CLI to interact with Fission services"
     detail      = mconcat [ "Fission makes developing, deploying, updating "
                           , "and iterating on web applications quick and easy."
