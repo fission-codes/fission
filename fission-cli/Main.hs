@@ -33,17 +33,16 @@ main = do
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
   tOut  <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
 
-  let url = BaseUrl (if isTLS then Https else Http) host port path
-      rawHTTPSettings = if isTLS
+  let rawHTTPSettings = if isTLS
                            then tlsManagerSettings
                            else defaultManagerSettings
 
   httpManager <- HTTP.newManager $ rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro tOut }
 
-  let _fissionAPI = Client.Runner $ Client.request httpManager url
+  let url         = BaseUrl (if isTLS then Https else Http) host port path
+      _fissionAPI = Client.Runner $ Client.request httpManager url
 
   withLogFunc logOptions \_logFunc -> runRIO CLI.Config {..} do
     logDebug $ "Requests will be made to " <> displayShow url
-    (_, runCLI) <- cli
-    runCLI
+    cli

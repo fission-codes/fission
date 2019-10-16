@@ -26,15 +26,16 @@ cli :: MonadRIO    cfg m
     => Has Client.Runner cfg
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
-    => m ((), m ())
+    => m ()
 cli = do
   cfg <- ask
-  liftIO $ simpleOptions version description detail (pure ()) do
+  (_, runCLI) <- liftIO $ simpleOptions version description detail (pure ()) do
     Login.command    cfg
     Register.command cfg
     Up.command       cfg
     Down.command     cfg
     Watch.command    cfg
+  runCLI
   where
     version     = "1.14.0"
     description = "CLI to interact with Fission services"
