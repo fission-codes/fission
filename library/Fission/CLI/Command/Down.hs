@@ -12,19 +12,18 @@ import           Fission.Internal.Constraint
 
 import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.IPFS.Types   as IPFS
-
 import           Fission.IPFS.CID.Types
 import           Fission.CLI.Config.Types
 
 import qualified Fission.CLI.Auth            as Auth
 import qualified Fission.CLI.Pin             as CLI.Pin
+import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
 
 -- | The command to attach to the CLI tree
-command :: -- MonadUnliftIO         m
-        MonadRIO       cfg m
+command :: MonadRIO          cfg m
         => HasLogFunc        cfg
         => HasProcessContext cfg
         => Has IPFS.BinPath  cfg
@@ -42,13 +41,12 @@ command cfg =
       ])
 
 -- | Sync the current working directory to the server over IPFS
-down :: MonadRIO        cfg m
-     => MonadUnliftIO m
+down :: MonadUnliftIO         m
+     => MonadRIO          cfg m
      => HasLogFunc        cfg
      => HasProcessContext cfg
      => Has IPFS.Timeout  cfg
      => Has IPFS.BinPath  cfg
-     => Has Client.Runner cfg
      => IPFS.CID
      -> m ()
 down cid@(CID hash) = do

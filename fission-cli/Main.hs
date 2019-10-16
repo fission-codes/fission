@@ -43,8 +43,7 @@ main = do
 
   let _fissionAPI = Client.Runner $ Client.request httpManager url
 
-  withLogFunc logOptions \_logFunc -> do
-    runRIO CLI.Config {..} do
-      logDebug $ "Requests will be made to " <> displayShow url
-      (_, runCLI) <- cli
-      runCLI
+  withLogFunc logOptions \_logFunc -> runRIO CLI.Config {..} do
+    logDebug $ "Requests will be made to " <> displayShow url
+    (_, runCLI) <- cli
+    runCLI
