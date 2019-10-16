@@ -17,17 +17,20 @@ import qualified Fission.Internal.UTF8 as UTF8
 -- | Perform actions in the background while displaying a loading indicator
 --
 --   The indicator disappears when the process completes
-withLoader :: Natural -> IO a -> IO a
-withLoader delay = RIO.bracket (forkIO $ loading delay) cleanup . const
+withLoader :: MonadUnliftIO m => Natural -> m a -> m a
+withLoader delay action = RIO.bracket acquire release $ \_ -> action
   where
-    cleanup :: ThreadId -> IO ()
-    cleanup pid = do
+    acquire :: MonadIO m => m ThreadId
+    acquire = liftIO . forkIO $ loading delay
+
+    release :: MonadIO m => ThreadId -> m ()
+    release pid = liftIO do
       killThread pid
       reset
 
 -- | Reset the cursor position back one priontable character, and clear the *entire* line
-reset :: IO ()
-reset = do
+reset :: MonadIO m => m ()
+reset = liftIO do
   ANSI.cursorBackward 4
   ANSI.clearLine
 

@@ -40,7 +40,7 @@ run cid@(CID hash) auth = do
   IPFS.Peer.connect IPFS.Peer.fission
 
   Client.Runner runner <- Config.get
-  pin runner auth cid >>= \case
+  liftIO (pin runner auth cid) >>= \case
     Right _ -> do
       CLI.Success.live hash
       return $ Right cid
@@ -49,8 +49,5 @@ run cid@(CID hash) auth = do
       CLI.Error.put' err
       return $ Left err
 
-pin :: MonadIO m => (ClientM NoContent -> IO a) -> BasicAuthData -> CID -> m a
-pin runner auth cid =
-  liftIO . CLI.withLoader 50000
-         . runner
-         $ Fission.pin (Fission.request auth) cid
+pin :: MonadUnliftIO m => (ClientM NoContent -> m a) -> BasicAuthData -> CID -> m a
+pin runner auth cid = CLI.withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid

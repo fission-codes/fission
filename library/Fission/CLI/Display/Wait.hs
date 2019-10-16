@@ -8,12 +8,12 @@ import qualified System.Console.ANSI as ANSI
 
 import Fission.CLI.Display.Loader
 
-waitFor :: ByteString -> IO a -> IO a
+waitFor :: MonadUnliftIO m => ByteString -> m a -> m a
 waitFor msg action = do
-  ANSI.cursorForward 3
-  ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+  liftIO $ ANSI.cursorForward 3
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
   putStr msg
-  ANSI.setCursorColumn 0
+  liftIO $ ANSI.setCursorColumn 0
   result <- withLoader 5000 action
-  ANSI.setSGR [ANSI.Reset]
+  liftIO $ ANSI.setSGR [ANSI.Reset]
   return result

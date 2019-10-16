@@ -1,5 +1,8 @@
 -- | Authorization types; primarily more semantic aliases
-module Fission.Web.Auth.Types where
+module Fission.Web.Auth.Types
+  ( ExistingUser
+  , HerokuAddOnAPI
+  ) where
 
 import RIO
 
