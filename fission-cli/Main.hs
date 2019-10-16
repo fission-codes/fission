@@ -41,10 +41,10 @@ main = do
   httpManager <- HTTP.newManager $ rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro tOut }
 
+  let _fissionAPI = Client.Runner $ Client.request httpManager url
 
   withLogFunc logOptions \_logFunc -> do
-    let _fissionAPI = Client.Runner $ Client.request httpManager url
-        cfg         = CLI.Config {..}
-    runRIO cfg . logDebug $ "Requests will be made to " <> displayShow url
-    (_, runCLI) <- liftIO $ cli cfg
-    runCLI
+    runRIO CLI.Config {..} do
+      logDebug $ "Requests will be made to " <> displayShow url
+      (_, runCLI) <- cli
+      runCLI

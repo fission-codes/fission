@@ -26,10 +26,10 @@ cli :: MonadRIO    cfg m
     => Has Client.Runner cfg
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
-    => cfg
-    -> IO ((), m ())
-cli cfg =
-  simpleOptions version description detail (pure ()) do
+    => m ((), m ())
+cli = do
+  cfg <- ask
+  liftIO $ simpleOptions version description detail (pure ()) do
     Login.command    cfg
     Register.command cfg
     Up.command       cfg
