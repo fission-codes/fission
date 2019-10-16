@@ -15,9 +15,6 @@ import qualified Fission.IPFS.Types   as IPFS
 import           Fission.IPFS.CID.Types
 import           Fission.CLI.Config.Types
 
-import qualified Fission.CLI.Auth            as Auth
-import qualified Fission.CLI.Pin             as CLI.Pin
-import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
@@ -50,6 +47,6 @@ down :: MonadUnliftIO         m
      => IPFS.CID
      -> m ()
 down cid@(CID hash) = do
-  CLI.Wait.waitFor "Retrieving Object..." (IPFS.getContent cid) >>= \case
+  CLI.Wait.waitFor "Retrieving Object..." (IPFS.getFileOrDirectory cid) >>= \case
     Right _ok -> CLI.Success.putOk $ hash <> " Successfully downloaded!"
     Left  err -> CLI.Error.put err "Oh no! The download failed unexpectedly"
