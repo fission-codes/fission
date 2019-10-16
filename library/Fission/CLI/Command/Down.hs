@@ -12,7 +12,6 @@ import           Fission.Internal.Constraint
 
 import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.IPFS.Types   as IPFS
-import qualified Fission.Web.Client   as Client
 
 import           Fission.CLI.Config.Types
 import qualified Fission.CLI.Display.Success as CLI.Success
@@ -25,7 +24,6 @@ command :: MonadUnliftIO m
         => HasProcessContext cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
-        => Has Client.Runner cfg
         => cfg
         -> CommandM (m ())
 command cfg =
@@ -46,7 +44,7 @@ down :: MonadRIO        cfg m
    -> m ()
 down cid@(IPFS.CID hash) = do
   getResult <- CLI.Wait.waitFor "Retrieving Object..."
-              $ IPFS.getContent cid
+              $ IPFS.getFileOrDirectory cid
 
   case getResult of
     Right _ok ->

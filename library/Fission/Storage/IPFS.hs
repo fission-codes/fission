@@ -2,8 +2,8 @@ module Fission.Storage.IPFS
   ( addDir
   , addRaw
   , addFile
-  , get
-  , getContent
+  , getFile
+  , getFileOrDirectory
   ) where
 
 import           RIO
@@ -103,24 +103,24 @@ addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
     (ExitFailure _, _, err) ->
       Left . UnknownAddErr $ UTF8.textShow err
 
-getContent :: RIOProc      cfg m
+getFileOrDirectory :: RIOProc      cfg m
       => Has IPFS.Timeout  cfg
       => Has IPFS.BinPath  cfg
       => IPFS.CID
       -> m (Either IPFS.Error.Get CL.ByteString)
-getContent cid@(IPFS.CID hash) = IPFS.Proc.run ["get", Text.unpack hash] "" >>= \case
+getFileOrDirectory (IPFS.CID hash) = IPFS.Proc.run ["get", Text.unpack hash] "" >>= \case
   (ExitSuccess, contents, _) ->
     return . Right $ contents
 
   (ExitFailure _, _, stdErr) ->
     return . Left . UnknownGetErr $ UTF8.textShow stdErr
 
-get :: RIOProc           cfg m
+getFile :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
     => IPFS.CID
     -> m (Either IPFS.Error.Get File.Serialized)
-get cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \case
+getFile cid@(IPFS.CID hash) = IPFS.Proc.run ["cat"] (UTF8.textToLazyBS hash) >>= \case
   (ExitSuccess, contents, _) ->
     return . Right $ File.Serialized contents
 
