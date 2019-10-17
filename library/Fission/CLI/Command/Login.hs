@@ -49,7 +49,7 @@ login = do
   logDebug "Starting login sequence"
   putStr "Username: "
   username <- getLine
-  liftIO (runInputT defaultSettings $ getPassword (Just '•') "Password: ") >>= \case
+  runInputT defaultSettings $ getPassword (Just '•') "Password: " >>= \case
     Nothing ->
       logError "Unable to read password"
 
@@ -61,7 +61,6 @@ login = do
         writeTo = UserConfig { username = username, password = (BS.pack password) }
 
       authResult <- Cursor.withHidden
-                 . liftIO
                  . CLI.Wait.waitFor "Verifying your credentials"
                  . runner
                  $ IPFS.Client.peers (IPFS.Client.request auth)
