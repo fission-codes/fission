@@ -49,7 +49,10 @@ login = do
   logDebug "Starting login sequence"
   putStr "Username: "
   username <- getLine
-  runInputT defaultSettings $ getPassword (Just '•') "Password: " >>= \case
+
+  mayPassword <- liftIO $ runInputT defaultSettings $ getPassword (Just '•') "Password: "
+
+  case mayPassword of
     Nothing ->
       logError "Unable to read password"
 
