@@ -70,10 +70,9 @@ login = do
 
       case authResult of
         Right peers -> do
-          let bytePeers = fmap (Lazy.toStrict . Peer.toByteString) peers
-              writeTo = UserConfig {username = username
+          let writeTo = UserConfig {username = username
                                     , password = (BS.pack password)
-                                    , peers = bytePeers}
+                                    , peers = peers}
 
           Auth.write writeTo >> CLI.Success.putOk "Logged in"
         Left  err -> CLI.Error.put err "Authorization failed"
