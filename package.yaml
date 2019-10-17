@@ -168,6 +168,7 @@ executables:
       - -optc-ffast-math
       - -optc-O3
       - -O2
+    # uncomment to build a static binary on Linux
     # cc-options: -static
     # ld-options: -static -pthread
 
