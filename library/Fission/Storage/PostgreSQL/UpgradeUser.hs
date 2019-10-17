@@ -1,11 +1,13 @@
 -- | Table creation and migration sequences
 module Fission.Storage.PostgreSQL.UpgradeUser
-  ( ) where
+  ( upgrade
+  ) where
 
 import RIO
 
 import Database.Selda.PostgreSQL
 import Database.Selda.Migrations
+import Database.Selda.Backend.Internal
 
 import Database.Selda
 
@@ -17,6 +19,8 @@ import Control.Lens   ((?~))
 import Data.Swagger
 import Database.Selda
 
+import Fission.Storage.PostgreSQL
+
 import qualified Fission.Platform.Heroku.AddOn as Heroku
 
 import Fission.Security       (Digestable (..))
@@ -24,7 +28,16 @@ import Fission.Security.Types (SecretDigest)
 import Fission.User.Role
 import qualified Fission.Internal.UTF8 as UTF8
 
-upgrade :: MonadSelda m => m()
+
+upgrade :: PGConnectInfo -> m ()
+upgrade pgInfo = runSimpleApp do
+  pool   <- connPool 1 1 1 pgInfo
+  logger <- logOptionsHandle stdout True
+  runRIO (logger, pool, pgInfo) . migrate oldUsers User.Table.users 
+    \x -> do
+      logDebug $ displayShow x
+      undefined
+
 
 
 -- | The 'User' table

@@ -21,6 +21,8 @@ import Fission.User.Table
 import Fission.User.Types
 
 userID'        :: Selector User (ID User)
+username'      :: Selector User Text
+email'         :: Selector User (Maybe Text)
 role'          :: Selector User Role
 active'        :: Selector User Bool
 herokuAddOnID' :: Selector User (Maybe (ID Heroku.AddOn))
@@ -28,7 +30,9 @@ secretDigest'  :: Selector User SecretDigest
 insertedAt'    :: Selector User UTCTime
 modifiedAt'    :: Selector User UTCTime
 
-userID' :*: role'
+userID' :*: username'
+        :*: email'
+        :*: role'
         :*: active'
         :*: herokuAddOnID'
         :*: secretDigest'

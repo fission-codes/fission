@@ -18,7 +18,7 @@ import qualified Fission.Internal.UTF8 as UTF8
 data User = User
   { _userID        :: ID User
   , _username      :: Text
-  , _email         :: Text
+  , _email         :: Maybe Text
   , _role          :: Role
   , _active        :: Bool
   , _herokuAddOnId :: Maybe (ID Heroku.AddOn)

@@ -59,7 +59,7 @@ create' userSecret herokuUUID = do
   now <- liftIO getCurrentTime
 
   uID <- insertWithPK Table.users
-    [User def Regular True herokuUUID userSecret <@ now]
+    [User def "" Nothing Regular True herokuUUID userSecret <@ now]
 
   logInfo $ "Inserted user " <> display uID
   return uID
