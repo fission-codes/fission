@@ -109,8 +109,11 @@ getFileOrDirectory :: RIOProc           cfg m
                    => IPFS.CID
                    -> m (Either IPFS.Error.Get CL.ByteString)
 getFileOrDirectory (IPFS.CID hash) = IPFS.Proc.run ["get", Text.unpack hash] "" >>= \case
-  (ExitSuccess, contents, _) -> return . Right $ contents
-  (ExitFailure _, _, stdErr) -> return . Left . UnknownGetErr $ UTF8.textShow stdErr
+  (ExitSuccess, contents, _) ->
+    return $ Right contents
+
+  (ExitFailure _, _, stdErr) ->
+    return . Left . UnknownGetErr $ UTF8.textShow stdErr
 
 getFile :: RIOProc           cfg m
     => Has IPFS.BinPath  cfg

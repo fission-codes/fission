@@ -47,6 +47,12 @@ down :: MonadUnliftIO         m
      => IPFS.CID
      -> m ()
 down cid@(CID hash) = do
-  CLI.Wait.waitFor "Retrieving Object..." (IPFS.getFileOrDirectory cid) >>= \case
-    Right _ok -> CLI.Success.putOk $ hash <> " Successfully downloaded!"
-    Left  err -> CLI.Error.put err "Oh no! The download failed unexpectedly"
+  getResult <- CLI.Wait.waitFor "Retrieving Object..." $
+                IPFS.getFileOrDirectory cid
+
+  case getResult of
+    Right _ok ->
+      CLI.Success.putOk $ hash <> " Successfully downloaded!"
+
+    Left err ->
+      CLI.Error.put err "Oh no! The download failed unexpectedly"
