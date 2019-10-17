@@ -26,7 +26,7 @@ import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
 
 -- | The command to attach to the CLI tree
-command :: MonadUnliftIO m
+command :: MonadIO m
         => HasLogFunc        cfg
         => Has Client.Runner cfg
         => cfg

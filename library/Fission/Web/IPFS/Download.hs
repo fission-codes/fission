@@ -37,7 +37,7 @@ queryGet :: Has IPFS.BinPath  cfg
         => HasLogFunc        cfg
         => RIOServer         cfg QueryAPI
 queryGet = \case
-  Just cid -> Storage.IPFS.get cid >>= Web.Err.ensure
+  Just cid -> Storage.IPFS.getFile cid >>= Web.Err.ensure
   Nothing  -> throwM err404
 
 pathGet :: Has IPFS.BinPath  cfg
@@ -45,4 +45,4 @@ pathGet :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg PathAPI
-pathGet cid = Storage.IPFS.get cid >>= Web.Err.ensure
+pathGet cid = Storage.IPFS.getFile cid >>= Web.Err.ensure
