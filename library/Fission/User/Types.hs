@@ -21,7 +21,7 @@ data User = User
   , _email         :: Maybe Text
   , _role          :: Role
   , _active        :: Bool
-  , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
+  , _herokuAddOnID :: Maybe (ID Heroku.AddOn)
   , _secretDigest  :: SecretDigest
   , _insertedAt    :: UTCTime
   , _modifiedAt    :: UTCTime

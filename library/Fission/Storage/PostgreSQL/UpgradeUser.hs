@@ -19,6 +19,7 @@ import Control.Lens   ((?~))
 import Data.Swagger
 import Database.Selda
 
+import Fission.Internal.Constraint
 import Fission.Storage.PostgreSQL
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
@@ -26,18 +27,52 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku
 import Fission.Security       (Digestable (..))
 import Fission.Security.Types (SecretDigest)
 import Fission.User.Role
+import Fission.User.Selector
+import Fission.User.Security
 import qualified Fission.Internal.UTF8 as UTF8
 
 
-upgrade :: PGConnectInfo -> m ()
-upgrade pgInfo = runSimpleApp do
-  pool   <- connPool 1 1 1 pgInfo
-  logger <- logOptionsHandle stdout True
-  runRIO (logger, pool, pgInfo) . migrate oldUsers User.Table.users 
-    \x -> do
-      logDebug $ displayShow x
-      undefined
+upgrade :: MonadRIO   cfg m
+        => MonadSelda     m
+        => MonadMask      m
+        => Relational     User
+        => Relational     OldUser
+        => MonadMask      m
+        => HasLogFunc cfg
+        => m ()
+upgrade = migrate oldUsers User.Table.users 
+      \row -> do
+        let
+          _userID = row ! userID'
+          _role = row ! role'
+          _active = row ! active'
+          _herokuAddOnID = row ! herokuAddOnID'
+          _secretDigest = row ! secretDigest'
+          _insertedAt = row ! insertedAt'
+          _modifiedAt = row ! modifiedAt'
+        -- let newUser = _userID
+        --             :*: text "username"
+        --             :*: (null_ :: Col User (Maybe Text))
+        --             :*: _role 
+        --             :*: _role 
+        --             :*: _active
+        --             :*: _herokuAddOnID
+        --             :*: _secretDigest
+        --             :*: _insertedAt
+        --             :*: _modifiedAt
+        -- let newUser = User { _userID
+        --                       , _username = hashID _userID
+        --                       , _email = Nothing
+        --                       , _role 
+        --                       , _active
+        --                       , _herokuAddOnID
+        --                       , _secretDigest
+        --                       , _insertedAt
+        --                       , _modifiedAt
+        --                   }
 
+        -- return newUser
+        undefined
 
 
 -- | The 'User' table
@@ -49,15 +84,15 @@ oldUsers = Table.lensPrefixed (Table.name User.Table.name)
   , #_active        :- index
   , #_secretDigest  :- index
   , #_secretDigest  :- unique
-  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
+  , #_herokuAddOnID :- foreignKey Heroku.addOns Heroku.addOnID'
   ]
 
 -- | A user account, most likely a developer
 data OldUser = OldUser
-  { _userID        :: ID OldUser
+  { _userID        :: ID User
   , _role          :: Role
   , _active        :: Bool
-  , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
+  , _herokuAddOnID :: Maybe (ID Heroku.AddOn)
   , _secretDigest  :: SecretDigest
   , _insertedAt    :: UTCTime
   , _modifiedAt    :: UTCTime

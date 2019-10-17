@@ -2,7 +2,7 @@ module Fission.User.Lens
   ( userID
   , role
   , active
-  , herokuAddOnId
+  , herokuAddOnID
   , secretDigest
   , insertedAt
   , modifiedAt
