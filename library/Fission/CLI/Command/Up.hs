@@ -6,7 +6,10 @@ import           RIO.Directory
 import           RIO.Process (HasProcessContext)
 
 import           Data.Has
+import           System.FilePath
+
 import           Options.Applicative.Simple (addCommand)
+import           Options.Applicative (strArgument, metavar, help, value)
 
 import           Fission.Internal.Constraint
 
@@ -31,8 +34,8 @@ command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
-    (const $ runRIO cfg up)
-    (pure ())
+    (runRIO cfg . up)
+    (strArgument $ metavar "Location" <> help "The location of the assets you want to upload" <> value "./")
 
 -- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
@@ -41,10 +44,13 @@ up :: MonadRIO          cfg m
    => Has IPFS.Timeout  cfg
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
-   => m ()
-up = do
-  logDebug "Starting single IPFS add locally"
-  dir <- getCurrentDirectory
-  IPFS.addDir dir >>= \case
+   => String
+   -> m ()
+up dir = do
+  curr <- getCurrentDirectory
+  let dir' = if isAbsolute dir then dir else curr </> dir
+  logDebug "Starting single IPFS add locally of"
+
+  IPFS.addDir dir' >>= \case
     Right cid -> Auth.withAuth (void . CLI.Pin.run cid)
     Left  err -> logError $ displayShow err

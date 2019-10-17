@@ -12,7 +12,10 @@ import qualified RIO.Text as Text
 import           RIO.Time
 
 import           Data.Has
+import           System.FilePath
+
 import           Options.Applicative.Simple (addCommand)
+import           Options.Applicative (strArgument, metavar, help, value)
 import           System.FSNotify as FS
 
 import           Fission.Internal.Constraint
@@ -43,8 +46,8 @@ command cfg =
   addCommand
     "watch"
     "Keep your working directory in sync with the IPFS network"
-    (const $ runRIO cfg watcher)
-    (pure ())
+    (runRIO cfg . watcher)
+    (strArgument $ metavar "Location" <> help "The location of the assets you want to watch" <> value "./")
 
 -- | Continuously sync the current working directory to the server over IPFS
 watcher :: MonadRIO          cfg m
@@ -53,13 +56,15 @@ watcher :: MonadRIO          cfg m
         => HasProcessContext cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
-        => m ()
-watcher = do
+        => String
+        -> m ()
+watcher dir= do
   cfg <- ask
-  dir <- getCurrentDirectory
+  curr <- getCurrentDirectory
+  let dir' = if isAbsolute dir then dir else curr </> dir
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  IPFS.addDir dir >>= \case
+  IPFS.addDir dir' >>= \case
     Left err ->
       CLI.Error.put' $ textDisplay err
 
@@ -71,7 +76,7 @@ watcher = do
         Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
           hashCache <- newMVar hash
           timeCache <- newMVar =<< getCurrentTime
-          void $ handleTreeChanges timeCache hashCache watchMgr cfg dir
+          void $ handleTreeChanges timeCache hashCache watchMgr cfg dir'
           forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
 
 handleTreeChanges :: HasLogFunc        cfg
