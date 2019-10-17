@@ -66,7 +66,7 @@ instance Show Config where
     , "  _herokuPassword = " <> show _herokuPassword
     , "  _awsAccessKey   = " <> show _awsAccessKey
     , "  _awsSecretKey   = HIDDEN"
-    , "  _awsZoneId      = " <> show _awsZoneID
+    , "  _awsZoneID      = " <> show _awsZoneID
     , "  _awsDomainName  = " <> show _awsDomainName
     , "}"
     ]
