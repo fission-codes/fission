@@ -19,6 +19,7 @@ import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types as Hku
+import           Fission.Web.Types
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -80,8 +81,12 @@ run _logFunc _dbPool _processCtx _httpManager action =
 
     _pgConnectInfo = pgConnectInfo
 
-    _host = "mycoolapp.io"
+    _host           = Host $ BaseUrl Https "mycoolapp.io" 443 ""
 
+    _awsAccessKey = "SOME_AWS_ACCESS_KEY"
+    _awsSecretKey = "SOME_AWS_SECRET_KEY"
+    _awsZoneID = "SOME_AWS_ZONE_ID"
+    _awsDomainName = "SOME_AWS_DOMAIN_NAME"
 {- | Setup a complete development configuration with all pure defaults set
 
      == Example Use
@@ -112,11 +117,19 @@ mkConfig _dbPool _processCtx _httpManager _logFunc = Config {..}
   where
     _herokuID       = Hku.ID       "HEROKU_ID"
     _herokuPassword = Hku.Password "HEROKU_PASSWORD"
+
     _ipfsPath       = "/usr/local/bin/ipfs"
     _ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     _ipfsTimeout    = IPFS.Timeout 3600
+
     _pgConnectInfo  = pgConnectInfo
-    _host           = "mycoolapp.io"
+
+    _host           = Host $ BaseUrl Https "mycoolapp.io" 443 ""
+
+    _awsAccessKey = "SOME_AWS_ACCESS_KEY"
+    _awsSecretKey = "SOME_AWS_SECRET_KEY"
+    _awsZoneID = "SOME_AWS_ZONE_ID"
+    _awsDomainName = "SOME_AWS_DOMAIN_NAME"
 
 {- | Setup a complete development configuration.
 
