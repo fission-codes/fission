@@ -34,14 +34,12 @@ type API = AuthedAPI
 
 type Auth = BasicAuth "registered users" User
 
-type AuthedAPI = Auth :> UnauthedAPI
-
--- Question : wait... is this just a poorly named variable.... none of these are intended to be accessed with out basic auth?
-type UnauthedAPI = "cids" :> CID.API
-              :<|> Upload.API
-              :<|> Pin.API
-              :<|> "dag" :> DAG.API
-              :<|>  "peers" :> Peer.API
+type AuthedAPI = Auth :> (
+  "cids" :> CID.API
+  :<|> Upload.API
+  :<|> Pin.API
+  :<|> "dag" :> DAG.API
+  :<|>  "peers" :> Peer.API)
 
 type PublicAPI = Download.API
 

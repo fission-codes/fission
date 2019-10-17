@@ -64,7 +64,7 @@ login = do
                  . liftIO
                  . CLI.Wait.waitFor "Verifying your credentials"
                  . runner
-                 $ IPFS.Client.peers auth
+                 $ IPFS.Client.peers (IPFS.Client.request auth)
 
       case authResult of
         Right _ok -> Auth.write writeTo >> CLI.Success.putOk "Logged in"
