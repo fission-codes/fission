@@ -3,7 +3,6 @@ module Fission.Web.IPFS
   , Auth
   , AuthedAPI
   , PublicAPI
-  , UnauthedAPI
   , authed
   , public
   , server
