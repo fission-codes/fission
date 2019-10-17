@@ -9,12 +9,9 @@ module Fission.Internal.Exception
 
 import           RIO
 
+import qualified Data.Bifunctor as BF
 import           Control.Monad.Except
 
-import qualified Data.Bifunctor as BF
-
--- import           Fission.Error.Class     as Error
--- import qualified Fission.CLI.Error.Types as CLI
 import           Fission.Internal.Constraint
 
 -- | Run inside a context that understands automated error logging.
