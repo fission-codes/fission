@@ -77,6 +77,21 @@ curl \
   http://localhost:1337/ipfs
 ```
 
+# Running the CLI
+```bash
+# Build the project
+stack build
+
+# Navigate to the folder containing our compiled assets
+cd .stack-work/dist/{YOUR_OS_FOLDER}/Cabal-2.4.0.1/build/fission-cli
+
+# Login to the fission service
+./fission-cli login
+
+# LIVE FROM NEW YORK! ITS FISSION LIVE!
+./fission-cli up
+```
+
 # Development
 
 There is a `Makefile` filled with helpful commands. The most used in development is `make watch`.
