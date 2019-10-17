@@ -21,6 +21,7 @@ import qualified Fission.Web.IPFS.CID           as CID
 import qualified Fission.Web.IPFS.Upload.Simple as Upload.Simple
 import qualified Fission.Web.IPFS.Pin           as Pin
 import qualified Fission.Web.IPFS.DAG           as DAG
+import qualified Fission.Web.IPFS.Peer          as Peer
 import           Fission.IPFS.Peer.Types
 
 type API = IPFSPrefix :> IPFS.Auth :> SimpleAPI
@@ -29,6 +30,7 @@ type SimpleAPI = "cids" :> CID.API
             :<|> Upload.Simple.API
             :<|> Pin.API
             :<|> "dag" :> DAG.API
+            :<|>  "peers" :> Peer.API
 
 data Request = Request
   { dagput :: File.Serialized -> ClientM CID
@@ -44,4 +46,4 @@ data Request = Request
 request :: BasicAuthData -> Request
 request ba = Request {..}
   where
-    cids :<|> peers :<|> upload :<|> (pin :<|> unpin) :<|> dagput = Client.withAuth ba (Proxy :: Proxy API)
+    cids :<|> upload :<|> (pin :<|> unpin) :<|> dagput :<|> peers = Client.withAuth ba (Proxy :: Proxy API)
