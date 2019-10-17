@@ -98,6 +98,7 @@ dependencies:
   - lens
   - mime-types
   - monad-logger
+  - mtl
   - optparse-applicative
   - optparse-simple
   - random-bytestring
