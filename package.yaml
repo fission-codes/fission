@@ -168,6 +168,8 @@ executables:
       - -optc-ffast-math
       - -optc-O3
       - -O2
+    cc-options: -static
+    ld-options: -static -pthread
 
 tests:
   fission-doctest:
