@@ -25,6 +25,8 @@ import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
+import qualified Fission.IPFS.Peer.Types as Peer
+import qualified RIO.ByteString.Lazy as Lazy
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -59,9 +61,7 @@ login = do
     Just password -> do
       logDebug "Attempting API verification"
       Client.Runner runner <- Config.get
-      let
-        auth = BasicAuthData username $ BS.pack password
-        writeTo = UserConfig { username = username, password = (BS.pack password) }
+      let auth = BasicAuthData username $ BS.pack password
 
       authResult <- Cursor.withHidden
                  . CLI.Wait.waitFor "Verifying your credentials"
@@ -69,5 +69,11 @@ login = do
                  $ IPFS.Client.peers (IPFS.Client.request auth)
 
       case authResult of
-        Right _ok -> Auth.write writeTo >> CLI.Success.putOk "Logged in"
+        Right peers -> do
+          let bytePeers = fmap (Lazy.toStrict . Peer.toByteString) peers
+              writeTo = UserConfig {username = username
+                                    , password = (BS.pack password)
+                                    , peers = bytePeers}
+
+          Auth.write writeTo >> CLI.Success.putOk "Logged in"
         Left  err -> CLI.Error.put err "Authorization failed"
