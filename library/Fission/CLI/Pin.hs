@@ -26,6 +26,7 @@ import           Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Loader  as CLI
 import           Fission.CLI.Display.Success as CLI.Success
 import           Fission.CLI.Config.Types
+import RIO.List (headMaybe)
 
 run :: MonadRIO          cfg m
     => HasLogFunc        cfg
@@ -36,12 +37,17 @@ run :: MonadRIO          cfg m
     => CID
     -> UserConfig
     -> m (Either ClientError CID)
-run cid@(CID hash) auth = do
+run cid@(CID hash) userConfig = do
   logDebug $ "Remote pinning " <> display hash
-  IPFS.Peer.connect IPFS.Peer.fission
+  -- IPFS.Peer.connect IPFS.Peer.fission
+
+  let hold = headMaybe $ peers userConfig
+
+  case hold of
+    Just pr -> IPFS.Peer.connect pr
 
   Client.Runner runner <- Config.get
-  liftIO (pin runner auth cid) >>= \case
+  liftIO (pin runner userConfig cid) >>= \case
     Right _ -> do
       CLI.Success.live hash
       return $ Right cid

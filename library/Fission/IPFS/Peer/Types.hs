@@ -34,5 +34,4 @@ instance MimeRender PlainText Peer where
 instance MimeRender OctetStream Peer where
   mimeRender _ = toByteString
 
--- Question: is there a way the type checker could do this for me?
 toByteString = UTF8.textToLazyBS . peer
