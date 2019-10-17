@@ -28,8 +28,8 @@ makeLenses ''Environment
 instance FromJSON Environment where
   parseJSON = withObject "Storage.Environment" \obj -> do
     _pgConnectInfo  <- obj .: "postgresql" >>= parseJSON . Object
-    _stripeCount    <- obj .: "stripeCount"
-    _connsPerStripe <- obj .: "connsPerStripe"
-    _connTTL        <- obj .: "connTTL"
+    _stripeCount    <- obj .: "stripe_count"
+    _connsPerStripe <- obj .: "conns_per_stripe"
+    _connTTL        <- obj .: "conn_ttl"
 
     return $ Environment {..}
