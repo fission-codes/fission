@@ -74,7 +74,7 @@ handleWith errHandler actions = runExceptT actions >>= either errHandler pure
 -- >   b <- actionB
 -- >   return $ a + b
 handleWith_ :: Monad m => (err -> m ()) -> ExceptT err m a -> m ()
-handleWith_ errHandler actions = runExceptT actions >>= either errHandler (const $ pure ())
+handleWith_ errHandler actions = handleWith errHandler (void actions)
 
 -- | Bring an existing 'm (Either e a)' into an error-handling-aware context
 --
