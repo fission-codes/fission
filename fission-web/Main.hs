@@ -35,7 +35,7 @@ import qualified Fission.AWS.Environment.Types as AWS
 main :: IO ()
 main = do
   Just  manifest <- JSON.decodeFileStrict "./addon-manifest.json"
-  Right env      <- YAML.decodeFileEither "./env.yaml"
+  env            <- YAML.decodeFileThrow  "./env.yaml"
 
   let
     Storage.Environment {..} = env ^. storage
