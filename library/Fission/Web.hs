@@ -19,7 +19,6 @@ import           Servant
 import qualified Fission.Config     as Config
 import           Fission.User
 import qualified Fission.IPFS.Types as IPFS
--- import           Fission.File.Types ()
 
 import           Fission.Internal.Orphanage.PlainText ()
 import           Fission.Internal.Orphanage.OctetStream ()
