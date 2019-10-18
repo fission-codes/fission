@@ -73,11 +73,11 @@ watcher dir = handleWith_ CLI.Error.put' do
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
   initCID  <- liftE $ IPFS.addDir absDir
-  cid <- liftE . Auth.withAuth $ CLI.Pin.run initCID
+  cid@(CID hash) <- liftE . Auth.withAuth $ CLI.Pin.run initCID
   liftE . Auth.withAuth $ CLI.DNS.update cid
 
   liftIO $ FS.withManager \watchMgr -> do
-    hashCache <- newMVar (unaddress cid)
+    hashCache <- newMVar hash
     timeCache <- newMVar =<< getCurrentTime
     void $ handleTreeChanges timeCache hashCache watchMgr cfg absDir
     forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
