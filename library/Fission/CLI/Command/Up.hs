@@ -37,7 +37,7 @@ command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
-    (runRIO cfg . up)
+    (\_ -> runRIO cfg up)
     (strArgument $ metavar "Location" <> help "The location of the assets you want to upload" <> value "./")
 
 -- | Sync the current working directory to the server over IPFS

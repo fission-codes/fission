@@ -48,11 +48,6 @@ main = do
     _ipfsPath    = env ^. ipfs . binPath
     _ipfsURL     = env ^. ipfs . url
     _ipfsTimeout = env ^. ipfs . IPFS.timeout
-    
-    _awsAccessKey  = _accessKey
-    _awsSecretKey  = _secretKey
-    _awsZoneId     = _zoneId
-    _awsDomainName = _domainName
 
     _awsAccessKey  = _accessKey
     _awsSecretKey  = _secretKey

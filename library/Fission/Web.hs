@@ -18,22 +18,21 @@ import           Servant
 
 import qualified Fission.Config     as Config
 import           Fission.User
-import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
-import           Fission.File.Types ()
+-- import           Fission.File.Types ()
+
 import           Fission.Internal.Orphanage.PlainText ()
 import           Fission.Internal.Orphanage.OctetStream ()
 
-import qualified Fission.Web.User        as User
 import qualified Fission.Web.Auth        as Auth
+import qualified Fission.Web.DNS         as DNS
 import qualified Fission.Web.IPFS        as IPFS
 import qualified Fission.Web.Ping        as Ping
-import qualified Fission.Web.DNS         as DNS
-
-import qualified Fission.Web.DNS      as DNS
 import qualified Fission.Web.Routes      as Web
+import           Fission.Web.Server
 import qualified Fission.Web.Swagger     as Web.Swagger
 import qualified Fission.Web.Types       as Web
+import qualified Fission.Web.User        as User
 
 import qualified Network.AWS.Auth  as AWS
 import qualified Fission.AWS.Types as AWS
