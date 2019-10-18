@@ -1,22 +1,22 @@
 module Fission.User.Mutate
   ( create
+  , createWithEmail
   , createWithHeroku
   ) where
 
 import           RIO
+import RIO.Text as Text
 
 import Database.Selda
 
 import Data.Time (getCurrentTime)
 import Data.UUID (UUID)
-import Data.Text.Encoding (decodeASCII)
 
 import Crypto.BCrypt
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.ID ()
 
-import           Fission.Security.Types (SecretDigest)
 import           Fission.Timestamp as Timestamp
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
@@ -74,10 +74,24 @@ create' :: MonadRIO    cfg m
         -> m (Either Error.Create (ID User))
 create' username password email herokuUUID = do
   now <- liftIO getCurrentTime
-  hashPasswordUsingPolicy slowerBcryptHashingPolicy (encodeUtf8 password) >>= \case
-    Nothing -> return $ Left Error.FailedDigest
-    Just secretDigest -> do
+  hashPassword' password >>= \case
+    Left err -> return $ Left err
+    Right secretDigest -> do
       uID <- insertWithPK Table.users
-        [User def username email Regular True herokuUUID (decodeASCII secretDigest) <@ now]
+        [User def username email Regular True herokuUUID secretDigest <@ now]
       logInfo $ "Inserted user " <> display uID
       return $ Right uID
+
+hashPassword' :: MonadIO m
+             => Text
+             -> m (Either Error.Create Text)
+hashPassword' password = do
+  bar <- liftIO (hashPasswordUsingPolicy slowerBcryptHashingPolicy (encodeUtf8 password))
+  case bar of
+    Nothing -> return $ Left Error.FailedDigest
+
+    Just secretDigest -> do
+      foo <- Text.decodeUtf8' secretDigest
+      case foo of
+        Left _ -> return $ Left Error.FailedDigest
+        Right digest -> return $ Right digest

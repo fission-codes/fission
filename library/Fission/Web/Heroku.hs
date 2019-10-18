@@ -72,36 +72,38 @@ provision :: HasLogFunc      cfg
           => RIOServer       cfg ProvisionAPI
 provision Request {_uuid, _region} = do
   Web.Host url <- Config.get
-  secret       <- liftIO $ Random.text 200
-  userID       <- User.createWithHeroku _uuid _region secret
   ipfsPeers    <- getExternalAddress >>= \case
                    Right peers' ->
                      pure peers'
-
                    Left err -> do
                      logError $ displayShow err
                      return []
 
-  logInfo $ mconcat
-    [ "Provisioned UUID: "
-    , displayShow _uuid
-    , " as "
-    , displayShow userID
-    ]
+  username     <- liftIO $ User.genID 
+  secret       <- liftIO $ Random.text 200
+  User.createWithHeroku _uuid _region username secret >>= \case
+    Left err -> Web.Err.throw err
+    Right userID -> do 
+      logInfo $ mconcat
+        [ "Provisioned UUID: "
+        , displayShow _uuid
+        , " as "
+        , displayShow userID
+        ]
 
-  let
-    userConfig = User.Provision
-      { _url      = url
-      , _username = User.hashID userID
-      , _password = Secret secret
-      }
+      let
+        userConfig = User.Provision
+          { _url      = url
+          , _username = User.hashID userID
+          , _password = Secret secret
+          }
 
-  return Provision
-    { _id      = userID
-    , _config  = userConfig
-    , _peers   = ipfsPeers
-    , _message = "Successfully provisioned Interplanetary Fission!"
-    }
+      return Provision
+        { _id      = userID
+        , _config  = userConfig
+        , _peers   = ipfsPeers
+        , _message = "Successfully provisioned Interplanetary Fission!"
+        }
 
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
