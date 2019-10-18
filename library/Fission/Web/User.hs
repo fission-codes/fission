@@ -11,23 +11,18 @@ import Database.Selda
 
 import Servant
 
-import Fission.User.Types
-
 import           Fission.Web.Server
 import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.Auth.Types  as Auth
-import qualified Fission.Web.Auth        as Auth
 import qualified Fission.Web.Types       as Web
-
-type API = RegisterRoute
 
 type API = Create.API
       :<|> VerifyRoute
 
 type VerifyRoute = "verify"
-                  :> Auth.ExistingUser
-                  :> Verify.API
+                   :> Auth.ExistingUser
+                   :> Verify.API
 
 server :: HasLogFunc        cfg
        => MonadSelda   (RIO cfg)

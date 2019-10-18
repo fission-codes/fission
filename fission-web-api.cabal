@@ -4,7 +4,7 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fde862d1f6ef8aae025ba05a03a1be56e7f25f4ef8f425dfaa122e53303a7833
+-- hash: 12cc2e1d0bfbde35fb9243e5f80d12e2836cdfb6d1237f46774c5c58bee8617d
 
 name:           fission-web-api
 version:        1.15.0
@@ -31,11 +31,15 @@ source-repository head
 
 library
   exposed-modules:
+      Fission.AWS
+      Fission.AWS.DomainName.Types
       Fission.AWS.Environment.Types
       Fission.AWS.Route53
       Fission.AWS.Types
+      Fission.AWS.Zone.Types
       Fission.CLI
       Fission.CLI.Auth
+      Fission.CLI.Command.Down
       Fission.CLI.Command.Login
       Fission.CLI.Command.Register
       Fission.CLI.Command.Up
@@ -57,6 +61,8 @@ library
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
+      Fission.Internal.Development
+      Fission.Internal.Exception
       Fission.Internal.MIME
       Fission.Internal.Orphanage.BaseUrl
       Fission.Internal.Orphanage.BasicAuth
@@ -144,6 +150,7 @@ library
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Auth.Types
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -196,6 +203,7 @@ library
     , data-has
     , ekg-wai
     , envy
+    , filepath
     , fsnotify
     , haskeline
     , http-client
@@ -266,6 +274,7 @@ executable fission-cli
     , data-has
     , ekg-wai
     , envy
+    , filepath
     , fission-web-api
     , fsnotify
     , haskeline
@@ -337,6 +346,7 @@ executable fission-web
     , data-has
     , ekg-wai
     , envy
+    , filepath
     , fission-web-api
     , fsnotify
     , haskeline
@@ -414,6 +424,7 @@ test-suite fission-doctest
     , doctest
     , ekg-wai
     , envy
+    , filepath
     , fsnotify
     , haskeline
     , http-client
@@ -486,6 +497,7 @@ test-suite fission-lint
     , data-has
     , ekg-wai
     , envy
+    , filepath
     , fsnotify
     , haskeline
     , hlint
@@ -539,11 +551,15 @@ test-suite fission-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Fission.AWS
+      Fission.AWS.DomainName.Types
       Fission.AWS.Environment.Types
       Fission.AWS.Route53
       Fission.AWS.Types
+      Fission.AWS.Zone.Types
       Fission.CLI
       Fission.CLI.Auth
+      Fission.CLI.Command.Down
       Fission.CLI.Command.Login
       Fission.CLI.Command.Register
       Fission.CLI.Command.Up
@@ -565,6 +581,8 @@ test-suite fission-test
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
+      Fission.Internal.Development
+      Fission.Internal.Exception
       Fission.Internal.MIME
       Fission.Internal.Orphanage.BaseUrl
       Fission.Internal.Orphanage.BasicAuth
@@ -652,6 +670,7 @@ test-suite fission-test
       Fission.User.Types
       Fission.Web
       Fission.Web.Auth
+      Fission.Web.Auth.Types
       Fission.Web.Client
       Fission.Web.Client.Request
       Fission.Web.Client.Types
@@ -705,6 +724,7 @@ test-suite fission-test
     , data-has
     , ekg-wai
     , envy
+    , filepath
     , fission-web-api
     , fsnotify
     , haskeline
@@ -786,6 +806,7 @@ benchmark fission-benchmark
     , data-has
     , ekg-wai
     , envy
+    , filepath
     , fission-web-api
     , fsnotify
     , haskeline
