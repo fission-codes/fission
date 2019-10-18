@@ -12,17 +12,17 @@ packages:
   original:
     hackage: alex-3.2.4
 - completed:
-    hackage: amazonka-1.6.1@sha256:b2a50a6b87908efa1e1793868495e9b252cbcf99e2d7036b21f9fe1e12dc413d,3420
+    hackage: amazonka-1.6.1@sha256:d863557379350ed6bbb91187abeb8c349a654f60b140d138710486f58ae7c476,3536
     pantry-tree:
       size: 992
-      sha256: 27e7e545070d3bdb3dc61159b38dcf2229483d083d0020ba446f31ba537a83e3
+      sha256: 55747f9b56063ea1be73a962e1ce44528b9856e119e2d9f1238397b3112b6e70
   original:
     hackage: amazonka-1.6.1
 - completed:
-    hackage: amazonka-core-1.6.1@sha256:ad6b06eb5b6847cbfbe4201e78b3fdb7818a42da061c5d0f8af4fdf2494e44b5,4957
+    hackage: amazonka-core-1.6.1@sha256:9bc59ce403c6eeba3b3eaf3f10e5f0b6a33b6edbbf8f6de0dd6f4c67b86fa698,5135
     pantry-tree:
       size: 3438
-      sha256: a1100a5e07e858cdf60ab52305568e26feef56d360777a6a0a79505b1ae0fb67
+      sha256: c13e643176308771491ec0e06390e269047bb1b28be4535992842f7426a95eb4
   original:
     hackage: amazonka-core-1.6.1
 - completed:

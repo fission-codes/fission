@@ -14,6 +14,7 @@ import qualified System.Console.ANSI as ANSI
 
 import qualified Data.Yaml as YAML
 import           Servant
+import           Servant.Client
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.BasicAuthData ()
@@ -35,15 +36,24 @@ cachePath = do
   home <- getHomeDirectory
   return $ home </> ".fission.yaml"
 
-withAuth :: (MonadRIO cfg m, HasLogFunc cfg) => (BasicAuthData -> m ()) -> m ()
+withAuth :: MonadRIO   cfg m
+         => HasLogFunc cfg
+         => (BasicAuthData -> m (Either ClientError a))
+         -> m (Either SomeException a)
 withAuth action = get >>= \case
   Right auth ->
-    action auth
+    action auth >>= pure . \case
+      Right result -> Right result
+      Left err -> Left $ toException err
 
   Left err -> do
     logError $ displayShow err
+
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
     UTF8.putText "🚫 Unable to read credentials. Try logging in with "
+
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
     UTF8.putText "fission-cli login"
+
     liftIO $ ANSI.setSGR [ANSI.Reset]
+    return . Left $ toException err
