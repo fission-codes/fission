@@ -7,12 +7,12 @@ module Fission.CLI.Command.Watch
 
 import           RIO
 import           RIO.Directory
+import           RIO.FilePath
 import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 import           RIO.Time
 
 import           Data.Has
-import           System.FilePath
 
 import           Options.Applicative.Simple (addCommand)
 import           Options.Applicative (strArgument, metavar, help, value)
@@ -28,6 +28,9 @@ import qualified Fission.Time         as Time
 import           Fission.IPFS.CID.Types
 import qualified Fission.IPFS.Types as IPFS
 import qualified Fission.AWS.Types  as AWS
+
+import           Fission.Internal.Exception
+import           Fission.CLI.Display.Error as CLI.Error
 
 import qualified Fission.CLI.Auth          as Auth
 import           Fission.CLI.Config.Types
@@ -60,14 +63,14 @@ watcher :: MonadRIO          cfg m
         => Has IPFS.Timeout  cfg
         => String
         -> m ()
-watcher dir= do
+watcher dir = handleWith_ CLI.Error.put' do
   cfg <- ask
   curr <- getCurrentDirectory
   let dir' = if isAbsolute dir then dir else curr </> dir
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  initCID  <- IPFS.addDir dir'
-  CID hash <- Auth.withAuth $ CLI.Pin.run initCID
+  initCID  <- liftE $ IPFS.addDir dir'
+  CID hash <- liftE . Auth.withAuth $ CLI.Pin.run initCID
 
   liftIO $ FS.withManager \watchMgr -> do
     hashCache <- newMVar hash
