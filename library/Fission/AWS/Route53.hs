@@ -54,5 +54,5 @@ createChangeRequest recordType domain content = do
 
 addValue :: ResourceRecordSet -> Text -> ResourceRecordSet
 addValue recordSet value =
-  recordSet & rrsTTL ?~ 300
+  recordSet & rrsTTL ?~ 10
             & rrsResourceRecords ?~ pure (resourceRecord value)
