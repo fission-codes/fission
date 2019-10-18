@@ -18,4 +18,4 @@ bySecret secret user = user `is'` #_active
 -- | Find a user by their account secret
 byUsername :: Text -> Row s User -> Col s Bool
 byUsername username user = user `is'` #_active
-                   .&& user ! #_username .== text username
+                       .&& user ! #_username .== text username

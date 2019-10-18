@@ -1,6 +1,6 @@
 module Fission.Web.Auth
   ( ExistingUser
-  , HerokuAddOnAPI 
+  , HerokuAddOnAPI
   , server
   , context
   , basic
