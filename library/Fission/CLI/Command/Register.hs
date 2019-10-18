@@ -61,6 +61,7 @@ register' :: MonadRIO cfg m
           => m ()
 register' = do
   logDebug "Starting registration sequence"
+
   putStr "Username: "
   username <- getLine
 
@@ -70,36 +71,28 @@ register' = do
 
     Just password -> do
       putStr "Email: "
-      email <- getLine
-      logDebug "Attempting registration"
-      let
-        email' = if BS.null email then Nothing else Just $ decodeUtf8Lenient email
-        user = User.Registration
-               (decodeUtf8Lenient username)
-               (T.pack password)
-               email'
-      let auth = BasicAuthData username $ BS.pack password
+      rawEmail <- getLine
 
+      logDebug "Attempting registration"
       Client.Runner runner <- Config.get
 
       registerResult <- Cursor.withHidden
-                 . liftIO
-                 . CLI.Wait.waitFor "Registering..."
-                 . runner
-                 $ User.Client.register user
+                      . liftIO
+                      . CLI.Wait.waitFor "Registering..."
+                      . runner
+                      . User.Client.register
+                      $ User.Registration
+                          { _username = decodeUtf8Lenient username
+                          , _password = T.pack password
+                          , _email    = if BS.null rawEmail
+                                           then Nothing
+                                           else Just $ decodeUtf8Lenient rawEmail
+                          }
 
       case registerResult of
-        Right _ok -> Auth.write auth >> CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"
-        Left  err -> CLI.Error.put err "Authorization failed"
+        Left  err ->
+          CLI.Error.put err "Authorization failed"
 
--- promptPassword :: MonadRIO   cfg m
---             => MonadUnliftIO m
---             => HasLogFunc cfg
---             => ByteString
---             -> m Text
--- promptPassword prompt = 
---   putStr "asdf"
---   liftIO (runInputT defaultSettings $ getPassword (Just '•') "Password: ") >>= \case
---   Nothing ->
---     logError "Unable to read password"
---   Just password -> password
+        Right _ok -> do
+          Auth.write $ BasicAuthData username (BS.pack password)
+          CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"
