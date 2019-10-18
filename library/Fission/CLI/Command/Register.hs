@@ -58,26 +58,27 @@ register' :: MonadRIO cfg m
           => m ()
 register' = do
   logDebug "Starting registration sequence"
-  Client.Runner runner <- Config.get
-  registerResult <- Cursor.withHidden
-                  . liftIO
-                  . CLI.Wait.waitFor "Registering"
-                  . runner
-                  $ User.Client.register
+  undefined
+  -- Client.Runner runner <- Config.get
+  -- registerResult <- Cursor.withHidden
+  --                 . liftIO
+  --                 . CLI.Wait.waitFor "Registering"
+  --                 . runner
+  --                 $ User.Client.register 
 
-  logDebug $ displayShow registerResult
+  -- logDebug $ displayShow registerResult
 
-  case registerResult of
-    Right user -> do
-      logDebug $ displayShow user
+  -- case registerResult of
+  --   Right user -> do
+  --     logDebug $ displayShow user
 
-      let
-        username = encodeUtf8 $ user ^. Provision.username
-        password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
-        auth     = BasicAuthData username password
+  --     let
+  --       username = encodeUtf8 $ user ^. Provision.username
+  --       password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
+  --       auth     = BasicAuthData username password
 
-      Auth.write auth
-      CLI.Success.putOk "Registered & logged in"
+  --     Auth.write auth
+  --     CLI.Success.putOk "Registered & logged in"
 
-    Left err ->
-      CLI.Error.put err "Registeration failed"
+  --   Left err ->
+  --     CLI.Error.put err "Registeration failed"

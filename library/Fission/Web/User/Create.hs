@@ -23,22 +23,19 @@ import qualified Fission.User.Provision.Types as User
 
 import           Fission.Security.Types (Secret (..))
 
-
-type API = Post '[JSON] User.Provision
+type API = ReqBody '[JSON] BasicAuthData
+        :> Post '[JSON] User.Provision
 
 server :: HasLogFunc      cfg
        => Has Web.Host    cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
-server = do
-  Web.Host url <- Config.get
-  secret       <- liftIO $ Random.text 200
-  userID       <- User.create secret
-
+server (BasicAuthData username password) = do
+  userID       <- User.create username secret
   logInfo $ "Provisioned user: " <> displayShow userID
 
   return User.Provision
     { _url      = url
-    , _username = User.hashID userID
-    , _password = Secret secret
+    , _username = username
+    , _password = Secret password
     }
