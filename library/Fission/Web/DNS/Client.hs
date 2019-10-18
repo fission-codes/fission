@@ -1,6 +1,4 @@
-module Fission.Web.DNS.Client
-  ( update
-  ) where
+module Fission.Web.DNS.Client (update) where
 
 import RIO
 

@@ -125,7 +125,7 @@ pinAndUpdateDNS cid =
   Auth.withAuth (CLI.Pin.run cid) >>= \case
     Left err -> do
       logError $ displayShow err
-      return . Left $ err
+      return $ Left err
 
     Right _ ->
-      Auth.withAuth (CLI.DNS.update cid)
+      Auth.withAuth $ CLI.DNS.update cid
