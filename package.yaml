@@ -81,6 +81,7 @@ dependencies:
   - amazonka-route53
   - ansi-terminal
   - base
+  - bcrypt
   - cryptonite
   - bytestring
   - data-default-class

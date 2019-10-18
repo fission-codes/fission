@@ -117,7 +117,7 @@ deprovision uuid' = do
   AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
   User  {_userID}  <- err =<< Query.findOne do
     user <- select Table.users
-    restrict $ user ! #_herokuAddOnID .== literal (Just _addOnID)
+    restrict $ user ! #_herokuAddOnId .== literal (Just _addOnID)
            .&& user ! #_active        .== true
     return user
 

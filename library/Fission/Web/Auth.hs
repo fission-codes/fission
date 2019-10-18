@@ -13,9 +13,11 @@ import RIO
 import Database.Selda
 import Servant
 
+import Crypto.BCrypt
+
 import Fission.Internal.Constraint
 import Fission.Storage.Query
-import Fission.User as User
+import Fission.User as User hiding (username)
 import Fission.Web.Server
 
 type ExistingUser = BasicAuth "existing user" User
@@ -55,20 +57,18 @@ checkUser :: HasLogFunc cfg
           => BasicAuthData
           -> RIO cfg (BasicAuthResult User)
 checkUser (BasicAuthData username password) = do
-  mayUser <- findOne $ select User.users `suchThat` User.bySecret (decodeUtf8Lenient password)
-  maybe (pure NoSuchUser) checkID mayUser
+  mayUser <- findOne $ select User.users `suchThat` User.byUsername (decodeUtf8Lenient username)
+  maybe (pure NoSuchUser) checkPassword mayUser
 
   where
-    checkID :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
-    checkID usr =
-      if encodeUtf8 (hashID $ usr ^. userID) == username
+    checkPassword :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
+    checkPassword usr =
+      if validatePassword (encodeUtf8 $ usr ^. secretDigest) password
          then return (Authorized usr)
          else do
            logWarn $ mconcat
-             [ "Unauthorized user! HashedID: "
+             [ "Unauthorized user! Username: "
              , displayBytesUtf8 username
-             , ", secret: "
-             , displayBytesUtf8 password
              ]
 
            return Unauthorized

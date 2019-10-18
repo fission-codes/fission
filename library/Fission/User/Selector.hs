@@ -4,7 +4,7 @@ module Fission.User.Selector
   , email'
   , role'
   , active'
-  , herokuAddOnID'
+  , herokuAddOnId'
   , secretDigest'
   , insertedAt'
   , modifiedAt'
@@ -27,7 +27,7 @@ username'      :: Selector User Text
 email'         :: Selector User (Maybe Text)
 role'          :: Selector User Role
 active'        :: Selector User Bool
-herokuAddOnID' :: Selector User (Maybe (ID Heroku.AddOn))
+herokuAddOnId' :: Selector User (Maybe (ID Heroku.AddOn))
 secretDigest'  :: Selector User SecretDigest
 insertedAt'    :: Selector User UTCTime
 modifiedAt'    :: Selector User UTCTime
@@ -36,7 +36,7 @@ userID' :*: username'
         :*: email'
         :*: role'
         :*: active'
-        :*: herokuAddOnID'
+        :*: herokuAddOnId'
         :*: secretDigest'
         :*: insertedAt'
         :*: modifiedAt' = selectors users

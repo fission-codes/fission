@@ -27,7 +27,7 @@ user0Table = Table.lensPrefixed (Table.name User.Table.name)
   , #_active        :- index
   , #_secretDigest  :- index
   , #_secretDigest  :- unique
-  , #_herokuAddOnID :- foreignKey Heroku.addOns Heroku.addOnID'
+  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
   ]
 
 -- | A user account, most likely a developer
@@ -35,7 +35,7 @@ data User0 = User0
   { _userID        :: ID User0
   , _role          :: Role
   , _active        :: Bool
-  , _herokuAddOnID :: Maybe (ID Heroku.AddOn)
+  , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
   , _secretDigest  :: SecretDigest
   , _insertedAt    :: UTCTime
   , _modifiedAt    :: UTCTime

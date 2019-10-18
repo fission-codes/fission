@@ -22,5 +22,5 @@ users = Table.lensPrefixed (Table.name name)
   , #_active        :- index
   , #_secretDigest  :- index
   , #_secretDigest  :- unique
-  , #_herokuAddOnID :- foreignKey Heroku.addOns Heroku.addOnID'
+  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
   ]

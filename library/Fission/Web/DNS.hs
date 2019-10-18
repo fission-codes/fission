@@ -33,12 +33,11 @@ server :: HasLogFunc         cfg
        => Has AWS.DomainName cfg
        => User
        -> RIOServer         cfg API
-server User { _userID } (CID hash) = do
+server User { _username } (CID hash) = do
   domain :: AWS.DomainName <- Config.get
 
   let
-    username   = User.hashID _userID
-    baseUrl    = username <> AWS.getDomainName domain
+    baseUrl    = _username <> AWS.getDomainName domain
     dnslinkUrl = "_dnslink." <> baseUrl
     dnslink    = "dnslink=/ipfs/" <> hash
 
