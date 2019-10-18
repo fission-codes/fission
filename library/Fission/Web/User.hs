@@ -1,7 +1,6 @@
 module Fission.Web.User
   ( server
   , API
-  , RegisterRoute
   , VerifyRoute
   ) where
 

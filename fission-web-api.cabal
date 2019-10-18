@@ -4,10 +4,10 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 707928aa3e590b0c6bc5bb4f0e100cc235ebf6694b4c04629f78bba137303da7
+-- hash: fde862d1f6ef8aae025ba05a03a1be56e7f25f4ef8f425dfaa122e53303a7833
 
 name:           fission-web-api
-version:        1.10.0
+version:        1.15.0
 category:       API
 homepage:       https://github.com/fission-suite/web-api#readme
 bug-reports:    https://github.com/fission-suite/web-api/issues
@@ -37,6 +37,7 @@ library
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Register
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -56,8 +57,8 @@ library
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
-      Fission.Internal.JSON
       Fission.Internal.MIME
+      Fission.Internal.Orphanage.BaseUrl
       Fission.Internal.Orphanage.BasicAuth
       Fission.Internal.Orphanage.BasicAuthData
       Fission.Internal.Orphanage.ByteString.Lazy
@@ -169,9 +170,6 @@ library
       Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
-      Fission.Web.Swagger.Complete
-      Fission.Web.Swagger.Docs
-      Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
       Fission.Web.User
@@ -547,6 +545,7 @@ test-suite fission-test
       Fission.CLI
       Fission.CLI.Auth
       Fission.CLI.Command.Login
+      Fission.CLI.Command.Register
       Fission.CLI.Command.Up
       Fission.CLI.Command.Watch
       Fission.CLI.Config.Types
@@ -566,8 +565,8 @@ test-suite fission-test
       Fission.File.Types
       Fission.Internal.Bool
       Fission.Internal.Constraint
-      Fission.Internal.JSON
       Fission.Internal.MIME
+      Fission.Internal.Orphanage.BaseUrl
       Fission.Internal.Orphanage.BasicAuth
       Fission.Internal.Orphanage.BasicAuthData
       Fission.Internal.Orphanage.ByteString.Lazy
@@ -679,9 +678,6 @@ test-suite fission-test
       Fission.Web.Routes
       Fission.Web.Server
       Fission.Web.Swagger
-      Fission.Web.Swagger.Complete
-      Fission.Web.Swagger.Docs
-      Fission.Web.Swagger.Public
       Fission.Web.Tls
       Fission.Web.Types
       Fission.Web.User
