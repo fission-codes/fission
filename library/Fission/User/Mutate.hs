@@ -1,11 +1,9 @@
 module Fission.User.Mutate
   ( create
-  , createWithEmail
   , createWithHeroku
   ) where
 
 import           RIO
-import RIO.Text as Text
 
 import Database.Selda
 
@@ -33,18 +31,9 @@ create :: MonadRIO    cfg m
        => HasLogFunc cfg
        => Text
        -> Text
+       -> Maybe Text
        -> m (Either Error.Create (ID User))
-create username password = create' username password Nothing Nothing
-
--- | Create a new, timestamped entry with email
-createWithEmail :: MonadRIO    cfg m
-                => MonadSelda      m
-                => HasLogFunc cfg
-                => Text
-                -> Text
-                -> Text
-                -> m (Either Error.Create (ID User))
-createWithEmail username password email = create' username password (Just email) Nothing
+create username password email = create' username password email Nothing
 
 -- | Create a new, timestamped entry and heroku add-on
 createWithHeroku :: MonadRIO    cfg m
@@ -89,9 +78,4 @@ hashPassword' password = do
   bar <- liftIO (hashPasswordUsingPolicy slowerBcryptHashingPolicy (encodeUtf8 password))
   case bar of
     Nothing -> return $ Left Error.FailedDigest
-
-    Just secretDigest -> do
-      foo <- Text.decodeUtf8' secretDigest
-      case foo of
-        Left _ -> return $ Left Error.FailedDigest
-        Right digest -> return $ Right digest
+    Just secretDigest -> return . Right $ decodeUtf8Lenient secretDigest
