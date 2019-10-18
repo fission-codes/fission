@@ -2,11 +2,15 @@
 module Fission.CLI.Command.Register (command, register) where
 
 import           RIO
+import           RIO.ByteString
 
+import qualified Data.ByteString.Char8 as BS
 import           Data.Has
+import qualified Data.Text as T
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
+import           System.Console.Haskeline
 
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
@@ -14,8 +18,7 @@ import           Fission.Internal.Constraint
 import qualified Fission.Web.User.Client  as User.Client
 import qualified Fission.Web.Client.Types as Client
 
-import qualified Fission.User.Provision.Types as Provision
-import qualified Fission.Security.Types       as Security
+import qualified Fission.User.Registration.Types as User
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
@@ -58,27 +61,45 @@ register' :: MonadRIO cfg m
           => m ()
 register' = do
   logDebug "Starting registration sequence"
-  undefined
-  -- Client.Runner runner <- Config.get
-  -- registerResult <- Cursor.withHidden
-  --                 . liftIO
-  --                 . CLI.Wait.waitFor "Registering"
-  --                 . runner
-  --                 $ User.Client.register 
+  putStr "Username: "
+  username <- getLine
 
-  -- logDebug $ displayShow registerResult
+  liftIO (runInputT defaultSettings $ getPassword (Just '•') "Password: ") >>= \case
+    Nothing ->
+      logError "Unable to read password"
 
-  -- case registerResult of
-  --   Right user -> do
-  --     logDebug $ displayShow user
+    Just password -> do
+      putStr "Email: "
+      email <- getLine
+      logDebug "Attempting registration"
+      let
+        email' = if BS.null email then Nothing else Just $ decodeUtf8Lenient email
+        user = User.Registration
+               (decodeUtf8Lenient username)
+               (T.pack password)
+               email'
+      let auth = BasicAuthData username $ BS.pack password
 
-  --     let
-  --       username = encodeUtf8 $ user ^. Provision.username
-  --       password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
-  --       auth     = BasicAuthData username password
+      Client.Runner runner <- Config.get
 
-  --     Auth.write auth
-  --     CLI.Success.putOk "Registered & logged in"
+      registerResult <- Cursor.withHidden
+                 . liftIO
+                 . CLI.Wait.waitFor "Registering..."
+                 . runner
+                 $ User.Client.register user
 
-  --   Left err ->
-  --     CLI.Error.put err "Registeration failed"
+      case registerResult of
+        Right _ok -> Auth.write auth >> CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"
+        Left  err -> CLI.Error.put err "Authorization failed"
+
+-- promptPassword :: MonadRIO   cfg m
+--             => MonadUnliftIO m
+--             => HasLogFunc cfg
+--             => ByteString
+--             -> m Text
+-- promptPassword prompt = 
+--   putStr "asdf"
+--   liftIO (runInputT defaultSettings $ getPassword (Just '•') "Password: ") >>= \case
+--   Nothing ->
+--     logError "Unable to read password"
+--   Just password -> password
