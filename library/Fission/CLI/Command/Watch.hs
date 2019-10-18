@@ -66,20 +66,14 @@ watcher dir= do
   let dir' = if isAbsolute dir then dir else curr </> dir
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  IPFS.addDir dir' >>= \case
-    Left err ->
-      CLI.Error.put' $ textDisplay err
+  initCID  <- IPFS.addDir dir'
+  CID hash <- Auth.withAuth $ CLI.Pin.run initCID
 
-    Right initCID ->
-      Auth.withAuth (CLI.Pin.run initCID) >>= \case
-        Left err ->
-          CLI.Error.put' err
-
-        Right (CID hash) -> liftIO $ FS.withManager \watchMgr -> do
-          hashCache <- newMVar hash
-          timeCache <- newMVar =<< getCurrentTime
-          void $ handleTreeChanges timeCache hashCache watchMgr cfg dir'
-          forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
+  liftIO $ FS.withManager \watchMgr -> do
+    hashCache <- newMVar hash
+    timeCache <- newMVar =<< getCurrentTime
+    void $ handleTreeChanges timeCache hashCache watchMgr cfg dir'
+    forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
 
 handleTreeChanges :: HasLogFunc        cfg
                   => Has Client.Runner cfg
@@ -93,7 +87,7 @@ handleTreeChanges :: HasLogFunc        cfg
                   -> FilePath
                   -> IO StopListening
 handleTreeChanges timeCache hashCache watchMgr cfg dir =
-  FS.watchTree watchMgr dir (const True) . const $ runRIO cfg do
+  FS.watchTree watchMgr dir (const True) \_ -> runRIO cfg do
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
 
