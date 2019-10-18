@@ -34,7 +34,6 @@ import           Fission.CLI.Display.Error as CLI.Error
 
 import qualified Fission.CLI.Auth          as Auth
 import           Fission.CLI.Config.Types
-import qualified Fission.CLI.Display.Error as CLI.Error
 import qualified Fission.CLI.Pin           as CLI.Pin
 import qualified Fission.CLI.DNS           as CLI.DNS
 
@@ -51,8 +50,12 @@ command cfg =
   addCommand
     "watch"
     "Keep your working directory in sync with the IPFS network"
-    (runRIO cfg . watcher)
-    (strArgument $ metavar "Location" <> help "The location of the assets you want to watch" <> value "./")
+    (\dir -> runRIO cfg $ watcher dir)
+    (strArgument $ mconcat
+      [ metavar "Location"
+      , help    "The location of the assets you want to watch"
+      , value   "./"
+      ])
 
 -- | Continuously sync the current working directory to the server over IPFS
 watcher :: MonadRIO          cfg m
@@ -66,16 +69,16 @@ watcher :: MonadRIO          cfg m
 watcher dir = handleWith_ CLI.Error.put' do
   cfg <- ask
   curr <- getCurrentDirectory
-  let dir' = if isAbsolute dir then dir else curr </> dir
+  let absDir = if isAbsolute dir then dir else curr </> dir
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  initCID  <- liftE $ IPFS.addDir dir'
+  initCID  <- liftE $ IPFS.addDir absDir
   CID hash <- liftE . Auth.withAuth $ CLI.Pin.run initCID
 
   liftIO $ FS.withManager \watchMgr -> do
     hashCache <- newMVar hash
     timeCache <- newMVar =<< getCurrentTime
-    void $ handleTreeChanges timeCache hashCache watchMgr cfg dir'
+    void $ handleTreeChanges timeCache hashCache watchMgr cfg absDir
     forever $ liftIO $ threadDelay 1000000 -- Sleep main thread
 
 handleTreeChanges :: HasLogFunc        cfg
@@ -117,10 +120,12 @@ pinAndUpdateDNS :: MonadRIO          cfg m
                 => Has IPFS.BinPath  cfg
                 => Has IPFS.Timeout  cfg
                 => CID
-                -> m(Either Auth.CLIError AWS.DomainName)
+                -> m (Either SomeException AWS.DomainName)
 pinAndUpdateDNS cid =
   Auth.withAuth (CLI.Pin.run cid) >>= \case
     Left err -> do
       logError $ displayShow err
       return . Left $ err
-    Right _ -> Auth.withAuth (CLI.DNS.update cid)
+
+    Right _ ->
+      Auth.withAuth (CLI.DNS.update cid)

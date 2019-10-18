@@ -1,7 +1,5 @@
 module Fission.CLI.Auth
-  ( -- CLIError
-  -- , cachePath
-  cachePath
+  ( cachePath
   , get
   , withAuth
   , write
@@ -12,8 +10,6 @@ import           RIO.Directory
 import           RIO.File
 import           RIO.FilePath
 
-import Control.Exception
-
 import qualified System.Console.ANSI as ANSI
 
 import qualified Data.Yaml as YAML
@@ -23,14 +19,6 @@ import           Servant.Client
 import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import qualified Fission.Internal.UTF8 as UTF8
-
--- newtype CLIError = CLIError { message :: Text }
---   deriving ( Eq
---            , Generic
---            , Show
---            , Ord
---            )
---   deriving newtype  ( IsString )
 
 -- | Retrieve auth from the user's system
 get :: MonadIO m => m (Either YAML.ParseException BasicAuthData)
@@ -54,9 +42,9 @@ withAuth :: MonadRIO   cfg m
          -> m (Either SomeException a)
 withAuth action = get >>= \case
   Right auth ->
-    action auth
-      -- Right result -> return $ Right result
-      -- Left err -> return . Left . CLIError $ UTF8.textShow err
+    action auth >>= pure . \case
+      Right result -> Right result
+      Left err -> Left $ toException err
 
   Left err -> do
     logError $ displayShow err
@@ -68,4 +56,4 @@ withAuth action = get >>= \case
     UTF8.putText "fission-cli login"
 
     liftIO $ ANSI.setSGR [ANSI.Reset]
-    return . Left . Exception err -- $ UTF8.textShow err
+    return . Left $ toException err
