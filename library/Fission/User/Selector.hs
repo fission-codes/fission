@@ -1,5 +1,7 @@
 module Fission.User.Selector
   ( userID'
+  , username'
+  , email'
   , role'
   , active'
   , herokuAddOnID'
