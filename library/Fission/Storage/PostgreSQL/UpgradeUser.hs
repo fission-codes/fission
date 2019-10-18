@@ -41,36 +41,17 @@ import qualified Fission.Internal.UTF8 as UTF8
 --         => MonadMask      m
 --         => HasLogFunc cfg
 --         => m ()
-upgrade = migrate oldUsers User.Table.users
-      \row -> -- do
-        -- oldUsers <- query do
-        --   select oldUsers
-
-        -- return
-        -- -- with row []
-
-        let
-            _oldUserID = row ! userID''
-            _role = row ! role''
-            _active = row ! active''
-            _herokuAddOnID = row ! herokuAddOnID''
-            _secretDigest = row ! secretDigest''
-            _insertedAt = row ! insertedAt''
-            _modifiedAt = row ! modifiedAt''
-            newID = toId . fromId <$> _oldUserID
-
-        in
-          -- (literal (toId (fromId _oldUserID) :: ID User))
-          new [ userID' := newID
-              , username' := text "username"
-              , email' := null_
-              , role' := _role
-              , active' := _active
-              , herokuAddOnID' := _herokuAddOnID
-              , secretDigest'  := _secretDigest
-              , insertedAt'    := _insertedAt
-              , modifiedAt'    := _modifiedAt
-              ]
+upgrade = migrate oldUsers User.Table.users \row -> new
+  [ userID'        := toId . fromId <$> row ! userID''
+  , username'      := text "username" -- TODO: hashMe <$> row ! userID''
+  , email'         := null_
+  , role'          := row ! role''
+  , active'        := row ! active''
+  , herokuAddOnID' := row ! herokuAddOnID''
+  , secretDigest'  := row ! secretDigest'' -- password field already?
+  , insertedAt'    := row ! insertedAt''
+  , modifiedAt'    := row ! modifiedAt''
+  ]
           -- newID
           --             :*: text "username"
           --             :*: (null_ :: Col User (Maybe Text))
