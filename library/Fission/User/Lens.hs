@@ -1,5 +1,7 @@
 module Fission.User.Lens
   ( userID
+  , username
+  , email
   , role
   , active
   , herokuAddOnId

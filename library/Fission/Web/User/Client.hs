@@ -8,10 +8,13 @@ import RIO
 import Servant
 import Servant.Client
 
-import qualified Fission.User.Provision.Types as User
-import           Fission.Web.Routes           (UserRoute)
+import qualified Fission.User.Registration.Types as User
+import qualified Fission.User.Provision.Types    as User
+import           Fission.Web.Routes              (UserRoute)
 
-verify   :: BasicAuthData -> ClientM Bool
-register :: ClientM User.Provision
+import           Fission.Internal.Orphanage.BasicAuthData ()
+
+verify   :: BasicAuthData     -> ClientM Bool
+register :: User.Registration -> ClientM User.Provision
 
 register :<|> verify = client (Proxy :: Proxy UserRoute)

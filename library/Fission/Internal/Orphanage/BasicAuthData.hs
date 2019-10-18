@@ -6,6 +6,8 @@ import RIO
 
 import Data.Aeson
 import Servant
+import Data.Swagger 
+import Control.Lens hiding ((.=))
 
 import Fission.Internal.Orphanage.ByteString.Lazy ()
 
@@ -20,3 +22,25 @@ instance FromJSON BasicAuthData where
   parseJSON = withObject "BasicAuthData" \obj ->
     BasicAuthData <$> obj .: "username"
                   <*> obj .: "password"
+
+instance ToSchema BasicAuthData where
+  declareNamedSchema _ = do
+    username' <- declareSchemaRef (Proxy :: Proxy Text)
+    password' <- declareSchemaRef (Proxy :: Proxy Text)
+
+    return $ NamedSchema (Just "BasicAuthData") $ mempty
+      & type_      ?~ SwaggerObject
+      & properties .~
+          [ ("username", username')
+          , ("password", password')
+          ]
+      & required .~
+          [ "username"
+          , "password"
+          ]
+      & description ?~
+          "The information that a user needs to provide to login/register."
+      & example ?~ toJSON BasicAuthData
+          { basicAuthUsername = "username"
+          , basicAuthPassword = "password123!"
+          }

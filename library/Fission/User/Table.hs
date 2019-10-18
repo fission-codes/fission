@@ -17,6 +17,8 @@ name = "users"
 users :: Table User
 users = Table.lensPrefixed (Table.name name)
   [ #_userID        :- autoPrimary
+  , #_username      :- index
+  , #_username      :- unique
   , #_active        :- index
   , #_secretDigest  :- index
   , #_secretDigest  :- unique

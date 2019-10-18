@@ -14,6 +14,7 @@ import           Servant.Swagger.UI
 import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 
 import           Fission.Internal.Orphanage.BasicAuth     ()
+import           Fission.Internal.Orphanage.BasicAuthData ()
 import           Fission.Internal.Orphanage.MultipartForm ()
 
 import qualified Fission.Web.Routes as Web

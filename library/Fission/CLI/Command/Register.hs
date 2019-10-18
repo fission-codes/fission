@@ -2,11 +2,15 @@
 module Fission.CLI.Command.Register (command, register) where
 
 import           RIO
+import           RIO.ByteString
 
+import qualified Data.ByteString.Char8 as BS
 import           Data.Has
+import qualified Data.Text as T
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
+import           System.Console.Haskeline
 
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
@@ -14,8 +18,7 @@ import           Fission.Internal.Constraint
 import qualified Fission.Web.User.Client  as User.Client
 import qualified Fission.Web.Client.Types as Client
 
-import qualified Fission.User.Provision.Types as Provision
-import qualified Fission.Security.Types       as Security
+import qualified Fission.User.Registration.Types as User
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
@@ -58,26 +61,38 @@ register' :: MonadRIO cfg m
           => m ()
 register' = do
   logDebug "Starting registration sequence"
-  Client.Runner runner <- Config.get
-  registerResult <- Cursor.withHidden
-                  . liftIO
-                  . CLI.Wait.waitFor "Registering"
-                  . runner
-                  $ User.Client.register
 
-  logDebug $ displayShow registerResult
+  putStr "Username: "
+  username <- getLine
 
-  case registerResult of
-    Right user -> do
-      logDebug $ displayShow user
+  liftIO (runInputT defaultSettings $ getPassword (Just '•') "Password: ") >>= \case
+    Nothing ->
+      logError "Unable to read password"
 
-      let
-        username = encodeUtf8 $ user ^. Provision.username
-        password = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
-        auth     = BasicAuthData username password
+    Just password -> do
+      putStr "Email: "
+      rawEmail <- getLine
 
-      Auth.write auth
-      CLI.Success.putOk "Registered & logged in"
+      logDebug "Attempting registration"
+      Client.Runner runner <- Config.get
 
-    Left err ->
-      CLI.Error.put err "Registeration failed"
+      registerResult <- Cursor.withHidden
+                      . liftIO
+                      . CLI.Wait.waitFor "Registering..."
+                      . runner
+                      . User.Client.register
+                      $ User.Registration
+                          { _username = decodeUtf8Lenient username
+                          , _password = T.pack password
+                          , _email    = if BS.null rawEmail
+                                           then Nothing
+                                           else Just $ decodeUtf8Lenient rawEmail
+                          }
+
+      case registerResult of
+        Left  err ->
+          CLI.Error.put err "Authorization failed"
+
+        Right _ok -> do
+          Auth.write $ BasicAuthData username (BS.pack password)
+          CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"
