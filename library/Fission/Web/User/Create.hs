@@ -34,14 +34,14 @@ type API = ReqBody '[JSON] User.Registration
         :> Post '[JSON] User.Provision
 
 
-server :: HasLogFunc      cfg
-       => Has Web.Host    cfg
-       => Has AWS.DomainName    cfg
+server :: HasLogFunc         cfg
+       => Has Web.Host       cfg
+       => Has AWS.DomainName cfg
        => Has AWS.AccessKey  cfg
        => Has AWS.SecretKey  cfg
        => Has AWS.ZoneID     cfg
-       => MonadSelda (RIO cfg)
-       => RIOServer       cfg API
+       => MonadSelda    (RIO cfg)
+       => RIOServer          cfg API
 server (User.Registration username password email) = do
   domain :: AWS.DomainName <- Config.get
   Web.Host url            <- Config.get
