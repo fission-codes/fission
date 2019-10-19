@@ -17,6 +17,9 @@ import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.Auth.Types  as Auth
 import qualified Fission.Web.Types       as Web
 
+import           Network.AWS.Auth as AWS
+import qualified Fission.AWS.Types   as AWS
+
 type API = Create.API
       :<|> VerifyRoute
 
@@ -27,6 +30,10 @@ type VerifyRoute = "verify"
 server :: HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
        => Has Web.Host      cfg
+       => Has AWS.DomainName    cfg
+       => Has AWS.AccessKey  cfg
+       => Has AWS.SecretKey  cfg
+       => Has AWS.ZoneID     cfg
        => RIOServer         cfg API
 server = Create.server
     :<|> const Verify.server
