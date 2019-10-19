@@ -24,13 +24,13 @@ import           Fission.AWS
 import qualified Fission.AWS.Types   as AWS
 import           Fission.AWS.Route53
 
-import           Network.AWS.Auth as AWS
+import           Network.AWS.Auth    as AWS
 import qualified Network.AWS.Route53 as Route53
 
 import           Fission.Internal.UTF8
 import           Fission.Security.Types (Secret (..))
-  
-type API = ReqBody '[JSON] User.Registration 
+
+type API = ReqBody '[JSON] User.Registration
         :> Post '[JSON] User.Provision
 
 
@@ -43,19 +43,19 @@ server :: HasLogFunc      cfg
        => MonadSelda (RIO cfg)
        => RIOServer       cfg API
 server (User.Registration username password email) = do
-  Web.Host url <- Config.get
   domain :: AWS.DomainName <- Config.get
-  userID       <- User.create username password email
+  Web.Host url            <- Config.get
+
+  userID <- User.create username password email
   logInfo $ "Provisioned user: " <> displayShow userID
 
   let
     baseUrl    = username <> AWS.getDomainName domain
-    dnslinkUrl = "_dnslink." <> baseUrl
-    dnslink    = "dnslink=/ipfs/" <> splashCID
+    dnsLinkUrl = "_dnslink." <> baseUrl
+    dnsLinkTxt = "dnslink=/ipfs/" <> splashCID
 
   ensureContent $ registerDomain Route53.Cname baseUrl "ipfs.runfission.com"
-  ensureContent $ registerDomain Route53.Txt dnslinkUrl $ dnslink `wrapIn` "\""
-
+  ensureContent $ registerDomain Route53.Txt dnsLinkUrl $ dnsLinkTxt `wrapIn` "\""
 
   return User.Provision
     { _url      = url

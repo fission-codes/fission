@@ -17,8 +17,8 @@ import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.Auth.Types  as Auth
 import qualified Fission.Web.Types       as Web
 
-import           Network.AWS.Auth as AWS
-import qualified Fission.AWS.Types   as AWS
+import           Network.AWS.Auth  as AWS
+import qualified Fission.AWS.Types as AWS
 
 type API = Create.API
       :<|> VerifyRoute
