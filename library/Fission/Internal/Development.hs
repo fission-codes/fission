@@ -4,6 +4,7 @@ module Fission.Internal.Development
   , runOne
   , mkConfig
   , mkConfig'
+  , pgConnectInfo
   ) where
 
 import           RIO

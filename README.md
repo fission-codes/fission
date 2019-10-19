@@ -47,9 +47,9 @@ createdb web_api
 
 # Apply the projects database schema
 stack repl
+λ> import Fission.Internal.Development as Development (pgConnectInfo)
 λ> import Fission.Storage.PostgreSQL.Migrate
-λ> import Database.Selda.PostgreSQL
-λ> sequence_ $ mutations "localhost" 5432 "web_api" Nothing Nothing Nothing
+λ> sequence_ $ mutations Development.pgConnectInfo
 ```
 
 ## Get your FISSION credentials
