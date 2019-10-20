@@ -84,7 +84,4 @@ subOps :: Applicative f
        -> (Operation -> f Operation)
        ->   Swagger
        -> f Swagger
-subOps routeProxy = subOperations routeProxy webAPI
-
-webAPI :: Proxy Web.API
-webAPI = Proxy
+subOps routeProxy = subOperations routeProxy $ Proxy @Web.API

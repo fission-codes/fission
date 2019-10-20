@@ -10,5 +10,5 @@ import Servant
 import Servant.Swagger
 
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api)
+  toSwagger _ = toSwagger (Proxy @api)
               & securityDefinitions .~ [("basic", SecurityScheme SecuritySchemeBasic Nothing)]

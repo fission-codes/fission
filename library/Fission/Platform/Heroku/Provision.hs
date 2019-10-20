@@ -139,10 +139,10 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    uId    <- declareSchemaRef (Proxy :: Proxy (ID User))
-    usrCfg <- declareSchemaRef (Proxy :: Proxy User.Provision)
-    ipfsPeers <- declareSchemaRef (Proxy :: Proxy [IPFS.Peer])
-    txt    <- declareSchemaRef (Proxy :: Proxy Text)
+    uId       <- declareSchemaRef $ Proxy @(ID User)
+    usrCfg    <- declareSchemaRef $ Proxy @User.Provision
+    ipfsPeers <- declareSchemaRef $ Proxy @[IPFS.Peer]
+    txt       <- declareSchemaRef $ Proxy @Text
     return $ NamedSchema (Just "User Provision Response") $ mempty
            & type_      ?~ SwaggerObject
            & properties .~
