@@ -8,8 +8,7 @@ import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 
-import           Options.Applicative.Simple (addCommand)
-import           Options.Applicative (strArgument, metavar, help, value)
+import           Options.Applicative.Simple hiding (command)
 
 import           Fission.Internal.Constraint
 import           Fission.Internal.Exception
@@ -37,12 +36,41 @@ command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
-    (\dir -> runRIO cfg $ up dir)
-    (strArgument $ mconcat
+    (runRIO cfg . up)
+    commandOptionsParser
+
+
+data CommandOptions = CommandOptions
+  { optDnsOnly :: Bool
+  , optLocation :: String
+  }
+
+
+commandOptionsParser :: Parser CommandOptions
+commandOptionsParser = do
+  optDnsOnly <- dnsOnly
+  optLocation <- location
+
+  pure CommandOptions {..}
+
+  where
+    dnsOnly :: Parser Bool
+    dnsOnly =
+      [ long "dns-only"
+      , help "Don't upload anything to Fission"
+      ]
+      & mconcat
+      & flag False True
+
+    location :: Parser String
+    location =
       [ metavar "Location"
       , help    "The location of the assets you want to upload"
       , value   "./"
-      ])
+      ]
+      & mconcat
+      & strArgument
+
 
 -- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
@@ -51,15 +79,22 @@ up :: MonadRIO          cfg m
    => Has IPFS.Timeout  cfg
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
-   => String
+   => CommandOptions
    -> m ()
-up dir = handleWith_ Error.put' do
-  currDir <- getCurrentDirectory
-  cid <- liftE . IPFS.addDir $ if isAbsolute dir
-                                 then dir
-                                 else currDir </> dir
+up options = handleWith_ Error.put' do
+  let dir = optLocation options
+  let dnsOnly = optDnsOnly options
+
+  currDir       <- getCurrentDirectory
+  cid           <- liftE . IPFS.addDir $ if isAbsolute dir
+                                           then dir
+                                           else currDir </> dir
 
   logDebug "Starting single IPFS add locally of"
 
-  liftE . Auth.withAuth $ CLI.Pin.run cid
-  liftE . Auth.withAuth $ CLI.DNS.update cid
+  if dnsOnly
+    then
+      liftE . Auth.withAuth $ CLI.DNS.update cid
+    else do
+      liftE . Auth.withAuth $ CLI.Pin.run cid
+      liftE . Auth.withAuth $ CLI.DNS.update cid

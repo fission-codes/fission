@@ -14,8 +14,7 @@ import           RIO.Time
 
 import           Data.Has
 
-import           Options.Applicative.Simple (addCommand)
-import           Options.Applicative (strArgument, metavar, help, value)
+import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
 
 import           Fission.Internal.Constraint
@@ -50,12 +49,41 @@ command cfg =
   addCommand
     "watch"
     "Keep your working directory in sync with the IPFS network"
-    (\dir -> runRIO cfg $ watcher dir)
-    (strArgument $ mconcat
+    (runRIO cfg . watcher)
+    commandOptionsParser
+
+
+data CommandOptions = CommandOptions
+  { optDnsOnly :: Bool
+  , optLocation :: String
+  }
+
+
+commandOptionsParser :: Parser CommandOptions
+commandOptionsParser = do
+  optDnsOnly <- dnsOnly
+  optLocation <- location
+
+  pure CommandOptions {..}
+
+  where
+    dnsOnly :: Parser Bool
+    dnsOnly =
+      [ long "dns-only"
+      , help "Don't upload anything to Fission"
+      ]
+      & mconcat
+      & flag False True
+
+    location :: Parser String
+    location =
       [ metavar "Location"
       , help    "The location of the assets you want to watch"
       , value   "./"
-      ])
+      ]
+      & mconcat
+      & strArgument
+
 
 -- | Continuously sync the current working directory to the server over IPFS
 watcher :: MonadRIO          cfg m
@@ -64,18 +92,36 @@ watcher :: MonadRIO          cfg m
         => HasProcessContext cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
-        => String
+        => CommandOptions
         -> m ()
-watcher dir = handleWith_ CLI.Error.put' do
+watcher options = handleWith_ CLI.Error.put' do
+  let dir = optLocation options
+  let dnsOnly = optDnsOnly options
+
   cfg <- ask
   curr <- getCurrentDirectory
+
   let absDir = if isAbsolute dir then dir else curr </> dir
   UTF8.putText $ "👀 Watching " <> Text.pack dir <> " for changes...\n"
 
-  initCID  <- liftE $ IPFS.addDir absDir
-  cid@(CID hash) <- liftE . Auth.withAuth $ CLI.Pin.run initCID
+  -- Add directory to local IPFS
+  cid@(CID hash) <- liftE $ IPFS.addDir absDir
+
+  -- Pin the content on Fission if needed
+  if dnsOnly then
+    return ()
+  else
+    hash
+      & CID
+      & CLI.Pin.run
+      & Auth.withAuth
+      & liftE
+      & fmap (\_ -> ())
+
+  -- Update DNS
   liftE . Auth.withAuth $ CLI.DNS.update cid
 
+  -- Watch for new changes
   liftIO $ FS.withManager \watchMgr -> do
     hashCache <- newMVar hash
     timeCache <- newMVar =<< getCurrentTime
