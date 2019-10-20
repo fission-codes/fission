@@ -15,7 +15,8 @@ import Servant.Client
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 
-import           Fission.Internal.Exception
+import           Fission.Internal.Exception as Exception
+
 import qualified Fission.IPFS.Peer    as IPFS.Peer
 import qualified Fission.IPFS.Types   as IPFS
 import           Fission.IPFS.CID.Types
@@ -27,13 +28,14 @@ import           Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Loader  as CLI
 import           Fission.CLI.Display.Success as CLI.Success
 import           Fission.CLI.Config.Types
-import RIO.List (headMaybe)
+import           RIO.List (headMaybe)
 
-maybeToEither:: Maybe a -> b -> Either a b
-maybeToEither a err = case a of
-  Just b -> Right b
+import Control.Monad.Except
+
+maybeToEither:: Maybe val -> err -> Either err val
+maybeToEither maybeA err = case maybeA of
+  Just val -> Right val
   Nothing -> Left err
-
 
 run :: MonadRIO          cfg m
     => HasLogFunc        cfg
@@ -44,8 +46,9 @@ run :: MonadRIO          cfg m
     => CID
     -> UserConfig
     -> m (Either ClientError CID)
-run cid@(CID hash) userConfig = handleWith_ CLI.Error.put' $ do
-  maybePeer <- headMaybe $ peers userConfig
+-- run cid@(CID hash) userConfig = Exception.handleWith_ CLI.Error.put' $ do
+run cid@(CID hash) userConfig = runExceptT do
+  maybePeer <- liftE $ headMaybe $ peers userConfig
   peer  <- liftE $ maybeToEither maybePeer "ERROR"
   result  <- liftE $ IPFS.Peer.connect peer
   Client.Runner runner <- Config.get

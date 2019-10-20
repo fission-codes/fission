@@ -40,6 +40,6 @@ whoami = do
       UTF8.putText "💻 Currently logged in as: "
 
       liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-      putStr $ basicAuthUsername auth <> "\n"
+      putStr $ username auth <> "\n"
 
       liftIO $ ANSI.setSGR [ANSI.Reset]
