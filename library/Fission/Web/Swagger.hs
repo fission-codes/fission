@@ -23,14 +23,15 @@ import           Fission.Web.Server
 type API = SwaggerSchemaUI "docs" "docs.json"
 
 server :: Host -> RIOServer cfg API
-server = hoistServer (Proxy :: Proxy API) fromHandler . swaggerSchemaUIServer . docs
+server = hoistServer (Proxy @API) fromHandler . swaggerSchemaUIServer . docs
 
 docs :: Host -> Swagger
 docs = ipfs
      . heroku
      . ping
      . user
-     . app (Proxy :: Proxy Web.API)
+     . app
+     $ Proxy @Web.API
 
 app :: HasSwagger api => Proxy api -> Host -> Swagger
 app proxy appHost = toSwagger proxy
@@ -53,19 +54,19 @@ app proxy appHost = toSwagger proxy
     blurb = "Bootstrapped & distributed backend-as-a-service with user-controlled data"
 
 user :: Swagger -> Swagger
-user = makeDocs (Proxy :: Proxy Web.UserRoute)
+user = makeDocs $ Proxy @Web.UserRoute
   ["Users" & description ?~ "Accounts, authentication, and stats"]
 
 heroku :: Swagger -> Swagger
-heroku = makeDocs (Proxy :: Proxy Web.HerokuRoute)
+heroku = makeDocs $ Proxy @Web.HerokuRoute
   ["Heroku" & description ?~ "Interaction with the Heroku add-on API"]
 
 ipfs :: Swagger -> Swagger
-ipfs = makeDocs (Proxy :: Proxy Web.IPFSRoute)
+ipfs = makeDocs $ Proxy @Web.IPFSRoute
   ["IPFS" & description ?~ "The primary IPFS API"]
 
 ping :: Swagger -> Swagger
-ping = makeDocs (Proxy :: Proxy Web.PingRoute)
+ping = makeDocs $ Proxy @Web.PingRoute
   ["Ping" & description ?~ "Check for liveness"]
 
 makeDocs :: Servant.API.IsSubAPI subRoute Web.API

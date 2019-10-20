@@ -19,4 +19,4 @@ instance FromJSON VendorJSONv3 where
   parseJSON = pure . VendorJSONv3
 
 instance FromJSON a => MimeUnrender VendorJSONv3 a where
-  mimeUnrender _ = mimeUnrender (Proxy :: Proxy JSON)
+  mimeUnrender _ = mimeUnrender $ Proxy @JSON

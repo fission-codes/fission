@@ -40,11 +40,11 @@ type V0API = "add" :> Add.API
 add   :: Lazy.ByteString -> ClientM CID
 cat   :: Text            -> ClientM File.Serialized
 pin   :: Text            -> ClientM Pin.Response
-unpin :: Text -> Bool     -> ClientM Pin.Response
+unpin :: Text -> Bool    -> ClientM Pin.Response
 
 add :<|> cat
     :<|> pin
-    :<|> unpin = client (Proxy :: Proxy API)
+    :<|> unpin = client $ Proxy @API
 
 -- NOTE: May want to move these to streaming in the future
 run :: MonadRIO         cfg m
