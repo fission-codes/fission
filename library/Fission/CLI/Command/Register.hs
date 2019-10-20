@@ -2,12 +2,10 @@
 module Fission.CLI.Command.Register (command, register) where
 
 import           RIO
-<<<<<<< HEAD
 import           RIO.ByteString
 
 import qualified Data.ByteString.Char8 as BS
-=======
->>>>>>> Save peers to fission yaml
+
 import           Data.Has
 import qualified Data.Text as T
 
@@ -17,11 +15,13 @@ import           System.Console.Haskeline
 
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
+import           Fission.Security as Security
 
 import qualified Fission.Web.User.Client  as User.Client
 import qualified Fission.Web.Client.Types as Client
 
 import qualified Fission.User.Registration.Types as User
+import           Fission.User.Provision.Types as Provision
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
@@ -97,7 +97,7 @@ register' = do
         Left  err ->
           CLI.Error.put err "Authorization failed"
 
-        Right _ok -> do
+        Right user -> do
           logDebug $ displayShow user
 
           let
