@@ -17,6 +17,7 @@ import qualified Fission.CLI.Command.Register as Register
 import qualified Fission.CLI.Command.Up       as Up
 import qualified Fission.CLI.Command.Down     as Down
 import qualified Fission.CLI.Command.Watch    as Watch
+import qualified Fission.CLI.Command.Whoami   as Whoami
 
 -- | Top-level CLI description
 cli :: MonadRIO    cfg m
@@ -35,6 +36,7 @@ cli = do
     Up.command       cfg
     Down.command     cfg
     Watch.command    cfg
+    Whoami.command   cfg
   runCLI
   where
     version     = "1.15.1"
