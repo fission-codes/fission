@@ -39,10 +39,9 @@ whoami = do
       Auth.couldNotRead
 
     Right auth -> do
-      let username = basicAuthUsername auth
       UTF8.putText "💻 Currently logged in as: "
 
       liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-      putStr $ BS.append username "\n"
+      putStr $ basicAuthUsername auth <> "\n"
 
       liftIO $ ANSI.setSGR [ANSI.Reset]
