@@ -19,10 +19,28 @@ matrix:
 install:
   - curl -sSL https://get.haskellstack.org/ | sh
   - stack --version
-  - stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+  - stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --copy-bins --local-bin-path $HOME
 
 script:
   - stack test --system-ghc
 
 notifications:
   email: false
+
+os:
+  - linux
+  - osx
+
+before_deploy:
+  - mv $HOME/fission-cli "$HOME/fission-cli-$TRAVIS_TAG-$TRAVIS_OS_NAME"
+
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    on:
+      tags: true
+      branch: travis-release-binary-automation
+    file_glob: true
+    file: $HOME/fission-cli-*
+    api_token:
+      secure: XKMKM4KQPGqqCG8+ue8fi8GCp9h9nJTsClTjaNq4vnpKQkV3TMJI2QUUCmVXbkV+yD9ysthlUj5KORr15x9UARLqUtVvbijbjxMCmvIH4XupYZeowrotHL7g56T4N6VJRJhyCCTinkNK+FqrjrChBoqaN7V9qtKIwAAYituux/+k/s4yZDiuBqecbOKSL7fJ8LQoWq+9mhyXMtPN1vasqWXQNn1pKobdRrWFLx1BkA4XrULgHUPVRi4SKxH3092Xa1I/dudxyrKfiAENYUqH9T8owgGe6BX6ugvQ5oL6y26KyiIymx8VaOEuLJ0ONI84pUUkABuHAEz9zfTWtSMKx3t3tEfHthvgjZjsFKEze1UHpbF5WWDLsTuer+fErViLfYlimFssDwyKIbfgHRAVkslj4SCbEGT1PN0vG4pCHXuxBVbbsL4oTgy6Ik2/sfbFeMxNIGPxighApGy9YiFys6dXz1fNOh9RqhQQUl9qW+nW1/rxS2HAVq3XL9h/6w0Kwgx6NlMmfQSb5m8ty/+QxBaX6C+Izpb8L6TWzEbZz8wMTBpbG5ZjpY1+KS5y0snmNkwicAS5Y54ZIVB+hhnI2B/Vtq4QeqchCavm6+R+X38tn189cApWofzZlXZRCmXuJ/VKY3Hg74SZKkSspnwxYngV/MNxIEmCO+K0CdS0t6w=
