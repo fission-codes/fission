@@ -19,16 +19,20 @@ matrix:
 install:
   - curl -sSL https://get.haskellstack.org/ | sh
   - stack --version
-  - stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --copy-bins --local-bin-path $HOME
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --copy-bins --local-bin-path $HOME          ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then stack build --test --bench --no-run-tests --no-run-benchmarks --copy-bins --local-bin-path $HOME          ; fi
 
 script:
   - stack test --system-ghc
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then stack test --system-ghc          ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then stack test          ; fi
 
 notifications:
   email: false
 
 os:
   - linux
+  - osx
 
 before_deploy:
   - mv $HOME/fission-cli "$HOME/fission-cli-$TRAVIS_TAG-$TRAVIS_OS_NAME"
