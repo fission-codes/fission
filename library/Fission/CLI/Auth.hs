@@ -4,6 +4,7 @@ module Fission.CLI.Auth
   , withAuth
   , write
   , couldNotRead
+  , removeConfigFile
   ) where
 
 import           RIO           hiding (set)
@@ -47,6 +48,12 @@ couldNotRead = do
 
   liftIO $ ANSI.setSGR [ANSI.Reset]
 
+-- | Removes the users config file
+removeConfigFile :: MonadUnliftIO m => m (Either IOException ())
+removeConfigFile = do
+  path <- cachePath
+  try $ removeFile path
+
 withAuth :: MonadRIO   cfg m
          => HasLogFunc cfg
          => (BasicAuthData -> m (Either ClientError a))
@@ -61,4 +68,3 @@ withAuth action = get >>= \case
     logError $ displayShow err
     couldNotRead
     return . Left $ toException err
-
