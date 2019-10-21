@@ -3,6 +3,7 @@ module Fission.CLI.Auth
   , get
   , withAuth
   , write
+  , couldNotRead
   ) where
 
 import           RIO           hiding (set)
@@ -36,6 +37,16 @@ cachePath = do
   home <- getHomeDirectory
   return $ home </> ".fission.yaml"
 
+couldNotRead :: MonadIO m => m ()
+couldNotRead = do
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+  UTF8.putText "🚫 Unable to read credentials. Try logging in with "
+
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+  UTF8.putText "fission-cli login"
+
+  liftIO $ ANSI.setSGR [ANSI.Reset]
+
 withAuth :: MonadRIO   cfg m
          => HasLogFunc cfg
          => (BasicAuthData -> m (Either ClientError a))
@@ -48,12 +59,6 @@ withAuth action = get >>= \case
 
   Left err -> do
     logError $ displayShow err
-
-    liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-    UTF8.putText "🚫 Unable to read credentials. Try logging in with "
-
-    liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-    UTF8.putText "fission-cli login"
-
-    liftIO $ ANSI.setSGR [ANSI.Reset]
+    couldNotRead
     return . Left $ toException err
+
