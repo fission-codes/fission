@@ -126,7 +126,7 @@ pinAndUpdateDNS cid =
       logError $ displayShow err
       return $ Left err
 
-    Right _ -> do
+    Right _ ->
       Auth.withAuth $ CLI.DNS.update cid
 
 parseOptions :: Parser Watch.Options
