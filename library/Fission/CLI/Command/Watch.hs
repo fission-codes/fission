@@ -132,13 +132,12 @@ parseOptions :: Parser Watch.Options
 parseOptions = do
   dnsOnly <- switch $ mconcat
     [ long "dns-only"
-    , help "Don't upload anything to Fission"
+    , help "Only update DNS (i.e. don't actively sync files to the server)"
     ]
 
   path <- strArgument $ mconcat
-    [ metavar "Location"
-    , help    "The location of the assets you want to watch"
-    , value   "./"
+    [ metavar "PATH"
+    , help    "The file path of the assets or directory to watch"
     ]
 
   return Watch.Options {..}

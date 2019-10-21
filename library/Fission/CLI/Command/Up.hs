@@ -53,7 +53,7 @@ up Up.Options {..} = handleWith_ Error.put' do
 
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
-  when (not dnsOnly) do
+  unless dnsOnly do
     void . liftE . Auth.withAuth $ CLI.Pin.run cid
 
   liftE . Auth.withAuth $ CLI.DNS.update cid
@@ -62,13 +62,12 @@ parseOptions :: Parser Up.Options
 parseOptions = do
   dnsOnly <- switch $ mconcat
     [ long "dns-only"
-    , help "Don't upload anything to Fission"
+    , help "Only update DNS (skip file sync)"
     ]
 
   path <- strArgument $ mconcat
-    [ metavar "Location"
-    , help    "The location of the assets you want to upload"
-    , value   "./"
+    [ metavar "PATH"
+    , help    "The file path of the assets or directory to sync"
     ]
 
   return Up.Options {..}
