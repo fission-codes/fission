@@ -1,10 +1,9 @@
-module Fission.CLI.Command.Watch.Types (CommandOptions(..)) where
+module Fission.CLI.Command.Watch.Types (Options(..)) where
 
 import RIO
 
-
 -- | Arguments, flags & switches for the `watch` command
-data CommandOptions = CommandOptions
-  { optDnsOnly :: Bool
-  , optLocation :: String
+data Options = Options
+  { dnsOnly :: Bool
+  , path    :: FilePath
   }

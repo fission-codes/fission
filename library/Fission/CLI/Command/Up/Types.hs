@@ -1,10 +1,9 @@
-module Fission.CLI.Command.Up.Types (CommandOptions(..)) where
+module Fission.CLI.Command.Up.Types (Options(..)) where
 
 import RIO
 
-
 -- | Arguments, flags & switches for the `up` command
-data CommandOptions = CommandOptions
-  { optDnsOnly :: Bool
-  , optLocation :: String
+data Options = Options
+  { dnsOnly :: Bool
+  , path    :: FilePath
   }

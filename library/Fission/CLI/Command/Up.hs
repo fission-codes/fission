@@ -7,7 +7,6 @@ import           RIO.FilePath
 import           RIO.Process (HasProcessContext)
 
 import           Data.Has
-
 import           Options.Applicative.Simple hiding (command)
 
 import           Fission.Internal.Constraint
@@ -17,11 +16,11 @@ import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Web.Client   as Client
 
-import           Fission.CLI.Command.Up.Types
-import qualified Fission.CLI.Display.Error as Error
-import qualified Fission.CLI.Auth          as Auth
-import qualified Fission.CLI.Pin           as CLI.Pin
-import qualified Fission.CLI.DNS           as CLI.DNS
+import           Fission.CLI.Command.Up.Types as Up
+import qualified Fission.CLI.Display.Error    as Error
+import qualified Fission.CLI.Auth             as Auth
+import qualified Fission.CLI.Pin              as CLI.Pin
+import qualified Fission.CLI.DNS              as CLI.DNS
 import           Fission.CLI.Config.Types
 
 -- | The command to attach to the CLI tree
@@ -37,35 +36,8 @@ command cfg =
   addCommand
     "up"
     "Keep your current working directory up"
-    (runRIO cfg . up)
-    commandOptionsParser
-
-
-commandOptionsParser :: Parser CommandOptions
-commandOptionsParser = do
-  optDnsOnly <- dnsOnly
-  optLocation <- location
-
-  pure CommandOptions {..}
-
-  where
-    dnsOnly :: Parser Bool
-    dnsOnly =
-      [ long "dns-only"
-      , help "Don't upload anything to Fission"
-      ]
-      & mconcat
-      & flag False True
-
-    location :: Parser String
-    location =
-      [ metavar "Location"
-      , help    "The location of the assets you want to upload"
-      , value   "./"
-      ]
-      & mconcat
-      & strArgument
-
+    (\options -> runRIO cfg $ up options)
+    parseOptions
 
 -- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
@@ -74,22 +46,39 @@ up :: MonadRIO          cfg m
    => Has IPFS.Timeout  cfg
    => Has IPFS.BinPath  cfg
    => Has Client.Runner cfg
-   => CommandOptions
+   => Up.Options
    -> m ()
-up options = handleWith_ Error.put' do
-  let dir = optLocation options
-  let dnsOnly = optDnsOnly options
+up Up.Options {..} = handleWith_ Error.put' do
+  absPath <- toAbsolute path
+  cid     <- liftE $ IPFS.addDir path
 
-  currDir       <- getCurrentDirectory
-  cid           <- liftE . IPFS.addDir $ if isAbsolute dir
-                                           then dir
-                                           else currDir </> dir
+  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
-  logDebug "Starting single IPFS add locally of"
+  when (not dnsOnly) do
+    void . liftE . Auth.withAuth $ CLI.Pin.run cid
 
-  if dnsOnly
-    then
-      liftE . Auth.withAuth $ CLI.DNS.update cid
-    else do
-      liftE . Auth.withAuth $ CLI.Pin.run cid
-      liftE . Auth.withAuth $ CLI.DNS.update cid
+  liftE . Auth.withAuth $ CLI.DNS.update cid
+
+toAbsolute :: MonadIO m => FilePath -> m FilePath
+toAbsolute path =
+  if isAbsolute path
+     then
+       return path
+     else do
+       currDir <- getCurrentDirectory
+       return $ currDir </> path
+
+parseOptions :: Parser Up.Options
+parseOptions = do
+  dnsOnly <- switch $ mconcat
+    [ long "dns-only"
+    , help "Don't upload anything to Fission"
+    ]
+
+  path <- strArgument $ mconcat
+    [ metavar "Location"
+    , help    "The location of the assets you want to upload"
+    , value   "./"
+    ]
+
+  return Up.Options {..}
