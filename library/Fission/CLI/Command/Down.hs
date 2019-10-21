@@ -30,7 +30,7 @@ command :: MonadRIO          cfg m
 command cfg =
   addCommand
     "down"
-    "pull a ipfs or ipns object down to your system"
+    "Pull a ipfs or ipns object down to your system"
     (\cid -> runRIO cfg $ down cid)
     (strArgument $ mconcat
       [ metavar "ContentID"

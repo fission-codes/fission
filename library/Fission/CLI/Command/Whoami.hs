@@ -7,7 +7,6 @@ import           RIO.ByteString
 import           Options.Applicative.Simple (addCommand)
 import           Servant
 
-import qualified Data.ByteString.Char8 as BS
 import qualified System.Console.ANSI as ANSI
 
 import           Fission.Internal.Constraint
@@ -15,7 +14,6 @@ import qualified Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.CLI.Auth as Auth
 import           Fission.CLI.Config.Types
-
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
