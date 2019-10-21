@@ -92,7 +92,7 @@ handleTreeChanges :: HasLogFunc        cfg
                   -> FilePath
                   -> IO StopListening
 handleTreeChanges timeCache hashCache watchMgr cfg dir =
-  FS.watchTree watchMgr dir (\_ -> True) \_ -> runRIO cfg do
+  FS.watchTree watchMgr dir (const True) \_ -> runRIO cfg do
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
 
@@ -107,7 +107,10 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
         Right cid@(CID newHash) -> do
           oldHash <- swapMVar hashCache newHash
           logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
-          when (oldHash /= newHash) . void $ pinAndUpdateDNS cid
+
+          unless (oldHash == newHash) do
+            UTF8.putText "\n"
+            void $ pinAndUpdateDNS cid
 
 pinAndUpdateDNS :: MonadRIO          cfg m
                 => HasLogFunc        cfg
@@ -123,7 +126,7 @@ pinAndUpdateDNS cid =
       logError $ displayShow err
       return $ Left err
 
-    Right _ ->
+    Right _ -> do
       Auth.withAuth $ CLI.DNS.update cid
 
 parseOptions :: Parser Watch.Options
