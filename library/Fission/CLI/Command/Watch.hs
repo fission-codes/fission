@@ -7,7 +7,6 @@ module Fission.CLI.Command.Watch
 
 import           RIO
 import           RIO.Directory
-import           RIO.FilePath
 import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 import           RIO.Time
@@ -64,7 +63,7 @@ watcher :: MonadRIO          cfg m
         -> m ()
 watcher Watch.Options {..} = handleWith_ CLI.Error.put' do
   cfg            <- ask
-  absPath        <- toAbsolute path
+  absPath        <- makeAbsolute path
   cid@(CID hash) <- liftE $ IPFS.addDir absPath
 
   UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
@@ -143,12 +142,3 @@ parseOptions = do
     ]
 
   return Watch.Options {..}
-
-toAbsolute :: MonadIO m => FilePath -> m FilePath
-toAbsolute path =
-  if isAbsolute path
-     then
-       return path
-     else do
-       currDir <- getCurrentDirectory
-       return $ currDir </> path

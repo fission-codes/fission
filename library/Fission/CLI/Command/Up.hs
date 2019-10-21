@@ -3,7 +3,6 @@ module Fission.CLI.Command.Up (command, up) where
 
 import           RIO
 import           RIO.Directory
-import           RIO.FilePath
 import           RIO.Process (HasProcessContext)
 
 import           Data.Has
@@ -49,7 +48,7 @@ up :: MonadRIO          cfg m
    => Up.Options
    -> m ()
 up Up.Options {..} = handleWith_ Error.put' do
-  absPath <- toAbsolute path
+  absPath <- liftIO $ makeAbsolute path
   cid     <- liftE $ IPFS.addDir path
 
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
@@ -58,15 +57,6 @@ up Up.Options {..} = handleWith_ Error.put' do
     void . liftE . Auth.withAuth $ CLI.Pin.run cid
 
   liftE . Auth.withAuth $ CLI.DNS.update cid
-
-toAbsolute :: MonadIO m => FilePath -> m FilePath
-toAbsolute path =
-  if isAbsolute path
-     then
-       return path
-     else do
-       currDir <- getCurrentDirectory
-       return $ currDir </> path
 
 parseOptions :: Parser Up.Options
 parseOptions = do
