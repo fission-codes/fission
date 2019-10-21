@@ -32,6 +32,7 @@ import           Fission.Internal.Exception
 import           Fission.CLI.Display.Error as CLI.Error
 
 import qualified Fission.CLI.Auth          as Auth
+import           Fission.CLI.Command.Watch.Types
 import           Fission.CLI.Config.Types
 import qualified Fission.CLI.Pin           as CLI.Pin
 import qualified Fission.CLI.DNS           as CLI.DNS
@@ -51,12 +52,6 @@ command cfg =
     "Keep your working directory in sync with the IPFS network"
     (runRIO cfg . watcher)
     commandOptionsParser
-
-
-data CommandOptions = CommandOptions
-  { optDnsOnly :: Bool
-  , optLocation :: String
-  }
 
 
 commandOptionsParser :: Parser CommandOptions

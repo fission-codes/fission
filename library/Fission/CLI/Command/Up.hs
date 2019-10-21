@@ -17,6 +17,7 @@ import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.IPFS.Types   as IPFS
 import qualified Fission.Web.Client   as Client
 
+import           Fission.CLI.Command.Up.Types
 import qualified Fission.CLI.Display.Error as Error
 import qualified Fission.CLI.Auth          as Auth
 import qualified Fission.CLI.Pin           as CLI.Pin
@@ -38,12 +39,6 @@ command cfg =
     "Keep your current working directory up"
     (runRIO cfg . up)
     commandOptionsParser
-
-
-data CommandOptions = CommandOptions
-  { optDnsOnly :: Bool
-  , optLocation :: String
-  }
 
 
 commandOptionsParser :: Parser CommandOptions
