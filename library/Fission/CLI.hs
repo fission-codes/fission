@@ -13,6 +13,7 @@ import qualified Fission.Web.Client   as Client
 import qualified Fission.IPFS.Types   as IPFS
 
 import qualified Fission.CLI.Command.Login    as Login
+import qualified Fission.CLI.Command.Logout   as Logout
 import qualified Fission.CLI.Command.Register as Register
 import qualified Fission.CLI.Command.Up       as Up
 import qualified Fission.CLI.Command.Down     as Down
@@ -32,6 +33,7 @@ cli = do
   cfg <- ask
   (_, runCLI) <- liftIO $ simpleOptions version description detail (pure ()) do
     Login.command    cfg
+    Logout.command    cfg
     Register.command cfg
     Up.command       cfg
     Down.command     cfg
