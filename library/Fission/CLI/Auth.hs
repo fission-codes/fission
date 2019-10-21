@@ -47,8 +47,8 @@ couldNotRead = do
   UTF8.putText "fission-cli login"
 
   liftIO $ ANSI.setSGR [ANSI.Reset]
+
 -- | Removes the users config file
--- removeConfigFile :: MonadIO m => m FilePath
 removeConfigFile :: MonadUnliftIO m => m (Either IOException ())
 removeConfigFile = do
   path <- cachePath
@@ -68,4 +68,3 @@ withAuth action = get >>= \case
     logError $ displayShow err
     couldNotRead
     return . Left $ toException err
-
