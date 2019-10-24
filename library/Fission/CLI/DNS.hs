@@ -31,7 +31,8 @@ update :: MonadRIO          cfg m
 update cid@(CID hash) auth = do
   logDebug $ "Updating DNS to " <> display hash
 
-  Client.Runner runner <- Config.get
+  Client.Runner runner' <- Config.get
+
   update' runner auth cid >>= \case
     Right domain -> do
       CLI.Success.dnsUpdated $ AWS.getDomainName domain
