@@ -13,10 +13,7 @@ dirty:
 	$(stack) build --ghc-options=-fforce-recomp $(package)
 
 profile:
-	$(stack) --work-dir .stack-work-profiling --profile build
-
-run:
-	$(stack) build --fast && $(stack) exec -- $(package)
+	$(stack) --work-dir .stack-work-profiling --profile build --fast
 
 install:
 	$(stack) install --fast
