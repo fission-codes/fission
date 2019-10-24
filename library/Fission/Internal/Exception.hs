@@ -86,3 +86,11 @@ handleWith_ errHandler actions = handleWith errHandler (void actions)
 -- >   return $ a + b
 liftE :: (Functor m, Exception e) => m (Either e a) -> ExceptT SomeException m a
 liftE = ExceptT . fmap (BF.first toException)
+
+liftE' :: (Functor m, Exception e) => m (Either e a) -> ExceptT SomeException m a
+liftE' mErrOrOk = ExceptT $ mErrOrOk <&> \case
+    Right val -> Right val
+    Left err -> Left $ toException err
+  -- case x of
+  --   Right val -> ExceptT $ return val
+  --   Left err -> ExceptT $ Left $ toException err
