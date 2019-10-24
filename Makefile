@@ -9,11 +9,6 @@ build:
 dev:
 	$(stack) build --fast $(package):lib
 
-# live-dev: ## Run the server in fast development mode. See DevelMain for details.
-# 	ghcid \
-# 	    --command "stack repl $(package):fission-web" \
-# 	    --test "DevelMain.update"
-
 dirty:
 	$(stack) build --ghc-options=-fforce-recomp $(package)
 
