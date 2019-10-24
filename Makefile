@@ -3,11 +3,11 @@ package = fission-web-api
 stack_yaml = STACK_YAML="stack.yaml"
 stack = $(stack_yaml) stack
 
-build:
-	$(stack) build $(package):lib
-
 dev:
 	$(stack) build --fast $(package):lib
+
+release:
+	$(stack) build
 
 dirty:
 	$(stack) build --ghc-options=-fforce-recomp $(package)
@@ -17,9 +17,6 @@ profile:
 
 install:
 	$(stack) install --fast
-
-release:
-	$(stack) install
 
 ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
