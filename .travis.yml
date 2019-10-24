@@ -13,8 +13,16 @@ cache:
 
 matrix:
   Include:
-  - ghc: 8.6.3
+  - name: Linux
+    ghc: 8.6.3
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
+    os: linux
+
+  - name: MacOS
+    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml" BUILD=stack ARGS=""
+    ghc: 8.6.3
+    compiler: ": #stack default osx"
+    os: osx
 
 install:
   - curl -sSL https://get.haskellstack.org/ | sh
@@ -29,10 +37,6 @@ script:
 
 notifications:
   email: false
-
-os:
-  - linux
-  - osx
 
 before_deploy:
   - mv $HOME/fission-cli "$HOME/fission-cli-$TRAVIS_TAG-$TRAVIS_OS_NAME"
