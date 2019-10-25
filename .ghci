@@ -3,6 +3,8 @@
 
 :set -Wall
 :set -fno-warn-type-defaults
+:set -fwarn-unused-binds
+:set -fwarn-unused-imports
 
 :set +s
 :set +t
