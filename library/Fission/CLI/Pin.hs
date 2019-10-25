@@ -8,6 +8,7 @@ import RIO
 import RIO.Process (HasProcessContext)
 
 import Data.Has
+import Data.List.NonEmpty
 
 import Servant
 import Servant.Client
@@ -25,17 +26,15 @@ import qualified Fission.Web.Client      as Client
 import qualified Fission.Web.IPFS.Client as Fission
 
 import           Fission.CLI.Config.Types
-import           Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Loader  as CLI
 import           Fission.CLI.Display.Success as CLI.Success
-import           RIO.List                    (headMaybe)
 
 import Control.Monad.Except
 
-maybeToEither:: Maybe val -> err -> Either err val
-maybeToEither maybeA err = case maybeA of
-  Just val -> Right val
-  Nothing  -> Left err
+-- maybeToEither:: Maybe val -> err -> Either err val
+-- maybeToEither maybeA err = case maybeA of
+--   Just val -> Right val
+--   Nothing  -> Left err
 
 run :: MonadRIO          cfg m
     => MonadUnliftIO         m
@@ -45,64 +44,28 @@ run :: MonadRIO          cfg m
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
     => CID
-    -> UserConfig
+    -> NonEmpty IPFS.Peer
+    -> BasicAuthData
     -> m (Either SomeException CID)
--- run cid@(CID hash) userConfig = Exception.handleWith_ CLI.Error.put' $ do
-run cid@(CID hash) userConfig = do -- runExceptT do
-  -- Client.Runner runner <- Config.get
-
-  -- let
-  --   maybePeer = headMaybe $ peers userConfig
-
-  -- peer <- return $ maybeToEither maybePeer (toException "ERROR")
-
-  -- result  <- liftE $ IPFS.Peer.connect peer
-  -- hold <- liftE $ pin runner userConfig cid
-  -- CLI.Success.live hash
-  -- return $ Right cid
-
+run cid@(CID hash) peers auth = runExceptT do
+  logDebug $ "Remote pinning " <> display hash
   Client.Runner runner <- Config.get
 
-  logDebug $ "Remote pinning " <> display hash
+  liftE $ IPFS.Peer.connect IPFS.Peer.fission
 
-  -- IPFS.Peer.connect IPFS.Peer.fission
+  IPFS.Peer.connect $ head $ peers
+  liftE $ pin runner cid auth
 
-  let
-    mayPeer = headMaybe $ peers userConfig
+  CLI.Success.live hash
+  return cid
 
-  peer <- ExceptT $ return $ maybeToEither mayPeer (toException MyError)
-  return $ IPFS.Peer.connect peer
-  bar <- liftE $ pin runner userConfig cid
-  -- CLI.Success.live hash
-  -- return cid
-
-  -- case foo' of
-  --   Left err -> return $ Left err
-  --   Right pr -> do
-  --     IPFS.Peer.connect pr
-
-  --     bar <- pin runner userConfig cid
-
-  --     case bar of
-  --       Right _ -> do
-  --         CLI.Success.live hash
-  --         return $ Right cid
-
-  --       Left err -> do
-  --         CLI.Error.put' err
-  --         return $ Left $ toException err
-
-pin :: MonadUnliftIO m => (ClientM NoContent -> m (Either ClientError NoContent)) -> UserConfig -> CID -> m (Either ClientError NoContent)
-pin runner userConfig cid = do
-  let auth = toBasicAuth userConfig
+pin :: MonadUnliftIO m
+    => (ClientM NoContent -> m (Either ClientError NoContent))
+    -> CID
+    -> BasicAuthData
+    -> m (Either ClientError NoContent)
+pin runner cid auth =
   CLI.withLoader 50000 . runner $ Fission.pin (Fission.request auth) cid
-
--- MonadIO
-
--- liftIO :: IO a -> m a
-
-data MyErrrrrrrrror = MyError
-  deriving (Show, Exception)
 
 -- toException :: err -> SomeException
 

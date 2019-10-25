@@ -57,7 +57,7 @@ data UserConfig = UserConfig
   { username :: ByteString
   , password :: ByteString
   -- , url      :: ByteString
-  , peers    :: [IPFS.Peer]
+  , peers    :: NonEmpty IPFS.Peer
   }
   deriving          ( Eq
                     , Show

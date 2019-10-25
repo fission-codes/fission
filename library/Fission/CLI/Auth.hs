@@ -57,11 +57,11 @@ removeConfigFile = do
 
 withAuth :: MonadRIO   cfg m
          => HasLogFunc cfg
-         => (UserConfig -> m (Either ClientError a))
+         => (BasicAuthData -> m (Either ClientError a))
          -> m (Either SomeException a)
 withAuth action = get >>= \case
   Right auth ->
-    action auth >>= pure . \case
+    action (toBasicAuth auth) >>= pure . \case
       Right result -> Right result
       Left err -> Left $ toException err
 

@@ -40,6 +40,7 @@ command cfg =
 
 -- | Sync the current working directory to the server over IPFS
 up :: MonadRIO          cfg m
+   => MonadUnliftIO         m
    => HasLogFunc        cfg
    => HasProcessContext cfg
    => Has IPFS.Timeout  cfg
@@ -54,7 +55,8 @@ up Up.Options {..} = handleWith_ Error.put' do
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
   unless dnsOnly do
-    void . liftE . Auth.withAuth $ CLI.Pin.run cid
+    config <- liftE Auth.get
+    void . liftE $ CLI.Pin.run cid (peers config) (toBasicAuth config)
 
   liftE . Auth.withAuth $ CLI.DNS.update cid
 
