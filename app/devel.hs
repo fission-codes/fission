@@ -31,11 +31,11 @@ main = race_ watchTermFile $ do
     logOptions <- logOptionsHandle stdout True
     (logFunc, _) <- newLogFunc $ setLogUseTime True logOptions :: IO (LogFunc, IO ())
 
-    void $ forkServer "localhost" 9630
     putText $ "🔄 Running reloader on port " <> Text.pack (show port) <> "\n"
     putText $ "🚀 Web server up at port" <> Text.pack displayPort <> "\n"
     putText "📈 EKG live at http://localhost:9630\n"
 
+    void $ forkServer "localhost" 9630
     runOne $ do
       server <- Web.app
       liftIO $ runSettings (Web.Log.mkSettings logFunc port) server

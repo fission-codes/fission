@@ -82,11 +82,14 @@ curl \
 There is a `Makefile` filled with helpful commands. The most used in development is `make watch`.
 
 ```shell
-# Install ghcid watcher
+# Install development tools
 make setup
 
-# Watch project for changes
+# Watch project for changes, validating types and syntax
 make watch
+
+# Run the server and live reload
+make live
 ```
 
 # Configuration

@@ -33,7 +33,10 @@ bench:
 watch:
 	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"
 
+live:
+	$(stack) exec -- yesod devel
+
 setup:
-	stack install ghcid
+	stack install ghcid && stack install yesod-bin
 
 .PHONY : build dirty run install ghci test test-ghci watch
