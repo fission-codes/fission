@@ -77,6 +77,18 @@ curl \
   http://localhost:1337/ipfs
 ```
 
+# Development
+
+There is a `Makefile` filled with helpful commands. The most used in development is `make watch`.
+
+```shell
+# Install ghcid watcher
+make setup
+
+# Watch project for changes
+make watch
+```
+
 # Configuration
 
 ## Environment Variables
