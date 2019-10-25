@@ -31,9 +31,9 @@ bench:
 	$(stack) build --fast --bench $(package)
 
 ghcid:
-	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --ghci-options='-fobject-code -fno-warn-unused-do-bind -j4 +RTS -A128m' --main-is $(package):fission-web"
+	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"
 
-prep:
+setup:
 	stack install ghcid
 
 .PHONY : build dirty run install ghci test test-ghci ghcid
