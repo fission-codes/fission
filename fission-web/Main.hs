@@ -74,7 +74,6 @@ main = do
            . CORS.middleware
            . condDebug
            =<< Web.app
-           =<< ask
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"

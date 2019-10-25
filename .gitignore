@@ -9,6 +9,7 @@
 .doctest-tmp/
 *.cabal
 .stack-work-profiling/*
+yesod-devel/*
 addon-manifest.json
 env.yaml
 domain-key.txt

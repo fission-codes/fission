@@ -4,6 +4,7 @@ module Fission.Internal.Development
   , runOne
   , mkConfig
   , mkConfig'
+  , pgConnectInfo
   ) where
 
 import           RIO
@@ -87,6 +88,7 @@ run _logFunc _dbPool _processCtx _httpManager action =
     _awsSecretKey = "SOME_AWS_SECRET_KEY"
     _awsZoneID = "SOME_AWS_ZONE_ID"
     _awsDomainName = "SOME_AWS_DOMAIN_NAME"
+
 {- | Setup a complete development configuration with all pure defaults set
 
      == Example Use
