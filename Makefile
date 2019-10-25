@@ -30,10 +30,10 @@ test-ghci:
 bench:
 	$(stack) build --fast --bench $(package)
 
-ghcid:
+watch:
 	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"
 
 setup:
 	stack install ghcid
 
-.PHONY : build dirty run install ghci test test-ghci ghcid
+.PHONY : build dirty run install ghci test test-ghci watch
