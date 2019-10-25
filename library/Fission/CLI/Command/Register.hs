@@ -17,6 +17,7 @@ import           System.Console.Haskeline
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 import           Fission.Security as Security
+import Fission.Security.Types
 
 import qualified Fission.Web.User.Client  as User.Client
 import qualified Fission.Web.Client.Types as Client
@@ -102,12 +103,12 @@ register' = do
           logDebug $ displayShow user
 
           let
-            -- Question: How could I do this automatically?
-            -- TODO: Move to helper
-            username   = encodeUtf8 $ user ^. Provision.username
-            password   = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
-            peers      = fromList $ user ^. Provision.peers -- Question: Theres got to be a simpler way to convert
-            auth       = UserConfig { .. }
+            Provision { _peers, _username, _password = Secret pass } = user
+            auth = UserConfig
+              { username = encodeUtf8 _username
+              , password = encodeUtf8  pass
+              , peers    = fromList _peers
+              }
 
           Auth.write auth
           CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"

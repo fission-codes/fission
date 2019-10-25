@@ -62,11 +62,17 @@ login = do
       let auth = BasicAuthData username $ BS.pack password
 
       authResult <- Cursor.withHidden
-                 . CLI.Wait.waitFor "Verifying your credentials"
-                 . runner
-                 $ IPFS.Client.peers (IPFS.Client.request auth)
+                  . CLI.Wait.waitFor "Verifying your credentials"
+                  . runner
+                  $ IPFS.Client.peers (IPFS.Client.request auth)
 
       case authResult of
+        Left err ->
+          CLI.Error.put err "Authorization failed"
+
+        Right [] ->
+          CLI.Error.put_ "Unable to find peers"
+
         Right peers -> do
           let writeTo = UserConfig { username = username
                                    , password = BS.pack password
@@ -75,6 +81,3 @@ login = do
 
           Auth.write writeTo
           CLI.Success.putOk "Logged in"
-
-        Left err ->
-          CLI.Error.put err "Authorization failed"
