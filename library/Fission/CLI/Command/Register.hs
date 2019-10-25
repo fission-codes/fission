@@ -4,6 +4,7 @@ module Fission.CLI.Command.Register (command, register) where
 import           RIO
 import           RIO.ByteString
 
+import           Data.List.NonEmpty
 import qualified Data.ByteString.Char8 as BS
 
 import           Data.Has
@@ -105,12 +106,8 @@ register' = do
             -- TODO: Move to helper
             username   = encodeUtf8 $ user ^. Provision.username
             password   = encodeUtf8 $ Security.unSecret $ user ^. Provision.password
-            peers      = user ^. Provision.peers -- Question: Theres got to be a simpler way to convert
-            auth       = UserConfig {
-              username = username,
-              password = password,
-              peers = peers
-            }
+            peers      = fromList $ user ^. Provision.peers -- Question: Theres got to be a simpler way to convert
+            auth       = UserConfig { .. }
 
           Auth.write auth
           CLI.Success.putOk "Registered & logged in. Your credentials are in ~/.fission.yaml"

@@ -11,6 +11,8 @@ import           RIO.Process (HasProcessContext)
 import qualified RIO.Text as Text
 import           RIO.Time
 
+import           Control.Monad.Except
+
 import           Data.Has
 
 import           Options.Applicative.Simple hiding (command)
@@ -54,6 +56,7 @@ command cfg =
 
 -- | Continuously sync the current working directory to the server over IPFS
 watcher :: MonadRIO          cfg m
+        => MonadUnliftIO m
         => HasLogFunc        cfg
         => Has Client.Runner cfg
         => HasProcessContext cfg
@@ -69,7 +72,8 @@ watcher Watch.Options {..} = handleWith_ CLI.Error.put' do
   UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
 
   when (not dnsOnly) do
-    void . liftE . Auth.withAuth $ CLI.Pin.run cid
+    config <- liftE Auth.get
+    void . liftE $ CLI.Pin.run cid (peers config) (toBasicAuth config)
 
   liftE . Auth.withAuth $ CLI.DNS.update cid
 
@@ -112,6 +116,7 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
             void $ pinAndUpdateDNS cid
 
 pinAndUpdateDNS :: MonadRIO          cfg m
+                => MonadUnliftIO         m
                 => HasLogFunc        cfg
                 => Has Client.Runner cfg
                 => HasProcessContext cfg
@@ -119,14 +124,12 @@ pinAndUpdateDNS :: MonadRIO          cfg m
                 => Has IPFS.Timeout  cfg
                 => CID
                 -> m (Either SomeException AWS.DomainName)
-pinAndUpdateDNS cid =
-  Auth.withAuth (CLI.Pin.run cid) >>= \case
-    Left err -> do
-      logError $ displayShow err
-      return $ Left err
+pinAndUpdateDNS cid = runExceptT do
+  config <- liftE Auth.get
+  let auth = toBasicAuth config
 
-    Right _ ->
-      Auth.withAuth $ CLI.DNS.update cid
+  _ <- liftE $ CLI.Pin.run cid (peers config) auth
+  liftE $ CLI.DNS.update cid auth
 
 parseOptions :: Parser Watch.Options
 parseOptions = do

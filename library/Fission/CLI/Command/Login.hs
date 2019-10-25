@@ -6,6 +6,7 @@ import           RIO.ByteString
 
 import qualified Data.ByteString.Char8 as BS
 import           Data.Has
+import           Data.List.NonEmpty
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
@@ -72,7 +73,7 @@ login = do
         Right peers -> do
           let writeTo = UserConfig {username = username
                                     , password = (BS.pack password)
-                                    , peers = peers}
+                                    , peers = fromList peers}
 
           Auth.write writeTo >> CLI.Success.putOk "Logged in"
         Left  err -> CLI.Error.put err "Authorization failed"
