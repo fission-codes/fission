@@ -61,6 +61,13 @@ packages:
   original:
     hackage: ip-1.5.1
 - completed:
+    hackage: rapid-0.1.4@sha256:570dbbaf2d57d5de8ed239cae8aad3fcef59737e31246ea7e6999d46d41ae3da,1768
+    pantry-tree:
+      size: 299
+      sha256: 06f697deba38c6a1e689e19b82df975f5575ff3db9f58cf91d21972fb621c576
+  original:
+    hackage: rapid-0.1.4
+- completed:
     hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
     pantry-tree:
       size: 284

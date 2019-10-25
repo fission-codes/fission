@@ -80,12 +80,14 @@ dependencies:
   - amazonka-core
   - amazonka-route53
   - ansi-terminal
+  - async
   - base
   - bcrypt
   - cryptonite
   - bytestring
   - data-default-class
   - data-has
+  - directory
   - ekg-wai
   - envy
   - filepath
@@ -103,6 +105,7 @@ dependencies:
   - optparse-applicative
   - optparse-simple
   - random-bytestring
+  - rapid
   - resource-pool
   - regex-compat
   - rio
