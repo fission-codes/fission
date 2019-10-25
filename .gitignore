@@ -8,6 +8,7 @@
 *.db
 .doctest-tmp/
 *.cabal
+.stack-work-profiling/*
 addon-manifest.json
 env.yaml
 domain-key.txt
