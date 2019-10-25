@@ -6,7 +6,7 @@ import           RIO.ByteString
 
 import qualified Data.ByteString.Char8 as BS
 import           Data.Has
-import           Data.List.NonEmpty
+import           Data.List.NonEmpty as NonEmpty
 
 import           Options.Applicative.Simple (addCommand)
 import           Servant
@@ -15,7 +15,6 @@ import           System.Console.Haskeline
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 
-import           Fission.Web.User.Client  as User.Client
 import           Fission.Web.IPFS.Client  as IPFS.Client
 import qualified Fission.Web.Client.Types as Client
 
@@ -26,8 +25,6 @@ import qualified Fission.CLI.Display.Cursor  as Cursor
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
-import qualified Fission.IPFS.Peer.Types as Peer
-import qualified RIO.ByteString.Lazy as Lazy
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -71,9 +68,13 @@ login = do
 
       case authResult of
         Right peers -> do
-          let writeTo = UserConfig {username = username
-                                    , password = (BS.pack password)
-                                    , peers = fromList peers}
+          let writeTo = UserConfig { username = username
+                                   , password = BS.pack password
+                                   , peers    = NonEmpty.fromList peers
+                                   }
 
-          Auth.write writeTo >> CLI.Success.putOk "Logged in"
-        Left  err -> CLI.Error.put err "Authorization failed"
+          Auth.write writeTo
+          CLI.Success.putOk "Logged in"
+
+        Left err ->
+          CLI.Error.put err "Authorization failed"
