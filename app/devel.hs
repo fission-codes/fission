@@ -1,27 +1,22 @@
 {-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main where
-
-import Prelude
+module Main (main) where
 
 import RIO
 import RIO.Directory
+import RIO.Partial   (read)
 import RIO.Text      as Text
 
-import Network.Wai.Handler.Warp
-
-import Fission.Internal.Orphanage.RIO ()
-import Fission.Internal.UTF8
-
-import qualified Fission.Web     as Web
-import qualified Fission.Web.Log as Web.Log
-
-import Fission.Internal.Development
+import Network.Wai.Handler.Warp     (runSettings)
+import System.Environment           (getEnv)
 import System.Remote.Monitoring.Wai
 
--- import System.Directory   as D (doesFileExist)
-import System.Environment
+import           Fission.Internal.Development
+import           Fission.Internal.UTF8
+import qualified Fission.Web                  as Web
+import qualified Fission.Web.Log              as Web.Log
+
 
 main :: IO ()
 main = race_ watchTermFile $ do
