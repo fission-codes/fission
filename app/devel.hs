@@ -41,8 +41,6 @@ watchTermFile = loop
     loop :: IO ()
     loop = do
       exists <- doesFileExist "yesod-devel/devel-terminate"
-      if exists
-         then return ()
-         else do
-           threadDelay 100000
-           loop
+      unless exists do
+        threadDelay 100000
+        loop
