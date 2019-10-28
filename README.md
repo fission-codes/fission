@@ -86,10 +86,10 @@ stack build
 cd .stack-work/dist/{YOUR_OS_FOLDER}/Cabal-2.4.0.1/build/fission-cli
 
 # Login to the fission service
-./fission-cli login
+stack run fission-cli login
 
 # LIVE FROM NEW YORK! ITS FISSION LIVE!
-./fission-cli up
+stack run fission-cli up
 ```
 
 # Development
