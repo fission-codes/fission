@@ -14,10 +14,8 @@ import           Data.Has
 import qualified Fission.Config as Config
 
 import           Fission.Web.Server
-import qualified Fission.Web.Types as Web
 
 import qualified Fission.User                     as User
-import qualified Fission.User.Provision.Types     as User
 import qualified Fission.User.Registration.Types  as User
 
 import           Fission.AWS
@@ -28,14 +26,12 @@ import           Network.AWS.Auth    as AWS
 import qualified Network.AWS.Route53 as Route53
 
 import           Fission.Internal.UTF8
-import           Fission.Security.Types (Secret (..))
 
 type API = ReqBody '[JSON] User.Registration
-        :> Post '[JSON] User.Provision
+        :> Post '[JSON] ()
 
 
 server :: HasLogFunc         cfg
-       => Has Web.Host       cfg
        => Has AWS.DomainName cfg
        => Has AWS.AccessKey  cfg
        => Has AWS.SecretKey  cfg
@@ -44,7 +40,6 @@ server :: HasLogFunc         cfg
        => RIOServer          cfg API
 server (User.Registration username password email) = do
   domain :: AWS.DomainName <- Config.get
-  Web.Host url            <- Config.get
 
   userID <- User.create username password email
   logInfo $ "Provisioned user: " <> displayShow userID
@@ -57,11 +52,7 @@ server (User.Registration username password email) = do
   ensureContent $ registerDomain Route53.Cname baseUrl "ipfs.runfission.com"
   ensureContent $ registerDomain Route53.Txt dnsLinkUrl $ dnsLinkTxt `wrapIn` "\""
 
-  return User.Provision
-    { _url      = url
-    , _username = username
-    , _password = Secret password
-    }
+  return ()
 
 splashCID :: Text
 splashCID = "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"
