@@ -24,6 +24,7 @@ import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.Web.Client   as Client
 import qualified Fission.Storage.IPFS as IPFS
 import qualified Fission.Time         as Time
+import qualified Fission.Config as Config
 
 import           Fission.IPFS.CID.Types
 import qualified Fission.IPFS.Types as IPFS
@@ -43,6 +44,7 @@ command :: MonadIO m
         => HasLogFunc        cfg
         => Has Client.Runner cfg
         => HasProcessContext cfg
+        => Has UserConfig    cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => cfg
@@ -60,6 +62,7 @@ watcher :: MonadRIO          cfg m
         => HasLogFunc        cfg
         => Has Client.Runner cfg
         => HasProcessContext cfg
+        => Has UserConfig    cfg
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => Watch.Options
@@ -88,6 +91,7 @@ handleTreeChanges :: HasLogFunc        cfg
                   => HasProcessContext cfg
                   => Has IPFS.BinPath  cfg
                   => Has IPFS.Timeout  cfg
+                  => Has UserConfig    cfg
                   => MVar UTCTime
                   -> MVar Text
                   -> WatchManager
@@ -122,13 +126,14 @@ pinAndUpdateDNS :: MonadRIO          cfg m
                 => HasProcessContext cfg
                 => Has IPFS.BinPath  cfg
                 => Has IPFS.Timeout  cfg
+                => Has UserConfig    cfg
                 => CID
                 -> m (Either SomeException AWS.DomainName)
 pinAndUpdateDNS cid = runExceptT do
-  config <- liftE Auth.get
-  let auth = toBasicAuth config
+  userConfig <- Config.get
+  let auth = toBasicAuth userConfig
 
-  _ <- liftE $ CLI.Pin.run cid (peers config) auth
+  _ <- liftE $ CLI.Pin.run cid (peers userConfig) auth
   liftE $ CLI.DNS.update cid auth
 
 parseOptions :: Parser Watch.Options

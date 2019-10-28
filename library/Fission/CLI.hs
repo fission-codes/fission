@@ -19,6 +19,7 @@ import qualified Fission.CLI.Command.Up       as Up
 import qualified Fission.CLI.Command.Down     as Down
 import qualified Fission.CLI.Command.Watch    as Watch
 import qualified Fission.CLI.Command.Whoami   as Whoami
+import           Fission.CLI.Config.Types
 
 -- | Top-level CLI description
 cli :: MonadRIO    cfg m
@@ -28,6 +29,7 @@ cli :: MonadRIO    cfg m
     => Has Client.Runner cfg
     => Has IPFS.BinPath  cfg
     => Has IPFS.Timeout  cfg
+    => Has UserConfig    cfg
     => m ()
 cli = do
   cfg <- ask

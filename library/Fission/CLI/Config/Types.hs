@@ -22,6 +22,34 @@ import qualified Fission.Web.Client.Types as Client
 import qualified Fission.IPFS.Types       as IPFS
 import Fission.Internal.Orphanage.ByteString.Lazy ()
 
+-- | The User specific Fission CLI config
+data UserConfig = UserConfig
+  { username :: ByteString
+  , password :: ByteString
+  -- , url      :: ByteString
+  , peers    :: NonEmpty IPFS.Peer
+  }
+  deriving          ( Eq
+                    , Show
+                    )
+
+
+instance ToJSON UserConfig where
+  toJSON UserConfig {..} = object
+    [ "username"      .= username
+    , "password"  .= password
+    , "peers" .= peers
+    ]
+
+instance FromJSON UserConfig where
+  parseJSON = withObject "UserConfig" \obj ->
+    UserConfig <$> obj .: "username"
+               <*> obj .: "password"
+               <*> obj .: "peers"
+
+toBasicAuth :: UserConfig -> BasicAuthData
+toBasicAuth usrCfg = BasicAuthData (usrCfg & username) (usrCfg & password)
+
 -- | The action to attach to the command interface and description
 type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
 
@@ -32,6 +60,7 @@ data Config = Config
   , _processCtx  :: !ProcessContext
   , _ipfsPath    :: !IPFS.BinPath
   , _ipfsTimeout :: !IPFS.Timeout
+  , _userConfig  :: UserConfig -- This one
   }
 
 makeLenses ''Config
@@ -51,36 +80,8 @@ instance Has IPFS.BinPath Config where
 instance Has IPFS.Timeout Config where
   hasLens = ipfsTimeout
 
-
--- | The User specific Fission CLI config
-data UserConfig = UserConfig
-  { username :: ByteString
-  , password :: ByteString
-  -- , url      :: ByteString
-  , peers    :: NonEmpty IPFS.Peer
-  }
-  deriving          ( Eq
-                    , Show
-                    )
+instance Has UserConfig Config where
+  hasLens = userConfig
 
 
-instance ToJSON UserConfig where
-  toJSON UserConfig {..} = object
-    [ "username"      .= username
-    , "password"  .= password
-    , "peers" .= peers
-    ]
-  -- toJSON (UserConfig username password peers) =
-  --   Object [ ("username", String $ decodeUtf8Lenient username)
-  --           , ("password", String $ decodeUtf8Lenient password)
-  --           , ("peers", map (String . decodeUtf8Lenient) peers)
-  --           ]
 
-instance FromJSON UserConfig where
-  parseJSON = withObject "UserConfig" \obj ->
-    UserConfig <$> obj .: "username"
-               <*> obj .: "password"
-               <*> obj .: "peers"
-
-toBasicAuth :: UserConfig -> BasicAuthData
-toBasicAuth usrCfg = BasicAuthData (usrCfg & username) (usrCfg & password)

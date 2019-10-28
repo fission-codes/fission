@@ -14,6 +14,7 @@ import qualified Fission.Web.Client as Client
 
 import qualified Fission.IPFS.BinPath.Types as IPFS
 import qualified Fission.IPFS.Timeout.Types as IPFS
+import qualified Fission.CLI.Auth             as Auth
 
 import           Fission.CLI
 import qualified Fission.CLI.Config.Types   as CLI
@@ -32,6 +33,7 @@ main = do
   host  <- withEnv "FISSION_HOST" "runfission.com" id
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
   tOut  <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
+  eitherConfig <- Auth.get
 
   let rawHTTPSettings = if isTLS
                            then tlsManagerSettings
@@ -42,6 +44,10 @@ main = do
 
   let url         = BaseUrl (if isTLS then Https else Http) host port path
       _fissionAPI = Client.Runner $ Client.mkRunner $ Client.request httpManager url
+      _userConfig = case eitherConfig of
+        Right config -> config
+        Left _err -> CLI.UserConfig "" "" []
+
 
   withLogFunc logOptions \_logFunc -> runRIO CLI.Config {..} do
     logDebug $ "Requests will be made to " <> displayShow url

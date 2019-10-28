@@ -21,6 +21,7 @@ import qualified Fission.CLI.Auth             as Auth
 import qualified Fission.CLI.Pin              as CLI.Pin
 import qualified Fission.CLI.DNS              as CLI.DNS
 import           Fission.CLI.Config.Types
+import qualified Fission.Config as Config
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m
@@ -29,7 +30,8 @@ command :: MonadIO m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => Has Client.Runner cfg
-        => cfg
+        => Has UserConfig  cfg
+         => cfg
         -> CommandM (m ())
 command cfg =
   addCommand
@@ -45,6 +47,7 @@ up :: MonadRIO          cfg m
    => HasProcessContext cfg
    => Has IPFS.Timeout  cfg
    => Has IPFS.BinPath  cfg
+   => Has UserConfig  cfg
    => Has Client.Runner cfg
    => Up.Options
    -> m ()
@@ -55,8 +58,8 @@ up Up.Options {..} = handleWith_ Error.put' do
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
   unless dnsOnly do
-    config <- liftE Auth.get
-    void . liftE $ CLI.Pin.run cid (peers config) (toBasicAuth config)
+    userConfig <- Config.get
+    void . liftE $ CLI.Pin.run cid (peers userConfig) (toBasicAuth userConfig)
 
   liftE . Auth.withAuth $ CLI.DNS.update cid
 

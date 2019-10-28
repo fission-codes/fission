@@ -23,6 +23,7 @@ import Data.UUID as UUID
 import Data.Swagger hiding (name)
 import Database.Selda
 
+import qualified Fission.IPFS.Peer                  as IPFS.Peer
 import qualified Fission.Plan.Types                 as Plan
 import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.User.Provision.Types       as User
@@ -159,4 +160,5 @@ instance ToSchema Provision where
         { _url      = Client.BaseUrl Client.Https "runfission.com" 443 ""
         , _username = "c74bd95b8555275277d4"
         , _password = Secret "GW0SHByPmY0.y+lg)x7De.PNmJvh1"
+        , _peers    = [IPFS.Peer.fission]
         }
