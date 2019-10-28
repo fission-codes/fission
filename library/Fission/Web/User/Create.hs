@@ -31,7 +31,7 @@ import           Fission.Internal.UTF8
 import           Fission.Security.Types (Secret (..))
 
 type API = ReqBody '[JSON] User.Registration
-        :> Post '[JSON] User.Provision
+        :> Post '[JSON] ()
 
 
 server :: HasLogFunc         cfg
@@ -57,11 +57,7 @@ server (User.Registration username password email) = do
   ensureContent $ registerDomain Route53.Cname baseUrl "ipfs.runfission.com"
   ensureContent $ registerDomain Route53.Txt dnsLinkUrl $ dnsLinkTxt `wrapIn` "\""
 
-  return User.Provision
-    { _url      = url
-    , _username = username
-    , _password = Secret password
-    }
+  return ()
 
 splashCID :: Text
 splashCID = "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"

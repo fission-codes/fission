@@ -9,12 +9,11 @@ import Servant
 import Servant.Client
 
 import qualified Fission.User.Registration.Types as User
-import qualified Fission.User.Provision.Types    as User
 import           Fission.Web.Routes              (UserRoute)
 
 import           Fission.Internal.Orphanage.BasicAuthData ()
 
 verify   :: BasicAuthData     -> ClientM Bool
-register :: User.Registration -> ClientM User.Provision
+register :: User.Registration -> ClientM ()
 
 register :<|> verify = client (Proxy :: Proxy UserRoute)
