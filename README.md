@@ -37,7 +37,7 @@ cp example-config/env.yaml.example env.yaml
 ```shell
 # Dev Web Server
 export RIO_VERBOSE=true
-stack run fission-web
+stack run
 ```
 
 ## Setup your database
@@ -145,7 +145,7 @@ Live monitoring dashboard
 
 ```
 export MONITOR=true
-stack run fission-web
+stack run
 open http://localhost:9630
 ```
 

@@ -79,7 +79,6 @@ dependencies:
   - amazonka
   - amazonka-core
   - amazonka-route53
-  - ansi-terminal
   - base
   - bcrypt
   - cryptonite
@@ -100,8 +99,6 @@ dependencies:
   - mime-types
   - monad-logger
   - mtl
-  - optparse-applicative
-  - optparse-simple
   - random-bytestring
   - resource-pool
   - regex-compat
@@ -142,7 +139,7 @@ library:
 executables:
   fission-web:
     main: Main.hs
-    source-dirs: fission-web
+    source-dirs: app
     dependencies:
       - fission-web-api
       - wai-logger
@@ -155,25 +152,6 @@ executables:
       - -optc-ffast-math
       - -optc-O3
       - -O2
-
-  fission-cli:
-    main: Main.hs
-    source-dirs: fission-cli
-    dependencies:
-      - fission-web-api
-      - wai-logger
-    ghc-options:
-      - -threaded
-      - -flate-specialise
-      - -rtsopts
-      - -with-rtsopts=-N
-      - -with-rtsopts=-T
-      - -optc-ffast-math
-      - -optc-O3
-      - -O2
-    # uncomment to build a static binary on Linux
-    # cc-options: -static
-    # ld-options: -static -pthread
 
 tests:
   fission-doctest:
