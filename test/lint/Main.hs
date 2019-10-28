@@ -7,7 +7,7 @@ import Language.Haskell.HLint (hlint)
 arguments :: [String]
 arguments =
     [ "benchmark"
-    , "fission-web"
+    , "app"
     , "library"
     , "test/testsuite"
     ]
