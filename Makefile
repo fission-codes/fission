@@ -3,7 +3,7 @@ package = fission-web-api
 stack_yaml = STACK_YAML="stack.yaml"
 stack = $(stack_yaml) stack
 
-dev:
+build:
 	$(stack) build --fast $(package):lib
 
 release:
@@ -30,7 +30,7 @@ test-ghci:
 bench:
 	$(stack) build --fast --bench $(package)
 
-watch:
+dev:
 	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"
 
 live:
