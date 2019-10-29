@@ -43,9 +43,9 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    url'      <- declareSchemaRef (Proxy :: Proxy Client.BaseUrl)
-    username' <- declareSchemaRef (Proxy :: Proxy Text)
-    password' <- declareSchemaRef (Proxy :: Proxy Secret)
+    url'      <- declareSchemaRef $ Proxy @Client.BaseUrl
+    username' <- declareSchemaRef $ Proxy @Text
+    password' <- declareSchemaRef $ Proxy @Secret
 
     return $ NamedSchema (Just "UserConfig") $ mempty
       & type_      ?~ SwaggerObject

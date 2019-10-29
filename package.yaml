@@ -67,6 +67,7 @@ default-extensions:
   - ScopedTypeVariables
   - StandaloneDeriving
   - TupleSections
+  - TypeApplications
   - TypeFamilies
   - TypeSynonymInstances
   - TemplateHaskell

@@ -10,4 +10,4 @@ import           Fission.IPFS.CID.Types
 import qualified Fission.Web.Routes           as Routes
 
 update :: BasicAuthData -> CID -> ClientM AWS.DomainName
-update = client (Proxy :: Proxy Routes.DNSRoute)
+update = client $ Proxy @Routes.DNSRoute

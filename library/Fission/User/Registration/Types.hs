@@ -21,16 +21,18 @@ instance ToJSON Registration where
            ]
 
 instance FromJSON Registration where
-  parseJSON = withObject "Registration" \obj ->
-    Registration <$> obj .: "username"
-                 <*> obj .: "password"
-                 <*> obj .:? "email"
+  parseJSON = withObject "Registration" \obj -> do
+    _username <- obj .:  "username"
+    _password <- obj .:  "password"
+    _email    <- obj .:? "email"
+
+    return $ Registration {..}
 
 instance ToSchema Registration where
   declareNamedSchema _ = do
-    username' <- declareSchemaRef (Proxy :: Proxy Text)
-    password' <- declareSchemaRef (Proxy :: Proxy Text)
-    email' <- declareSchemaRef (Proxy :: Proxy Text)
+    username' <- declareSchemaRef $ Proxy @Text
+    password' <- declareSchemaRef $ Proxy @Text
+    email'    <- declareSchemaRef $ Proxy @Text
 
     return $ NamedSchema (Just "Registration") $ mempty
       & type_      ?~ SwaggerObject
@@ -50,4 +52,3 @@ instance ToSchema Registration where
           , _password = "password123!"
           , _email    = Just "alice@example.com"
           }
-

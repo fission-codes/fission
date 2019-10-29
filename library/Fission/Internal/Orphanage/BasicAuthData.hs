@@ -6,11 +6,10 @@ import RIO
 
 import Data.Aeson
 import Servant
-import Data.Swagger 
+import Data.Swagger
 import Control.Lens hiding ((.=))
 
 import Fission.Internal.Orphanage.ByteString.Lazy ()
-
 
 instance ToJSON BasicAuthData where
   toJSON (BasicAuthData username password) =
@@ -19,14 +18,16 @@ instance ToJSON BasicAuthData where
            ]
 
 instance FromJSON BasicAuthData where
-  parseJSON = withObject "BasicAuthData" \obj ->
-    BasicAuthData <$> obj .: "username"
-                  <*> obj .: "password"
+  parseJSON = withObject "BasicAuthData" \obj -> do
+    basicAuthUsername <- obj .: "username"
+    basicAuthPassword <- obj .: "password"
+
+    return $ BasicAuthData {..}
 
 instance ToSchema BasicAuthData where
   declareNamedSchema _ = do
-    username' <- declareSchemaRef (Proxy :: Proxy Text)
-    password' <- declareSchemaRef (Proxy :: Proxy Text)
+    username' <- declareSchemaRef $ Proxy @Text
+    password' <- declareSchemaRef $ Proxy @Text
 
     return $ NamedSchema (Just "BasicAuthData") $ mempty
       & type_      ?~ SwaggerObject

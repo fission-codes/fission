@@ -15,7 +15,7 @@ import Servant.Swagger.Internal
 
 
 instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api)
+  toSwagger _ = toSwagger (Proxy @api)
               & addConsumes ["multipart" // "form-data"]
               & addParam param
     where

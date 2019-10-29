@@ -65,10 +65,10 @@ instance FromJSON Request where
 
 instance ToSchema Request where
   declareNamedSchema _ = do
-    planSchema   <- declareSchemaRef (Proxy :: Proxy Plan.Tier)
-    regionSchema <- declareSchemaRef (Proxy :: Proxy Heroku.Region)
-    stringSchema <- declareSchemaRef (Proxy :: Proxy String)
-    uuidSchema   <- declareSchemaRef (Proxy :: Proxy UUID)
+    planSchema   <- declareSchemaRef $ Proxy @Plan.Tier
+    regionSchema <- declareSchemaRef $ Proxy @Heroku.Region
+    stringSchema <- declareSchemaRef $ Proxy @String
+    uuidSchema   <- declareSchemaRef $ Proxy @UUID
     return $ NamedSchema (Just "ProvisionRequest") $ mempty
       & type_       ?~ SwaggerObject
       & title       ?~ "Heroku Provisioning Request"
@@ -139,10 +139,10 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    uId    <- declareSchemaRef (Proxy :: Proxy (ID User))
-    usrCfg <- declareSchemaRef (Proxy :: Proxy User.Provision)
-    ipfsPeers <- declareSchemaRef (Proxy :: Proxy [IPFS.Peer])
-    txt    <- declareSchemaRef (Proxy :: Proxy Text)
+    uId       <- declareSchemaRef $ Proxy @(ID User)
+    usrCfg    <- declareSchemaRef $ Proxy @User.Provision
+    ipfsPeers <- declareSchemaRef $ Proxy @[IPFS.Peer]
+    txt       <- declareSchemaRef $ Proxy @Text
     return $ NamedSchema (Just "User Provision Response") $ mempty
            & type_      ?~ SwaggerObject
            & properties .~

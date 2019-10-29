@@ -59,16 +59,16 @@ app :: Has IPFS.BinPath    cfg
     => MonadSelda     (RIO cfg)
     => RIO cfg Application
 app = do
-  cfg   <- ask
-  auth  <- mkAuth
+  cfg  <- ask
+  auth <- mkAuth
   appHost :: Web.Host <- Config.get
+
   return . serveWithContext api auth
          . Auth.server api cfg
          . server
          $ Swagger.Host (show appHost) Nothing
   where
-    api :: Proxy API
-    api = Proxy
+    api = Proxy @API
 
 -- | Construct an authorization context
 mkAuth :: Has Heroku.ID       cfg
