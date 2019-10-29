@@ -59,12 +59,8 @@ app :: Has IPFS.BinPath    cfg
     => MonadSelda     (RIO cfg)
     => RIO cfg Application
 app = do
-  cfg   <- ask
-  auth  <- mkAuth
-    =>     cfg
-    -> RIO cfg Application
-app cfg = do
-  auth               <- mkAuth
+  cfg  <- ask
+  auth <- mkAuth
   appHost :: Web.Host <- Config.get
 
   return . serveWithContext api auth
