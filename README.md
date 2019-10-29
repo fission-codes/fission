@@ -79,14 +79,14 @@ curl \
 
 # Development
 
-There is a `Makefile` filled with helpful commands. The most used in development is `make watch`.
+There is a `Makefile` filled with helpful commands. The most used in development is `make dev`.
 
 ```shell
 # Install development tools
 make setup
 
 # Watch project for changes, validating types and syntax
-make watch
+make dev
 
 # Run the server and live reload
 make live
