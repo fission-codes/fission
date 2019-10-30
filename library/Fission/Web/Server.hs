@@ -17,6 +17,7 @@ toHandler ctx a = Handler . ExceptT . try $ runReaderT (unRIO a) ctx
 
 -- | Natural transformation into a RIO handler
 fromHandler :: Handler a -> RIO cfg a
-fromHandler handler = liftIO $ runHandler handler >>= \case
-  Right inner     -> pure inner
-  Left servantErr -> throwM servantErr
+fromHandler handler =
+  liftIO $ runHandler handler >>= \case
+    Right inner     -> pure inner
+    Left servantErr -> throwM servantErr
