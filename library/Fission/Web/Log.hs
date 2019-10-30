@@ -22,7 +22,7 @@ rioApacheLogger :: MonadRIO   cfg m
 rioApacheLogger Request {..} Status {statusCode} _mayInt =
   if | statusCode >= 500 -> logError formatted
      | statusCode >= 400 -> logInfo  formatted
-     | otherwise        -> logDebug formatted
+     | otherwise         -> logDebug formatted
   where
     formatted :: Utf8Builder
     formatted = mconcat

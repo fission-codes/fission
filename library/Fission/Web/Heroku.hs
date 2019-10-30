@@ -79,11 +79,11 @@ provision Request {_uuid, _region} = do
                      logError $ displayShow err
                      return []
 
-  username     <- liftIO $ User.genID 
+  username     <- liftIO $ User.genID
   secret       <- liftIO $ Random.text 200
   User.createWithHeroku _uuid _region username secret >>= \case
     Left err -> Web.Err.throw err
-    Right userID -> do 
+    Right userID -> do
       logInfo $ mconcat
         [ "Provisioned UUID: "
         , displayShow _uuid
@@ -106,7 +106,7 @@ provision Request {_uuid, _region} = do
         }
 
 type DeprovisionAPI = Capture "addon_id" UUID
-                   :> DeleteNoContent '[PlainText, OctetStream, JSON] NoContent
+                   :> DeleteNoContent '[Heroku.MIME.VendorJSONv3] NoContent
 
 deprovision :: MonadSelda   (RIO cfg)
             => HasLogFunc        cfg
@@ -114,9 +114,9 @@ deprovision :: MonadSelda   (RIO cfg)
             => Has IPFS.URL      cfg
             => RIOServer         cfg DeprovisionAPI
 deprovision uuid' = do
-  let err = Web.Err.ensureMaybe err404
+  let err = Web.Err.ensureMaybe err410 -- HTTP 410 is specified by the Heroku AddOn docs
 
-  AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid'         uuid'
+  AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid' uuid'
   User  {_userID}  <- err =<< Query.findOne do
     user <- select Table.users
     restrict $ user ! #_herokuAddOnId .== literal (Just _addOnID)
