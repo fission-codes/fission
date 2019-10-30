@@ -64,6 +64,7 @@ ensure :: MonadRIO   cfg m
        => HasLogFunc cfg
        => MonadThrow     m
        => Display       err
+       => Exception     err
        => ToServerError err
        => Either err a
        -> m a
@@ -78,6 +79,7 @@ ensureM = either throwM pure
 
 ensureMaybe :: MonadRIO   cfg m
             => MonadThrow     m
+            -- => Exception err
             => ServerError
             -> Maybe a
             -> m a
@@ -86,14 +88,15 @@ ensureMaybe err = maybe (throwM err) pure
 throw :: MonadRIO   cfg m
       => HasLogFunc cfg
       => MonadThrow     m
+      => Exception     err
       => Display       err
       => ToServerError err
       => err
       -> m a
 throw err = do
-  let
-    serverError@(ServerError {..}) = toServerError err
-    status = Status errHTTPCode $ Lazy.toStrict errBody
+  -- let
+  --   serverError@(ServerError {..}) = toServerError err
+  --   status = Status errHTTPCode $ Lazy.toStrict errBody
 
-  when (statusIsServerError status) (logError $ display err)
-  throwM serverError
+  -- when (statusIsServerError status) (logError $ display err)
+  throwM err
