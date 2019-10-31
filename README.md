@@ -11,6 +11,8 @@
 A library and application to help Web 2.0-style applications leverage IPFS
 in a familiar, compatible way
 
+**Note: The cli has been broken out into [it's own repo](https://github.com/fission-suite/cli)**
+
 # QuickStart
 
 ## Install dependencies
