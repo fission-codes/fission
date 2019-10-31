@@ -21,8 +21,8 @@ in a familiar, compatible way
 brew install ipfs
 brew services start ipfs
 
-# If using Linux, install liblzma-dev
-# sudo apt install liblzma-dev
+# If using Linux, install libpq-dev
+# sudo apt install libpq-dev
 ```
 
 ## Setup config
