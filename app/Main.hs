@@ -57,6 +57,8 @@ main = do
   _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+                   { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
+
   isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
   logOptions   <- logOptionsHandle stdout isVerbose
 
@@ -77,3 +79,6 @@ main = do
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
+
+clientTimeout :: Int
+clientTimeout = 1800000000
