@@ -43,6 +43,7 @@ mkSettings :: LogFunc -> Port -> Settings
 mkSettings logger port = defaultSettings
                        & setPort port
                        & setLogger (fromLogFunc logger)
+                       & setTimeout 1800
 
 fromLogFunc :: LogFunc -> ApacheLogger
 fromLogFunc logger r s mi = runRIO logger (rioApacheLogger r s mi)
