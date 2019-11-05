@@ -1,6 +1,5 @@
 module Fission.Web.Log
   ( rioApacheLogger
-  , mkSettings
   , fromLogFunc
   ) where
 
@@ -8,7 +7,6 @@ import RIO
 
 import Network.HTTP.Types.Status
 import Network.Wai.Internal (Request (..))
-import Network.Wai.Handler.Warp
 import Network.Wai.Logger
 
 import Fission.Internal.Constraint
@@ -38,12 +36,6 @@ rioApacheLogger Request {..} Status {statusCode} _mayInt =
       , displayShow statusCode
       , displayShow $ maybe "" (" - " <>) requestHeaderUserAgent
       ]
-
-mkSettings :: LogFunc -> Port -> Settings
-mkSettings logger port = defaultSettings
-                       & setPort port
-                       & setLogger (fromLogFunc logger)
-                       & setTimeout 1800
 
 fromLogFunc :: LogFunc -> ApacheLogger
 fromLogFunc logger r s mi = runRIO logger (rioApacheLogger r s mi)
