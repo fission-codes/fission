@@ -57,6 +57,8 @@ main = do
   _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
   _processCtx  <- mkDefaultProcessContext
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+                   { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
+
   isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
   logOptions   <- logOptionsHandle stdout isVerbose
 
@@ -65,15 +67,27 @@ main = do
 
     let
       Web.Port port' = _port
-      webLogger      = Web.Log.mkSettings _logFunc port'
+      settings       = mkSettings _logFunc port'
       runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
       condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
     when (env ^. web . Web.monitor) Monitor.wai
-    liftIO . runner webLogger
+    liftIO . runner settings
            . CORS.middleware
            . condDebug
            =<< Web.app
 
+mkSettings :: LogFunc -> Port -> Settings
+mkSettings logger port = defaultSettings
+                       & setPort port
+                       & setLogger (Web.Log.fromLogFunc logger)
+                       & setTimeout serverTimeout
+
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
+
+clientTimeout :: Int
+clientTimeout = 1800000000
+
+serverTimeout :: Int
+serverTimeout = 1800
