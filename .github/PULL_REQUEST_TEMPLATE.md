@@ -6,8 +6,7 @@ Thanks for submitting a pull request! Please provide enough information so that 
 For more information, see the `CONTRIBUTING` guide.
 
 
-**Summary**
-
+## Summary
 <!-- Summary of the PR -->
 
 This PR fixes/implements the following **bugs/features**
@@ -24,18 +23,18 @@ Explain the **motivation** for making this change. What existing problem does th
 
 <!-- Example: When "Adding a function to do X", explain why it is necessary to have a way to do X. -->
 
-**Test plan (required)**
+## Test plan (required)
 
 Demonstrate the code is solid. Example: The exact commands you ran and their output, screenshots / videos if the pull request changes UI.
 
 <!-- Make sure tests pass on Circle CI. -->
 
-**Code formatting**
 
-<!-- Make sure it passes ESLint. -->
-
-**Closing issues**
+## Closing issues
 
 <!-- Put `closes #XXXX` in your comment to auto-close the issue that your PR fixes (if such). -->
 Fixes #
 
+## After Merge
+* [ ] Does this change invalidate any docs or tutorials? _If so ensure the changes needed are either made or recorded_
+* [ ] Does this change require a release to be made? Is so please create and deploy the release
