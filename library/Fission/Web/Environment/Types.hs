@@ -14,8 +14,8 @@ import RIO
 import Control.Lens (makeLenses)
 import Data.Aeson
 
-import qualified Fission.Web.Types as Web
-import qualified Fission.Web.Log.Sentry.Types as Sentry
+import qualified Fission.Web.Types                as Web
+import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
 
 -- | Configuration for the web application
 data Environment = Environment
