@@ -32,6 +32,9 @@ import qualified Fission.Web.Environment.Types     as Web
 
 import qualified Fission.AWS.Environment.Types as AWS
 
+import qualified Fission.Web.Log.Sentry       as Sentry
+import qualified Fission.Web.Log.Sentry.Types as Sentry
+
 main :: IO ()
 main = do
   Just  manifest <- JSON.decodeFileStrict "./addon-manifest.json"
@@ -67,7 +70,7 @@ main = do
 
     let
       Web.Port port' = _port
-      settings       = mkSettings _logFunc port'
+      settings       = mkSettings _logFunc port' _sentryDSN
       runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
       condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
@@ -77,11 +80,15 @@ main = do
            . condDebug
            =<< Web.app
 
-mkSettings :: LogFunc -> Port -> Settings
-mkSettings logger port = defaultSettings
-                       & setPort port
-                       & setLogger (Web.Log.fromLogFunc logger)
-                       & setTimeout serverTimeout
+mkSettings :: LogFunc -> Port -> Maybe Sentry.DSN -> Settings
+mkSettings logger port mayDSN =
+  condSentry
+    $ setPort port
+    $ setLogger (Web.Log.fromLogFunc logger)
+    $ setTimeout serverTimeout
+    $ defaultSettings
+  where
+    condSentry = maybe id (setOnException . Sentry.onException) mayDSN
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
