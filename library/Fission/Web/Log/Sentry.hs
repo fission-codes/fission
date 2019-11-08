@@ -3,7 +3,6 @@ module Fission.Web.Log.Sentry (onException) where
 
 import RIO hiding (onException)
 
-import Data.Aeson.Encode.Pretty
 import Data.ByteString.Char8
 
 import Network.Wai
@@ -14,8 +13,7 @@ import System.Log.Raven
 import System.Log.Raven.Transport.HttpConduit
 import System.Log.Raven.Types as Sentry
 
-import           Fission.Web.Log.RequestErr.Types
-import qualified Fission.Web.Log.Sentry.Types as Sentry
+import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
 
 -- | Exception handler to be used as a setting for WAI middleware
 onException :: Sentry.DSN -> Maybe Request -> SomeException -> IO ()
@@ -25,10 +23,15 @@ onException (Sentry.DSN dsn) mayRequest exception = do
   defaultOnException mayRequest exception
   where
     message :: String
-    message = show . encodePretty $ RequestErr mayRequest exception
+    message = formatMessage exception mayRequest
 
     sentryRecord :: SentryRecord -> SentryRecord
     sentryRecord = recordUpdate mayRequest exception
+
+formatMessage :: SomeException -> Maybe Request -> String
+formatMessage exception = \case
+  Nothing      -> "Exception before request could be parsed: " <> show exception
+  Just request -> "Exception " ++ show exception <> " while handling request " <> show request
 
 -- | The name to report this logger as to Sentry
 loggerName :: String
