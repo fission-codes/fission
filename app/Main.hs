@@ -32,8 +32,8 @@ import qualified Fission.Web.Environment.Types     as Web
 
 import qualified Fission.AWS.Environment.Types as AWS
 
-import qualified Fission.Web.Log.Sentry       as Sentry
-import qualified Fission.Web.Log.Sentry.Types as Sentry
+import qualified Fission.Web.Log.Sentry           as Sentry
+import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
 
 main :: IO ()
 main = do
