@@ -45,6 +45,4 @@ pathGet :: Has IPFS.BinPath  cfg
         => HasProcessContext cfg
         => HasLogFunc        cfg
         => RIOServer         cfg PathAPI
-pathGet cid = do
-  Storage.IPFS.getFile cid
-  throwM $ err500 { errBody = "My Amazing Test"} -- Web.Err.ensure
+pathGet cid = Storage.IPFS.getFile cid >>= Web.Err.ensure
