@@ -101,6 +101,7 @@ dependencies:
   - monad-logger
   - mtl
   - random-bytestring
+  - raven-haskell
   - resource-pool
   - regex-compat
   - rio
