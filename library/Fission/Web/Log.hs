@@ -26,16 +26,14 @@ rioApacheLogger
    -> Status
    -> Maybe Integer
    -> m ()
-rioApacheLogger request@Request {..} Status {statusCode} _mayInt =
+rioApacheLogger request@Request {..} Status {statusCode} _mayLogSize =
   if | statusCode >= 500 -> do
         logError formatted
-        -- body <- responseBody request
-        throwM $ (toServerError statusCode) -- { errBody = body }
+        throwM $ (toServerError statusCode)
 
      | statusCode >= 400 -> do
          logInfo  formatted
-         -- body <- responseBody request
-         throwM $ (toServerError statusCode) -- { errBody = body }
+         throwM $ (toServerError statusCode)
 
      | otherwise ->
          logDebug formatted
@@ -54,11 +52,3 @@ rioApacheLogger request@Request {..} Status {statusCode} _mayInt =
       , displayShow statusCode
       , displayShow $ maybe "" (" - " <>) requestHeaderUserAgent
       ]
-
--- responseBody :: Request -> IO ByteString
--- responseBody response = body $ \f -> do
---   content <- newIORef mempty
---   f (\chunk -> modifyIORef' content (<> chunk)) (return ())
---   toLazyByteString <$> readIORef content
---   where
---     (_, _, body) = responseToStream response
