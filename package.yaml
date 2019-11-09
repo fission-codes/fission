@@ -77,7 +77,6 @@ default-extensions:
 dependencies:
   - aeson
   - aeson-casing
-  - aeson-pretty
   - amazonka
   - amazonka-core
   - amazonka-route53

@@ -1,4 +1,3 @@
--- | Web logging helpers and middleware
 module Fission.Web.Log
   ( rioApacheLogger
   , fromLogFunc
@@ -12,19 +11,13 @@ import Network.Wai.Logger
 
 import Fission.Internal.Constraint
 
-fromLogFunc :: LogFunc -> ApacheLogger
-fromLogFunc logger request status fileSize =
-  runRIO logger (rioApacheLogger request status fileSize)
-
-rioApacheLogger
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     )
-   => Request
-   -> Status
-   -> Maybe Integer
-   -> m ()
-rioApacheLogger Request {..} Status {statusCode} _mayLogSize =
+rioApacheLogger :: MonadRIO   cfg m
+                => HasLogFunc cfg
+                => Request
+                -> Status
+                -> Maybe Integer
+                -> m ()
+rioApacheLogger Request {..} Status {statusCode} _mayInt =
   if | statusCode >= 500 -> logError formatted
      | statusCode >= 400 -> logInfo  formatted
      | otherwise         -> logDebug formatted
@@ -43,3 +36,6 @@ rioApacheLogger Request {..} Status {statusCode} _mayLogSize =
       , displayShow statusCode
       , displayShow $ maybe "" (" - " <>) requestHeaderUserAgent
       ]
+
+fromLogFunc :: LogFunc -> ApacheLogger
+fromLogFunc logger r s mi = runRIO logger (rioApacheLogger r s mi)
