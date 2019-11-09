@@ -5,6 +5,7 @@ module Fission.Web.Heroku
   , server
   ) where
 
+import           Flow
 import           RIO
 import           RIO.Process (HasProcessContext)
 
@@ -117,15 +118,15 @@ deprovision uuid' = do
   let err = Web.Err.ensureMaybe err410 -- HTTP 410 is specified by the Heroku AddOn docs
 
   AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid' uuid'
-  User  {_userID}  <- err =<< Query.findOne do
+  User  {userID}   <- err =<< Query.findOne do
     user <- select Table.users
-    restrict $ user ! #_herokuAddOnId .== literal (Just _addOnID)
-           .&& user ! #_active        .== true
+    restrict <| user ! #herokuAddOnId .== literal (Just _addOnID)
+            .&& user ! #active        .== true
     return user
 
   usersCIDs <- query do
     uCIDs <- select Table.userCIDs
-    restrict (uCIDs ! #_userFK .== literal _userID)
+    restrict (uCIDs ! #_userFK .== literal userID)
     return (uCIDs ! UserCID.cid')
 
   cidOccur <- query do
@@ -135,17 +136,17 @@ deprovision uuid' = do
       return (theCID :*: count (uCIDs ! UserCID.cid'))
 
     restrict (liveCID' `isIn` fmap literal usersCIDs)
-    return (liveCID' :*: occurences')
+    return <| liveCID' :*: occurences'
 
   transaction do
-    deleteFrom_ Table.userCIDs (UserCID.userFK' `is` _userID)
-    deleteFrom_ Table.users    (User.userID'    `is` _userID)
-    deleteFrom_ Table.addOns   (AddOn.uuid'     `is` uuid')
+    deleteFrom_ Table.userCIDs <| UserCID.userFK' `is` userID
+    deleteFrom_ Table.users    <| User.userID'    `is` userID
+    deleteFrom_ Table.addOns   <| AddOn.uuid'     `is` uuid'
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
   forM_ toUnpin $ IPFS.Pin.rm >=> \case
     Left ipfsMsg -> do
-      logError $ "Unable to unpin CID: " <> display ipfsMsg
+      logError <| "Unable to unpin CID: " <> display ipfsMsg
       return ()
 
     Right _ ->

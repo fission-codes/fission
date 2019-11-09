@@ -88,8 +88,10 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - flow
   - filepath
   - fsnotify
+  - generic-lens
   - haskeline
   - http-client
   - http-client-tls

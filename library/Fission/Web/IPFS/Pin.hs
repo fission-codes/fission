@@ -7,6 +7,7 @@ module Fission.Web.IPFS.Pin
   , unpin
   ) where
 
+import Flow
 import RIO
 
 import Data.Has
@@ -37,7 +38,7 @@ server :: Has HTTP.Manager  cfg
        => HasLogFunc        cfg
        => User
        -> RIOServer         cfg API
-server User { _userID } = pin _userID :<|> unpin _userID
+server User { userID } = pin userID :<|> unpin userID
 
 pin :: Has HTTP.Manager  cfg
     => Has IPFS.URL      cfg
@@ -47,7 +48,9 @@ pin :: Has HTTP.Manager  cfg
     -> RIOServer         cfg PinAPI
 pin uID _cid = IPFS.Pin.add _cid >>= \case
   Left err -> Web.Err.throw err
-  Right _  -> UserCID.create uID _cid >> pure NoContent
+  Right _  -> do
+    UserCID.create uID _cid
+    pure NoContent
 
 unpin :: Has HTTP.Manager  cfg
       => Has IPFS.URL      cfg
@@ -56,11 +59,14 @@ unpin :: Has HTTP.Manager  cfg
       => ID User
       -> RIOServer         cfg UnpinAPI
 unpin uID _cid@CID { unaddress = hash } = do
-  void $ deleteFrom_ userCIDs (eqUserCID uID hash)
+  hash
+    |> eqUserCID uID
+    |> deleteFrom_ userCIDs
+    |> void
 
   remaining <- query
-            . limit 0 1
-            $ select userCIDs `suchThat` eqUserCID uID hash
+                 <| limit 0 1
+                 <| select userCIDs `suchThat` eqUserCID uID hash
 
   when (null remaining) $ IPFS.Pin.rm _cid >>= void . Web.Err.ensure
 

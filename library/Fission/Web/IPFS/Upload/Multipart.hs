@@ -43,16 +43,18 @@ type JSONAPI = FileRequest
 type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
-add :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => MonadSelda   (RIO cfg)
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => User
-    -> RIOServer         cfg API
-add User { _userID } = textAdd _userID :<|> jsonAdd _userID
+add
+  :: ( Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     , MonadSelda   (RIO cfg)
+     , HasProcessContext cfg
+     , HasLogFunc        cfg
+     )
+  => User
+  -> RIOServer cfg API
+add User { userID } = textAdd userID :<|> jsonAdd userID
 
 textAdd :: Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
@@ -60,8 +62,6 @@ textAdd :: Has IPFS.BinPath  cfg
         => Has IPFS.URL      cfg
         => HasProcessContext cfg
         => MonadSelda   (RIO cfg)
-        -- => MonadRIO          cfg m
-        -- => MonadMask             m
         => HasLogFunc        cfg
         => ID User
         -> RIOServer         cfg TextAPI
@@ -71,8 +71,6 @@ textAdd uID form queryName = run uID form queryName $ \sparse ->
     Left err   -> Web.Err.throw err
 
 jsonAdd :: MonadSelda   (RIO cfg)
-        -- => MonadRIO          cfg m
-        -- => MonadMask             m
         => Has IPFS.BinPath  cfg
         => Has IPFS.Timeout  cfg
         => Has HTTP.Manager  cfg
@@ -85,7 +83,6 @@ jsonAdd uID form queryName = run uID form queryName pure
 
 run :: MonadRIO          cfg m
     => MonadMask             m
-    -- => MonadThrow            m
     => MonadSelda            m
     => Has HTTP.Manager  cfg
     => Has IPFS.URL      cfg

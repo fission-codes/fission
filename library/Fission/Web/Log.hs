@@ -11,12 +11,13 @@ import Network.Wai.Logger
 
 import Fission.Internal.Constraint
 
-rioApacheLogger :: MonadRIO   cfg m
-                => HasLogFunc cfg
-                => Request
-                -> Status
-                -> Maybe Integer
-                -> m ()
+rioApacheLogger
+  :: MonadRIO   cfg m
+  => HasLogFunc cfg
+  => Request
+  -> Status
+  -> Maybe Integer
+  -> m ()
 rioApacheLogger Request {..} Status {statusCode} _mayInt =
   if | statusCode >= 500 -> logError formatted
      | statusCode >= 400 -> logInfo  formatted

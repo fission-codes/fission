@@ -16,11 +16,11 @@ name = "users"
 -- | The 'User' table
 users :: Table User
 users = Table.lensPrefixed (Table.name name)
-  [ #_userID        :- autoPrimary
-  , #_username      :- index
-  , #_username      :- unique
-  , #_active        :- index
-  , #_secretDigest  :- index
-  , #_secretDigest  :- unique
-  , #_herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
+  [ #userID        :- autoPrimary
+  , #username      :- index
+  , #username      :- unique
+  , #active        :- index
+  , #secretDigest  :- index
+  , #secretDigest  :- unique
+  , #herokuAddOnId :- foreignKey Heroku.addOns Heroku.addOnID'
   ]

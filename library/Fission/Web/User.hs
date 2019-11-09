@@ -26,12 +26,14 @@ type VerifyRoute = "verify"
                    :> Auth.ExistingUser
                    :> Verify.API
 
-server :: HasLogFunc        cfg
-       => MonadSelda   (RIO cfg)
-       => Has AWS.DomainName    cfg
-       => Has AWS.AccessKey  cfg
-       => Has AWS.SecretKey  cfg
-       => Has AWS.ZoneID     cfg
-       => RIOServer         cfg API
+server
+  :: ( HasLogFunc         cfg
+     , MonadSelda    (RIO cfg)
+     , Has AWS.DomainName cfg
+     , Has AWS.AccessKey  cfg
+     , Has AWS.SecretKey  cfg
+     , Has AWS.ZoneID     cfg
+     )
+  => RIOServer cfg API
 server = Create.server
     :<|> const Verify.server
