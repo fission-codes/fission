@@ -61,8 +61,8 @@ main = do
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
-  isVerbose  <- getFlag "RIO_VERBOSE" .!~ False
-  logOptions <- logOptionsHandle stdout isVerbose
+  isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
+  logOptions   <- logOptionsHandle stdout isVerbose
 
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger LevelWarn) _sentryDSN
 
