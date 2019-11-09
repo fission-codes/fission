@@ -11,7 +11,6 @@ import Network.Wai.Internal (Request (..))
 import Network.Wai.Logger
 
 import Fission.Internal.Constraint
-import Fission.Web.Error
 
 fromLogFunc :: LogFunc -> ApacheLogger
 fromLogFunc logger request status fileSize =
@@ -19,7 +18,6 @@ fromLogFunc logger request status fileSize =
 
 rioApacheLogger
   :: ( MonadRIO   cfg m
-     , MonadThrow     m
      , HasLogFunc cfg
      )
    => Request
@@ -27,16 +25,9 @@ rioApacheLogger
    -> Maybe Integer
    -> m ()
 rioApacheLogger Request {..} Status {statusCode} _mayLogSize =
-  if | statusCode >= 500 -> do
-        logError formatted
-        throwM $ (toServerError statusCode)
-
-     | statusCode >= 400 -> do
-         logInfo  formatted
-         throwM $ (toServerError statusCode)
-
-     | otherwise ->
-         logDebug formatted
+  if | statusCode >= 500 -> logError formatted
+     | statusCode >= 400 -> logInfo  formatted
+     | otherwise         -> logDebug formatted
   where
     formatted :: Utf8Builder
     formatted = mconcat

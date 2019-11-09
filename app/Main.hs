@@ -32,8 +32,7 @@ import qualified Fission.Web.Environment.Types     as Web
 
 import qualified Fission.AWS.Environment.Types as AWS
 
-import qualified Fission.Web.Log.Sentry           as Sentry
-import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
+import qualified Fission.Web.Log.Sentry as Sentry
 
 main :: IO ()
 main = do
@@ -65,17 +64,17 @@ main = do
   isVerbose  <- getFlag "RIO_VERBOSE" .!~ False
   logOptions <- logOptionsHandle stdout isVerbose
 
-  condSentryLogger <- maybe (pure mempty) (Sentry.mkInnerLogger LevelWarn) _sentryDSN
+  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger LevelWarn) _sentryDSN
 
   withLogFunc (setLogUseTime True logOptions) $ \baseLogger -> do
     let
       Web.Port port' = _port
 
-      _logFunc       = baseLogger <> condSentryLogger
-      settings       = mkSettings _logFunc port' _sentryDSN
+      _logFunc = baseLogger <> condSentryLogger
+      settings = mkSettings _logFunc port'
 
-      runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
-      condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
+      runner    = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
+      condDebug = if env ^. web . Web.pretty then id else logStdoutDev
 
     runRIO Config {..} do
       logDebug . displayShow =<< ask
@@ -86,15 +85,11 @@ main = do
             . condDebug
             =<< Web.app
 
-mkSettings :: LogFunc -> Port -> Maybe Sentry.DSN -> Settings
-mkSettings logger port mayDSN = do
-  condSentryMiddleware
-    $ setPort port
-    $ setLogger (Web.Log.fromLogFunc logger)
-    $ setTimeout serverTimeout
-    $ defaultSettings
-  where
-    condSentryMiddleware = maybe id (setOnException . Sentry.onException) mayDSN
+mkSettings :: LogFunc -> Port -> Settings
+mkSettings logger port = defaultSettings
+                       & setPort port
+                       & setLogger (Web.Log.fromLogFunc logger)
+                       & setTimeout serverTimeout
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
