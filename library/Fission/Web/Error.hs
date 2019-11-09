@@ -95,5 +95,7 @@ throw err = do
     serverError@(ServerError {..}) = toServerError err
     status = Status errHTTPCode $ Lazy.toStrict errBody
 
-  when (statusIsServerError status) (logError $ display err)
+  when (statusIsServerError status) do
+    logError $ display err
+
   throwM serverError

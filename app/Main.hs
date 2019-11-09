@@ -62,33 +62,39 @@ main = do
   _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
-  isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
-  logOptions   <- logOptionsHandle stdout isVerbose
+  isVerbose  <- getFlag "RIO_VERBOSE" .!~ False
+  logOptions <- logOptionsHandle stdout isVerbose
 
-  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO Config {..} do
-    logDebug . displayShow =<< ask
+  condSentryLogger <- maybe (pure mempty) (Sentry.mkInnerLogger LevelWarn) _sentryDSN
 
+  withLogFunc (setLogUseTime True logOptions) $ \baseLogger -> do
     let
       Web.Port port' = _port
+
+      _logFunc       = baseLogger <> condSentryLogger
       settings       = mkSettings _logFunc port' _sentryDSN
+
       runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
       condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
-    when (env ^. web . Web.monitor) Monitor.wai
-    liftIO . runner settings
-           . CORS.middleware
-           . condDebug
-           =<< Web.app
+    runRIO Config {..} do
+      logDebug . displayShow =<< ask
+
+      when (env ^. web . Web.monitor) Monitor.wai
+      liftIO . runner settings
+            . CORS.middleware
+            . condDebug
+            =<< Web.app
 
 mkSettings :: LogFunc -> Port -> Maybe Sentry.DSN -> Settings
-mkSettings logger port mayDSN =
-  condSentry
+mkSettings logger port mayDSN = do
+  condSentryMiddleware
     $ setPort port
     $ setLogger (Web.Log.fromLogFunc logger)
     $ setTimeout serverTimeout
     $ defaultSettings
   where
-    condSentry = maybe id (setOnException . Sentry.onException) mayDSN
+    condSentryMiddleware = maybe id (setOnException . Sentry.onException) mayDSN
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"

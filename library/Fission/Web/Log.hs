@@ -26,7 +26,7 @@ rioApacheLogger
    -> Status
    -> Maybe Integer
    -> m ()
-rioApacheLogger request@Request {..} Status {statusCode} _mayLogSize =
+rioApacheLogger Request {..} Status {statusCode} _mayLogSize =
   if | statusCode >= 500 -> do
         logError formatted
         throwM $ (toServerError statusCode)
