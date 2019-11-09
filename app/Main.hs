@@ -68,13 +68,11 @@ main = do
 
   withLogFunc (setLogUseTime True logOptions) $ \baseLogger -> do
     let
+      _logFunc       = baseLogger <> condSentryLogger
       Web.Port port' = _port
-
-      _logFunc = baseLogger <> condSentryLogger
-      settings = mkSettings _logFunc port'
-
-      runner    = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
-      condDebug = if env ^. web . Web.pretty then id else logStdoutDev
+      settings       = mkSettings _logFunc port'
+      runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
+      condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
 
     runRIO Config {..} do
       logDebug . displayShow =<< ask
