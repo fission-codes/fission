@@ -1,16 +1,7 @@
 -- | External app configuration ("knobs")
-module Fission.Environment.Types
-  ( Environment (..)
-  , ipfs
-  , storage
-  , web
-  , aws
-  ) where
+module Fission.Environment.Types (Environment (..)) where
 
-import RIO hiding (timeout)
-
-import Data.Aeson
-import Control.Lens (makeLenses)
+import Fission.Prelude
 
 import qualified Fission.IPFS.Environment.Types    as IPFS
 import qualified Fission.Storage.Environment.Types as Storage
@@ -19,19 +10,17 @@ import qualified Fission.AWS.Environment.Types     as AWS
 
 -- | Top-level application configuration. The "knobs" for your app.
 data Environment = Environment
-  { _ipfs    :: !IPFS.Environment    -- ^ IPFS configuration
-  , _storage :: !Storage.Environment -- ^ Storage/DB configuration
-  , _web     :: !Web.Environment     -- ^ Web configuration
-  , _aws     :: !AWS.Environment     -- ^ AWS configuration
+  { ipfs    :: !IPFS.Environment    -- ^ IPFS configuration
+  , storage :: !Storage.Environment -- ^ Storage/DB configuration
+  , web     :: !Web.Environment     -- ^ Web configuration
+  , aws     :: !AWS.Environment     -- ^ AWS configuration
   } deriving Show
-
-makeLenses ''Environment
 
 instance FromJSON Environment where
   parseJSON = withObject "Environment" \obj -> do
-    _ipfs    <- obj .: "ipfs"
-    _storage <- obj .: "storage"
-    _web     <- obj .: "web"
-    _aws     <- obj .: "aws"
+    ipfs    <- obj .: "ipfs"
+    storage <- obj .: "storage"
+    web     <- obj .: "web"
+    aws     <- obj .: "aws"
 
     return $ Environment {..}

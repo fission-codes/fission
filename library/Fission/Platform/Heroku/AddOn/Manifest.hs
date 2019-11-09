@@ -1,46 +1,34 @@
 module Fission.Platform.Heroku.AddOn.Manifest
   ( Manifest (..)
-  , id
-  , name
-  , api
   , API (..)
-  , password
-  , ssoSalt
   ) where
 
-import RIO hiding (id)
-
-import Control.Lens (makeLenses)
-import Data.Aeson
+import Fission.Prelude
 
 data API = API
-  { _password :: Text
-  , _ssoSalt  :: Text
+  { password :: Text
+  , ssoSalt  :: Text
   } deriving ( Show
              , Eq
              )
-
-makeLenses ''API
 
 instance FromJSON API where
   parseJSON = withObject "Heroku.API" \obj -> do
-    _password <- obj .: "password"
-    _ssoSalt  <- obj .: "sso_salt"
+    password <- obj .: "password"
+    ssoSalt  <- obj .: "sso_salt"
     return API {..}
 
 data Manifest = Manifest
-  { _id   :: Text
-  , _name :: Text
-  , _api  :: API
+  { id   :: Text
+  , name :: Text
+  , api  :: API
   } deriving ( Show
              , Eq
              )
 
-makeLenses ''Manifest
-
 instance FromJSON Manifest where
   parseJSON = withObject "Heroku.Manifest" \obj -> do
-    _id   <- obj .: "id"
-    _name <- obj .: "name"
-    _api  <- obj .: "api"
+    id   <- obj .: "id"
+    name <- obj .: "name"
+    api  <- obj .: "api"
     return Manifest {..}

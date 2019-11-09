@@ -1,8 +1,5 @@
 module Main (main) where
 
-import           RIO
-import           RIO.Process (mkDefaultProcessContext)
-
 import qualified Data.Aeson as JSON
 import qualified Data.Yaml  as YAML
 
@@ -11,6 +8,7 @@ import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
+import           Fission.Prelude
 import           Fission.Internal.Orphanage.RIO ()
 import qualified Fission.Monitor            as Monitor
 import           Fission.Storage.PostgreSQL (connPool)
@@ -38,40 +36,40 @@ main = do
   env            <- YAML.decodeFileThrow  "./env.yaml"
 
   let
-    Storage.Environment {..} = env ^. storage
-    Web.Environment     {..} = env ^. web
-    AWS.Environment     {..} = env ^. aws
+    Storage.Environment {..} = env |> storage
+    Web.Environment     {..} = env |> web
+    AWS.Environment     {..} = env |> aws
 
-    _herokuID       = Hku.ID       . encodeUtf8 $ manifest ^. Hku.id
-    _herokuPassword = Hku.Password . encodeUtf8 $ manifest ^. Hku.api ^. Hku.password
+    herokuID       = Hku.ID       <| encodeUtf8 (manifest |> Hku.id)
+    herokuPassword = Hku.Password <| encodeUtf8 (manifest |> Hku.api |> Hku.password)
 
-    _ipfsPath    = env ^. ipfs . binPath
-    _ipfsURL     = env ^. ipfs . url
-    _ipfsTimeout = env ^. ipfs . IPFS.timeout
+    ipfsPath    = env |> ipfs |> binPath
+    ipfsURL     = env |> ipfs |> url
+    ipfsTimeout = env |> ipfs |> IPFS.timeout
 
-    _awsAccessKey  = _accessKey
-    _awsSecretKey  = _secretKey
-    _awsZoneID     = _zoneID
-    _awsDomainName = _domainName
+    awsAccessKey  = accessKey
+    awsSecretKey  = secretKey
+    awsZoneID     = zoneID
+    awsDomainName = domainName
 
-  _dbPool      <- runSimpleApp $ connPool _stripeCount _connsPerStripe _connTTL _pgConnectInfo
-  _processCtx  <- mkDefaultProcessContext
-  _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+  dbPool      <- runSimpleApp $ connPool stripeCount connsPerStripe connTTL pgConnectInfo
+  processCtx  <- mkDefaultProcessContext
+  httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
   isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
   logOptions   <- logOptionsHandle stdout isVerbose
 
-  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> runRIO Config {..} do
+  withLogFunc (setLogUseTime True logOptions) $ \logFunc -> runRIO Config {..} do
     logDebug . displayShow =<< ask
 
     let
-      Web.Port port' = _port
-      settings       = mkSettings _logFunc port'
-      runner         = if env ^. web . Web.isTLS then runTLS tlsSettings' else runSettings
-      condDebug      = if env ^. web . Web.pretty then id else logStdoutDev
+      Web.Port port' = port
+      settings       = mkSettings logFunc port'
+      runner         = if env |> web |> Web.isTLS then runTLS tlsSettings' else runSettings
+      condDebug      = if env |> web |> Web.pretty then identity else logStdoutDev
 
-    when (env ^. web . Web.monitor) Monitor.wai
+    when (env |> web |> Web.monitor) Monitor.wai
     liftIO . runner settings
            . CORS.middleware
            . condDebug

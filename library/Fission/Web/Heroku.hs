@@ -5,16 +5,13 @@ module Fission.Web.Heroku
   , server
   ) where
 
-import           Flow
-import           RIO
-import           RIO.Process (HasProcessContext)
-
-import           Data.Has
 import           Data.UUID
 import           Database.Selda as Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+
+import           Fission.Prelude
 
 import qualified Fission.Web.Error       as Web.Err
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
@@ -71,39 +68,42 @@ provision :: HasLogFunc      cfg
           => Has IPFS.Timeout cfg
           => MonadSelda (RIO cfg)
           => RIOServer       cfg ProvisionAPI
-provision Request {_uuid, _region} = do
-  Web.Host url <- Config.get
-  ipfsPeers    <- getExternalAddress >>= \case
-                   Right peers' ->
-                     pure peers'
-                   Left err -> do
-                     logError $ displayShow err
-                     return []
+provision Request {uuid, region} = do
+  Web.Host url' <- Config.get
+  ipfsPeers     <- getExternalAddress >>= \case
+                     Right peers' ->
+                       pure peers'
 
-  username     <- liftIO $ User.genID
-  secret       <- liftIO $ Random.text 200
-  User.createWithHeroku _uuid _region username secret >>= \case
-    Left err -> Web.Err.throw err
+                     Left err -> do
+                       logError $ displayShow err
+                       return []
+
+  username <- liftIO <| User.genID
+  secret   <- liftIO <| Random.text 200
+
+  User.createWithHeroku uuid region username secret >>= \case
+    Left err ->
+      Web.Err.throw err
+
     Right userID -> do
       logInfo $ mconcat
         [ "Provisioned UUID: "
-        , displayShow _uuid
+        , displayShow uuid
         , " as "
         , displayShow userID
         ]
 
       let
-        userConfig = User.Provision
-          { _url      = url
-          , _username = User.hashID userID
-          , _password = Secret secret
-          }
 
       return Provision
-        { _id      = userID
-        , _config  = userConfig
-        , _peers   = ipfsPeers
-        , _message = "Successfully provisioned Interplanetary Fission!"
+        { id      = userID
+        , peers   = ipfsPeers
+        , message = "Successfully provisioned Interplanetary Fission!"
+        , config  = User.Provision
+           { username = User.hashID userID
+           , password = Secret secret
+           , url      = url'
+           }
         }
 
 type DeprovisionAPI = Capture "addon_id" UUID
@@ -140,7 +140,7 @@ deprovision uuid' = do
 
   transaction do
     deleteFrom_ Table.userCIDs <| UserCID.userFK' `is` userID
-    deleteFrom_ Table.users    <| User.userID'    `is` userID
+    deleteFrom_ Table.users    <| #userID         `is` userID
     deleteFrom_ Table.addOns   <| AddOn.uuid'     `is` uuid'
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur

@@ -4,16 +4,14 @@ module Fission.Internal.Development
   , runOne
   , mkConfig
   , mkConfig'
-  , pgConnectInfo
+  , pgConnectInfo'
   ) where
-
-import           RIO
-import           RIO.Process (ProcessContext, mkDefaultProcessContext)
 
 import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 
+import           Fission.Prelude
 import           Fission.Config.Types (Config (..))
 import           Fission.Internal.Orphanage.RIO ()
 import           Fission.Storage.PostgreSQL (connPool)
@@ -34,11 +32,11 @@ import           Fission.Web.Types
 runOne :: RIO Config a -> IO a
 runOne action = do
   logOptions   <- logOptionsHandle stdout True
-  withLogFunc (setLogUseTime True logOptions) $ \_logFunc -> do
-    _dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo
-    _processCtx  <- mkDefaultProcessContext
-    _httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-    run _logFunc _dbPool _processCtx _httpManager action
+  withLogFunc (setLogUseTime True logOptions) $ \logFunc -> do
+    dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+    processCtx  <- mkDefaultProcessContext
+    httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+    run logFunc dbPool processCtx httpManager action
 
 {- | Run some action(s) in the app's context,
      but asks for existing portions of the setup that require side effects,
@@ -46,11 +44,11 @@ runOne action = do
 
      == Example Use
 
-     > dbPool <- runSimpleApp $ connPool 1 1 3600 _pgConnectInfo
+     > dbPool <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
      > processCtx <- mkDefaultProcessContext
      > httpManager <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions <- logOptionsHandle stdout True
-     > (logFunc, _ :: IO ()) <- newLogFunc $ setLogUseTime True logOptions
+     > (logFunc,  :: IO ()) <- newLogFunc $ setLogUseTime True logOptions
      >
      > let runSession = run logFunc dbPool processCtx httpManager
      >
@@ -66,38 +64,37 @@ run :: LogFunc
     -> HTTP.Manager
     -> RIO Config a
     -> IO a
-run _logFunc _dbPool _processCtx _httpManager action =
+run logFunc dbPool processCtx httpManager action =
   runRIO config do
-    logDebug $ displayShow config
+    logDebug <| displayShow config
     action
   where
     config = Config {..}
 
-    _herokuID       = Hku.ID       "HEROKU_ID"
-    _herokuPassword = Hku.Password "HEROKU_PASSWORD"
+    host          = Host <| BaseUrl Https "mycoolapp.io" 443 ""
+    pgConnectInfo = pgConnectInfo'
 
-    _ipfsPath    = "/usr/local/bin/ipfs"
-    _ipfsURL     = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
-    _ipfsTimeout = IPFS.Timeout 3600
+    herokuID       = Hku.ID       "HEROKU_ID"
+    herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
-    _pgConnectInfo = pgConnectInfo
+    ipfsPath    = "/usr/local/bin/ipfs"
+    ipfsURL     = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsTimeout = IPFS.Timeout 3600
 
-    _host           = Host $ BaseUrl Https "mycoolapp.io" 443 ""
-
-    _awsAccessKey = "SOME_AWS_ACCESS_KEY"
-    _awsSecretKey = "SOME_AWS_SECRET_KEY"
-    _awsZoneID = "SOME_AWS_ZONE_ID"
-    _awsDomainName = "SOME_AWS_DOMAIN_NAME"
+    awsAccessKey  = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey  = "SOME_AWS_SECRET_KEY"
+    awsZoneID     = "SOME_AWS_ZONE_ID"
+    awsDomainName = "SOME_AWS_DOMAIN_NAME"
 
 {- | Setup a complete development configuration with all pure defaults set
 
      == Example Use
 
-     > dbPool       <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo
+     > dbPool       <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
      > processCtx   <- mkDefaultProcessContext
      > httpManager  <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions   <- logOptionsHandle stdout True
-     > (logFunc, _) <- newLogFunc $ setLogUseTime True logOptions
+     > (logFunc, ) <- newLogFunc $ setLogUseTime True logOptions
      >
      > let cfg = mkConfig dbPool processCtx httpManager logFunc
      > let run' = runRIO cfg
@@ -110,28 +107,27 @@ run _logFunc _dbPool _processCtx _httpManager action =
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
-     > let run' = runRIO cfg { _ipfsPath = "~/Downloads/ipfs" }
+     > let run' = runRIO cfg { ipfsPath = "~/Downloads/ipfs" }
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig :: DB.Pool -> ProcessContext -> HTTP.Manager -> LogFunc -> Config
-mkConfig _dbPool _processCtx _httpManager _logFunc = Config {..}
+mkConfig dbPool processCtx httpManager logFunc = Config {..}
   where
-    _herokuID       = Hku.ID       "HEROKU_ID"
-    _herokuPassword = Hku.Password "HEROKU_PASSWORD"
+    host          = Host <| BaseUrl Https "mycoolapp.io" 443 ""
+    pgConnectInfo = pgConnectInfo'
 
-    _ipfsPath       = "/usr/local/bin/ipfs"
-    _ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
-    _ipfsTimeout    = IPFS.Timeout 3600
+    herokuID       = Hku.ID       "HEROKU_ID"
+    herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
-    _pgConnectInfo  = pgConnectInfo
+    ipfsPath       = "/usr/local/bin/ipfs"
+    ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsTimeout    = IPFS.Timeout 3600
 
-    _host           = Host $ BaseUrl Https "mycoolapp.io" 443 ""
-
-    _awsAccessKey = "SOME_AWS_ACCESS_KEY"
-    _awsSecretKey = "SOME_AWS_SECRET_KEY"
-    _awsZoneID = "SOME_AWS_ZONE_ID"
-    _awsDomainName = "SOME_AWS_DOMAIN_NAME"
+    awsAccessKey  = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey  = "SOME_AWS_SECRET_KEY"
+    awsZoneID     = "SOME_AWS_ZONE_ID"
+    awsDomainName = "SOME_AWS_DOMAIN_NAME"
 
 {- | Setup a complete development configuration.
 
@@ -140,7 +136,7 @@ mkConfig _dbPool _processCtx _httpManager _logFunc = Config {..}
 
      == Example Use
 
-     > (cfg, _) <- mkConfig'
+     > (cfg, ) <- mkConfig'
      > let run' = runRIO cfg
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
@@ -150,14 +146,14 @@ mkConfig _dbPool _processCtx _httpManager _logFunc = Config {..}
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
-     > (cfg, _) <- mkConfig'
-     > let run' = runRIO cfg { _ipfsPath = "~/Downloads/ipfs" }
+     > (cfg, ) <- mkConfig'
+     > let run' = runRIO cfg { ipfsPath = "~/Downloads/ipfs" }
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig' :: IO (Config, IO ())
 mkConfig' = do
-  dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo
+  dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
@@ -168,5 +164,5 @@ mkConfig' = do
   let cfg = mkConfig dbPool processCtx httpManager logFunc
   return (cfg, close)
 
-pgConnectInfo :: PGConnectInfo
-pgConnectInfo = PGConnectInfo "localhost" 5432 "web_api" Nothing Nothing Nothing
+pgConnectInfo' :: PGConnectInfo
+pgConnectInfo' = PGConnectInfo "localhost" 5432 "webapi" Nothing Nothing Nothing
