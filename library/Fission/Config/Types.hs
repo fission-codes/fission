@@ -55,46 +55,61 @@ instance Show Config where
     ]
 
 instance HasProcessContext Config where
-  processContextL = field @"processCtx"
+  processContextL = lens processCtx \cfg newProcessCtx ->
+    cfg { processCtx = newProcessCtx }
 
 instance HasLogFunc Config where
-  logFuncL = field @"logFunc"
+  logFuncL = lens logFunc \cfg newLogFunc' ->
+    cfg { logFunc = newLogFunc' }
 
 instance Has HTTP.Manager Config where
-  hasLens = field @"httpManager"
+  hasLens = lens httpManager \cfg newHttpManager ->
+    cfg { httpManager = newHttpManager }
 
 instance Has IPFS.BinPath Config where
-  hasLens = field @"ipfsPath"
+  hasLens = lens ipfsPath \cfg newIPFSPath ->
+    cfg { ipfsPath = newIPFSPath }
 
 instance Has IPFS.URL Config where
-  hasLens = field @"ipfsURL"
+  hasLens = lens ipfsURL \cfg newIPFSURL ->
+    cfg { ipfsURL = newIPFSURL }
 
 instance Has IPFS.Timeout Config where
-  hasLens = field @"ipfsTimeout"
+  hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
+    cfg { ipfsTimeout = newIPFSTimeout }
 
 instance Has PGConnectInfo Config where
-  hasLens = field @"pgConnectInfo"
+  hasLens = lens pgConnectInfo \cfg newPGConnectInfo ->
+    cfg { pgConnectInfo = newPGConnectInfo }
 
 instance Has DB.Pool Config where
-  hasLens = field @"dbPool"
+  hasLens = lens dbPool \cfg newDBPool ->
+    cfg { dbPool = newDBPool }
 
 instance Has Heroku.ID Config where
-  hasLens = field @"herokuID"
+  hasLens = lens herokuID \cfg newHerokuID ->
+    cfg { herokuID = newHerokuID }
 
 instance Has Heroku.Password Config where
-  hasLens = field @"herokuPassword"
+  hasLens = lens herokuPassword \cfg newHerokuPassword ->
+    cfg { herokuPassword = newHerokuPassword }
 
 instance Has AWS.AccessKey Config where
-  hasLens = field @"awsAccessKey"
+  hasLens = lens awsAccessKey \cfg newAWSAccessKey ->
+    cfg { awsAccessKey = newAWSAccessKey }
 
 instance Has AWS.SecretKey Config where
-  hasLens = field @"awsSecretKey"
+  hasLens = lens awsSecretKey \cfg newAWSSecretKey ->
+    cfg { awsSecretKey = newAWSSecretKey }
 
 instance Has AWS.ZoneID Config where
-  hasLens = field @"awsZoneID"
+  hasLens = lens awsZoneID \cfg newAWSZoneID ->
+    cfg { awsZoneID = newAWSZoneID }
 
 instance Has AWS.DomainName Config where
-  hasLens = field @"awsDomainName"
+  hasLens = lens awsDomainName \cfg newAWSDomainName ->
+    cfg { awsDomainName = newAWSDomainName }
 
 instance Has Host Config where
-  hasLens = field @"host"
+  hasLens = lens host \cfg newHost ->
+    cfg { host = newHost }

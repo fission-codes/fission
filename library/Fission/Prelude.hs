@@ -2,7 +2,6 @@
 module Fission.Prelude
   ( module Control.Lens
   , module Data.Aeson
-  , module Data.Generics.Product
   , module Data.Has
   , module Data.Maybe
   , module Flow
@@ -13,15 +12,14 @@ module Fission.Prelude
   , UTCTime (..)
   ) where
 
-import Control.Lens          ((%~), (.~), (?~), (^?))
+import Control.Lens ((%~), (.~), (?~), (^?))
 import Data.Aeson
-import Data.Generics.Product
 import Data.Has
 import Data.Maybe
 import Flow
-import RIO                   hiding (id, timeout, ($), (&))
+import RIO          hiding (id, timeout, ($), (&))
 import RIO.Process
-import RIO.Time              (NominalDiffTime, UTCTime (..))
+import RIO.Time     (NominalDiffTime, UTCTime (..))
 
 identity :: a -> a
 identity a = a

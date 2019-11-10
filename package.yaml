@@ -91,7 +91,6 @@ dependencies:
   - flow
   - filepath
   - fsnotify
-  - generic-lens
   - haskeline
   - http-client
   - http-client-tls
