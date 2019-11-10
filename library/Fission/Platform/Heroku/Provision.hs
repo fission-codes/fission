@@ -50,10 +50,10 @@ instance FromJSON Request where
 
 instance ToSchema Request where
   declareNamedSchema _ = do
-    planSchema   <- declareSchemaRef $ Proxy @Plan.Tier
-    regionSchema <- declareSchemaRef $ Proxy @Heroku.Region
-    stringSchema <- declareSchemaRef $ Proxy @String
-    uuidSchema   <- declareSchemaRef $ Proxy @UUID
+    planSchema   <- declareSchemaRef <| Proxy @Plan.Tier
+    regionSchema <- declareSchemaRef <| Proxy @Heroku.Region
+    stringSchema <- declareSchemaRef <| Proxy @String
+    uuidSchema   <- declareSchemaRef <| Proxy @UUID
 
     mempty
       |> example ?~ toJSON Request
@@ -125,10 +125,10 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    uId       <- declareSchemaRef $ Proxy @(ID User)
-    usrCfg    <- declareSchemaRef $ Proxy @User.Provision
-    ipfsPeers <- declareSchemaRef $ Proxy @[IPFS.Peer]
-    txt       <- declareSchemaRef $ Proxy @Text
+    uId       <- declareSchemaRef <| Proxy @(ID User)
+    usrCfg    <- declareSchemaRef <| Proxy @User.Provision
+    ipfsPeers <- declareSchemaRef <| Proxy @[IPFS.Peer]
+    txt       <- declareSchemaRef <| Proxy @Text
 
     mempty
       |> description ?~ "Provisioned user login information"

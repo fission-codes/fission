@@ -19,7 +19,7 @@ import Data.Generics.Product
 import Data.Has
 import Data.Maybe
 import Flow
-import RIO                   hiding (id, timeout)
+import RIO                   hiding (id, timeout, ($), (&))
 import RIO.Process
 import RIO.Time              (NominalDiffTime, UTCTime (..))
 

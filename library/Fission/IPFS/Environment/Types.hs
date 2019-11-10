@@ -17,4 +17,4 @@ instance FromJSON Environment where
     binPath <- obj .:? "binPath" .!= "/usr/local/bin/ipfs"
     url     <- obj .:  "url" >>= parseJSON . String
 
-    return $ Environment {..}
+    return <| Environment {..}

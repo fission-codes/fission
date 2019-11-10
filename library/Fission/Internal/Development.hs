@@ -32,8 +32,8 @@ import           Fission.Web.Types
 runOne :: RIO Config a -> IO a
 runOne action = do
   logOptions   <- logOptionsHandle stdout True
-  withLogFunc (setLogUseTime True logOptions) $ \logFunc -> do
-    dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+  withLogFunc (setLogUseTime True logOptions) \logFunc -> do
+    dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo'
     processCtx  <- mkDefaultProcessContext
     httpManager <- HTTP.newManager HTTP.defaultManagerSettings
     run logFunc dbPool processCtx httpManager action
@@ -153,13 +153,13 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 -}
 mkConfig' :: IO (Config, IO ())
 mkConfig' = do
-  dbPool      <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+  dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo'
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
   -- A bit dirty; doesn't handle teardown
   logOptions       <- logOptionsHandle stdout True
-  (logFunc, close) <- newLogFunc $ setLogUseTime True logOptions
+  (logFunc, close) <- newLogFunc <| setLogUseTime True logOptions
 
   let cfg = mkConfig dbPool processCtx httpManager logFunc
   return (cfg, close)

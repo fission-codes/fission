@@ -21,4 +21,4 @@ instance FromJSON Environment where
     port    <- obj .:? "port"    .!= Web.Port if isTLS then 443 else 80
     host    <- obj .:  "host"
 
-    return $ Environment {..}
+    return <| Environment {..}

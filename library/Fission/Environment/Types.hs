@@ -23,4 +23,4 @@ instance FromJSON Environment where
     web     <- obj .: "web"
     aws     <- obj .: "aws"
 
-    return $ Environment {..}
+    return <| Environment {..}

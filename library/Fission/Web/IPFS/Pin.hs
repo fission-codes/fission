@@ -62,7 +62,7 @@ unpin
      )
   => ID User
   -> RIOServer cfg UnpinAPI
-unpin uID _cid@CID { unaddress = hash } = do
+unpin uID cid@CID { unaddress = hash } = do
   hash
     |> eqUserCID uID
     |> deleteFrom_ userCIDs
@@ -72,6 +72,11 @@ unpin uID _cid@CID { unaddress = hash } = do
                  <| limit 0 1
                  <| select userCIDs `suchThat` eqUserCID uID hash
 
-  when (null remaining) $ IPFS.Pin.rm _cid >>= void . Web.Err.ensure
+  when (null remaining) do
+    result <- IPFS.Pin.rm cid
+
+    result
+      |> Web.Err.ensure
+      |> void
 
   return NoContent

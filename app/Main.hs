@@ -52,15 +52,15 @@ main = do
     awsZoneID     = zoneID
     awsDomainName = domainName
 
-  dbPool      <- runSimpleApp $ connPool stripeCount connsPerStripe connTTL pgConnectInfo
+  dbPool      <- runSimpleApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
-  isVerbose    <- getFlag "RIO_VERBOSE" .!~ False
-  logOptions   <- logOptionsHandle stdout isVerbose
+  isVerbose  <- getFlag "RIO_VERBOSE" .!~ False
+  logOptions <- logOptionsHandle stdout isVerbose
 
-  withLogFunc (setLogUseTime True logOptions) $ \logFunc -> runRIO Config {..} do
+  withLogFunc (setLogUseTime True logOptions) \logFunc -> runRIO Config {..} do
     logDebug . displayShow =<< ask
 
     let
@@ -77,9 +77,9 @@ main = do
 
 mkSettings :: LogFunc -> Port -> Settings
 mkSettings logger port = defaultSettings
-                       & setPort port
-                       & setLogger (Web.Log.fromLogFunc logger)
-                       & setTimeout serverTimeout
+                      |> setPort port
+                      |> setLogger (Web.Log.fromLogFunc logger)
+                      |> setTimeout serverTimeout
 
 tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"

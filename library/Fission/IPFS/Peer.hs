@@ -34,11 +34,11 @@ all
 all = rawList <&> \case
   (ExitSuccess, allRaw, _) ->
     case UTF8.encode allRaw of
-      Left  _    -> Left <| DecodeFailure <| show allRaw
-      Right text -> Right $ IPFS.Peer <$> Text.lines text
+      Left  _    -> Left  <| DecodeFailure <| show allRaw
+      Right text -> Right <| IPFS.Peer <$> Text.lines text
 
   (ExitFailure _, _, err) ->
-    Left . UnknownErr $ UTF8.textShow err
+    Left . UnknownErr <| UTF8.textShow err
 
 rawList
   :: ( MonadRIO          cfg m
@@ -60,7 +60,7 @@ connect
   => Peer
   -> m (Either IPFS.Peer.Error ())
 connect peer@(Peer peerID) = IPFSProc.run ["swarm", "connect"] (UTF8.textToLazyBS peerID) >>= pure . \case
-  (ExitFailure _ , _, _) -> Left $ CannotConnect peer
+  (ExitFailure _ , _, _) -> Left <| CannotConnect peer
   (ExitSuccess   , _, _) -> Right ()
 
 peerAddressRe :: Regex

@@ -32,4 +32,4 @@ instance FromJSON Environment where
     zoneID     <- obj .: "zone_id"
     domainName <- obj .: "domain_name"
 
-    return $ Environment {..}
+    return <| Environment {..}

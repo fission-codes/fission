@@ -78,7 +78,7 @@ provision Request {uuid, region} = do
                        pure peers'
 
                      Left err -> do
-                       logError $ displayShow err
+                       logError <| displayShow err
                        return []
 
   username <- liftIO <| User.genID
@@ -89,7 +89,7 @@ provision Request {uuid, region} = do
       Web.Err.throw err
 
     Right userID -> do
-      logInfo $ mconcat
+      logInfo <| mconcat
         [ "Provisioned UUID: "
         , displayShow uuid
         , " as "
@@ -148,7 +148,7 @@ deprovision uuid' = do
     deleteFrom_ Table.addOns   <| #uuid   `is` uuid'
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
-  forM_ toUnpin $ IPFS.Pin.rm >=> \case
+  forM_ toUnpin <| IPFS.Pin.rm >=> \case
     Left ipfsMsg -> do
       logError <| "Unable to unpin CID: " <> display ipfsMsg
       return ()

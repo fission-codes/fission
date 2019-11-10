@@ -34,9 +34,9 @@ instance FromJSON Tier where
   parseJSON other = cantParse other
 
 instance ToSchema Tier where
-  declareNamedSchema = genericDeclareNamedSchema
-    $ defaultSchemaOptions
+  declareNamedSchema =
+    genericDeclareNamedSchema <| defaultSchemaOptions
       { Swagger.constructorTagModifier = camelCase }
 
 cantParse :: (Monad m, Show a) => a -> m b
-cantParse other = fail $ "Unable to parse " <> show other
+cantParse other = fail <| "Unable to parse " <> show other

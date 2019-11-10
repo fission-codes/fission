@@ -21,4 +21,4 @@ instance FromJSON Environment where
     connsPerStripe <- obj .: "conns_per_stripe"
     connTTL        <- obj .: "conn_ttl"
 
-    return $ Environment {..}
+    return <| Environment {..}
