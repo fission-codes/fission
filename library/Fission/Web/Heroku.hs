@@ -31,8 +31,6 @@ import qualified Fission.User.Table           as Table
 import qualified Fission.User.Provision.Types as User
 
 import           Fission.IPFS.CID.Types
-
-import qualified Fission.User.CID       as UserCID
 import qualified Fission.User.CID.Table as Table
 
 import qualified Fission.Platform.Heroku.AddOn       as AddOn
@@ -50,24 +48,29 @@ type API = ProvisionAPI :<|> DeprovisionAPI
 type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
                  :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
-server :: HasLogFunc        cfg
-       => Has Web.Host      cfg
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => HasProcessContext cfg
-       => Has IPFS.BinPath cfg
-       => Has IPFS.Timeout cfg
-       => MonadSelda   (RIO cfg)
-       => RIOServer         cfg API
+server
+  :: ( HasLogFunc        cfg
+     , Has Web.Host      cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     , HasProcessContext cfg
+     , Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , MonadMask    (RIO cfg)
+     , MonadSelda   (RIO cfg)
+     )
+  => RIOServer cfg API
 server = provision :<|> deprovision
 
-provision :: HasLogFunc      cfg
-          => Has Web.Host    cfg
-          => HasProcessContext cfg
-          => Has IPFS.BinPath cfg
-          => Has IPFS.Timeout cfg
-          => MonadSelda (RIO cfg)
-          => RIOServer       cfg ProvisionAPI
+provision
+  :: ( HasLogFunc        cfg
+     , Has Web.Host      cfg
+     , HasProcessContext cfg
+     , Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , MonadSelda   (RIO cfg)
+     )
+  => RIOServer cfg ProvisionAPI
 provision Request {uuid, region} = do
   Web.Host url' <- Config.get
   ipfsPeers     <- getExternalAddress >>= \case
@@ -93,8 +96,6 @@ provision Request {uuid, region} = do
         , displayShow userID
         ]
 
-      let
-
       return Provision
         { id      = userID
         , peers   = ipfsPeers
@@ -109,39 +110,42 @@ provision Request {uuid, region} = do
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[Heroku.MIME.VendorJSONv3] NoContent
 
-deprovision :: MonadSelda   (RIO cfg)
-            => HasLogFunc        cfg
-            => Has HTTP.Manager  cfg
-            => Has IPFS.URL      cfg
-            => RIOServer         cfg DeprovisionAPI
+deprovision
+  :: ( MonadSelda   (RIO cfg)
+     , MonadMask    (RIO cfg)
+     , HasLogFunc        cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     )
+  => RIOServer cfg DeprovisionAPI
 deprovision uuid' = do
   let err = Web.Err.ensureMaybe err410 -- HTTP 410 is specified by the Heroku AddOn docs
 
-  AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid' uuid'
-  User  {userID}   <- err =<< Query.findOne do
+  AddOn { addOnID } <- err =<< Query.oneEq Table.addOns #uuid uuid'
+  User  { userID }  <- err =<< Query.findOne do
     user <- select Table.users
-    restrict <| user ! #herokuAddOnId .== literal (Just _addOnID)
+    restrict <| user ! #herokuAddOnId .== literal (Just addOnID)
             .&& user ! #active        .== true
     return user
 
   usersCIDs <- query do
     uCIDs <- select Table.userCIDs
-    restrict (uCIDs ! #_userFK .== literal userID)
-    return (uCIDs ! UserCID.cid')
+    restrict (uCIDs ! #userFK .== literal userID)
+    return (uCIDs ! #cid)
 
   cidOccur <- query do
     (liveCID' :*: occurences') <- aggregate do
       uCIDs <- select Table.userCIDs
-      theCID <- groupBy (uCIDs ! UserCID.cid')
-      return (theCID :*: count (uCIDs ! UserCID.cid'))
+      theCID <- groupBy (uCIDs ! #cid)
+      return (theCID :*: count (uCIDs ! #cid))
 
     restrict (liveCID' `isIn` fmap literal usersCIDs)
     return <| liveCID' :*: occurences'
 
   transaction do
-    deleteFrom_ Table.userCIDs <| UserCID.userFK' `is` userID
-    deleteFrom_ Table.users    <| #userID         `is` userID
-    deleteFrom_ Table.addOns   <| AddOn.uuid'     `is` uuid'
+    deleteFrom_ Table.userCIDs <| #userFK `is` userID
+    deleteFrom_ Table.users    <| #userID `is` userID
+    deleteFrom_ Table.addOns   <| #uuid   `is` uuid'
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
   forM_ toUnpin $ IPFS.Pin.rm >=> \case

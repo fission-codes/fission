@@ -25,6 +25,6 @@ allForUser User { userID } = do
   hashes <- query do
     uCIDs <- select Table.userCIDs
     restrict <| uCIDs `byUser` userID
-    return   <| uCIDs ! #_cid
+    return   <| uCIDs ! #cid
 
   return <| IPFS.CID <$> hashes

@@ -1,13 +1,12 @@
 -- | User payment plans
 module Fission.Plan.Types (Tier (..)) where
 
-import RIO
 import RIO.Text as Text
 
-import Control.Lens (makeLenses)
-import Data.Aeson
 import Data.Aeson.Casing
-import Data.Swagger as Swagger
+import Data.Swagger      as Swagger
+
+import Fission.Prelude
 
 data Tier
   = Test
@@ -18,10 +17,8 @@ data Tier
            , Generic
            )
 
-makeLenses ''Tier
-
 instance ToJSON Tier where
-  toJSON = String . Text.toLower . textDisplay . displayShow
+  toJSON tier = String <| Text.toLower <| textDisplay <| displayShow tier
 
 instance FromJSON Tier where
   parseJSON (String str) =

@@ -6,19 +6,14 @@ module Fission.IPFS.Peer
   , getExternalAddress
   ) where
 
-import           Flow
-import           RIO hiding (all)
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 import qualified RIO.List            as List
-import           RIO.Process (HasProcessContext)
 
 import qualified Net.IPv4 as IPv4
 import           Text.Regex
 
-import           Data.Has
-import qualified Data.Aeson as JSON
-
+import           Fission.Prelude hiding (all)
 import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8       as UTF8
 
@@ -85,7 +80,6 @@ isExternalIPv4 ip = maybe False not isReserved
       normalized <- IPv4.decode <| Text.pack ipAddress
       return <| IPv4.reserved normalized
 
-
 -- | Filter a list of peers to include only the externally accessable addresses
 filterExternalPeers :: [Peer] -> [Peer]
 filterExternalPeers = filter (isExternalIPv4 . peer)
@@ -104,11 +98,11 @@ getExternalAddress = IPFSProc.run' ["id"] >>= \case
       return <| Left <| UnknownErr <| UTF8.textShow err
 
     (ExitSuccess , rawOut, _) -> do
-      let
-        ipfsInfo      = JSON.decode rawOut
-        filteredAddrs = filterExternalPeers <| maybe [] _addresses ipfsInfo
-
-      return <| Right filteredAddrs
+      rawOut
+        |> decode
+        |> maybe [] addresses
+        |> Right . filterExternalPeers
+        |> pure
 
 fission :: Peer
 fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

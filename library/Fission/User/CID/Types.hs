@@ -8,11 +8,11 @@ import Fission.User (User (..))
 
 -- | A relationship of 'CID' to a 'User'
 data UserCID = UserCID
-  { _userCID    :: ID UserCID
-  , _userFK     :: ID User
-  , _cid        :: Text -- SqlType for CID was getting hairy
-  , _insertedAt :: UTCTime
-  , _modifiedAt :: UTCTime
+  { userCID    :: ID UserCID
+  , userFK     :: ID User
+  , cid        :: Text -- SqlType for CID was getting hairy
+  , insertedAt :: UTCTime
+  , modifiedAt :: UTCTime
   } deriving ( Show
              , Eq
              , Generic
