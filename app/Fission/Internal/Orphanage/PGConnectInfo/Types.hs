@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.PGConnectInfo () where
+module Fission.Internal.Orphanage.PGConnectInfo.Types () where
 
 import RIO
 

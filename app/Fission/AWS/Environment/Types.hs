@@ -6,7 +6,6 @@ import           RIO.List (intercalate)
 
 import           Fission.Prelude
 import qualified Fission.AWS.Types as AWS
-import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
   { accessKey  :: !AWS.AccessKey  -- ^ Access Key
