@@ -38,7 +38,7 @@ app proxy appHost = toSwagger proxy
                   & host               ?~ appHost
                   & schemes            ?~ [Https, Http]
                   & info . title       .~ "The Fission API"
-                  & info . version     .~ "1.12.0"
+                  & info . version     .~ "1.20.0"
                   & info . description ?~ blurb
                   & info . contact     ?~ fissionContact
                   & info . license     ?~ projectLicense
@@ -71,7 +71,7 @@ ping = makeDocs (Proxy @Web.PingRoute)
 
 dns :: Swagger -> Swagger
 dns = makeDocs (Proxy @Web.DNSRoute)
-  ["DNS" & description ?~ "Interact with DNS on AWS Route53"]
+  ["DNS" & description ?~ "DNS management"]
 
 makeDocs :: Servant.API.IsSubAPI subRoute Web.API
          => HasSwagger subRoute
