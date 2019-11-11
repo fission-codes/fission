@@ -18,7 +18,7 @@ import           Fission.User                 as User
 import qualified Fission.User.Password.Types  as User
 
 type API = ReqBody '[JSON] User.Password
-        :> Post '[JSON] User.Password
+        :> Put '[JSON] User.Password
 
 
 server :: HasLogFunc         cfg

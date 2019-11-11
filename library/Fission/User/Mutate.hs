@@ -91,9 +91,9 @@ updatePassword userID (User.Password maybePass) = do
       logInfo $ "Updated password for user " <> display userID
       return . Right . User.Password $ Just password
 
-defaultPassword :: MonadRIO cfg m
+defaultPassword :: MonadIO m
                 => Maybe Text
-                -> m (Text)
+                -> m Text
 defaultPassword (Just pw) = return pw
 defaultPassword Nothing = liftIO $ Random.text 200
 
