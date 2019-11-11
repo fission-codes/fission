@@ -46,6 +46,7 @@ extra-deps:
 - happy-1.19.10
 - http-client-0.5.14 # Peer dependency of amazonka
 - ip-1.5.1
+- raven-haskell-0.1.2.1
 - tasty-rerun-1.1.14
 
 # Override default flag values for local packages and extra-deps
