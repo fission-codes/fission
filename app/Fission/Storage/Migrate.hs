@@ -16,7 +16,6 @@ import qualified Fission.User.Table            as User.Table
 -- | Table creation or migration
 type Mutation = IO ()
 
-
 mutations :: PGConnectInfo -> [Mutation]
 mutations db =
   [ makeTable db Heroku.AddOn.Table.addOns Heroku.AddOn.Table.name
