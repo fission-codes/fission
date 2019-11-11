@@ -1,7 +1,6 @@
 -- | Configuration types
 module Fission.Config.Types (Config (..)) where
 
--- import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
 import           RIO.List (intercalate)
 
@@ -12,7 +11,6 @@ import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Network.AWS.Auth              as AWS
 import qualified Fission.AWS.Types              as AWS
--- import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config dbBackend = Config
@@ -23,7 +21,6 @@ data Config dbBackend = Config
   , ipfsURL        :: !IPFS.URL
   , ipfsTimeout    :: !IPFS.Timeout
   , host           :: !Host
-  -- , pgConnectInfo  :: !PGConnectInfo
   , dbPool         :: !(DB.Pool dbBackend)
   , herokuID       :: !Heroku.ID
   , herokuPassword :: !Heroku.Password
@@ -43,7 +40,6 @@ instance Show (Config be) where
     , "  ipfsURL        = " <> show ipfsURL
     , "  ipfsTimeout    = " <> show ipfsTimeout
     , "  host           = " <> show host
-    -- , "  pgConnectInfo  = " <> show pgConnectInfo
     , "  dbPool         = " <> show dbPool
     , "  herokuID       = " <> show herokuID
     , "  herokuPassword = " <> show herokuPassword
@@ -77,10 +73,6 @@ instance Has IPFS.URL (Config be) where
 instance Has IPFS.Timeout (Config be) where
   hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
     cfg { ipfsTimeout = newIPFSTimeout }
-
--- instance Has PGConnectInfo (Config be) where
---   hasLens = lens pgConnectInfo \cfg newPGConnectInfo ->
---     cfg { pgConnectInfo = newPGConnectInfo }
 
 instance Has (DB.Pool be) (Config be) where
   hasLens = lens dbPool \cfg newDBPool ->
