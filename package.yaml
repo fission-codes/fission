@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '1.19.0'
+version: '1.20.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -101,6 +101,7 @@ dependencies:
   - monad-logger
   - mtl
   - random-bytestring
+  - raven-haskell
   - resource-pool
   - regex-compat
   - rio
