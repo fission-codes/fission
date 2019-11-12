@@ -7,10 +7,9 @@ module Fission.User.CID.Query
   , inCIDs
   ) where
 
-import RIO
-
 import Database.Selda
 
+import Fission.Prelude
 import Fission.User.Types
 import Fission.User.CID.Types
 
@@ -25,10 +24,10 @@ eqUserCID uID targetHash uCIDs =
   .&& uCIDs `byCID` targetHash
 
 byUser :: Row s UserCID -> ID User -> Col s Bool
-row `byUser` uID = row ! #_userFK .== literal uID
+row `byUser` uID = row ! #userFK .== literal uID
 
 byCID :: Row s UserCID -> Text -> Col s Bool
-row `byCID`  hash = row ! #_cid .== text hash
+row `byCID`  hash = row ! #cid .== text hash
 
 inCIDs :: Row s UserCID -> [Text] -> Col s Bool
-row `inCIDs` hashes = row ! #_cid `isIn` fmap text hashes
+row `inCIDs` hashes = row ! #cid `isIn` fmap text hashes

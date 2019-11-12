@@ -7,12 +7,9 @@ module Fission.IPFS.Process
   , runErr'
   ) where
 
-import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Process
 
-import Data.Has
-
+import           Fission.Prelude
 import qualified Fission.Config as Config
 import           Fission.Internal.Process
 import           Fission.IPFS.Types as IPFS
@@ -84,6 +81,6 @@ ipfsProc processor inStream outStream opts = do
   IPFS.BinPath ipfs <- Config.get
   IPFS.Timeout secs <- Config.get
   let opts' = ("--timeout=" <> show secs <> "s") : opts
-  proc ipfs opts' $ processor
-                  . setStdin  inStream
-                  . setStdout outStream
+  proc ipfs opts' <| processor
+                   . setStdin  inStream
+                   . setStdout outStream

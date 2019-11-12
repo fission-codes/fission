@@ -1,10 +1,8 @@
 module Fission.IPFS.Timeout.Types (Timeout (..)) where
 
-import RIO
-
-import Data.Aeson
 import System.Envy
 
+import Fission.Prelude
 import Fission.Internal.Orphanage.Natural ()
 
 newtype Timeout = Timeout { getSeconds :: Natural }

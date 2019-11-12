@@ -4,10 +4,7 @@ module Fission.Internal.Process
   , StreamOut
   ) where
 
-import RIO
-import RIO.Process
-
-import Fission.Internal.Constraint
+import Fission.Prelude
 
 type RIOProc cfg m = ( MonadRIO          cfg m
                      , HasProcessContext cfg

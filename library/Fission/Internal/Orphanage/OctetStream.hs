@@ -2,13 +2,15 @@
 
 module Fission.Internal.Orphanage.OctetStream () where
 
-import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
+import           Servant
 
-import Servant
+import Fission.Prelude
 
 instance MimeRender OctetStream a => MimeRender OctetStream [a] where
   mimeRender proxy values = "["<> meat <>"]"
     where
       meat :: Lazy.ByteString
-      meat =  Lazy.intercalate "," $ mimeRender proxy <$> values
+      meat = values
+          |> fmap (mimeRender proxy)
+          |> Lazy.intercalate ","

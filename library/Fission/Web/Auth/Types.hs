@@ -4,10 +4,9 @@ module Fission.Web.Auth.Types
   , HerokuAddOnAPI
   ) where
 
-import RIO
-
 import Servant (BasicAuth)
 
+import Fission.Prelude
 import Fission.User.Types
 
 -- | Authorization check for a normal user

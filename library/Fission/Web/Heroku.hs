@@ -5,15 +5,13 @@ module Fission.Web.Heroku
   , server
   ) where
 
-import           RIO
-import           RIO.Process (HasProcessContext)
-
-import           Data.Has
 import           Data.UUID
 import           Database.Selda as Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
+
+import           Fission.Prelude
 
 import qualified Fission.Web.Error       as Web.Err
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
@@ -33,8 +31,6 @@ import qualified Fission.User.Table           as Table
 import qualified Fission.User.Provision.Types as User
 
 import           Fission.IPFS.CID.Types
-
-import qualified Fission.User.CID       as UserCID
 import qualified Fission.User.CID.Table as Table
 
 import qualified Fission.Platform.Heroku.AddOn       as AddOn
@@ -52,100 +48,109 @@ type API = ProvisionAPI :<|> DeprovisionAPI
 type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
                  :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
-server :: HasLogFunc        cfg
-       => Has Web.Host      cfg
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => HasProcessContext cfg
-       => Has IPFS.BinPath cfg
-       => Has IPFS.Timeout cfg
-       => MonadSelda   (RIO cfg)
-       => RIOServer         cfg API
+server
+  :: ( HasLogFunc        cfg
+     , Has Web.Host      cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     , HasProcessContext cfg
+     , Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , MonadMask    (RIO cfg)
+     , MonadSelda   (RIO cfg)
+     )
+  => RIOServer cfg API
 server = provision :<|> deprovision
 
-provision :: HasLogFunc      cfg
-          => Has Web.Host    cfg
-          => HasProcessContext cfg
-          => Has IPFS.BinPath cfg
-          => Has IPFS.Timeout cfg
-          => MonadSelda (RIO cfg)
-          => RIOServer       cfg ProvisionAPI
-provision Request {_uuid, _region} = do
-  Web.Host url <- Config.get
-  ipfsPeers    <- getExternalAddress >>= \case
-                   Right peers' ->
-                     pure peers'
-                   Left err -> do
-                     logError $ displayShow err
-                     return []
+provision
+  :: ( HasLogFunc        cfg
+     , Has Web.Host      cfg
+     , HasProcessContext cfg
+     , Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , MonadSelda   (RIO cfg)
+     )
+  => RIOServer cfg ProvisionAPI
+provision Request {uuid, region} = do
+  Web.Host url' <- Config.get
+  ipfsPeers     <- getExternalAddress >>= \case
+                     Right peers' ->
+                       pure peers'
 
-  username     <- liftIO $ User.genID
-  secret       <- liftIO $ Random.text 200
-  User.createWithHeroku _uuid _region username secret >>= \case
-    Left err -> Web.Err.throw err
+                     Left err -> do
+                       logError <| displayShow err
+                       return []
+
+  username <- liftIO <| User.genID
+  secret   <- liftIO <| Random.text 200
+
+  User.createWithHeroku uuid region username secret >>= \case
+    Left err ->
+      Web.Err.throw err
+
     Right userID -> do
-      logInfo $ mconcat
+      logInfo <| mconcat
         [ "Provisioned UUID: "
-        , displayShow _uuid
+        , displayShow uuid
         , " as "
         , displayShow userID
         ]
 
-      let
-        userConfig = User.Provision
-          { _url      = url
-          , _username = User.hashID userID
-          , _password = Secret secret
-          }
-
       return Provision
-        { _id      = userID
-        , _config  = userConfig
-        , _peers   = ipfsPeers
-        , _message = "Successfully provisioned Interplanetary Fission!"
+        { id      = userID
+        , peers   = ipfsPeers
+        , message = "Successfully provisioned Interplanetary Fission!"
+        , config  = User.Provision
+           { username = User.hashID userID
+           , password = Secret secret
+           , url      = url'
+           }
         }
 
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[Heroku.MIME.VendorJSONv3] NoContent
 
-deprovision :: MonadSelda   (RIO cfg)
-            => HasLogFunc        cfg
-            => Has HTTP.Manager  cfg
-            => Has IPFS.URL      cfg
-            => RIOServer         cfg DeprovisionAPI
+deprovision
+  :: ( MonadSelda   (RIO cfg)
+     , MonadMask    (RIO cfg)
+     , HasLogFunc        cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     )
+  => RIOServer cfg DeprovisionAPI
 deprovision uuid' = do
   let err = Web.Err.ensureMaybe err410 -- HTTP 410 is specified by the Heroku AddOn docs
 
-  AddOn {_addOnID} <- err =<< Query.oneEq Table.addOns AddOn.uuid' uuid'
-  User  {_userID}  <- err =<< Query.findOne do
+  AddOn { addOnID } <- err =<< Query.oneEq Table.addOns #uuid uuid'
+  User  { userID }  <- err =<< Query.findOne do
     user <- select Table.users
-    restrict $ user ! #_herokuAddOnId .== literal (Just _addOnID)
-           .&& user ! #_active        .== true
+    restrict <| user ! #herokuAddOnId .== literal (Just addOnID)
+            .&& user ! #active        .== true
     return user
 
   usersCIDs <- query do
     uCIDs <- select Table.userCIDs
-    restrict (uCIDs ! #_userFK .== literal _userID)
-    return (uCIDs ! UserCID.cid')
+    restrict (uCIDs ! #userFK .== literal userID)
+    return (uCIDs ! #cid)
 
   cidOccur <- query do
     (liveCID' :*: occurences') <- aggregate do
       uCIDs <- select Table.userCIDs
-      theCID <- groupBy (uCIDs ! UserCID.cid')
-      return (theCID :*: count (uCIDs ! UserCID.cid'))
+      theCID <- groupBy (uCIDs ! #cid)
+      return (theCID :*: count (uCIDs ! #cid))
 
     restrict (liveCID' `isIn` fmap literal usersCIDs)
-    return (liveCID' :*: occurences')
+    return <| liveCID' :*: occurences'
 
   transaction do
-    deleteFrom_ Table.userCIDs (UserCID.userFK' `is` _userID)
-    deleteFrom_ Table.users    (User.userID'    `is` _userID)
-    deleteFrom_ Table.addOns   (AddOn.uuid'     `is` uuid')
+    deleteFrom_ Table.userCIDs <| #userFK `is` userID
+    deleteFrom_ Table.users    <| #userID `is` userID
+    deleteFrom_ Table.addOns   <| #uuid   `is` uuid'
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
-  forM_ toUnpin $ IPFS.Pin.rm >=> \case
+  forM_ toUnpin <| IPFS.Pin.rm >=> \case
     Left ipfsMsg -> do
-      logError $ "Unable to unpin CID: " <> display ipfsMsg
+      logError <| "Unable to unpin CID: " <> display ipfsMsg
       return ()
 
     Right _ ->

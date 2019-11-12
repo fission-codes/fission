@@ -9,15 +9,12 @@ module Fission.Web.IPFS
   , server
   ) where
 
-import RIO
-import RIO.Process (HasProcessContext)
-
-import Data.Has
-import Database.Selda
+import           Database.Selda
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 
+import           Fission.Prelude
 import           Fission.IPFS.Types        as IPFS
 import           Fission.User
 

@@ -3,11 +3,10 @@ module Fission.Web.IPFS.CID
   , allForUser
   ) where
 
-import RIO
+import           Database.Selda
+import           Servant
 
-import Database.Selda
-import Servant
-
+import           Fission.Prelude
 import qualified Fission.IPFS.Types     as IPFS
 import           Fission.IPFS.CID.Types as IPFS.CID
 
@@ -20,10 +19,10 @@ import           Fission.Web.Server
 type API = Get '[JSON, PlainText] [CID]
 
 allForUser :: MonadSelda (RIO cfg) => User -> RIOServer cfg API
-allForUser User { _userID } = do
+allForUser User { userID } = do
   hashes <- query do
     uCIDs <- select Table.userCIDs
-    restrict $ uCIDs `byUser` _userID
-    return $ uCIDs ! #_cid
+    restrict <| uCIDs `byUser` userID
+    return   <| uCIDs ! #cid
 
-  return $ IPFS.CID <$> hashes
+  return <| IPFS.CID <$> hashes

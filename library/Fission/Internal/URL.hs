@@ -3,11 +3,10 @@ module Fission.Internal.URL
   , specials
   ) where
 
-import RIO
-
 import Data.Word8
 
 import Fission.Internal.Bool (anyX)
+import Fission.Prelude
 
 isURL :: Word8 -> Bool
 isURL = anyX (isAlpha : isDigit : isSpecial)

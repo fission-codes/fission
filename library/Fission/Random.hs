@@ -4,13 +4,12 @@ module Fission.Random
   , text
   ) where
 
-import           RIO
-import qualified RIO.ByteString as BS
-
 import qualified Data.ByteString.Random as BS
 import           Data.Word8
+import qualified RIO.ByteString         as BS
 
 import Fission.Internal.Bool (anyX)
+import Fission.Prelude
 
 -- | Generate random 'Text'
 text :: Natural -> IO Text

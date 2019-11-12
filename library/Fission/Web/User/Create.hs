@@ -5,12 +5,10 @@ module Fission.Web.User.Create
   , server
   ) where
 
-import           RIO
-
 import           Database.Selda as Selda
-
 import           Servant
-import           Data.Has
+
+import           Fission.Prelude
 import qualified Fission.Config as Config
 
 import           Fission.Web.Server
@@ -30,29 +28,39 @@ import           Fission.Internal.UTF8
 type API = ReqBody '[JSON] User.Registration
         :> Post '[JSON] ()
 
-
-server :: HasLogFunc         cfg
-       => Has AWS.DomainName cfg
-       => Has AWS.AccessKey  cfg
-       => Has AWS.SecretKey  cfg
-       => Has AWS.ZoneID     cfg
-       => MonadSelda    (RIO cfg)
-       => RIOServer          cfg API
+server
+  :: ( HasLogFunc         cfg
+     , Has AWS.DomainName cfg
+     , Has AWS.AccessKey  cfg
+     , Has AWS.SecretKey  cfg
+     , Has AWS.ZoneID     cfg
+     , MonadSelda    (RIO cfg)
+     )
+  => RIOServer cfg API
 server (User.Registration username password email) = do
   domain :: AWS.DomainName <- Config.get
 
   userID <- User.create username password email
-  logInfo $ "Provisioned user: " <> displayShow userID
+  logInfo <| "Provisioned user: " <> displayShow userID
 
   let
     baseUrl    = username <> AWS.getDomainName domain
     dnsLinkUrl = "_dnslink." <> baseUrl
     dnsLinkTxt = "dnslink=/ipfs/" <> splashCID
 
-  ensureContent $ registerDomain Route53.Cname baseUrl "ipfs.runfission.com"
-  ensureContent $ registerDomain Route53.Txt dnsLinkUrl $ dnsLinkTxt `wrapIn` "\""
+  "ipfs.runfission.com"
+    |> registerDomain Route53.Cname baseUrl
+    |> ensureContent
+
+  dnsLinkTxt
+    |> wrapIn' "\""
+    |> registerDomain Route53.Txt dnsLinkUrl
+    |> ensureContent
 
   return ()
+
+wrapIn' :: Text -> Text -> Text
+wrapIn' a b = wrapIn b a
 
 splashCID :: Text
 splashCID = "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"

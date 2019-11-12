@@ -88,6 +88,7 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - flow
   - filepath
   - fsnotify
   - haskeline

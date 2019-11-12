@@ -1,13 +1,11 @@
 module Fission.User.Types (User (..))where
 
-import RIO
-
-import Control.Lens   ((?~))
 import Data.Swagger
 import Database.Selda
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
 
+import Fission.Prelude
 import Fission.Security       (Digestable (..))
 import Fission.Security.Types (SecretDigest)
 import Fission.User.Role
@@ -16,15 +14,15 @@ import qualified Fission.Internal.UTF8 as UTF8
 
 -- | A user account, most likely a developer
 data User = User
-  { _userID        :: ID User
-  , _username      :: Text
-  , _email         :: Maybe Text
-  , _role          :: Role
-  , _active        :: Bool
-  , _herokuAddOnId :: Maybe (ID Heroku.AddOn)
-  , _secretDigest  :: SecretDigest
-  , _insertedAt    :: UTCTime
-  , _modifiedAt    :: UTCTime
+  { userID        :: ID User
+  , username      :: Text
+  , email         :: Maybe Text
+  , role          :: Role
+  , active        :: Bool
+  , herokuAddOnId :: Maybe (ID Heroku.AddOn)
+  , secretDigest  :: SecretDigest
+  , insertedAt    :: UTCTime
+  , modifiedAt    :: UTCTime
   } deriving ( Show
              , Eq
              , Generic
@@ -36,5 +34,7 @@ instance Digestable (ID User) where
 
 instance ToSchema (ID User) where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "UserID")
-            $ mempty & type_ ?~ SwaggerInteger
+    mempty
+      |> type_ ?~ SwaggerInteger
+      |> NamedSchema (Just "UserID")
+      |> pure

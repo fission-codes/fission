@@ -3,11 +3,11 @@ module Fission.Storage.Types
   , SeldaPool
   ) where
 
-import RIO
-
 import qualified Data.Pool                 as Database
 import           Database.Selda.Backend    (SeldaConnection)
 import           Database.Selda.PostgreSQL
+
+import Fission.Prelude
 
 type SeldaPool = Database.Pool (SeldaConnection PG)
 

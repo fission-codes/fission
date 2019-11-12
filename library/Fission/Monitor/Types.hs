@@ -1,9 +1,9 @@
 -- | Type for application monitoring
 module Fission.Monitor.Types (Config (..)) where
 
-import RIO
-
 import System.Envy
+
+import Fission.Prelude
 
 -- | Monitor configuration
 data Config = Config

@@ -3,16 +3,14 @@ module Fission.IPFS.SparseTree.Types
   , Tag (..)
   ) where
 
-import           RIO
 import qualified RIO.HashMap as HashMap
 import qualified RIO.Map     as Map
 import qualified RIO.Text    as Text
 
-import Control.Lens
-import Data.Aeson 
 import Data.Swagger hiding (Tag, name)
 import Servant
 
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.IPFS.CID.Types
 import           Fission.IPFS.Name.Types
@@ -36,10 +34,12 @@ data SparseTree
 
 instance ToSchema SparseTree where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "IPFS Tree") $ mempty 
-       & type_       ?~ SwaggerString
-       & example     ?~ toJSON (Directory [(Key "abcdef", Stub "myfile.txt")])
-       & description ?~ "A tree of IPFS paths"
+    mempty
+      |> type_       ?~ SwaggerString
+      |> description ?~ "A tree of IPFS paths"
+      |> example     ?~ toJSON (Directory [(Key "abcdef", Stub "myfile.txt")])
+      |> NamedSchema (Just "IPFS Tree")
+      |> pure
 
 instance Display (Map Tag SparseTree) where
   display sparseMap =
@@ -55,9 +55,9 @@ instance Display SparseTree where
 
 instance ToJSON SparseTree where
   toJSON = \case
-    Stub (Name name)  -> String $ Text.pack name
-    Content (CID cid) -> String $ UTF8.stripN 1 cid
-    Directory dirMap  -> Object $ HashMap.fromList (jsonKV <$> Map.toList dirMap)
+    Stub (Name name)  -> String <| Text.pack name
+    Content (CID cid) -> String <| UTF8.stripN 1 cid
+    Directory dirMap  -> Object <| HashMap.fromList (jsonKV <$> Map.toList dirMap)
     where
       jsonKV :: (Tag, SparseTree) -> (Text, Value)
       jsonKV (tag, subtree) = (jsonTag tag, toJSON subtree)

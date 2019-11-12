@@ -3,12 +3,10 @@ module Fission.Web.Types
   , Port (..)
   ) where
 
-import RIO
-
-import           Data.Aeson
 import qualified Network.Wai.Handler.Warp as Warp
 import           Servant.Client
 
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
 -- | The hostname of the running application

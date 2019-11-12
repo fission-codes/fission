@@ -1,13 +1,12 @@
 -- | File types
 module Fission.File.Types (Serialized (..)) where
 
-import           RIO
-import qualified RIO.ByteString.Lazy as Lazy
-
-import           Control.Lens
 import qualified Data.ByteString.Builder as Builder
 import           Data.Swagger
 import           Servant
+import qualified RIO.ByteString.Lazy as Lazy
+
+import Fission.Prelude
 
 -- | A file serialized as a lazy bytestring
 newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
@@ -18,10 +17,12 @@ newtype Serialized = Serialized { unserialize :: Lazy.ByteString }
 
 instance ToSchema Serialized where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "Serialized File") $ mempty 
-       & type_       ?~ SwaggerString
-       & description ?~ "A typical file's contents"
-       & example     ?~ "hello world"
+    mempty
+      |> example     ?~ "hello world"
+      |> description ?~ "A typical file's contents"
+      |> type_       ?~ SwaggerString
+      |> NamedSchema (Just "Serialized File")
+      |> pure
 
 instance Display Serialized where
   display = Utf8Builder . Builder.lazyByteString . unserialize

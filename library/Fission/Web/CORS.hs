@@ -5,14 +5,14 @@ module Fission.Web.CORS
   , policy
   ) where
 
-import RIO
-
 import           Network.HTTP.Types
 import qualified Network.Wai                 as WAI
 import           Network.Wai.Middleware.Cors
 
+import Fission.Prelude
+
 middleware :: WAI.Middleware
-middleware = cors (const $ Just policy)
+middleware = cors (\_ -> Just policy)
 
 policy :: CorsResourcePolicy
 policy = simpleCorsResourcePolicy

@@ -3,8 +3,7 @@ module Fission.Time
   , dohertyMicroSeconds
   ) where
 
-import RIO
-import RIO.Time
+import Fission.Prelude
 
 -- | The Doherty theshold
 doherty :: NominalDiffTime

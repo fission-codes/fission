@@ -5,25 +5,24 @@ module Fission.IPFS.SparseTree
   , cIDs
   ) where
 
-import RIO
-
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.IPFS.Error    as Error
 
-import Fission.IPFS.CID.Types
-import Fission.IPFS.Name.Types
-import Fission.IPFS.Path.Types
-import Fission.IPFS.SparseTree.Types
+import           Fission.IPFS.CID.Types
+import           Fission.IPFS.Name.Types
+import           Fission.IPFS.Path.Types
+import           Fission.IPFS.SparseTree.Types
 
 linearize :: SparseTree -> Either Error.Linearization Path
 linearize = fmap Path . go
   where
   go :: SparseTree -> Either Error.Linearization Text
   go = \case
-    Stub      (Name name)    -> Right $ UTF8.textShow name
+    Stub      (Name name)    -> Right <| UTF8.textShow name
     Content   (CID _)        -> Right ""
     Directory [(tag, value)] -> fromPath tag <$> go value
-    badDir                   -> Left $ Error.NonLinear badDir
+    badDir                   -> Left <| Error.NonLinear badDir
     where
       fromPath tag ""   = fromKey tag
       fromPath tag text = fromKey tag <> "/" <> text

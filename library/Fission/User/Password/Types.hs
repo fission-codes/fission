@@ -1,9 +1,8 @@
-module Fission.User.Password.Types ( Password(..) ) where
+module Fission.User.Password.Types (Password(..)) where
 
-import RIO
-
-import Data.Aeson
 import Data.Swagger
+
+import Fission.Prelude
 
 newtype Password = Password { password :: Text }
   deriving          ( Eq
@@ -13,7 +12,7 @@ newtype Password = Password { password :: Text }
   deriving anyclass ( ToSchema )
 
 instance ToJSON Password where
-  toJSON (Password password) = toJSON $ String password
+  toJSON (Password password) = toJSON <| String password
 
 instance FromJSON Password where
-  parseJSON = withText "Password" \txt -> return $ Password txt
+  parseJSON = withText "Password" \txt -> return <| Password txt

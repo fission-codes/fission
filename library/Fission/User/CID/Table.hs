@@ -14,8 +14,8 @@ name = "user_cids"
 
 -- | The 'User' table
 userCIDs :: Table UserCID
-userCIDs = Table.lensPrefixed (Table.name name)
-  [ #_userCID :- autoPrimary
-  , #_userFK  :- index
-  , #_cid     :- index
+userCIDs = table (Table.name name)
+  [ #userCID :- autoPrimary
+  , #userFK  :- index
+  , #cid     :- index
   ]

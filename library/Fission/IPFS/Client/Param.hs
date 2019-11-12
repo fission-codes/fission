@@ -3,8 +3,8 @@ module Fission.IPFS.Client.Param
   , IsRecursive
   ) where
 
-import RIO
 import Servant
+import Fission.Prelude
 
 type CID = QueryParam' '[Required, Strict] "arg" Text
 type IsRecursive = QueryFlag "recursive"
