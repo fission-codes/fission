@@ -26,8 +26,7 @@ server :: Host -> RIOServer cfg API
 server = hoistServer (Proxy @API) fromHandler . swaggerSchemaUIServer . docs
 
 docs :: Host -> Swagger
-docs host' = dns
-           . ipfs
+docs host' = ipfs
            . heroku
            . ping
            . user
@@ -38,7 +37,7 @@ app proxy appHost = toSwagger proxy
                   & host               ?~ appHost
                   & schemes            ?~ [Https, Http]
                   & info . title       .~ "The Fission API"
-                  & info . version     .~ "1.20.0"
+                  & info . version     .~ "1.12.0"
                   & info . description ?~ blurb
                   & info . contact     ?~ fissionContact
                   & info . license     ?~ projectLicense
@@ -68,10 +67,6 @@ ipfs = makeDocs (Proxy @Web.IPFSRoute)
 ping :: Swagger -> Swagger
 ping = makeDocs (Proxy @Web.PingRoute)
   ["Ping" & description ?~ "Check for liveness"]
-
-dns :: Swagger -> Swagger
-dns = makeDocs (Proxy @Web.DNSRoute)
-  ["DNS" & description ?~ "DNS management"]
 
 makeDocs :: Servant.API.IsSubAPI subRoute Web.API
          => HasSwagger subRoute

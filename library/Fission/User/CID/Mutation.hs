@@ -49,7 +49,7 @@ createX :: MonadRIO   cfg m
 createX uID (fmap IPFS.CID.unaddress -> hashes) = do
   results <- query do
     uCIDs <- select Table.userCIDs `suchThat` inUserCIDs uID hashes
-    return $ uCIDs ! #_cid
+    return $ uCIDs ! #cid
 
   now <- liftIO getCurrentTime
 

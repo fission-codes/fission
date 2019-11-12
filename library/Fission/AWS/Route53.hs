@@ -3,6 +3,7 @@ module Fission.AWS.Route53
   , registerDomain
   ) where
 
+import Flow
 import RIO
 
 import Control.Lens ((?~))
@@ -30,29 +31,33 @@ registerDomain :: MonadRIO           cfg m
                -> Text
                -> m (Either ServerError ChangeResourceRecordSetsResponse)
 registerDomain recordType domain content = do
-  logDebug $ "Updating DNS record at: " <> displayShow domain
+  logDebug <| "Updating DNS record at: " <> displayShow domain
   env <- createEnv
   req <- createChangeRequest recordType domain content
 
   withAWS env NorthVirginia $ do
     res <- send req
-    return $ validate res
+    return <| validate res
 
-createChangeRequest :: MonadRIO       cfg m
-                    => Has AWS.ZoneID cfg
-                    => RecordType
-                    -> Text
-                    -> Text
-                    -> m ChangeResourceRecordSets
+createChangeRequest
+  :: ( MonadRIO       cfg m
+     , Has AWS.ZoneID cfg
+     )
+  => RecordType
+  -> Text
+  -> Text
+  -> m ChangeResourceRecordSets
 createChangeRequest recordType domain content = do
   ZoneID zoneId <- Config.get
-  return $ changeResourceRecordSets (ResourceId zoneId) changes
+  return <| changeResourceRecordSets (ResourceId zoneId) changes
   where
     recordSet = resourceRecordSet domain recordType
     updated   = addValue recordSet content
-    changes   = changeBatch $ toNonEmpty [change Upsert updated]
+    changes   = [change Upsert updated]
+                  |> toNonEmpty
+                  |> changeBatch
 
 addValue :: ResourceRecordSet -> Text -> ResourceRecordSet
 addValue recordSet value =
-  recordSet & rrsTTL ?~ 10
-            & rrsResourceRecords ?~ pure (resourceRecord value)
+  recordSet |> rrsTTL ?~ 10
+            |> rrsResourceRecords ?~ pure (resourceRecord value)

@@ -4,6 +4,7 @@ module Fission.Web.IPFS.DAG
   )
 where
 
+import           Flow
 import           RIO
 import           RIO.Process (HasProcessContext)
 
@@ -34,9 +35,12 @@ put :: Has IPFS.BinPath  cfg
     => HasLogFunc        cfg
     => User
     -> RIOServer         cfg API
-put User { _userID } (Serialized rawData) = Storage.IPFS.DAG.put rawData >>= \case
+put User { userID } (Serialized rawData) = Storage.IPFS.DAG.put rawData >>= \case
   Right newCID -> do
-    void $ User.CID.createX _userID [newCID]
+    [newCID]
+      |> User.CID.createX userID
+      |> void
+
     return newCID
 
   Left err ->

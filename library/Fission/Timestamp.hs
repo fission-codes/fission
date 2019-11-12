@@ -6,6 +6,7 @@ module Fission.Timestamp
   , (<@)
   ) where
 
+import Flow
 import RIO
 
 import Data.Time      (getCurrentTime)
@@ -19,7 +20,7 @@ add time record = record time time
 addM :: MonadIO m => Unstamped r -> m r
 addM record = do
   now <- liftIO getCurrentTime
-  return $ add now record
+  return <| add now record
 
 (<@) :: Unstamped r -> UTCTime -> r
 record <@ time = add time record

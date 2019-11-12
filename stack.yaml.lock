@@ -61,13 +61,6 @@ packages:
   original:
     hackage: ip-1.5.1
 - completed:
-    hackage: raven-haskell-0.1.2.1@sha256:59ab0300183a599650ed5761e3e984ff2934afe1ce6d924d1064876cac90275d,1255
-    pantry-tree:
-      size: 632
-      sha256: 8c37e6109aa0314832aba4be962e0c140c4d45920b9d135d88bacfc762079ff5
-  original:
-    hackage: raven-haskell-0.1.2.1
-- completed:
     hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
     pantry-tree:
       size: 284

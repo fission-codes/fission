@@ -7,6 +7,7 @@ module Fission.IPFS.Client
   , unpin
   ) where
 
+import           Flow
 import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
 
@@ -53,6 +54,12 @@ run :: MonadRIO         cfg m
     => ClientM a
     -> m (Either ClientError a)
 run query = do
-  IPFS.URL url           <- Config.get
+  IPFS.URL url            <- Config.get
   manager :: HTTP.Manager <- Config.get
-  liftIO . runClientM query $ mkClientEnv manager url
+
+  url
+    |> mkClientEnv manager
+    |> runClientM query
+    |> liftIO
+
+  -- liftIO <| runClientM query <| mkClientEnv manager url
