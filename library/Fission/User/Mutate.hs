@@ -17,7 +17,6 @@ import           Fission.Internal.Constraint
 import           Fission.Internal.Orphanage.ID ()
 
 import           Fission.Timestamp as Timestamp
-import           Fission.Random    as Random
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
 import qualified Fission.Platform.Heroku.Types as Heroku
@@ -52,7 +51,7 @@ createWithHeroku herokuUUID herokuRegion username password = do
 
   hConfId <- insertWithPK Heroku.addOns
     [Heroku.AddOn def herokuUUID (Just herokuRegion) <@ now]
-  
+
   create' username password Nothing (Just hConfId)
 
 -- | Create a new, timestamped entry with optional heroku add-on
@@ -80,22 +79,16 @@ updatePassword :: MonadRIO    cfg m
                => ID User
                -> User.Password
                -> m (Either Error.Create User.Password)
-updatePassword userID (User.Password maybePass) = do
-  password <- defaultPassword maybePass
+updatePassword userID (User.Password password) = do
   hashPassword' password >>= \case
     Left err -> return $ Left err
     Right secretDigest -> do
-      update Table.users 
+      update Table.users
         (\user -> user ! #_userID .== literal userID)
         (\user -> user `with` [#_secretDigest := literal secretDigest])
-      logInfo $ "Updated password for user " <> display userID
-      return . Right . User.Password $ Just password
 
-defaultPassword :: MonadIO m
-                => Maybe Text
-                -> m Text
-defaultPassword (Just pw) = return pw
-defaultPassword Nothing = liftIO $ Random.text 200
+      logInfo $ "Updated password for user " <> display userID
+      return . Right $ User.Password password
 
 hashPassword' :: MonadIO m
              => Text
