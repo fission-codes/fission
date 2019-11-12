@@ -18,8 +18,10 @@ instance FromJSON Reset where
     return $ Reset mayPassword
 
 instance ToSchema Reset where
-  declareNamedSchema _ =
+  declareNamedSchema _ = do
+     password <- declareSchemaRef $ Proxy @Text
      return $ NamedSchema (Just "Password Reset Request") $ mempty
        & type_       ?~ SwaggerObject
        & description ?~ "Password Reset Request"
+       & properties  .~ [("password", password)
        & example     ?~ "{ password: \"12345\" }"
