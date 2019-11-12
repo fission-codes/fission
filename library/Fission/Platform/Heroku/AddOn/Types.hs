@@ -1,18 +1,17 @@
 module Fission.Platform.Heroku.AddOn.Types (AddOn (..)) where
 
-import RIO
-
 import Data.UUID
 import Database.Selda
 
 import Fission.Platform.Heroku.Types (Region (..))
+import Fission.Prelude
 
 data AddOn = AddOn
-  { _addOnID    :: ID AddOn
-  , _uuid       :: UUID
-  , _region     :: Maybe Region
-  , _insertedAt :: UTCTime
-  , _modifiedAt :: UTCTime
+  { addOnID    :: ID AddOn
+  , uuid       :: UUID
+  , region     :: Maybe Region
+  , insertedAt :: UTCTime
+  , modifiedAt :: UTCTime
   } deriving ( Show
              , Eq
              , SqlRow

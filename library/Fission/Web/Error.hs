@@ -7,19 +7,17 @@ module Fission.Web.Error
   , throw
   ) where
 
-import           RIO
+import           Network.HTTP.Types.Status
 import qualified RIO.ByteString.Lazy as Lazy
+import           Servant.Server
 
-import Network.HTTP.Types.Status
-import Servant.Server
-
-import Fission.Internal.Constraint
+import           Fission.Prelude
 
 class ToServerError err where
   toServerError :: err -> ServerError
 
 instance ToServerError ServerError where
-  toServerError = id
+  toServerError = identity
 
 instance ToServerError Int where
   toServerError = \case
@@ -58,42 +56,50 @@ instance ToServerError Int where
     504 -> err504
     505 -> err505
 
-    n -> error $ show n <> " is not an error status code"
+    n -> error <| show n <> " is not an error status code"
 
-ensure :: MonadRIO   cfg m
-       => HasLogFunc cfg
-       => MonadThrow     m
-       => Display       err
-       => ToServerError err
-       => Either err a
-       -> m a
+ensure
+  :: ( MonadRIO   cfg m
+     , HasLogFunc cfg
+     , MonadThrow     m
+     , Display       err
+     , ToServerError err
+     )
+  => Either err a
+  -> m a
 ensure = either throw pure
 
-ensureM :: MonadRIO   cfg m
-        => MonadThrow     m
-        => Exception err
-        => Either err a
-        -> m a
+ensureM
+  :: ( MonadRIO   cfg m
+     , MonadThrow     m
+     , Exception err
+     )
+  => Either err a
+  -> m a
 ensureM = either throwM pure
 
-ensureMaybe :: MonadRIO   cfg m
-            => MonadThrow     m
-            => ServerError
-            -> Maybe a
-            -> m a
+ensureMaybe
+  :: ( MonadRIO   cfg m
+     , MonadThrow     m
+     )
+  => ServerError
+  -> Maybe a
+  -> m a
 ensureMaybe err = maybe (throwM err) pure
 
-throw :: MonadRIO   cfg m
-      => HasLogFunc cfg
-      => MonadThrow     m
-      => Display       err
-      => ToServerError err
-      => err
-      -> m a
+throw
+  :: ( MonadRIO   cfg m
+     , HasLogFunc cfg
+     , MonadThrow     m
+     , Display       err
+     , ToServerError err
+     )
+  => err
+  -> m a
 throw err = do
   let
     serverError@(ServerError {..}) = toServerError err
-    status = Status errHTTPCode $ Lazy.toStrict errBody
+    status = Status errHTTPCode <| Lazy.toStrict errBody
 
-  when (statusIsServerError status) (logError $ display err)
+  when (statusIsServerError status) (logError <| display err)
   throwM serverError

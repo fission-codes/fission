@@ -3,12 +3,9 @@ module Fission.Web.IPFS.Download
   , get
   ) where
 
-import RIO
-import RIO.Process (HasProcessContext)
+import           Servant
 
-import Data.Has
-import Servant
-
+import           Fission.Prelude
 import           Fission.Web.Server
 import qualified Fission.Web.Error    as Web.Err
 import           Fission.File.Types   as File
@@ -24,25 +21,31 @@ type PathAPI = Capture "cid" IPFS.CID
 type QueryAPI = QueryParam "cid" IPFS.CID
              :> Get '[OctetStream, PlainText] File.Serialized
 
-get :: Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => RIOServer         cfg API
+get
+  :: ( Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , HasProcessContext cfg
+     , HasLogFunc        cfg
+     )
+  => RIOServer cfg API
 get = pathGet :<|> queryGet
 
-queryGet :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => RIOServer         cfg QueryAPI
+queryGet
+  :: ( Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , HasProcessContext cfg
+     , HasLogFunc        cfg
+     )
+  => RIOServer cfg QueryAPI
 queryGet = \case
   Just cid -> Storage.IPFS.getFile cid >>= Web.Err.ensure
   Nothing  -> throwM err404
 
-pathGet :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => RIOServer         cfg PathAPI
+pathGet
+  :: ( Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , HasProcessContext cfg
+     , HasLogFunc        cfg
+     )
+  => RIOServer cfg PathAPI
 pathGet cid = Storage.IPFS.getFile cid >>= Web.Err.ensure

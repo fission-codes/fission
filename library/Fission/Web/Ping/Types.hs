@@ -1,12 +1,9 @@
 module Fission.Web.Ping.Types (Pong (..)) where
 
-import RIO
-import Servant
+import           Data.Swagger hiding (name)
+import           Servant
 
-import Data.Aeson
-import Data.Swagger hiding (name)
-import Control.Lens
-
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
 -- | A dead-simple text wrapper.
@@ -22,10 +19,12 @@ newtype Pong = Pong { unPong :: Text }
 
 instance ToSchema Pong where
   declareNamedSchema _ =
-     return $ NamedSchema (Just "Pong") $ mempty
-            & type_       ?~ SwaggerString
-            & description ?~ "A simple response"
-            & example     ?~ toJSON (Pong "pong")
+    mempty
+      |> type_       ?~ SwaggerString
+      |> description ?~ "A simple response"
+      |> example     ?~ toJSON (Pong "pong")
+      |> NamedSchema (Just "Pong")
+      |> pure
 
 instance MimeRender PlainText Pong where
   mimeRender _proxy = UTF8.textToLazyBS . unPong

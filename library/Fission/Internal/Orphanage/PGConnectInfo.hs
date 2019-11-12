@@ -2,10 +2,9 @@
 
 module Fission.Internal.Orphanage.PGConnectInfo () where
 
-import RIO
-
-import Data.Aeson
 import Database.Selda.PostgreSQL
+
+import Fission.Prelude
 
 deriving instance Show PGConnectInfo
 

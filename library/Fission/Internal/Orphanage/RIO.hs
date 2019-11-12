@@ -3,14 +3,13 @@
 
 module Fission.Internal.Orphanage.RIO () where
 
-import RIO
-import RIO.Orphans ()
-
-import Data.Has
 import Data.Pool
+import RIO.Orphans ()
 
 import Database.Selda.Backend.Internal
 import Database.Selda.PostgreSQL
+
+import Fission.Prelude
 
 import qualified Fission.Config as Config
 import qualified Fission.Storage.Types as DB

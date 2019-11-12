@@ -7,12 +7,11 @@ module Fission.Environment
   , (.!~)
   ) where
 
-import RIO
 import RIO.Char (toLower)
-
 import System.Environment (lookupEnv)
 import System.Envy
 
+import Fission.Prelude
 import Fission.Internal.Bool
 
 -- | Get an environment variable. 'error's if not found.

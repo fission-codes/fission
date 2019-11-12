@@ -3,13 +3,12 @@ module Fission.Web.DNS
   , server
   ) where
 
-import           RIO
-
-import           Data.Has
-import           Servant
 
 import qualified Network.AWS.Auth    as AWS
 import qualified Network.AWS.Route53 as Route53
+import           Servant
+
+import           Fission.Prelude
 
 import           Fission.AWS
 import           Fission.AWS.Route53
@@ -26,22 +25,33 @@ import           Fission.Web.Server
 type API = Capture "cid" CID
         :> PutAccepted '[PlainText, OctetStream] AWS.DomainName
 
-server :: HasLogFunc         cfg
-       => Has AWS.AccessKey  cfg
-       => Has AWS.SecretKey  cfg
-       => Has AWS.ZoneID     cfg
-       => Has AWS.DomainName cfg
-       => User
-       -> RIOServer         cfg API
-server User { _username } (CID hash) = do
+server
+  :: ( HasLogFunc         cfg
+     , Has AWS.AccessKey  cfg
+     , Has AWS.SecretKey  cfg
+     , Has AWS.ZoneID     cfg
+     , Has AWS.DomainName cfg
+     )
+  => User
+  -> RIOServer cfg API
+server User { username } (CID hash) = do
   domain :: AWS.DomainName <- Config.get
 
   let
-    baseUrl    = _username <> AWS.getDomainName domain
+    baseUrl    = username <> AWS.getDomainName domain
     dnslinkUrl = "_dnslink." <> baseUrl
     dnslink    = "dnslink=/ipfs/" <> hash
 
-  ensureContent $ registerDomain Route53.Cname baseUrl "ipfs.runfission.com"
-  ensureContent $ registerDomain Route53.Txt dnslinkUrl $ dnslink `wrapIn` "\""
+  "ipfs.runfission.com"
+    |> registerDomain Route53.Cname baseUrl
+    |> ensureContent
 
-  return $ AWS.DomainName baseUrl
+  dnslink
+    |> wrapIn' "\""
+    |> registerDomain Route53.Txt dnslinkUrl
+    |> ensureContent
+
+  return <| AWS.DomainName baseUrl
+
+wrapIn' :: Text -> Text -> Text
+wrapIn' a b = wrapIn b a

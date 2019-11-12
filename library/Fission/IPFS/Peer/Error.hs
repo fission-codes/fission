@@ -1,9 +1,8 @@
 module Fission.IPFS.Peer.Error (Error (..)) where
 
-import RIO
-
 import Servant.Server
 
+import Fission.Prelude
 import Fission.Web.Error
 import Fission.IPFS.Peer.Types
 

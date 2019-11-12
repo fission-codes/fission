@@ -1,26 +1,10 @@
 -- | Configuration types
-module Fission.Config.Types
-  ( Config (..)
-  , processCtx
-  , logFunc
-  , ipfsPath
-  , ipfsTimeout
-  , host
-  , pgConnectInfo
-  , dbPool
-  , herokuID
-  , herokuPassword
-  ) where
+module Fission.Config.Types (Config (..)) where
 
-import           RIO
-import           RIO.List (intercalate)
-import           RIO.Process (ProcessContext, HasProcessContext (..))
-
-import           Control.Lens (makeLenses)
-import           Data.Has
 import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
 
+import           Fission.Prelude
 import           Fission.Web.Types
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
@@ -31,87 +15,100 @@ import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { _processCtx     :: !ProcessContext
-  , _logFunc        :: !LogFunc
-  , _httpManager    :: !HTTP.Manager
-  , _ipfsPath       :: !IPFS.BinPath
-  , _ipfsURL        :: !IPFS.URL
-  , _ipfsTimeout    :: !IPFS.Timeout
-  , _host           :: !Host
-  , _pgConnectInfo  :: !PGConnectInfo
-  , _dbPool         :: !DB.Pool
-  , _herokuID       :: !Heroku.ID
-  , _herokuPassword :: !Heroku.Password
-  , _awsAccessKey   :: !AWS.AccessKey
-  , _awsSecretKey   :: !AWS.SecretKey
-  , _awsZoneID      :: !AWS.ZoneID
-  , _awsDomainName  :: !AWS.DomainName
-  }
-
-makeLenses ''Config
+  { processCtx     :: !ProcessContext
+  , logFunc        :: !LogFunc
+  , httpManager    :: !HTTP.Manager
+  , ipfsPath       :: !IPFS.BinPath
+  , ipfsURL        :: !IPFS.URL
+  , ipfsTimeout    :: !IPFS.Timeout
+  , host           :: !Host
+  , pgConnectInfo  :: !PGConnectInfo
+  , dbPool         :: !DB.Pool
+  , herokuID       :: !Heroku.ID
+  , herokuPassword :: !Heroku.Password
+  , awsAccessKey   :: !AWS.AccessKey
+  , awsSecretKey   :: !AWS.SecretKey
+  , awsZoneID      :: !AWS.ZoneID
+  , awsDomainName  :: !AWS.DomainName
+  } deriving Generic
 
 instance Show Config where
   show Config {..} = intercalate "\n"
     [ "Config {"
-    , "  _processCtx     = **SOME PROC CONTEXT**"
-    , "  _logFunc        = **SOME LOG FUNCTION**"
-    , "  _httpManager    = **SOME HTTP MANAGER**"
-    , "  _ipfsPath       = " <> show _ipfsPath
-    , "  _ipfsURL        = " <> show _ipfsURL
-    , "  _ipfsTimeout    = " <> show _ipfsTimeout
-    , "  _host           = " <> show _host
-    , "  _pgConnectInfo  = " <> show _pgConnectInfo
-    , "  _dbPool         = " <> show _dbPool
-    , "  _herokuID       = " <> show _herokuID
-    , "  _herokuPassword = " <> show _herokuPassword
-    , "  _awsAccessKey   = " <> show _awsAccessKey
-    , "  _awsSecretKey   = HIDDEN"
-    , "  _awsZoneID      = " <> show _awsZoneID
-    , "  _awsDomainName  = " <> show _awsDomainName
+    , "  processCtx     = **SOME PROC CONTEXT**"
+    , "  logFunc        = **SOME LOG FUNCTION**"
+    , "  httpManager    = **SOME HTTP MANAGER**"
+    , "  ipfsPath       = " <> show ipfsPath
+    , "  ipfsURL        = " <> show ipfsURL
+    , "  ipfsTimeout    = " <> show ipfsTimeout
+    , "  host           = " <> show host
+    , "  pgConnectInfo  = " <> show pgConnectInfo
+    , "  dbPool         = " <> show dbPool
+    , "  herokuID       = " <> show herokuID
+    , "  herokuPassword = " <> show herokuPassword
+    , "  awsAccessKey   = " <> show awsAccessKey
+    , "  awsSecretKey   = HIDDEN"
+    , "  awsZoneID      = " <> show awsZoneID
+    , "  awsDomainName  = " <> show awsDomainName
     , "}"
     ]
 
 instance HasProcessContext Config where
-  processContextL = processCtx
+  processContextL = lens processCtx \cfg newProcessCtx ->
+    cfg { processCtx = newProcessCtx }
 
 instance HasLogFunc Config where
-  logFuncL = logFunc
+  logFuncL = lens logFunc \cfg newLogFunc' ->
+    cfg { logFunc = newLogFunc' }
 
 instance Has HTTP.Manager Config where
-  hasLens = httpManager
+  hasLens = lens httpManager \cfg newHttpManager ->
+    cfg { httpManager = newHttpManager }
 
 instance Has IPFS.BinPath Config where
-  hasLens = ipfsPath
+  hasLens = lens ipfsPath \cfg newIPFSPath ->
+    cfg { ipfsPath = newIPFSPath }
 
 instance Has IPFS.URL Config where
-  hasLens = ipfsURL
+  hasLens = lens ipfsURL \cfg newIPFSURL ->
+    cfg { ipfsURL = newIPFSURL }
 
 instance Has IPFS.Timeout Config where
-  hasLens = ipfsTimeout
+  hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
+    cfg { ipfsTimeout = newIPFSTimeout }
 
 instance Has PGConnectInfo Config where
-  hasLens = pgConnectInfo
+  hasLens = lens pgConnectInfo \cfg newPGConnectInfo ->
+    cfg { pgConnectInfo = newPGConnectInfo }
 
 instance Has DB.Pool Config where
-  hasLens = dbPool
+  hasLens = lens dbPool \cfg newDBPool ->
+    cfg { dbPool = newDBPool }
 
 instance Has Heroku.ID Config where
-  hasLens = herokuID
+  hasLens = lens herokuID \cfg newHerokuID ->
+    cfg { herokuID = newHerokuID }
 
 instance Has Heroku.Password Config where
-  hasLens = herokuPassword
+  hasLens = lens herokuPassword \cfg newHerokuPassword ->
+    cfg { herokuPassword = newHerokuPassword }
 
 instance Has AWS.AccessKey Config where
-  hasLens = awsAccessKey
+  hasLens = lens awsAccessKey \cfg newAWSAccessKey ->
+    cfg { awsAccessKey = newAWSAccessKey }
 
 instance Has AWS.SecretKey Config where
-  hasLens = awsSecretKey
+  hasLens = lens awsSecretKey \cfg newAWSSecretKey ->
+    cfg { awsSecretKey = newAWSSecretKey }
 
 instance Has AWS.ZoneID Config where
-  hasLens = awsZoneID
+  hasLens = lens awsZoneID \cfg newAWSZoneID ->
+    cfg { awsZoneID = newAWSZoneID }
 
 instance Has AWS.DomainName Config where
-  hasLens = awsDomainName
+  hasLens = lens awsDomainName \cfg newAWSDomainName ->
+    cfg { awsDomainName = newAWSDomainName }
 
 instance Has Host Config where
-  hasLens = host
+  hasLens = lens host \cfg newHost ->
+    cfg { host = newHost }

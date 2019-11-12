@@ -1,16 +1,11 @@
 module Fission.Storage.IPFS.DAG
   ( put ) where
 
-import           RIO
-import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Process (HasProcessContext)
-
-import Data.Has
-import Data.ByteString.Lazy.Char8 as CL
-
+import           Data.ByteString.Lazy.Char8 as CL
 import qualified Network.HTTP.Client as HTTP
+import qualified RIO.ByteString.Lazy as Lazy
 
-import           Fission.Internal.Constraint
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8       as UTF8
 
 import qualified Fission.IPFS.Process        as IPFS.Proc
@@ -30,6 +25,15 @@ put :: MonadRIO cfg m
 put raw = IPFS.Proc.run ["dag", "put", "-f", "dag-pb"] raw >>= \case
   (ExitSuccess, result, _) ->
     case CL.lines result of
-      [cid] ->  IPFS.Pin.add . mkCID . UTF8.stripN 1 $ UTF8.textShow cid
-      bad   -> pure . Left . UnexpectedOutput $ UTF8.textShow bad
-  (ExitFailure _, _, err) -> pure . Left . UnknownAddErr $ UTF8.textShow err
+      [cid] ->
+        cid
+          |> UTF8.textShow
+          |> UTF8.stripN 1
+          |> mkCID
+          |> IPFS.Pin.add
+
+      bad ->
+        pure . Left . UnexpectedOutput <| UTF8.textShow bad
+
+  (ExitFailure _, _, err) ->
+    pure . Left . UnknownAddErr <| UTF8.textShow err

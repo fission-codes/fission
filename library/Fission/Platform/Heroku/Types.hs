@@ -4,12 +4,11 @@ module Fission.Platform.Heroku.Types
   , Region (..)
   ) where
 
-import RIO
+import Database.Selda (SqlType)
+import Data.Swagger as Swagger
 import RIO.Partial (read)
 
-import Database.Selda (SqlType)
-import Data.Aeson
-import Data.Swagger as Swagger
+import Fission.Prelude
 
 -- | Heroku add-on ID (from @addon-manifest.json@)
 newtype ID = ID { getID :: ByteString }
@@ -52,7 +51,7 @@ instance ToJSON Region where
     Virginia   -> "amazon-web-services::us-east-1"
 
 instance FromJSON Region where
-  parseJSON = withText "Region" $ \case
+  parseJSON = withText "Region" <| \case
     "amazon-web-services::us-west-1"      -> return California
     "amazon-web-services::eu-west-1"      -> return Dublin
     "amazon-web-services::eu-central-1"   -> return Frankfurt
@@ -61,10 +60,10 @@ instance FromJSON Region where
     "amazon-web-services::ap-southeast-2" -> return Sydney
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
-    bad -> fail $ "Invalid region: " <> show bad
+    bad -> fail <| "Invalid region: " <> show bad
 
 instance ToSchema Region where
-  declareNamedSchema = genericDeclareNamedSchema $ defaultSchemaOptions
+  declareNamedSchema = genericDeclareNamedSchema <| defaultSchemaOptions
     { Swagger.constructorTagModifier = (\str -> take (length str - 1) str)
                                      . drop 8
                                      . show

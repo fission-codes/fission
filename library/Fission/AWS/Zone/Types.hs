@@ -1,9 +1,8 @@
 module Fission.AWS.Zone.Types (ZoneID (..)) where
 
-import RIO
-
-import Data.Aeson
 import Data.Swagger (ToSchema (..))
+
+import Fission.Prelude
 
 -- | Type safety wrapper for a Route53 zone ID
 newtype ZoneID = ZoneID { getZoneID :: Text }

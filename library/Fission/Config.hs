@@ -4,10 +4,8 @@ module Fission.Config
   , module Fission.Config.Types
   ) where
 
-import RIO
-
-import Data.Has
 import Fission.Config.Types
+import Fission.Prelude
 
 -- $setup
 --

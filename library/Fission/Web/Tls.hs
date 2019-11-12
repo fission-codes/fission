@@ -3,10 +3,10 @@ module Fission.Web.Tls
   , url
   ) where
 
-import RIO
-
 import Network.HTTP.Client
 import Servant.Client
+
+import Fission.Prelude
 
 run :: Manager -> ClientM a -> String -> IO (Either ClientError a)
 run mgr clnt = runClientM clnt . mkClientEnv mgr . url

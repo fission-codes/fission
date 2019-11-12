@@ -5,22 +5,24 @@ module Fission.Web.Log.Sentry
   , fromRIOLogLevel
   ) where
 
-import           RIO hiding (onException)
 import qualified RIO.List as List
 import qualified RIO.Text as Text
-import           RIO.Time (UTCTime, getCurrentTime)
 
 import System.Log.Raven
 import System.Log.Raven.Transport.HttpConduit
 import System.Log.Raven.Types as Sentry
 
+import           Fission.Prelude hiding (onException)
 import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
 
 -- | Instantiate a Sentry logger
 mkLogger :: MonadUnliftIO m => LogLevel -> Sentry.DSN -> m LogFunc
 mkLogger minRIOLogLevel (Sentry.DSN dsn) = do
-  raven <- liftIO $ initRaven dsn id sendRecord silentFallback
-  return . mkLogFunc $ logger minRIOLogLevel raven
+  raven <- liftIO <| initRaven dsn identity sendRecord silentFallback
+  raven
+    |> logger minRIOLogLevel
+    |> mkLogFunc
+    |> pure
 
 -- | Log from inside the application
 logger
@@ -33,7 +35,7 @@ logger
   -> Utf8Builder
   -> m ()
 logger minRIOLogLevel sentryService _cs logSource logLevel msg =
-  liftIO $ when (logLevel >= minRIOLogLevel) do
+  liftIO <| when (logLevel >= minRIOLogLevel) do
     timestamp <- getCurrentTime
     register sentryService loggerName level (message timestamp) (sentryRecord timestamp)
   where
@@ -41,7 +43,7 @@ logger minRIOLogLevel sentryService _cs logSource logLevel msg =
     level = fromRIOLogLevel logLevel
 
     message :: UTCTime -> String
-    message time = mconcat $ List.intersperse " - - "
+    message time = mconcat <| List.intersperse " - - "
       [ Text.unpack (textDisplay msg)
       , show time
       , show logLevel
@@ -63,5 +65,5 @@ fromRIOLogLevel :: LogLevel -> SentryLevel
 fromRIOLogLevel = \case
   LevelWarn      -> Sentry.Warning
   LevelError     -> Sentry.Error
-  LevelOther msg -> Sentry.Custom $ Text.unpack msg
+  LevelOther msg -> Sentry.Custom <| Text.unpack msg
   _              -> Sentry.Info

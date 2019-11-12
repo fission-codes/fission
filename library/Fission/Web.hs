@@ -7,6 +7,7 @@ module Fission.Web
   , server
   ) where
 
+import           Flow
 import           RIO
 import           RIO.Process (HasProcessContext)
 
@@ -43,39 +44,44 @@ import qualified Fission.Web.Heroku            as Heroku
 type API = Web.Swagger.API :<|> Web.API
 
 -- | The actual web server for 'API'
-app :: Has IPFS.BinPath    cfg
-    => Has IPFS.Timeout    cfg
-    => Has IPFS.URL        cfg
-    => Has HTTP.Manager    cfg
-    => Has Web.Host        cfg
-    => Has AWS.AccessKey   cfg
-    => Has AWS.SecretKey   cfg
-    => Has AWS.ZoneID      cfg
-    => Has AWS.DomainName  cfg
-    => Has Heroku.ID       cfg
-    => Has Heroku.Password cfg
-    => HasProcessContext   cfg
-    => HasLogFunc          cfg
-    => MonadSelda     (RIO cfg)
+app
+  :: ( Has IPFS.BinPath    cfg
+     , Has IPFS.Timeout    cfg
+     , Has IPFS.URL        cfg
+     , Has HTTP.Manager    cfg
+     , Has Web.Host        cfg
+     , Has AWS.AccessKey   cfg
+     , Has AWS.SecretKey   cfg
+     , Has AWS.ZoneID      cfg
+     , Has AWS.DomainName  cfg
+     , Has Heroku.ID       cfg
+     , Has Heroku.Password cfg
+     , HasProcessContext   cfg
+     , HasLogFunc          cfg
+     , MonadSelda     (RIO cfg)
+     )
     => RIO cfg Application
 app = do
   cfg  <- ask
   auth <- mkAuth
   appHost :: Web.Host <- Config.get
 
-  return . serveWithContext api auth
-         . Auth.server api cfg
-         . server
-         $ Swagger.Host (show appHost) Nothing
+  Swagger.Host (show appHost) Nothing
+    |> server
+    |> Auth.server api cfg
+    |> serveWithContext api auth
+    |> pure
   where
     api = Proxy @API
 
 -- | Construct an authorization context
-mkAuth :: Has Heroku.ID       cfg
-       => Has Heroku.Password cfg
-       => HasLogFunc          cfg
-       => MonadSelda     (RIO cfg)
-       => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
+mkAuth
+  :: ( Has Heroku.ID       cfg
+     , Has Heroku.Password cfg
+     , HasLogFunc          cfg
+     , MonadSelda     (RIO cfg)
+     )
+  => RIO cfg (Context '[BasicAuthCheck User, BasicAuthCheck ByteString])
 mkAuth = do
   Heroku.ID       hkuID   <- Config.get
   Heroku.Password hkuPass <- Config.get
@@ -88,20 +94,22 @@ mkAuth = do
         :. EmptyContext
 
 -- | Web handlers for the 'API'
-server :: Has IPFS.BinPath   cfg
-       => Has IPFS.Timeout   cfg
-       => Has HTTP.Manager   cfg
-       => Has IPFS.URL       cfg
-       => Has Web.Host       cfg
-       => Has AWS.AccessKey  cfg
-       => Has AWS.SecretKey  cfg
-       => Has AWS.ZoneID     cfg
-       => Has AWS.DomainName cfg
-       => HasProcessContext  cfg
-       => HasLogFunc         cfg
-       => MonadSelda    (RIO cfg)
-       => Swagger.Host
-       -> RIOServer          cfg API
+server
+  :: ( Has IPFS.BinPath   cfg
+     , Has IPFS.Timeout   cfg
+     , Has HTTP.Manager   cfg
+     , Has IPFS.URL       cfg
+     , Has Web.Host       cfg
+     , Has AWS.AccessKey  cfg
+     , Has AWS.SecretKey  cfg
+     , Has AWS.ZoneID     cfg
+     , Has AWS.DomainName cfg
+     , HasProcessContext  cfg
+     , HasLogFunc         cfg
+     , MonadSelda    (RIO cfg)
+     )
+  => Swagger.Host
+  -> RIOServer cfg API
 server host' = Web.Swagger.server host'
           :<|> IPFS.server
           :<|> const Heroku.server
