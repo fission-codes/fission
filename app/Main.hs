@@ -63,7 +63,7 @@ main = do
 
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger LevelWarn) sentryDSN
 
-  withLogFunc (setLogUseTime True logOptions) \baseLogger -> runRIO Config {..} do
+  withLogFunc (setLogUseTime True logOptions) \baseLogger -> do
     let
       logFunc        = baseLogger <> condSentryLogger
       Web.Port port' = port
