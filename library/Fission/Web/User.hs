@@ -13,14 +13,20 @@ import qualified Fission.AWS.Types as AWS
 import           Fission.Web.Server
 import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
+import qualified Fission.Web.User.Password.Reset as Reset
 import qualified Fission.Web.Auth.Types  as Auth
 
 type API = Create.API
       :<|> VerifyRoute
+      :<|> ResetRoute
 
 type VerifyRoute = "verify"
                    :> Auth.ExistingUser
                    :> Verify.API
+
+type ResetRoute = "reset_password"
+                  :> Auth.ExistingUser
+                  :> Reset.API
 
 server
   :: ( HasLogFunc         cfg
@@ -33,3 +39,4 @@ server
   => RIOServer cfg API
 server = Create.server
     :<|> const Verify.server
+    :<|> Reset.server
