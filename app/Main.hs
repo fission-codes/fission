@@ -29,6 +29,7 @@ import qualified Fission.Storage.Environment.Types as Storage
 import qualified Fission.Web.Environment.Types     as Web
 
 import qualified Fission.AWS.Environment.Types as AWS
+import qualified Fission.Web.Log.Sentry as Sentry
 
 main :: IO ()
 main = do
@@ -60,20 +61,24 @@ main = do
   isVerbose  <- getFlag "RIO_VERBOSE" .!~ False
   logOptions <- logOptionsHandle stdout isVerbose
 
-  withLogFunc (setLogUseTime True logOptions) \logFunc -> runRIO Config {..} do
-    logDebug . displayShow =<< ask
+  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger LevelWarn) sentryDSN
 
+  withLogFunc (setLogUseTime True logOptions) \baseLogger -> runRIO Config {..} do
     let
+      logFunc        = baseLogger <> condSentryLogger
       Web.Port port' = port
       settings       = mkSettings logFunc port'
       runner         = if env |> web |> Web.isTLS then runTLS tlsSettings' else runSettings
       condDebug      = if env |> web |> Web.pretty then identity else logStdoutDev
 
-    when (env |> web |> Web.monitor) Monitor.wai
-    liftIO . runner settings
-           . CORS.middleware
-           . condDebug
-           =<< Web.app
+    runRIO Config {..} do
+      logDebug . displayShow =<< ask
+
+      when (env |> web |> Web.monitor) Monitor.wai
+      liftIO . runner settings
+             . CORS.middleware
+             . condDebug
+             =<< Web.app
 
 mkSettings :: LogFunc -> Port -> Settings
 mkSettings logger port = defaultSettings

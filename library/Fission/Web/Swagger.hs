@@ -25,6 +25,7 @@ server = hoistServer (Proxy @API) fromHandler . swaggerSchemaUIServer . docs
 docs :: Host -> Swagger
 docs host' = host'
           |> app (Proxy @Web.API)
+          |> dns
           |> ipfs
           |> heroku
           |> ping
@@ -35,7 +36,7 @@ app proxy appHost = toSwagger proxy
                  |> host               ?~ appHost
                  |> schemes            ?~ [Https, Http]
                  |> info . title       .~ "The Fission API"
-                 |> info . version     .~ "1.12.0"
+                 |> info . version     .~ "1.20.0"
                  |> info . description ?~ blurb
                  |> info . contact     ?~ fissionContact
                  |> info . license     ?~ projectLicense
@@ -49,6 +50,10 @@ app proxy appHost = toSwagger proxy
                   |> url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"
 
     blurb = "Bootstrapped & distributed backend-as-a-service with user-controlled data"
+
+dns :: Swagger -> Swagger
+dns = makeDocs (Proxy @Web.DNSRoute)
+  ["DNS" |> description ?~ "DNS management"]
 
 user :: Swagger -> Swagger
 user = makeDocs (Proxy @Web.UserRoute)
