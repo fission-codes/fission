@@ -5,7 +5,7 @@ import RIO
 import Data.Aeson
 import Data.Swagger
 
-newtype Password = Password { password :: Maybe Text }
+newtype Password = Password { password :: Text }
   deriving          ( Eq
                     , Generic
                     , Show
@@ -13,11 +13,7 @@ newtype Password = Password { password :: Maybe Text }
   deriving anyclass ( ToSchema )
 
 instance ToJSON Password where
-  toJSON (Password password) = 
-    Object [("password", maybe Null String password)]
+  toJSON (Password password) = toJSON $ String password
 
 instance FromJSON Password where
-  parseJSON = withObject "Password" \obj -> do
-    _password <- obj .:?  "password"
-
-    return $ Password _password
+  parseJSON = withText "Password" \txt -> return $ Password txt
