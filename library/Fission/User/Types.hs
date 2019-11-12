@@ -1,14 +1,11 @@
 module Fission.User.Types (User (..))where
 
-import Flow
-import RIO
-
-import Control.Lens   ((?~))
 import Data.Swagger
 import Database.Selda
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
 
+import Fission.Prelude
 import Fission.Security       (Digestable (..))
 import Fission.Security.Types (SecretDigest)
 import Fission.User.Role
@@ -37,5 +34,7 @@ instance Digestable (ID User) where
 
 instance ToSchema (ID User) where
   declareNamedSchema _ =
-     return <| NamedSchema (Just "UserID")
-            <| type_ ?~ SwaggerInteger <| mempty
+    mempty
+      |> type_ ?~ SwaggerInteger
+      |> NamedSchema (Just "UserID")
+      |> pure

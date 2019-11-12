@@ -2,7 +2,6 @@
 module Fission.AWS.Environment.Types (Environment (..)) where
 
 import qualified Network.AWS.Auth  as AWS
-import           RIO.List (intercalate)
 
 import           Fission.Prelude
 import qualified Fission.AWS.Types as AWS

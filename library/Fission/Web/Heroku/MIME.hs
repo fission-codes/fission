@@ -1,10 +1,9 @@
 module Fission.Web.Heroku.MIME (VendorJSONv3 (..)) where
 
-import RIO
-
-import Data.Aeson
 import Network.HTTP.Media ((//), (/:))
 import Servant.API
+
+import Fission.Prelude
 
 newtype VendorJSONv3 = VendorJSONv3 { unVendorJSONv3 :: Value }
   deriving Show
@@ -19,4 +18,4 @@ instance FromJSON VendorJSONv3 where
   parseJSON = pure . VendorJSONv3
 
 instance FromJSON a => MimeUnrender VendorJSONv3 a where
-  mimeUnrender _ = mimeUnrender $ Proxy @JSON
+  mimeUnrender _ = mimeUnrender <| Proxy @JSON

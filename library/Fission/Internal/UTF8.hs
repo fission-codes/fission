@@ -10,10 +10,11 @@ module Fission.Internal.UTF8
   , wrapIn
   ) where
 
-import           RIO
 import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
+
+import Fission.Prelude hiding (encode)
 
 class Textable a where
   encode :: a -> Either UnicodeException Text
@@ -31,13 +32,17 @@ textToLazyBS :: Text -> Lazy.ByteString
 textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
 
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
-stripNewline bs = fromMaybe bs $ Lazy.stripSuffix "\n" bs
+stripNewline bs = bs
+               |> Lazy.stripSuffix "\n"
+               |> fromMaybe bs
 
 textShow :: Show a => a -> Text
 textShow = textDisplay . displayShow
 
 stripNBS :: Natural -> Lazy.ByteString -> Lazy.ByteString
-stripNBS n bs = Lazy.drop i $ Lazy.take ((Lazy.length bs) - i) bs
+stripNBS n bs = bs
+             |> Lazy.take ((Lazy.length bs) - i)
+             |> Lazy.drop i
   where
     i :: Int64
     i = fromIntegral n

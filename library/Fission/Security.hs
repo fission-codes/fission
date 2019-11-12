@@ -7,12 +7,11 @@ module Fission.Security
   , Secret (unSecret)
   ) where
 
-import RIO
-
 import           Crypto.Hash
 import qualified Data.ByteString.Random as BS
 
 import qualified Fission.Internal.UTF8  as UTF8
+import           Fission.Prelude
 import           Fission.Security.Types
 
 mkSecret :: Natural -> IO (Either UnicodeException Secret)

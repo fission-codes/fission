@@ -5,11 +5,9 @@ module Fission.IPFS.Client.Pin
   , Response (..)
   ) where
 
-import RIO
-
-import Data.Aeson
 import Servant
 
+import           Fission.Prelude
 import           Fission.IPFS.CID.Types
 import qualified Fission.IPFS.Client.Param as Param
 

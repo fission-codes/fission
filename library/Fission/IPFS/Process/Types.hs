@@ -1,5 +1,5 @@
 module Fission.IPFS.Process.Types (Opt) where
 
-import RIO
+import Fission.Prelude
 
 type Opt = String

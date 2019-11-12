@@ -3,10 +3,9 @@ module Fission.Web.User.Verify
   , server
   ) where
 
-import RIO
-
 import Servant
 
+import Fission.Prelude
 import Fission.Web.Server
 
 type API = Get '[JSON] Bool

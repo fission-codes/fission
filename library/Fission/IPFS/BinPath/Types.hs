@@ -1,10 +1,8 @@
 module Fission.IPFS.BinPath.Types (BinPath (..)) where
 
-import RIO
-
-import Data.Aeson
 import System.Envy
 
+import Fission.Prelude
 import Fission.Internal.Orphanage.Natural ()
 
 -- | Path to the IPFS binary

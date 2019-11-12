@@ -3,14 +3,13 @@ module Fission.User.Security
   , genID
   ) where
 
-import           RIO
-import qualified RIO.Text as Text
+import           Database.Selda (ID)
+import qualified RIO.Text       as Text
 
-import Database.Selda (ID)
-
-import Fission.Security
-import Fission.User.Types
-import qualified Fission.Random as Random
+import           Fission.Prelude
+import qualified Fission.Random     as Random
+import           Fission.Security
+import           Fission.User.Types
 
 -- | Create a 'SecretDigest' from the users ID
 --   Barely an obsfucating technique, but enough to hide DB ordering

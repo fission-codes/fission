@@ -1,12 +1,10 @@
 module Fission.AWS.DomainName.Types (DomainName (..)) where
 
-import           RIO
+import           Data.Swagger (ToSchema (..))
 import qualified RIO.ByteString.Lazy as Lazy
+import           Servant
 
-import Data.Aeson
-import Data.Swagger (ToSchema (..))
-import Servant
-
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
 -- | Type safety wrapper for Route53 domain names
@@ -30,6 +28,6 @@ instance MimeRender OctetStream DomainName where
 
 instance MimeUnrender PlainText DomainName where
   mimeUnrender _proxy bs =
-    case decodeUtf8' $ Lazy.toStrict bs of
-      Left err  -> Left $ show err
-      Right txt -> Right $ DomainName txt
+    case bs |> Lazy.toStrict |> decodeUtf8' of
+      Left err  -> Left <| show err
+      Right txt -> Right <| DomainName txt

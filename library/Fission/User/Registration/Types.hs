@@ -1,16 +1,13 @@
 module Fission.User.Registration.Types ( Registration(..) ) where
 
-import           RIO
+import Data.Swagger hiding (email)
 
-import Data.Aeson
-import Data.Swagger
-
-import Control.Lens hiding ((.=))
+import Fission.Prelude
 
 data Registration = Registration
-  { _username :: !Text
-  , _password :: !Text
-  , _email    :: !(Maybe Text)
+  { username :: !Text
+  , password :: !Text
+  , email    :: !(Maybe Text)
   }
 
 instance ToJSON Registration where
@@ -22,33 +19,32 @@ instance ToJSON Registration where
 
 instance FromJSON Registration where
   parseJSON = withObject "Registration" \obj -> do
-    _username <- obj .:  "username"
-    _password <- obj .:  "password"
-    _email    <- obj .:? "email"
+    username <- obj .:  "username"
+    password <- obj .:  "password"
+    email    <- obj .:? "email"
 
-    return $ Registration {..}
+    return <| Registration {..}
 
 instance ToSchema Registration where
   declareNamedSchema _ = do
-    username' <- declareSchemaRef $ Proxy @Text
-    password' <- declareSchemaRef $ Proxy @Text
-    email'    <- declareSchemaRef $ Proxy @Text
+    username' <- declareSchemaRef <| Proxy @Text
+    password' <- declareSchemaRef <| Proxy @Text
+    email'    <- declareSchemaRef <| Proxy @Text
 
-    return $ NamedSchema (Just "Registration") $ mempty
-      & type_      ?~ SwaggerObject
-      & properties .~
-          [ ("username", username')
-          , ("password", password')
-          , ("email", email')
-          ]
-      & required .~
-          [ "username"
-          , "password"
-          ]
-      & description ?~
-          "The information that a user needs to provide to login/register."
-      & example ?~ toJSON Registration
-          { _username = "username"
-          , _password = "password123!"
-          , _email    = Just "alice@example.com"
-          }
+    mempty
+      |> type_      ?~ SwaggerObject
+      |> properties .~
+           [ ("username", username')
+           , ("password", password')
+           , ("email", email')
+           ]
+      |> required .~ ["username", "password"]
+      |> description ?~
+           "The information that a user needs to provide to login/register."
+      |> example ?~ toJSON Registration
+           { username = "username"
+           , password = "password123!"
+           , email    = Just "alice@example.com"
+           }
+      |> NamedSchema (Just "Registration")
+      |> pure

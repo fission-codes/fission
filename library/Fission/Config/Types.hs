@@ -3,7 +3,6 @@ module Fission.Config.Types (Config (..)) where
 
 import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
-import           RIO.List (intercalate)
 
 import           Fission.Prelude
 import           Fission.Web.Types

@@ -3,10 +3,9 @@ module Fission.User.Query
   , byUsername
   ) where
 
-import RIO
-
 import Database.Selda
 
+import Fission.Prelude
 import Fission.Storage.Query
 import Fission.User.Types
 

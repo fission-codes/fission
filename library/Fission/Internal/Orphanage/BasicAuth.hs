@@ -2,13 +2,13 @@
 
 module Fission.Internal.Orphanage.BasicAuth () where
 
-import RIO
-
-import Control.Lens
 import Data.Swagger
 import Servant
 import Servant.Swagger
 
+import Fission.Prelude
+
 instance HasSwagger api => HasSwagger (BasicAuth x r :> api) where
-  toSwagger _ = toSwagger (Proxy @api)
-              & securityDefinitions .~ [("basic", SecurityScheme SecuritySchemeBasic Nothing)]
+  toSwagger _ = Proxy @api
+             |> toSwagger
+             |> securityDefinitions .~ [("basic", SecurityScheme SecuritySchemeBasic Nothing)]

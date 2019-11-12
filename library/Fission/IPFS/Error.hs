@@ -5,11 +5,9 @@ module Fission.IPFS.Error
   , Linearization (..)
   ) where
 
-import RIO
-
-import Data.Aeson
 import Servant.Server
 
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.IPFS.Types
 import           Fission.Web.Error

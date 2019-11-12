@@ -3,17 +3,16 @@ module Fission.Web.Log
   , fromLogFunc
   ) where
 
-import RIO
-
 import Network.HTTP.Types.Status
 import Network.Wai.Internal (Request (..))
 import Network.Wai.Logger
 
-import Fission.Internal.Constraint
+import Fission.Prelude
 
 rioApacheLogger
-  :: MonadRIO   cfg m
-  => HasLogFunc cfg
+  :: ( MonadRIO   cfg m
+     , HasLogFunc cfg
+     )
   => Request
   -> Status
   -> Maybe Integer
@@ -35,7 +34,7 @@ rioApacheLogger Request {..} Status {statusCode} _mayInt =
       , if rawQueryString == "" then "" else displayShow rawQueryString
       , " "
       , displayShow statusCode
-      , displayShow $ maybe "" (" - " <>) requestHeaderUserAgent
+      , displayShow <| maybe "" (" - " <>) requestHeaderUserAgent
       ]
 
 fromLogFunc :: LogFunc -> ApacheLogger

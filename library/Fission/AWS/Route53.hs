@@ -3,39 +3,35 @@ module Fission.AWS.Route53
   , registerDomain
   ) where
 
-import Flow
-import RIO
-
-import Control.Lens ((?~))
-import Data.Has
-import Servant
-
 import Network.AWS
 import Network.AWS.Auth as AWS
 import Network.AWS.Prelude
 import Network.AWS.Route53
+import Servant
 
+import           Fission.Prelude
 import qualified Fission.Config    as Config
 import           Fission.AWS.Types as AWS
 import           Fission.AWS
-import           Fission.Internal.Constraint
 
-registerDomain :: MonadRIO           cfg m
-               => MonadUnliftIO          m
-               => HasLogFunc         cfg
-               => Has AWS.AccessKey  cfg
-               => Has AWS.SecretKey  cfg
-               => Has AWS.ZoneID     cfg
-               => RecordType
-               -> Text
-               -> Text
-               -> m (Either ServerError ChangeResourceRecordSetsResponse)
+registerDomain
+  :: ( MonadRIO           cfg m
+     , MonadUnliftIO          m
+     , HasLogFunc         cfg
+     , Has AWS.AccessKey  cfg
+     , Has AWS.SecretKey  cfg
+     , Has AWS.ZoneID     cfg
+     )
+  => RecordType
+  -> Text
+  -> Text
+  -> m (Either ServerError ChangeResourceRecordSetsResponse)
 registerDomain recordType domain content = do
   logDebug <| "Updating DNS record at: " <> displayShow domain
   env <- createEnv
   req <- createChangeRequest recordType domain content
 
-  withAWS env NorthVirginia $ do
+  withAWS env NorthVirginia <| do
     res <- send req
     return <| validate res
 

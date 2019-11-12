@@ -1,13 +1,8 @@
-module Fission.User.Role
-  ( Role (..)
-  , _Regular
-  , _Admin
-  ) where
+module Fission.User.Role (Role (..)) where
 
-import RIO
-
-import Control.Lens   (makePrisms)
 import Database.Selda (SqlType)
+
+import Fission.Prelude
 
 data Role
   = Regular
@@ -19,5 +14,3 @@ data Role
            , Bounded
            , SqlType
            )
-
-makePrisms ''Role

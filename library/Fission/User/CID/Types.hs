@@ -1,10 +1,9 @@
 module Fission.User.CID.Types (UserCID (..)) where
 
-import RIO
-
 import Database.Selda
 
-import Fission.User (User (..))
+import Fission.Prelude
+import Fission.User    (User (..))
 
 -- | A relationship of 'CID' to a 'User'
 data UserCID = UserCID

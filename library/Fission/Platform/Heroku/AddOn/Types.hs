@@ -1,11 +1,10 @@
 module Fission.Platform.Heroku.AddOn.Types (AddOn (..)) where
 
-import RIO
-
 import Data.UUID
 import Database.Selda
 
 import Fission.Platform.Heroku.Types (Region (..))
+import Fission.Prelude
 
 data AddOn = AddOn
   { addOnID    :: ID AddOn

@@ -6,11 +6,9 @@ module Fission.Timestamp
   , (<@)
   ) where
 
-import Flow
-import RIO
-
-import Data.Time      (getCurrentTime)
 import Database.Selda (UTCTime)
+
+import Fission.Prelude
 
 type Unstamped r = UTCTime -> UTCTime -> r
 

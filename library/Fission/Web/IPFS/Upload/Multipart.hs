@@ -7,18 +7,14 @@ module Fission.Web.IPFS.Upload.Multipart
   , textAdd
   ) where
 
-import           RIO
-import           RIO.Process (HasProcessContext)
-import qualified RIO.Text as Text
-
-import           Data.Has
 import           Database.Selda
+import qualified RIO.Text as Text
 
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 import           Servant.Multipart
 
-import           Fission.Internal.Constraint
+import           Fission.Prelude
 import           Fission.Internal.MIME
 
 import           Fission.User
@@ -56,54 +52,60 @@ add
   -> RIOServer cfg API
 add User { userID } = textAdd userID :<|> jsonAdd userID
 
-textAdd :: Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => Has HTTP.Manager  cfg
-        => Has IPFS.URL      cfg
-        => HasProcessContext cfg
-        => MonadSelda   (RIO cfg)
-        => HasLogFunc        cfg
-        => ID User
-        -> RIOServer         cfg TextAPI
-textAdd uID form queryName = run uID form queryName $ \sparse ->
+textAdd
+  :: ( Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     , HasProcessContext cfg
+     , MonadSelda   (RIO cfg)
+     , HasLogFunc        cfg
+     )
+  => ID User
+  -> RIOServer cfg TextAPI
+textAdd uID form queryName = run uID form queryName <| \sparse ->
   case IPFS.linearize sparse of
     Right hash -> pure hash
     Left err   -> Web.Err.throw err
 
-jsonAdd :: MonadSelda   (RIO cfg)
-        => Has IPFS.BinPath  cfg
-        => Has IPFS.Timeout  cfg
-        => Has HTTP.Manager  cfg
-        => Has IPFS.URL      cfg
-        => HasProcessContext cfg
-        => HasLogFunc        cfg
-        => ID User
-        -> RIOServer         cfg JSONAPI
+jsonAdd
+  :: ( MonadSelda   (RIO cfg)
+     , Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     , HasProcessContext cfg
+     , HasLogFunc        cfg
+     )
+  => ID User
+  -> RIOServer cfg JSONAPI
 jsonAdd uID form queryName = run uID form queryName pure
 
-run :: MonadRIO          cfg m
-    => MonadMask             m
-    => MonadSelda            m
-    => Has HTTP.Manager  cfg
-    => Has IPFS.URL      cfg
-    => Has IPFS.BinPath  cfg
-    => Has IPFS.Timeout  cfg
-    => HasProcessContext cfg
-    => HasLogFunc        cfg
-    => ID User
-    -> MultipartData Mem
-    -> Maybe IPFS.Name
-    -> (IPFS.SparseTree -> m a)
-    -> m a
+run
+  :: ( MonadRIO          cfg m
+     , MonadMask             m
+     , MonadSelda            m
+     , Has HTTP.Manager  cfg
+     , Has IPFS.URL      cfg
+     , Has IPFS.BinPath  cfg
+     , Has IPFS.Timeout  cfg
+     , HasProcessContext cfg
+     , HasLogFunc        cfg
+     )
+  => ID User
+  -> MultipartData Mem
+  -> Maybe IPFS.Name
+  -> (IPFS.SparseTree -> m a)
+  -> m a
 run uID form qName cont = case lookupFile "file" form of
-  Nothing -> throwM $ err422 { errBody = "File not processable by IPFS" }
+  Nothing -> throwM <| err422 { errBody = "File not processable by IPFS" }
   Just FileData { .. } ->
     Storage.IPFS.addFile fdPayload humanName >>= \case
       Left err ->
         Web.Err.throw err
 
       Right struct -> do
-        void $ User.CID.createX uID (IPFS.cIDs struct)
+        void <| User.CID.createX uID (IPFS.cIDs struct)
         cont struct
     where
       humanName :: IPFS.Name
@@ -112,10 +114,10 @@ run uID form qName cont = case lookupFile "file" form of
 toName :: Maybe IPFS.Name -> Text -> Text -> IPFS.Name
 toName queryName' fileName mime =
   case queryName' of
-    Nothing              -> IPFS.Name $ plainName fileName mime
-    Just (IPFS.Name "")  -> IPFS.Name $ plainName fileName mime
+    Nothing              -> IPFS.Name <| plainName fileName mime
+    Just (IPFS.Name "")  -> IPFS.Name <| plainName fileName mime
     Just ipfsName        -> ipfsName
 
 plainName :: Text -> Text -> String
-plainName ""       mime = Text.unpack $ "file." <> lookupExt (encodeUtf8 mime)
+plainName ""       mime = Text.unpack <| "file." <> lookupExt (encodeUtf8 mime)
 plainName fileName _    = Text.unpack fileName

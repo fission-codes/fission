@@ -1,6 +1,6 @@
 module Fission.Platform.Heroku (host) where
 
-import RIO
+import Fission.Prelude
 
 host :: String
 host = "api.heroku.com"

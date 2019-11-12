@@ -4,20 +4,16 @@ module Fission.Web.User
   , VerifyRoute
   ) where
 
-import RIO
+import           Database.Selda
+import           Servant
+import           Network.AWS.Auth  as AWS
 
-import Data.Has
-import Database.Selda
-
-import Servant
-
+import           Fission.Prelude
+import qualified Fission.AWS.Types as AWS
 import           Fission.Web.Server
 import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.Auth.Types  as Auth
-
-import           Network.AWS.Auth  as AWS
-import qualified Fission.AWS.Types as AWS
 
 type API = Create.API
       :<|> VerifyRoute

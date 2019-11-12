@@ -3,13 +3,12 @@
 
 module Fission.Internal.Orphanage.ID () where
 
-import RIO
-
-import Data.Aeson
 import Data.Aeson.Types
 import Data.Scientific
 
 import Database.Selda
+
+import Fission.Prelude
 
 instance Display (ID a) where
   display = display . fromId
@@ -22,7 +21,7 @@ instance FromJSON (ID a) where
     num@(Number n) ->
       case toBoundedInteger n of
         Nothing -> errMsg num
-        Just i  -> return $ toId i
+        Just i  -> return <| toId i
 
     invalid ->
       errMsg invalid

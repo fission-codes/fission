@@ -7,10 +7,9 @@ module Fission.User.CID.Query
   , inCIDs
   ) where
 
-import RIO
-
 import Database.Selda
 
+import Fission.Prelude
 import Fission.User.Types
 import Fission.User.CID.Types
 

@@ -4,22 +4,21 @@ module Fission.Monitor
   , wai
   ) where
 
-import RIO
-
 import System.Envy
 import System.Remote.Monitoring.Wai
 
+import Fission.Prelude
 import Fission.Monitor.Types
 
 wai :: HasLogFunc env => RIO env ()
 wai = liftIO (decodeEnv :: IO (Either String Config)) >>= \case
   Left err -> do
-    logError $ displayShow err
+    logError <| displayShow err
     Config { ekgHost, ekgPort } <- return defConfig
-    liftIO . void $ forkServer ekgHost ekgPort
+    liftIO <| void <| forkServer ekgHost ekgPort
 
   Right Config { ekgHost, ekgPort } -> do
-    logInfo $ mconcat
+    logInfo <| mconcat
       [ "EKG available at "
       , displayBytesUtf8 ekgHost
       , ":"
@@ -27,4 +26,4 @@ wai = liftIO (decodeEnv :: IO (Either String Config)) >>= \case
       , "\n"
       ]
 
-    liftIO . void $ forkServer ekgHost ekgPort
+    liftIO <| void <| forkServer ekgHost ekgPort

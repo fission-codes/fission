@@ -8,15 +8,11 @@ module Fission.Web.Auth
   , checkUser
   ) where
 
-import Flow
-import RIO
-
+import Crypto.BCrypt
 import Database.Selda
 import Servant
 
-import Crypto.BCrypt
-
-import Fission.Internal.Constraint
+import Fission.Prelude
 import Fission.Storage.Query
 import Fission.User as User hiding (username)
 import Fission.Web.Server

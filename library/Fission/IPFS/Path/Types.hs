@@ -1,10 +1,9 @@
 module Fission.IPFS.Path.Types (Path (..)) where
 
-import RIO
-
 import Data.Swagger (ToSchema (..))
 import Servant
 
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
 -- | CID path

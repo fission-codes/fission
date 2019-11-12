@@ -3,13 +3,13 @@
 
 module Fission.Internal.Orphanage.UUID () where
 
-import           RIO
+import           Data.UUID   as UUID
 import qualified RIO.Partial as Partial
 
-import Data.UUID as UUID
+import Fission.Prelude
 
 instance Enum UUID
 
 instance Bounded UUID where
-  minBound = Partial.fromJust $ UUID.fromString "00000000-0000-0000-0000-000000000000"
-  maxBound = Partial.fromJust $ UUID.fromString "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
+  minBound = "00000000-0000-0000-0000-000000000000" |> UUID.fromString |> Partial.fromJust
+  maxBound = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF" |> UUID.fromString |> Partial.fromJust

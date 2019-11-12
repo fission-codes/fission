@@ -14,7 +14,6 @@ import qualified Net.IPv4 as IPv4
 import           Text.Regex
 
 import           Fission.Prelude hiding (all)
-import           Fission.Internal.Constraint
 import qualified Fission.Internal.UTF8       as UTF8
 
 import qualified Fission.IPFS.Process        as IPFSProc
