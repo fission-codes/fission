@@ -73,7 +73,7 @@ instance Has IPFS.Timeout (Config db) where
   hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
     cfg { ipfsTimeout = newIPFSTimeout }
 
-instance Has (DB.Pool be) (Config db) where
+instance Has (DB.Pool db) (Config db) where
   hasLens = lens dbPool \cfg newDBPool ->
     cfg { dbPool = newDBPool }
 
