@@ -12,11 +12,11 @@ module Fission.Internal.UTF8
   , wrapIn
   ) where
 
+import           Flow
+import           RIO
 import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
-
-import Fission.Prelude hiding (encode)
 
 class Textable a where
   encode :: a -> Either UnicodeException Text
