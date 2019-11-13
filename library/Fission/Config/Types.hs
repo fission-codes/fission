@@ -49,58 +49,58 @@ instance Show (Config dbBackend) where
     , "}"
     ]
 
-instance HasProcessContext (Config be) where
+instance HasProcessContext (Config db) where
   processContextL = lens processCtx \cfg newProcessCtx ->
     cfg { processCtx = newProcessCtx }
 
-instance HasLogFunc (Config be) where
+instance HasLogFunc (Config db) where
   logFuncL = lens logFunc \cfg newLogFunc' ->
     cfg { logFunc = newLogFunc' }
 
-instance Has HTTP.Manager (Config be) where
+instance Has HTTP.Manager (Config db) where
   hasLens = lens httpManager \cfg newHttpManager ->
     cfg { httpManager = newHttpManager }
 
-instance Has IPFS.BinPath (Config be) where
+instance Has IPFS.BinPath (Config db) where
   hasLens = lens ipfsPath \cfg newIPFSPath ->
     cfg { ipfsPath = newIPFSPath }
 
-instance Has IPFS.URL (Config be) where
+instance Has IPFS.URL (Config db) where
   hasLens = lens ipfsURL \cfg newIPFSURL ->
     cfg { ipfsURL = newIPFSURL }
 
-instance Has IPFS.Timeout (Config be) where
+instance Has IPFS.Timeout (Config db) where
   hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
     cfg { ipfsTimeout = newIPFSTimeout }
 
-instance Has (DB.Pool be) (Config be) where
+instance Has (DB.Pool be) (Config db) where
   hasLens = lens dbPool \cfg newDBPool ->
     cfg { dbPool = newDBPool }
 
-instance Has Heroku.ID (Config be) where
+instance Has Heroku.ID (Config db) where
   hasLens = lens herokuID \cfg newHerokuID ->
     cfg { herokuID = newHerokuID }
 
-instance Has Heroku.Password (Config be) where
+instance Has Heroku.Password (Config db) where
   hasLens = lens herokuPassword \cfg newHerokuPassword ->
     cfg { herokuPassword = newHerokuPassword }
 
-instance Has AWS.AccessKey (Config be) where
+instance Has AWS.AccessKey (Config db) where
   hasLens = lens awsAccessKey \cfg newAWSAccessKey ->
     cfg { awsAccessKey = newAWSAccessKey }
 
-instance Has AWS.SecretKey (Config be) where
+instance Has AWS.SecretKey (Config db) where
   hasLens = lens awsSecretKey \cfg newAWSSecretKey ->
     cfg { awsSecretKey = newAWSSecretKey }
 
-instance Has AWS.ZoneID (Config be) where
+instance Has AWS.ZoneID (Config db) where
   hasLens = lens awsZoneID \cfg newAWSZoneID ->
     cfg { awsZoneID = newAWSZoneID }
 
-instance Has AWS.DomainName (Config be) where
+instance Has AWS.DomainName (Config db) where
   hasLens = lens awsDomainName \cfg newAWSDomainName ->
     cfg { awsDomainName = newAWSDomainName }
 
-instance Has Host (Config be) where
+instance Has Host (Config db) where
   hasLens = lens host \cfg newHost ->
     cfg { host = newHost }
