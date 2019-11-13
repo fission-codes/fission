@@ -3,13 +3,12 @@ module Fission.Storage.Types
   , SeldaPool
   ) where
 
-import qualified Data.Pool                 as Database
-import           Database.Selda.Backend    (SeldaConnection)
-import           Database.Selda.PostgreSQL
+import qualified Data.Pool              as Database
+import           Database.Selda.Backend (SeldaConnection)
 
 import Fission.Prelude
 
-type SeldaPool = Database.Pool (SeldaConnection PG)
+type SeldaPool backend = Database.Pool (SeldaConnection backend)
 
-newtype Pool = Pool { getPool :: SeldaPool }
+newtype Pool backend = Pool { getPool :: SeldaPool backend }
   deriving Show

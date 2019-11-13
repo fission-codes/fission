@@ -4,7 +4,7 @@ module Fission.Internal.Development
   , runOne
   , mkConfig
   , mkConfig'
-  , pgConnectInfo'
+  , pgConnectInfo
   ) where
 
 import           Database.Selda.PostgreSQL
@@ -29,11 +29,11 @@ import           Fission.Web.Types
      > runOne Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-runOne :: RIO Config a -> IO a
+runOne :: RIO (Config PG) a -> IO a
 runOne action = do
   logOptions   <- logOptionsHandle stdout True
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
-    dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo'
+    dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
     processCtx  <- mkDefaultProcessContext
     httpManager <- HTTP.newManager HTTP.defaultManagerSettings
     run logFunc dbPool processCtx httpManager action
@@ -58,12 +58,13 @@ runOne action = do
      > runSession Fission.IPFS.Peer.connect Fission.peer
      > -- ()
 -}
-run :: LogFunc
-    -> DB.Pool
-    -> ProcessContext
-    -> HTTP.Manager
-    -> RIO Config a
-    -> IO a
+run
+  :: LogFunc
+  -> DB.Pool PG
+  -> ProcessContext
+  -> HTTP.Manager
+  -> RIO (Config PG) a
+  -> IO a
 run logFunc dbPool processCtx httpManager action =
   runRIO config do
     logDebug <| displayShow config
@@ -71,8 +72,7 @@ run logFunc dbPool processCtx httpManager action =
   where
     config = Config {..}
 
-    host          = Host <| BaseUrl Https "mycoolapp.io" 443 ""
-    pgConnectInfo = pgConnectInfo'
+    host = Host <| BaseUrl Https "mycoolapp.io" 443 ""
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
@@ -111,11 +111,10 @@ run logFunc dbPool processCtx httpManager action =
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-mkConfig :: DB.Pool -> ProcessContext -> HTTP.Manager -> LogFunc -> Config
+mkConfig :: DB.Pool PG -> ProcessContext -> HTTP.Manager -> LogFunc -> Config PG
 mkConfig dbPool processCtx httpManager logFunc = Config {..}
   where
-    host          = Host <| BaseUrl Https "mycoolapp.io" 443 ""
-    pgConnectInfo = pgConnectInfo'
+    host = Host <| BaseUrl Https "mycoolapp.io" 443 ""
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
@@ -151,9 +150,9 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
      > run' Fission.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-mkConfig' :: IO (Config, IO ())
+mkConfig' :: IO (Config PG, IO ())
 mkConfig' = do
-  dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo'
+  dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
@@ -164,5 +163,5 @@ mkConfig' = do
   let cfg = mkConfig dbPool processCtx httpManager logFunc
   return (cfg, close)
 
-pgConnectInfo' :: PGConnectInfo
-pgConnectInfo' = PGConnectInfo "localhost" 5432 "webapi" Nothing Nothing Nothing
+pgConnectInfo :: PGConnectInfo
+pgConnectInfo = PGConnectInfo "localhost" 5432 "webapi" Nothing Nothing Nothing
