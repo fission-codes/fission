@@ -22,5 +22,5 @@ get
      )
   => RIOServer cfg API
 get = getExternalAddress >>= \case
-  Right peers -> return <| [IPFS.Peer.fission ] <> peers
+  Right peers -> return (IPFS.Peer.fission : peers)
   Left err    -> Web.Err.throw err
