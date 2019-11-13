@@ -9,7 +9,6 @@ import           Data.UUID (UUID)
 import           Database.Selda
 
 import           Fission.Prelude
-import           Fission.Internal.Orphanage.ID ()
 import           Fission.Timestamp as Timestamp
 
 import qualified Fission.Platform.Heroku.AddOn as Heroku
@@ -70,7 +69,7 @@ create' username password email herokuUUID = do
     Right secretDigest -> do
       uID <- insertWithPK Table.users
         [User def username email Regular True herokuUUID secretDigest <@ now]
-      logInfo <| "Inserted user " <> display uID
+      logInfo <| "Inserted user " <> displayShow uID
       return <| Right uID
 
 updatePassword
@@ -89,7 +88,7 @@ updatePassword userID (User.Password password) = do
         (\user -> user ! #userID .== literal userID)
         (\user -> user `with` [#secretDigest := literal secretDigest])
 
-      logInfo <| "Updated password for user " <> display userID
+      logInfo <| "Updated password for user " <> displayShow userID
       return . Right <| User.Password password
 
 hashPassword' :: MonadIO m => Text -> m (Either Error.Create Text)
