@@ -14,6 +14,9 @@ module Fission.Prelude
   , headMaybe
   , identity
   , intercalate
+  , putText
+  , putTextLn
+  , textShow
   ) where
 
 import Control.Lens                ((%~), (.~), (?~), (^?))
@@ -22,6 +25,7 @@ import Data.Has
 import Data.Maybe
 import Data.Time                   (getCurrentTime)
 import Fission.Internal.Constraint
+import Fission.Internal.UTF8       (putText, putTextLn, textShow)
 import Flow
 import RIO                         hiding (Handler, id, timeout, ($), (&))
 import RIO.List                    (headMaybe, intercalate)
