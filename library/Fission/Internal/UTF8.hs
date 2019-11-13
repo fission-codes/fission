@@ -1,6 +1,8 @@
+-- | UTF8 text helpers
 module Fission.Internal.UTF8
   ( Textable (..)
   , putText
+  , putTextLn
   , showLazyBS
   , stripN
   , stripNBS
@@ -56,6 +58,10 @@ stripN n = Text.dropEnd i . Text.drop i
 -- | Helper for printing 'Text' to a console
 putText :: MonadIO m => Text -> m ()
 putText = Strict.putStr . encodeUtf8
+
+-- | Helper for printing 'Text' to a console with a newline at the end
+putTextLn :: MonadIO m => Text -> m ()
+putTextLn txt = putText <| txt <> "\n"
 
 wrapIn :: Text -> Text -> Text
 wrapIn txt wrapper = wrapper <> txt <> wrapper
