@@ -1,5 +1,4 @@
-module Fission.Storage.Environment.Types
-  ( Environment (..) ) where
+module Fission.Environment.Storage.Types (Environment (..)) where
 
 import Database.Selda.PostgreSQL
 

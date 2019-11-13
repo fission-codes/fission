@@ -1,5 +1,5 @@
 -- | App configuration for AWS
-module Fission.AWS.Environment.Types (Environment (..)) where
+module Fission.Environment.AWS.Types (Environment (..)) where
 
 import qualified Network.AWS.Auth  as AWS
 

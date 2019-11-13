@@ -45,6 +45,7 @@ default-extensions:
   - DeriveLift
   - DeriveTraversable
   - DerivingStrategies
+  - DuplicateRecordFields
   - FlexibleContexts
   - FlexibleInstances
   - FunctionalDependencies
@@ -109,7 +110,6 @@ dependencies:
   - rio-orphans
   - scientific
   - selda
-  - selda-postgresql
   - servant
   - servant-auth-server
   - servant-auth-swagger
@@ -145,6 +145,7 @@ executables:
     source-dirs: app
     dependencies:
       - fission-web-api
+      - selda-postgresql
       - wai-logger
     ghc-options:
       - -threaded
