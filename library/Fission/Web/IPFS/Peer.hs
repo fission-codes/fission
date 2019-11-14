@@ -6,7 +6,7 @@ module Fission.Web.IPFS.Peer
 import           Servant
 
 import           Fission.Prelude
-import           Fission.IPFS.Peer
+import           Fission.IPFS.Peer as IPFS.Peer
 import           Fission.Web.Server
 import qualified Fission.IPFS.Types as IPFS
 import qualified Fission.Web.Error  as Web.Err
@@ -22,5 +22,5 @@ get
      )
   => RIOServer cfg API
 get = getExternalAddress >>= \case
-  Right peers -> return peers
+  Right peers -> return (IPFS.Peer.fission : peers)
   Left err    -> Web.Err.throw err
