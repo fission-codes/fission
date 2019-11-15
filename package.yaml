@@ -133,6 +133,7 @@ dependencies:
   - warp
   - warp-tls
   - word8
+  - vector
   - yaml
 
 library:
