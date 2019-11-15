@@ -103,7 +103,6 @@ dependencies:
   - monad-logger
   - mtl
   - random-bytestring
-  - raven-haskell
   - resource-pool
   - regex-compat
   - rio
@@ -145,6 +144,7 @@ executables:
     source-dirs: app
     dependencies:
       - fission-web-api
+      - raven-haskell
       - selda-postgresql
       - wai-logger
     ghc-options:
