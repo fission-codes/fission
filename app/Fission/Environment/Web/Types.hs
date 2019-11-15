@@ -1,5 +1,5 @@
 -- | Web app config
-module Fission.Web.Environment.Types (Environment (..)) where
+module Fission.Environment.Web.Types (Environment (..)) where
 
 import           Fission.Prelude
 import qualified Fission.Web.Types                as Web

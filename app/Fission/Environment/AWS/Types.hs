@@ -1,11 +1,10 @@
 -- | App configuration for AWS
-module Fission.AWS.Environment.Types (Environment (..)) where
+module Fission.Environment.AWS.Types (Environment (..)) where
 
 import qualified Network.AWS.Auth  as AWS
 
 import           Fission.Prelude
 import qualified Fission.AWS.Types as AWS
-import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
   { accessKey  :: !AWS.AccessKey  -- ^ Access Key
@@ -17,7 +16,7 @@ data Environment = Environment
 instance Show Environment where
   show Environment {..} = intercalate "\n"
     [ "Environment {"
-    , "  accessKey  = " <> show accessKey
+    , "  accessKey  = HIDDEN"
     , "  secretKey  = HIDDEN"
     , "  zoneId     = " <> show zoneID
     , "  domainName = " <> show domainName

@@ -3,10 +3,10 @@ module Fission.Environment.Types (Environment (..)) where
 
 import Fission.Prelude
 
-import qualified Fission.IPFS.Environment.Types    as IPFS
-import qualified Fission.Storage.Environment.Types as Storage
-import qualified Fission.Web.Environment.Types     as Web
-import qualified Fission.AWS.Environment.Types     as AWS
+import qualified Fission.Environment.IPFS.Types    as IPFS
+import qualified Fission.Environment.Storage.Types as Storage
+import qualified Fission.Environment.Web.Types     as Web
+import qualified Fission.Environment.AWS.Types     as AWS
 
 -- | Top-level application configuration. The "knobs" for your app.
 data Environment = Environment

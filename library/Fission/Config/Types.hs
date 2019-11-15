@@ -1,7 +1,6 @@
 -- | Configuration types
 module Fission.Config.Types (Config (..)) where
 
-import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
 
 import           Fission.Prelude
@@ -11,10 +10,9 @@ import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Network.AWS.Auth              as AWS
 import qualified Fission.AWS.Types              as AWS
-import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 -- | The top level 'Fission' application 'RIO' configuration
-data Config = Config
+data Config dbBackend = Config
   { processCtx     :: !ProcessContext
   , logFunc        :: !LogFunc
   , httpManager    :: !HTTP.Manager
@@ -22,8 +20,7 @@ data Config = Config
   , ipfsURL        :: !IPFS.URL
   , ipfsTimeout    :: !IPFS.Timeout
   , host           :: !Host
-  , pgConnectInfo  :: !PGConnectInfo
-  , dbPool         :: !DB.Pool
+  , dbPool         :: !(DB.Pool dbBackend)
   , herokuID       :: !Heroku.ID
   , herokuPassword :: !Heroku.Password
   , awsAccessKey   :: !AWS.AccessKey
@@ -32,7 +29,7 @@ data Config = Config
   , awsDomainName  :: !AWS.DomainName
   } deriving Generic
 
-instance Show Config where
+instance Show (Config dbBackend) where
   show Config {..} = intercalate "\n"
     [ "Config {"
     , "  processCtx     = **SOME PROC CONTEXT**"
@@ -42,7 +39,6 @@ instance Show Config where
     , "  ipfsURL        = " <> show ipfsURL
     , "  ipfsTimeout    = " <> show ipfsTimeout
     , "  host           = " <> show host
-    , "  pgConnectInfo  = " <> show pgConnectInfo
     , "  dbPool         = " <> show dbPool
     , "  herokuID       = " <> show herokuID
     , "  herokuPassword = " <> show herokuPassword
@@ -53,62 +49,58 @@ instance Show Config where
     , "}"
     ]
 
-instance HasProcessContext Config where
+instance HasProcessContext (Config db) where
   processContextL = lens processCtx \cfg newProcessCtx ->
     cfg { processCtx = newProcessCtx }
 
-instance HasLogFunc Config where
+instance HasLogFunc (Config db) where
   logFuncL = lens logFunc \cfg newLogFunc' ->
     cfg { logFunc = newLogFunc' }
 
-instance Has HTTP.Manager Config where
+instance Has HTTP.Manager (Config db) where
   hasLens = lens httpManager \cfg newHttpManager ->
     cfg { httpManager = newHttpManager }
 
-instance Has IPFS.BinPath Config where
+instance Has IPFS.BinPath (Config db) where
   hasLens = lens ipfsPath \cfg newIPFSPath ->
     cfg { ipfsPath = newIPFSPath }
 
-instance Has IPFS.URL Config where
+instance Has IPFS.URL (Config db) where
   hasLens = lens ipfsURL \cfg newIPFSURL ->
     cfg { ipfsURL = newIPFSURL }
 
-instance Has IPFS.Timeout Config where
+instance Has IPFS.Timeout (Config db) where
   hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
     cfg { ipfsTimeout = newIPFSTimeout }
 
-instance Has PGConnectInfo Config where
-  hasLens = lens pgConnectInfo \cfg newPGConnectInfo ->
-    cfg { pgConnectInfo = newPGConnectInfo }
-
-instance Has DB.Pool Config where
+instance Has (DB.Pool db) (Config db) where
   hasLens = lens dbPool \cfg newDBPool ->
     cfg { dbPool = newDBPool }
 
-instance Has Heroku.ID Config where
+instance Has Heroku.ID (Config db) where
   hasLens = lens herokuID \cfg newHerokuID ->
     cfg { herokuID = newHerokuID }
 
-instance Has Heroku.Password Config where
+instance Has Heroku.Password (Config db) where
   hasLens = lens herokuPassword \cfg newHerokuPassword ->
     cfg { herokuPassword = newHerokuPassword }
 
-instance Has AWS.AccessKey Config where
+instance Has AWS.AccessKey (Config db) where
   hasLens = lens awsAccessKey \cfg newAWSAccessKey ->
     cfg { awsAccessKey = newAWSAccessKey }
 
-instance Has AWS.SecretKey Config where
+instance Has AWS.SecretKey (Config db) where
   hasLens = lens awsSecretKey \cfg newAWSSecretKey ->
     cfg { awsSecretKey = newAWSSecretKey }
 
-instance Has AWS.ZoneID Config where
+instance Has AWS.ZoneID (Config db) where
   hasLens = lens awsZoneID \cfg newAWSZoneID ->
     cfg { awsZoneID = newAWSZoneID }
 
-instance Has AWS.DomainName Config where
+instance Has AWS.DomainName (Config db) where
   hasLens = lens awsDomainName \cfg newAWSDomainName ->
     cfg { awsDomainName = newAWSDomainName }
 
-instance Has Host Config where
+instance Has Host (Config db) where
   hasLens = lens host \cfg newHost ->
     cfg { host = newHost }

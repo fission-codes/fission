@@ -1,9 +1,8 @@
 -- | App configuration for IPFS
-module Fission.IPFS.Environment.Types (Environment (..)) where
+module Fission.Environment.IPFS.Types (Environment (..)) where
 
 import           Fission.Prelude
 import qualified Fission.IPFS.Types as IPFS
-import           Fission.Internal.Orphanage.PGConnectInfo ()
 
 data Environment = Environment
   { url     :: !IPFS.URL     -- ^ IPFS client URL (may be remote)
