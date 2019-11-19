@@ -9,7 +9,7 @@ import Fission.IPFS.DAG.Link.Types as DAG
 data Node = Node
   { dataBlock :: Text
   , links :: [DAG.Link]
-  }
+  } deriving (Show, Eq)
 
 instance ToJSON Node where
   toJSON (Node dataBlock links) = 

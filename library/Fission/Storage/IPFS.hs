@@ -1,5 +1,6 @@
 module Fission.Storage.IPFS
-  ( addDir
+  ( addPath
+  , addDir
   , addRaw
   , addFile
   , getFile
@@ -95,6 +96,15 @@ addFile raw name =
              , unName name
              ]
 
+addPath
+  :: ( RIOProc           cfg m
+     , Has IPFS.Timeout  cfg
+     , Has IPFS.BinPath  cfg
+     )
+  => FilePath
+  -> m (Either IPFS.Error.Add CID)
+addPath = addPath' False
+
 addDir
   :: ( RIOProc           cfg m
      , Has IPFS.Timeout  cfg
@@ -102,7 +112,17 @@ addDir
      )
   => FilePath
   -> m (Either IPFS.Error.Add CID)
-addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
+addDir = addPath' True
+
+addPath'
+  :: ( RIOProc           cfg m
+     , Has IPFS.Timeout  cfg
+     , Has IPFS.BinPath  cfg
+     )
+  => Bool
+  -> FilePath
+  -> m (Either IPFS.Error.Add CID)
+addPath' recursive path = IPFS.Proc.run ["add", getFlags recursive, path] "" >>= pure . \case
     (ExitSuccess, result, _) ->
       case CL.lines result of
         [cid] -> Right . mkCID . UTF8.stripN 1 <| UTF8.textShow cid
@@ -111,6 +131,8 @@ addDir path = IPFS.Proc.run ["add", "-HQr", path] "" >>= pure . \case
     (ExitFailure _, _, err) ->
       Left . UnknownAddErr <| UTF8.textShow err
 
+getFlags :: Bool -> Opt
+getFlags recursive = if recursive then "-HQr" else "-HQ"
 getFileOrDirectory
   :: ( RIOProc           cfg m
      , Has IPFS.Timeout  cfg
