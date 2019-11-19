@@ -8,9 +8,7 @@ module Fission.Prelude
   , module Flow
   , module RIO
   , module RIO.Process
-  , NominalDiffTime
-  , UTCTime (..)
-  , getCurrentTime
+  , module RIO.Time
   , headMaybe
   , identity
   , intercalate
@@ -23,14 +21,13 @@ import Control.Lens                ((%~), (.~), (?~), (^?))
 import Data.Aeson
 import Data.Has
 import Data.Maybe
-import Data.Time                   (getCurrentTime)
 import Fission.Internal.Constraint
 import Fission.Internal.UTF8       (putText, putTextLn, textShow)
 import Flow
 import RIO                         hiding (Handler, id, timeout, ($), (&))
 import RIO.List                    (headMaybe, intercalate)
 import RIO.Process
-import RIO.Time                    (NominalDiffTime, UTCTime (..))
+import RIO.Time
 
 identity :: a -> a
 identity a = a
