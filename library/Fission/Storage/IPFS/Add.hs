@@ -1,42 +1,24 @@
-module Fission.Storage.IPFS.Add (walkTest, walk, getSize) where
+module Fission.Storage.IPFS.Add (walkTest, addDir) where
 
-import           Data.ByteString.Lazy.Char8 as CL
 import           Data.List as List
 
-import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Directory
 import           RIO.FilePath
 
 import qualified System.FilePath.Glob as Glob
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8       as UTF8
 
-import qualified Fission.IPFS.Process        as IPFS.Proc
 import           Fission.IPFS.Error          as IPFS.Error
 import           Fission.IPFS.Types          as IPFS
 import           Fission.IPFS.DAG.Node.Types as DAG
-import           Fission.IPFS.DAG.Link.Types as DAG
+import           Fission.IPFS.DAG.Link       as DAG.Link
 import           Fission.Storage.IPFS.DAG as DAG
 import qualified Fission.Storage.IPFS    as IPFS
 
-walkTest = walk [Glob.compile "*.txt"] "/home/daniel/Projects/fission/hn" >>= \case
+walkTest = addDir [] "/home/daniel/Projects/fission/hn" >>= \case
   Left _ -> return "ERROR"
   Right cid -> return <| unaddress cid
-
-walk ::
-  ( MonadRIO cfg m
-  , HasProcessContext cfg
-  , HasLogFunc cfg
-  , Has IPFS.BinPath cfg
-  , Has IPFS.Timeout cfg
-  )
-  => [Glob.Pattern]
-  -> FilePath
-  -> m (Either IPFS.Error.Add IPFS.CID)
-walk ignored path = doesFileExist path >>= \case
-  True -> IPFS.addPath path
-  False -> addDir ignored path
 
 addDir ::
   ( MonadRIO cfg m
@@ -48,14 +30,28 @@ addDir ::
   => [Glob.Pattern]
   -> FilePath
   -> m (Either IPFS.Error.Add IPFS.CID)
-addDir ignored path = do
+addDir ignored path = doesFileExist path >>= \case
+  True -> IPFS.addPath path
+  False -> walkDir ignored path
+
+walkDir ::
+  ( MonadRIO cfg m
+  , HasProcessContext cfg
+  , HasLogFunc cfg
+  , Has IPFS.BinPath cfg
+  , Has IPFS.Timeout cfg
+  )
+  => [Glob.Pattern]
+  -> FilePath
+  -> m (Either IPFS.Error.Add IPFS.CID)
+walkDir ignored path = do
   files <- listDirectory path
   let toAdd = removeIgnored ignored files
-  results <- mapM (walk ignored . combine path) toAdd 
+  results <- mapM (addDir ignored . combine path) toAdd 
   case lefts results of
     [] -> do
       let names = IPFS.Name <$> toAdd
-      links <- zipWithM createLink (rights results) names
+      links <- zipWithM DAG.Link.create (rights results) names
       case lefts links of
         [] -> DAG.putNode Node
               { dataBlock = "CAE="
@@ -65,48 +61,10 @@ addDir ignored path = do
     _  -> return . Left <| firstErr results
 
 removeIgnored :: [Glob.Pattern] -> [FilePath] -> [FilePath]
-removeIgnored ignored files = List.filter (not . matchesAny ignored) files
+removeIgnored ignored files = filter (not . matchesAny ignored) files
 
 matchesAny :: [Glob.Pattern] -> FilePath -> Bool
-matchesAny globs path = List.any (\x -> Glob.match x path) globs
+matchesAny globs path = any (\x -> Glob.match x path) globs
               
 firstErr :: [Either a b] -> a
-firstErr = List.head . lefts
-
-getSize ::
-  ( MonadRIO cfg m
-  , HasProcessContext cfg
-  , HasLogFunc cfg
-  , Has IPFS.BinPath cfg
-  , Has IPFS.Timeout cfg
-  )
-  => IPFS.CID
-  -> m (Either IPFS.Error.Add Integer)
-getSize (CID hash) = IPFS.Proc.run ["object", "stat"] (Lazy.fromStrict <| encodeUtf8 hash) >>= \case
-  (ExitSuccess, result, _) -> do
-    case parseSize result of
-      Nothing -> return . Left . UnexpectedOutput <| "Could not parse CumulativeSize"
-      Just (size, _) -> return <| Right size
-
-  (ExitFailure _ , _, err) -> return . Left . UnknownAddErr <| UTF8.textShow err
-
-parseSize :: Lazy.ByteString -> Maybe (Integer, Lazy.ByteString)
-parseSize = CL.readInteger . List.last . CL.words . List.last . CL.lines
-
-createLink ::
-  ( MonadRIO cfg m
-  , HasProcessContext cfg
-  , HasLogFunc cfg
-  , Has IPFS.BinPath cfg
-  , Has IPFS.Timeout cfg
-  )
-  => IPFS.CID
-  -> IPFS.Name
-  -> m (Either IPFS.Error.Add Link)
-createLink cid name = getSize cid >>= \case
-  Left err -> return <| Left err
-  Right size -> return . Right <| Link
-    { cid = cid
-    , name = name
-    , size = size
-    }
+firstErr = head . lefts

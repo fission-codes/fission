@@ -133,6 +133,7 @@ addPath' recursive path = IPFS.Proc.run ["add", getFlags recursive, path] "" >>=
 
 getFlags :: Bool -> Opt
 getFlags recursive = if recursive then "-HQr" else "-HQ"
+
 getFileOrDirectory
   :: ( RIOProc           cfg m
      , Has IPFS.Timeout  cfg
