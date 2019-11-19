@@ -38,8 +38,8 @@ put User { userID } (Serialized rawData) = IPFS.DAG.put rawData >>= \case
     _ <- User.CID.createX userID [newCID]
     
     IPFS.Pin.add newCID >>= \case
-     Right newCID' -> return newCID'
-     Left err -> Web.Err.throw err
+      Right newCID' -> return newCID'
+      Left err -> Web.Err.throw err
 
   Left err ->
     Web.Err.throw err
