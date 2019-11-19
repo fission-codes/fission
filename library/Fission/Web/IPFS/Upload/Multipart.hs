@@ -21,10 +21,10 @@ import           Fission.User
 import           Fission.User.CID.Mutation as User.CID
 import           Fission.Web.Server
 
-import qualified Fission.IPFS.SparseTree as IPFS
-import qualified Fission.IPFS.Types      as IPFS
-import qualified Fission.Storage.IPFS    as Storage.IPFS
-import qualified Fission.Web.Error       as Web.Err
+import qualified Fission.IPFS.SparseTree  as IPFS
+import qualified Fission.IPFS.Types       as IPFS
+import qualified Fission.Storage.IPFS.Add as Storage.IPFS
+import qualified Fission.Web.Error        as Web.Err
 
 type API = TextAPI :<|> JSONAPI
 

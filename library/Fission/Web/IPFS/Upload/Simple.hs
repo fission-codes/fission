@@ -9,10 +9,10 @@ import           Servant
 
 import           Fission.Prelude
 import           Fission.Web.Server
-import qualified Fission.Web.Error    as Web.Err
-import           Fission.File.Types   as File
-import qualified Fission.IPFS.Types   as IPFS
-import qualified Fission.Storage.IPFS as Storage.IPFS
+import qualified Fission.Web.Error        as Web.Err
+import           Fission.File.Types       as File
+import qualified Fission.IPFS.Types       as IPFS
+import qualified Fission.Storage.IPFS.Add as Storage.IPFS
 import           Fission.User
 import           Fission.User.CID.Mutation as UserCID
 
