@@ -92,6 +92,7 @@ dependencies:
   - flow
   - filepath
   - fsnotify
+  - Glob
   - haskeline
   - http-client
   - http-client-tls

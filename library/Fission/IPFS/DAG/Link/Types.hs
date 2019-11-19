@@ -2,6 +2,7 @@ module Fission.IPFS.DAG.Link.Types (Link (..)) where
 
 import Fission.Prelude
 import Fission.IPFS.Types as IPFS
+import Data.Text as T
 
 
 data Link = Link
@@ -13,7 +14,7 @@ data Link = Link
 
 instance ToJSON Link where
   toJSON (Link cid name size) =
-    Object [ ("Name", String <| textShow name)
+    Object [ ("Name", String . T.pack <| unName name)
            , ("Size", Number  <| fromIntegral size)
            , ("Cid", Object [("/", String <| unaddress cid)])
            ]
