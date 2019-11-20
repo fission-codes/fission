@@ -3,7 +3,8 @@ module Fission.IPFS.Gateway.Types (Gateway (..)) where
 import           Fission.Prelude
 import           Data.Swagger (ToSchema (..))
 
--- | Type safety wrapper for Route53 domain names
+-- | Type safety wrapper for IPFS Gateway
+--   Used as cname value for DNS updates
 newtype Gateway = Gateway { getGateway :: Text }
   deriving          ( Eq
                     , Generic
