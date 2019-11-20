@@ -80,6 +80,7 @@ run logFunc dbPool processCtx httpManager action =
     ipfsPath    = "/usr/local/bin/ipfs"
     ipfsURL     = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
     ipfsTimeout = IPFS.Timeout 3600
+    ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
     awsAccessKey  = "SOME_AWS_ACCESS_KEY"
     awsSecretKey  = "SOME_AWS_SECRET_KEY"
@@ -122,6 +123,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     ipfsPath       = "/usr/local/bin/ipfs"
     ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
     ipfsTimeout    = IPFS.Timeout 3600
+    ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
     awsAccessKey  = "SOME_AWS_ACCESS_KEY"
     awsSecretKey  = "SOME_AWS_SECRET_KEY"

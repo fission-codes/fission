@@ -19,6 +19,7 @@ data Config dbBackend = Config
   , ipfsPath       :: !IPFS.BinPath
   , ipfsURL        :: !IPFS.URL
   , ipfsTimeout    :: !IPFS.Timeout
+  , ipfsGateway    :: !IPFS.Gateway
   , host           :: !Host
   , dbPool         :: !(DB.Pool dbBackend)
   , herokuID       :: !Heroku.ID
@@ -38,6 +39,7 @@ instance Show (Config dbBackend) where
     , "  ipfsPath       = " <> show ipfsPath
     , "  ipfsURL        = " <> show ipfsURL
     , "  ipfsTimeout    = " <> show ipfsTimeout
+    , "  ipfsGateway    = " <> show ipfsGateway
     , "  host           = " <> show host
     , "  dbPool         = " <> show dbPool
     , "  herokuID       = " <> show herokuID
@@ -72,6 +74,10 @@ instance Has IPFS.URL (Config db) where
 instance Has IPFS.Timeout (Config db) where
   hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->
     cfg { ipfsTimeout = newIPFSTimeout }
+
+instance Has IPFS.Gateway (Config db) where
+  hasLens = lens ipfsGateway \cfg newIPFSGateway ->
+    cfg { ipfsGateway = newIPFSGateway }
 
 instance Has (DB.Pool db) (Config db) where
   hasLens = lens dbPool \cfg newDBPool ->

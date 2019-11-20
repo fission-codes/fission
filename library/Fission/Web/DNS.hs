@@ -17,6 +17,8 @@ import qualified Fission.AWS.Types   as AWS
 import qualified Fission.Config as Config
 import           Fission.Internal.UTF8
 
+import qualified Fission.IPFS.Types as IPFS
+import           Fission.IPFS.Gateway.Types
 import           Fission.IPFS.CID.Types
 import           Fission.User        as User
 
@@ -27,6 +29,7 @@ type API = Capture "cid" CID
 
 server
   :: ( HasLogFunc         cfg
+     , Has IPFS.Gateway   cfg
      , Has AWS.AccessKey  cfg
      , Has AWS.SecretKey  cfg
      , Has AWS.ZoneID     cfg
@@ -35,14 +38,16 @@ server
   => User
   -> RIOServer cfg API
 server User { username } (CID hash) = do
-  domain :: AWS.DomainName <- Config.get
+  gateway :: IPFS.Gateway   <- Config.get
+  domain  :: AWS.DomainName <- Config.get
 
   let
     baseUrl    = username <> "."<> AWS.getDomainName domain
     dnslinkUrl = "_dnslink." <> baseUrl
     dnslink    = "dnslink=/ipfs/" <> hash
 
-  "ipfs.runfission.com"
+  gateway
+    |> getGateway
     |> registerDomain Route53.Cname baseUrl
     |> ensureContent
 

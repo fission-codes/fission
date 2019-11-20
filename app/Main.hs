@@ -47,6 +47,7 @@ main = do
     ipfsPath    = env |> ipfs |> binPath
     ipfsURL     = env |> ipfs |> url
     ipfsTimeout = env |> ipfs |> IPFS.timeout
+    ipfsGateway = env |> ipfs |> gateway
 
     awsAccessKey  = accessKey
     awsSecretKey  = secretKey

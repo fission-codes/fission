@@ -48,6 +48,7 @@ app
   :: ( Has IPFS.BinPath    cfg
      , Has IPFS.Timeout    cfg
      , Has IPFS.URL        cfg
+     , Has IPFS.Gateway    cfg
      , Has HTTP.Manager    cfg
      , Has Web.Host        cfg
      , Has AWS.AccessKey   cfg
@@ -97,8 +98,9 @@ mkAuth = do
 server
   :: ( Has IPFS.BinPath   cfg
      , Has IPFS.Timeout   cfg
-     , Has HTTP.Manager   cfg
      , Has IPFS.URL       cfg
+     , Has IPFS.Gateway   cfg
+     , Has HTTP.Manager   cfg
      , Has Web.Host       cfg
      , Has AWS.AccessKey  cfg
      , Has AWS.SecretKey  cfg
