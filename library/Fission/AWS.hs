@@ -1,6 +1,5 @@
 module Fission.AWS
   ( createEnv
-  , ensureContent
   , validate
   , withAWS
   ) where
@@ -41,16 +40,3 @@ validate changeSet =
 
   where
     status = changeSet ^. crrsrsResponseStatus
-
--- | Ensure that a request completed, and that the status code is not in an error range
-ensureContent
-  :: ( MonadRIO   cfg m
-     , MonadThrow     m
-     , Exception err
-     )
-  => m (Either err ChangeResourceRecordSetsResponse)
-  -> m ChangeResourceRecordSetsResponse
-ensureContent runRequest = do
-  errOrResp <- runRequest
-  resp      <- ensureM errOrResp
-  resp |> validate |> ensureM
