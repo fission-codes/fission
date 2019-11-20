@@ -124,7 +124,7 @@ addDir ::
   , Has IPFS.BinPath cfg
   , Has IPFS.Timeout cfg
   )
-  => [Glob.Pattern]
+  => IPFS.Ignored
   -> FilePath
   -> m (Either IPFS.Error.Add IPFS.CID)
 addDir ignored path = doesFileExist path >>= \case
@@ -138,7 +138,7 @@ walkDir ::
   , Has IPFS.BinPath cfg
   , Has IPFS.Timeout cfg
   )
-  => [Glob.Pattern]
+  => IPFS.Ignored
   -> FilePath
   -> m (Either IPFS.Error.Add IPFS.CID)
 walkDir ignored path = do
@@ -171,8 +171,8 @@ foldResults path ignored (Right node) filename = do
       Right link ->
         return <| Right <| node { links = link:(links node) }
 
-removeIgnored :: [Glob.Pattern] -> [FilePath] -> [FilePath]
+removeIgnored :: IPFS.Ignored -> [FilePath] -> [FilePath]
 removeIgnored ignored files = List.filter (not . matchesAny ignored) files
 
-matchesAny :: [Glob.Pattern] -> FilePath -> Bool
+matchesAny :: IPFS.Ignored -> FilePath -> Bool
 matchesAny globs path = List.any (\x -> Glob.match x path) globs
