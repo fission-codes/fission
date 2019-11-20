@@ -38,7 +38,7 @@ server User { username } (CID hash) = do
   domain :: AWS.DomainName <- Config.get
 
   let
-    baseUrl    = username <> AWS.getDomainName domain
+    baseUrl    = username <> "."<> AWS.getDomainName domain
     dnslinkUrl = "_dnslink." <> baseUrl
     dnslink    = "dnslink=/ipfs/" <> hash
 
