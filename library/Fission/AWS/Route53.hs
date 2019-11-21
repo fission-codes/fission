@@ -41,12 +41,10 @@ registerDomain username (CID hash) = do
     dnslinkUrl = "_dnslink." <> baseUrl
     dnslink    = "dnslink=/ipfs/" <> hash
 
-  logDebug <| displayShow ("~~" <> (wrapIn dnslink "\"") <> "~~")
-
   changeRecord Cname baseUrl (getGateway gateway) >>= \case
     Left err -> return <| Left err
     Right _ -> 
-      changeRecord Txt dnslinkUrl (wrapIn dnslink "\"") >>= \case
+      changeRecord Txt dnslinkUrl (dnslink `wrapIn` "\"") >>= \case
         Left err -> return <| Left err
         Right _ -> return <| Right <| AWS.DomainName baseUrl
 
