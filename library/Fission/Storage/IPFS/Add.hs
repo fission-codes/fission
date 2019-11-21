@@ -143,9 +143,16 @@ walkDir ::
   -> m (Either IPFS.Error.Add IPFS.CID)
 walkDir ignored path = do
   files <- listDirectory path
-  let toAdd = removeIgnored ignored files
-  let f = foldResults path ignored
-  foldM f (Right <| Node { dataBlock = "CAE=", links = [] }) toAdd >>= \case
+
+  let
+    toAdd = removeIgnored ignored files
+    reducer = foldResults path ignored
+    seed = Right <| Node
+      { dataBlock = "CAE="
+      , links = []
+      }
+
+  foldM reducer seed toAdd >>= \case
     Left err -> return <| Left err
     Right node -> DAG.putNode node
 
