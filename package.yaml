@@ -92,6 +92,7 @@ dependencies:
   - flow
   - filepath
   - fsnotify
+  - Glob
   - haskeline
   - http-client
   - http-client-tls
@@ -133,6 +134,7 @@ dependencies:
   - warp
   - warp-tls
   - word8
+  - vector
   - yaml
 
 library:

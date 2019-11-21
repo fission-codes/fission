@@ -40,6 +40,13 @@ packages:
   original:
     hackage: ekg-wai-0.1.0.3
 - completed:
+    hackage: Glob-0.10.0@sha256:bbccaf21bff9071dcf369f55cc1a07250bdc84c432bdf4277ed53e5e2327cd7d,2947
+    pantry-tree:
+      size: 1432
+      sha256: 2b14578b5cf51af20efeaf332a1e1ea0c9c24fe2fcb2afba64f77d9249395844
+  original:
+    hackage: Glob-0.10.0
+- completed:
     hackage: happy-1.19.10@sha256:ab3e5fe71647b039ade49c03ff5e5eaa362730d9ba5549f55858a0cf81237931,5180
     pantry-tree:
       size: 8033

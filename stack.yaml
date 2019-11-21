@@ -43,6 +43,7 @@ extra-deps:
 - amazonka-core-1.6.1
 - amazonka-route53-1.6.1
 - ekg-wai-0.1.0.3
+- Glob-0.10.0
 - happy-1.19.10
 - http-client-0.5.14 # Peer dependency of amazonka
 - ip-1.5.1

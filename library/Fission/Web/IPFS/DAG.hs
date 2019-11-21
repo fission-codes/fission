@@ -15,7 +15,8 @@ import           Fission.Web.Server
 import           Fission.File.Types   as File
 
 import qualified Fission.IPFS.Types      as IPFS
-import qualified Fission.Storage.IPFS.DAG    as Storage.IPFS.DAG
+import qualified Fission.Storage.IPFS.DAG    as IPFS.DAG
+import qualified Fission.Storage.IPFS.Pin    as IPFS.Pin
 import qualified Fission.Web.Error       as Web.Err
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
@@ -32,13 +33,13 @@ put
      )
   => User
   -> RIOServer cfg API
-put User { userID } (Serialized rawData) = Storage.IPFS.DAG.put rawData >>= \case
+put User { userID } (Serialized rawData) = IPFS.DAG.put rawData >>= \case
   Right newCID -> do
-    [newCID]
-      |> User.CID.createX userID
-      |> void
-
-    return newCID
+    _ <- User.CID.createX userID [newCID]
+    
+    IPFS.Pin.add newCID >>= \case
+      Right newCID' -> return newCID'
+      Left err -> Web.Err.throw err
 
   Left err ->
     Web.Err.throw err
