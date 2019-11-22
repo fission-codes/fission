@@ -12,6 +12,7 @@ module Fission.IPFS.Types
   , Timeout (..)
   , URL (..)
   , Ignored
+  , Gateway (..)
   ) where
 
 import Fission.IPFS.BinPath.Types
@@ -24,3 +25,4 @@ import Fission.IPFS.SparseTree.Types
 import Fission.IPFS.Timeout.Types
 import Fission.IPFS.URL.Types
 import Fission.IPFS.Ignored.Types
+import Fission.IPFS.Gateway.Types
