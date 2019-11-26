@@ -1,6 +1,7 @@
 module Fission.Web.Types
   ( Host (..)
   , Port (..)
+  , getHostName
   ) where
 
 import qualified Network.Wai.Handler.Warp as Warp
@@ -29,3 +30,6 @@ newtype Port = Port { port :: Warp.Port }
 instance FromJSON Port where
   parseJSON = withScientific "Web.Port" \num ->
     Port <$> parseJSON (Number num)
+
+getHostName :: Host -> String
+getHostName = baseUrlHost . getHost

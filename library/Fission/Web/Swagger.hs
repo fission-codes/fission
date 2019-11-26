@@ -39,10 +39,10 @@ docs host' =
     |> user
 
 app :: HasSwagger api => Proxy api -> Web.Host -> Swagger
-app proxy (Web.Host (BaseUrl { baseUrlHost })) =
+app proxy appHost =
   proxy
     |> toSwagger
-    |> host               ?~ Host baseUrlHost Nothing
+    |> host               ?~ Host (Web.getHostName appHost) Nothing
     |> schemes            ?~ [Https]
     |> info . title       .~ "The Fission API"
     |> info . version     .~ "2.0.0"
