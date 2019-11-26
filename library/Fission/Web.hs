@@ -18,8 +18,7 @@ import           Servant
 import qualified Fission.Config     as Config
 import           Fission.User
 
-import           Network.IPFS.Local.Class
-import           Network.IPFS.Remote.Class
+import           Network.IPFS
 import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Internal.Orphanage.PlainText ()

@@ -10,7 +10,7 @@ import           Fission.Web.Server
 import qualified Fission.Web.Error  as Web.Err
 import qualified Fission.Config     as Config
 
-import           Network.IPFS.Local.Class
+import           Network.IPFS
 import           Network.IPFS.Peer as IPFS.Peer
 import qualified Network.IPFS.Types as IPFS
 

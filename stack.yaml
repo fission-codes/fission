@@ -50,7 +50,7 @@ extra-deps:
 - raven-haskell-0.1.2.1
 - tasty-rerun-1.1.14
 - git: https://github.com/fission-suite/ipfs-haskell.git
-  commit: 6115e64890b84011a20e75479d713020410c91e9
+  commit: 42c0caaac4db1748ff727151b16a4241a290ce38
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

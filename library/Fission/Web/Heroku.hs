@@ -37,8 +37,7 @@ import           Fission.Platform.Heroku.AddOn.Types
 
 import           Fission.Security.Types (Secret (..))
 
-import           Network.IPFS.Local.Class
-import           Network.IPFS.Remote.Class
+import           Network.IPFS
 import           Network.IPFS.Types as IPFS
 import           Network.IPFS.Pin   as IPFS.Pin
 import           Network.IPFS.Peer (getExternalAddress)

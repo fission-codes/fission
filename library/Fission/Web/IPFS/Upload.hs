@@ -13,7 +13,7 @@ import qualified Fission.Web.IPFS.Upload.Simple    as Simple
 import           Fission.Web.Server
 import           Fission.User
 
-import           Network.IPFS.Local.Class
+import           Network.IPFS
 
 type API = Simple.API :<|> Multipart.API
 

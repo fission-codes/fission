@@ -16,8 +16,7 @@ import           Servant
 import           Fission.Prelude
 import           Fission.User
 
-import           Network.IPFS.Local.Class
-import           Network.IPFS.Remote.Class
+import           Network.IPFS
 
 import           Fission.Web.Server
 import qualified Fission.Web.IPFS.CID           as CID

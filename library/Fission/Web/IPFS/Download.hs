@@ -9,7 +9,7 @@ import           Fission.Prelude
 import           Fission.Web.Server
 import qualified Fission.Web.Error        as Web.Err
 
-import           Network.IPFS.Local.Class
+import           Network.IPFS
 import           Network.IPFS.File.Types       as File
 import qualified Network.IPFS.Types       as IPFS
 import qualified Network.IPFS.Get as IPFS

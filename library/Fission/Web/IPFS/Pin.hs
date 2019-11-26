@@ -13,7 +13,7 @@ import Database.Selda
 
 import           Servant
 
-import           Network.IPFS.Remote.Class
+import           Network.IPFS
 import qualified Network.IPFS.Types as IPFS
 import qualified Network.IPFS.Pin   as IPFS.Pin
 import           Network.IPFS.CID.Types

@@ -21,7 +21,7 @@ import           Fission.User.CID.Mutation as User.CID
 import           Fission.Web.Server
 import qualified Fission.Web.Error        as Web.Err
 
-import           Network.IPFS.Local.Class
+import           Network.IPFS
 import qualified Network.IPFS.SparseTree  as IPFS
 import qualified Network.IPFS.Types       as IPFS
 import qualified Network.IPFS.Add         as IPFS

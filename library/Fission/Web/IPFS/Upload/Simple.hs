@@ -13,7 +13,7 @@ import qualified Fission.Web.Error        as Web.Err
 import           Fission.User
 import           Fission.User.CID.Mutation as UserCID
 
-import           Network.IPFS.Local.Class
+import           Network.IPFS
 import qualified Network.IPFS.Types      as IPFS
 import           Network.IPFS.File.Types as File
 import qualified Network.IPFS.Add        as IPFS
