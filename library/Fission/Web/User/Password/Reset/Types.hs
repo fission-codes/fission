@@ -9,7 +9,7 @@ newtype Reset = Reset { maybePassword :: Maybe User.Password }
   deriving Show
 
 instance ToJSON Reset where
-  toJSON (Reset password) = 
+  toJSON (Reset password) =
     Object [("password", maybe Null (String . User.password) password)]
 
 instance FromJSON Reset where
@@ -25,5 +25,5 @@ instance ToSchema Reset where
       |> description ?~ "Password Reset Request"
       |> properties  .~ [("password", password)]
       |> properties  .~ [("password", password)]
-      |> NamedSchema (Just "Password Reset Request")
+      |> NamedSchema (Just "PasswordResetRequest")
       |> pure

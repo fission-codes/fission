@@ -38,7 +38,7 @@ instance ToSchema SparseTree where
       |> type_       ?~ SwaggerString
       |> description ?~ "A tree of IPFS paths"
       |> example     ?~ toJSON (Directory [(Key "abcdef", Stub "myfile.txt")])
-      |> NamedSchema (Just "IPFS Tree")
+      |> NamedSchema (Just "IPFSTree")
       |> pure
 
 instance Display (Map Tag SparseTree) where
