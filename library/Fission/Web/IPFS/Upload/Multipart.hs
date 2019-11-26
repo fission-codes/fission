@@ -69,13 +69,13 @@ jsonAdd ::
   -> RIOServer cfg JSONAPI
 jsonAdd uID form queryName = run uID form queryName pure
 
-run
-  :: ( MonadRIO          cfg m
-     , MonadMask             m
-     , MonadSelda            m
-     , MonadLocalIPFS        m
-     , HasLogFunc        cfg
-     )
+run ::
+  ( MonadRIO          cfg m
+  , MonadMask             m
+  , MonadSelda            m
+  , MonadLocalIPFS        m
+  , HasLogFunc        cfg
+  )
   => ID User
   -> MultipartData Mem
   -> Maybe IPFS.Name

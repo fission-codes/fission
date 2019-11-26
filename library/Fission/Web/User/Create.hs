@@ -18,7 +18,6 @@ import qualified Fission.User.Registration.Types  as User
 
 import qualified Fission.AWS.Types   as AWS
 import           Fission.AWS.Route53
-
 import           Network.AWS.Auth    as AWS
 
 import qualified Network.IPFS.Types as IPFS

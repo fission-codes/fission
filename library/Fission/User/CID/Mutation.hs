@@ -9,10 +9,10 @@ import RIO.List ((\\))
 import RIO.Orphans ()
 
 import Fission.Prelude
-import Network.IPFS.CID.Types      as IPFS.CID
-import Fission.Timestamp as Timestamp
-import Fission.User           (User)
+import Fission.Timestamp      as Timestamp
+import Network.IPFS.CID.Types as IPFS.CID
 
+import           Fission.User           (User)
 import           Fission.User.CID.Query
 import qualified Fission.User.CID.Table as Table
 import           Fission.User.CID.Types

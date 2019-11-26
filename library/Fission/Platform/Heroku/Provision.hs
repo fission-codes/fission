@@ -11,9 +11,9 @@ import qualified Servant.Client as Client
 import           Fission.Prelude
 import           Fission.Internal.Orphanage.ID ()
 
-import qualified Fission.Plan.Types                 as Plan
-import qualified Fission.Platform.Heroku.Types      as Heroku
-import qualified Fission.User.Provision.Types       as User
+import qualified Fission.Plan.Types            as Plan
+import qualified Fission.Platform.Heroku.Types as Heroku
+import qualified Fission.User.Provision.Types  as User
 import           Fission.Security.Types
 import           Fission.User                       (User)
 

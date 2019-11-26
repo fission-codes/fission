@@ -14,7 +14,6 @@ import           Fission.Web.Server
 import qualified Fission.Web.Error  as Web.Err
 
 import           Network.IPFS
-
 import           Network.IPFS.File.Types as File
 import qualified Network.IPFS.Types      as IPFS
 import qualified Network.IPFS.DAG        as IPFS.DAG
@@ -31,7 +30,7 @@ put ::
   , HasLogFunc           cfg
   )
   => User
-  -> RIOServer cfg API
+  -> RIOServer           cfg API
 put User { userID } (Serialized rawData) = IPFS.DAG.put rawData >>= \case
   Right newCID -> do
     _ <- User.CID.createX userID [newCID]

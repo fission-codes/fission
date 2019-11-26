@@ -9,7 +9,7 @@ import qualified Network.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Network.AWS.Auth              as AWS
-import qualified Fission.AWS.Types              as AWS
+import qualified Fission.AWS.Types             as AWS
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config dbBackend = Config

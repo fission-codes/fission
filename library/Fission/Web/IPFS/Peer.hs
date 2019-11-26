@@ -11,7 +11,7 @@ import qualified Fission.Web.Error  as Web.Err
 import qualified Fission.Config     as Config
 
 import           Network.IPFS
-import           Network.IPFS.Peer as IPFS.Peer
+import           Network.IPFS.Peer  as IPFS.Peer
 import qualified Network.IPFS.Types as IPFS
 
 type API = Get '[JSON, PlainText, OctetStream] [IPFS.Peer]

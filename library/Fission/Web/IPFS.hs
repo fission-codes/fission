@@ -19,12 +19,12 @@ import           Fission.User
 import           Network.IPFS
 
 import           Fission.Web.Server
-import qualified Fission.Web.IPFS.CID           as CID
-import qualified Fission.Web.IPFS.Upload        as Upload
-import qualified Fission.Web.IPFS.Download      as Download
-import qualified Fission.Web.IPFS.Pin           as Pin
-import qualified Fission.Web.IPFS.DAG           as DAG
-import qualified Fission.Web.IPFS.Peer         as Peer
+import qualified Fission.Web.IPFS.CID      as CID
+import qualified Fission.Web.IPFS.Upload   as Upload
+import qualified Fission.Web.IPFS.Download as Download
+import qualified Fission.Web.IPFS.Pin      as Pin
+import qualified Fission.Web.IPFS.DAG      as DAG
+import qualified Fission.Web.IPFS.Peer     as Peer
 
 type API = AuthedAPI
       :<|> PublicAPI
@@ -48,16 +48,16 @@ server ::
   , HasLogFunc           cfg
   , Has IPFS.Peer     cfg
   )
-  => RIOServer         cfg API
+  => RIOServer           cfg API
 server = authed :<|> public
 
 authed ::
-  ( MonadSelda (RIO cfg)
+  ( MonadSelda      (RIO cfg)
   , MonadRemoteIPFS (RIO cfg)
-  , MonadLocalIPFS (RIO cfg)
-  , HasLogFunc cfg
+  , MonadLocalIPFS  (RIO cfg)
+  , HasLogFunc           cfg
   )
-  => RIOServer         cfg AuthedAPI
+  => RIOServer           cfg AuthedAPI
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
@@ -68,6 +68,6 @@ public ::
   , Has IPFS.Peer     cfg
   , HasLogFunc          cfg
   )
-  => RIOServer         cfg PublicAPI
+  => RIOServer          cfg PublicAPI
 public = Peer.get
     :<|> Download.get

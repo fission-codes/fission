@@ -40,7 +40,7 @@ import           Fission.Security.Types (Secret (..))
 import           Network.IPFS
 import           Network.IPFS.Types as IPFS
 import           Network.IPFS.Pin   as IPFS.Pin
-import           Network.IPFS.Peer (getExternalAddress)
+import           Network.IPFS.Peer  (getExternalAddress)
 
 type API = ProvisionAPI :<|> DeprovisionAPI
 
