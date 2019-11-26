@@ -2,7 +2,6 @@
 
 module Fission.Internal.Orphanage.MultipartForm () where
 
-import Data.Swagger
 import Network.HTTP.Media.MediaType
 import Servant
 import Servant.Multipart
@@ -15,9 +14,3 @@ instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> 
   toSwagger _ = Proxy @api
              |> toSwagger
              |> addConsumes ["multipart" // "form-data"]
-             |> addParam param
-    where
-      param = mempty
-           |> name        .~ "file"
-           |> description ?~ "A file to upload (may also be multipart/form-data)"
-           |> required    ?~ True
