@@ -25,8 +25,6 @@ type QueryAPI = QueryParam "cid" IPFS.CID
 
 get ::
   ( MonadLocalIPFS (RIO cfg)
-  , Has IPFS.Timeout    cfg
-  , HasProcessContext   cfg
   , HasLogFunc          cfg
   )
   => RIOServer cfg API
@@ -34,8 +32,6 @@ get = pathGet :<|> queryGet
 
 queryGet ::
   ( MonadLocalIPFS (RIO cfg) 
-  , Has IPFS.Timeout    cfg
-  , HasProcessContext   cfg
   , HasLogFunc          cfg
   )
   => RIOServer cfg QueryAPI
@@ -45,9 +41,7 @@ queryGet = \case
 
 pathGet ::
   ( MonadLocalIPFS (RIO cfg)
-  , Has IPFS.Timeout    cfg
-  , HasProcessContext   cfg
   , HasLogFunc          cfg
-    )
+  )
   => RIOServer cfg PathAPI
 pathGet cid = IPFS.getFile cid >>= Web.Err.ensure

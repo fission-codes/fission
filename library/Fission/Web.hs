@@ -9,7 +9,6 @@ module Fission.Web
 
 import           Flow
 import           RIO
-import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Database.Selda
@@ -48,7 +47,6 @@ type API = Web.Swagger.API :<|> Web.API
 app ::
   ( MonadLocalIPFS  (RIO cfg)
   , MonadRemoteIPFS (RIO cfg)
-  , Has IPFS.Timeout     cfg
   , Has IPFS.Gateway     cfg
   , Has IPFS.Peer       cfg
   , Has Web.Host         cfg
@@ -58,7 +56,6 @@ app ::
   , Has AWS.DomainName   cfg
   , Has Heroku.ID        cfg
   , Has Heroku.Password  cfg
-  , HasProcessContext    cfg
   , HasLogFunc           cfg
   , MonadSelda      (RIO cfg)
   )
@@ -99,7 +96,6 @@ mkAuth = do
 server ::
   ( MonadLocalIPFS  (RIO cfg)
   , MonadRemoteIPFS (RIO cfg)
-  , Has IPFS.Timeout     cfg
   , Has IPFS.Gateway     cfg
   , Has IPFS.Peer      cfg
   , Has Web.Host         cfg
@@ -107,7 +103,6 @@ server ::
   , Has AWS.SecretKey    cfg
   , Has AWS.ZoneID       cfg
   , Has AWS.DomainName   cfg
-  , HasProcessContext    cfg
   , HasLogFunc           cfg
   , MonadSelda      (RIO cfg)
   )

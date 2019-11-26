@@ -9,13 +9,14 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Web.Server
 import qualified Fission.Web.Error        as Web.Err
-import           Fission.File.Types       as File
 
-import           Network.IPFS.Local.Class
-import qualified Network.IPFS.Types       as IPFS
-import qualified Network.IPFS.Add         as IPFS
 import           Fission.User
 import           Fission.User.CID.Mutation as UserCID
+
+import           Network.IPFS.Local.Class
+import qualified Network.IPFS.Types      as IPFS
+import           Network.IPFS.File.Types as File
+import qualified Network.IPFS.Add        as IPFS
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID

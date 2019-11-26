@@ -18,7 +18,6 @@ import           Fission.User
 
 import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
-import           Network.IPFS.Types        as IPFS
 
 import           Fission.Web.Server
 import qualified Fission.Web.IPFS.CID           as CID
@@ -48,9 +47,7 @@ server ::
   , MonadRemoteIPFS (RIO cfg)
   , MonadLocalIPFS  (RIO cfg)
   , HasLogFunc           cfg
-  , HasProcessContext    cfg
   , Has IPFS.Peer     cfg
-  , Has IPFS.Timeout     cfg
   )
   => RIOServer         cfg API
 server = authed :<|> public
@@ -69,9 +66,7 @@ authed usr = CID.allForUser usr
 
 public ::
   ( MonadLocalIPFS (RIO cfg)
-  , Has IPFS.Timeout    cfg
   , Has IPFS.Peer     cfg
-  , HasProcessContext   cfg
   , HasLogFunc          cfg
   )
   => RIOServer         cfg PublicAPI
