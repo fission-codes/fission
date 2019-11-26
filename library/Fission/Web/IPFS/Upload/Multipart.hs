@@ -25,6 +25,7 @@ import           Network.IPFS
 import qualified Network.IPFS.SparseTree  as IPFS
 import qualified Network.IPFS.Types       as IPFS
 import qualified Network.IPFS.Add         as IPFS
+import qualified Network.IPFS.Pin         as IPFS.Pin
 
 type API = TextAPI :<|> JSONAPI
 
@@ -40,18 +41,20 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add ::
-  ( MonadSelda     (RIO cfg)
-  , MonadLocalIPFS (RIO cfg)
-  , HasLogFunc          cfg
+  ( MonadSelda      (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , HasLogFunc           cfg
   )
   => User
   -> RIOServer cfg API
 add User { userID } = textAdd userID :<|> jsonAdd userID
 
 textAdd ::
-  ( MonadSelda     (RIO cfg)
-  , MonadLocalIPFS (RIO cfg)
-  , HasLogFunc          cfg
+  ( MonadSelda      (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , HasLogFunc           cfg
   )
   => ID User
   -> RIOServer cfg TextAPI
@@ -61,20 +64,22 @@ textAdd uID form queryName = run uID form queryName <| \sparse ->
     Left err   -> Web.Err.throw err
 
 jsonAdd ::
-  ( MonadSelda     (RIO cfg)
-  , MonadLocalIPFS (RIO cfg)
-  , HasLogFunc          cfg
+  ( MonadSelda      (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , HasLogFunc           cfg
   )
   => ID User
   -> RIOServer cfg JSONAPI
 jsonAdd uID form queryName = run uID form queryName pure
 
 run ::
-  ( MonadRIO          cfg m
-  , MonadMask             m
-  , MonadSelda            m
-  , MonadLocalIPFS        m
-  , HasLogFunc        cfg
+  ( MonadRIO        cfg m
+  , MonadMask           m
+  , MonadSelda          m
+  , MonadLocalIPFS      m
+  , MonadRemoteIPFS     m
+  , HasLogFunc      cfg
   )
   => ID User
   -> MultipartData Mem
@@ -88,9 +93,13 @@ run uID form qName cont = case lookupFile "file" form of
       Left err ->
         Web.Err.throw err
 
-      Right struct -> do
-        void <| User.CID.createX uID (IPFS.cIDs struct)
-        cont struct
+      Right (struct, rootCID) -> IPFS.Pin.add rootCID >>= \case
+        Left err -> 
+          Web.Err.throw err
+
+        Right _ -> do
+          void <| User.CID.createX uID (IPFS.cIDs struct)
+          cont struct
     where
       humanName :: IPFS.Name
       humanName = toName qName fdFileName fdFileCType

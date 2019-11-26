@@ -32,12 +32,13 @@ put ::
   => User
   -> RIOServer           cfg API
 put User { userID } (Serialized rawData) = IPFS.DAG.put rawData >>= \case
-  Right newCID -> do
-    _ <- User.CID.createX userID [newCID]
-    
-    IPFS.Pin.add newCID >>= \case
-      Right newCID' -> return newCID'
-      Left err -> Web.Err.throw err
+  Right newCID -> IPFS.Pin.add newCID >>= \case
+    Right pinnedCID -> do
+      _ <- User.CID.createX userID [newCID]
+      return pinnedCID
+  
+    Left err ->
+      Web.Err.throw err
 
   Left err ->
     Web.Err.throw err

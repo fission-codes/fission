@@ -19,8 +19,9 @@ import           Network.IPFS
 type API = Simple.API :<|> Multipart.API
 
 add ::
-  ( MonadSelda     (RIO cfg)
-  , MonadLocalIPFS (RIO cfg)
+  ( MonadSelda      (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
   , HasLogFunc          cfg
   )
   => User
