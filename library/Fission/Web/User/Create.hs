@@ -21,8 +21,8 @@ import           Fission.AWS.Route53
 
 import           Network.AWS.Auth    as AWS
 
-import qualified Fission.IPFS.Types as IPFS
-import           Fission.IPFS.CID.Types
+import qualified Network.IPFS.Types as IPFS
+import           Network.IPFS.CID.Types
 
 type API = ReqBody '[JSON] User.Registration
         :> Post '[JSON] ()

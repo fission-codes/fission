@@ -16,7 +16,8 @@ import qualified Fission.Platform.Heroku.Types      as Heroku
 import qualified Fission.User.Provision.Types       as User
 import           Fission.Security.Types
 import           Fission.User                       (User)
-import           Fission.IPFS.Types                 as IPFS
+
+import           Network.IPFS.Types                 as IPFS
 
 data Request = Request
   { callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.

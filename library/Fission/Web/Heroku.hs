@@ -8,7 +8,6 @@ module Fission.Web.Heroku
 import           Data.UUID
 import           Database.Selda as Selda
 
-import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import           Fission.Prelude
@@ -30,7 +29,6 @@ import qualified Fission.User                 as User
 import qualified Fission.User.Table           as Table
 import qualified Fission.User.Provision.Types as User
 
-import           Fission.IPFS.CID.Types
 import qualified Fission.User.CID.Table as Table
 
 import qualified Fission.Platform.Heroku.AddOn       as AddOn
@@ -39,37 +37,34 @@ import           Fission.Platform.Heroku.AddOn.Types
 
 import           Fission.Security.Types (Secret (..))
 
-import           Fission.IPFS.Types          as IPFS
-import           Fission.Storage.IPFS.Pin as IPFS.Pin
-import           Fission.IPFS.Peer (getExternalAddress)
+import           Network.IPFS.Local.Class
+import           Network.IPFS.Remote.Class
+import           Network.IPFS.Types as IPFS
+import           Network.IPFS.Pin   as IPFS.Pin
+import           Network.IPFS.Peer (getExternalAddress)
 
 type API = ProvisionAPI :<|> DeprovisionAPI
 
 type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
                  :> Post    '[Heroku.MIME.VendorJSONv3] Provision
 
-server
-  :: ( HasLogFunc        cfg
-     , Has Web.Host      cfg
-     , Has HTTP.Manager  cfg
-     , Has IPFS.URL      cfg
-     , HasProcessContext cfg
-     , Has IPFS.BinPath  cfg
-     , Has IPFS.Timeout  cfg
-     , MonadMask    (RIO cfg)
-     , MonadSelda   (RIO cfg)
-     )
+server ::
+  ( MonadSelda      (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , MonadMask       (RIO cfg)
+  , HasLogFunc           cfg
+  , Has Web.Host         cfg
+  )
   => RIOServer cfg API
 server = provision :<|> deprovision
 
-provision
-  :: ( HasLogFunc        cfg
-     , Has Web.Host      cfg
-     , HasProcessContext cfg
-     , Has IPFS.BinPath  cfg
-     , Has IPFS.Timeout  cfg
-     , MonadSelda   (RIO cfg)
-     )
+provision ::
+  ( MonadLocalIPFS (RIO cfg)
+  , MonadSelda     (RIO cfg)
+  , Has Web.Host        cfg
+  , HasLogFunc          cfg
+  )
   => RIOServer cfg ProvisionAPI
 provision Request {uuid, region} = do
   Web.Host url' <- Config.get
@@ -110,13 +105,12 @@ provision Request {uuid, region} = do
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[Heroku.MIME.VendorJSONv3] NoContent
 
-deprovision
-  :: ( MonadSelda   (RIO cfg)
-     , MonadMask    (RIO cfg)
-     , HasLogFunc        cfg
-     , Has HTTP.Manager  cfg
-     , Has IPFS.URL      cfg
-     )
+deprovision ::
+  ( MonadSelda      (RIO cfg)
+  , MonadMask       (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , HasLogFunc           cfg
+  )
   => RIOServer cfg DeprovisionAPI
 deprovision uuid' = do
   let err = Web.Err.ensureMaybe err410 -- HTTP 410 is specified by the Heroku AddOn docs

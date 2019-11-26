@@ -5,32 +5,32 @@ module Fission.Web.IPFS.DAG
 where
 
 import           Database.Selda
-import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import           Fission.Prelude
 import           Fission.User
 import           Fission.User.CID.Mutation as User.CID
 import           Fission.Web.Server
-import           Fission.File.Types   as File
+import           Fission.File.Types as File
+import qualified Fission.Web.Error  as Web.Err
 
-import qualified Fission.IPFS.Types      as IPFS
-import qualified Fission.Storage.IPFS.DAG    as IPFS.DAG
-import qualified Fission.Storage.IPFS.Pin    as IPFS.Pin
-import qualified Fission.Web.Error       as Web.Err
+import           Network.IPFS.Local.Class
+import           Network.IPFS.Remote.Class
+
+import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.DAG   as IPFS.DAG
+import qualified Network.IPFS.Pin   as IPFS.Pin
+
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
-put
-  :: ( Has IPFS.BinPath  cfg
-     , Has IPFS.Timeout  cfg
-     , Has HTTP.Manager  cfg
-     , Has IPFS.URL      cfg
-     , HasProcessContext cfg
-     , MonadSelda   (RIO cfg)
-     , HasLogFunc        cfg
-     )
+put ::
+  ( MonadSelda      (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , HasLogFunc           cfg
+  )
   => User
   -> RIOServer cfg API
 put User { userID } (Serialized rawData) = IPFS.DAG.put rawData >>= \case

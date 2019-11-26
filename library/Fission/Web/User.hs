@@ -16,7 +16,7 @@ import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.User.Password.Reset as Reset
 import qualified Fission.Web.Auth.Types  as Auth
 
-import qualified Fission.IPFS.Types as IPFS
+import qualified Network.IPFS.Types as IPFS
 
 type API = Create.API
       :<|> VerifyRoute

@@ -16,7 +16,7 @@ import           Fission.Config.Types (Config (..))
 import           Fission.Internal.Orphanage.RIO ()
 import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.Storage.Types         as DB
-import qualified Fission.IPFS.Types            as IPFS
+import qualified Network.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types as Hku
 import           Fission.Web.Types
 import           Fission.App (runApp)
@@ -27,7 +27,7 @@ import           Fission.App (runApp)
 
      == Example Use
 
-     > runOne Fission.IPFS.Peer.all
+     > runOne Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 runOne :: RIO (Config PG) a -> IO a
@@ -53,10 +53,10 @@ runOne action = do
      >
      > let runSession = run logFunc dbPool processCtx httpManager
      >
-     > runSession Fission.IPFS.Peer.all
+     > runSession Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
-     > runSession Fission.IPFS.Peer.connect Fission.peer
+     > runSession Network.IPFS.Peer.connect Fission.peer
      > -- ()
 -}
 run
@@ -102,16 +102,16 @@ run logFunc dbPool processCtx httpManager action =
      > let cfg = mkConfig dbPool processCtx httpManager logFunc
      > let run' = runRIO cfg
      >
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
-     > run' Fission.IPFS.Peer.connect Fission.peer
+     > run' Network.IPFS.Peer.connect Fission.peer
      > -- ()
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
      > let run' = runRIO cfg { ipfsPath = "~/Downloads/ipfs" }
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig :: DB.Pool PG -> ProcessContext -> HTTP.Manager -> LogFunc -> Config PG
@@ -142,17 +142,17 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 
      > (cfg, ) <- mkConfig'
      > let run' = runRIO cfg
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
-     > run' Fission.IPFS.Peer.connect Fission.peer
+     > run' Network.IPFS.Peer.connect Fission.peer
      > -- ()
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
      > (cfg, ) <- mkConfig'
      > let run' = runRIO cfg { ipfsPath = "~/Downloads/ipfs" }
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig' :: IO (Config PG, IO ())

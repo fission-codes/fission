@@ -5,7 +5,7 @@ import qualified Network.HTTP.Client as HTTP
 
 import           Fission.Prelude
 import           Fission.Web.Types
-import qualified Fission.IPFS.Types            as IPFS
+import qualified Network.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Network.AWS.Auth              as AWS

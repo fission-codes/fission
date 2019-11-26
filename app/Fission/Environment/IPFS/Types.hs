@@ -2,7 +2,7 @@
 module Fission.Environment.IPFS.Types (Environment (..)) where
 
 import           Fission.Prelude
-import qualified Fission.IPFS.Types as IPFS
+import qualified Network.IPFS.Types as IPFS
 
 data Environment = Environment
   { url        :: !IPFS.URL     -- ^ IPFS client URL (may be remote)
