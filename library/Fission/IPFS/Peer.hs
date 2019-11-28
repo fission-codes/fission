@@ -2,7 +2,6 @@ module Fission.IPFS.Peer
   ( all
   , rawList
   , connect
-  , fission
   , getExternalAddress
   ) where
 
@@ -96,12 +95,9 @@ getExternalAddress = IPFSProc.run' ["id"] >>= \case
     (ExitFailure _ , _, err) ->
       return <| Left <| UnknownErr <| UTF8.textShow err
 
-    (ExitSuccess , rawOut, _) -> do
+    (ExitSuccess , rawOut, _) ->
       rawOut
         |> decode
         |> maybe [] addresses
         |> Right . filterExternalPeers
         |> pure
-
-fission :: Peer
-fission = Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"

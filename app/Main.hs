@@ -44,9 +44,10 @@ main = do
     herokuID       = Hku.ID       <| encodeUtf8 (manifest |> Hku.id)
     herokuPassword = Hku.Password <| encodeUtf8 (manifest |> Hku.api |> Hku.password)
 
-    ipfsPath    = env |> ipfs |> binPath
-    ipfsURL     = env |> ipfs |> url
-    ipfsTimeout = env |> ipfs |> IPFS.timeout
+    ipfsPath       = env |> ipfs |> binPath
+    ipfsURL        = env |> ipfs |> url
+    ipfsRemotePeer = env |> ipfs |> remotePeer
+    ipfsTimeout    = env |> ipfs |> IPFS.timeout
     ipfsGateway = env |> ipfs |> gateway
 
     awsAccessKey  = accessKey

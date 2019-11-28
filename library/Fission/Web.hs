@@ -48,6 +48,7 @@ app
      , Has IPFS.Timeout    cfg
      , Has IPFS.URL        cfg
      , Has IPFS.Gateway    cfg
+     , Has IPFS.Peer       cfg
      , Has HTTP.Manager    cfg
      , Has Web.Host        cfg
      , Has AWS.AccessKey   cfg
@@ -99,6 +100,7 @@ server
      , Has IPFS.Timeout   cfg
      , Has IPFS.URL       cfg
      , Has IPFS.Gateway   cfg
+     , Has IPFS.Peer      cfg
      , Has HTTP.Manager   cfg
      , Has Web.Host       cfg
      , Has AWS.AccessKey  cfg

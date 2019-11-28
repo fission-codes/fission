@@ -77,10 +77,11 @@ run logFunc dbPool processCtx httpManager action =
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
-    ipfsPath    = "/usr/local/bin/ipfs"
-    ipfsURL     = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
-    ipfsTimeout = IPFS.Timeout 3600
+    ipfsPath       = "/usr/local/bin/ipfs"
+    ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
+    ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
 
     awsAccessKey  = "SOME_AWS_ACCESS_KEY"
     awsSecretKey  = "SOME_AWS_SECRET_KEY"
@@ -122,6 +123,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 
     ipfsPath       = "/usr/local/bin/ipfs"
     ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
