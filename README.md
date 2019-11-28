@@ -38,7 +38,7 @@ cp example-config/env.yaml.example env.yaml
 ## Run Server
 ```shell
 # Dev Web Server
-export RIO_VERBOSE=true
+export DEBUG=true
 stack run
 ```
 
@@ -114,7 +114,7 @@ Run the server with TLS enabled.
 
 _NB: `PORT` needs to be set separately._
 
-### `RIO_VERBOSE`
+### `DEBUG`
 
 Default: `false`
 
