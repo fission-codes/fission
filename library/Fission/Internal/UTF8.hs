@@ -7,7 +7,6 @@ module Fission.Internal.UTF8
   , stripN
   , stripNBS
   , stripNewline
-  , stripQuotes
   , textToLazyBS
   , textShow
   , wrapIn
@@ -18,7 +17,6 @@ import           RIO
 import qualified RIO.ByteString             as Strict
 import qualified RIO.ByteString.Lazy        as Lazy
 import qualified RIO.Text                   as Text
-import qualified Data.ByteString.Lazy.Char8 as Char8
 
 class Textable a where
   encode :: a -> Either UnicodeException Text
@@ -56,10 +54,6 @@ stripN n = Text.dropEnd i . Text.drop i
   where
     i :: Int
     i = fromIntegral n
-
--- | Helper for showing nytestring without quotes
-stripQuotes :: Char8.ByteString -> [Char]
-stripQuotes = Char8.unpack . stripNBS 1
 
 -- | Helper for printing 'Text' to a console
 putText :: MonadIO m => Text -> m ()

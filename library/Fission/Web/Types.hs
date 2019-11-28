@@ -9,6 +9,7 @@ import           Servant.Client
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
+import qualified Data.ByteString.Lazy.Char8 as Char8
 
 -- | The hostname of the running application
 newtype Host = Host { getHost :: BaseUrl }
@@ -18,7 +19,7 @@ newtype Host = Host { getHost :: BaseUrl }
                    )
 
 instance Show Host where
-  show = UTF8.stripQuotes . encode
+  show = Char8.unpack . UTF8.stripNBS 1 . encode
 
 -- | Port of the running application
 newtype Port = Port { port :: Warp.Port }

@@ -21,7 +21,7 @@ instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> 
       param = mempty
         |> name .~ "file"
         |> required ?~ True
-        |> description ?~ "mempty |> type_ .~ SwaggerFile"
+        |> description ?~ "A file to upload (may also be multipart/form-data)"
         |> schema .~ ParamOther (mempty
             |> in_ .~ ParamFormData
             |> paramSchema .~ (mempty |> type_ ?~ SwaggerFile))
