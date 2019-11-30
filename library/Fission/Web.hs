@@ -62,9 +62,9 @@ app
      )
     => RIO cfg Application
 app = do
-  cfg  <- ask
-  auth <- mkAuth
-  appHost :: Web.Host <- Config.get
+  cfg     <- ask
+  auth    <- mkAuth
+  appHost <- Config.get
 
   appHost
     |> server
