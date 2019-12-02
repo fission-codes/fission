@@ -5,7 +5,6 @@ module Fission.Web.Swagger
 
 import           Data.Swagger
 import           Servant
-import           Servant.Client (BaseUrl (..))
 import           Servant.Swagger
 import           Servant.Swagger.UI
 import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
