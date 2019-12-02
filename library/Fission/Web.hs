@@ -13,7 +13,6 @@ import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Database.Selda
-import           Data.Swagger as Swagger
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 
@@ -63,11 +62,11 @@ app
      )
     => RIO cfg Application
 app = do
-  cfg  <- ask
-  auth <- mkAuth
-  appHost :: Web.Host <- Config.get
+  cfg     <- ask
+  auth    <- mkAuth
+  appHost <- Config.get
 
-  Swagger.Host (show appHost) Nothing
+  appHost
     |> server
     |> Auth.server api cfg
     |> serveWithContext api auth
@@ -110,11 +109,11 @@ server
      , HasLogFunc         cfg
      , MonadSelda    (RIO cfg)
      )
-  => Swagger.Host
+  => Web.Host
   -> RIOServer cfg API
-server host' = Web.Swagger.server host'
-          :<|> IPFS.server
-          :<|> const Heroku.server
-          :<|> User.server
-          :<|> pure Ping.pong
-          :<|> DNS.server
+server appHost = Web.Swagger.server appHost
+            :<|> IPFS.server
+            :<|> const Heroku.server
+            :<|> User.server
+            :<|> pure Ping.pong
+            :<|> DNS.server
