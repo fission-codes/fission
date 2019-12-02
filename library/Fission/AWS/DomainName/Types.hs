@@ -1,6 +1,6 @@
 module Fission.AWS.DomainName.Types (DomainName (..)) where
 
-import           Data.Swagger (ToSchema (..))
+import           Data.Swagger
 import qualified RIO.ByteString.Lazy as Lazy
 import           Servant
 
@@ -13,8 +13,16 @@ newtype DomainName = DomainName { getDomainName :: Text }
                     , Generic
                     , Show
                     )
-  deriving anyclass ( ToSchema )
   deriving newtype  ( IsString )
+
+instance ToSchema DomainName where
+  declareNamedSchema _ =
+    mempty
+      |> example     ?~ "myawesomedomain.com"
+      |> description ?~ "A domain name"
+      |> type_       ?~ SwaggerString
+      |> NamedSchema (Just "DomainName")
+      |> pure
 
 instance FromJSON DomainName where
   parseJSON = withText "AWS.DomainName" \txt ->
