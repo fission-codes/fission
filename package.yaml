@@ -89,6 +89,7 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - esqueleto
   - flow
   - filepath
   - fsnotify
@@ -103,13 +104,16 @@ dependencies:
   - mime-types
   - monad-logger
   - mtl
+  - persistent
+  - persistent-postgresql
+  - persistent-template
   - random-bytestring
   - resource-pool
   - regex-compat
   - rio
   - rio-orphans
   - scientific
-  - selda
+  - selda # TODO: Remove
   - servant
   - servant-auth-server
   - servant-auth-swagger

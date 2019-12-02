@@ -1,0 +1,6 @@
+AddOn
+  region Region Maybe
+  uuid Text
+
+  insertedAt UTCTime
+  modifiedAt UTCTime

@@ -1,8 +1,8 @@
 module Fission.User.Role (Role (..)) where
 
-import Database.Selda (SqlType)
-
 import Fission.Prelude
+import qualified Fission.Storage.Persist as Persist
+
 
 data Role
   = Regular
@@ -10,7 +10,6 @@ data Role
   deriving ( Show
            , Read
            , Eq
-           , Enum
-           , Bounded
-           , SqlType
            )
+
+Persist.generateInstances "Role"

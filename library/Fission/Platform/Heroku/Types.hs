@@ -4,11 +4,14 @@ module Fission.Platform.Heroku.Types
   , Region (..)
   ) where
 
-import Database.Selda (SqlType)
 import Data.Swagger as Swagger
 import RIO.Partial (read)
 
-import Fission.Prelude
+-- Fission
+
+import           Fission.Prelude
+import qualified Fission.Storage.Persist as Persist
+
 
 -- | Heroku add-on ID (from @addon-manifest.json@)
 newtype ID = ID { getID :: ByteString }
@@ -36,7 +39,6 @@ data Region
            , Enum
            , Generic
            , Bounded
-           , SqlType
            )
 
 instance ToJSON Region where
@@ -60,7 +62,8 @@ instance FromJSON Region where
     "amazon-web-services::ap-southeast-2" -> return Sydney
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
-    bad -> fail <| "Invalid region: " <> show bad
+
+    bad -> fail ("Invalid region: " <> show bad)
 
 instance ToSchema Region where
   declareNamedSchema = genericDeclareNamedSchema <| defaultSchemaOptions
@@ -70,3 +73,5 @@ instance ToSchema Region where
                                      . toJSON
                                      . (read :: String -> Region)
     }
+
+Persist.generateInstances "Region"

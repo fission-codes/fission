@@ -1,19 +1,21 @@
-module Fission.Platform.Heroku.AddOn.Types (AddOn (..)) where
+module Fission.Platform.Heroku.AddOn.Types
 
 import Data.UUID
-import Database.Selda
-
-import Fission.Platform.Heroku.Types (Region (..))
 import Fission.Prelude
 
-data AddOn = AddOn
-  { addOnID    :: ID AddOn
-  , uuid       :: UUID
-  , region     :: Maybe Region
-  , insertedAt :: UTCTime
-  , modifiedAt :: UTCTime
-  } deriving ( Show
-             , Eq
-             , SqlRow
-             , Generic
-             )
+-- Database
+
+import           Fission.Storage.Persist (Generate(..))
+import qualified Fission.Storage.Persist as Persist
+
+-- Dependencies
+
+import Fission.Platform.Heroku.Types (Region (..))
+
+
+{-| This'll take our AddOn model, defined in template Haskell,
+    and translate them into data and entity types automatically.
+-}
+Persist.generate
+ [ Types ]
+ [ "library/Fission/Platform/Heroku/AddOn/Model" ]

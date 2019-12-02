@@ -1,0 +1,13 @@
+User
+  active Bool
+  email Text Maybe
+  herokuAddOnId HerokuAddonId Maybe
+  role Role
+  secretDigest Text
+  username Text
+
+  insertedAt UTCTime
+  modifiedAt UTCTime
+
+  UniqueSecretDigest secretDigest
+  UniqueUsername username

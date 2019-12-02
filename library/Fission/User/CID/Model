@@ -1,0 +1,8 @@
+UserCID
+  cid Text
+  userFK UserId
+
+  insertedAt UTCTime
+  modifiedAt UTCTime
+
+  deriving Eq Show

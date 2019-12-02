@@ -1,19 +1,16 @@
-module Fission.User.CID.Types (UserCID (..)) where
-
-import Database.Selda
+module Fission.User.CID.Types
 
 import Fission.Prelude
-import Fission.User    (User (..))
 
--- | A relationship of 'CID' to a 'User'
-data UserCID = UserCID
-  { userCID    :: ID UserCID
-  , userFK     :: ID User
-  , cid        :: Text -- SqlType for CID was getting hairy
-  , insertedAt :: UTCTime
-  , modifiedAt :: UTCTime
-  } deriving ( Show
-             , Eq
-             , Generic
-             , SqlRow
-             )
+-- Database
+
+import           Fission.Storage.Persist (Generate(..))
+import qualified Fission.Storage.Persist as Persist
+
+
+{-| This'll take our CID model, defined in template Haskell,
+    and translate them into data and entity types automatically.
+-}
+Persist.generate
+  [ Types ]
+  [ "library/Fission/User/CID/Model" ]
