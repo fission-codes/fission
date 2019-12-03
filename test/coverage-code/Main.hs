@@ -10,7 +10,7 @@ import Data.List   (genericLength)
 import Data.Maybe  (catMaybes)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Regex  (matchRegex, mkRegex)
-import Fission.Environment (runApp)
+import Fission.App (runApp)
 
 main :: IO ()
 main = runApp do

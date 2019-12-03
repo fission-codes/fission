@@ -8,8 +8,6 @@ import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
-import           System.Environment (unsetEnv, setEnv)
-
 import           Fission.Prelude
 import           Fission.Internal.Orphanage.RIO ()
 import qualified Fission.Monitor            as Monitor
@@ -23,6 +21,7 @@ import qualified Fission.Web.Types as Web
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Hku
 import qualified Fission.Platform.Heroku.Types          as Hku
 
+import           Fission.App (runApp)
 import           Fission.Config.Types
 import           Fission.Environment
 import           Fission.Environment.Types

@@ -12,7 +12,7 @@ import           Fission.Prelude
 import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 import           Fission.Internal.Orphanage.Tuple ()
-import           Fission.Environment (runApp)
+import           Fission.App (runApp)
 
 setupTable
   :: ( MonadRIO cfg m

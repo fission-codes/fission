@@ -5,12 +5,11 @@ module Fission.Environment
   , getFlag
   , getEnv
   , getFlagWithDefault
-  , runApp
   , (.!~)
   ) where
 
 import RIO.Char (toLower)
-import System.Environment (lookupEnv, setEnv, unsetEnv)
+import System.Environment (lookupEnv)
 import System.Envy
 
 import Fission.Prelude
@@ -62,19 +61,9 @@ getFlag key = do
   let mayVal = truthy . fmap toLower <$> mayStr
   return mayVal
 
--- | TODO
+-- | Get a given flag, default to the given value if not found
+getFlagWithDefault :: String -> Bool -> IO Bool
 getFlagWithDefault flag defaultValue =
   getFlag flag >>= \case
     Just value -> return value
     Nothing -> return defaultValue
-
--- | TODO
-runApp simpleApp = do
-  isVerbose  <- getFlagWithDefault "DEBUG" False
-  setRioVerbose isVerbose
-  runSimpleApp simpleApp
-
-  -- | TODO
-setRioVerbose True = setEnv "RIO_VERBOSE" "true"
-setRioVerbose False = unsetEnv "RIO_VERBOSE"
-

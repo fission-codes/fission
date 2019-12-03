@@ -19,7 +19,7 @@ import qualified Fission.Storage.Types         as DB
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types as Hku
 import           Fission.Web.Types
-import           Fission.Environment (runApp)
+import           Fission.App (runApp)
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
