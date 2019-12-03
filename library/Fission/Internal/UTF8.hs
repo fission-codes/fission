@@ -14,9 +14,9 @@ module Fission.Internal.UTF8
 
 import           Flow
 import           RIO
-import qualified RIO.ByteString             as Strict
-import qualified RIO.ByteString.Lazy        as Lazy
-import qualified RIO.Text                   as Text
+import qualified RIO.ByteString      as Strict
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 class Textable a where
   encode :: a -> Either UnicodeException Text

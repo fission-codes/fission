@@ -13,15 +13,23 @@ import Fission.Prelude
 
 
 instance HasSwagger api => HasSwagger (MultipartForm Mem (MultipartData Mem) :> api) where
-  toSwagger _ = Proxy @api
+  toSwagger _ =
+    Proxy @api
       |> toSwagger
       |> addConsumes ["multipart" // "form-data"]
       |> addParam param
     where
-      param = mempty
-        |> name .~ "file"
-        |> required ?~ True
-        |> description ?~ "A file to upload (may also be multipart/form-data)"
-        |> schema .~ ParamOther (mempty
-            |> in_ .~ ParamFormData
-            |> paramSchema .~ (mempty |> type_ ?~ SwaggerFile))
+      param =
+        mempty
+          |> name        .~ "file"
+          |> required    ?~ True
+          |> description ?~ "A file to upload (may also be multipart/form-data)"
+          |> schema      .~ ParamOther fileParam
+
+      fileParam =
+        mempty
+          |> in_         .~ ParamFormData
+          |> paramSchema .~ swaggerFileType
+
+      swaggerFileType =
+        mempty |> type_ ?~ SwaggerFile
