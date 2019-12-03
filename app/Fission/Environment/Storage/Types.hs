@@ -1,17 +1,17 @@
 module Fission.Environment.Storage.Types (Environment (..)) where
 
-import Database.Selda.PostgreSQL
-
 import Fission.Prelude
-import Fission.Internal.Orphanage.PGConnectInfo ()
+import Fission.Storage.PostgreSQL as PG
+
 
 -- | Configuration for the web application
 data Environment = Environment
-  { pgConnectInfo  :: !PGConnectInfo  -- ^ PostgreSQL configuration
-  , stripeCount    :: !Int             -- ^ Number of database stripes
-  , connsPerStripe :: !Int             -- ^ Maximum number of concurrent connections per stripe
-  , connTTL        :: !NominalDiffTime -- ^ Maxiumum connection time
+  { pgConnectInfo  :: !PG.ConnectionInfo  -- ^ PostgreSQL configuration
+  , stripeCount    :: !Int                -- ^ Number of database stripes
+  , connsPerStripe :: !Int                -- ^ Maximum number of concurrent connections per stripe
+  , connTTL        :: !NominalDiffTime    -- ^ Maxiumum connection time
   } deriving Show
+
 
 instance FromJSON Environment where
   parseJSON = withObject "Storage.Environment" \obj -> do

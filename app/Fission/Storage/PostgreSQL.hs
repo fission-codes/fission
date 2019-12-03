@@ -4,47 +4,93 @@ module Fission.Storage.PostgreSQL
   , makeTable
   ) where
 
-import Data.Pool
-import Database.Selda
-import Database.Selda.PostgreSQL
+import qualified RIO.Text as Text
+
+-- Database
+
+import           Data.Pool
+import qualified Database.Persist.Postgresql as Postgres
+import           Database.Persist.SQL (IsSqlBackend)
+import qualified Database.PostgreSQL.Simple as Postgres
+
+-- Fission
 
 import           Fission.Prelude
+import           Fission.Storage.PostgresQL.Types
 import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 import           Fission.Internal.Orphanage.Tuple ()
 
-setupTable
-  :: ( MonadRIO cfg m
-     , HasLogFunc cfg
-     )
-  => PGConnectInfo
-  -> Table b
-  -> TableName
-  -> m ()
-setupTable pgInfo tbl tblName = do
-  logInfo <| "Creating table `" <> displayShow tblName <> "` in DB"
-  liftIO <| withPostgreSQL pgInfo <| createTable tbl
 
 connPool
-  :: ( MonadRIO   cfg m
+  :: ( MonadRIO cfg m
      , HasLogFunc cfg
+     , IsSqlBackend backend
      )
   => Int
   -> Int
   -> NominalDiffTime
-  -> PGConnectInfo
-  -> m (DB.Pool PG)
-connPool stripeCount connsPerStripe connTTL pgInfo@(PGConnectInfo {..}) = do
-  logDebug <| "Establishing DB pool for " <> displayShow pgDatabase
+  -> ConnectionInfo
+  -> m (DB.Pool backend)
+connPool stripeCount connsPerStripe connTTL connectionInfo = do
+  logDebug ("Establishing DB pool for " <> displayShow pgDatabase)
 
-  rawPool <- liftIO <| createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
-  logDebug <| "DB pool stats: " <> displayShow rawPool
+  -- Functions
+  let connectionCloser = Postgres.close
+  let loggingFunc _ _ _ _ = return () -- TODO
 
-  return <| DB.Pool rawPool
+  -- Create database pool
+  rawPool <-
+    connectionInfo
+      |> simpleConnectionInfo
+      |> Postgres.connect
+      |> andThen (Postgres.openSimpleConn loggingFunc)
+      |> (\connectionCreator ->
+        createPool
+          connectionCreator
+          connectionCloser
+          stripeCount
+          connTTL
+          connsPerStripe
+      )
+      |> liftIO
 
--- NOTE HLint can't handle BlockArguments _yet_
-makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
-makeTable pgInfo' tbl tblName = runSimpleApp do
-  pool   <- connPool 1 1 1 pgInfo'
-  logger <- view logFuncL
-  runRIO (logger, pool, pgInfo') <| setupTable pgInfo' tbl <| Table.name tblName
+  -- Log database pool statistics
+  logDebug ("DB pool stats: " <> displayShow rawPool)
+
+  return (DB.Pool rawPool)
+
+
+
+-- ㊙️
+
+
+simpleConnectionInfo :: ConnectionInfo -> Postgres.ConnectInfo
+simpleConnectionInfo (ConnectionInfo {..}) = ConnectInfo
+  { connectDatabase = Text.unpack database
+  , connectHost = Text.unpack host
+  , connectPassword = map Text.unpack password
+  , connectPort = port
+  , connectUser = map Text.unpack user
+  }
+
+
+-- TODO: Probably don't need this anymore
+--
+-- setupTable
+--   :: ( MonadRIO cfg m
+--      , HasLogFunc cfg
+--      )
+--   => PGConnectInfo
+--   -> Table b
+--   -> TableName
+--   -> m ()
+-- setupTable pgInfo tbl tblName = do
+--   logInfo <| "Creating table `" <> displayShow tblName <> "` in DB"
+--   liftIO <| withPostgreSQL pgInfo <| createTable tbl
+--
+-- makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
+-- makeTable pgInfo' tbl tblName = runSimpleApp do
+--   pool   <- connPool 1 1 1 pgInfo'
+--   logger <- view logFuncL
+--   runRIO (logger, pool, pgInfo') <| setupTable pgInfo' tbl <| Table.name tblName

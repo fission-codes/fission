@@ -1,14 +1,18 @@
 module Fission.Storage.Types
   ( Pool (..)
-  , SeldaPool
   ) where
 
-import qualified Data.Pool              as Database
-import           Database.Selda.Backend (SeldaConnection)
-
 import Fission.Prelude
+import qualified Data.Pool
 
-type SeldaPool backend = Database.Pool (SeldaConnection backend)
 
-newtype Pool backend = Pool { getPool :: SeldaPool backend }
+{-| Alias for the monad from the Persist library.
+-}
+type Query m a = (MonadIO m, MonadLogger m) => SqlPersistM m a
+
+
+{-| TODO: Don't know how to describe this yet.
+-}
+newtype Pool databaseBackend = Pool
+  { getPool :: Data.Pool databaseBackend }
   deriving Show

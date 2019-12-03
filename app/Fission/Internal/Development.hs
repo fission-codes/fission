@@ -4,21 +4,40 @@ module Fission.Internal.Development
   , runOne
   , mkConfig
   , mkConfig'
-  , pgConnectInfo
+  , dbConnectionInfo
   ) where
 
-import           Database.Selda.PostgreSQL
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 
-import           Fission.Prelude
+-- Fissio
+
 import           Fission.Config.Types (Config (..))
 import           Fission.Internal.Orphanage.RIO ()
-import           Fission.Storage.PostgreSQL (connPool)
-import qualified Fission.Storage.Types         as DB
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types as Hku
+import           Fission.Prelude
+import qualified Fission.Storage.PostgreSQL as Postgres
+import qualified Fission.Storage.Types         as DB
 import           Fission.Web.Types
+
+
+-- Constants
+
+
+dbConnectionInfo :: Postgres.ConnectionInfo
+dbConnectionInfo = Postgres.ConnectionInfo
+  { database = "webapi"
+  , host = "localhost"
+  , password = Nothing
+  , port = 5432
+  , username = Nothing
+  }
+
+
+
+-- Functions
+
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -31,11 +50,13 @@ import           Fission.Web.Types
 -}
 runOne :: RIO (Config PG) a -> IO a
 runOne action = do
-  logOptions   <- logOptionsHandle stdout True
+  logOptions <- logOptionsHandle stdout True
+
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
-    dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
+    dbPool      <- runSimpleApp (Postgres.connPool 1 1 3600 dbConnectionInfo)
     processCtx  <- mkDefaultProcessContext
     httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+
     run logFunc dbPool processCtx httpManager action
 
 {- | Run some action(s) in the app's context,
@@ -44,10 +65,10 @@ runOne action = do
 
      == Example Use
 
-     > dbPool <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
-     > processCtx <- mkDefaultProcessContext
-     > httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-     > logOptions <- logOptionsHandle stdout True
+     > dbPool       <- runSimpleApp $ Postgres.connPool 1 1 3600 dbConnectionInfo'
+     > processCtx   <- mkDefaultProcessContext
+     > httpManager  <- HTTP.newManager HTTP.defaultManagerSettings
+     > logOptions   <- logOptionsHandle stdout True
      > (logFunc,  :: IO ()) <- newLogFunc $ setLogUseTime True logOptions
      >
      > let runSession = run logFunc dbPool processCtx httpManager
@@ -67,35 +88,35 @@ run
   -> IO a
 run logFunc dbPool processCtx httpManager action =
   runRIO config do
-    logDebug <| displayShow config
+    logDebug (displayShow config)
     action
   where
     config = Config {..}
 
-    host = Host <| BaseUrl Https "mycoolapp.io" 443 ""
+    host = Host (BaseUrl Https "mycoolapp.io" 443 "")
 
-    herokuID       = Hku.ID       "HEROKU_ID"
-    herokuPassword = Hku.Password "HEROKU_PASSWORD"
+    herokuID        = Hku.ID       "HEROKU_ID"
+    herokuPassword  = Hku.Password "HEROKU_PASSWORD"
 
-    ipfsPath    = "/usr/local/bin/ipfs"
-    ipfsURL     = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
-    ipfsTimeout = IPFS.Timeout 3600
-    ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
+    ipfsPath        = "/usr/local/bin/ipfs"
+    ipfsURL         = IPFS.URL (BaseUrl Http "localhost" 5001 "")
+    ipfsTimeout     = IPFS.Timeout 3600
+    ipfsGateway     = IPFS.Gateway "ipfs.runfission.com"
 
-    awsAccessKey  = "SOME_AWS_ACCESS_KEY"
-    awsSecretKey  = "SOME_AWS_SECRET_KEY"
-    awsZoneID     = "SOME_AWS_ZONE_ID"
-    awsDomainName = "SOME_AWS_DOMAIN_NAME"
+    awsAccessKey    = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey    = "SOME_AWS_SECRET_KEY"
+    awsZoneID       = "SOME_AWS_ZONE_ID"
+    awsDomainName   = "SOME_AWS_DOMAIN_NAME"
 
-{- | Setup a complete development configuration with all pure defaults set
+{- | Setup a complete development configuration with all pure defaults set.
 
      == Example Use
 
-     > dbPool       <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+     > dbPool       <- runSimpleApp $ Postgres.connPool 1 1 3600 dbConnectionInfo'
      > processCtx   <- mkDefaultProcessContext
      > httpManager  <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions   <- logOptionsHandle stdout True
-     > (logFunc, ) <- newLogFunc $ setLogUseTime True logOptions
+     > (logFunc, )  <- newLogFunc $ setLogUseTime True logOptions
      >
      > let cfg = mkConfig dbPool processCtx httpManager logFunc
      > let run' = runRIO cfg
@@ -115,13 +136,13 @@ run logFunc dbPool processCtx httpManager action =
 mkConfig :: DB.Pool PG -> ProcessContext -> HTTP.Manager -> LogFunc -> Config PG
 mkConfig dbPool processCtx httpManager logFunc = Config {..}
   where
-    host = Host <| BaseUrl Https "mycoolapp.io" 443 ""
+    host = Host (BaseUrl Https "mycoolapp.io" 443 "")
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
     ipfsPath       = "/usr/local/bin/ipfs"
-    ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsURL        = IPFS.URL (BaseUrl Http "localhost" 5001 "")
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
@@ -154,16 +175,13 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 -}
 mkConfig' :: IO (Config PG, IO ())
 mkConfig' = do
-  dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
+  dbPool      <- runSimpleApp (Postgres.connPool 1 1 3600 dbConnectionInfo)
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
   -- A bit dirty; doesn't handle teardown
   logOptions       <- logOptionsHandle stdout True
-  (logFunc, close) <- newLogFunc <| setLogUseTime True logOptions
+  (logFunc, close) <- newLogFunc (setLogUseTime True logOptions)
 
   let cfg = mkConfig dbPool processCtx httpManager logFunc
   return (cfg, close)
-
-pgConnectInfo :: PGConnectInfo
-pgConnectInfo = PGConnectInfo "localhost" 5432 "webapi" Nothing Nothing Nothing

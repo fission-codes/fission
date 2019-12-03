@@ -9,6 +9,7 @@ module Fission.Prelude
   , module RIO
   , module RIO.Process
   , module RIO.Time
+  , andThen
   , headMaybe
   , identity
   , intercalate
@@ -28,6 +29,9 @@ import RIO                         hiding (Handler, id, timeout, ($), (&))
 import RIO.List                    (headMaybe, intercalate)
 import RIO.Process
 import RIO.Time
+
+andThen :: (m a -> b) -> m a -> m b
+andThen = (<<=)
 
 identity :: a -> a
 identity a = a

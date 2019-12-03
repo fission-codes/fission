@@ -11,7 +11,7 @@ import           Network.Wai.Middleware.RequestLogger
 import           Fission.Prelude
 import           Fission.Internal.Orphanage.RIO ()
 import qualified Fission.Monitor            as Monitor
-import           Fission.Storage.PostgreSQL (connPool)
+import           Fission.Storage.PostgreSQL as Postgres
 
 import qualified Fission.Web       as Web
 import qualified Fission.Web.CORS  as CORS
@@ -30,6 +30,24 @@ import qualified Fission.Environment.Web.Types     as Web
 import qualified Fission.Environment.AWS.Types as AWS
 
 import qualified Fission.Web.Log.Sentry as Sentry
+
+
+-- Constants / Settings
+
+
+clientTimeout :: Int
+clientTimeout = 1800000000
+
+serverTimeout :: Int
+serverTimeout = 1800
+
+tlsSettings' :: TLSSettings
+tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
+
+
+
+-- 🍱
+
 
 main :: IO ()
 main = do
@@ -54,7 +72,7 @@ main = do
     awsZoneID     = zoneID
     awsDomainName = domainName
 
-  dbPool      <- runSimpleApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
+  dbPool      <- runSimpleApp (connPool stripeCount connsPerStripe connTTL pgConnectInfo)
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
@@ -81,17 +99,13 @@ main = do
              . condDebug
              =<< Web.app
 
+
+
+-- ㊙️
+
+
 mkSettings :: LogFunc -> Port -> Settings
 mkSettings logger port = defaultSettings
                       |> setPort port
                       |> setLogger (Web.Log.fromLogFunc logger)
                       |> setTimeout serverTimeout
-
-tlsSettings' :: TLSSettings
-tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
-
-clientTimeout :: Int
-clientTimeout = 1800000000
-
-serverTimeout :: Int
-serverTimeout = 1800

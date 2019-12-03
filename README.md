@@ -49,9 +49,9 @@ createdb web_api
 
 # Apply the projects database schema
 stack repl
-λ> import Fission.Internal.Development as Development (pgConnectInfo)
+λ> import Fission.Internal.Development as Development (dbConnectionInfo)
 λ> import Fission.Storage.PostgreSQL.Migrate
-λ> sequence_ $ mutations Development.pgConnectInfo
+λ> sequence_ $ mutations Development.dbConnectionInfo
 ```
 
 ## Get your FISSION credentials
