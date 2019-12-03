@@ -1,5 +1,5 @@
 -- | Helpers for running the Fission applications
-module Fission.App (runApp) where
+module Fission.App (runApp, isDebugEnabled) where
 
 import System.Environment (setEnv, unsetEnv)
 import Fission.Environment (getFlagWithDefault)
@@ -9,9 +9,13 @@ import Fission.Prelude
 --   Set `DEBUG` to `True` to enable verbose app logging
 runApp :: RIO SimpleApp a -> IO a
 runApp simpleApp = do
-  isVerbose  <- getFlagWithDefault "DEBUG" False
+  isVerbose  <- isDebugEnabled
   setRioVerbose isVerbose
   runSimpleApp simpleApp
+
+-- | Check if `DEBUG` is set to `True`
+isDebugEnabled :: IO Bool
+isDebugEnabled = getFlagWithDefault "DEBUG" False
 
 -- | Sets the env variable `RIO_VERBOSE` to the given value
 --   Note: unsetting `RIO_VERBOSE` is the only way for it to be interpretted as False

@@ -21,9 +21,8 @@ import qualified Fission.Web.Types as Web
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Hku
 import qualified Fission.Platform.Heroku.Types          as Hku
 
-import           Fission.App (runApp)
+import           Fission.App (runApp, isDebugEnabled)
 import           Fission.Config.Types
-import           Fission.Environment
 import           Fission.Environment.Types
 import           Fission.Environment.IPFS.Types    as IPFS
 import qualified Fission.Environment.Storage.Types as Storage
@@ -55,7 +54,8 @@ main = do
     awsSecretKey  = secretKey
     awsZoneID     = zoneID
     awsDomainName = domainName
-  isVerbose  <- getFlagWithDefault "DEBUG" False
+
+  isVerbose  <- isDebugEnabled
   logOptions <- logOptionsHandle stdout isVerbose
 
   dbPool      <- runApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
