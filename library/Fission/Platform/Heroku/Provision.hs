@@ -17,7 +17,6 @@ import qualified Fission.User.Provision.Types       as User
 import           Fission.Security.Types
 import           Fission.User                       (User)
 import           Fission.IPFS.Types                 as IPFS
-import           Fission.IPFS.Peer (fission)
 
 data Request = Request
   { callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -147,7 +146,7 @@ instance ToSchema Provision where
       provisionEx = Provision
         { id      = toId 4213
         , config  = cfgEx
-        , peers  = [fission]
+        , peers  = [IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
         , message = "Provisioned successfully"
         }
 

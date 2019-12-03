@@ -46,6 +46,7 @@ server :: HasLogFunc        cfg
        => MonadSelda   (RIO cfg)
        => Has HTTP.Manager  cfg
        => Has IPFS.URL      cfg
+       => Has IPFS.Peer     cfg
        => Has IPFS.BinPath  cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg API
@@ -67,6 +68,7 @@ authed usr = CID.allForUser usr
 public :: HasLogFunc        cfg
        => HasProcessContext cfg
        => Has IPFS.BinPath  cfg
+       => Has IPFS.Peer     cfg
        => Has IPFS.Timeout  cfg
        => RIOServer         cfg PublicAPI
 public = Peer.get
