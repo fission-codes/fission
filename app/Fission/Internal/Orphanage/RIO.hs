@@ -11,13 +11,18 @@ import RIO.Orphans ()
 import Database.Selda.Backend.Internal
 import Database.Selda.PostgreSQL
 
-import Servant.Client
-import Network.IPFS
-import Network.IPFS.Types as IPFS
-import Network.HTTP.Client as HTTP
+import qualified RIO.ByteString.Lazy as Lazy
 
-import qualified Fission.Config as Config
+import           Servant.Client
+import           Network.HTTP.Client as HTTP
+
+import qualified Fission.Config        as Config
 import qualified Fission.Storage.Types as DB
+
+import           Network.IPFS
+import           Network.IPFS.Types         as IPFS
+import qualified Network.IPFS.Process.Error as Process
+import           Network.IPFS.Process
 
 instance Has (DB.Pool PG) cfg => MonadSelda (RIO cfg) where
   type Backend (RIO cfg) = PG
@@ -33,17 +38,19 @@ instance
   , Has IPFS.Timeout cfg
   )
   => MonadLocalIPFS (RIO cfg) where
-    withIPFSProc processor inStream outStream opts = do
+    ipfsRun opts arg = do
       IPFS.BinPath ipfs <- Config.get
       IPFS.Timeout secs <- Config.get
       let opts' = ("--timeout=" <> show secs <> "s") : opts
-      proc ipfs opts' <| processor
-                      . setStdin  inStream
-                      . setStdout outStream
 
-    ipfsRun opts arg = withIPFSProc readProcess (byteStringInput arg) byteStringOutput opts
-
-    getTimeout = Config.get
+      runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' >>= \case
+        (ExitSuccess, contents, _) ->
+          return <| Right contents
+        (ExitFailure _, _, stdErr)
+          | Lazy.isSuffixOf "context deadline exceeded" stdErr -> 
+              return . Left <| Process.Timeout secs
+          | otherwise ->
+            return . Left <| Process.UnknownErr stdErr
 
 instance 
   ( Has IPFS.URL cfg
