@@ -8,6 +8,8 @@ import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
+import           System.Environment (unsetEnv, setEnv)
+
 import           Fission.Prelude
 import           Fission.Internal.Orphanage.RIO ()
 import qualified Fission.Monitor            as Monitor
@@ -54,14 +56,14 @@ main = do
     awsSecretKey  = secretKey
     awsZoneID     = zoneID
     awsDomainName = domainName
+  isVerbose  <- getFlagWithDefault "DEBUG" False
+  logOptions <- logOptionsHandle stdout isVerbose
 
-  dbPool      <- runSimpleApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
+  dbPool      <- runApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
-  isVerbose  <- getFlag "DEBUG" .!~ False
-  logOptions <- logOptionsHandle stdout isVerbose
 
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger LevelWarn) sentryDSN
 

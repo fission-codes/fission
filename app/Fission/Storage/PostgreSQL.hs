@@ -12,6 +12,7 @@ import           Fission.Prelude
 import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 import           Fission.Internal.Orphanage.Tuple ()
+import           Fission.Environment (runApp)
 
 setupTable
   :: ( MonadRIO cfg m
@@ -44,7 +45,7 @@ connPool stripeCount connsPerStripe connTTL pgInfo@(PGConnectInfo {..}) = do
 
 -- NOTE HLint can't handle BlockArguments _yet_
 makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
-makeTable pgInfo' tbl tblName = runSimpleApp do
+makeTable pgInfo' tbl tblName = runApp do
   pool   <- connPool 1 1 1 pgInfo'
   logger <- view logFuncL
   runRIO (logger, pool, pgInfo') <| setupTable pgInfo' tbl <| Table.name tblName
