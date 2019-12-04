@@ -73,7 +73,7 @@ instance ToServerError Get.Error where
     Get.InvalidCID txt          -> err422 { errBody = UTF8.textToLazyBS txt }
     Get.UnexpectedOutput _ -> err500 { errBody = "Unexpected IPFS result" }
     Get.UnknownErr _         -> err500 { errBody = "Unknown IPFS error" }
-    (Get.TimedOut (CID hash) _) ->
+    Get.TimedOut (CID hash) _ ->
       ServerError { errHTTPCode     = 408
                   , errReasonPhrase = "Time out"
                   , errBody         = "IPFS timed out looking for " <> UTF8.textToLazyBS hash
