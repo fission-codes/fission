@@ -17,6 +17,7 @@ import           Fission.Prelude
 import           Fission.User
 
 import           Network.IPFS
+import           Network.IPFS.Types as IPFS
 
 import           Fission.Web.Server
 import qualified Fission.Web.IPFS.CID      as CID

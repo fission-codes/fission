@@ -12,7 +12,6 @@ import           RIO
 
 import           Data.Has
 import           Database.Selda
-import           Data.Swagger as Swagger
 import           Servant
 
 import qualified Fission.Config     as Config
@@ -47,7 +46,7 @@ app ::
   ( MonadLocalIPFS  (RIO cfg)
   , MonadRemoteIPFS (RIO cfg)
   , Has IPFS.Gateway     cfg
-  , Has IPFS.Peer       cfg
+  , Has IPFS.Peer        cfg
   , Has Web.Host         cfg
   , Has AWS.AccessKey    cfg
   , Has AWS.SecretKey    cfg
@@ -96,7 +95,7 @@ server ::
   ( MonadLocalIPFS  (RIO cfg)
   , MonadRemoteIPFS (RIO cfg)
   , Has IPFS.Gateway     cfg
-  , Has IPFS.Peer      cfg
+  , Has IPFS.Peer        cfg
   , Has Web.Host         cfg
   , Has AWS.AccessKey    cfg
   , Has AWS.SecretKey    cfg
@@ -105,7 +104,7 @@ server ::
   , HasLogFunc           cfg
   , MonadSelda      (RIO cfg)
   )
-  => Swagger.Host
+  => Web.Host
   -> RIOServer cfg API
 server appHost = Web.Swagger.server appHost
             :<|> IPFS.server

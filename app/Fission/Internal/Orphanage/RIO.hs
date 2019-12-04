@@ -38,7 +38,7 @@ instance
   , Has IPFS.Timeout cfg
   )
   => MonadLocalIPFS (RIO cfg) where
-    ipfsRun opts arg = do
+    runLocal opts arg = do
       IPFS.BinPath ipfs <- Config.get
       IPFS.Timeout secs <- Config.get
       let opts' = ("--timeout=" <> show secs <> "s") : opts
