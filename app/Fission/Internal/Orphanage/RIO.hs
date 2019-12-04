@@ -23,6 +23,7 @@ import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
+import qualified Network.IPFS.Peer as Peer
 
 instance Has (DB.Pool PG) cfg => MonadSelda (RIO cfg) where
   type Backend (RIO cfg) = PG
@@ -53,13 +54,19 @@ instance
             return . Left <| Process.UnknownErr stdErr
 
 instance 
-  ( Has IPFS.URL cfg
+  ( Has IPFS.URL     cfg
   , Has HTTP.Manager cfg
+  , Has Peer         cfg
+  , MonadLocalIPFS (RIO cfg)
   )
   => MonadRemoteIPFS (RIO cfg) where
     runRemote query = do
-      IPFS.URL url            <- Config.get
-      manager :: HTTP.Manager <- Config.get
+      peerID       <- Config.get
+      IPFS.URL url <- Config.get
+      manager      <- Config.get
+
+      _ <- Peer.connectRetry peerID 2
+
       url
         |> mkClientEnv manager
         |> runClientM query
