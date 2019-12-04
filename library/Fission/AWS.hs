@@ -17,7 +17,6 @@ import Network.AWS.Route53
 import qualified Fission.Config as Config
 import           Fission.Internal.Constraint
 import           Fission.Web.Error
-import           Fission.Internal.Orphanage.ToServerError ()
 
 withAWS :: (MonadUnliftIO m, HasEnv r) => r -> Region -> AWS a -> m a
 withAWS env region = runResourceT . runAWS env . within region
