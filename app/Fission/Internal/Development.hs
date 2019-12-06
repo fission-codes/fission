@@ -19,6 +19,7 @@ import qualified Fission.Storage.Types         as DB
 import qualified Fission.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types as Hku
 import           Fission.Web.Types
+import           Fission.App (runApp)
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -33,7 +34,7 @@ runOne :: RIO (Config PG) a -> IO a
 runOne action = do
   logOptions   <- logOptionsHandle stdout True
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
-    dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
+    dbPool      <- runApp <| connPool 1 1 3600 pgConnectInfo
     processCtx  <- mkDefaultProcessContext
     httpManager <- HTTP.newManager HTTP.defaultManagerSettings
     run logFunc dbPool processCtx httpManager action
@@ -44,7 +45,7 @@ runOne action = do
 
      == Example Use
 
-     > dbPool <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+     > dbPool <- runApp $ connPool 1 1 3600 pgConnectInfo'
      > processCtx <- mkDefaultProcessContext
      > httpManager <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions <- logOptionsHandle stdout True
@@ -92,7 +93,7 @@ run logFunc dbPool processCtx httpManager action =
 
      == Example Use
 
-     > dbPool       <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+     > dbPool       <- runApp $ connPool 1 1 3600 pgConnectInfo'
      > processCtx   <- mkDefaultProcessContext
      > httpManager  <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions   <- logOptionsHandle stdout True
@@ -156,7 +157,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 -}
 mkConfig' :: IO (Config PG, IO ())
 mkConfig' = do
-  dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
+  dbPool      <- runApp <| connPool 1 1 3600 pgConnectInfo
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 

@@ -10,9 +10,10 @@ import Data.List   (genericLength)
 import Data.Maybe  (catMaybes)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Regex  (matchRegex, mkRegex)
+import Fission.App (runApp)
 
 main :: IO ()
-main = runSimpleApp do
+main = runApp do
   output <- proc "cabal" ["new-haddock"] readProcessStdout_
 
   if average (match $ show output) >= expected
