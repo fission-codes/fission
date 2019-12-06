@@ -39,7 +39,7 @@ instance ToSchema CID where
     mempty
       |> type_   ?~ SwaggerString
       |> example ?~ "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
-      |> NamedSchema (Just "IPFS Address")
+      |> NamedSchema (Just "IPFSAddress")
       |> pure
 
 instance Display CID where

@@ -140,7 +140,7 @@ instance ToSchema Provision where
           , ("message", txt)
           , ("peers",   ipfsPeers)
           ]
-      |> NamedSchema (Just "User Provision Response")
+      |> NamedSchema (Just "UserProvisionResponse")
       |> pure
     where
       provisionEx = Provision

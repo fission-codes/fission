@@ -21,7 +21,7 @@ instance ToSchema Serialized where
       |> example     ?~ "hello world"
       |> description ?~ "A typical file's contents"
       |> type_       ?~ SwaggerString
-      |> NamedSchema (Just "Serialized File")
+      |> NamedSchema (Just "SerializedFile")
       |> pure
 
 instance Display Serialized where
