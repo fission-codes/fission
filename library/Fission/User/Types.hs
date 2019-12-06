@@ -21,7 +21,7 @@ import           Fission.User.Role
 -}
 Persist.generate
   [ Types ]
-  [ "library/Fission/User/Model" ]
+  [ "library/Fission/User/Model.entity" ]
 
 -- TODO: Not sure what to do with this yet.
 --

@@ -9,7 +9,7 @@ import qualified Fission.Storage.Persist as Persist
 -}
 Persist.generate
   [ Migrations ]
-  [ "library/Fission/Platform/Heroku/Model"
-  , "library/Fission/User/CID/Model"
-  , "library/Fission/User/Model"
+  [ "library/Fission/Platform/Heroku/Model.entity"
+  , "library/Fission/User/CID/Model.entity"
+  , "library/Fission/User/Model.entity"
   ]

@@ -18,4 +18,4 @@ import Fission.Platform.Heroku.Types (Region (..))
 -}
 Persist.generate
  [ Types ]
- [ "library/Fission/Platform/Heroku/AddOn/Model" ]
+ [ "library/Fission/Platform/Heroku/AddOn/Model.entity" ]

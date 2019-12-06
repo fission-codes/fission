@@ -13,4 +13,4 @@ import qualified Fission.Storage.Persist as Persist
 -}
 Persist.generate
   [ Types ]
-  [ "library/Fission/User/CID/Model" ]
+  [ "library/Fission/User/CID/Model.entity" ]
