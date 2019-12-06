@@ -68,6 +68,13 @@ packages:
   original:
     hackage: ip-1.5.1
 - completed:
+    hackage: persistent-migration-0.1.0@sha256:fc5e12fba98de900f1272014fa9c018c60a69cb6919d3e856eab3d859cee5333,3573
+    pantry-tree:
+      size: 1702
+      sha256: a75ca947afd625a2db5fa111f226fee5528d3ef9109d6214d6388272e2e4ce14
+  original:
+    hackage: persistent-migration-0.1.0
+- completed:
     hackage: raven-haskell-0.1.2.1@sha256:59ab0300183a599650ed5761e3e984ff2934afe1ce6d924d1064876cac90275d,1255
     pantry-tree:
       size: 632

@@ -3,10 +3,13 @@
     For example, `IpfsPeers` would become `ipfs_peers`.
 
 -}
-module Fission.Storage.Persist
+module Fission.Storage.Persist where
 
+import qualified Database.Persist as Persist
 import qualified Database.Persist.Quasi as Persist
-import qualified Language.Haskell.TH.Syntax as TemplateHaskell
+import qualified Database.Persist.TH as Persist
+import qualified Language.Haskell.TH.Syntax as TH
+
 
 -- Fission
 
@@ -16,26 +19,38 @@ import Fission.Prelude
 {-| A sum type representing what code can be generated
     using the persistent library.
 -}
-type Generate = Migrations | Types
+data Generate = Migrations | Types
 
 
 {-| `Persist.share` with our `Generation` type.
 -}
-generate :: [ Generate ] -> [ FilePath ] -> TemplateHaskell.Q TemplateHaskell.Exp
-generate toGenerate filePaths =
-  filePaths
-    |> Persist.persistManyFileWith
-        Persist.lowerCaseSettings
-    |> Persist.share
-        (
-          map
-            (\g ->
-              case g of
-                Migrations -> mkMigrate "migrateAll"
-                Types -> mkPersist Persist.sqlSettings
-            )
-            toGenerate
-        )
+generate :: [ Generate ] -> [ Persist.EntityDef ] -> TH.Q [ TH.Dec ]
+generate toGenerate =
+  Persist.share
+      (
+        map
+          (\case
+              Migrations -> Persist.mkMigrate "migrateAll"
+              Types -> Persist.mkPersist Persist.sqlSettings
+          )
+          toGenerate
+      )
+
+
+{-| `Persist.persistFileWith` with default settings.
+-}
+file :: FilePath -> TH.Q TH.Exp
+file =
+  Persist.persistFileWith
+    Persist.lowerCaseSettings
+
+
+{-| `Persist.persistManyFileWith` with default settings.
+-}
+files :: [ FilePath ] -> TH.Q TH.Exp
+files =
+  Persist.persistManyFileWith
+    Persist.lowerCaseSettings
 
 
 {-| Alias for `derivePersistField`.

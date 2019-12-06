@@ -1,8 +1,9 @@
-module Fission.Storage.Class
+module Fission.Storage.Class where
 
-import qualified Database.Persist as Persist
+import qualified Database.Persist.Class as Persist
+import           Fission.Prelude
 import           Fission.Storage.Types
 
 
-class (Monad m, Persist.SqlPersistM m) => MonadDatabase m where
-  execute :: Query a -> m a
+class (Monad m, Persist.PersistField a) => MonadDatabase m a where
+  execute :: Query m a -> m a

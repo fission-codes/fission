@@ -1,7 +1,7 @@
 User
   active Bool
   email Text Maybe
-  herokuAddOnId HerokuAddonId Maybe
+  herokuAddOnId Heroku.AddOnId Maybe
   role Role
   secretDigest Text
   username Text

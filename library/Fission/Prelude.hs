@@ -9,7 +9,7 @@ module Fission.Prelude
   , module RIO
   , module RIO.Process
   , module RIO.Time
-  , andThen
+  , bind
   , headMaybe
   , identity
   , intercalate
@@ -30,8 +30,8 @@ import RIO.List                    (headMaybe, intercalate)
 import RIO.Process
 import RIO.Time
 
-andThen :: (m a -> b) -> m a -> m b
-andThen = (<<=)
+bind :: Monad m => (a -> m b) -> m a -> m b
+bind = (=<<)
 
 identity :: a -> a
 identity a = a

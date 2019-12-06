@@ -1,4 +1,4 @@
-module Fission.Model
+module Fission.Model where
 
 -- Dependencies
 

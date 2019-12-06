@@ -125,6 +125,7 @@ dependencies:
   - streaming-commons
   - streamly
   - swagger2
+  - template-haskell
   - text
   - time
   - transformers

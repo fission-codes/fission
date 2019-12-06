@@ -5,4 +5,4 @@ UserCID
   insertedAt UTCTime
   modifiedAt UTCTime
 
-  deriving Eq Show
+  deriving Eq Read Show

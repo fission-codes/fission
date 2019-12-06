@@ -1,4 +1,5 @@
-module Fission.User.Types (User (..))where
+{-# LANGUAGE NoDeriveAnyClass #-}
+module Fission.User.Types where
 
 import Data.Swagger
 import Fission.Prelude
@@ -8,29 +9,38 @@ import Fission.Prelude
 import           Fission.Storage.Persist (Generate(..))
 import qualified Fission.Storage.Persist as Persist
 
+-- Model Dependencies
+
+import qualified Fission.Platform.Heroku.AddOn.Types as Heroku
+
 -- User instances
 
 import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.Security       (Digestable (..))
-import           Fission.Security.Types (SecretDigest)
 import           Fission.User.Role
+
+
+-- DEFINITION
 
 
 {-| This'll take our User model, defined in template Haskell,
     and translate them into data and entity types automatically.
 -}
-Persist.generate
-  [ Types ]
-  [ "library/Fission/User/Model.entity" ]
+Persist.generate [ Types ]
+  $( Persist.file "library/Fission/User/Model.entity" )
 
--- TODO: Not sure what to do with this yet.
---
--- instance Digestable (ID User) where
---   digest = digest . UTF8.textShow
---
--- instance ToSchema (ID User) where
---   declareNamedSchema _ =
---     mempty
---       |> type_ ?~ SwaggerInteger
---       |> NamedSchema (Just "UserID")
---       |> pure
+
+
+-- INSTANCES
+
+
+instance Digestable UserId where
+  digest = digest . UTF8.textShow
+
+
+instance ToSchema UserId where
+  declareNamedSchema _ =
+    mempty
+      |> type_ ?~ SwaggerInteger
+      |> NamedSchema (Just "UserID")
+      |> pure

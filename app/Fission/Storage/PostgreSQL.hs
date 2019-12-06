@@ -44,7 +44,7 @@ connPool stripeCount connsPerStripe connTTL connectionInfo = do
     connectionInfo
       |> simpleConnectionInfo
       |> Postgres.connect
-      |> andThen (Postgres.openSimpleConn loggingFunc)
+      |> bind (Postgres.openSimpleConn loggingFunc)
       |> (\connectionCreator ->
         createPool
           connectionCreator
@@ -73,24 +73,3 @@ simpleConnectionInfo (ConnectionInfo {..}) = ConnectInfo
   , connectPort = port
   , connectUser = map Text.unpack user
   }
-
-
--- TODO: Probably don't need this anymore
---
--- setupTable
---   :: ( MonadRIO cfg m
---      , HasLogFunc cfg
---      )
---   => PGConnectInfo
---   -> Table b
---   -> TableName
---   -> m ()
--- setupTable pgInfo tbl tblName = do
---   logInfo <| "Creating table `" <> displayShow tblName <> "` in DB"
---   liftIO <| withPostgreSQL pgInfo <| createTable tbl
---
--- makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
--- makeTable pgInfo' tbl tblName = runSimpleApp do
---   pool   <- connPool 1 1 1 pgInfo'
---   logger <- view logFuncL
---   runRIO (logger, pool, pgInfo') <| setupTable pgInfo' tbl <| Table.name tblName
