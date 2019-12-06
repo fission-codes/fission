@@ -63,7 +63,4 @@ getFlag key = do
 
 -- | Get a given flag, default to the given value if not found
 getFlagWithDefault :: String -> Bool -> IO Bool
-getFlagWithDefault flag defaultValue =
-  getFlag flag >>= \case
-    Just value -> return value
-    Nothing -> return defaultValue
+getFlagWithDefault flag defaultValue = getFlag flag .!~ defaultValue
