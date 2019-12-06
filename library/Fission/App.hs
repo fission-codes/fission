@@ -1,5 +1,5 @@
 -- | Helpers for running the Fission applications
-module Fission.App (runApp, isDebugEnabled) where
+module Fission.App (runApp, isDebugEnabled, setRioVerbose) where
 
 import System.Environment (setEnv, unsetEnv)
 import Fission.Environment (getFlagWithDefault)
