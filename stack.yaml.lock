@@ -90,11 +90,11 @@ packages:
     git: https://github.com/fission-suite/ipfs-haskell.git
     pantry-tree:
       size: 4662
-      sha256: af9fc42b470d5ceaf4b75c05c7756fb9b327310b890990f227fcae4e1dd38cfc
-    commit: 9b7b0e3d5028e60ecb1be21044cbd9e87f9e6e3c
+      sha256: 360de0ebb61340ee6b6cce63e667f0f7ec5b99a3cb9ba479b54cd79e95682bb2
+    commit: 2f704442f92eca6520e28e60ec1c85e23a387400
   original:
     git: https://github.com/fission-suite/ipfs-haskell.git
-    commit: 9b7b0e3d5028e60ecb1be21044cbd9e87f9e6e3c
+    commit: 2f704442f92eca6520e28e60ec1c85e23a387400
 snapshots:
 - completed:
     size: 525663
