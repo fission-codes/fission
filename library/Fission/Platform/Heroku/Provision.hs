@@ -108,7 +108,7 @@ From Heroku
 -}
 
 data Provision = Provision
-  { id      :: ID User        -- ^ User ID
+  { id      :: UserId        -- ^ User ID
   , config  :: User.Provision -- ^ Heroku env var payload
   , peers   :: [IPFS.Peer]    -- ^ IPFS peer list
   , message :: Text           -- ^ A helpful human-readable message
@@ -125,7 +125,7 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    uId       <- declareSchemaRef <| Proxy @(ID User)
+    uId       <- declareSchemaRef <| Proxy @(UserId)
     usrCfg    <- declareSchemaRef <| Proxy @User.Provision
     ipfsPeers <- declareSchemaRef <| Proxy @[IPFS.Peer]
     txt       <- declareSchemaRef <| Proxy @Text

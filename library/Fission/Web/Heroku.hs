@@ -1,4 +1,4 @@
-{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE MonoLocalBinds #-}
 
 module Fission.Web.Heroku
   ( API
@@ -7,46 +7,50 @@ module Fission.Web.Heroku
 
 import           Data.UUID
 import           Database.Selda as Selda
-
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 
+-- Fission
+
+import qualified Fission.Config as Config
+import           Fission.Platform.Heroku.AddOn.Types as Addon
+import           Fission.Platform.Heroku.Provision  as Provision
 import           Fission.Prelude
+import qualified Fission.Random as Random
+import           Fission.Security.Types (Secret (..))
+import qualified Fission.Storage.Query as Query
+
+-- IPFS
+
+import           Fission.IPFS.Types as IPFS
+import           Fission.IPFS.Peer (getExternalAddress)
+import           Fission.IPFS.CID.Types as CID
+import           Fission.Storage.IPFS.Pin as IPFS.Pin
+
+-- User
+
+import           Fission.User.Types
+import qualified Fission.User                 as User
+import qualified Fission.User.CID.Types       as UserCID
+import qualified Fission.User.Provision.Types as User
+
+-- Web
 
 import qualified Fission.Web.Error       as Web.Err
 import qualified Fission.Web.Heroku.MIME as Heroku.MIME
 import           Fission.Web.Server
 import qualified Fission.Web.Types       as Web
 
-import           Fission.Platform.Heroku.Provision  as Provision
 
-import qualified Fission.Config as Config
-import qualified Fission.Random as Random
+-- APIs
 
-import qualified Fission.Storage.Query as Query
-
-import           Fission.User.Types
-import qualified Fission.User                 as User
-import qualified Fission.User.Table           as Table
-import qualified Fission.User.Provision.Types as User
-
-import           Fission.IPFS.CID.Types
-import qualified Fission.User.CID.Table as Table
-
-import qualified Fission.Platform.Heroku.AddOn       as AddOn
-import qualified Fission.Platform.Heroku.AddOn.Table as Table
-import           Fission.Platform.Heroku.AddOn.Types
-
-import           Fission.Security.Types (Secret (..))
-
-import           Fission.IPFS.Types          as IPFS
-import           Fission.Storage.IPFS.Pin as IPFS.Pin
-import           Fission.IPFS.Peer (getExternalAddress)
 
 type API = ProvisionAPI :<|> DeprovisionAPI
 
-type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
-                 :> Post    '[Heroku.MIME.VendorJSONv3] Provision
+
+
+-- SERVER
+
 
 server
   :: ( HasLogFunc        cfg
@@ -61,6 +65,15 @@ server
      )
   => RIOServer cfg API
 server = provision :<|> deprovision
+
+
+
+-- PROVISION
+
+
+type ProvisionAPI = ReqBody '[JSON]                     Provision.Request
+                 :> Post    '[Heroku.MIME.VendorJSONv3] Provision
+
 
 provision
   :: ( HasLogFunc        cfg
@@ -81,8 +94,8 @@ provision Request {uuid, region} = do
                        logError <| displayShow err
                        return []
 
-  username <- liftIO <| User.genID
-  secret   <- liftIO <| Random.text 200
+  username <- liftIO (User.genID)
+  secret   <- liftIO (Random.text 200)
 
   User.createWithHeroku uuid region username secret >>= \case
     Left err ->
@@ -107,6 +120,11 @@ provision Request {uuid, region} = do
            }
         }
 
+
+
+-- DEPROVISION
+
+
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[Heroku.MIME.VendorJSONv3] NoContent
 
@@ -118,21 +136,35 @@ deprovision
      , Has IPFS.URL      cfg
      )
   => RIOServer cfg DeprovisionAPI
-deprovision uuid' = do
-  let err = Web.Err.ensureMaybe err410 -- HTTP 410 is specified by the Heroku AddOn docs
+deprovision uuid = do
+  -- HTTP 410 is specified by the Heroku AddOn docs
+  let err = Web.Err.ensureMaybe err410
 
-  AddOn { addOnID } <- err =<< Query.oneEq Table.addOns #uuid uuid'
-  User  { userID }  <- err =<< Query.findOne do
-    user <- select Table.users
-    restrict <| user ! #herokuAddOnId .== literal (Just addOnID)
-            .&& user ! #active        .== true
-    return user
+  -- Find addOn
+  AddOn { addOnId } <- err =<< Query.oneWhere (\addOn ->
+    addOn ^. AddOn.uuid ==. uuid
+  )
 
-  usersCIDs <- query do
-    uCIDs <- select Table.userCIDs
-    restrict (uCIDs ! #userFK .== literal userID)
-    return (uCIDs ! #cid)
+  -- Find user associated with addOn
+  User { userId } <- err =<< Query.oneWhere (\user ->
+    user ?. User.heroku ==. just addOnID ++
+    user ^. User.active ==. True
+  )
 
+  -- Find all the CIDs associated with the user
+  userCIDs <- (\uc -> uc ^. userFK ==. userId)
+    |> Query.manyWhere
+    |> map cid
+
+  -- ...
+  -- TODO
+
+  -- Delete everything
+  deleteWhere (\uc -> uc ^. UserCID.userFK ==. userId)
+  deleteWhere (\us -> us ^. User.userId ==. userId)
+  deleteWhere (\ad -> ad ^. AddOn.uuid ==. uuid)
+
+  --
   cidOccur <- query do
     (liveCID' :*: occurences') <- aggregate do
       uCIDs <- select Table.userCIDs
@@ -141,11 +173,6 @@ deprovision uuid' = do
 
     restrict (liveCID' `isIn` fmap literal usersCIDs)
     return <| liveCID' :*: occurences'
-
-  transaction do
-    deleteFrom_ Table.userCIDs <| #userFK `is` userID
-    deleteFrom_ Table.users    <| #userID `is` userID
-    deleteFrom_ Table.addOns   <| #uuid   `is` uuid'
 
   let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
   forM_ toUnpin <| IPFS.Pin.rm >=> \case
@@ -156,4 +183,5 @@ deprovision uuid' = do
     Right _ ->
       return ()
 
+  -- Empty response
   return NoContent

@@ -1,4 +1,4 @@
-UserCID
+UserCid
   cid Text
   userFK UserId
 

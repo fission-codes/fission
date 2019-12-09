@@ -19,16 +19,19 @@ import qualified Fission.Storage.IPFS.Pin as IPFS.Pin
 import qualified Fission.Web.Error        as Web.Err
 import           Fission.Web.Server
 import           Fission.IPFS.CID.Types
-import           Fission.User.CID         as UserCID
+import           Fission.User.CID         as CID
 import           Fission.User
+
+
+-- API
+
 
 type API = PinAPI :<|> UnpinAPI
 
-type PinAPI = Capture "cid" CID
-           :> Put '[PlainText, OctetStream] NoContent
 
-type UnpinAPI = Capture "cid" CID
-             :> DeleteAccepted '[PlainText, OctetStream] NoContent
+
+-- SERVER
+
 
 server
   :: ( Has HTTP.Manager  cfg
@@ -40,19 +43,39 @@ server
   -> RIOServer cfg API
 server User { userID } = pin userID :<|> unpin userID
 
+
+
+-- PIN
+
+
+type PinAPI = Capture "cid" CID
+           :> Put '[PlainText, OctetStream] NoContent
+
+
 pin
   :: ( Has HTTP.Manager  cfg
      , Has IPFS.URL      cfg
      , MonadSelda   (RIO cfg)
      , HasLogFunc        cfg
      )
-  => ID User
+  => UserId
   -> RIOServer cfg PinAPI
-pin uID _cid = IPFS.Pin.add _cid >>= \case
-  Left err -> Web.Err.throw err
+pin userId cid = IPFS.Pin.add cid >>= \case
+  Left err ->
+    Web.Err.throw err
+
   Right _  -> do
-    UserCID.create uID _cid
+    UserCID.create userId cid
     pure NoContent
+
+
+
+-- UNPIN
+
+
+type UnpinAPI = Capture "cid" CID
+             :> DeleteAccepted '[PlainText, OctetStream] NoContent
+
 
 unpin
   :: ( Has HTTP.Manager  cfg
@@ -60,23 +83,27 @@ unpin
      , HasLogFunc        cfg
      , MonadSelda   (RIO cfg)
      )
-  => ID User
+  => UserId
   -> RIOServer cfg UnpinAPI
-unpin uID cid@CID { unaddress = hash } = do
-  hash
-    |> eqUserCID uID
-    |> deleteFrom_ userCIDs
-    |> void
+unpin userId cid@CID { unaddress = hash } = do
+  -- Remove all the matching CIDs from the database
+  Query.deleteWhere (\asset ->
+    asset ^. userFK ==. userId ++
+    asset ^. cid ==. hash
+  )
 
-  remaining <- query
-                 <| limit 0 1
-                 <| select userCIDs `suchThat` eqUserCID uID hash
+  -- Check if any other user has pinned this CID
+  assetFromOtherUser <- Query.oneWhere (\asset ->
+    asset ^. cid ==. hash
+  )
 
-  when (null remaining) do
-    result <- IPFS.Pin.rm cid
+  -- Unpin from IPFS if nobody has this CID asset
+  case assetFromOtherUser of
+    Just _ ->
+      void
 
-    result
-      |> Web.Err.ensure
-      |> void
+    Nothing ->
+      Web.Err.ensure (IPFS.Pin.rm cid)
 
+  -- Empty response
   return NoContent

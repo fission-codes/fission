@@ -9,7 +9,6 @@ module Fission.Web.Auth
   ) where
 
 import Crypto.BCrypt
-import Database.Selda
 import Database.Esqueleto
 import Servant
 
@@ -17,6 +16,7 @@ import Fission.Prelude
 import Fission.Storage.Query
 import Fission.User as User hiding (username)
 import Fission.Web.Server
+
 
 type ExistingUser = BasicAuth "existing user" User
 type HerokuAddOnAPI = BasicAuth "heroku add-on api" ByteString

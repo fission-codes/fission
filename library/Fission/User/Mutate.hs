@@ -16,7 +16,6 @@ import qualified Fission.Platform.Heroku.Types as Heroku
 
 import           Fission.User.Role
 import           Fission.User.Types
-import qualified Fission.User.Table          as Table
 import qualified Fission.User.Mutate.Error   as Error
 import qualified Fission.User.Password.Types as User
 
@@ -29,7 +28,7 @@ create
   => Text
   -> Text
   -> Maybe Text
-  -> m (Either Error.Create (ID User))
+  -> m (Either Error.Create (UserId))
 create username password email = create' username password email Nothing
 
 -- | Create a new, timestamped entry and heroku add-on
@@ -42,7 +41,7 @@ createWithHeroku
   -> Heroku.Region
   -> Text
   -> Text
-  -> m (Either Error.Create (ID User))
+  -> m (Either Error.Create (UserId))
 createWithHeroku herokuUUID herokuRegion username password = do
   now <- liftIO getCurrentTime
 
@@ -61,7 +60,7 @@ create'
   -> Text
   -> Maybe Text
   -> Maybe (ID Heroku.AddOn)
-  -> m (Either Error.Create (ID User))
+  -> m (Either Error.Create (UserId))
 create' username password email herokuUUID = do
   now <- liftIO getCurrentTime
   hashPassword' password >>= \case
@@ -77,7 +76,7 @@ updatePassword
      , MonadSelda      m
      , HasLogFunc  cfg
      )
-  => ID User
+  => UserId
   -> User.Password
   -> m (Either Error.Create User.Password)
 updatePassword userID (User.Password password) = do

@@ -17,7 +17,6 @@ import qualified Database.PostgreSQL.Simple as Postgres
 
 import           Fission.Prelude
 import           Fission.Storage.PostgresQL.Types
-import qualified Fission.Storage.Table as Table
 import qualified Fission.Storage.Types as DB
 import           Fission.Internal.Orphanage.Tuple ()
 

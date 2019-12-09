@@ -12,7 +12,6 @@ import           Fission.IPFS.CID.Types as IPFS.CID
 
 import           Fission.User           (User (..))
 import           Fission.User.CID.Query
-import qualified Fission.User.CID.Table as Table
 
 import           Fission.Web.Server
 

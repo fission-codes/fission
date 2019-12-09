@@ -61,7 +61,7 @@ textAdd
      , MonadSelda   (RIO cfg)
      , HasLogFunc        cfg
      )
-  => ID User
+  => UserId
   -> RIOServer cfg TextAPI
 textAdd uID form queryName = run uID form queryName <| \sparse ->
   case IPFS.linearize sparse of
@@ -77,7 +77,7 @@ jsonAdd
      , HasProcessContext cfg
      , HasLogFunc        cfg
      )
-  => ID User
+  => UserId
   -> RIOServer cfg JSONAPI
 jsonAdd uID form queryName = run uID form queryName pure
 
@@ -92,7 +92,7 @@ run
      , HasProcessContext cfg
      , HasLogFunc        cfg
      )
-  => ID User
+  => UserId
   -> MultipartData Mem
   -> Maybe IPFS.Name
   -> (IPFS.SparseTree -> m a)
