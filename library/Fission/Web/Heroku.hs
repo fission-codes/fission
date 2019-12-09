@@ -126,6 +126,7 @@ provision Request {uuid, region} = do
 type DeprovisionAPI = Capture "addon_id" UUID
                    :> DeleteNoContent '[Heroku.MIME.VendorJSONv3] NoContent
 
+
 deprovision
   :: ( MonadSelda   (RIO cfg)
      , MonadMask    (RIO cfg)
@@ -160,8 +161,8 @@ deprovision uuid = do
   --   to exactly one thing. Hence, we cannot not remove that one thing if
   --   there still remains one user using it.
   --
-  cidsUsedByOthers <- many (\asset ->
-    where_
+  cidsUsedByOthers <- Query.many (\asset ->
+    Query.where_
       ( asset ^. cid in_ userCIDs ++
         asset ^. userFK !=. userId
       )
@@ -169,7 +170,7 @@ deprovision uuid = do
     asset
       |> cid
       |> return
-      |> distinct
+      |> Query.distinct
   )
 
   userCIDS
@@ -178,9 +179,9 @@ deprovision uuid = do
     |> sequence
 
   -- Delete everything
-  deleteWhere (\uc -> uc ^. UserCID.userFK ==. userId)
-  deleteWhere (\us -> us ^. User.userId ==. userId)
-  deleteWhere (\ad -> ad ^. AddOn.uuid ==. uuid)
+  Query.deleteWhere (\uc -> uc ^. UserCID.userFK ==. userId)
+  Query.deleteWhere (\us -> us ^. User.userId ==. userId)
+  Query.deleteWhere (\ad -> ad ^. AddOn.uuid ==. uuid)
 
   -- Empty response
   return NoContent
