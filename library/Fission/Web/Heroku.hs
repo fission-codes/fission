@@ -1,5 +1,3 @@
-{-# LANGUAGE MonoLocalBinds #-}
-
 module Fission.Web.Heroku
   ( API
   , server
@@ -156,32 +154,33 @@ deprovision uuid = do
     |> Query.manyWhere
     |> map cid
 
-  -- ...
-  -- TODO
+  -- Unpin every CID on IPFS from the user that is not used by another user.
+  --
+  -- > CIDs can be associated with many users, but in IPFS they point
+  --   to exactly one thing. Hence, we cannot not remove that one thing if
+  --   there still remains one user using it.
+  --
+  cidsUsedByOthers <- many (\asset ->
+    where_
+      ( asset ^. cid in_ userCIDs ++
+        asset ^. userFK !=. userId
+      )
+
+    asset
+      |> cid
+      |> return
+      |> distinct
+  )
+
+  userCIDS
+    |> without cidsUsedByOthers
+    |> map IPFS.Pin.rm
+    |> sequence
 
   -- Delete everything
   deleteWhere (\uc -> uc ^. UserCID.userFK ==. userId)
   deleteWhere (\us -> us ^. User.userId ==. userId)
   deleteWhere (\ad -> ad ^. AddOn.uuid ==. uuid)
-
-  --
-  cidOccur <- query do
-    (liveCID' :*: occurences') <- aggregate do
-      uCIDs <- select Table.userCIDs
-      theCID <- groupBy (uCIDs ! #cid)
-      return (theCID :*: count (uCIDs ! #cid))
-
-    restrict (liveCID' `isIn` fmap literal usersCIDs)
-    return <| liveCID' :*: occurences'
-
-  let toUnpin = CID . Selda.first <$> filter ((== 1) . Selda.second) cidOccur
-  forM_ toUnpin <| IPFS.Pin.rm >=> \case
-    Left ipfsMsg -> do
-      logError <| "Unable to unpin CID: " <> display ipfsMsg
-      return ()
-
-    Right _ ->
-      return ()
 
   -- Empty response
   return NoContent
