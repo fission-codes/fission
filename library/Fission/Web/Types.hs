@@ -9,7 +9,6 @@ import           Servant.Client
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
-import qualified Data.ByteString.Lazy.Char8 as Char8
 
 -- | The hostname of the running application
 newtype Host = Host { getHost :: BaseUrl }

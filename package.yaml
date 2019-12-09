@@ -99,6 +99,7 @@ dependencies:
   - http-media
   - http-types
   - ip
+  - ipfs
   - lens
   - mime-types
   - monad-logger

@@ -12,12 +12,12 @@ import           Fission.Prelude
 import           Fission.AWS.Route53
 import qualified Fission.AWS.Types   as AWS
 
-import qualified Fission.IPFS.Types as IPFS
-import           Fission.IPFS.CID.Types
-import           Fission.User        as User
-
+import           Fission.User      as User
 import           Fission.Web.Server
 import           Fission.Web.Error as Web.Err
+
+import qualified Network.IPFS.Types as IPFS
+import           Network.IPFS.CID.Types
 
 type API = Capture "cid" CID
         :> PutAccepted '[PlainText, OctetStream] AWS.DomainName
