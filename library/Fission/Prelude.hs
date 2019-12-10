@@ -27,7 +27,7 @@ import Fission.Internal.Constraint
 import Fission.Internal.List
 import Fission.Internal.UTF8       (putText, putTextLn, textShow)
 import Flow
-import RIO                         hiding (Handler, id, timeout, ($), (&))
+import RIO                         hiding (Handler, id, timeout, ($), (&), (^.))
 import RIO.List                    (headMaybe, intercalate)
 import RIO.Process
 import RIO.Time

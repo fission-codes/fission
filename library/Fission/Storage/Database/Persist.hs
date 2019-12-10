@@ -4,6 +4,7 @@
 -}
 module Fission.Storage.Database.Persist (Generate(..), entity, entities, generate, generateInstances) where
 
+import Database.Persist.TH (MkPersistSettings)
 import qualified Database.Persist as Persist
 import qualified Database.Persist.Quasi as Persist
 import qualified Database.Persist.TH as Persist
@@ -25,16 +26,14 @@ data Generate = Migrations | Types
 -}
 entity :: FilePath -> TH.Q TH.Exp
 entity =
-  Persist.persistFileWith
-    Persist.lowerCaseSettings
+  Persist.persistFileWith Persist.lowerCaseSettings
 
 
 {-| `Persist.persistManyFileWith` with default settings.
 -}
 entities :: [ FilePath ] -> TH.Q TH.Exp
 entities =
-  Persist.persistManyFileWith
-    Persist.lowerCaseSettings
+  Persist.persistManyFileWith Persist.lowerCaseSettings
 
 
 {-| `Persist.share` with our `Generation` type.
@@ -46,7 +45,7 @@ generate toGenerate =
         map
           (\case
               Migrations -> Persist.mkMigrate "migrateAll"
-              Types -> Persist.mkPersist Persist.sqlSettings
+              Types -> Persist.mkPersist settings
           )
           toGenerate
       )
@@ -60,3 +59,12 @@ generate toGenerate =
 -}
 generateInstances =
   Persist.derivePersistField
+
+
+
+-- ㊙️
+
+
+settings :: MkPersistSettings
+settings =
+  Persist.sqlSettings { Persist.mpsPrefixFields = False }

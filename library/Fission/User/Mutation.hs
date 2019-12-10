@@ -10,12 +10,13 @@ import           Data.UUID (UUID)
 import           Fission.Prelude
 import           Fission.Timestamp as Timestamp
 
-import qualified Fission.Platform.Heroku.AddOn as Heroku
+import           Fission.Platform.Heroku.AddOn.Types as Heroku
 import qualified Fission.Platform.Heroku.Types as Heroku
+import           Fission.Storage.Database.Query as Query
 
 import           Fission.User.Role
-import           Fission.User.Types
-import qualified Fission.User.Mutation.Error   as Error
+import           Fission.User.Types as User
+import qualified Fission.User.Mutation.Error as Error
 import qualified Fission.User.Password.Types as User
 
 
@@ -26,7 +27,6 @@ import qualified Fission.User.Password.Types as User
 -}
 create
   :: ( MonadRIO    cfg m
-     , MonadSelda      m
      , HasLogFunc cfg
      )
   => Text
@@ -39,9 +39,8 @@ create = createUser Nothing
 {-| Create a new timestamped user along with a Heroku add-on.
 -}
 createWithHeroku
-  :: ( MonadRIO    cfg m
-     , MonadSelda      m
-     , HasLogFunc cfg
+  :: ( MonadRIO      cfg m
+     , HasLogFunc    cfg
      )
   => UUID
   -> Heroku.Region
@@ -52,12 +51,14 @@ createWithHeroku herokuUUID herokuRegion username password = do
   now <- liftIO getCurrentTime
 
   -- Create the Heroku add-on for the user
-  addOnId <- Heroku.AddOn
+  addOnId <- Query.insert <| Heroku.AddOn
     { region = Just herokuRegion
     , uuid = herokuUUID
+
+    --
+    , insertedAt = now
+    , modifiedAt = now
     }
-      |> Timestamp.add now
-      |> Query.insert
 
   -- Create the user
   createUser (Just addOnId) username password Nothing
@@ -71,23 +72,21 @@ createWithHeroku herokuUUID herokuRegion username password = do
 -}
 updatePassword
   :: ( MonadRIO    cfg m
-     , MonadSelda      m
      , HasLogFunc  cfg
      )
   => UserId
   -> User.Password
   -> m (Either Error.Create User.Password)
 updatePassword userId' (User.Password password) =
-  hashPassword password >>= \case
+  hashUserPassword password >>= \case
     Left err ->
       return (Left err)
 
     Right secretDigest' -> do
       -- Update `secretDigest` in the database
-      Query.update (\user ->
+      Query.update \user ->
         Query.set user [ User.secretDigest =. Query.val secretDigest ]
-        Query.where_ (user ^. User.userId ==. userId')
-      )
+        Query.where_ (user ^. UserId ==. userId')
 
       -- Log
       logInfo ("Updated password for user " <> displayShow userId)
@@ -105,16 +104,15 @@ updatePassword userId' (User.Password password) =
 
 createUser
   :: ( MonadRIO    cfg m
-     , MonadSelda      m
      , HasLogFunc  cfg
      )
-  => Maybe (ID Heroku.AddOn)
+  => Maybe Heroku.AddOnId
   -> Text
   -> Text
   -> Maybe Text
   -> m (Either Error.Create (UserId))
 createUser herokuAddOnId username password email = do
-  hashPassword password >>= \case
+  hashUserPassword password >>= \case
     Left err ->
       return (Left err)
 
@@ -122,7 +120,11 @@ createUser herokuAddOnId username password email = do
       now <- liftIO getCurrentTime
 
       -- Add the user to the database
+      let active = True
       let role = Regular
+      let insertedAt = now
+      let modifiedAt = now
+
       let user = User { .. }
 
       userId <- Query.insert user
@@ -131,11 +133,11 @@ createUser herokuAddOnId username password email = do
       logInfo ("Inserted user " <> displayShow userId)
 
       -- Return the id of the new user
-      return (Right uID)
+      return (Right userId)
 
 
-hashPassword :: MonadIO m => Text -> m (Either Error.Create Text)
-hashPassword password = do
+hashUserPassword :: MonadIO m => Text -> m (Either Error.Create Text)
+hashUserPassword password = do
   hashed <- password
     |> encodeUtf8
     |> hashPasswordUsingPolicy slowerBcryptHashingPolicy

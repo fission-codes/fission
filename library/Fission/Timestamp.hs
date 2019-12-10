@@ -6,8 +6,7 @@ module Fission.Timestamp
   , (<@)
   ) where
 
-import Database.Selda (UTCTime)
-
+import Data.Time (UTCTime)
 import Fission.Prelude
 
 type Unstamped r = UTCTime -> UTCTime -> r

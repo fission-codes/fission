@@ -1,7 +1,7 @@
 {-# LANGUAGE NoDeriveAnyClass #-}
-module Fission.User.Types (User(..)) where
+module Fission.User.Types (User(..), UserId) where
 
-import Data.Swagger
+import Data.Swagger as Swagger hiding (email)
 import Fission.Prelude
 
 -- Database

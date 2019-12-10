@@ -1,12 +1,13 @@
 module Fission.Storage.Database.Types
-  ( Pool (..)
+  ( Pool(..)
   , Query
   , Transaction
   ) where
 
-import Fission.Prelude
-import qualified Database.Esqueleto as Esqueleto
+import Database.Esqueleto (SqlBackend)
 import qualified Data.Pool as Database
+import qualified Database.Esqueleto as Esqueleto
+import Fission.Prelude
 
 
 {-| Newtype for getting the database pool out of the app config.
@@ -21,6 +22,6 @@ newtype Pool databaseBackend = Pool
 type Query a = Esqueleto.SqlQuery a
 
 
-{-| Alias for the monad from the Persist library.
+{-| Alias for the ReaderT type.
 -}
-type Transaction m a = Esqueleto.SqlReadT m a
+type Transaction m a = (MonadIO m) => ReaderT SqlBackend m a

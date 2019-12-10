@@ -7,14 +7,15 @@ module Fission.Storage.Database.Query
   , manyWhere
   , deleteWhere
   -- Reexport
-  , module Database.Esqueleto
+  , module Esqueleto
   ) where
 
-import Database.Esqueleto as Esqueleto
+import Database.Esqueleto as Esqueleto hiding (deleteWhere)
+import qualified Database.Esqueleto as Esqueleto (insert)
 import qualified Database.Esqueleto.Internal.Sql as Esqueleto
 import Fission.Prelude hiding (many)
 import Fission.Storage.Database.Class
-import Fission.Storage.Database.Types
+import Fission.Storage.Database.Types as Database
 
 
 -- BASE
@@ -25,10 +26,9 @@ import Fission.Storage.Database.Types
 one
   :: ( Esqueleto.From a
      , Esqueleto.SqlSelect b c
-     , MonadDatabase m c
      )
   => (a -> Query b)
-  -> Transaction m (Maybe c)
+  -> Database.Transaction m (Maybe c)
 one fn = fn
   |> from
   |> bind (\result -> limit 1 >> return result)
@@ -38,6 +38,12 @@ one fn = fn
 
 {-| Select multiple items.
 -}
+many
+  :: ( Esqueleto.From a
+     , Esqueleto.SqlSelect b c
+     )
+  => (a -> Query b)
+  -> Database.Transaction m [c]
 many = from .> select
 
 
@@ -45,10 +51,13 @@ many = from .> select
 -- WHERE QUERYING
 
 
-{-| Simplified `where_`.
+{-| Same as `where_`, but returns a Query holding the given value.
 -}
-wherever :: Esqueleto.From a => (a -> Query b)
-wherever fn a = where_ (fn a) >> return a
+wherever
+  :: Esqueleto.SqlExpr (Esqueleto.Value Bool)
+  -> a
+  -> Query a
+wherever fn a = where_ fn >> return a
 
 
 {-| Select the first item restricted by the given WHERE clause.
@@ -72,7 +81,11 @@ manyWhere = wherever .> many
     deleteWhere (\user -> user ?. email ==. just "steven@fission.codes")
 
 -}
-deleteWhere = wherever .> delete
+deleteWhere
+  :: Esqueleto.From ()
+  => Esqueleto.SqlExpr (Esqueleto.Value Bool)
+  -> Database.Transaction m ()
+deleteWhere = wherever .> from .> delete
 
 
 

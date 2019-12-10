@@ -1,5 +1,5 @@
 {-# LANGUAGE NoDeriveAnyClass #-}
-module Fission.Platform.Heroku.AddOn.Types where
+module Fission.Platform.Heroku.AddOn.Types (AddOn(..), AddOnId) where
 
 import Fission.Prelude
 
@@ -9,6 +9,8 @@ import qualified Fission.Storage.Database as Database
 
 -- Model Dependencies
 
+import Data.UUID (UUID)
+import Fission.Internal.UUID ()
 import Fission.Platform.Heroku.Types (Region (..))
 
 
@@ -20,27 +22,3 @@ import Fission.Platform.Heroku.Types (Region (..))
 -}
 Database.generate [ Database.Types ]
   $( Database.entity "library/Fission/Platform/Heroku/AddOn/Model.entity" )
-
-
-
--- INSTANCES
-
-
--- TODO?
--- instance FromJSON AddOn where
---   parseJSON = withObject "Heroku.AddOn" \obj -> do
---     region          <- obj .: "region"
---     uuid            <- obj .: "uuid"
---     insertedAt      <- obj .: "inserted_at"
---     modifiedAt      <- obj .: "modified_at"
---
---     return <| AddOn {..}
---
---
--- instance ToJSON AddOn where
---   toJSON AddOn {..} = object
---     [ "region"        .= region
---     , "uuid"          .= uuid
---     , "inserted_at"   .= insertedAt
---     , "modified_at"   .= modifiedAt
---     ]
