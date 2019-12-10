@@ -39,12 +39,9 @@ server
   => RIOServer cfg API
 server (User.Registration username password email) = do
   userID <- User.create username password email
-  logInfo <| "Provisioned user: " <> displayShow userID
-
-  registerDomain username splashCID
-    >>= Web.Err.ensureM
-
-  return  ()
+  logInfo ("Provisioned user: " <> displayShow userID)
+  registerDomain username splashCID >>= Web.Err.ensureM
+  return ()
 
 splashCID :: CID
 splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"

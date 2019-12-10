@@ -10,6 +10,7 @@ module Fission.Web.Auth
 
 import Crypto.BCrypt
 import Database.Esqueleto
+import qualified RIO.Text
 import Servant
 
 import Fission.Prelude
@@ -64,31 +65,35 @@ user = do
   return (BasicAuthCheck \auth -> runRIO cfg <| checkUser auth)
 
 
--- TODO: Should we do a case-insensitive query for username instead?
---
 checkUser
   :: BasicAuthData
   -> RIO cfg (BasicAuthResult User)
-
-checkUser (BasicAuthData authUsername authPassword) = do
-  maybeUser <- selectFirst <| from \user -> do
-    where_ (byUsername user)
-    return user
+checkUser (BasicAuthData username password) = do
+  maybeUser <- Query.oneWhere byUsername
 
   maybe
-    (pure NoSuchUser)
+    NoSuchUser
     checkPassword
     maybeUser
 
   where
+    lowerCaseUsername =
+      Text.toLower username
+
     byUsername user =
       (user ^. active ==. True) ++
-      (user ^. username ==. decodeUtf8Lenient authUsername)
+      (user ^. (Query.lower_ username) ==. decodeUtf8Lenient lowerCaseUsername)
 
-    checkPassword usr =
-      if validatePassword (encodeUtf8 <| secretDigest <| usr) password then
-        return (Authorized usr)
 
-      else do
-        logWarn ("Unauthorized user! Username: " <> displayBytesUtf8 username)
-        return Unauthorized
+
+-- ㊙️
+
+
+checkPassword : User -> BasicAuthResult User
+checkPassword User { secretDigest } =
+  if validatePassword (encodeUtf8 secretDigest) password then
+    Authorized usr
+
+  else do
+    logWarn ("Unauthorized user! Username: " <> displayBytesUtf8 username)
+    Unauthorized

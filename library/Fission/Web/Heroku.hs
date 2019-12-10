@@ -4,7 +4,6 @@ module Fission.Web.Heroku
   ) where
 
 import           Data.UUID
-import           Database.Selda as Selda
 import qualified Network.HTTP.Client as HTTP
 import           Servant
 
@@ -89,7 +88,7 @@ provision Request {uuid, region} = do
                        pure peers'
 
                      Left err -> do
-                       logError <| displayShow err
+                       logError (displayShow err)
                        return []
 
   username <- liftIO (User.genID)

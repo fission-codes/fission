@@ -1,4 +1,4 @@
-module Fission.User.Mutate.Error (Create (..)) where
+module Fission.User.Mutation.Error (Create (..)) where
 
 import Servant.Server
 

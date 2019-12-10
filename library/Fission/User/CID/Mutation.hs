@@ -4,17 +4,16 @@ module Fission.User.CID.Mutation
   , createX
   ) where
 
-import RIO.List ((\\))
 import RIO.Orphans ()
 
 import Fission.Prelude
 import Fission.IPFS.CID.Types as IPFS.CID
 import Fission.Timestamp as Timestamp
 import Fission.Storage.Query as Query
-import Fission.User           (User)
+import Fission.User (User)
 
-import           Fission.User.CID.Query
-import           Fission.User.CID.Types
+import Fission.User.CID.Query
+import Fission.User.CID.Types
 
 
 {-| Create a new, timestamped entry.
@@ -73,16 +72,14 @@ createX userId (fmap IPFS.CID.unaddress -> hashes) = do
     return (cid asset)
   )
 
-  -- Only keep the non-existing assets
-  let newAssets = hashes \\ existingAssets
-
   -- New asset function
   let mkFresh cid = { cid = cid, userFK = userId }
     |> UserCid
     |> Timestamp.add now
 
   -- Add new assets to the database
-  newAssets
+  hashes
+    |> without existingAssets
     |> map mkFresh
     |> Query.insertMany
 
