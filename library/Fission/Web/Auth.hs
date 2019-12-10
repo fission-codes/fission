@@ -1,7 +1,5 @@
 module Fission.Web.Auth
-  ( ExistingUser
-  , HerokuAddOnAPI
-  , server
+  ( server
   , context
   , basic
   , user
@@ -16,9 +14,6 @@ import Fission.Prelude
 import Fission.Storage.Query
 import Fission.User as User hiding (username)
 import Fission.Web.Server
-
-type ExistingUser = BasicAuth "existing user" User
-type HerokuAddOnAPI = BasicAuth "heroku add-on api" ByteString
 
 server
   :: HasServer api '[BasicAuthCheck User, BasicAuthCheck ByteString]
