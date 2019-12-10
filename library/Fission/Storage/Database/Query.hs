@@ -6,11 +6,13 @@ module Fission.Storage.Database.Query
   , oneWhere
   , manyWhere
   , deleteWhere
+  --
+  , insert
   -- Reexport
   , module Esqueleto
   ) where
 
-import Database.Esqueleto as Esqueleto hiding (deleteWhere)
+import Database.Esqueleto as Esqueleto hiding (deleteWhere, insert)
 import qualified Database.Esqueleto as Esqueleto (insert)
 import qualified Database.Esqueleto.Internal.Sql as Esqueleto
 import Fission.Prelude hiding (many)
@@ -92,6 +94,10 @@ deleteWhere = wherever .> from .> delete
 -- CREATE
 --
 -- See `Database.Esqueleto.insert`
+
+
+insert =
+  Esqueleto.insert .> execute
 
 
 
