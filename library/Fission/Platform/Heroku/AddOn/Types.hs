@@ -1,12 +1,11 @@
 {-# LANGUAGE NoDeriveAnyClass #-}
 module Fission.Platform.Heroku.AddOn.Types where
 
-import           Fission.Prelude
+import Fission.Prelude
 
 -- Database
 
-import           Fission.Storage.Persist (Generate(..))
-import qualified Fission.Storage.Persist as Persist
+import qualified Fission.Storage.Database as Database
 
 -- Model Dependencies
 
@@ -19,8 +18,8 @@ import Fission.Platform.Heroku.Types (Region (..))
 {-| This'll take our AddOn model, defined in template Haskell,
     and translate them into data and entity types automatically.
 -}
-Persist.generate [ Types ]
-  $( Persist.file "library/Fission/Platform/Heroku/AddOn/Model.entity" )
+Database.generate [ Database.Types ]
+  $( Database.entity "library/Fission/Platform/Heroku/AddOn/Model.entity" )
 
 
 

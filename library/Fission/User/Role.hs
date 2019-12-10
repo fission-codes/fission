@@ -1,7 +1,7 @@
 module Fission.User.Role (Role (..)) where
 
 import Fission.Prelude
-import qualified Fission.Storage.Persist as Persist
+import qualified Fission.Storage.Database as Database
 
 
 data Role
@@ -12,4 +12,4 @@ data Role
            , Eq
            )
 
-Persist.generateInstances "Role"
+Database.generateInstances "Role"

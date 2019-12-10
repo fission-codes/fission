@@ -10,7 +10,7 @@ import RIO.Partial (read)
 -- Fission
 
 import           Fission.Prelude
-import qualified Fission.Storage.Persist as Persist
+import qualified Fission.Storage.Database as Database
 
 
 -- | Heroku add-on ID (from @addon-manifest.json@)
@@ -74,4 +74,4 @@ instance ToSchema Region where
                                      . (read :: String -> Region)
     }
 
-Persist.generateInstances "Region"
+Database.generateInstances "Region"

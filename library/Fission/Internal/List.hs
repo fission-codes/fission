@@ -1,6 +1,7 @@
 module Fission.Internal.List (difference, without) where
 
 import RIO.List ((\\))
+import Prelude (flip)
 
 
 {-| Get the difference between two lists.

@@ -1,9 +1,8 @@
 {-| Some niceties regarding the persistent database library.
     This will generate snake case database names (tables, columns, etc).
     For example, `IpfsPeers` would become `ipfs_peers`.
-
 -}
-module Fission.Storage.Persist where
+module Fission.Storage.Database.Persist (Generate(..), entity, entities, generate, generateInstances) where
 
 import qualified Database.Persist as Persist
 import qualified Database.Persist.Quasi as Persist
@@ -22,6 +21,22 @@ import Fission.Prelude
 data Generate = Migrations | Types
 
 
+{-| `Persist.persistFileWith` with default settings.
+-}
+entity :: FilePath -> TH.Q TH.Exp
+entity =
+  Persist.persistFileWith
+    Persist.lowerCaseSettings
+
+
+{-| `Persist.persistManyFileWith` with default settings.
+-}
+entities :: [ FilePath ] -> TH.Q TH.Exp
+entities =
+  Persist.persistManyFileWith
+    Persist.lowerCaseSettings
+
+
 {-| `Persist.share` with our `Generation` type.
 -}
 generate :: [ Generate ] -> [ Persist.EntityDef ] -> TH.Q [ TH.Dec ]
@@ -35,22 +50,6 @@ generate toGenerate =
           )
           toGenerate
       )
-
-
-{-| `Persist.persistFileWith` with default settings.
--}
-file :: FilePath -> TH.Q TH.Exp
-file =
-  Persist.persistFileWith
-    Persist.lowerCaseSettings
-
-
-{-| `Persist.persistManyFileWith` with default settings.
--}
-files :: [ FilePath ] -> TH.Q TH.Exp
-files =
-  Persist.persistManyFileWith
-    Persist.lowerCaseSettings
 
 
 {-| Alias for `derivePersistField`.

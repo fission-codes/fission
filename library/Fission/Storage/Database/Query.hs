@@ -1,17 +1,20 @@
-module Fission.Storage.Query
+module Fission.Storage.Database.Query
   ( one
   , many
-
+  -- Where
   , wherever
   , oneWhere
   , manyWhere
   , deleteWhere
-
+  -- Reexport
   , module Database.Esqueleto
   ) where
 
-import Database.Esqueleto
-import Fission.Prelude
+import Database.Esqueleto as Esqueleto
+import qualified Database.Esqueleto.Internal.Sql as Esqueleto
+import Fission.Prelude hiding (many)
+import Fission.Storage.Database.Class
+import Fission.Storage.Database.Types
 
 
 -- BASE
@@ -19,7 +22,18 @@ import Fission.Prelude
 
 {-| Select the first item.
 -}
-one = from .> selectFirst
+one
+  :: ( Esqueleto.From a
+     , Esqueleto.SqlSelect b c
+     , MonadDatabase m c
+     )
+  => (a -> Query b)
+  -> Transaction m (Maybe c)
+one fn = fn
+  |> from
+  |> bind (\result -> limit 1 >> return result)
+  |> select
+  |> fmap headMaybe
 
 
 {-| Select multiple items.
@@ -33,6 +47,7 @@ many = from .> select
 
 {-| Simplified `where_`.
 -}
+wherever :: Esqueleto.From a => (a -> Query b)
 wherever fn a = where_ (fn a) >> return a
 
 

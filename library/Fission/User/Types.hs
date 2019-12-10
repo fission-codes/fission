@@ -1,13 +1,12 @@
 {-# LANGUAGE NoDeriveAnyClass #-}
-module Fission.User.Types where
+module Fission.User.Types (User(..)) where
 
 import Data.Swagger
 import Fission.Prelude
 
 -- Database
 
-import           Fission.Storage.Persist (Generate(..))
-import qualified Fission.Storage.Persist as Persist
+import qualified Fission.Storage.Database as Database
 
 -- Model Dependencies
 
@@ -26,8 +25,8 @@ import           Fission.User.Role
 {-| This'll take our User model, defined in template Haskell,
     and translate them into data and entity types automatically.
 -}
-Persist.generate [ Types ]
-  $( Persist.file "library/Fission/User/Model.entity" )
+Database.generate [ Database.Types ]
+  $( Database.entity "library/Fission/User/Model.entity" )
 
 
 

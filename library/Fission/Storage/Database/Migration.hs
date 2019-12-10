@@ -1,4 +1,4 @@
-module Fission.Storage.Migration where
+module Fission.Storage.Database.Migration where
 
 -- Fission
 
@@ -9,7 +9,7 @@ import           Fission.Model
 
 {-| Models to generate migrations for.
 -}
-models = Persist.files
+models = Persist.entities
   [ "library/Fission/Platform/Heroku/AddOn/Model.entity"
   , "library/Fission/User/CID/Model.entity"
   , "library/Fission/User/Model.entity"

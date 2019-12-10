@@ -5,6 +5,7 @@ module Fission.Prelude
   , module Data.Has
   , module Data.Maybe
   , module Fission.Internal.Constraint
+  , module Fission.Internal.List
   , module Flow
   , module RIO
   , module RIO.Process
