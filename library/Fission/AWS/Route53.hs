@@ -15,9 +15,9 @@ import qualified Fission.Config    as Config
 import           Fission.AWS.Types as AWS
 import           Fission.AWS
 
-import qualified Fission.IPFS.Types as IPFS
-import           Fission.IPFS.Gateway.Types
-import           Fission.IPFS.CID.Types
+import qualified Network.IPFS.Types as IPFS
+import           Network.IPFS.Gateway.Types
+import           Network.IPFS.CID.Types
 
 registerDomain ::
   ( MonadRIO           cfg m

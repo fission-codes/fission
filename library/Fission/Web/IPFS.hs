@@ -11,20 +11,21 @@ module Fission.Web.IPFS
 
 import           Database.Selda
 
-import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import           Fission.Prelude
-import           Fission.IPFS.Types        as IPFS
 import           Fission.User
 
+import           Network.IPFS
+import           Network.IPFS.Types as IPFS
+
 import           Fission.Web.Server
-import qualified Fission.Web.IPFS.CID           as CID
-import qualified Fission.Web.IPFS.Upload        as Upload
-import qualified Fission.Web.IPFS.Download      as Download
-import qualified Fission.Web.IPFS.Pin           as Pin
-import qualified Fission.Web.IPFS.DAG           as DAG
-import qualified Fission.Web.IPFS.Peer         as Peer
+import qualified Fission.Web.IPFS.CID      as CID
+import qualified Fission.Web.IPFS.Upload   as Upload
+import qualified Fission.Web.IPFS.Download as Download
+import qualified Fission.Web.IPFS.Pin      as Pin
+import qualified Fission.Web.IPFS.DAG      as DAG
+import qualified Fission.Web.IPFS.Peer     as Peer
 
 type API = AuthedAPI
       :<|> PublicAPI
@@ -41,33 +42,33 @@ type UnauthedAPI = "cids" :> CID.API
 type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
-server :: HasLogFunc        cfg
-       => HasProcessContext cfg
-       => MonadSelda   (RIO cfg)
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => RIOServer         cfg API
+server ::
+  ( MonadSelda      (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , HasLogFunc           cfg
+  , Has IPFS.Peer     cfg
+  )
+  => RIOServer           cfg API
 server = authed :<|> public
 
-authed :: HasLogFunc        cfg
-       => HasProcessContext cfg
-       => MonadSelda   (RIO cfg)
-       => Has HTTP.Manager  cfg
-       => Has IPFS.URL      cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => RIOServer         cfg AuthedAPI
+authed ::
+  ( MonadSelda      (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , MonadLocalIPFS  (RIO cfg)
+  , HasLogFunc           cfg
+  )
+  => RIOServer           cfg AuthedAPI
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
         :<|> DAG.put usr
 
-public :: HasLogFunc        cfg
-       => HasProcessContext cfg
-       => Has IPFS.BinPath  cfg
-       => Has IPFS.Timeout  cfg
-       => RIOServer         cfg PublicAPI
+public ::
+  ( MonadLocalIPFS (RIO cfg)
+  , Has IPFS.Peer     cfg
+  , HasLogFunc          cfg
+  )
+  => RIOServer          cfg PublicAPI
 public = Peer.get
     :<|> Download.get

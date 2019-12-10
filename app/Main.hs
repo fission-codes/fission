@@ -21,8 +21,8 @@ import qualified Fission.Web.Types as Web
 import qualified Fission.Platform.Heroku.AddOn.Manifest as Hku
 import qualified Fission.Platform.Heroku.Types          as Hku
 
+import           Fission.App (runApp, isDebugEnabled)
 import           Fission.Config.Types
-import           Fission.Environment
 import           Fission.Environment.Types
 import           Fission.Environment.IPFS.Types    as IPFS
 import qualified Fission.Environment.Storage.Types as Storage
@@ -44,9 +44,10 @@ main = do
     herokuID       = Hku.ID       <| encodeUtf8 (manifest |> Hku.id)
     herokuPassword = Hku.Password <| encodeUtf8 (manifest |> Hku.api |> Hku.password)
 
-    ipfsPath    = env |> ipfs |> binPath
-    ipfsURL     = env |> ipfs |> url
-    ipfsTimeout = env |> ipfs |> IPFS.timeout
+    ipfsPath       = env |> ipfs |> binPath
+    ipfsURL        = env |> ipfs |> url
+    ipfsRemotePeer = env |> ipfs |> remotePeer
+    ipfsTimeout    = env |> ipfs |> IPFS.timeout
     ipfsGateway = env |> ipfs |> gateway
 
     awsAccessKey  = accessKey
@@ -54,13 +55,14 @@ main = do
     awsZoneID     = zoneID
     awsDomainName = domainName
 
-  dbPool      <- runSimpleApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
+  isVerbose  <- isDebugEnabled
+  logOptions <- logOptionsHandle stdout isVerbose
+
+  dbPool      <- runApp <| connPool stripeCount connsPerStripe connTTL pgConnectInfo
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
-  isVerbose  <- getFlag "RIO_VERBOSE" .!~ False
-  logOptions <- logOptionsHandle stdout isVerbose
 
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger LevelWarn) sentryDSN
 

@@ -5,11 +5,11 @@ import qualified Network.HTTP.Client as HTTP
 
 import           Fission.Prelude
 import           Fission.Web.Types
-import qualified Fission.IPFS.Types            as IPFS
+import qualified Network.IPFS.Types            as IPFS
 import qualified Fission.Storage.Types         as DB
 import qualified Fission.Platform.Heroku.Types as Heroku
 import qualified Network.AWS.Auth              as AWS
-import qualified Fission.AWS.Types              as AWS
+import qualified Fission.AWS.Types             as AWS
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config dbBackend = Config
@@ -18,6 +18,7 @@ data Config dbBackend = Config
   , httpManager    :: !HTTP.Manager
   , ipfsPath       :: !IPFS.BinPath
   , ipfsURL        :: !IPFS.URL
+  , ipfsRemotePeer :: !IPFS.Peer
   , ipfsTimeout    :: !IPFS.Timeout
   , ipfsGateway    :: !IPFS.Gateway
   , host           :: !Host
@@ -38,6 +39,7 @@ instance Show (Config dbBackend) where
     , "  httpManager    = **SOME HTTP MANAGER**"
     , "  ipfsPath       = " <> show ipfsPath
     , "  ipfsURL        = " <> show ipfsURL
+    , "  ipfsRemotePeer = " <> show ipfsRemotePeer
     , "  ipfsTimeout    = " <> show ipfsTimeout
     , "  ipfsGateway    = " <> show ipfsGateway
     , "  host           = " <> show host
@@ -70,6 +72,10 @@ instance Has IPFS.BinPath (Config db) where
 instance Has IPFS.URL (Config db) where
   hasLens = lens ipfsURL \cfg newIPFSURL ->
     cfg { ipfsURL = newIPFSURL }
+
+instance Has IPFS.Peer (Config db) where
+  hasLens = lens ipfsRemotePeer \cfg newIPFSRemotePeer ->
+    cfg { ipfsRemotePeer = newIPFSRemotePeer }
 
 instance Has IPFS.Timeout (Config db) where
   hasLens = lens ipfsTimeout \cfg newIPFSTimeout ->

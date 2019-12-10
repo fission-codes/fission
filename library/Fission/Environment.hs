@@ -4,6 +4,7 @@ module Fission.Environment
   , withEnv
   , getFlag
   , getEnv
+  , getFlagWithDefault
   , (.!~)
   ) where
 
@@ -59,3 +60,7 @@ getFlag key = do
   mayStr <- lookupEnv key
   let mayVal = truthy . fmap toLower <$> mayStr
   return mayVal
+
+-- | Get a given flag, default to the given value if not found
+getFlagWithDefault :: String -> Bool -> IO Bool
+getFlagWithDefault flag defaultValue = getFlag flag .!~ defaultValue

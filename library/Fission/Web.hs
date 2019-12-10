@@ -9,16 +9,16 @@ module Fission.Web
 
 import           Flow
 import           RIO
-import           RIO.Process (HasProcessContext)
 
 import           Data.Has
 import           Database.Selda
-import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import qualified Fission.Config     as Config
 import           Fission.User
-import qualified Fission.IPFS.Types as IPFS
+
+import           Network.IPFS
+import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Internal.Orphanage.PlainText ()
 import           Fission.Internal.Orphanage.OctetStream ()
@@ -42,25 +42,22 @@ import qualified Fission.Web.Heroku            as Heroku
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
--- | The actual web server for 'API'
-app
-  :: ( Has IPFS.BinPath    cfg
-     , Has IPFS.Timeout    cfg
-     , Has IPFS.URL        cfg
-     , Has IPFS.Gateway    cfg
-     , Has HTTP.Manager    cfg
-     , Has Web.Host        cfg
-     , Has AWS.AccessKey   cfg
-     , Has AWS.SecretKey   cfg
-     , Has AWS.ZoneID      cfg
-     , Has AWS.DomainName  cfg
-     , Has Heroku.ID       cfg
-     , Has Heroku.Password cfg
-     , HasProcessContext   cfg
-     , HasLogFunc          cfg
-     , MonadSelda     (RIO cfg)
-     )
-    => RIO cfg Application
+app ::
+  ( MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , Has IPFS.Gateway     cfg
+  , Has IPFS.Peer        cfg
+  , Has Web.Host         cfg
+  , Has AWS.AccessKey    cfg
+  , Has AWS.SecretKey    cfg
+  , Has AWS.ZoneID       cfg
+  , Has AWS.DomainName   cfg
+  , Has Heroku.ID        cfg
+  , Has Heroku.Password  cfg
+  , HasLogFunc           cfg
+  , MonadSelda      (RIO cfg)
+  )
+  => RIO cfg Application
 app = do
   cfg     <- ask
   auth    <- mkAuth
@@ -94,21 +91,19 @@ mkAuth = do
         :. EmptyContext
 
 -- | Web handlers for the 'API'
-server
-  :: ( Has IPFS.BinPath   cfg
-     , Has IPFS.Timeout   cfg
-     , Has IPFS.URL       cfg
-     , Has IPFS.Gateway   cfg
-     , Has HTTP.Manager   cfg
-     , Has Web.Host       cfg
-     , Has AWS.AccessKey  cfg
-     , Has AWS.SecretKey  cfg
-     , Has AWS.ZoneID     cfg
-     , Has AWS.DomainName cfg
-     , HasProcessContext  cfg
-     , HasLogFunc         cfg
-     , MonadSelda    (RIO cfg)
-     )
+server ::
+  ( MonadLocalIPFS  (RIO cfg)
+  , MonadRemoteIPFS (RIO cfg)
+  , Has IPFS.Gateway     cfg
+  , Has IPFS.Peer        cfg
+  , Has Web.Host         cfg
+  , Has AWS.AccessKey    cfg
+  , Has AWS.SecretKey    cfg
+  , Has AWS.ZoneID       cfg
+  , Has AWS.DomainName   cfg
+  , HasLogFunc           cfg
+  , MonadSelda      (RIO cfg)
+  )
   => Web.Host
   -> RIOServer cfg API
 server appHost = Web.Swagger.server appHost

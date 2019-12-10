@@ -5,7 +5,6 @@ module Fission.Web.Swagger
 
 import           Data.Swagger
 import           Servant
-import           Servant.Client (BaseUrl (..))
 import           Servant.Swagger
 import           Servant.Swagger.UI
 import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
@@ -39,10 +38,10 @@ docs host' =
     |> user
 
 app :: HasSwagger api => Proxy api -> Web.Host -> Swagger
-app proxy (Web.Host (BaseUrl { baseUrlHost })) =
+app proxy appHost =
   proxy
     |> toSwagger
-    |> host               ?~ Host baseUrlHost Nothing
+    |> host               ?~ Host (Web.getRawHost appHost) Nothing
     |> schemes            ?~ [Https]
     |> info . title       .~ "The Fission API"
     |> info . version     .~ "2.0.0"

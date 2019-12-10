@@ -81,6 +81,20 @@ packages:
       sha256: f6b89e2e06d38d0a2d73c220648811a54684b476778904416b22f1ccae7eab67
   original:
     hackage: tasty-rerun-1.1.14
+- completed:
+    cabal-file:
+      size: 5025
+      sha256: c41389ecbce8472cacebe180f29b572013013a76e7adead1505bad377e769ed7
+    name: ipfs
+    version: 1.0.0
+    git: https://github.com/fission-suite/ipfs-haskell.git
+    pantry-tree:
+      size: 4662
+      sha256: 0572104c72c5bd4ad036593b26ebd9c5358d49e071589cc04b9b5d1ba179f963
+    commit: 8c1fcc6a390ed79be20f1efc1a07ffda728c5d4b
+  original:
+    git: https://github.com/fission-suite/ipfs-haskell.git
+    commit: 8c1fcc6a390ed79be20f1efc1a07ffda728c5d4b
 snapshots:
 - completed:
     size: 525663

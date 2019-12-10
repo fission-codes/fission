@@ -16,9 +16,10 @@ import           Fission.Config.Types (Config (..))
 import           Fission.Internal.Orphanage.RIO ()
 import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.Storage.Types         as DB
-import qualified Fission.IPFS.Types            as IPFS
+import qualified Network.IPFS.Types            as IPFS
 import qualified Fission.Platform.Heroku.Types as Hku
 import           Fission.Web.Types
+import           Fission.App (runApp)
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -26,14 +27,14 @@ import           Fission.Web.Types
 
      == Example Use
 
-     > runOne Fission.IPFS.Peer.all
+     > runOne Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 runOne :: RIO (Config PG) a -> IO a
 runOne action = do
   logOptions   <- logOptionsHandle stdout True
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
-    dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
+    dbPool      <- runApp <| connPool 1 1 3600 pgConnectInfo
     processCtx  <- mkDefaultProcessContext
     httpManager <- HTTP.newManager HTTP.defaultManagerSettings
     run logFunc dbPool processCtx httpManager action
@@ -44,7 +45,7 @@ runOne action = do
 
      == Example Use
 
-     > dbPool <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+     > dbPool <- runApp $ connPool 1 1 3600 pgConnectInfo'
      > processCtx <- mkDefaultProcessContext
      > httpManager <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions <- logOptionsHandle stdout True
@@ -52,10 +53,10 @@ runOne action = do
      >
      > let runSession = run logFunc dbPool processCtx httpManager
      >
-     > runSession Fission.IPFS.Peer.all
+     > runSession Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
-     > runSession Fission.IPFS.Peer.connect Fission.peer
+     > runSession Network.IPFS.Peer.connect Fission.peer
      > -- ()
 -}
 run
@@ -77,10 +78,11 @@ run logFunc dbPool processCtx httpManager action =
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
-    ipfsPath    = "/usr/local/bin/ipfs"
-    ipfsURL     = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
-    ipfsTimeout = IPFS.Timeout 3600
+    ipfsPath       = "/usr/local/bin/ipfs"
+    ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
+    ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
 
     awsAccessKey  = "SOME_AWS_ACCESS_KEY"
     awsSecretKey  = "SOME_AWS_SECRET_KEY"
@@ -91,7 +93,7 @@ run logFunc dbPool processCtx httpManager action =
 
      == Example Use
 
-     > dbPool       <- runSimpleApp $ connPool 1 1 3600 pgConnectInfo'
+     > dbPool       <- runApp $ connPool 1 1 3600 pgConnectInfo'
      > processCtx   <- mkDefaultProcessContext
      > httpManager  <- HTTP.newManager HTTP.defaultManagerSettings
      > logOptions   <- logOptionsHandle stdout True
@@ -100,16 +102,16 @@ run logFunc dbPool processCtx httpManager action =
      > let cfg = mkConfig dbPool processCtx httpManager logFunc
      > let run' = runRIO cfg
      >
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
-     > run' Fission.IPFS.Peer.connect Fission.peer
+     > run' Network.IPFS.Peer.connect Fission.peer
      > -- ()
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
      > let run' = runRIO cfg { ipfsPath = "~/Downloads/ipfs" }
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig :: DB.Pool PG -> ProcessContext -> HTTP.Manager -> LogFunc -> Config PG
@@ -122,6 +124,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 
     ipfsPath       = "/usr/local/bin/ipfs"
     ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
@@ -139,22 +142,22 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 
      > (cfg, ) <- mkConfig'
      > let run' = runRIO cfg
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
-     > run' Fission.IPFS.Peer.connect Fission.peer
+     > run' Network.IPFS.Peer.connect Fission.peer
      > -- ()
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
      > (cfg, ) <- mkConfig'
      > let run' = runRIO cfg { ipfsPath = "~/Downloads/ipfs" }
-     > run' Fission.IPFS.Peer.all
+     > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
 mkConfig' :: IO (Config PG, IO ())
 mkConfig' = do
-  dbPool      <- runSimpleApp <| connPool 1 1 3600 pgConnectInfo
+  dbPool      <- runApp <| connPool 1 1 3600 pgConnectInfo
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 

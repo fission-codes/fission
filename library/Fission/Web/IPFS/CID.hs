@@ -7,8 +7,9 @@ import           Database.Selda
 import           Servant
 
 import           Fission.Prelude
-import qualified Fission.IPFS.Types     as IPFS
-import           Fission.IPFS.CID.Types as IPFS.CID
+
+import qualified Network.IPFS.Types     as IPFS
+import           Network.IPFS.CID.Types as IPFS.CID
 
 import           Fission.User           (User (..))
 import           Fission.User.CID.Query

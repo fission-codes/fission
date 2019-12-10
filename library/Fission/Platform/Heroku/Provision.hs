@@ -11,13 +11,13 @@ import qualified Servant.Client as Client
 import           Fission.Prelude
 import           Fission.Internal.Orphanage.ID ()
 
-import qualified Fission.Plan.Types                 as Plan
-import qualified Fission.Platform.Heroku.Types      as Heroku
-import qualified Fission.User.Provision.Types       as User
+import qualified Fission.Plan.Types            as Plan
+import qualified Fission.Platform.Heroku.Types as Heroku
+import qualified Fission.User.Provision.Types  as User
 import           Fission.Security.Types
 import           Fission.User                       (User)
-import           Fission.IPFS.Types                 as IPFS
-import           Fission.IPFS.Peer (fission)
+
+import           Network.IPFS.Types                 as IPFS
 
 data Request = Request
   { callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -141,13 +141,13 @@ instance ToSchema Provision where
           , ("message", txt)
           , ("peers",   ipfsPeers)
           ]
-      |> NamedSchema (Just "User Provision Response")
+      |> NamedSchema (Just "UserProvisionResponse")
       |> pure
     where
       provisionEx = Provision
         { id      = toId 4213
         , config  = cfgEx
-        , peers  = [fission]
+        , peers  = [IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
         , message = "Provisioned successfully"
         }
 
