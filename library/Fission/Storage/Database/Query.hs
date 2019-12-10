@@ -30,7 +30,7 @@ one
      , Esqueleto.SqlSelect b c
      )
   => (a -> Query b)
-  -> Database.Transaction m (Maybe c)
+  -> Transaction m (Maybe c)
 one fn = fn
   |> from
   |> bind (\result -> limit 1 >> return result)
@@ -45,7 +45,7 @@ many
      , Esqueleto.SqlSelect b c
      )
   => (a -> Query b)
-  -> Database.Transaction m [c]
+  -> Transaction m [c]
 many = from .> select
 
 
@@ -86,7 +86,7 @@ manyWhere = wherever .> many
 deleteWhere
   :: Esqueleto.From ()
   => Esqueleto.SqlExpr (Esqueleto.Value Bool)
-  -> Database.Transaction m ()
+  -> Transaction m ()
 deleteWhere = wherever .> from .> delete
 
 
