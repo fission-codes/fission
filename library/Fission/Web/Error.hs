@@ -71,26 +71,21 @@ instance ToServerError Error where
 instance ToServerError Get.Error where
   toServerError = \case
     Get.InvalidCID txt          -> err422 { errBody = UTF8.textToLazyBS txt }
-    Get.UnexpectedOutput _ -> err500 { errBody = "Unexpected IPFS result" }
-    Get.UnknownErr _         -> err500 { errBody = "Unknown IPFS error" }
-    Get.TimedOut (CID hash) _ ->
-      ServerError { errHTTPCode     = 408
-                  , errReasonPhrase = "Time out"
-                  , errBody         = "IPFS timed out looking for " <> UTF8.textToLazyBS hash
-                  , errHeaders      = []
-                  }
+    Get.UnexpectedOutput _ -> err502 { errBody = "Unexpected IPFS result" }
+    Get.UnknownErr _         -> err502 { errBody = "Unknown IPFS error" }
+    Get.TimedOut (CID hash) _ -> err504 { errBody = "IPFS timed out looking for " <> UTF8.textToLazyBS hash }
 
 instance ToServerError Add.Error where
   toServerError = \case
     Add.InvalidFile        -> err422 { errBody = "File not processable by IPFS" }
-    Add.UnknownAddErr    _ -> err500 { errBody = "Unknown IPFS error" }
-    Add.RecursiveAddErr  _ -> err500 { errBody = "Error while adding directory" }
-    Add.UnexpectedOutput _ -> err500 { errBody = "Unexpected IPFS result" }
+    Add.UnknownAddErr    _ -> err502 { errBody = "Unknown IPFS error" }
+    Add.RecursiveAddErr  _ -> err502 { errBody = "Error while adding directory" }
+    Add.UnexpectedOutput _ -> err502 { errBody = "Unexpected IPFS result" }
 
 instance ToServerError Peer.Error where
   toServerError = \case
     Peer.DecodeFailure _ -> err500 { errBody = "Peer list decode error" }
-    Peer.CannotConnect _ -> err500 { errBody = "Unable to connect to peer" }
+    Peer.CannotConnect _ -> err503 { errBody = "Unable to connect to peer" }
     Peer.UnknownErr    _ -> err500 { errBody = "Unknown peer list error" }
 
 instance ToServerError Linearization where
