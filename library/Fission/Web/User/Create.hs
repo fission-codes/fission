@@ -27,13 +27,14 @@ type API = ReqBody '[JSON] User.Registration
         :> Post '[JSON] ()
 
 server
-  :: ( HasLogFunc         cfg
-     , Has IPFS.Gateway   cfg
-     , Has AWS.DomainName cfg
-     , Has AWS.AccessKey  cfg
-     , Has AWS.SecretKey  cfg
-     , Has AWS.ZoneID     cfg
-     , MonadSelda    (RIO cfg)
+  :: ( HasLogFunc          cfg
+     , Has IPFS.Gateway    cfg
+     , Has AWS.DomainName  cfg
+     , Has AWS.AccessKey   cfg
+     , Has AWS.SecretKey   cfg
+     , Has AWS.ZoneID      cfg
+     , Has AWS.MockEnabled cfg
+     , MonadSelda     (RIO cfg)
      )
   => RIOServer cfg API
 server (User.Registration username password email) = do

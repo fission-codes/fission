@@ -54,6 +54,7 @@ main = do
     awsSecretKey  = secretKey
     awsZoneID     = zoneID
     awsDomainName = domainName
+    awsMockEnabled = mockEnabled
 
   isVerbose  <- isDebugEnabled
   logOptions <- logOptionsHandle stdout isVerbose

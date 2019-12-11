@@ -23,15 +23,16 @@ type API = Capture "cid" CID
         :> PutAccepted '[PlainText, OctetStream] AWS.DomainName
 
 server ::
-  ( HasLogFunc         cfg
-  , Has IPFS.Gateway   cfg
-  , Has AWS.AccessKey  cfg
-  , Has AWS.SecretKey  cfg
-  , Has AWS.ZoneID     cfg
-  , Has AWS.DomainName cfg
+  ( HasLogFunc          cfg
+  , Has IPFS.Gateway    cfg
+  , Has AWS.AccessKey   cfg
+  , Has AWS.SecretKey   cfg
+  , Has AWS.ZoneID      cfg
+  , Has AWS.DomainName  cfg
+  , Has AWS.MockEnabled cfg
   )
   => User
   -> RIOServer cfg API
-server User { username } cid = 
+server User { username } cid =
   registerDomain username cid
     >>= Web.Err.ensureM

@@ -52,6 +52,7 @@ app ::
   , Has AWS.SecretKey    cfg
   , Has AWS.ZoneID       cfg
   , Has AWS.DomainName   cfg
+  , Has AWS.MockEnabled  cfg
   , Has Heroku.ID        cfg
   , Has Heroku.Password  cfg
   , HasLogFunc           cfg
@@ -101,6 +102,7 @@ server ::
   , Has AWS.SecretKey    cfg
   , Has AWS.ZoneID       cfg
   , Has AWS.DomainName   cfg
+  , Has AWS.MockEnabled  cfg
   , HasLogFunc           cfg
   , MonadSelda      (RIO cfg)
   )

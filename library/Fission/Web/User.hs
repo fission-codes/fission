@@ -31,13 +31,14 @@ type ResetRoute = "reset_password"
                   :> Reset.API
 
 server
-  :: ( HasLogFunc         cfg
-     , MonadSelda    (RIO cfg)
-     , Has IPFS.Gateway   cfg
-     , Has AWS.DomainName cfg
-     , Has AWS.AccessKey  cfg
-     , Has AWS.SecretKey  cfg
-     , Has AWS.ZoneID     cfg
+  :: ( HasLogFunc          cfg
+     , MonadSelda     (RIO cfg)
+     , Has IPFS.Gateway    cfg
+     , Has AWS.DomainName  cfg
+     , Has AWS.AccessKey   cfg
+     , Has AWS.SecretKey   cfg
+     , Has AWS.ZoneID      cfg
+     , Has AWS.MockEnabled cfg
      )
   => RIOServer cfg API
 server = Create.server

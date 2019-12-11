@@ -7,10 +7,11 @@ import           Fission.Prelude
 import qualified Fission.AWS.Types as AWS
 
 data Environment = Environment
-  { accessKey  :: !AWS.AccessKey  -- ^ Access Key
-  , secretKey  :: !AWS.SecretKey  -- ^ Secret Key
-  , zoneID     :: !AWS.ZoneID     -- ^ Hosted Zone
-  , domainName :: !AWS.DomainName -- ^ Domain Name
+  { accessKey   :: !AWS.AccessKey  -- ^ Access Key
+  , secretKey   :: !AWS.SecretKey  -- ^ Secret Key
+  , zoneID      :: !AWS.ZoneID     -- ^ Hosted Zone
+  , domainName  :: !AWS.DomainName -- ^ Domain Name
+  , mockEnabled :: !AWS.MockEnabled
   }
 
 instance Show Environment where
@@ -20,14 +21,16 @@ instance Show Environment where
     , "  secretKey  = HIDDEN"
     , "  zoneId     = " <> show zoneID
     , "  domainName = " <> show domainName
+    , "  mockEnabled = " <> show mockEnabled
     , "}"
     ]
 
 instance FromJSON Environment where
   parseJSON = withObject "AWS.Environment" \obj -> do
-    accessKey  <- obj .: "access_key"
-    secretKey  <- obj .: "secret_key"
-    zoneID     <- obj .: "zone_id"
-    domainName <- obj .: "domain_name"
+    accessKey   <- obj .: "access_key"
+    secretKey   <- obj .: "secret_key"
+    zoneID      <- obj .: "zone_id"
+    domainName  <- obj .: "domain_name"
+    mockEnabled <- obj .:? "mock_enabled" .!= AWS.MockEnabled False
 
     return <| Environment {..}

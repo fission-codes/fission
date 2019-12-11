@@ -29,6 +29,7 @@ data Config dbBackend = Config
   , awsSecretKey   :: !AWS.SecretKey
   , awsZoneID      :: !AWS.ZoneID
   , awsDomainName  :: !AWS.DomainName
+  , awsMockEnabled :: !AWS.MockEnabled
   } deriving Generic
 
 instance Show (Config dbBackend) where
@@ -50,6 +51,7 @@ instance Show (Config dbBackend) where
     , "  awsSecretKey   = HIDDEN"
     , "  awsZoneID      = " <> show awsZoneID
     , "  awsDomainName  = " <> show awsDomainName
+    , "  awsMockEnabled = " <> show awsMockEnabled
     , "}"
     ]
 
@@ -112,6 +114,10 @@ instance Has AWS.ZoneID (Config db) where
 instance Has AWS.DomainName (Config db) where
   hasLens = lens awsDomainName \cfg newAWSDomainName ->
     cfg { awsDomainName = newAWSDomainName }
+
+instance Has AWS.MockEnabled (Config db) where
+  hasLens = lens awsMockEnabled \cfg newAWSMockEnabled ->
+    cfg { awsMockEnabled = newAWSMockEnabled }
 
 instance Has Host (Config db) where
   hasLens = lens host \cfg newHost ->
