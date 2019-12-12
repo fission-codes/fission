@@ -75,10 +75,9 @@ provision Request {uuid, region} = do
                        logError <| displayShow err
                        return []
 
-  username <- liftIO <| User.genID
   secret   <- liftIO <| Random.alphaNumString 50
 
-  User.createWithHeroku uuid region username secret >>= \case
+  User.createWithHeroku uuid region uuid secret >>= \case
     Left err ->
       Web.Err.throw err
 
@@ -95,7 +94,7 @@ provision Request {uuid, region} = do
         , peers   = ipfsPeers
         , message = "Successfully provisioned Interplanetary Fission!"
         , config  = User.Provision
-           { username = User.hashID userID
+           { username = uuid
            , password = Secret secret
            , url      = url'
            }
