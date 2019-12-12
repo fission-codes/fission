@@ -1,14 +1,22 @@
 -- | Random values
 module Fission.Random
-  ( byteString
-  , text
+  ( alphaNumString
+  , byteString
+  -- , text
   ) where
 
 import qualified Data.ByteString.Random as BS
 import qualified RIO.ByteString         as BS
 import qualified Fission.Internal.URL   as URL
-
+import qualified Data.Text            as T
+import           Test.RandomStrings
 import Fission.Prelude
+
+asciiAlphaNum :: IO Char
+asciiAlphaNum = onlyAlphaNum randomASCII
+
+alphaNumString :: Int -> IO Text
+alphaNumString len = T.pack <$> randomString asciiAlphaNum len
 
 -- | Generate random 'Text'
 text :: Natural -> IO Text

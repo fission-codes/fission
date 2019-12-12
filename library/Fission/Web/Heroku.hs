@@ -76,7 +76,7 @@ provision Request {uuid, region} = do
                        return []
 
   username <- liftIO <| User.genID
-  secret   <- liftIO <| Random.text 200
+  secret   <- liftIO <| Random.alphaNumString 50
 
   User.createWithHeroku uuid region username secret >>= \case
     Left err ->
