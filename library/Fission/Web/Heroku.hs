@@ -77,7 +77,7 @@ provision Request {uuid, region} = do
                        return []
 
   let username = T.pack . UUID.toString <| uuid
-  secret       <- liftIO <| Random.alphaNum 200
+  secret       <- liftIO <| Random.alphaNum 50
 
   User.createWithHeroku uuid region username secret >>= \case
     Left err ->

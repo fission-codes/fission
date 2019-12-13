@@ -17,4 +17,4 @@ hashID :: ID User -> SecretDigest
 hashID = Text.take 20 . digest
 
 genID :: IO SecretDigest
-genID = Text.take 20 . digest <$> Random.alphaNum 200
+genID = Text.take 20 . digest <$> Random.alphaNum 50
