@@ -47,6 +47,16 @@ data Provision = Provision
              , Show
              )
 
+instance FromJSON Provision where
+  parseJSON = withObject "Provision" \obj -> do
+    id       <- obj .: "id"
+    config   <- obj .: "config"
+    message  <- obj .: "message"
+
+    let peers = []
+
+    return Provision {..}
+
 instance ToJSON Provision where
   toJSON Provision {..} = object
     [ "id"      .= id
