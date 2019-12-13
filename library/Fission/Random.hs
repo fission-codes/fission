@@ -28,5 +28,5 @@ bsRandomLength len = BS.take (naturalToInt len) <$> BS.random (len * 100)
 -- | Check if a given character is AlphaNumeric
 isAsciiAlphaNum :: Word8 -> Bool
 isAsciiAlphaNum w = isAsciiUpper w
-                || isAsciiLower w
-                || isDigit w
+                 || isAsciiLower w
+                 || isDigit w

@@ -45,7 +45,7 @@ createWithHeroku
   -> m (Either Error.Create (ID User))
 createWithHeroku herokuUUID herokuRegion username password = do
   now <- liftIO getCurrentTime
-  logInfo <| "Creating " <> (displayShow username) <> " " <> (displayShow password)
+
   hConfId <- insertWithPK Heroku.addOns
     [Heroku.AddOn def herokuUUID (Just herokuRegion) <@ now]
 
@@ -69,7 +69,7 @@ create' username password email herokuUUID = do
     Right secretDigest -> do
       uID <- insertWithPK Table.users
         [User def username email Regular True herokuUUID secretDigest <@ now]
-      logInfo <| "Inserted user " <> displayShow uID <> " " <> displayShow username
+      logInfo <| "Inserted user " <> displayShow uID
       return <| Right uID
 
 updatePassword
