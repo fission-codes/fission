@@ -105,7 +105,6 @@ dependencies:
   - monad-logger
   - mtl
   - random-bytestring
-  - random-strings
   - resource-pool
   - regex-compat
   - rio

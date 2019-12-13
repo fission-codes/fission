@@ -5,7 +5,8 @@ module Fission.Web.Heroku
   , server
   ) where
 
-import           Data.UUID
+import           Data.UUID      as UUID
+import qualified Data.Text      as T
 import           Database.Selda as Selda
 
 import           Servant
@@ -75,9 +76,10 @@ provision Request {uuid, region} = do
                        logError <| displayShow err
                        return []
 
-  secret   <- liftIO <| Random.alphaNumString 50
+  let username = T.pack . UUID.toString <| uuid
+  secret       <- liftIO <| Random.alphaNum 200
 
-  User.createWithHeroku uuid region uuid secret >>= \case
+  User.createWithHeroku uuid region username secret >>= \case
     Left err ->
       Web.Err.throw err
 
@@ -94,7 +96,7 @@ provision Request {uuid, region} = do
         , peers   = ipfsPeers
         , message = "Successfully provisioned Interplanetary Fission!"
         , config  = User.Provision
-           { username = uuid
+           { username = username
            , password = Secret secret
            , url      = url'
            }

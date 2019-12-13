@@ -1,5 +1,5 @@
 module Fission.Internal.URL
-  ( isURL
+  ( isValidURLCharacter
   , specials
   ) where
 
@@ -9,8 +9,8 @@ import Fission.Internal.Bool (anyX)
 import Fission.Prelude
 
 -- | Check that a byte represents a valid URL character
-isURL :: Word8 -> Bool
-isURL = anyX (isAlpha : isDigit : isSpecial)
+isValidURLCharacter :: Word8 -> Bool
+isValidURLCharacter = anyX (isAlpha : isDigit : isSpecial)
   where
     isSpecial = (==) <$> specials
 

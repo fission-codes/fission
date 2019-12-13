@@ -68,13 +68,6 @@ packages:
   original:
     hackage: ip-1.5.1
 - completed:
-    hackage: random-strings-0.1.0.0@sha256:8f0d01d7899599020ca8ffafd321bdb51348cf4f6b477a4b291d2133bf984d11,2537
-    pantry-tree:
-      size: 663
-      sha256: a179360d64fe030cd0a1421dedf641ab1a3c0efad012ffbe719a90e62ed71924
-  original:
-    hackage: random-strings-0.1.0.0
-- completed:
     hackage: raven-haskell-0.1.2.1@sha256:59ab0300183a599650ed5761e3e984ff2934afe1ce6d924d1064876cac90275d,1255
     pantry-tree:
       size: 632
