@@ -48,13 +48,13 @@ main = do
     ipfsURL        = env |> ipfs |> url
     ipfsRemotePeer = env |> ipfs |> remotePeer
     ipfsTimeout    = env |> ipfs |> IPFS.timeout
-    ipfsGateway = env |> ipfs |> gateway
+    ipfsGateway    = env |> ipfs |> gateway
 
-    awsAccessKey  = accessKey
-    awsSecretKey  = secretKey
-    awsZoneID     = zoneID
-    awsDomainName = domainName
-    awsMockEnabled = mockEnabled
+    awsAccessKey          = accessKey
+    awsSecretKey          = secretKey
+    awsZoneID             = zoneID
+    awsDomainName         = domainName
+    awsRoute53MockEnabled = route53MockEnabled
 
   isVerbose  <- isDebugEnabled
   logOptions <- logOptionsHandle stdout isVerbose

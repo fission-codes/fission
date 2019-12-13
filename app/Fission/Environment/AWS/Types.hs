@@ -11,26 +11,26 @@ data Environment = Environment
   , secretKey   :: !AWS.SecretKey  -- ^ Secret Key
   , zoneID      :: !AWS.ZoneID     -- ^ Hosted Zone
   , domainName  :: !AWS.DomainName -- ^ Domain Name
-  , mockEnabled :: !AWS.MockEnabled
+  , route53MockEnabled :: !AWS.Route53MockEnabled
   }
 
 instance Show Environment where
   show Environment {..} = intercalate "\n"
     [ "Environment {"
-    , "  accessKey  = HIDDEN"
-    , "  secretKey  = HIDDEN"
-    , "  zoneId     = " <> show zoneID
-    , "  domainName = " <> show domainName
-    , "  mockEnabled = " <> show mockEnabled
+    , "  accessKey          = HIDDEN"
+    , "  secretKey          = HIDDEN"
+    , "  zoneId             = " <> show zoneID
+    , "  domainName         = " <> show domainName
+    , "  route53MockEnabled = " <> show route53MockEnabled
     , "}"
     ]
 
 instance FromJSON Environment where
   parseJSON = withObject "AWS.Environment" \obj -> do
-    accessKey   <- obj .: "access_key"
-    secretKey   <- obj .: "secret_key"
-    zoneID      <- obj .: "zone_id"
-    domainName  <- obj .: "domain_name"
-    mockEnabled <- obj .:? "mock_enabled" .!= AWS.MockEnabled False
+    accessKey          <- obj .: "access_key"
+    secretKey          <- obj .: "secret_key"
+    zoneID             <- obj .: "zone_id"
+    domainName         <- obj .: "domain_name"
+    route53MockEnabled <- obj .:? "route53_mock_enabled" .!= AWS.Route53MockEnabled False
 
     return <| Environment {..}
