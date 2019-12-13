@@ -82,6 +82,13 @@ packages:
   original:
     hackage: tasty-rerun-1.1.14
 - completed:
+    hackage: text-time-0.2.0@sha256:ae94071e29a5265f60de19c054a5308cee54a849678fbb8ea8d9657510c87b4c,1757
+    pantry-tree:
+      size: 637
+      sha256: 086572dbcc5663ab43f658634dcb3b08cc595690fba0a92387eeb7aa72651d6f
+  original:
+    hackage: text-time-0.2.0
+- completed:
     cabal-file:
       size: 5025
       sha256: c41389ecbce8472cacebe180f29b572013013a76e7adead1505bad377e769ed7

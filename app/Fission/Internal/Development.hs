@@ -17,6 +17,7 @@ import           Fission.Internal.Orphanage.RIO ()
 import           Fission.Storage.PostgreSQL (connPool)
 import qualified Fission.Storage.Types         as DB
 import qualified Network.IPFS.Types            as IPFS
+import qualified Fission.AWS.Types             as AWS
 import qualified Fission.Platform.Heroku.Types as Hku
 import           Fission.Web.Types
 import           Fission.App (runApp)
@@ -88,6 +89,7 @@ run logFunc dbPool processCtx httpManager action =
     awsSecretKey  = "SOME_AWS_SECRET_KEY"
     awsZoneID     = "SOME_AWS_ZONE_ID"
     awsDomainName = "SOME_AWS_DOMAIN_NAME"
+    awsMockEnabled = AWS.MockEnabled True
 
 {- | Setup a complete development configuration with all pure defaults set
 
@@ -132,6 +134,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     awsSecretKey  = "SOME_AWS_SECRET_KEY"
     awsZoneID     = "SOME_AWS_ZONE_ID"
     awsDomainName = "SOME_AWS_DOMAIN_NAME"
+    awsMockEnabled = AWS.MockEnabled True
 
 {- | Setup a complete development configuration.
 

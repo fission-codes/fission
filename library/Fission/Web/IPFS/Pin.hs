@@ -47,10 +47,10 @@ pin ::
   )
   => ID User
   -> RIOServer cfg PinAPI
-pin uID _cid = IPFS.Pin.add _cid >>= \case
+pin uID cid = IPFS.Pin.add cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> do
-    UserCID.create uID _cid
+    UserCID.create uID cid
     pure NoContent
 
 unpin ::
