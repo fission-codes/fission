@@ -43,20 +43,20 @@ import qualified Fission.Web.Heroku            as Heroku
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , Has IPFS.Gateway     cfg
-  , Has IPFS.Peer        cfg
-  , Has Web.Host         cfg
-  , Has AWS.AccessKey    cfg
-  , Has AWS.SecretKey    cfg
-  , Has AWS.ZoneID       cfg
-  , Has AWS.DomainName   cfg
-  , Has AWS.MockEnabled  cfg
-  , Has Heroku.ID        cfg
-  , Has Heroku.Password  cfg
-  , HasLogFunc           cfg
-  , MonadSelda      (RIO cfg)
+  ( MonadLocalIPFS         (RIO cfg)
+  , MonadRemoteIPFS        (RIO cfg)
+  , Has IPFS.Gateway            cfg
+  , Has IPFS.Peer               cfg
+  , Has Web.Host                cfg
+  , Has AWS.AccessKey           cfg
+  , Has AWS.SecretKey           cfg
+  , Has AWS.ZoneID              cfg
+  , Has AWS.DomainName          cfg
+  , Has AWS.Route53MockEnabled  cfg
+  , Has Heroku.ID               cfg
+  , Has Heroku.Password         cfg
+  , HasLogFunc                  cfg
+  , MonadSelda             (RIO cfg)
   )
   => RIO cfg Application
 app = do
@@ -93,18 +93,18 @@ mkAuth = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , Has IPFS.Gateway     cfg
-  , Has IPFS.Peer        cfg
-  , Has Web.Host         cfg
-  , Has AWS.AccessKey    cfg
-  , Has AWS.SecretKey    cfg
-  , Has AWS.ZoneID       cfg
-  , Has AWS.DomainName   cfg
-  , Has AWS.MockEnabled  cfg
-  , HasLogFunc           cfg
-  , MonadSelda      (RIO cfg)
+  ( MonadLocalIPFS         (RIO cfg)
+  , MonadRemoteIPFS        (RIO cfg)
+  , Has IPFS.Gateway            cfg
+  , Has IPFS.Peer               cfg
+  , Has Web.Host                cfg
+  , Has AWS.AccessKey           cfg
+  , Has AWS.SecretKey           cfg
+  , Has AWS.ZoneID              cfg
+  , Has AWS.DomainName          cfg
+  , Has AWS.Route53MockEnabled  cfg
+  , HasLogFunc                  cfg
+  , MonadSelda             (RIO cfg)
   )
   => Web.Host
   -> RIOServer cfg API

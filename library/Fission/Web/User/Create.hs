@@ -33,7 +33,7 @@ server
      , Has AWS.AccessKey   cfg
      , Has AWS.SecretKey   cfg
      , Has AWS.ZoneID      cfg
-     , Has AWS.MockEnabled cfg
+     , Has AWS.Route53MockEnabled cfg
      , MonadSelda     (RIO cfg)
      )
   => RIOServer cfg API

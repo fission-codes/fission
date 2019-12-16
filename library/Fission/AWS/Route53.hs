@@ -3,8 +3,6 @@ module Fission.AWS.Route53
   , registerDomain
   ) where
 
-import           Data.Text.Time
-
 import           Network.AWS
 import           Network.AWS.Auth as AWS
 import           Network.AWS.Prelude hiding (hash)
@@ -30,7 +28,7 @@ registerDomain ::
   , Has AWS.SecretKey  cfg
   , Has AWS.ZoneID     cfg
   , Has AWS.DomainName cfg
-  , Has AWS.MockEnabled cfg
+  , Has AWS.Route53MockEnabled cfg
   )
   => Text
   -> CID
@@ -58,15 +56,15 @@ changeRecord ::
   , Has AWS.AccessKey   cfg
   , Has AWS.SecretKey   cfg
   , Has AWS.ZoneID      cfg
-  , Has AWS.MockEnabled cfg
+  , Has AWS.Route53MockEnabled cfg
   )
   => RecordType
   -> Text
   -> Text
   -> m (Either ServerError ChangeResourceRecordSetsResponse)
 changeRecord recordType domain content = do
-  AWS.MockEnabled mockAws <- Config.get
-  if mockAws
+  AWS.Route53MockEnabled mockRoute53 <- Config.get
+  if mockRoute53
     then changeRecordMock recordType domain content
     else changeRecord' recordType domain content
 
@@ -77,19 +75,20 @@ changeRecordMock :: (MonadRIO cfg m, HasLogFunc cfg)
   -> Text
   -> m (Either ServerError ChangeResourceRecordSetsResponse)
 changeRecordMock recordType domain content = do
+    mockTime <- liftIO <| getCurrentTime
+
+    let mockMessage = "MOCK: Updating DNS "
+            <> displayShow recordType
+            <> " record at: "
+            <> displayShow domain
+            <> " with "
+            <> displayShow content
+        mockId = "test123"
+        mockChangeInfo = changeInfo mockId Pending mockTime
+        mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
+
     logDebug mockMessage
     return (Right mockRecordResponse)
-  where
-    mockMessage = "MOCK: Updating DNS "
-                  <> displayShow recordType
-                  <> " record at: "
-                  <> displayShow domain
-                  <> " with "
-                  <> displayShow content
-    mockTime = parseISODateTime "2011-11-19 18:28:52.607875 UTC"
-    mockId = "test123"
-    mockChangeInfo = changeInfo mockId Pending mockTime
-    mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
 
 -- | Change the given DNS record on Route53
 changeRecord' ::

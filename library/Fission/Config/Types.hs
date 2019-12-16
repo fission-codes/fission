@@ -13,45 +13,45 @@ import qualified Fission.AWS.Types             as AWS
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config dbBackend = Config
-  { processCtx     :: !ProcessContext
-  , logFunc        :: !LogFunc
-  , httpManager    :: !HTTP.Manager
-  , ipfsPath       :: !IPFS.BinPath
-  , ipfsURL        :: !IPFS.URL
-  , ipfsRemotePeer :: !IPFS.Peer
-  , ipfsTimeout    :: !IPFS.Timeout
-  , ipfsGateway    :: !IPFS.Gateway
-  , host           :: !Host
-  , dbPool         :: !(DB.Pool dbBackend)
-  , herokuID       :: !Heroku.ID
-  , herokuPassword :: !Heroku.Password
-  , awsAccessKey   :: !AWS.AccessKey
-  , awsSecretKey   :: !AWS.SecretKey
-  , awsZoneID      :: !AWS.ZoneID
-  , awsDomainName  :: !AWS.DomainName
-  , awsMockEnabled :: !AWS.MockEnabled
+  { processCtx            :: !ProcessContext
+  , logFunc               :: !LogFunc
+  , httpManager           :: !HTTP.Manager
+  , ipfsPath              :: !IPFS.BinPath
+  , ipfsURL               :: !IPFS.URL
+  , ipfsRemotePeer        :: !IPFS.Peer
+  , ipfsTimeout           :: !IPFS.Timeout
+  , ipfsGateway           :: !IPFS.Gateway
+  , host                  :: !Host
+  , dbPool                :: !(DB.Pool dbBackend)
+  , herokuID              :: !Heroku.ID
+  , herokuPassword        :: !Heroku.Password
+  , awsAccessKey          :: !AWS.AccessKey
+  , awsSecretKey          :: !AWS.SecretKey
+  , awsZoneID             :: !AWS.ZoneID
+  , awsDomainName         :: !AWS.DomainName
+  , awsRoute53MockEnabled :: !AWS.Route53MockEnabled
   } deriving Generic
 
 instance Show (Config dbBackend) where
   show Config {..} = intercalate "\n"
     [ "Config {"
-    , "  processCtx     = **SOME PROC CONTEXT**"
-    , "  logFunc        = **SOME LOG FUNCTION**"
-    , "  httpManager    = **SOME HTTP MANAGER**"
-    , "  ipfsPath       = " <> show ipfsPath
-    , "  ipfsURL        = " <> show ipfsURL
-    , "  ipfsRemotePeer = " <> show ipfsRemotePeer
-    , "  ipfsTimeout    = " <> show ipfsTimeout
-    , "  ipfsGateway    = " <> show ipfsGateway
-    , "  host           = " <> show host
-    , "  dbPool         = " <> show dbPool
-    , "  herokuID       = " <> show herokuID
-    , "  herokuPassword = " <> show herokuPassword
-    , "  awsAccessKey   = " <> show awsAccessKey
-    , "  awsSecretKey   = HIDDEN"
-    , "  awsZoneID      = " <> show awsZoneID
-    , "  awsDomainName  = " <> show awsDomainName
-    , "  awsMockEnabled = " <> show awsMockEnabled
+    , "  processCtx            = **SOME PROC CONTEXT**"
+    , "  logFunc               = **SOME LOG FUNCTION**"
+    , "  httpManager           = **SOME HTTP MANAGER**"
+    , "  ipfsPath              = " <> show ipfsPath
+    , "  ipfsURL               = " <> show ipfsURL
+    , "  ipfsRemotePeer        = " <> show ipfsRemotePeer
+    , "  ipfsTimeout           = " <> show ipfsTimeout
+    , "  ipfsGateway           = " <> show ipfsGateway
+    , "  host                  = " <> show host
+    , "  dbPool                = " <> show dbPool
+    , "  herokuID              = " <> show herokuID
+    , "  herokuPassword        = " <> show herokuPassword
+    , "  awsAccessKey          = " <> show awsAccessKey
+    , "  awsSecretKey          = HIDDEN"
+    , "  awsZoneID             = " <> show awsZoneID
+    , "  awsDomainName         = " <> show awsDomainName
+    , "  awsRoute53MockEnabled = " <> show awsRoute53MockEnabled
     , "}"
     ]
 
@@ -115,9 +115,9 @@ instance Has AWS.DomainName (Config db) where
   hasLens = lens awsDomainName \cfg newAWSDomainName ->
     cfg { awsDomainName = newAWSDomainName }
 
-instance Has AWS.MockEnabled (Config db) where
-  hasLens = lens awsMockEnabled \cfg newAWSMockEnabled ->
-    cfg { awsMockEnabled = newAWSMockEnabled }
+instance Has AWS.Route53MockEnabled (Config db) where
+  hasLens = lens awsRoute53MockEnabled \cfg newAWSMockEnabled ->
+    cfg { awsRoute53MockEnabled = newAWSMockEnabled }
 
 instance Has Host (Config db) where
   hasLens = lens host \cfg newHost ->
