@@ -26,6 +26,7 @@ bsRandomLength len =
     len
     |> (* 100)
     |> BS.random
+    |> liftIO
     |> fmap (BS.take toTake)
   where
     toTake = fromIntegral len
