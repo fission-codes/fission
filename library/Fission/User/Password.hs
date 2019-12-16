@@ -6,5 +6,5 @@ import qualified Fission.User.Password.Types as User
 
 random :: MonadIO m => m User.Password
 random = do
-  pass <- liftIO <| Random.alphaNum 50
+  pass <- Random.alphaNum 50
   return <| User.Password pass

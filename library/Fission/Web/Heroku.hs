@@ -76,8 +76,8 @@ provision Request {uuid, region} = do
                        logError <| displayShow err
                        return []
 
-  let username = T.pack . UUID.toString <| uuid
-  secret       <- liftIO <| Random.alphaNum 50
+  let username = T.pack <| UUID.toString uuid
+  secret       <- Random.alphaNum 50
 
   User.createWithHeroku uuid region username secret >>= \case
     Left err ->

@@ -9,21 +9,26 @@ import qualified RIO.ByteString         as BS
 import qualified Fission.Internal.URL   as URL
 import           Data.Text              as T
 import           Data.Word8
-import           GHC.Natural
 
 import Fission.Prelude
 
 -- | Generate random AlphaNumeric 'Text' with a given length
-alphaNum :: Natural -> IO Text
+alphaNum :: MonadIO m => Natural -> m Text
 alphaNum len = decodeUtf8Lenient . BS.filter isAsciiAlphaNum <$> bsRandomLength len
 
 -- | Generate random AlphaNumericSymbol 'Text' with a given length
-alphaNumSymbol :: Natural -> IO Text
+alphaNumSymbol :: MonadIO m => Natural -> m Text
 alphaNumSymbol len = decodeUtf8Lenient . BS.filter URL.isValidURLCharacter <$> bsRandomLength len
 
 -- | Generate random 'ByteString' with a given length
-bsRandomLength :: Natural -> IO ByteString
-bsRandomLength len = BS.take (naturalToInt len) <$> BS.random (len * 100)
+bsRandomLength :: MonadIO m => Natural -> m ByteString
+bsRandomLength len =
+    len
+    |> (* 100)
+    |> BS.random
+    |> fmap (BS.take toTake)
+  where
+    toTake = fromIntegral len
 
 -- | Check if a given character is AlphaNumeric
 isAsciiAlphaNum :: Word8 -> Bool
