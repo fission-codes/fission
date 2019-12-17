@@ -20,6 +20,7 @@ import           Fission.Prelude
 import           Fission.App (runApp)
 import           Fission.Config.Types (Config (..))
 
+import qualified Fission.AWS.Types             as AWS
 import           Fission.Web.Types
 
 import qualified Fission.Platform.Heroku.ID.Types       as Hku
