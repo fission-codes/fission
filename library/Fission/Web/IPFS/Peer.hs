@@ -6,7 +6,6 @@ module Fission.Web.IPFS.Peer
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Web.Server
 import qualified Fission.Web.Error  as Web.Err
 import qualified Fission.Config     as Config
 
@@ -18,11 +17,13 @@ type API = Get '[JSON, PlainText, OctetStream] [IPFS.Peer]
 
 -- | Get a list of valid IPFS addresses that a user could use to join our network
 get ::
-  ( MonadLocalIPFS (RIO cfg)
-  , Has IPFS.Peer  cfg
-  , HasLogFunc        cfg
+  ( MonadReader   cfg m
+  , Has IPFS.Peer cfg
+  , MonadLocalIPFS    m
+  , MonadLogger       m
+  , MonadThrow        m
   )
-  => RIOServer cfg API
+  => ServerT API m
 get = do
   remotePeer <- Config.get
   getExternalAddress >>= \case

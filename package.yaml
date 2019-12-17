@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '2.0.1'
+version: '2.0.2'
 category: API
 author:
   - Brooklyn Zelenka
@@ -46,6 +46,7 @@ default-extensions:
   - DeriveTraversable
   - DerivingStrategies
   - DuplicateRecordFields
+  - EmptyDataDecls
   - FlexibleContexts
   - FlexibleInstances
   - FunctionalDependencies
@@ -89,6 +90,7 @@ dependencies:
   - data-has
   - ekg-wai
   - envy
+  - esqueleto
   - flow
   - filepath
   - fsnotify
@@ -103,14 +105,17 @@ dependencies:
   - lens
   - mime-types
   - monad-logger
+  - monad-time
   - mtl
+  - persistent
+  - persistent-postgresql
+  - persistent-template
   - random-bytestring
   - resource-pool
   - regex-compat
   - rio
   - rio-orphans
   - scientific
-  - selda
   - servant
   - servant-auth-server
   - servant-auth-swagger
@@ -148,7 +153,6 @@ executables:
     dependencies:
       - fission-web-api
       - raven-haskell
-      - selda-postgresql
       - wai-logger
     ghc-options:
       - -threaded

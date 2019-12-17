@@ -9,17 +9,15 @@ module Fission.Web.IPFS
   , server
   ) where
 
-import           Database.Selda
-
+import           Database.Esqueleto
 import           Servant
-
-import           Fission.Prelude
-import           Fission.User
 
 import           Network.IPFS
 import           Network.IPFS.Types as IPFS
 
-import           Fission.Web.Server
+import           Fission.Models
+import           Fission.Prelude
+
 import qualified Fission.Web.IPFS.CID      as CID
 import qualified Fission.Web.IPFS.Upload   as Upload
 import qualified Fission.Web.IPFS.Download as Download
@@ -30,7 +28,7 @@ import qualified Fission.Web.IPFS.Peer     as Peer
 type API = AuthedAPI
       :<|> PublicAPI
 
-type Auth = BasicAuth "registered users" User
+type Auth = BasicAuth "registered users" (Entity User)
 
 type AuthedAPI = Auth :> UnauthedAPI
 
@@ -43,32 +41,39 @@ type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
 server ::
-  ( MonadSelda      (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , HasLogFunc           cfg
-  , Has IPFS.Peer     cfg
+  ( MonadReader   cfg m
+  , Has IPFS.Peer cfg
+  , MonadRemoteIPFS   m
+  , MonadLocalIPFS    m
+  , MonadLogger       m
+  , MonadThrow        m
+  , MonadTime         m
+  , MonadDB           m
   )
-  => RIOServer           cfg API
+  => ServerT API m
 server = authed :<|> public
 
 authed ::
-  ( MonadSelda      (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , HasLogFunc           cfg
+  ( MonadDB         m
+  , MonadRemoteIPFS m
+  , MonadLocalIPFS  m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
   )
-  => RIOServer           cfg AuthedAPI
+  => ServerT AuthedAPI m
 authed usr = CID.allForUser usr
         :<|> Upload.add usr
         :<|> Pin.server usr
         :<|> DAG.put usr
 
 public ::
-  ( MonadLocalIPFS (RIO cfg)
-  , Has IPFS.Peer     cfg
-  , HasLogFunc          cfg
+  ( MonadReader   cfg m
+  , Has IPFS.Peer cfg
+  , MonadLocalIPFS    m
+  , MonadLogger       m
+  , MonadThrow        m
   )
-  => RIOServer          cfg PublicAPI
+  => ServerT PublicAPI m
 public = Peer.get
     :<|> Download.get

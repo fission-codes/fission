@@ -4,69 +4,54 @@ module Fission.User.CID.Mutation
   , createX
   ) where
 
-import Database.Selda
+import Database.Esqueleto
 import RIO.List ((\\))
-import RIO.Orphans ()
-
-import Fission.Prelude
-import Fission.Timestamp      as Timestamp
 import Network.IPFS.CID.Types as IPFS.CID
 
-import           Fission.User           (User)
-import           Fission.User.CID.Query
-import qualified Fission.User.CID.Table as Table
-import           Fission.User.CID.Types
+import Fission.Prelude
+import Fission.Models
 
 -- | Create a new, timestamped entry
-create
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     , MonadSelda     m
-     , MonadMask      m
-     )
-  => ID User
+create ::
+  ( MonadTime   m
+  , MonadDB     m
+  )
+  => UserId
   -> CID
-  -> m (Maybe (ID UserCID))
-create userID (CID hash) = do
-  now   <- liftIO getCurrentTime
-  mayID <- insertUnless Table.userCIDs (eqUserCID userID hash)
-            [UserCID def userID hash <@ now]
-
-  logDebug <| case mayID of
-    Nothing  -> "UserCID already exists for " <> display hash
-    Just _id -> "Inserted a new UserCID for CID " <> display hash
-
-  return mayID
+  -> m (Maybe UserCIDId)
+create userId cid = runDBNow \now -> do
+  insertUnique UserCID
+    { userCIDUserFk     = userId
+    , userCIDCid        = cid
+    , userCIDInsertedAt = now
+    , userCIDModifiedAt = now
+    }
 
 -- | Create new 'UserCID's, ignoring existing values (set-like)
-createX
-  :: ( MonadRIO   cfg m
-     , MonadSelda     m
-     , HasLogFunc cfg
-     )
-  => ID User
+createX ::
+  ( MonadDB     m
+  , MonadTime   m
+  )
+  => UserId
   -> [CID]
   -> m [CID]
-createX uID (fmap IPFS.CID.unaddress -> hashes) = do
-  results <- query do
-    uCIDs <- select Table.userCIDs `suchThat` inUserCIDs uID hashes
-    return <| uCIDs ! #cid
-
-  now <- liftIO getCurrentTime
+createX userId hashes = runDBNow \now -> do
+  existingCIDs <- select <| from \userCID -> do
+    where_ (userCID ^. UserCIDCid `in_` valList hashes)
+    return (userCID ^. UserCIDCid)
 
   let
-    mkFresh   = Timestamp.add now . UserCID def uID
-    newHashes = hashes \\ results
+    mkFresh :: CID -> UserCID
+    mkFresh cid = UserCID
+      { userCIDUserFk     = userId
+      , userCIDCid        = cid
+      , userCIDInsertedAt = now
+      , userCIDModifiedAt = now
+      }
 
-  newHashes
-    |> fmap mkFresh
-    |> insert Table.userCIDs
+    existingRawCIDs = unValue <$> existingCIDs
+    newHashes       = hashes \\ existingRawCIDs
+    toInsert        = mkFresh <$> newHashes
 
-  logDebug <| mconcat
-    [ "Created "
-    , display (length newHashes)
-    , " new UserCID(s): "
-    , displayShow newHashes
-    ]
-
-  return <| fmap CID <| newHashes
+  insertMany_ toInsert
+  return newHashes

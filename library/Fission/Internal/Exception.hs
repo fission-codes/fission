@@ -10,18 +10,11 @@ module Fission.Internal.Exception
 import           Control.Monad.Except
 import qualified Data.Bifunctor       as BF
 
-import Fission.Internal.Constraint
-import Fission.Prelude
+import            Fission.Prelude
 
 -- | Run inside a context that understands automated error logging.
 --   Returns the result of the underlying action, and a simple 'Either'
-runLogged
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     , Show err
-     )
-  => ExceptT err m ()
-  -> m ()
+runLogged :: (MonadLogger m, Show err) => ExceptT err m () -> m ()
 runLogged actions = handleWith (logError . displayShow) actions
 
 -- | The same as 'handleWith', but with arguments flipped

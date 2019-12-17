@@ -92,9 +92,8 @@ instance ToServerError Linearization where
   toServerError _ = err500 { errBody = "Unable to linearize IPFS result" }
 
 ensure
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     , MonadThrow     m
+  :: ( MonadLogger m
+     , MonadThrow  m
      , Display       err
      , ToServerError err
      )
@@ -102,28 +101,24 @@ ensure
   -> m a
 ensure = either throw pure
 
-ensureM
-  :: ( MonadRIO   cfg m
-     , MonadThrow     m
-     , Exception err
-     )
+ensureM ::
+  ( MonadThrow     m
+  , Exception err
+  )
   => Either err a
   -> m a
 ensureM = either throwM pure
 
-ensureMaybe
-  :: ( MonadRIO   cfg m
-     , MonadThrow     m
-     )
+ensureMaybe ::
+  MonadThrow m
   => ServerError
   -> Maybe a
   -> m a
 ensureMaybe err = maybe (throwM err) pure
 
 throw
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     , MonadThrow     m
+  :: ( MonadLogger m
+     , MonadThrow  m
      , Display       err
      , ToServerError err
      )
@@ -134,5 +129,7 @@ throw err = do
     serverError@(ServerError {..}) = toServerError err
     status = Status errHTTPCode <| Lazy.toStrict errBody
 
-  when (statusIsServerError status) (logError <| display err)
+  when (statusIsServerError status) do
+    logError <| textDisplay err
+
   throwM serverError

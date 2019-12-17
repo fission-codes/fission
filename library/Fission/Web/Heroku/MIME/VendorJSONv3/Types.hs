@@ -1,4 +1,4 @@
-module Fission.Web.Heroku.MIME (VendorJSONv3 (..)) where
+module Fission.Web.Heroku.MIME.VendorJSONv3.Types (VendorJSONv3 (..)) where
 
 import Network.HTTP.Media ((//), (/:))
 import Servant.API

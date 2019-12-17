@@ -15,13 +15,12 @@ import           Fission.Internal.Orphanage.BasicAuthData ()
 import           Fission.Internal.Orphanage.MultipartForm ()
 
 import qualified Fission.Web.Routes as Web
-import           Fission.Web.Server
 import qualified Fission.Web.Types as Web
 
 type API = SwaggerSchemaUI "docs" "docs.json"
 
-server :: Web.Host -> RIOServer cfg API
-server appHost =
+server :: (forall a . Handler a -> m a) -> Web.Host -> ServerT API m
+server fromHandler appHost =
   appHost
     |> docs
     |> swaggerSchemaUIServer

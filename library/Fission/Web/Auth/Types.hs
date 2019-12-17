@@ -4,13 +4,14 @@ module Fission.Web.Auth.Types
   , HerokuAddOnAPI
   ) where
 
+import Database.Esqueleto
 import Servant (BasicAuth)
 
 import Fission.Prelude
-import Fission.User.Types
+import Fission.Models
 
 -- | Authorization check for a normal user
-type ExistingUser = BasicAuth "existing user" User
+type ExistingUser = BasicAuth "existing user" (Entity User)
 
 -- | Authorization check for the Heroku Addon API
 type HerokuAddOnAPI = BasicAuth "heroku add-on api" ByteString

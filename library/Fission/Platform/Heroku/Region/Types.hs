@@ -1,24 +1,9 @@
-module Fission.Platform.Heroku.Types
-  ( ID (..)
-  , Password (..)
-  , Region (..)
-  ) where
+module Fission.Platform.Heroku.Region.Types (Region (..)) where
 
-import Database.Selda (SqlType)
+import Database.Persist.TH
 import Data.Swagger as Swagger
-import RIO.Partial (read)
 
 import Fission.Prelude
-
--- | Heroku add-on ID (from @addon-manifest.json@)
-newtype ID = ID { getID :: ByteString }
-  deriving         (Eq, Show)
-  deriving newtype IsString
-
--- | Heroku add-on password (from @addon-manifest.json@)
-newtype Password = Password { getPassword :: ByteString }
-  deriving         (Eq, Show)
-  deriving newtype IsString
 
 -- | Location of Heroku server requesting keys
 data Region
@@ -33,11 +18,10 @@ data Region
   deriving ( Show
            , Read
            , Eq
-           , Enum
            , Generic
-           , Bounded
-           , SqlType
            )
+
+derivePersistField "Region"
 
 instance ToJSON Region where
   toJSON = String . \case
@@ -63,10 +47,10 @@ instance FromJSON Region where
     bad -> fail <| "Invalid region: " <> show bad
 
 instance ToSchema Region where
-  declareNamedSchema = genericDeclareNamedSchema <| defaultSchemaOptions
-    { Swagger.constructorTagModifier = (\str -> take (length str - 1) str)
-                                     . drop 8
-                                     . show
-                                     . toJSON
-                                     . (read :: String -> Region)
-    }
+    declareNamedSchema _ =
+      mempty
+        |> type_      ?~ SwaggerString
+        |> description ?~ "The Heroku hosted region where the user's data is hoted"
+        |> example ?~ toJSON Tokyo
+        |> NamedSchema (Just "HerokuRegion")
+        |> pure

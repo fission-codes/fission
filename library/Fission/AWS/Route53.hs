@@ -20,9 +20,10 @@ import           Network.IPFS.Gateway.Types
 import           Network.IPFS.CID.Types
 
 registerDomain ::
-  ( MonadRIO           cfg m
+  ( MonadReader        cfg m
   , MonadUnliftIO          m
-  , HasLogFunc         cfg
+  , MonadLogger            m
+  , MonadTime              m
   , Has IPFS.Gateway   cfg
   , Has AWS.AccessKey  cfg
   , Has AWS.SecretKey  cfg
@@ -50,12 +51,13 @@ registerDomain username (CID hash) = do
         Right _ -> return <| Right <| AWS.DomainName baseUrl
 
 changeRecord ::
-  ( MonadRIO            cfg m
-  , MonadUnliftIO           m
-  , HasLogFunc          cfg
-  , Has AWS.AccessKey   cfg
-  , Has AWS.SecretKey   cfg
-  , Has AWS.ZoneID      cfg
+  ( MonadReader       cfg m
+  , MonadUnliftIO         m
+  , MonadLogger           m
+  , MonadTime             m
+  , Has AWS.AccessKey cfg
+  , Has AWS.SecretKey cfg
+  , Has AWS.ZoneID    cfg
   , Has AWS.Route53MockEnabled cfg
   )
   => RecordType
@@ -69,32 +71,39 @@ changeRecord recordType domain content = do
     else changeRecord' recordType domain content
 
 -- | Mock changing the given DNS record on Route53
-changeRecordMock :: (MonadRIO cfg m, HasLogFunc cfg)
+changeRecordMock :: -- FIXME this is temporary hack
+  ( MonadLogger m
+  , MonadTime   m
+  )
   => RecordType
   -> Text
   -> Text
   -> m (Either ServerError ChangeResourceRecordSetsResponse)
 changeRecordMock recordType domain content = do
-    mockTime <- liftIO <| getCurrentTime
+    mockTime <- currentTime
 
-    let mockMessage = "MOCK: Updating DNS "
-            <> displayShow recordType
-            <> " record at: "
-            <> displayShow domain
-            <> " with "
-            <> displayShow content
-        mockId = "test123"
-        mockChangeInfo = changeInfo mockId Pending mockTime
-        mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
+    let
+      mockMessage = mconcat
+        [ "MOCK: Updating DNS "
+        , show recordType
+        , " record at: "
+        , show domain
+        , " with "
+        , show content
+        ]
+
+      mockId             = "test123"
+      mockChangeInfo     = changeInfo mockId Pending mockTime
+      mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
 
     logDebug mockMessage
     return (Right mockRecordResponse)
 
 -- | Change the given DNS record on Route53
 changeRecord' ::
-  ( MonadRIO           cfg m
+  ( MonadReader        cfg m
   , MonadUnliftIO          m
-  , HasLogFunc         cfg
+  , MonadLogger            m
   , Has AWS.AccessKey  cfg
   , Has AWS.SecretKey  cfg
   , Has AWS.ZoneID     cfg
@@ -115,9 +124,9 @@ changeRecord' recordType domain content = do
 
 -- | Create the AWS change request for Route53
 createChangeRequest ::
-  ( MonadRIO       cfg m
+  ( MonadReader    cfg m
   , Has AWS.ZoneID cfg
-    )
+  )
   => RecordType
   -> Text
   -> Text

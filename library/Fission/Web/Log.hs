@@ -9,10 +9,8 @@ import Network.Wai.Logger
 
 import Fission.Prelude
 
-rioApacheLogger
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     )
+rioApacheLogger ::
+  MonadLogger m
   => Request
   -> Status
   -> Maybe Integer

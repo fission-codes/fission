@@ -6,7 +6,6 @@ module Fission.Web.IPFS.Download
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Web.Server
 import qualified Fission.Web.Error as Web.Err
 
 import           Network.IPFS
@@ -24,24 +23,27 @@ type QueryAPI = QueryParam "cid" IPFS.CID
              :> Get '[OctetStream, PlainText] File.Serialized
 
 get ::
-  ( MonadLocalIPFS (RIO cfg)
-  , HasLogFunc          cfg
+  ( MonadLocalIPFS m
+  , MonadLogger    m
+  , MonadThrow     m
   )
-  => RIOServer          cfg API
+  => ServerT API m
 get = pathGet :<|> queryGet
 
 queryGet ::
-  ( MonadLocalIPFS (RIO cfg) 
-  , HasLogFunc          cfg
+  ( MonadLocalIPFS m
+  , MonadLogger    m
+  , MonadThrow     m
   )
-  => RIOServer          cfg QueryAPI
+  => ServerT QueryAPI m
 queryGet = \case
   Just cid -> IPFS.getFile cid >>= Web.Err.ensure
   Nothing  -> throwM err404
 
 pathGet ::
-  ( MonadLocalIPFS (RIO cfg)
-  , HasLogFunc          cfg
+  ( MonadLocalIPFS m
+  , MonadLogger    m
+  , MonadThrow     m
   )
-  => RIOServer          cfg PathAPI
+  => ServerT PathAPI m
 pathGet cid = IPFS.getFile cid >>= Web.Err.ensure

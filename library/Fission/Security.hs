@@ -3,8 +3,7 @@ module Fission.Security
   ( mkSecret
   , toSecret
   , Digestable (..)
-  , SecretDigest
-  , Secret (unSecret)
+  , module Fission.Security.Types
   ) where
 
 import           Crypto.Hash

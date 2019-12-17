@@ -4,12 +4,28 @@
 module Fission.Internal.Orphanage.UUID () where
 
 import           Data.UUID   as UUID
-import qualified RIO.Partial as Partial
+import qualified Data.ByteString.Char8 as BS8
+import           Database.Persist.Sql
 
-import Fission.Prelude
+import           Fission.Prelude
 
-instance Enum UUID
+instance PersistField UUID where
+  toPersistValue uuid =
+    uuid
+      |> UUID.toString
+      |> BS8.pack
+      |> PersistDbSpecific
 
-instance Bounded UUID where
-  minBound = "00000000-0000-0000-0000-000000000000" |> UUID.fromString |> Partial.fromJust
-  maxBound = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF" |> UUID.fromString |> Partial.fromJust
+  fromPersistValue (PersistDbSpecific txt) =
+    txt
+      |> BS8.unpack
+      |> UUID.fromString
+      |> \case
+            Just x  -> Right x
+            Nothing -> Left "Invalid UUID"
+
+  fromPersistValue _ =
+    Left "Not PersistDBSpecific"
+
+instance PersistFieldSql UUID where
+  sqlType _ = SqlOther "uuid"

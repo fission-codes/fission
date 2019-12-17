@@ -1,13 +1,11 @@
 module Fission.Environment.Storage.Types (Environment (..)) where
 
-import Database.Selda.PostgreSQL
-
 import Fission.Prelude
-import Fission.Internal.Orphanage.PGConnectInfo ()
+import Fission.Storage.PostgreSQL.ConnectionInfo.Types
 
 -- | Configuration for the web application
 data Environment = Environment
-  { pgConnectInfo  :: !PGConnectInfo  -- ^ PostgreSQL configuration
+  { pgConnectInfo  :: !ConnectionInfo  -- ^ PostgreSQL configuration
   , stripeCount    :: !Int             -- ^ Number of database stripes
   , connsPerStripe :: !Int             -- ^ Maximum number of concurrent connections per stripe
   , connTTL        :: !NominalDiffTime -- ^ Maxiumum connection time

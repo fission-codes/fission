@@ -1,6 +1,7 @@
-module Fission.Platform.Heroku.AddOn.Manifest
+module Fission.Platform.Heroku.AddOn.Manifest.Types
   ( Manifest (..)
-  , API (..)
+  , password
+  , ssoSalt
   ) where
 
 import Fission.Prelude
