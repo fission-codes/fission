@@ -37,12 +37,13 @@ HerokuAddOn
   deriving Show Eq
 
 User
+  did           Text          Maybe
   username      Text
   email         Text          Maybe
   role          Role
   active        Bool
   herokuAddOnId HerokuAddOnId Maybe
-  secretDigest  SecretDigest
+  secretDigest  SecretDigest  Maybe
 
   insertedAt    UTCTime
   modifiedAt    UTCTime

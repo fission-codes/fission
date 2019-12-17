@@ -3,14 +3,17 @@ module Fission.Web.User.Create
   , server
   ) where
 
+import           Fission.Prelude
+
 import           Servant
+
+import           Fission.IPFS.DNSLink as DNSLink
+import qualified Fission.User as User
 import           Network.IPFS.CID.Types
 
-import           Fission.Prelude
-import           Fission.IPFS.DNSLink as DNSLink
-import           Fission.Web.Error    as Web.Err
+import           Fission.Web.Error as Web.Err
 
-import qualified Fission.User as User
+import           Fission.User.DID.Types
 
 type API = ReqBody '[JSON] User.Registration
         :> Post    '[JSON] ()
@@ -22,10 +25,11 @@ server ::
   , MonadDB      t m
   , User.Creator t
   )
-  => ServerT API m
-server (User.Registration username password email) = do
+  => DID
+  -> ServerT API m
+server did (User.Registration username email) = do
   Nothing
-    |> User.create username password (Just email)
+    |> User.create username (Left did) (Just email)
     |> runDBNow
     |> bind Web.Err.ensure
     |> void

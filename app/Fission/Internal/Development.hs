@@ -67,8 +67,8 @@ runOne action = do
      > runSession Network.IPFS.Peer.connect Fission.peer
      > -- ()
 -}
-run
-  :: LogFunc
+run ::
+     LogFunc
   -> Pool SqlBackend
   -> ProcessContext
   -> HTTP.Manager
@@ -123,7 +123,12 @@ run logFunc dbPool processCtx httpManager action =
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-mkConfig :: Pool SqlBackend -> ProcessContext -> HTTP.Manager -> LogFunc -> Config
+mkConfig ::
+     Pool SqlBackend
+  -> ProcessContext
+  -> HTTP.Manager
+  -> LogFunc
+  -> Config
 mkConfig dbPool processCtx httpManager logFunc = Config {..}
   where
     host = Host <| BaseUrl Https "mycoolapp.io" 443 ""

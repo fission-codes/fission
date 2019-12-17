@@ -9,15 +9,14 @@ module Fission.Web.IPFS
   , server
   ) where
 
-import           Database.Esqueleto
 import           Network.IPFS
 import           Servant
 
 import           Fission.IPFS.Linked
-import           Fission.Models
 import           Fission.Prelude
 
 import qualified Fission.User.CID as User.CID
+import qualified Fission.Web.Auth.Types as Auth
 
 import qualified Fission.Web.IPFS.CID      as CID
 import qualified Fission.Web.IPFS.Upload   as Upload
@@ -29,7 +28,7 @@ import qualified Fission.Web.IPFS.Peer     as Peer
 type API = AuthedAPI
       :<|> PublicAPI
 
-type Auth = BasicAuth "registered users" (Entity User)
+type Auth = Auth.HigherOrder
 
 type AuthedAPI = Auth :> UnauthedAPI
 

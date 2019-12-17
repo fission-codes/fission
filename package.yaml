@@ -88,6 +88,7 @@ dependencies:
   - amazonka-core
   - amazonka-route53
   - base
+  - base64-bytestring
   - bcrypt
   - cryptonite
   - bytestring
@@ -110,6 +111,7 @@ dependencies:
   - ipfs
   - lens
   - lens-aeson
+  - memory
   - mime-types
   - monad-logger
   - monad-time
@@ -129,6 +131,7 @@ dependencies:
   - servant-auth-server
   - servant-auth-swagger
   - servant-client
+  - servant-client-core
   - servant-multipart
   - servant-server
   - servant-swagger
@@ -150,6 +153,7 @@ dependencies:
   - warp-tls
   - word8
   - world-peace
+  - vault
   - vector
   - yaml
 

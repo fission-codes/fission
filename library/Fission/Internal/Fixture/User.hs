@@ -11,10 +11,11 @@ user = User
   , userEmail    = Just "test@fission.codes"
   , userRole     = User.Roles.Regular
   , userActive   = True
+  , userDid      = Just "1498b5467a63dffa2dc9d9e069caf075d16fc33fdd4c3b01bfadae6433767d93"
 
   --
   , userHerokuAddOnId = Nothing
-  , userSecretDigest  = "SECRET_DIGEST"
+  , userSecretDigest  = Nothing
 
   --
   , userInsertedAt = agesAgo

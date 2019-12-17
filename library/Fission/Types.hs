@@ -3,7 +3,6 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
-import           Crypto.BCrypt
 import           Control.Monad.Catch
 import qualified Database.Persist.Sql as SQL
 
@@ -11,8 +10,10 @@ import qualified RIO.ByteString.Lazy as Lazy
 
 import           Servant
 import           Servant.Client
+import           Servant.Server.Experimental.Auth
+import           Network.Wai
 
-import           Network.AWS as AWS
+import           Network.AWS as AWS hiding (Request)
 import           Network.AWS.Route53
 
 import           Network.IPFS
@@ -38,11 +39,14 @@ import           Fission.Platform.Heroku.Auth.Types     as Heroku
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
 
-import qualified Fission.Web.Auth as Auth
 import           Fission.Web.Auth.Class
-import           Fission.Web.Server.Reflective
+import qualified Fission.Web.Auth     as Auth
+import qualified Fission.Web.Auth.DID as Auth.DID
 
-import           Fission.User as User
+import           Fission.Web.Server.Reflective
+import           Fission.Web.Handler
+
+import           Fission.User.DID.Types
 import           Fission.Models
 
 -- | The top-level app type
@@ -191,7 +195,7 @@ instance MonadRemoteIPFS Fission where
         |> runClientM query
         |> liftIO
 
-instance MonadAuth Heroku.Auth Fission where
+instance MonadAuth (BasicAuthCheck Heroku.Auth) Fission where
   verify = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
@@ -201,37 +205,14 @@ instance MonadAuth Heroku.Auth Fission where
       |> fmap Heroku.Auth
       |> return
 
-instance MonadAuth (SQL.Entity User) Fission where
+instance MonadAuth (AuthHandler Request DID) Fission where
   verify = do
     cfg <- ask
-    return (BasicAuthCheck (check cfg))
+    return <| mkAuthHandler \req ->
+      toHandler (runRIO cfg) <| unwrapFission <| Auth.DID.handler req
 
-    where
-      check :: Config -> BasicAuthData -> IO (BasicAuthResult (SQL.Entity User))
-      check cfg (BasicAuthData username password) =
-        username
-          |> decodeUtf8Lenient
-          |> User.getByUsername
-          |> runDB
-          |> bind \case
-            Nothing -> do
-              logWarn <| attemptMsg username
-              return NoSuchUser
-
-            Just usr ->
-              validate' usr username password
-          |> unwrapFission
-          |> runRIO cfg
-
-      validate' :: MonadLogger m => SQL.Entity User -> ByteString -> ByteString -> m (BasicAuthResult (SQL.Entity User))
-      validate' usr@(SQL.Entity _ User { userSecretDigest }) username password =
-        if validatePassword (encodeUtf8 userSecretDigest) password
-           then
-              return (Authorized usr)
-
-           else do
-             logWarn <| attemptMsg username
-             return Unauthorized
-
-      attemptMsg :: ByteString -> ByteString
-      attemptMsg username = "Unauthorized user! Attempted with username: " <> username
+instance MonadAuth (AuthHandler Request (SQL.Entity User)) Fission where
+  verify = do
+    cfg <- ask
+    return <| mkAuthHandler \req ->
+      toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req

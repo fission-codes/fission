@@ -14,6 +14,7 @@ import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
 import qualified Fission.User.Password      as Password
+import           Fission.User.DID           as DID
 import           Fission.User.Role.Types
 
 type Errors = OpenUnion
@@ -26,7 +27,7 @@ class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry with optional heroku add-on
   create ::
        Text
-    -> Text
+    -> Either DID Text
     -> Maybe Text
     -> Maybe HerokuAddOnId
     -> UTCTime
@@ -42,19 +43,22 @@ class Heroku.AddOn.Creator m => Creator m where
     -> m (Either Errors UserId)
 
 instance MonadIO m => Creator (Transaction m) where
-  create username password email herokuAddOnId now =
-    Password.hashPassword password >>= \case
+  create username didOrPW email herokuAddOnId now =
+    parsePW didOrPW >>= \case
       Left err ->
         return <| Left <| openUnionLift err
 
-      Right secretDigest -> do
-        let newUserRecord = User
-              { userUsername      = username
+      Right maybeDigest -> do
+        let 
+          maybeDid = parseDID didOrPW
+          newUserRecord = User
+              { userDid           = maybeDid
+              , userUsername      = username
               , userEmail         = email
               , userRole          = Regular
               , userActive        = True
               , userHerokuAddOnId = herokuAddOnId
-              , userSecretDigest  = secretDigest
+              , userSecretDigest  = maybeDigest
               , userInsertedAt    = now
               , userModifiedAt    = now
               }
@@ -65,8 +69,18 @@ instance MonadIO m => Creator (Transaction m) where
 
           Nothing ->
             return <| Left <| openUnionLift User.AlreadyExists
+    where
+      -- parsePW :: MonadIO m => Either DID Text -> m (Either Password.FailedDigest (Maybe Text))
+      parsePW (Left _) = return <| Right Nothing
+      parsePW (Right pw) = Password.hashPassword pw >>= \case
+        Left err -> return <| Left err
+        Right digest -> return <| Right <| Just digest
+
+      parseDID :: Either DID Text -> Maybe Text
+      parseDID (Left did) = Just <| unDID did
+      parseDID (Right _) = Nothing
 
   createWithHeroku herokuUUID herokuRegion username password now = do
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
-      Right addOnId -> create username password Nothing (Just addOnId) now
+      Right addOnId -> create username (Right password) Nothing (Just addOnId) now
       Left  err     -> return <| Left <| openUnionLift err

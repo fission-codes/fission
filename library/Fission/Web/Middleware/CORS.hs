@@ -1,4 +1,4 @@
-module Fission.Web.CORS
+module Fission.Web.Middleware.CORS
   ( allowedMethods
   , allowedRequestHeaders
   , middleware
