@@ -7,25 +7,24 @@ module Fission.Web.IPFS.Upload.Multipart
   , textAdd
   ) where
 
-import           Database.Selda
+import           Database.Esqueleto
 import qualified RIO.Text as Text
-
-import           Servant
-import           Servant.Multipart
-
-import           Fission.Prelude
-import           Fission.Internal.MIME
-
-import           Fission.User
-import           Fission.User.CID.Mutation as User.CID
-import           Fission.Web.Server
-import qualified Fission.Web.Error        as Web.Err
 
 import           Network.IPFS
 import qualified Network.IPFS.SparseTree  as IPFS
 import qualified Network.IPFS.Types       as IPFS
 import qualified Network.IPFS.Add         as IPFS
 import qualified Network.IPFS.Pin         as IPFS.Pin
+
+import           Servant
+import           Servant.Multipart
+
+import           Fission.Models
+import           Fission.Prelude
+import           Fission.Internal.MIME
+
+import           Fission.User.CID.Mutation as User.CID
+import qualified Fission.Web.Error        as Web.Err
 
 type API = TextAPI :<|> JSONAPI
 
@@ -41,47 +40,53 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add ::
-  ( MonadSelda      (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , HasLogFunc           cfg
+  ( MonadDB         m
+  , MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadLogger     m
+  , MonadTime       m
+  , MonadThrow      m
   )
-  => User
-  -> RIOServer cfg API
-add User { userID } = textAdd userID :<|> jsonAdd userID
+  => Entity User
+  -> ServerT API m
+add (Entity userId _) = textAdd userId :<|> jsonAdd userId
 
 textAdd ::
-  ( MonadSelda      (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , HasLogFunc           cfg
+  ( MonadDB         m
+  , MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadTime       m
+  , MonadLogger     m
+  , MonadThrow      m
   )
-  => ID User
-  -> RIOServer cfg TextAPI
+  => UserId
+  -> ServerT TextAPI m
 textAdd uID form queryName = run uID form queryName <| \sparse ->
   case IPFS.linearize sparse of
     Right hash -> pure hash
     Left err   -> Web.Err.throw err
 
 jsonAdd ::
-  ( MonadSelda      (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , HasLogFunc           cfg
+  ( MonadDB         m
+  , MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadLogger     m
+  , MonadTime       m
+  , MonadThrow      m
   )
-  => ID User
-  -> RIOServer cfg JSONAPI
+  => UserId
+  -> ServerT JSONAPI m
 jsonAdd uID form queryName = run uID form queryName pure
 
 run ::
-  ( MonadRIO        cfg m
-  , MonadMask           m
-  , MonadSelda          m
-  , MonadLocalIPFS      m
-  , MonadRemoteIPFS     m
-  , HasLogFunc      cfg
+  ( MonadDB         m
+  , MonadTime       m
+  , MonadLogger     m
+  , MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadThrow      m
   )
-  => ID User
+  => UserId
   -> MultipartData Mem
   -> Maybe IPFS.Name
   -> (IPFS.SparseTree -> m a)
@@ -94,7 +99,7 @@ run uID form qName cont = case lookupFile "file" form of
         Web.Err.throw err
 
       Right (struct, rootCID) -> IPFS.Pin.add rootCID >>= \case
-        Left err -> 
+        Left err ->
           Web.Err.throw err
 
         Right _ -> do

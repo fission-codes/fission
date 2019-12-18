@@ -3,18 +3,24 @@ module Fission.User.Security
   , genID
   ) where
 
-import           Database.Selda (ID)
 import qualified RIO.Text       as Text
 
 import           Fission.Prelude
-import qualified Fission.Random     as Random
+import qualified Fission.Random  as Random
 import           Fission.Security
-import           Fission.User.Types
 
--- | Create a 'SecretDigest' from the users ID
+-- | Generate an ID
+genID :: MonadIO m => m SecretDigest
+genID =
+  50
+    |> Random.alphaNum
+    |> fmap hashID
+    |> liftIO
+
+-- | Create a 'SecretDigest' from some data, such as a users ID
 --   Barely an obsfucating technique, but enough to hide DB ordering
-hashID :: ID User -> SecretDigest
-hashID = Text.take 20 . digest
-
-genID :: IO SecretDigest
-genID = Text.take 20 . digest <$> Random.alphaNum 50
+hashID :: Digestable a => a -> SecretDigest
+hashID digestable =
+  digestable
+    |> digest
+    |> Text.take 20

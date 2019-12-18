@@ -12,13 +12,19 @@ import           Data.Word8
 
 import Fission.Prelude
 
--- | Generate random AlphaNumeric 'Text' with a given length
+-- | Generate random alphanumeric @Text@ with a given length
 alphaNum :: MonadIO m => Natural -> m Text
-alphaNum len = decodeUtf8Lenient . BS.filter isAsciiAlphaNum <$> bsRandomLength len
+alphaNum len =
+  len
+    |> bsRandomLength
+    |> fmap (decodeUtf8Lenient . BS.filter isAsciiAlphaNum)
 
--- | Generate random AlphaNumericSymbol 'Text' with a given length
+-- | Generate random alphanumeric symbol @Text@ with a given length
 alphaNumSymbol :: MonadIO m => Natural -> m Text
-alphaNumSymbol len = decodeUtf8Lenient . BS.filter URL.isValidURLCharacter <$> bsRandomLength len
+alphaNumSymbol len =
+  len
+    |> bsRandomLength
+    |> fmap (decodeUtf8Lenient . BS.filter URL.isValidURLCharacter)
 
 -- | Generate random 'ByteString' with a given length
 bsRandomLength :: MonadIO m => Natural -> m ByteString
@@ -31,7 +37,7 @@ bsRandomLength len =
   where
     toTake = fromIntegral len
 
--- | Check if a given character is AlphaNumeric
+-- | Check if a given character is alphanumeric
 isAsciiAlphaNum :: Word8 -> Bool
 isAsciiAlphaNum w = isAsciiUpper w
                  || isAsciiLower w

@@ -10,8 +10,8 @@ import System.Remote.Monitoring.Wai
 import Fission.Prelude
 import Fission.Monitor.Types
 
-wai :: HasLogFunc env => RIO env ()
-wai = liftIO (decodeEnv :: IO (Either String Config)) >>= \case
+wai :: (MonadIO m, MonadLogger m) => m ()
+wai = liftIO decodeEnv >>= \case
   Left err -> do
     logError <| displayShow err
     Config { ekgHost, ekgPort } <- return defConfig

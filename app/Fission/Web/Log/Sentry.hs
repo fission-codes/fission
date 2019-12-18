@@ -5,6 +5,7 @@ module Fission.Web.Log.Sentry
   , fromRIOLogLevel
   ) where
 
+import qualified RIO
 import qualified RIO.List as List
 import qualified RIO.Text as Text
 
@@ -16,7 +17,7 @@ import           Fission.Prelude hiding (onException)
 import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
 
 -- | Instantiate a Sentry logger
-mkLogger :: MonadUnliftIO m => LogLevel -> Sentry.DSN -> m LogFunc
+mkLogger :: MonadUnliftIO m => RIO.LogLevel -> Sentry.DSN -> m LogFunc
 mkLogger minRIOLogLevel (Sentry.DSN dsn) = do
   raven <- liftIO <| initRaven dsn identity sendRecord silentFallback
   raven
@@ -27,11 +28,11 @@ mkLogger minRIOLogLevel (Sentry.DSN dsn) = do
 -- | Log from inside the application
 logger
   :: MonadUnliftIO m
-  => LogLevel
+  => RIO.LogLevel
   -> SentryService
   -> CallStack
   -> LogSource
-  -> LogLevel
+  -> RIO.LogLevel
   -> Utf8Builder
   -> m ()
 logger minRIOLogLevel sentryService _cs logSource logLevel msg =
@@ -61,9 +62,9 @@ logger minRIOLogLevel sentryService _cs logSource logLevel msg =
 loggerName :: String
 loggerName = "Fission.Web.Log.Sentry"
 
-fromRIOLogLevel :: LogLevel -> SentryLevel
+fromRIOLogLevel :: RIO.LogLevel -> SentryLevel
 fromRIOLogLevel = \case
-  LevelWarn      -> Sentry.Warning
-  LevelError     -> Sentry.Error
-  LevelOther msg -> Sentry.Custom <| Text.unpack msg
-  _              -> Sentry.Info
+  RIO.LevelWarn      -> Sentry.Warning
+  RIO.LevelError     -> Sentry.Error
+  RIO.LevelOther msg -> Sentry.Custom <| Text.unpack msg
+  _                  -> Sentry.Info

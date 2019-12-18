@@ -1,51 +1,39 @@
 module Fission.Storage.PostgreSQL
-  ( setupTable
-  , connPool
-  , makeTable
+  ( updateDBToLatest
+  , withDBPool
+  , module Fission.Storage.PostgreSQL.ConnectionInfo.Types
+  , module Fission.Storage.PostgreSQL.PoolSize.Types
   ) where
 
-import Data.Pool
-import Database.Selda
-import Database.Selda.PostgreSQL
+import qualified Data.ByteString.Char8 as BS8
+import           Data.Pool
+
+import           Database.Esqueleto (SqlBackend, runMigration)
+import           Database.Persist.Postgresql (withPostgresqlPool)
 
 import           Fission.Prelude
-import qualified Fission.Storage.Table as Table
-import qualified Fission.Storage.Types as DB
-import           Fission.Internal.Orphanage.Tuple ()
-import           Fission.App (runApp)
+import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
+import           Fission.Storage.PostgreSQL.PoolSize.Types
 
-setupTable
-  :: ( MonadRIO cfg m
-     , HasLogFunc cfg
-     )
-  => PGConnectInfo
-  -> Table b
-  -> TableName
-  -> m ()
-setupTable pgInfo tbl tblName = do
-  logInfo <| "Creating table `" <> displayShow tblName <> "` in DB"
-  liftIO <| withPostgreSQL pgInfo <| createTable tbl
+import           Fission.Models
 
-connPool
-  :: ( MonadRIO   cfg m
-     , HasLogFunc cfg
-     )
-  => Int
-  -> Int
-  -> NominalDiffTime
-  -> PGConnectInfo
-  -> m (DB.Pool PG)
-connPool stripeCount connsPerStripe connTTL pgInfo@(PGConnectInfo {..}) = do
-  logDebug <| "Establishing DB pool for " <> displayShow pgDatabase
+-- | Automagically update the database schema to reflect the latest schema in Fission.Models
+--
+--   Example:
+--
+--   > runOne (runDB updateDBToLatest)
+updateDBToLatest :: MonadIO m => Transaction m ()
+updateDBToLatest = runMigration migrateAll
 
-  rawPool <- liftIO <| createPool (pgOpen pgInfo) seldaClose stripeCount connTTL connsPerStripe
-  logDebug <| "DB pool stats: " <> displayShow rawPool
-
-  return <| DB.Pool rawPool
-
--- NOTE HLint can't handle BlockArguments _yet_
-makeTable :: PGConnectInfo -> Table t -> Table.Name t -> IO ()
-makeTable pgInfo' tbl tblName = runApp do
-  pool   <- connPool 1 1 1 pgInfo'
-  logger <- view logFuncL
-  runRIO (logger, pool, pgInfo') <| setupTable pgInfo' tbl <| Table.name tblName
+withDBPool ::
+  MonadIO m
+  => LogFunc
+  -> ConnectionInfo
+  -> PoolSize
+  -> (Pool SqlBackend -> RIO LogFunc a)
+  -> m a
+withDBPool logger connInfo (PoolSize connCount) actions =
+  actions
+    |> withPostgresqlPool (connInfo |> show |> BS8.pack) (fromIntegral connCount)
+    |> runRIO logger
+    |> liftIO

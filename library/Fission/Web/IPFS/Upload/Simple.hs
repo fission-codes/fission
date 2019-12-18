@@ -3,37 +3,38 @@ module Fission.Web.IPFS.Upload.Simple
   , add
   ) where
 
-import           Database.Selda
+import           Database.Esqueleto
 import           Servant
 
-import           Fission.Prelude
-import           Fission.Web.Server
-import qualified Fission.Web.Error        as Web.Err
-
-import           Fission.User
-import           Fission.User.CID.Mutation as User.CID
-
 import           Network.IPFS
+import qualified Network.IPFS.Pin        as IPFS.Pin
+import qualified Network.IPFS.Add        as IPFS
 import qualified Network.IPFS.Types      as IPFS
 import           Network.IPFS.File.Types as File
-import qualified Network.IPFS.Add        as IPFS
-import qualified Network.IPFS.Pin        as IPFS.Pin
+
+import           Fission.Models
+import           Fission.Prelude
+
+import           Fission.User.CID.Mutation as User.CID
+import qualified Fission.Web.Error         as Web.Err
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 add ::
-  ( MonadSelda      (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , HasLogFunc           cfg
+  ( MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , MonadDB         m
   )
-  => User
-  -> RIOServer         cfg API
-add User { userID } (Serialized rawData) = IPFS.addRaw rawData >>= \case
+  => Entity User
+  -> ServerT API m
+add (Entity userId _) (Serialized rawData) = IPFS.addRaw rawData >>= \case
   Right newCID -> IPFS.Pin.add newCID >>= \case
     Right pinnedCID -> do
-      _ <- User.CID.createX userID [pinnedCID]
+      _ <- User.CID.createX userId [pinnedCID]
       return pinnedCID
 
     Left err ->

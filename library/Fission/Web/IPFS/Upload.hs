@@ -3,28 +3,27 @@ module Fission.Web.IPFS.Upload
   , add
   ) where
 
-import           Database.Selda
-
+import           Database.Esqueleto
+import           Network.IPFS
 import           Servant
 
+import           Fission.Models
 import           Fission.Prelude
 
 import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
-import           Fission.Web.Server
-import           Fission.User
-
-import           Network.IPFS
 
 type API = Simple.API :<|> Multipart.API
 
 add ::
-  ( MonadSelda      (RIO cfg)
-  , MonadLocalIPFS  (RIO cfg)
-  , MonadRemoteIPFS (RIO cfg)
-  , HasLogFunc          cfg
+  ( MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , MonadDB         m
   )
-  => User
-  -> RIOServer cfg API
+  => Entity User
+  -> ServerT API m
 add usr = Simple.add    usr
      :<|> Multipart.add usr

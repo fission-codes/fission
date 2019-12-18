@@ -3,27 +3,19 @@ module Fission.Web.IPFS.CID
   , allForUser
   ) where
 
-import           Database.Selda
-import           Servant
+import Database.Esqueleto
+import Network.IPFS.CID.Types as IPFS.CID
+import Servant
 
-import           Fission.Prelude
-
-import qualified Network.IPFS.Types     as IPFS
-import           Network.IPFS.CID.Types as IPFS.CID
-
-import           Fission.User           (User (..))
-import           Fission.User.CID.Query
-import qualified Fission.User.CID.Table as Table
-
-import           Fission.Web.Server
+import Fission.Prelude
+import Fission.Models
 
 type API = Get '[JSON, PlainText] [CID]
 
-allForUser :: MonadSelda (RIO cfg) => User -> RIOServer cfg API
-allForUser User { userID } = do
-  hashes <- query do
-    uCIDs <- select Table.userCIDs
-    restrict <| uCIDs `byUser` userID
-    return   <| uCIDs ! #cid
+allForUser :: MonadDB m => Entity User -> ServerT API m
+allForUser (Entity userId _) = runDB do
+  hashes <- select <| from \userCID -> do
+    where_ (userCID ^. UserCIDUserFk ==. val userId)
+    return (userCID ^. UserCIDCid)
 
-  return <| IPFS.CID <$> hashes
+  return (unValue <$> hashes)

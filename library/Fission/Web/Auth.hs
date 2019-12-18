@@ -1,30 +1,32 @@
 module Fission.Web.Auth
-  ( server
-  , context
+  ( Checks
+  , server
   , basic
   , user
   , checkUser
   ) where
 
 import Crypto.BCrypt
-import Database.Selda
 import Servant
 
+import           Database.Esqueleto
+import qualified Database.Persist as P
+
+import Fission.Models
 import Fission.Prelude
-import Fission.Storage.Query
-import Fission.User as User hiding (username)
-import Fission.Web.Server
+
+type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
 
 server
-  :: HasServer api '[BasicAuthCheck User, BasicAuthCheck ByteString]
+  :: HasServer api Checks
   => Proxy api
-  -> cfg
-  -> RIOServer cfg api
-  -> Server api
-server api cfg = hoistServerWithContext api context (toHandler cfg)
-
-context :: Proxy (BasicAuthCheck User ': BasicAuthCheck ByteString ': '[])
-context = Proxy
+  -> (forall a . m a -> Handler a) -- This is an existential type; basically `a` is locally scoped to that function at call time
+  -> ServerT api m
+  -> ServerT api Handler
+server api = hoistServerWithContext api context
+  where
+    context :: Proxy Checks
+    context = Proxy
 
 basic :: ByteString -> ByteString -> BasicAuthCheck ByteString
 basic unOK pwOK = BasicAuthCheck (pure . check')
@@ -35,22 +37,44 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          then Authorized username
          else Unauthorized
 
-user :: (MonadRIO cfg m, HasLogFunc cfg, MonadSelda (RIO cfg)) => m (BasicAuthCheck User)
-user = do
-  cfg <- ask
-  return <| BasicAuthCheck \auth -> runRIO cfg <| checkUser auth
+user ::
+  ( MonadDB     (RIO cfg)
+  , MonadLogger (RIO cfg)
+  )
+  => cfg
+  -> BasicAuthCheck (Entity User)
+user cfg = BasicAuthCheck \auth -> runRIO cfg <| checkUser auth
 
-checkUser :: (HasLogFunc cfg, MonadSelda (RIO cfg)) => BasicAuthData -> RIO cfg (BasicAuthResult User)
+checkUser ::
+  ( MonadDB     m
+  , MonadLogger m
+  )
+  => BasicAuthData
+  -> m (BasicAuthResult (Entity User))
 checkUser (BasicAuthData username password) = do
-  mayUser <- findOne <| select User.users `suchThat` User.byUsername (decodeUtf8Lenient username)
-  maybe (pure NoSuchUser) checkPassword mayUser
+  mayUser <- runDB <| selectFirst
+    [ UserUsername P.==. decodeUtf8Lenient username
+    , UserActive   P.==. True
+    ] []
+
+  case mayUser of
+    Nothing -> do
+      logWarn attemptMsg
+      return NoSuchUser
+
+    Just usr ->
+      validate usr
+
   where
-    checkPassword :: (MonadRIO cfg m, HasLogFunc cfg) => User -> m (BasicAuthResult User)
-    checkPassword usr =
-      if validatePassword (encodeUtf8 <| secretDigest <| usr) password
+    validate :: MonadLogger m => Entity User -> m (BasicAuthResult (Entity User))
+    validate usr@(Entity _ User { userSecretDigest }) =
+      if validatePassword (encodeUtf8 userSecretDigest) password
          then
-           return <| Authorized usr
+           return (Authorized usr)
 
          else do
-           logWarn <| "Unauthorized user! Username: " <> displayBytesUtf8 username
+           logWarn attemptMsg
            return Unauthorized
+
+    attemptMsg :: ByteString
+    attemptMsg = "Unauthorized user! Attempted with username: " <> username

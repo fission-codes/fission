@@ -90,21 +90,21 @@ packages:
     hackage: text-time-0.2.0
 - completed:
     cabal-file:
-      size: 5025
-      sha256: c41389ecbce8472cacebe180f29b572013013a76e7adead1505bad377e769ed7
+      size: 5113
+      sha256: 41372127336bbe1c4af867f02ef99bd3e789d571e5ed9080d87ff4f208b92dbe
     name: ipfs
     version: 1.0.0
     git: https://github.com/fission-suite/ipfs-haskell.git
     pantry-tree:
-      size: 4662
-      sha256: 0572104c72c5bd4ad036593b26ebd9c5358d49e071589cc04b9b5d1ba179f963
-    commit: 8c1fcc6a390ed79be20f1efc1a07ffda728c5d4b
+      size: 4757
+      sha256: 06910ebe986654afa5837f9f3dfb95be802564121e9fb9a7cf049efe5ef66a6b
+    commit: 648d6952a8857b6ecb59a3f88861b85ea812a552
   original:
     git: https://github.com/fission-suite/ipfs-haskell.git
-    commit: 8c1fcc6a390ed79be20f1efc1a07ffda728c5d4b
+    commit: 648d6952a8857b6ecb59a3f88861b85ea812a552
 snapshots:
 - completed:
-    size: 525663
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/14.yaml
-    sha256: 6edc48df46eb8bf7b861e98dd30d021a92c2e1820c9bb6528aac5d997b0e14ef
-  original: lts-14.14
+    size: 524799
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/17.yaml
+    sha256: 1d72b33c0fc048e23f4f18fd76a6ad79dd1d8a3c054644098a71a09855e40c7c
+  original: lts-14.17

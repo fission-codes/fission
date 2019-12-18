@@ -5,7 +5,6 @@ import qualified Servant.Client as Client
 
 import           Fission.Prelude
 import           Fission.Security
-import           Fission.Security.Types
 import           Fission.Internal.Orphanage.BaseUrl ()
 
 data Provision = Provision
