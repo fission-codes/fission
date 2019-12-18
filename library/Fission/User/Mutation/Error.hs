@@ -22,7 +22,3 @@ instance Display Create where
 instance ToServerError Create where
   toServerError FailedDigest = err500 { errBody = "Could not create password digest" }
   toServerError AlreadyExists = err409 { errBody = "The username or email already exists in our system" }
-
--- instance Display AlreadyExists where
-
--- instance ToServerError AlreadyExists where
