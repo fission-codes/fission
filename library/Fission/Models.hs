@@ -26,7 +26,7 @@ import           Fission.Internal.Orphanage.UUID ()
 import qualified Fission.Internal.UTF8 as UTF8
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-HerokuAddOn sql=heroku_add_ons
+HerokuAddOn
   uuid       UUID         sqltype=uuid
   region     Region Maybe
 
@@ -36,7 +36,7 @@ HerokuAddOn sql=heroku_add_ons
   UniqueUUID uuid
   deriving Show Eq
 
-User sql=users
+User
   username      Text
   email         Text          Maybe
   role          Role
@@ -50,7 +50,7 @@ User sql=users
   UniqueUsername username
   deriving Show Eq
 
-UserCID sql=user_cids
+UserCID
   userFk     UserId
   cid        CID
 
