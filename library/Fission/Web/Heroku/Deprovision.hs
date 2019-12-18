@@ -50,33 +50,33 @@ deleteAssociatedWith ::
 deleteAssociatedWith uuid' = do
   addOnId  <- herokuAddOnByUUID uuid'
   userId   <- userIdForHerokuAddOn addOnId
-  userCIDs <- cidsForUserId userId
+  userCids <- cidsForUserId userId
 
-  userCIDs
+  userCids
     |> associatedRecords uuid'
     |> delete
 
-  let cids = getInner userCIDCid <$> userCIDs
+  let cids = getInner userCidCid <$> userCids
   remaining <- getRemainingCIDs cids
 
-  let remainingCIDs = getInner userCIDCid <$> remaining
+  let remainingCIDs = getInner userCidCid <$> remaining
   return (cids \\ remainingCIDs)
 
 -- | Find all CIDs that remain from a list
-getRemainingCIDs :: MonadDB m => [CID] -> Transaction m [Entity UserCID]
+getRemainingCIDs :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
 getRemainingCIDs cids =
-  select <| from \userCID -> do
-    where_ (userCID ^. UserCIDCid `in_` valList cids)
-    return userCID
+  select <| from \userCid -> do
+    where_ (userCid ^. UserCidCid `in_` valList cids)
+    return userCid
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-associatedRecords :: UUID -> [Entity UserCID] -> SqlQuery ()
-associatedRecords uuid' userCIDs = do
-  let userCIDIds = entityKey <$> userCIDs
-  from \userCID ->
-    where_ (userCID ^. UserCIDId `in_` valList userCIDIds)
+associatedRecords :: UUID -> [Entity UserCid] -> SqlQuery ()
+associatedRecords uuid' userCids = do
+  let userCidIds = entityKey <$> userCids
+  from \userCid ->
+    where_ (userCid ^. UserCidId `in_` valList userCidIds)
 
-  let userIds' = getInner userCIDUserFk <$> userCIDs
+  let userIds' = getInner userCidUserFk <$> userCids
   from \user ->
     where_ (user ^. UserId `in_` valList userIds')
 
@@ -84,11 +84,11 @@ associatedRecords uuid' userCIDs = do
     where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
 
 -- | CIDs associated with a user
-cidsForUserId :: MonadDB m => UserId -> Transaction m [Entity UserCID]
+cidsForUserId :: MonadDB m => UserId -> Transaction m [Entity UserCid]
 cidsForUserId userId =
-  select <| from \userCID -> do
-    where_ (userCID ^. UserCIDUserFk ==. val userId)
-    return userCID
+  select <| from \userCid -> do
+    where_ (userCid ^. UserCidUserFk ==. val userId)
+    return userCid
 
 -- | Users associated with those Heroku add-ons
 userIdForHerokuAddOn ::

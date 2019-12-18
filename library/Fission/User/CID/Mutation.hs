@@ -1,4 +1,4 @@
--- | Database mutations for 'UserCID's
+-- | Database mutations for 'UserCid's
 module Fission.User.CID.Mutation
   ( create
   , createX
@@ -18,16 +18,16 @@ create ::
   )
   => UserId
   -> CID
-  -> m (Maybe UserCIDId)
+  -> m (Maybe UserCidId)
 create userId cid = runDBNow \now -> do
-  insertUnique UserCID
-    { userCIDUserFk     = userId
-    , userCIDCid        = cid
-    , userCIDInsertedAt = now
-    , userCIDModifiedAt = now
+  insertUnique UserCid
+    { userCidUserFk     = userId
+    , userCidCid        = cid
+    , userCidInsertedAt = now
+    , userCidModifiedAt = now
     }
 
--- | Create new 'UserCID's, ignoring existing values (set-like)
+-- | Create new 'UserCid's, ignoring existing values (set-like)
 createX ::
   ( MonadDB     m
   , MonadTime   m
@@ -36,17 +36,17 @@ createX ::
   -> [CID]
   -> m [CID]
 createX userId hashes = runDBNow \now -> do
-  existingCIDs <- select <| from \userCID -> do
-    where_ (userCID ^. UserCIDCid `in_` valList hashes)
-    return (userCID ^. UserCIDCid)
+  existingCIDs <- select <| from \userCid -> do
+    where_ (userCid ^. UserCidCid `in_` valList hashes)
+    return (userCid ^. UserCidCid)
 
   let
-    mkFresh :: CID -> UserCID
-    mkFresh cid = UserCID
-      { userCIDUserFk     = userId
-      , userCIDCid        = cid
-      , userCIDInsertedAt = now
-      , userCIDModifiedAt = now
+    mkFresh :: CID -> UserCid
+    mkFresh cid = UserCid
+      { userCidUserFk     = userId
+      , userCidCid        = cid
+      , userCidInsertedAt = now
+      , userCidModifiedAt = now
       }
 
     existingRawCIDs = unValue <$> existingCIDs

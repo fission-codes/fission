@@ -16,7 +16,7 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 import qualified Fission.Web.Error         as Web.Err
-import           Fission.User.CID.Mutation as UserCID
+import           Fission.User.CID.Mutation as UserCid
 import           Fission.Models
 
 type API = PinAPI :<|> UnpinAPI
@@ -50,7 +50,7 @@ pin ::
 pin userId cid = IPFS.Pin.add cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> do
-    UserCID.create userId cid
+    UserCid.create userId cid
     pure NoContent
 
 unpin ::
@@ -63,19 +63,19 @@ unpin ::
   -> ServerT UnpinAPI m
 unpin userId cid = do
   remaining <- runDB do
-    delete <| from \userCID ->
-      where_ (selectExact userCID)
+    delete <| from \userCid ->
+      where_ (selectExact userCid)
 
-    select <| from \userCID -> do
-      where_ (selectExact userCID)
+    select <| from \userCid -> do
+      where_ (selectExact userCid)
       limit 1
-      return userCID
+      return userCid
 
   when (null remaining) do
     void <| Web.Err.ensure =<< IPFS.Pin.rm cid
 
   return NoContent
   where
-    selectExact userCID =
-          userCID ^. UserCIDCid    ==. val cid
-      &&. userCID ^. UserCIDUserFk ==. val userId
+    selectExact userCid =
+          userCid ^. UserCidCid    ==. val cid
+      &&. userCid ^. UserCidUserFk ==. val userId

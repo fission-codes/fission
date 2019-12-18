@@ -50,14 +50,14 @@ User
   UniqueUsername username
   deriving Show Eq
 
-UserCID
+UserCid
   userFk     UserId
   cid        CID
 
   insertedAt UTCTime
   modifiedAt UTCTime
 
-  UniqueUserCID userFk cid
+  UniqueUserCid userFk cid
   deriving Show Eq
 |]
 
