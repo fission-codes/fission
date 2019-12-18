@@ -7,17 +7,14 @@ module Fission.Internal.Development
   , connectionInfo
   ) where
 
-import qualified Data.ByteString.Char8 as BS
 import           Data.Pool
 import           Database.Persist.Sql (SqlBackend)
-import           Database.Persist.Postgresql (createPostgresqlPool)
 
 import qualified Network.IPFS.Types            as IPFS
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 
 import           Fission.Prelude
-import           Fission.App (runApp)
 import           Fission.Config.Types (Config (..))
 
 import qualified Fission.AWS.Types             as AWS
@@ -28,6 +25,7 @@ import qualified Fission.Platform.Heroku.Password.Types as Hku
 import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
 
 import           Fission.Storage.PostgreSQL
+
 import           Fission.Internal.Orphanage.RIO ()
 
 {- | Setup a config, run an action in it, and tear down the config.
@@ -46,7 +44,7 @@ runOne action = do
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
-    withDBPool logFunc connectionInfo 4 \dbPool ->
+    withDBPool logFunc connectionInfo (PoolSize 4) \dbPool ->
       action
         |> run logFunc dbPool processCtx httpManager
         |> liftIO
@@ -171,16 +169,15 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
 -}
 mkConfig' :: IO (Config, IO ())
 mkConfig' = do
-  dbPool      <- runApp <| createPostgresqlPool (BS.pack <| show connectionInfo) 4
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
 
-  -- A bit dirty; doesn't handle teardown
-  logOptions       <- logOptionsHandle stdout True
-  (logFunc, close) <- newLogFunc <| setLogUseTime True logOptions
+  -- A bit dirty; doesn't directly handle teardown
+  (logFunc, close) <- newLogFunc . setLogUseTime True =<< logOptionsHandle stdout True
 
-  let cfg = mkConfig dbPool processCtx httpManager logFunc
-  return (cfg, close)
+  withDBPool logFunc connectionInfo (PoolSize 4) \dbPool -> do
+    let cfg = mkConfig dbPool processCtx httpManager logFunc
+    return (cfg, close)
 
 connectionInfo :: ConnectionInfo
 connectionInfo = ConnectionInfo

@@ -1,6 +1,8 @@
 module Fission.Storage.PostgreSQL
   ( updateDBToLatest
   , withDBPool
+  , module Fission.Storage.PostgreSQL.ConnectionInfo.Types
+  , module Fission.Storage.PostgreSQL.PoolSize.Types
   ) where
 
 import qualified Data.ByteString.Char8 as BS8
@@ -11,6 +13,7 @@ import           Database.Persist.Postgresql (withPostgresqlPool)
 
 import           Fission.Prelude
 import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
+import           Fission.Storage.PostgreSQL.PoolSize.Types
 
 import           Fission.Models
 
@@ -26,11 +29,11 @@ withDBPool ::
   MonadIO m
   => LogFunc
   -> ConnectionInfo
-  -> Natural
+  -> PoolSize
   -> (Pool SqlBackend -> RIO LogFunc a)
   -> m a
-withDBPool logger connInfo poolSize actions =
+withDBPool logger connInfo (PoolSize connCount) actions =
   actions
-    |> withPostgresqlPool (connInfo |> show |> BS8.pack) (fromIntegral poolSize)
+    |> withPostgresqlPool (connInfo |> show |> BS8.pack) (fromIntegral connCount)
     |> runRIO logger
     |> liftIO

@@ -78,7 +78,7 @@ main = do
       runner         = if env |> web |> Web.isTLS then runTLS tlsSettings' else runSettings
       condDebug      = if env |> web |> Web.pretty then identity else logStdoutDev
 
-    withDBPool baseLogger pgConnectInfo 4 \dbPool -> runRIO Config {..} do
+    withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> runRIO Config {..} do
       logDebug . displayShow =<< ask
       when (env |> web |> Web.monitor) Monitor.wai
 
