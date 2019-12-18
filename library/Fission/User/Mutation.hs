@@ -22,6 +22,7 @@ import qualified Fission.User.Password.Types as User
 createWithHeroku ::
   ( MonadDB     m
   , MonadTime   m
+  , MonadLogger   m
   )
   => UUID
   -> Heroku.Region
@@ -41,20 +42,24 @@ createWithHeroku herokuUUID herokuRegion username password = runDBNow \now -> do
 -- | Create a new, timestamped entry with optional heroku add-on
 create ::
   MonadIO m
+  => MonadLogger m
   => Text
   -> Text
   -> Maybe Text
   -> Maybe HerokuAddOnId
   -> UTCTime
   -> Transaction m (Either Error.Create UserId)
-create username password email herokuAddOnId now =
+create username password email herokuAddOnId now = do
+  logError <| show "ASDASDASD"
+
   hashPassword' password >>= \case
     Left err ->
       return (Left err)
 
     Right secretDigest -> do
-      userID <- insert User
-        { userUsername      = username
+      logError <| show "Here"
+      let newUserRecord = User {
+          userUsername      = username
         , userEmail         = email
         , userRole          = Regular
         , userActive        = True
@@ -64,7 +69,15 @@ create username password email herokuAddOnId now =
         , userModifiedAt    = now
         }
 
-      return (Right userID)
+      insertUnique newUserRecord >>= \case
+        Just userID -> do
+          logError <| show "got"
+
+          return <| Left Error.AlreadyExists
+          -- return (Right userID)
+        Nothing -> do
+          logError <| show "not"
+          return <| Left Error.AlreadyExists
 
 updatePassword ::
   ( MonadDB     m
