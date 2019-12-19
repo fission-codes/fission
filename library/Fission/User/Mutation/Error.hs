@@ -21,5 +21,5 @@ instance Display Create where
   display AlreadyExists = "The username or email already exists in our system"
 
 instance ToServerError Create where
-  toServerError FailedDigest = err500 { errBody = UTF8.showLazyBS <| FailedDigest }
-  toServerError AlreadyExists = err409 { errBody = UTF8.showLazyBS <| AlreadyExists }
+  toServerError FailedDigest = err500 { errBody = UTF8.showLazyBS FailedDigest }
+  toServerError AlreadyExists = err409 { errBody = UTF8.showLazyBS AlreadyExists }
