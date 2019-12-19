@@ -7,21 +7,21 @@ import Fission.Prelude
 data Registration = Registration
   { username :: !Text
   , password :: !Text
-  , email    :: !(Maybe Text)
+  , email    :: !Text
   }
 
 instance ToJSON Registration where
-  toJSON (Registration username' password' maybeEmail) =
+  toJSON (Registration username' password' email') =
     Object [ ("username", String username')
            , ("password", String password')
-           , ("email", maybe Null String maybeEmail)
+           , ("email", String email')
            ]
 
 instance FromJSON Registration where
   parseJSON = withObject "Registration" \obj -> do
     username <- obj .:  "username"
     password <- obj .:  "password"
-    email    <- obj .:? "email"
+    email    <- obj .: "email"
 
     return <| Registration {..}
 
@@ -44,7 +44,7 @@ instance ToSchema Registration where
       |> example ?~ toJSON Registration
            { username = "username"
            , password = "password123!"
-           , email    = Just "alice@example.com"
+           , email    = "alice@example.com"
            }
       |> NamedSchema (Just "Registration")
       |> pure
