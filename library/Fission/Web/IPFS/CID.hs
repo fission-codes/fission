@@ -14,8 +14,8 @@ type API = Get '[JSON, PlainText] [CID]
 
 allForUser :: MonadDB m => Entity User -> ServerT API m
 allForUser (Entity userId _) = runDB do
-  hashes <- select <| from \userCID -> do
-    where_ (userCID ^. UserCIDUserFk ==. val userId)
-    return (userCID ^. UserCIDCid)
+  hashes <- select <| from \userCid -> do
+    where_ (userCid ^. UserCidUserFk ==. val userId)
+    return (userCid ^. UserCidCid)
 
   return (unValue <$> hashes)
