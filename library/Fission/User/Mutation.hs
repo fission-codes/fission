@@ -53,16 +53,16 @@ create username password email herokuAddOnId now =
       return (Left err)
 
     Right secretDigest -> do
-      let newUserRecord = User {
-          userUsername      = username
-        , userEmail         = email
-        , userRole          = Regular
-        , userActive        = True
-        , userHerokuAddOnId = herokuAddOnId
-        , userSecretDigest  = secretDigest
-        , userInsertedAt    = now
-        , userModifiedAt    = now
-        }
+      let newUserRecord = User
+            { userUsername      = username
+            , userEmail         = email
+            , userRole          = Regular
+            , userActive        = True
+            , userHerokuAddOnId = herokuAddOnId
+            , userSecretDigest  = secretDigest
+            , userInsertedAt    = now
+            , userModifiedAt    = now
+            }
 
       insertUnique newUserRecord >>= \case
         Just userID ->
