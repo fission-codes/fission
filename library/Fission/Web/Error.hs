@@ -81,6 +81,7 @@ instance ToServerError Add.Error where
     Add.UnknownAddErr    _ -> err502 { errBody = "Unknown IPFS error" }
     Add.RecursiveAddErr  _ -> err502 { errBody = "Error while adding directory" }
     Add.UnexpectedOutput _ -> err502 { errBody = "Unexpected IPFS result" }
+    Add.IPFSDaemonErr  msg -> err502 { errBody = "IPFS Daemon Error: " <> UTF8.textToLazyBS msg}
 
 instance ToServerError Peer.Error where
   toServerError = \case

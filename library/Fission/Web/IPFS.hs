@@ -60,6 +60,7 @@ authed ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m
+  , MonadReader cfg m
   )
   => ServerT AuthedAPI m
 authed usr = CID.allForUser usr
