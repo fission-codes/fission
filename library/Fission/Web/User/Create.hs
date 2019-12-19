@@ -37,8 +37,9 @@ server
      )
   => ServerT API m
 server (User.Registration username password email) = do
-  void . runDBNow <| User.create username password email Nothing
-  void . Web.Err.ensureM =<< registerDomain username splashCID
+  createResponse <- runDBNow <| User.create username password email Nothing
+  void <| Web.Err.ensure <| createResponse
+  void <| Web.Err.ensureM =<< registerDomain username splashCID
 
 splashCID :: CID
 splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"

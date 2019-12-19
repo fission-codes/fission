@@ -53,18 +53,23 @@ create username password email herokuAddOnId now =
       return (Left err)
 
     Right secretDigest -> do
-      userID <- insert User
-        { userUsername      = username
-        , userEmail         = email
-        , userRole          = Regular
-        , userActive        = True
-        , userHerokuAddOnId = herokuAddOnId
-        , userSecretDigest  = secretDigest
-        , userInsertedAt    = now
-        , userModifiedAt    = now
-        }
+      let newUserRecord = User
+            { userUsername      = username
+            , userEmail         = email
+            , userRole          = Regular
+            , userActive        = True
+            , userHerokuAddOnId = herokuAddOnId
+            , userSecretDigest  = secretDigest
+            , userInsertedAt    = now
+            , userModifiedAt    = now
+            }
 
-      return (Right userID)
+      insertUnique newUserRecord >>= \case
+        Just userID ->
+          return (Right userID)
+
+        Nothing ->
+          return (Left Error.AlreadyExists)
 
 updatePassword ::
   ( MonadDB     m
