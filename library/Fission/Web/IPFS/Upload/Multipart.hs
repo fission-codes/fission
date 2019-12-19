@@ -46,6 +46,7 @@ add ::
   , MonadLogger     m
   , MonadTime       m
   , MonadThrow      m
+  , MonadReader cfg m
   )
   => Entity User
   -> ServerT API m
@@ -58,6 +59,7 @@ textAdd ::
   , MonadTime       m
   , MonadLogger     m
   , MonadThrow      m
+  , MonadReader cfg m
   )
   => UserId
   -> ServerT TextAPI m
@@ -73,6 +75,7 @@ jsonAdd ::
   , MonadLogger     m
   , MonadTime       m
   , MonadThrow      m
+  , MonadReader cfg m
   )
   => UserId
   -> ServerT JSONAPI m
@@ -85,6 +88,7 @@ run ::
   , MonadLocalIPFS  m
   , MonadRemoteIPFS m
   , MonadThrow      m
+  , MonadReader cfg m
   )
   => UserId
   -> MultipartData Mem

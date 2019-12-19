@@ -33,6 +33,7 @@ server ::
   , MonadThrow      m
   , MonadTime       m
   , MonadDB         m
+  , MonadReader cfg m
   )
   => Entity User
   -> ServerT API m
@@ -44,6 +45,7 @@ pin ::
   , MonadThrow      m
   , MonadTime       m
   , MonadDB         m
+  , MonadReader cfg m
   )
   => UserId
   -> ServerT PinAPI m
@@ -58,6 +60,7 @@ unpin ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadDB         m
+  , MonadReader cfg m
   )
   => UserId
   -> ServerT UnpinAPI m
