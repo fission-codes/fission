@@ -90,18 +90,18 @@ packages:
     hackage: text-time-0.2.0
 - completed:
     cabal-file:
-      size: 5113
-      sha256: 41372127336bbe1c4af867f02ef99bd3e789d571e5ed9080d87ff4f208b92dbe
+      size: 5203
+      sha256: cdf0bc88eedf8a10dd14e88bc8d19397abd2bc0f031f1ccb702446e7dfbe86dc
     name: ipfs
     version: 1.0.0
     git: https://github.com/fission-suite/ipfs-haskell.git
     pantry-tree:
-      size: 4757
-      sha256: 06910ebe986654afa5837f9f3dfb95be802564121e9fb9a7cf049efe5ef66a6b
-    commit: 648d6952a8857b6ecb59a3f88861b85ea812a552
+      size: 4839
+      sha256: c892843cbcb59ef7ceeb9106cbe248cca2e4b370757af362870562310b2a16f0
+    commit: c34151de90b76e16c9725ebc168489396de01948
   original:
     git: https://github.com/fission-suite/ipfs-haskell.git
-    commit: 648d6952a8857b6ecb59a3f88861b85ea812a552
+    commit: c34151de90b76e16c9725ebc168489396de01948
 snapshots:
 - completed:
     size: 524799

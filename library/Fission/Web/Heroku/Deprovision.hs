@@ -27,6 +27,7 @@ destroy ::
   , MonadThrow      m
   , MonadRemoteIPFS m
   , MonadLogger     m
+  , MonadReader cfg m
   )
   => ServerT API m
 destroy uuid' = do
