@@ -40,3 +40,23 @@ ALTER TABLE heroku_add_ons RENAME COLUMN "addOnID" TO id;
 ALTER TABLE heroku_add_ons RENAME COLUMN "insertedAt" TO "inserted_at";
 ALTER TABLE heroku_add_ons RENAME COLUMN "modifiedAt" TO "modified_at";
 ALTER TABLE heroku_add_ons RENAME TO "heroku_add_on";
+
+-- Delete duplicate user_id cid pairs
+WITH groupedCids AS (
+    SELECT
+        id,
+        user_fk,
+        cid,
+        ROW_NUMBER() OVER (
+            PARTITION BY
+                user_fk,
+                cid
+            ORDER BY
+                user_fk,
+                cid
+        ) row_num
+     FROM
+        user_cid
+) DELETE FROM user_cid where id in (
+  SELECT id from groupedCids where row_num > 1
+);
