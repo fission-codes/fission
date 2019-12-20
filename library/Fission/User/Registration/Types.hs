@@ -11,10 +11,10 @@ data Registration = Registration
   }
 
 instance ToJSON Registration where
-  toJSON (Registration username' password' email') =
-    Object [ ("username", String username')
-           , ("password", String password')
-           , ("email", String email')
+  toJSON Registration { username, password, email } =
+    Object [ ("username", String username)
+           , ("password", String password)
+           , ("email", String email)
            ]
 
 instance FromJSON Registration where
