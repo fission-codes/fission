@@ -140,6 +140,7 @@ dependencies:
   - warp
   - warp-tls
   - word8
+  - vault
   - vector
   - yaml
 
