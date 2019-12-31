@@ -42,7 +42,7 @@ mVal .!~ fallback = pure (fromMaybe fallback) <*> mVal
 -- >>> withFlag "DEBUG" "nope" "yep"
 -- "nope"
 withFlag :: String -> a -> a -> IO a
-withFlag key whenFalse whenTrue = withEnv key whenFalse (const whenTrue)
+withFlag key whenFalse whenTrue = withEnv key whenFalse (\_ -> whenTrue)
 
 -- | Perform actions on an environment variable, with fallback if not available
 --

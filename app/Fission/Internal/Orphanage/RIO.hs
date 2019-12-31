@@ -30,6 +30,7 @@ import           Fission.Internal.UTF8
 
 import           Fission.IPFS.DNSLink
 import qualified Fission.URL as URL
+import           Fission.IPFS.Linked
 
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
@@ -144,6 +145,9 @@ instance
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
+
+instance Has IPFS.Peer cfg => MonadLinkedIPFS (RIO cfg) where
+  getLinkedPeers = pure <$> Config.get
 
 instance
   ( HasProcessContext cfg

@@ -10,11 +10,10 @@ module Fission.Web.IPFS
   ) where
 
 import           Database.Esqueleto
+import           Network.IPFS
 import           Servant
 
-import           Network.IPFS
-import           Network.IPFS.Types as IPFS
-
+import           Fission.IPFS.Linked
 import           Fission.Models
 import           Fission.Prelude
 
@@ -24,6 +23,7 @@ import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
 import qualified Fission.Web.IPFS.DAG      as DAG
 import qualified Fission.Web.IPFS.Peer     as Peer
+
 
 type API = AuthedAPI
       :<|> PublicAPI
@@ -41,14 +41,13 @@ type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
 server ::
-  ( MonadReader   cfg m
-  , Has IPFS.Peer cfg
-  , MonadRemoteIPFS   m
-  , MonadLocalIPFS    m
-  , MonadLogger       m
-  , MonadThrow        m
-  , MonadTime         m
-  , MonadDB           m
+  ( MonadLinkedIPFS m
+  , MonadRemoteIPFS m
+  , MonadLocalIPFS  m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , MonadDB         m
   )
   => ServerT API m
 server = authed :<|> public
@@ -68,11 +67,10 @@ authed usr = CID.allForUser usr
         :<|> DAG.put usr
 
 public ::
-  ( MonadReader   cfg m
-  , Has IPFS.Peer cfg
-  , MonadLocalIPFS    m
-  , MonadLogger       m
-  , MonadThrow        m
+  ( MonadLinkedIPFS m
+  , MonadLocalIPFS  m
+  , MonadLogger     m
+  , MonadThrow      m
   )
   => ServerT PublicAPI m
 public = Peer.get
