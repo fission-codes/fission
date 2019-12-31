@@ -15,28 +15,27 @@ import           Fission.Prelude
 import qualified Fission.Web.Error                          as Web.Err
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 import qualified Fission.Web.Types                          as Web
+import           Fission.Web.Server.Reflective
 
 import           Fission.Platform.Heroku.Provision.Types
 import           Fission.Platform.Heroku.Provision.Request.Types
 
-import qualified Fission.Config as Config
-import qualified Fission.Random as Random
-
+import qualified Fission.Random               as Random
+import           Fission.Security.Types       (Secret (..))
 import qualified Fission.User.Provision.Types as User
 import qualified Fission.User.Mutation        as User
-import           Fission.Security.Types (Secret (..))
 
-type API = ReqBody '[JSON]                     Request
+
+type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision
 
 create ::
-  ( MonadLocalIPFS   m
-  , MonadDB          m
-  , MonadLogger      m
-  , MonadThrow       m
-  , MonadTime        m
-  , MonadReader  cfg m
-  , Has Web.Host cfg
+  ( MonadDB               m
+  , MonadTime             m
+  , MonadThrow            m
+  , MonadLogger           m
+  , MonadLocalIPFS        m
+  , MonadReflectiveServer m
   )
   => ServerT API m
 create Request {uuid, region} = do
@@ -48,7 +47,7 @@ create Request {uuid, region} = do
       Web.Err.throw err
 
     Right userID -> do
-      Web.Host url' <- Config.get
+      Web.Host url' <- getHost
       ipfsPeers     <- getExternalAddress >>= \case
         Right peers' ->
           pure peers'

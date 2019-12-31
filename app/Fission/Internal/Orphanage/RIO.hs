@@ -36,7 +36,12 @@ import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
 import           Fission.Platform.Heroku.AddOn
 
-import qualified Fission.Web.Auth                       as Auth
+import qualified Fission.Web.Auth              as Auth
+import           Fission.Web.Server.Reflective
+import qualified Fission.Web.Types             as Web
+
+instance Has Web.Host cfg => MonadReflectiveServer (RIO cfg) where
+  getHost = Config.get
 
 instance (Has Heroku.ID cfg, Has Heroku.Password cfg) => MonadHerokuAddOn (RIO cfg) where
   authorize = do

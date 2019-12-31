@@ -11,7 +11,6 @@ import           Servant
 import           Network.IPFS
 
 import           Fission.Prelude
-import qualified Fission.Config  as Config
 
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
@@ -21,6 +20,8 @@ import           Fission.IPFS.Linked
 import           Fission.Platform.Heroku.AddOn as Heroku
 
 import           Fission.Web.Server
+import           Fission.Web.Server.Reflective
+
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.DNS     as DNS
 import qualified Fission.Web.Heroku  as Heroku
@@ -35,22 +36,23 @@ import qualified Fission.Web.User    as User
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadLocalIPFS      (RIO cfg)
-  , MonadRemoteIPFS     (RIO cfg)
-  , MonadLinkedIPFS     (RIO cfg)
-  , MonadTime           (RIO cfg)
-  , MonadDNSLink        (RIO cfg)
-  , MonadDB             (RIO cfg)
-  , MonadHerokuAddOn             m
-  , MonadReader              cfg m
-  , Has Web.Host             cfg
-  , HasLogFunc               cfg
+  ( MonadLocalIPFS        (RIO cfg)
+  , MonadRemoteIPFS       (RIO cfg)
+  , MonadLinkedIPFS       (RIO cfg)
+  , MonadTime             (RIO cfg)
+  , MonadDB               (RIO cfg)
+  , MonadDNSLink          (RIO cfg)
+  , MonadLogger           (RIO cfg)
+  , MonadReflectiveServer (RIO cfg)
+  , MonadReader                cfg m
+  , MonadHerokuAddOn               m
+  , MonadReflectiveServer          m
   )
   => m Application
 app = do
   cfg     <- ask
   auth    <- mkAuth
-  appHost <- Config.get
+  appHost <- getHost
 
   appHost
     |> server
@@ -62,10 +64,10 @@ app = do
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadReader         cfg m
+  ( MonadHerokuAddOn        m
+  , MonadReader         cfg m
   , MonadDB        (RIO cfg)
   , MonadLogger    (RIO cfg)
-  , MonadHerokuAddOn m
   )
   => m (Context Auth.Checks)
 mkAuth = do
@@ -77,15 +79,14 @@ mkAuth = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadLocalIPFS       m
-  , MonadRemoteIPFS      m
-  , MonadLinkedIPFS      m
-  , MonadLogger          m
-  , MonadTime            m
-  , MonadDB              m
-  , MonadDNSLink         m
-  , MonadReader      cfg m
-  , Has Web.Host     cfg
+  ( MonadDB               m
+  , MonadTime             m
+  , MonadLogger           m
+  , MonadDNSLink          m
+  , MonadLocalIPFS        m
+  , MonadRemoteIPFS       m
+  , MonadLinkedIPFS       m
+  , MonadReflectiveServer m
   )
   => Web.Host
   -> ServerT API m
