@@ -12,6 +12,9 @@ import qualified RIO.ByteString.Lazy as Lazy
 import           Servant.Client
 import           Network.HTTP.Client as HTTP
 
+import           Network.AWS
+import qualified Network.AWS.Auth as AWS
+
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
@@ -19,6 +22,17 @@ import           Network.IPFS.Process
 import qualified Network.IPFS.Peer as Peer
 
 import qualified Fission.Config as Config
+
+instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
+  liftAWS awsAction = do
+    accessKey :: AWS.AccessKey <- Config.get
+    secretKey :: AWS.SecretKey <- Config.get
+
+    env <- newEnv <| FromKeys accessKey secretKey
+
+    awsAction
+      |> runAWS env
+      |> runResourceT
 
 instance
   ( HasProcessContext cfg

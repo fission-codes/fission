@@ -6,7 +6,7 @@ module Fission.Web.DNS
 import           Database.Esqueleto
 import           Servant
 
-import qualified Network.AWS.Auth    as AWS
+import           Network.AWS
 import qualified Network.IPFS.Types as IPFS
 import           Network.IPFS.CID.Types
 
@@ -23,16 +23,17 @@ type API = Capture "cid" CID
 
 server ::
   ( Has IPFS.Gateway           cfg
-  , Has AWS.AccessKey          cfg
-  , Has AWS.SecretKey          cfg
+  -- , Has AWS.AccessKey          cfg
+  -- , Has AWS.SecretKey          cfg
   , Has AWS.ZoneID             cfg
   , Has AWS.DomainName         cfg
   , Has AWS.Route53MockEnabled cfg
   , MonadReader                cfg m
+  , MonadAWS      m
   , MonadLogger   m
   , MonadTime     m
   , MonadUnliftIO m
-  , MonadThrow    m
+  -- , MonadThrow    m
   )
   => Entity User
   -> ServerT API m

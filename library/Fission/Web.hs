@@ -9,7 +9,7 @@ module Fission.Web
 
 import           Servant
 
-import qualified Network.AWS.Auth   as AWS
+import           Network.AWS
 import           Network.IPFS
 import qualified Network.IPFS.Types as IPFS
 
@@ -43,13 +43,12 @@ app ::
   , MonadRemoteIPFS        (RIO cfg)
   , MonadTime              (RIO cfg)
   , MonadDB                (RIO cfg)
+  , MonadAWS               (RIO cfg)
   , MonadDB                         m
   , MonadReader                 cfg m
   , Has IPFS.Gateway            cfg
   , Has IPFS.Peer               cfg
   , Has Web.Host                cfg
-  , Has AWS.AccessKey           cfg
-  , Has AWS.SecretKey           cfg
   , Has AWS.ZoneID              cfg
   , Has AWS.DomainName          cfg
   , Has Heroku.ID               cfg
@@ -95,16 +94,14 @@ server ::
   , MonadRemoteIPFS m
   , MonadUnliftIO   m
   , MonadLogger     m
-  , MonadThrow      m
   , MonadTime       m
   , MonadDB         m
+  , MonadAWS        m
   , MonadReader                cfg m
   , Has AWS.Route53MockEnabled cfg
   , Has IPFS.Gateway           cfg
   , Has IPFS.Peer              cfg
   , Has Web.Host               cfg
-  , Has AWS.AccessKey          cfg
-  , Has AWS.SecretKey          cfg
   , Has AWS.ZoneID             cfg
   , Has AWS.DomainName         cfg
   )

@@ -4,7 +4,7 @@ module Fission.AWS.Route53
   ) where
 
 import           Network.AWS
-import           Network.AWS.Auth as AWS
+-- import           Network.AWS.Auth as AWS
 import           Network.AWS.Prelude hiding (hash)
 import           Network.AWS.Route53
 import           Servant
@@ -24,9 +24,10 @@ registerDomain ::
   , MonadUnliftIO          m
   , MonadLogger            m
   , MonadTime              m
+  , MonadAWS               m
   , Has IPFS.Gateway   cfg
-  , Has AWS.AccessKey  cfg
-  , Has AWS.SecretKey  cfg
+  -- , Has AWS.AccessKey  cfg
+  -- , Has AWS.SecretKey  cfg
   , Has AWS.ZoneID     cfg
   , Has AWS.DomainName cfg
   , Has AWS.Route53MockEnabled cfg
@@ -55,8 +56,9 @@ changeRecord ::
   , MonadUnliftIO         m
   , MonadLogger           m
   , MonadTime             m
-  , Has AWS.AccessKey cfg
-  , Has AWS.SecretKey cfg
+  , MonadAWS              m
+  -- , Has AWS.AccessKey cfg
+  -- , Has AWS.SecretKey cfg
   , Has AWS.ZoneID    cfg
   , Has AWS.Route53MockEnabled cfg
   )
@@ -104,8 +106,7 @@ changeRecord' ::
   ( MonadReader        cfg m
   , MonadUnliftIO          m
   , MonadLogger            m
-  , Has AWS.AccessKey  cfg
-  , Has AWS.SecretKey  cfg
+  , MonadAWS m
   , Has AWS.ZoneID     cfg
   )
   => RecordType
@@ -115,10 +116,10 @@ changeRecord' ::
 changeRecord' recordType domain content = do
   logDebug <| "Updating DNS record at: " <> displayShow domain
 
-  env <- createEnv
+  -- env <- createEnv
   req <- createChangeRequest recordType domain content
 
-  withAWS env NorthVirginia <| do
+  within NorthVirginia do
     res <- send req
     return <| validate res
 

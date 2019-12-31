@@ -5,7 +5,8 @@ module Fission.Web.User
   ) where
 
 import           Servant
-import           Network.AWS.Auth  as AWS
+
+import           Network.AWS
 import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Prelude
@@ -31,13 +32,13 @@ server
   :: ( MonadLogger   m
      , MonadDB       m
      , MonadUnliftIO m
-     , MonadThrow    m
      , MonadTime     m
+     , MonadAWS      m
      , MonadReader                cfg m
      , Has IPFS.Gateway           cfg
      , Has AWS.DomainName         cfg
-     , Has AWS.AccessKey          cfg
-     , Has AWS.SecretKey          cfg
+     -- , Has AWS.AccessKey          cfg
+     -- , Has AWS.SecretKey          cfg
      , Has AWS.ZoneID             cfg
      , Has AWS.Route53MockEnabled cfg
      )
