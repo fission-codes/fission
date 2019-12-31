@@ -1,41 +1,23 @@
 module Fission.AWS
-  -- ( createEnv
   ( validate
-  -- , withAWS
+  , module Fission.AWS.Types
+  , module Fission.AWS.Route53
   ) where
 
-import Flow
 import RIO
 
--- import Data.Has
 import Servant
-
--- import Network.AWS
--- import Network.AWS.Auth as AWS
 import Network.AWS.Route53
 
--- import qualified Fission.Config as Config
-import           Fission.Web.Error
+import Fission.Web.Error
 
--- withAWS :: (MonadUnliftIO m, HasEnv r) => r -> Region -> AWS a -> m a
--- withAWS env region = runResourceT . runAWS env . within region
-
--- createEnv
---   :: ( MonadReader       cfg m
---      , MonadIO               m
---      , Has AWS.AccessKey cfg
---      , Has AWS.SecretKey cfg
---      )
---   => m Env
--- createEnv = do
---   accessKey :: AccessKey <- Config.get
---   secretKey :: SecretKey <- Config.get
---   liftIO <| newEnv <| FromKeys accessKey secretKey
+import Fission.AWS.Route53
+import Fission.AWS.Types
 
 validate :: ChangeResourceRecordSetsResponse -> Either ServerError ChangeResourceRecordSetsResponse
 validate changeSet =
   if status >= 300
-    then Left <| toServerError status
+    then Left (toServerError status)
     else Right changeSet
 
   where
