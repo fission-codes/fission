@@ -28,7 +28,6 @@ add ::
   , MonadThrow      m
   , MonadTime       m
   , MonadDB         m
-  , MonadReader cfg m
   )
   => Entity User
   -> ServerT API m

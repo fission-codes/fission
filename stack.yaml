@@ -51,7 +51,7 @@ extra-deps:
 - tasty-rerun-1.1.14
 - text-time-0.2.0
 - git: https://github.com/fission-suite/ipfs-haskell.git
-  commit: c34151de90b76e16c9725ebc168489396de01948
+  commit: 82b169e394a3eb0be5d22a52c80362d8946a26a2
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

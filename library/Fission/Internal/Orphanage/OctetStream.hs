@@ -2,6 +2,7 @@
 
 module Fission.Internal.Orphanage.OctetStream () where
 
+import           Data.List.NonEmpty  as NonEmpty
 import qualified RIO.ByteString.Lazy as Lazy
 import           Servant
 
@@ -11,6 +12,17 @@ instance MimeRender OctetStream a => MimeRender OctetStream [a] where
   mimeRender proxy values = "["<> meat <>"]"
     where
       meat :: Lazy.ByteString
-      meat = values
+      meat =
+        values
+          |> fmap (mimeRender proxy)
+          |> Lazy.intercalate ","
+
+instance MimeRender OctetStream a => MimeRender OctetStream (NonEmpty a) where
+  mimeRender proxy values = "["<> meat <>"]"
+    where
+      meat :: Lazy.ByteString
+      meat =
+        values
+          |> NonEmpty.toList
           |> fmap (mimeRender proxy)
           |> Lazy.intercalate ","

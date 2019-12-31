@@ -1,11 +1,13 @@
 -- | Fission-speciric AWS types
 module Fission.AWS.Types
   ( DomainName (..)
+  , Subdomain (..)
   , ZoneID (..)
   , Route53MockEnabled (..)
   ) where
 
 import Fission.AWS.DomainName.Types
+import Fission.AWS.Subdomain.Types
 import Fission.AWS.Zone.Types
 import Fission.Prelude
 

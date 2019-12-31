@@ -18,6 +18,7 @@ module Fission.Prelude
   , putText
   , putTextLn
   , textShow
+  , bind
   ) where
 
 import Control.Lens         ((%~), (.~), (?~), (^?))
@@ -53,6 +54,7 @@ import RIO hiding ( Handler
                   , logWarnS
                   , id
                   , timeout
+                  , const
                   , ($)
                   , (&)
                   , (^.)
@@ -64,3 +66,6 @@ import Fission.Internal.UTF8       (putText, putTextLn, textShow)
 
 identity :: a -> a
 identity a = a
+
+bind :: Monad m => (a -> m b) -> m a -> m b
+bind = (=<<)

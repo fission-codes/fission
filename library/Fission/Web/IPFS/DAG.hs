@@ -29,18 +29,19 @@ put ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m
-  , MonadReader cfg m
   )
   => Entity User
   -> ServerT API m
-put (Entity userId _) (Serialized rawData) = IPFS.DAG.put rawData >>= \case
-  Right newCID -> IPFS.Pin.add newCID >>= \case
-    Right pinnedCID -> do
-      _ <- User.CID.createX userId [newCID]
-      return pinnedCID
-
+put (Entity userId _) (Serialized rawData) =
+  IPFS.DAG.put rawData >>= \case
     Left err ->
       Web.Err.throw err
 
-  Left err ->
-    Web.Err.throw err
+    Right newCID ->
+      IPFS.Pin.add newCID >>= \case
+        Left err ->
+          Web.Err.throw err
+
+        Right pinnedCID -> do
+          _ <- User.CID.createX userId [newCID]
+          return pinnedCID

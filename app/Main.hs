@@ -13,9 +13,8 @@ import           Network.Wai.Middleware.RequestLogger
 import qualified RIO
 
 import           Fission.App
-import           Fission.Config.Types
+import           Fission.Types
 import           Fission.Prelude
-import           Fission.Internal.Orphanage.RIO ()
 import           Fission.Storage.PostgreSQL
 
 import qualified Fission.Web       as Web
@@ -35,6 +34,9 @@ import qualified Fission.Environment.Web.Types     as Web
 
 import qualified Fission.Web.Log.Sentry as Sentry
 import qualified Fission.Monitor        as Monitor
+
+import           Fission.Web.Handler
+import           Fission.Web.Auth as Auth
 
 main :: IO ()
 main = do
@@ -78,20 +80,23 @@ main = do
       runner         = if env |> web |> Web.isTLS then runTLS tlsSettings' else runSettings
       condDebug      = if env |> web |> Web.pretty then identity else logStdoutDev
 
-    withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> runRIO Config {..} do
-      logDebug . displayShow =<< ask
-      when (env |> web |> Web.monitor) Monitor.wai
+    withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
+      let cfg = Config {..}
+      runFission cfg do
+        logDebug . displayShow =<< ask
+        when (env |> web |> Web.monitor) Monitor.wai
 
-      logInfo ("Ensuring live DB matches latest schema" :: Text)
-      runDB updateDBToLatest
+        logInfo ("Ensuring live DB matches latest schema" :: Text)
+        runDB updateDBToLatest
 
-      app <- Web.app
+        auth <- Auth.mkAuth (runFission cfg)
 
-      app
-        |> condDebug
-        |> CORS.middleware
-        |> runner settings
-        |> liftIO
+        host
+          |> Web.app (toHandler (runFission cfg)) auth
+          |> condDebug
+          |> CORS.middleware
+          |> runner settings
+          |> liftIO
 
 mkSettings :: LogFunc -> Port -> Settings
 mkSettings logger port =

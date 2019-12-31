@@ -60,6 +60,7 @@ default-extensions:
   - NamedFieldPuns
   - NoImplicitPrelude
   - NoMonomorphismRestriction
+  - NumericUnderscores
   - OverloadedStrings
   - OverloadedLabels
   - OverloadedLists
@@ -91,6 +92,7 @@ dependencies:
   - ekg-wai
   - envy
   - esqueleto
+  - exceptions
   - flow
   - filepath
   - fsnotify

@@ -2,6 +2,7 @@
 
 module Fission.Internal.Orphanage.PlainText () where
 
+import           Data.List.NonEmpty  as NonEmpty
 import qualified RIO.ByteString.Lazy as Lazy
 import           Servant
 
@@ -11,6 +12,17 @@ instance MimeRender PlainText a => MimeRender PlainText [a] where
   mimeRender proxy values = "["<> meat <>"]"
     where
       meat :: Lazy.ByteString
-      meat = values
+      meat =
+        values
+          |> fmap (mimeRender proxy)
+          |> Lazy.intercalate ","
+
+instance MimeRender PlainText a => MimeRender PlainText (NonEmpty a) where
+  mimeRender proxy values = "["<> meat <>"]"
+    where
+      meat :: Lazy.ByteString
+      meat =
+        values
+          |> NonEmpty.toList
           |> fmap (mimeRender proxy)
           |> Lazy.intercalate ","
