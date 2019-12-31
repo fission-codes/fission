@@ -5,8 +5,6 @@ module Fission.Web.User.Create
 
 import           Servant
 
-import           Network.AWS
-import qualified Network.IPFS.Types as IPFS
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
@@ -16,30 +14,24 @@ import qualified Fission.User.Mutation            as User
 import qualified Fission.User.Registration.Types  as User
 
 import qualified Fission.AWS.Types   as AWS
-import           Fission.AWS.Route53
+import           Fission.IPFS.DNSLink.Class as DNSLink
 
 type API = ReqBody '[JSON] User.Registration
         :> Post '[JSON] ()
 
-server
-  :: ( Has IPFS.Gateway           cfg
-     , Has AWS.DomainName         cfg
-     -- , Has AWS.AccessKey          cfg
-     -- , Has AWS.SecretKey          cfg
-     , Has AWS.ZoneID             cfg
-     , Has AWS.Route53MockEnabled cfg
-     , MonadAWS      m
-     , MonadReader                cfg m
-     , MonadDB       m
-     , MonadLogger   m
-     , MonadUnliftIO m
-     , MonadTime     m
-     )
+server ::
+  ( MonadDNSLink  m
+  , MonadDB       m
+  , MonadLogger   m
+  , MonadTime     m
+  )
   => ServerT API m
 server (User.Registration username password email) = do
-  createResponse <- runDBNow <| User.create username password (Just email) Nothing
+  createResponse <- runDBNow \now ->
+    User.create username password (Just email) Nothing now
+
   void <| Web.Err.ensure <| createResponse
-  void <| Web.Err.ensureM =<< registerDomain username splashCID
+  void <| Web.Err.ensureM =<< DNSLink.set (Just (AWS.Subdomain username)) splashCID
 
 splashCID :: CID
 splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"

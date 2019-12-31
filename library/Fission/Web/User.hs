@@ -6,11 +6,9 @@ module Fission.Web.User
 
 import           Servant
 
-import           Network.AWS
-import qualified Network.IPFS.Types as IPFS
-
 import           Fission.Prelude
-import qualified Fission.AWS.Types as AWS
+import           Fission.IPFS.DNSLink.Class as DNSLink
+
 import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.User.Password.Reset as Reset
@@ -28,21 +26,13 @@ type ResetRoute = "reset_password"
                   :> Auth.ExistingUser
                   :> Reset.API
 
-server
-  :: ( MonadLogger   m
-     , MonadDB       m
-     , MonadUnliftIO m
-     , MonadTime     m
-     , MonadAWS      m
-     , MonadReader                cfg m
-     , Has IPFS.Gateway           cfg
-     , Has AWS.DomainName         cfg
-     -- , Has AWS.AccessKey          cfg
-     -- , Has AWS.SecretKey          cfg
-     , Has AWS.ZoneID             cfg
-     , Has AWS.Route53MockEnabled cfg
-     )
+server ::
+  ( MonadDB       m
+  , MonadTime     m
+  , MonadDNSLink  m
+  , MonadLogger   m
+  )
   => ServerT API m
 server = Create.server
-    :<|> const Verify.server
+    :<|> (\_ -> Verify.server)
     :<|> Reset.server

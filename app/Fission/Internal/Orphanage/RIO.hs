@@ -12,6 +12,8 @@ import qualified RIO.ByteString.Lazy as Lazy
 import           Servant.Client
 import           Network.HTTP.Client as HTTP
 
+import           Fission.AWS.Route53.Class
+
 import           Network.AWS
 import qualified Network.AWS.Auth as AWS
 
@@ -21,7 +23,16 @@ import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 import qualified Network.IPFS.Peer as Peer
 
+import           Fission.AWS.Types as AWS
 import qualified Fission.Config as Config
+
+import           Network.AWS.Route53
+
+import Fission.AWS
+
+import Fission.Internal.UTF8
+
+import Fission.IPFS.DNSLink.Class
 
 instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
   liftAWS awsAction = do
@@ -33,6 +44,105 @@ instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) wh
     awsAction
       |> runAWS env
       |> runResourceT
+
+instance
+  ( Has AWS.AccessKey          cfg
+  , Has AWS.SecretKey          cfg
+  , Has AWS.ZoneID             cfg
+  , Has AWS.Route53MockEnabled cfg
+  , HasLogFunc                 cfg
+  , MonadTime (RIO cfg)
+  )
+  => MonadRoute53 (RIO cfg) where
+  update recordType (AWS.DomainName domain) content = do
+    AWS.Route53MockEnabled mockRoute53 <- Config.get
+
+    if mockRoute53
+      then changeRecordMock
+      else changeRecord'
+
+    where
+      changeRecordMock = do
+          mockTime <- currentTime
+
+          let
+            mockMessage = mconcat
+              [ "MOCK: Updating DNS "
+              , show recordType
+              , " record at: "
+              , show domain
+              , " with "
+              , show content
+              ]
+
+            mockId             = "test123"
+            mockChangeInfo     = changeInfo mockId Pending mockTime
+            mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
+
+          logDebug mockMessage
+          return (Right mockRecordResponse)
+
+      changeRecord' = do
+        logDebug <| "Updating DNS record at: " <> displayShow domain
+
+        req <- createChangeRequest
+
+        within NorthVirginia do
+          res <- send req
+          return <| validate res
+
+      -- | Create the AWS change request for Route53
+      createChangeRequest = do
+        ZoneID zoneId <- Config.get
+        content
+          |> addValue (resourceRecordSet domain recordType)
+          |> change Upsert
+          |> return
+          |> changeBatch
+          |> changeResourceRecordSets (ResourceId zoneId)
+          |> return
+
+      addValue :: ResourceRecordSet -> Text -> ResourceRecordSet
+      addValue recordSet value =
+        recordSet
+          |> rrsTTL ?~ 10
+          |> rrsResourceRecords ?~ pure (resourceRecord value)
+
+instance
+  ( Has AWS.AccessKey          cfg
+  , Has AWS.DomainName         cfg
+  , Has AWS.SecretKey          cfg
+  , Has AWS.ZoneID             cfg
+  , Has AWS.Route53MockEnabled cfg
+  , Has IPFS.Gateway           cfg
+  , HasLogFunc                 cfg
+  )
+  => MonadDNSLink (RIO cfg) where
+  set maySubdomain (CID hash) = do
+    IPFS.Gateway   gateway <- Config.get
+    AWS.DomainName domain  <- Config.get
+
+    let
+      baseURL =
+        case maySubdomain of
+          Nothing ->
+            domain
+
+          Just (Subdomain subdomain) ->
+            subdomain <> "." <> domain
+
+      dnsLinkURL = AWS.DomainName ("_dnslink." <> baseURL)
+      dnsLink    = "dnslink=/ipfs/" <> hash
+
+    update Cname (AWS.DomainName baseURL) gateway >>= \case
+      Left err ->
+        return (Left err)
+
+      Right _ ->
+        "\""
+          |> wrapIn dnsLink
+          |> update Txt dnsLinkURL
+          |> fmap \_ -> Right (AWS.DomainName baseURL)
 
 instance
   ( HasProcessContext cfg
