@@ -6,14 +6,14 @@ module Fission.Web.Auth
   , checkUser
   ) where
 
-import Crypto.BCrypt
-import Servant
+import           Crypto.BCrypt
+import           Servant
 
 import           Database.Esqueleto
 import qualified Database.Persist as P
 
-import Fission.Models
-import Fission.Prelude
+import           Fission.Models
+import           Fission.Prelude
 
 type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
 

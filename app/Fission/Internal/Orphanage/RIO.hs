@@ -5,6 +5,7 @@ module Fission.Internal.Orphanage.RIO () where
 
 import           Fission.Prelude
 
+import           RIO.Orphans ()
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Orphans ()
 
@@ -24,11 +25,26 @@ import qualified Network.IPFS.Peer          as Peer
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
 
+import           Fission.AWS
+import           Fission.AWS.Types as AWS
+
 import qualified Fission.Config as Config
 import           Fission.Internal.UTF8
 
 import           Fission.IPFS.DNSLink
 import qualified Fission.URL as URL
+
+import qualified Fission.Platform.Heroku.ID.Types       as Heroku
+import qualified Fission.Platform.Heroku.Password.Types as Heroku
+import           Fission.Platform.Heroku.AddOn
+
+import qualified Fission.Web.Auth                       as Auth
+
+instance (Has Heroku.ID cfg, Has Heroku.Password cfg) => MonadHerokuAddOn (RIO cfg) where
+  authorize = do
+    Heroku.ID       hkuID   <- Config.get
+    Heroku.Password hkuPass <- Config.get
+    return (Auth.basic hkuID hkuPass)
 
 instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
   liftAWS awsAction = do

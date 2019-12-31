@@ -34,6 +34,8 @@ import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
 
+import           Fission.Platform.Heroku.AddOn
+
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
@@ -41,14 +43,13 @@ app ::
   ( MonadLocalIPFS      (RIO cfg)
   , MonadRemoteIPFS     (RIO cfg)
   , MonadTime           (RIO cfg)
-  , MonadDB             (RIO cfg)
   , MonadDNSLink        (RIO cfg)
+  , MonadDB                      m
+  , MonadHerokuAddOn             m
   , MonadDB                      m
   , MonadReader              cfg m
   , Has IPFS.Peer            cfg
   , Has Web.Host             cfg
-  , Has Heroku.ID            cfg
-  , Has Heroku.Password      cfg
   , HasLogFunc               cfg
   )
   => m Application
@@ -67,20 +68,17 @@ app = do
 
 -- | Construct an authorization context
 mkAuth ::
-  ( Has Heroku.ID       cfg
-  , Has Heroku.Password cfg
-  , HasLogFunc          cfg
+  ( HasLogFunc          cfg
   , MonadReader         cfg m
   , MonadDB        (RIO cfg)
+  , MonadHerokuAddOn m
   )
   => m (Context Auth.Checks)
 mkAuth = do
-  Heroku.ID       hkuID   <- Config.get
-  Heroku.Password hkuPass <- Config.get
-  cfg <- ask
-
+  cfg        <- ask
+  herokuAuth <- authorize
   return <| Auth.user cfg
-         :. Auth.basic hkuID hkuPass
+         :. herokuAuth
          :. EmptyContext
 
 -- | Web handlers for the 'API'
