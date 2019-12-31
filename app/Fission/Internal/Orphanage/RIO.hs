@@ -12,10 +12,9 @@ import qualified RIO.ByteString.Lazy as Lazy
 import           Servant.Client
 import           Network.HTTP.Client as HTTP
 
-import           Fission.AWS.Route53.Class
-
 import           Network.AWS
 import qualified Network.AWS.Auth as AWS
+import           Network.AWS.Route53
 
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
@@ -23,16 +22,12 @@ import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 import qualified Network.IPFS.Peer as Peer
 
+import           Fission.AWS.Route53.Class
 import           Fission.AWS.Types as AWS
+import           Fission.AWS
 import qualified Fission.Config as Config
-
-import           Network.AWS.Route53
-
-import Fission.AWS
-
-import Fission.Internal.UTF8
-
-import Fission.IPFS.DNSLink.Class
+import           Fission.Internal.UTF8
+import           Fission.IPFS.DNSLink
 
 instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
   liftAWS awsAction = do
