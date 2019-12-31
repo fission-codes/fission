@@ -46,7 +46,6 @@ instance
   , Has AWS.ZoneID             cfg
   , Has AWS.Route53MockEnabled cfg
   , HasLogFunc                 cfg
-  , MonadTime (RIO cfg)
   )
   => MonadRoute53 (RIO cfg) where
   update recordType (AWS.DomainName domain) content = do
@@ -141,9 +140,9 @@ instance
 
 instance
   ( HasProcessContext cfg
-  , HasLogFunc cfg
-  , Has IPFS.BinPath cfg
-  , Has IPFS.Timeout cfg
+  , HasLogFunc        cfg
+  , Has IPFS.BinPath  cfg
+  , Has IPFS.Timeout  cfg
   )
   => MonadLocalIPFS (RIO cfg) where
     runLocal opts arg = do
@@ -161,10 +160,13 @@ instance
             return . Left <| Process.UnknownErr stdErr
 
 instance
-  ( Has IPFS.URL     cfg
-  , Has HTTP.Manager cfg
-  , Has Peer         cfg
-  , MonadLocalIPFS (RIO cfg)
+  ( Has IPFS.URL      cfg
+  , Has HTTP.Manager  cfg
+  , HasProcessContext cfg
+  , Has IPFS.BinPath  cfg
+  , Has IPFS.Timeout  cfg
+  , Has IPFS.Peer     cfg
+  , HasLogFunc        cfg
   )
   => MonadRemoteIPFS (RIO cfg) where
     runRemote query = do
