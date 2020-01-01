@@ -51,16 +51,26 @@ deleteAssociatedWith uuid' = do
   addOnId  <- herokuAddOnByUUID uuid'
   userId   <- userIdForHerokuAddOn addOnId
   userCids <- cidsForUserId userId
-
+  logDebug <| show "deleteAssociatedWith" <> (show addOnId) <> (show userId) <> (show userCids)
+  -- debugIt uuid'
   userCids
     |> associatedRecords uuid'
-    |> delete
+    -- |> select
 
   let cids = getInner userCidCid <$> userCids
   remaining <- getRemainingCIDs cids
 
   let remainingCIDs = getInner userCidCid <$> remaining
   return (cids \\ remainingCIDs)
+
+-- -- debugIt :: UUID -> SqlQuery ()
+-- debugIt :: MonadDB m => MonadLogger m => UUID -> Transaction m [UUID]
+-- debugIt uuid' = do
+--   lthis <- select <| from \herokuAddOn -> do
+--     where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
+--     return uuid'
+--   logDebug lthis
+--   return lthis
 
 -- | Find all CIDs that remain from a list
 getRemainingCIDs :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
@@ -70,17 +80,17 @@ getRemainingCIDs cids =
     return userCid
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-associatedRecords :: UUID -> [Entity UserCid] -> SqlQuery ()
+associatedRecords :: MonadDB m => UUID -> [Entity UserCid] -> Transaction m ()
 associatedRecords uuid' userCids = do
   let userCidIds = entityKey <$> userCids
-  from \userCid ->
+  delete <| from \userCid ->
     where_ (userCid ^. UserCidId `in_` valList userCidIds)
 
   let userIds' = getInner userCidUserFk <$> userCids
-  from \user ->
+  delete <| from \user ->
     where_ (user ^. UserId `in_` valList userIds')
 
-  from \herokuAddOn ->
+  delete <| from \herokuAddOn ->
     where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
 
 -- | CIDs associated with a user
