@@ -1,13 +1,14 @@
 module Fission.Internal.Log
  ( logInfo
  , logDebug
+ , logDebugN
  , logWarn
  , logError
+ , logErrorN
  , logOther
- , logDebugN
  ) where
 
-import Control.Monad.Logger (ToLogStr, MonadLogger, LogLevel (..), logWithoutLoc, logDebugN)
+import Control.Monad.Logger (ToLogStr, MonadLogger, LogLevel (..), logWithoutLoc, logDebugN, logErrorN)
 
 logInfo :: (ToLogStr msg, MonadLogger m) => msg -> m ()
 logInfo = logWithoutLoc "" LevelInfo
