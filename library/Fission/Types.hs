@@ -160,10 +160,7 @@ instance MonadDNSLink Fission where
           |> fmap \_ -> Right baseURL
 
 instance MonadLinkedIPFS Fission where
-  getLinkedPeers =
-    ipfsRemotePeer
-      |> asks
-      |> fmap pure
+  getLinkedPeers = pure <$> asks ipfsRemotePeer
 
 instance MonadLocalIPFS Fission where
     runLocal opts arg = do
