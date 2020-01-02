@@ -14,8 +14,8 @@ import qualified Network.IPFS.Types            as IPFS
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 
+import           Fission
 import           Fission.Prelude
-import           Fission.Types
 
 import qualified Fission.AWS.Types             as AWS
 import           Fission.Web.Types

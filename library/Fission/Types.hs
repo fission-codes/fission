@@ -1,7 +1,6 @@
 module Fission.Types
   ( Fission (..)
   , module Fission.Config.Types
-  , runFission
   ) where
 
 import           Control.Monad.Catch
@@ -31,6 +30,8 @@ import           Fission.Internal.UTF8
 
 import           Fission.IPFS.DNSLink
 import           Fission.IPFS.Linked
+
+import qualified Fission.URL as URL
 
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
@@ -84,7 +85,7 @@ instance MonadDB Fission where
     SQL.runSqlPool transaction pool
 
 instance MonadRoute53 Fission where
-  update recordType (AWS.DomainName domain) content = do
+  update recordType (URL.DomainName domain) content = do
     AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
 
     if mockRoute53
@@ -140,22 +141,15 @@ instance MonadRoute53 Fission where
 
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do
-    IPFS.Gateway   gateway <- asks ipfsGateway
-    AWS.DomainName domain  <- asks awsDomainName
+    IPFS.Gateway gateway <- asks ipfsGateway
+    domain               <- asks awsDomainName
 
     let
-      baseURL =
-        case maySubdomain of
-          Nothing ->
-            domain
-
-          Just (Subdomain subdomain) ->
-            subdomain <> "." <> domain
-
-      dnsLinkURL = AWS.DomainName ("_dnslink." <> baseURL)
+      baseURL    = URL.normalizePrefix domain maySubdomain
+      dnsLinkURL = URL.prefix baseURL (URL.Subdomain "_dnslink")
       dnsLink    = "dnslink=/ipfs/" <> hash
 
-    update Cname (AWS.DomainName baseURL) gateway >>= \case
+    update Cname baseURL gateway >>= \case
       Left err ->
         return (Left err)
 
@@ -163,7 +157,7 @@ instance MonadDNSLink Fission where
         "\""
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
-          |> fmap \_ -> Right (AWS.DomainName baseURL)
+          |> fmap \_ -> Right baseURL
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers =

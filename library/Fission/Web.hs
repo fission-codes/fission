@@ -13,9 +13,8 @@ import           Fission.Prelude
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
 
-import           Fission.IPFS.DNSLink          as DNSLink
+import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
-import           Fission.Platform.Heroku.AddOn as Heroku
 
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
