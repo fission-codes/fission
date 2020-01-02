@@ -13,15 +13,13 @@ import           Network.IPFS
 import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Prelude
-import qualified Fission.Config     as Config
+import qualified Fission.Config  as Config
 
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
 
-import qualified Fission.Platform.Heroku.ID.Types       as Heroku
-import qualified Fission.Platform.Heroku.Password.Types as Heroku
-
-import           Fission.IPFS.DNSLink.Class as DNSLink
+import           Fission.IPFS.DNSLink          as DNSLink
+import           Fission.Platform.Heroku.AddOn as Heroku
 
 import           Fission.Web.Server
 import qualified Fission.Web.Auth    as Auth
@@ -41,14 +39,12 @@ app ::
   ( MonadLocalIPFS      (RIO cfg)
   , MonadRemoteIPFS     (RIO cfg)
   , MonadTime           (RIO cfg)
-  , MonadDB             (RIO cfg)
   , MonadDNSLink        (RIO cfg)
-  , MonadDB                      m
+  , MonadDB             (RIO cfg)
+  , MonadHerokuAddOn             m
   , MonadReader              cfg m
   , Has IPFS.Peer            cfg
   , Has Web.Host             cfg
-  , Has Heroku.ID            cfg
-  , Has Heroku.Password      cfg
   , HasLogFunc               cfg
   )
   => m Application
@@ -67,20 +63,17 @@ app = do
 
 -- | Construct an authorization context
 mkAuth ::
-  ( Has Heroku.ID       cfg
-  , Has Heroku.Password cfg
-  , HasLogFunc          cfg
+  ( HasLogFunc          cfg
   , MonadReader         cfg m
   , MonadDB        (RIO cfg)
+  , MonadHerokuAddOn m
   )
   => m (Context Auth.Checks)
 mkAuth = do
-  Heroku.ID       hkuID   <- Config.get
-  Heroku.Password hkuPass <- Config.get
-  cfg <- ask
-
+  cfg        <- ask
+  herokuAuth <- Heroku.authorize
   return <| Auth.user cfg
-         :. Auth.basic hkuID hkuPass
+         :. herokuAuth
          :. EmptyContext
 
 -- | Web handlers for the 'API'
