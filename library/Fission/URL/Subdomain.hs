@@ -11,11 +11,9 @@ import Fission.URL.DomainName.Types
 
 -- | Prefix a domain named with an optional subdomain
 normalizePrefix :: DomainName -> Maybe Subdomain -> DomainName
-normalizePrefix domain = \case
-  Nothing        -> domain
-  Just subdomain -> prefix domain subdomain
+normalizePrefix domain (Just subdomain) = prefix domain subdomain
+normalizePrefix domain Nothing          = domain
 
 -- | Prefix a domain with a subdomain
 prefix :: DomainName -> Subdomain -> DomainName
-prefix (DomainName domain) (Subdomain subdomain) =
-  DomainName (subdomain <> "." <> domain)
+prefix (DomainName domain) (Subdomain subdomain) = DomainName (subdomain <> "." <> domain)
