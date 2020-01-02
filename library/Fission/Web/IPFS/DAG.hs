@@ -29,7 +29,6 @@ put ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m
-  , MonadReader cfg m
   )
   => Entity User
   -> ServerT API m

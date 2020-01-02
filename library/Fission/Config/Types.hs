@@ -10,11 +10,12 @@ import qualified Network.AWS.Auth   as AWS
 import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Prelude
-import           Fission.Web.Types
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
-import qualified Fission.AWS.Types                      as AWS
 
+import qualified Fission.AWS.Types as AWS
+import qualified Fission.URL.Types as URL
+import           Fission.Web.Types
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
@@ -33,7 +34,7 @@ data Config = Config
   , awsAccessKey          :: !AWS.AccessKey
   , awsSecretKey          :: !AWS.SecretKey
   , awsZoneID             :: !AWS.ZoneID
-  , awsDomainName         :: !AWS.DomainName
+  , awsDomainName         :: !URL.DomainName
   , awsRoute53MockEnabled :: !AWS.Route53MockEnabled
   } deriving Generic
 
@@ -116,7 +117,7 @@ instance Has AWS.ZoneID Config where
   hasLens = lens awsZoneID \cfg newAWSZoneID ->
     cfg { awsZoneID = newAWSZoneID }
 
-instance Has AWS.DomainName Config where
+instance Has URL.DomainName Config where
   hasLens = lens awsDomainName \cfg newAWSDomainName ->
     cfg { awsDomainName = newAWSDomainName }
 
