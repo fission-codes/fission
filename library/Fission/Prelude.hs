@@ -54,6 +54,7 @@ import RIO hiding ( Handler
                   , logWarnS
                   , id
                   , timeout
+                  , const
                   , ($)
                   , (&)
                   , (^.)
