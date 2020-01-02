@@ -5,12 +5,13 @@ import qualified Network.AWS.Auth  as AWS
 
 import           Fission.Prelude
 import qualified Fission.AWS.Types as AWS
+import qualified Fission.URL.Types as URL
 
 data Environment = Environment
   { accessKey   :: !AWS.AccessKey  -- ^ Access Key
   , secretKey   :: !AWS.SecretKey  -- ^ Secret Key
   , zoneID      :: !AWS.ZoneID     -- ^ Hosted Zone
-  , domainName  :: !AWS.DomainName -- ^ Domain Name
+  , domainName  :: !URL.DomainName -- ^ Domain Name
   , route53MockEnabled :: !AWS.Route53MockEnabled
   }
 
