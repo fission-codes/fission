@@ -3,11 +3,10 @@
 
 module Fission.Internal.Orphanage.RIO () where
 
-import Fission.Prelude
-
-import RIO.Orphans ()
+import           Fission.Prelude
 
 import qualified RIO.ByteString.Lazy as Lazy
+import           RIO.Orphans ()
 
 import           Servant.Client
 import           Network.HTTP.Client as HTTP
@@ -20,14 +19,17 @@ import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
-import qualified Network.IPFS.Peer as Peer
+import qualified Network.IPFS.Peer          as Peer
 
-import           Fission.AWS.Route53.Class
-import           Fission.AWS.Types as AWS
 import           Fission.AWS
+import           Fission.AWS.Types as AWS
+import           Fission.AWS.Route53.Class
+
 import qualified Fission.Config as Config
 import           Fission.Internal.UTF8
+
 import           Fission.IPFS.DNSLink
+import qualified Fission.URL.Sibdomain as Subdomain
 
 instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
   liftAWS awsAction = do
@@ -117,14 +119,7 @@ instance
     AWS.DomainName domain  <- Config.get
 
     let
-      baseURL =
-        case maySubdomain of
-          Nothing ->
-            domain
-
-          Just (Subdomain subdomain) ->
-            subdomain <> "." <> domain
-
+      baseURL    = Subdomain.normalize domain maySubdomain
       dnsLinkURL = AWS.DomainName ("_dnslink." <> baseURL)
       dnsLink    = "dnslink=/ipfs/" <> hash
 

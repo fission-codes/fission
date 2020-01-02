@@ -1,4 +1,4 @@
-module Fission.AWS.Subdomain.Types (Subdomain (..)) where
+module Fission.URL.Subdomain.Types (Subdomain (..)) where
 
 import Fission.Prelude
 
