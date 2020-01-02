@@ -52,13 +52,6 @@ newtype Fission a = Fission { unFission :: RIO Config a }
                    , MonadMask
                    )
 
--- TODO move to Fisson.hs
-runFission :: MonadIO m => Config -> Fission a -> m a
-runFission cfg actions =
-  actions
-    |> unFission
-    |> runRIO cfg
-
 instance MonadLogger Fission where
   monadLoggerLog loc src lvl msg = Fission (monadLoggerLog loc src lvl msg)
 
