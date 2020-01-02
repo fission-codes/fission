@@ -47,11 +47,10 @@ extra-deps:
 - happy-1.19.10
 - http-client-0.5.14 # Peer dependency of amazonka
 - ip-1.5.1
+- ipfs-1.0.1
 - raven-haskell-0.1.2.1
 - tasty-rerun-1.1.14
 - text-time-0.2.0
-- git: https://github.com/fission-suite/ipfs-haskell.git
-  commit: c34151de90b76e16c9725ebc168489396de01948
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
