@@ -1,4 +1,4 @@
--- | Fission-speciric AWS types
+-- | Fission-specific AWS types
 module Fission.AWS.Types
   ( ZoneID (..)
   , Route53MockEnabled (..)
