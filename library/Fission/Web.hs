@@ -13,12 +13,13 @@ import           Network.IPFS
 import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Prelude
-import qualified Fission.Config     as Config
+import qualified Fission.Config  as Config
 
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
 
-import           Fission.IPFS.DNSLink.Class as DNSLink
+import           Fission.IPFS.DNSLink          as DNSLink
+import           Fission.Platform.Heroku.AddOn as Heroku
 
 import           Fission.Web.Server
 import qualified Fission.Web.Auth    as Auth
@@ -30,8 +31,6 @@ import qualified Fission.Web.Routes  as Web
 import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
-
-import           Fission.Platform.Heroku.AddOn
 
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
@@ -72,7 +71,7 @@ mkAuth ::
   => m (Context Auth.Checks)
 mkAuth = do
   cfg        <- ask
-  herokuAuth <- authorize
+  herokuAuth <- Heroku.authorize
   return <| Auth.user cfg
          :. herokuAuth
          :. EmptyContext
