@@ -11,5 +11,5 @@ import Fission.Config.Types
 runFission :: MonadIO m => Config -> Fission a -> m a
 runFission cfg actions =
   actions
-    |> unFission
+    |> unwrapFission
     |> runRIO cfg
