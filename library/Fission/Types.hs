@@ -40,7 +40,7 @@ import qualified Fission.Web.Auth              as Auth
 import           Fission.Web.Server.Reflective
 
 -- | The top-level app type
-newtype Fission a = Fission { unFission :: RIO Config a }
+newtype Fission a = Fission { unwrapFission :: RIO Config a }
   deriving newtype ( Functor
                    , Applicative
                    , Monad
