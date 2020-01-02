@@ -3,6 +3,7 @@ module Fission.User.CID.Mutation
   ( create
   , createX
   , deleteAll
+  , deleteExactUserCid
   ) where
 
 import Database.Esqueleto
@@ -60,3 +61,12 @@ createX userId hashes = runDBNow \now -> do
 deleteAll :: MonadDB m => [Key UserCid] -> Transaction m ()
 deleteAll userCidIds =
   delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)
+
+deleteExactUserCid :: MonadDB m => UserId -> CID -> Transaction m ()
+deleteExactUserCid userId cid = do
+    delete <| from \userCid ->
+      where_ (selectExact userCid)
+  where
+    selectExact userCid =
+          userCid ^. UserCidCid    ==. val cid
+      &&. userCid ^. UserCidUserFk ==. val userId

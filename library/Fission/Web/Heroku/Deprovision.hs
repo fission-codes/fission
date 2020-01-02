@@ -27,7 +27,6 @@ import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
--- TODO make idempotent
 destroy ::
   ( MonadDB         m
   , MonadThrow      m
@@ -73,7 +72,7 @@ deleteAssociatedRecords userId uuid userCids = do
   UserMutation.deleteUser        userId
   UserMutation.deleteHerokuAddon uuid -- TODO would be nice if this was cascading....
 
--- | Users associated with those Heroku add-ons
+-- | Get the User associated with those Heroku add-ons, throw 410 if not found.
 userIdForHerokuAddOn ::
   ( MonadDB     m
   , MonadLogger m
@@ -83,7 +82,7 @@ userIdForHerokuAddOn ::
   -> Transaction m UserId
 userIdForHerokuAddOn addOnId = ensureOneId err410 =<< (UserQuery.getHerkouAddonByUserId addOnId)
 
--- | Heroku add-on with a specific UUID
+-- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
   ( MonadDB     m
   , MonadLogger m
