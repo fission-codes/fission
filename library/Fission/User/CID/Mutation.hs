@@ -2,6 +2,7 @@
 module Fission.User.CID.Mutation
   ( create
   , createX
+  , deleteAll
   ) where
 
 import Database.Esqueleto
@@ -55,3 +56,7 @@ createX userId hashes = runDBNow \now -> do
 
   insertMany_ toInsert
   return newHashes
+
+deleteAll :: MonadDB m => [Key UserCid] -> Transaction m ()
+deleteAll userCidIds =
+  delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)

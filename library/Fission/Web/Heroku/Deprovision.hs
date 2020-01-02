@@ -17,11 +17,15 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
+import           Fission.User.Mutation     as UserMutation
+import           Fission.User.CID.Mutation as UserCIDMutation
+
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
 type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
+-- TODO make idempotent
 destroy ::
   ( MonadDB         m
   , MonadThrow      m
@@ -51,27 +55,15 @@ deleteAssociatedWith uuid' = do
   addOnId  <- herokuAddOnByUUID uuid'
   userId   <- userIdForHerokuAddOn addOnId
   userCids <- cidsForUserId userId
-  logDebug <| show "deleteAssociatedWith" <> (show addOnId) <> (show userId) <> (show userCids)
-  -- debugIt uuid'
-  userCids
-    |> associatedRecords uuid'
-    -- |> select
+
+  deleteAssociatedRecords userId uuid' userCids
 
   let cids = getInner userCidCid <$> userCids
   remaining <- getRemainingCIDs cids
 
   let remainingCIDs = getInner userCidCid <$> remaining
   return (cids \\ remainingCIDs)
-
--- -- debugIt :: UUID -> SqlQuery ()
--- debugIt :: MonadDB m => MonadLogger m => UUID -> Transaction m [UUID]
--- debugIt uuid' = do
---   lthis <- select <| from \herokuAddOn -> do
---     where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
---     return uuid'
---   logDebug lthis
---   return lthis
-
+-- TODO move to mutations file
 -- | Find all CIDs that remain from a list
 getRemainingCIDs :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
 getRemainingCIDs cids =
@@ -80,18 +72,11 @@ getRemainingCIDs cids =
     return userCid
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-associatedRecords :: MonadDB m => UUID -> [Entity UserCid] -> Transaction m ()
-associatedRecords uuid' userCids = do
-  let userCidIds = entityKey <$> userCids
-  delete <| from \userCid ->
-    where_ (userCid ^. UserCidId `in_` valList userCidIds)
-
-  let userIds' = getInner userCidUserFk <$> userCids
-  delete <| from \user ->
-    where_ (user ^. UserId `in_` valList userIds')
-
-  delete <| from \herokuAddOn ->
-    where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
+deleteAssociatedRecords :: MonadDB m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
+deleteAssociatedRecords userId uuid userCids = do
+  UserCIDMutation.deleteAll      (entityKey <$> userCids)
+  UserMutation.deleteUser        userId
+  UserMutation.deleteHerokuAddon uuid
 
 -- | CIDs associated with a user
 cidsForUserId :: MonadDB m => UserId -> Transaction m [Entity UserCid]
