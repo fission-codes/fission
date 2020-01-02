@@ -23,13 +23,12 @@ import qualified Network.IPFS.Peer          as Peer
 
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
-import           Fission.AWS.Route53.Class
 
 import qualified Fission.Config as Config
 import           Fission.Internal.UTF8
 
 import           Fission.IPFS.DNSLink
-import qualified Fission.URL.Sibdomain as Subdomain
+import qualified Fission.URL as URL
 
 instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
   liftAWS awsAction = do
@@ -50,7 +49,7 @@ instance
   , HasLogFunc                 cfg
   )
   => MonadRoute53 (RIO cfg) where
-  update recordType (AWS.DomainName domain) content = do
+  update recordType (URL.DomainName domain) content = do
     AWS.Route53MockEnabled mockRoute53 <- Config.get
 
     if mockRoute53
@@ -106,7 +105,7 @@ instance
 
 instance
   ( Has AWS.AccessKey          cfg
-  , Has AWS.DomainName         cfg
+  , Has URL.DomainName         cfg
   , Has AWS.SecretKey          cfg
   , Has AWS.ZoneID             cfg
   , Has AWS.Route53MockEnabled cfg
@@ -115,15 +114,15 @@ instance
   )
   => MonadDNSLink (RIO cfg) where
   set maySubdomain (CID hash) = do
-    IPFS.Gateway   gateway <- Config.get
-    AWS.DomainName domain  <- Config.get
+    IPFS.Gateway gateway <- Config.get
+    domain               <- Config.get
 
     let
-      baseURL    = Subdomain.normalize domain maySubdomain
-      dnsLinkURL = AWS.DomainName ("_dnslink." <> baseURL)
+      baseURL    = URL.normalizePrefix domain maySubdomain
+      dnsLinkURL = URL.prefix baseURL (URL.Subdomain "_dnslink")
       dnsLink    = "dnslink=/ipfs/" <> hash
 
-    update Cname (AWS.DomainName baseURL) gateway >>= \case
+    update Cname baseURL gateway >>= \case
       Left err ->
         return (Left err)
 
@@ -131,7 +130,7 @@ instance
         "\""
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
-          |> fmap \_ -> Right (AWS.DomainName baseURL)
+          |> fmap \_ -> Right baseURL
 
 instance
   ( HasProcessContext cfg

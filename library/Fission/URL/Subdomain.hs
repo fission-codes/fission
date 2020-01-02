@@ -1,18 +1,21 @@
 -- | URL helpers
 module Fission.URL.Subdomain
-  ( subdomain
+  ( normalizePrefix
   , prefix
+  , module Fission.URL.Subdomain.Types
   ) where
 
 import Fission.Prelude
 import Fission.URL.Subdomain.Types
+import Fission.URL.DomainName.Types
 
 -- | Prefix a domain named with an optional subdomain
-normalize :: Text -> Maybe Subdomain -> Text
-normalize domain = \case
+normalizePrefix :: DomainName -> Maybe Subdomain -> DomainName
+normalizePrefix domain = \case
   Nothing        -> domain
-  Just subdomain -> prefix subdomain domain
+  Just subdomain -> prefix domain subdomain
 
 -- | Prefix a domain with a subdomain
-prefix :: Text -> Text -> Text
-prefix rawSubdomain domain = rawSubdomain <> "." <> domain
+prefix :: DomainName -> Subdomain -> DomainName
+prefix (DomainName domain) (Subdomain subdomain) =
+  DomainName (subdomain <> "." <> domain)

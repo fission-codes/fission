@@ -7,10 +7,10 @@ import           Servant
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
-import qualified Fission.AWS.Types as AWS
+import qualified Fission.URL.Types as URL
 
 import           Fission.IPFS.DNSLink.Class
 import qualified Fission.IPFS.DNSLink.Class as DNSLink
 
-setWithSubdomain :: MonadDNSLink m => Text -> CID -> m (Either ServerError AWS.DomainName)
-setWithSubdomain subdomain cid = DNSLink.set (Just (AWS.Subdomain subdomain)) cid
+setWithSubdomain :: MonadDNSLink m => Text -> CID -> m (Either ServerError URL.DomainName)
+setWithSubdomain subdomain cid = DNSLink.set (Just (URL.Subdomain subdomain)) cid

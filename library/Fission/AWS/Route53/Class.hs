@@ -5,8 +5,8 @@ import           Network.AWS.Route53
 
 import           Servant
 
-import           Fission.AWS.Types as AWS
+import           Fission.URL.Types as URL
 import           Fission.Prelude
 
 class MonadAWS m => MonadRoute53 m where
-  update :: RecordType -> AWS.DomainName -> Text -> m (Either ServerError ChangeResourceRecordSetsResponse)
+  update :: RecordType -> URL.DomainName -> Text -> m (Either ServerError ChangeResourceRecordSetsResponse)

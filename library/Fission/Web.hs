@@ -87,7 +87,6 @@ mkAuth = do
 server ::
   ( MonadLocalIPFS       m
   , MonadRemoteIPFS      m
-  , MonadUnliftIO        m
   , MonadLogger          m
   , MonadTime            m
   , MonadDB              m

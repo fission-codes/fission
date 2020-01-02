@@ -1,4 +1,4 @@
-module Fission.AWS.DomainName.Types (DomainName (..)) where
+module Fission.URL.DomainName.Types (DomainName (..)) where
 
 import           Data.Swagger
 import qualified RIO.ByteString.Lazy as Lazy

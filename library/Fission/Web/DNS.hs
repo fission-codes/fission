@@ -10,15 +10,15 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
-import qualified Fission.AWS.Types          as AWS
 import           Fission.IPFS.DNSLink.Class as DNSLink
+import qualified Fission.URL.Types          as URL
 import           Fission.Web.Error          as Web.Err
 
 type API = Capture "cid" CID
-        :> PutAccepted '[PlainText, OctetStream] AWS.DomainName
+        :> PutAccepted '[PlainText, OctetStream] URL.DomainName
 
 server :: MonadDNSLink m => Entity User -> ServerT API m
 server (Entity _id User { userUsername }) cid =
   cid
-    |> DNSLink.set (Just (AWS.Subdomain userUsername))
+    |> DNSLink.set (Just (URL.Subdomain userUsername))
     |> bind Web.Err.ensureM
