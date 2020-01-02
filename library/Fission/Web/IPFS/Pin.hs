@@ -66,7 +66,7 @@ unpin userId cid = do
     delete <| from \userCid ->
       where_ (selectExact userCid)
 
-    select <| from \userCid -> do
+    select <| from \userCid -> do -- Question: Doesnt the above remove all? so we always unpin?
       where_ (selectExact userCid)
       limit 1
       return userCid
