@@ -25,9 +25,6 @@ import qualified Network.IPFS.Peer          as Peer
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
 
-import           Fission.AWS
-import           Fission.AWS.Types as AWS
-
 import qualified Fission.Config as Config
 import           Fission.Internal.UTF8
 

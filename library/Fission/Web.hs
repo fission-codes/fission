@@ -18,9 +18,6 @@ import qualified Fission.Config     as Config
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
 
-import qualified Fission.Platform.Heroku.ID.Types       as Heroku
-import qualified Fission.Platform.Heroku.Password.Types as Heroku
-
 import           Fission.IPFS.DNSLink.Class as DNSLink
 
 import           Fission.Web.Server
@@ -44,9 +41,8 @@ app ::
   , MonadRemoteIPFS     (RIO cfg)
   , MonadTime           (RIO cfg)
   , MonadDNSLink        (RIO cfg)
-  , MonadDB                      m
+  , MonadDB             (RIO cfg)
   , MonadHerokuAddOn             m
-  , MonadDB                      m
   , MonadReader              cfg m
   , Has IPFS.Peer            cfg
   , Has Web.Host             cfg
