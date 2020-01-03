@@ -1,5 +1,3 @@
-{-# LANGUAGE MonoLocalBinds #-}
-
 -- | Top level web application and API
 module Fission.Web
   ( API
@@ -7,19 +5,18 @@ module Fission.Web
   , server
   ) where
 
-import           Servant
 import           Network.IPFS
+import           Servant
 
 import           Fission.Prelude
 
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
 
-import           Fission.IPFS.DNSLink          as DNSLink
+import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
-import           Fission.Platform.Heroku.AddOn as Heroku
 
-import           Fission.Web.Server
+import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
 import qualified Fission.Web.Auth    as Auth
@@ -36,46 +33,26 @@ import qualified Fission.Web.User    as User
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadLocalIPFS        (RIO cfg)
-  , MonadRemoteIPFS       (RIO cfg)
-  , MonadLinkedIPFS       (RIO cfg)
-  , MonadTime             (RIO cfg)
-  , MonadDB               (RIO cfg)
-  , MonadDNSLink          (RIO cfg)
-  , MonadLogger           (RIO cfg)
-  , MonadReflectiveServer (RIO cfg)
-  , MonadReader                cfg m
-  , MonadHerokuAddOn               m
-  , MonadReflectiveServer          m
+  ( MonadDB               m
+  , MonadTime             m
+  , MonadLogger           m
+  , MonadDNSLink          m
+  , MonadLocalIPFS        m
+  , MonadRemoteIPFS       m
+  , MonadLinkedIPFS       m
+  , MonadReflectiveServer m
   )
-  => m Application
-app = do
-  cfg     <- ask
-  auth    <- mkAuth
-  appHost <- getHost
-
+  => (forall a . m a -> Handler a)
+  -> Context Auth.Checks
+  -> Web.Host
+  -> Application
+app handlerNT auth appHost = do
   appHost
     |> server
-    |> Auth.server api (toHandler cfg)
+    |> Auth.server      api handlerNT
     |> serveWithContext api auth
-    |> pure
   where
     api = Proxy @API
-
--- | Construct an authorization context
-mkAuth ::
-  ( MonadHerokuAddOn        m
-  , MonadReader         cfg m
-  , MonadDB        (RIO cfg)
-  , MonadLogger    (RIO cfg)
-  )
-  => m (Context Auth.Checks)
-mkAuth = do
-  cfg        <- ask
-  herokuAuth <- Heroku.authorize
-  return <| Auth.user cfg
-         :. herokuAuth
-         :. EmptyContext
 
 -- | Web handlers for the 'API'
 server ::

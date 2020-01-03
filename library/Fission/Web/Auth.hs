@@ -4,6 +4,7 @@ module Fission.Web.Auth
   , basic
   , user
   , checkUser
+  , mkAuth
   ) where
 
 import           Crypto.BCrypt
@@ -13,14 +14,29 @@ import           Database.Esqueleto
 import qualified Database.Persist as P
 
 import           Fission.Models
+import           Fission.Platform.Heroku.AddOn
 import           Fission.Prelude
 
 type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
 
+-- | Construct an authorization context
+mkAuth ::
+  ( MonadHerokuAddOn m
+  , MonadDB          inner
+  , MonadLogger      inner
+  )
+  => (forall a . inner a -> IO a)
+  -> m (Context Checks)
+mkAuth runner = do
+  herokuAuth <- authorize
+  return <| user runner
+         :. herokuAuth
+         :. EmptyContext
+
 server
   :: HasServer api Checks
   => Proxy api
-  -> (forall a . m a -> Handler a) -- This is an existential type; basically `a` is locally scoped to that function at call time
+  -> (forall a . m a -> Handler a)
   -> ServerT api m
   -> ServerT api Handler
 server api = hoistServerWithContext api context
@@ -38,12 +54,12 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          else Unauthorized
 
 user ::
-  ( MonadDB     (RIO cfg)
-  , MonadLogger (RIO cfg)
+  ( MonadDB     inner
+  , MonadLogger inner
   )
-  => cfg
+  => (inner (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
   -> BasicAuthCheck (Entity User)
-user cfg = BasicAuthCheck \auth -> runRIO cfg <| checkUser auth
+user runner = BasicAuthCheck \auth -> runner <| checkUser auth
 
 checkUser ::
   ( MonadDB     m

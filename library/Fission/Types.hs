@@ -1,36 +1,37 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE UndecidableInstances #-}
+module Fission.Types
+  ( Fission (..)
+  , module Fission.Config.Types
+  ) where
 
-module Fission.Internal.Orphanage.RIO () where
+import           Control.Monad.Catch
+import qualified Database.Persist.Sql as SQL
 
-import           Fission.Prelude
-
-import           RIO.Orphans ()
 import qualified RIO.ByteString.Lazy as Lazy
 import           RIO.Orphans ()
 
 import           Servant.Client
-import           Network.HTTP.Client as HTTP
 
 import           Network.AWS
-import qualified Network.AWS.Auth as AWS
 import           Network.AWS.Route53
 
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
-import qualified Network.IPFS.Peer          as Peer
+import qualified Network.IPFS.Peer as Peer
+
+import           Fission.Prelude
+import           Fission.Config.Types
 
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
 
-import qualified Fission.Config as Config
 import           Fission.Internal.UTF8
 
 import           Fission.IPFS.DNSLink
-import qualified Fission.URL as URL
 import           Fission.IPFS.Linked
+
+import qualified Fission.URL as URL
 
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
@@ -38,21 +39,39 @@ import           Fission.Platform.Heroku.AddOn
 
 import qualified Fission.Web.Auth              as Auth
 import           Fission.Web.Server.Reflective
-import qualified Fission.Web.Types             as Web
 
-instance Has Web.Host cfg => MonadReflectiveServer (RIO cfg) where
-  getHost = Config.get
+-- | The top-level app type
+newtype Fission a = Fission { unwrapFission :: RIO Config a }
+  deriving newtype ( Functor
+                   , Applicative
+                   , Monad
+                   , MonadIO
+                   , MonadUnliftIO
+                   , MonadReader Config
+                   , MonadThrow
+                   , MonadCatch
+                   , MonadMask
+                   )
 
-instance (Has Heroku.ID cfg, Has Heroku.Password cfg) => MonadHerokuAddOn (RIO cfg) where
+instance MonadLogger Fission where
+  monadLoggerLog loc src lvl msg = Fission (monadLoggerLog loc src lvl msg)
+
+instance MonadTime Fission where
+  currentTime = liftIO getCurrentTime
+
+instance MonadReflectiveServer Fission where
+  getHost = asks host
+
+instance MonadHerokuAddOn Fission where
   authorize = do
-    Heroku.ID       hkuID   <- Config.get
-    Heroku.Password hkuPass <- Config.get
+    Heroku.ID       hkuID   <- asks herokuID
+    Heroku.Password hkuPass <- asks herokuPassword
     return (Auth.basic hkuID hkuPass)
 
-instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) where
+instance MonadAWS Fission where
   liftAWS awsAction = do
-    accessKey :: AWS.AccessKey <- Config.get
-    secretKey :: AWS.SecretKey <- Config.get
+    accessKey <- asks awsAccessKey
+    secretKey <- asks awsSecretKey
 
     env <- newEnv <| FromKeys accessKey secretKey
 
@@ -60,20 +79,18 @@ instance (Has AWS.AccessKey cfg, Has AWS.SecretKey cfg) => MonadAWS (RIO cfg) wh
       |> runAWS env
       |> runResourceT
 
-instance
-  ( Has AWS.AccessKey          cfg
-  , Has AWS.SecretKey          cfg
-  , Has AWS.ZoneID             cfg
-  , Has AWS.Route53MockEnabled cfg
-  , HasLogFunc                 cfg
-  )
-  => MonadRoute53 (RIO cfg) where
+instance MonadDB Fission where
+  runDB transaction = do
+    pool <- asks dbPool
+    SQL.runSqlPool transaction pool
+
+instance MonadRoute53 Fission where
   update recordType (URL.DomainName domain) content = do
-    AWS.Route53MockEnabled mockRoute53 <- Config.get
+    AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
 
     if mockRoute53
-      then changeRecordMock
-      else changeRecord'
+       then changeRecordMock
+       else changeRecord'
 
     where
       changeRecordMock = do
@@ -107,7 +124,7 @@ instance
 
       -- | Create the AWS change request for Route53
       createChangeRequest = do
-        ZoneID zoneId <- Config.get
+        ZoneID zoneId <- asks awsZoneID
         content
           |> addValue (resourceRecordSet domain recordType)
           |> change Upsert
@@ -122,19 +139,10 @@ instance
           |> rrsTTL ?~ 10
           |> rrsResourceRecords ?~ pure (resourceRecord value)
 
-instance
-  ( Has AWS.AccessKey          cfg
-  , Has URL.DomainName         cfg
-  , Has AWS.SecretKey          cfg
-  , Has AWS.ZoneID             cfg
-  , Has AWS.Route53MockEnabled cfg
-  , Has IPFS.Gateway           cfg
-  , HasLogFunc                 cfg
-  )
-  => MonadDNSLink (RIO cfg) where
+instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do
-    IPFS.Gateway gateway <- Config.get
-    domain               <- Config.get
+    IPFS.Gateway gateway <- asks ipfsGateway
+    domain               <- asks awsDomainName
 
     let
       baseURL    = URL.normalizePrefix domain maySubdomain
@@ -151,44 +159,31 @@ instance
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
 
-instance Has IPFS.Peer cfg => MonadLinkedIPFS (RIO cfg) where
-  getLinkedPeers = pure <$> Config.get
+instance MonadLinkedIPFS Fission where
+  getLinkedPeers = pure <$> asks ipfsRemotePeer
 
-instance
-  ( HasProcessContext cfg
-  , HasLogFunc        cfg
-  , Has IPFS.BinPath  cfg
-  , Has IPFS.Timeout  cfg
-  )
-  => MonadLocalIPFS (RIO cfg) where
+instance MonadLocalIPFS Fission where
     runLocal opts arg = do
-      IPFS.BinPath ipfs <- Config.get
-      IPFS.Timeout secs <- Config.get
+      IPFS.BinPath ipfs <- asks ipfsPath
+      IPFS.Timeout secs <- asks ipfsTimeout
+
       let opts' = ("--timeout=" <> show secs <> "s") : opts
 
       runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' >>= \case
         (ExitSuccess, contents, _) ->
           return <| Right contents
+
         (ExitFailure _, _, stdErr)
           | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
               return . Left <| Process.Timeout secs
           | otherwise ->
-            return . Left <| Process.UnknownErr stdErr
+              return . Left <| Process.UnknownErr stdErr
 
-instance
-  ( Has IPFS.URL      cfg
-  , Has HTTP.Manager  cfg
-  , HasProcessContext cfg
-  , Has IPFS.BinPath  cfg
-  , Has IPFS.Timeout  cfg
-  , Has IPFS.Peer     cfg
-  , HasLogFunc        cfg
-  )
-  => MonadRemoteIPFS (RIO cfg) where
+instance MonadRemoteIPFS Fission where
     runRemote query = do
-      peerID       <- Config.get
-      IPFS.URL url <- Config.get
-      manager      <- Config.get
+      peerID       <- asks ipfsRemotePeer
+      IPFS.URL url <- asks ipfsURL
+      manager      <- asks httpManager
 
       _ <- Peer.connectRetry peerID 2
 
@@ -196,6 +191,3 @@ instance
         |> mkClientEnv manager
         |> runClientM query
         |> liftIO
-
-instance MonadTime (RIO cfg) where
-  currentTime = liftIO getCurrentTime

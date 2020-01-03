@@ -1,16 +1,16 @@
-module Fission.Web.Server
+module Fission.Web.Handler
   ( fromHandler
   , toHandler
   ) where
 
-import Control.Monad.Except
-import Servant
+import           Control.Monad.Except
+import           Servant
 
-import Fission.Prelude
+import           Fission.Prelude
 
 -- | Natural transformation to native Servant handler
-toHandler :: cfg -> RIO cfg a -> Handler a
-toHandler cfg a = Handler . ExceptT . try <| runReaderT (unRIO a) cfg
+toHandler :: (m a -> IO a) -> m a -> Handler a
+toHandler runner actions = Handler . ExceptT <| try <| runner actions
 
 -- | Natural transformation into a RIO handler
 fromHandler :: MonadIO m => Handler a -> m a
