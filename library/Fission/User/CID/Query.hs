@@ -1,6 +1,6 @@
 module Fission.User.CID.Query
-  ( getUserCidsByUserId
-  , getUserCidsByCids
+  ( getByUserId
+  , getByCids
   ) where
 
 import           Network.IPFS.CID.Types
@@ -10,15 +10,15 @@ import           Fission.Models
 import           Fission.Prelude
 
 -- | CIDs associated with a user
-getUserCidsByUserId :: MonadDB m => UserId -> Transaction m [Entity UserCid]
-getUserCidsByUserId userId =
+getByUserId :: MonadDB m => UserId -> Transaction m [Entity UserCid]
+getByUserId userId =
   select <| from \userCid -> do
     where_ (userCid ^. UserCidUserFk ==. val userId)
     return userCid
 
 -- | Find all CIDs that remain from a list
-getUserCidsByCids :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
-getUserCidsByCids cids =
+getByCids :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
+getByCids cids =
   select <| from \userCid -> do
     where_ (userCid ^. UserCidCid `in_` valList cids)
     return userCid

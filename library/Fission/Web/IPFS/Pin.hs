@@ -65,7 +65,7 @@ unpin ::
 unpin userId cid = do
   remaining <- runDB do
     UserCidMutation.destroyExact userId cid
-    UserCidQuery.getUserCidsByCids [cid]
+    UserCidQuery.getByCids [cid]
 
   when (length remaining == 0) do
     void <| Web.Err.ensure =<< IPFS.Pin.rm cid

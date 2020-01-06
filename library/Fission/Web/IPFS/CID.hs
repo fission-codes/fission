@@ -15,6 +15,6 @@ type API = Get '[JSON, PlainText] [CID]
 
 allForUser :: MonadDB m => Entity User -> ServerT API m
 allForUser (Entity userId _) = runDB do
-  userCids <- UserCIDQuery.getUserCidsByUserId userId
+  userCids <- UserCIDQuery.getByUserId userId
   let cids = getInner userCidCid <$> userCids
   return cids

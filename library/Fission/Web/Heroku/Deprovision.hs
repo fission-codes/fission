@@ -55,12 +55,12 @@ deleteAssociatedWith ::
 deleteAssociatedWith uuid' = do
   addOnId  <- herokuAddOnByUUID uuid'
   userId   <- userIdForHerokuAddOn addOnId
-  userCids <- UserCIDQuery.getUserCidsByUserId userId
+  userCids <- UserCIDQuery.getByUserId userId
 
   deleteAssociatedRecords userId uuid' userCids
 
   let deletedUserCids = getInner userCidCid <$> userCids
-  remainingUserCids <- UserCIDQuery.getUserCidsByCids deletedUserCids
+  remainingUserCids <- UserCIDQuery.getByCids deletedUserCids
 
   let remainingCIDs = getInner userCidCid <$> remainingUserCids
   return (deletedUserCids \\ remainingCIDs)
