@@ -64,7 +64,7 @@ unpin ::
   -> ServerT UnpinAPI m
 unpin userId cid = do
   remaining <- runDB do
-    UserCidMutation.deleteExactUserCid userId cid
+    UserCidMutation.destroyExact userId cid
     UserCidQuery.getUserCidsByCids [cid]
 
   when (length remaining == 0) do

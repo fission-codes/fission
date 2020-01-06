@@ -2,8 +2,8 @@ module Fission.User.Mutation
   ( create
   , createWithHeroku
   , updatePassword
-  , deleteUser
-  , deleteHerokuAddon
+  , destroy
+  , destroyHerokuAddon
   ) where
 
 import           Crypto.BCrypt
@@ -100,10 +100,10 @@ hashPassword' password = do
     Nothing           -> Left Error.FailedDigest
     Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
-deleteUser :: MonadDB m => UserId -> Transaction m ()
-deleteUser userId = delete <| from \user ->
+destroy :: MonadDB m => UserId -> Transaction m ()
+destroy userId = delete <| from \user ->
     where_ (user ^. UserId ==. val userId)
 
-deleteHerokuAddon :: MonadDB m => UUID -> Transaction m ()
-deleteHerokuAddon uuid =
+destroyHerokuAddon :: MonadDB m => UUID -> Transaction m ()
+destroyHerokuAddon uuid =
   delete <| from \herokuAddOn -> where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid)

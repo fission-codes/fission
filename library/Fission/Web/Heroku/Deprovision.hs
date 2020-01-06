@@ -17,10 +17,10 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
-import           Fission.User.Query        as UserQuery
-import           Fission.User.Mutation     as UserMutation
-import           Fission.User.CID.Query    as UserCIDQuery
-import           Fission.User.CID.Mutation as UserCIDMutation
+import qualified Fission.User.Query        as UserQuery
+import qualified Fission.User.Mutation     as UserMutation
+import qualified Fission.User.CID.Query    as UserCIDQuery
+import qualified Fission.User.CID.Mutation as UserCIDMutation
 
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
@@ -68,9 +68,9 @@ deleteAssociatedWith uuid' = do
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
 deleteAssociatedRecords :: MonadDB m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
 deleteAssociatedRecords userId uuid userCids = do
-  UserCIDMutation.deleteAll      (entityKey <$> userCids)
-  UserMutation.deleteUser        userId
-  UserMutation.deleteHerokuAddon uuid -- TODO would be nice if this was cascading....
+  UserCIDMutation.destroyAll      (entityKey <$> userCids)
+  UserMutation.destroy        userId
+  UserMutation.destroyHerokuAddon uuid -- TODO would be nice if this was cascading....
 
 -- | Get the User associated with those Heroku add-ons, throw 410 if not found.
 userIdForHerokuAddOn ::
