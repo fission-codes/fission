@@ -18,6 +18,7 @@ import           Fission.Prelude
 import qualified Fission.Web.Error         as Web.Err
 import qualified Fission.User.CID as User.CID
 import           Fission.Models
+import           Fission.Storage.Query.Class
 
 type API = PinAPI :<|> UnpinAPI
 
@@ -28,11 +29,11 @@ type UnpinAPI = Capture "cid" CID
              :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server ::
-  ( MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadRemoteIPFS      m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadTime            m
+  , MonadDBQuery UserCid m
   )
   => Entity User
   -> ServerT API m
@@ -54,10 +55,10 @@ pin userId cid = IPFS.Pin.add cid >>= \case
     pure NoContent
 
 unpin ::
-  ( MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadDB         m
+  ( MonadRemoteIPFS      m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadDBQuery UserCid m
   )
   => UserId
   -> ServerT UnpinAPI m

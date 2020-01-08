@@ -4,21 +4,17 @@ module Fission.User.CID.Query
   ) where
 
 import           Network.IPFS.CID.Types
-import           Database.Esqueleto hiding ((=.), update)
+import           Database.Esqueleto hiding ((=.), update, getBy)
 
 import           Fission.Models
-import           Fission.Prelude
+import           Fission.Prelude hiding (Value)
+import           Fission.Storage.Query.Class
 
 -- | CIDs associated with a user
-getByUserId :: MonadDB m => UserId -> Transaction m [Entity UserCid]
-getByUserId userId =
-  select <| from \userCid -> do
-    where_ (userCid ^. UserCidUserFk ==. val userId)
-    return userCid
+getByUserId :: MonadDBQuery UserCid m => UserId -> Transaction m [Entity UserCid]
+getByUserId userId = getBy (\userCid -> userCid ^. UserCidUserFk ==. val userId)
 
 -- | Find all CIDs that remain from a list
-getByCids :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
-getByCids cids =
-  select <| from \userCid -> do
-    where_ (userCid ^. UserCidCid `in_` valList cids)
-    return userCid
+getByCids :: MonadDBQuery UserCid m => [CID] -> Transaction m [Entity UserCid]
+getByCids cids = getBy (\userCid -> userCid ^. UserCidCid `in_` valList cids)
+

@@ -15,13 +15,15 @@ import           Fission.Web.Server.Reflective
 type API = Provision.API :<|> Deprovision.API
 
 server ::
-  ( MonadDB               m
-  , MonadTime             m
-  , MonadThrow            m
-  , MonadLogger           m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
-  , MonadReflectiveServer m
+  ( MonadDBQuery User        m
+  , MonadDBQuery UserCid     m
+  , MonadDBQuery HerokuAddOn m
+  , MonadTime                m
+  , MonadThrow               m
+  , MonadLogger              m
+  , MonadLocalIPFS           m
+  , MonadRemoteIPFS          m
+  , MonadReflectiveServer    m
   )
   => ServerT API m
 server = Provision.create
