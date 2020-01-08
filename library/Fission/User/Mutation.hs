@@ -101,8 +101,8 @@ hashPassword' password = do
     Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
 destroy :: MonadDB m => UserId -> Transaction m ()
-destroy userId = delete <| from \user ->
-    where_ (user ^. UserId ==. val userId)
+destroy userId =
+  delete <| from \user -> where_ (user ^. UserId ==. val userId)
 
 destroyHerokuAddon :: MonadDB m => UUID -> Transaction m ()
 destroyHerokuAddon uuid =
