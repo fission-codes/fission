@@ -8,7 +8,7 @@ import           Database.Esqueleto hiding ((=.), update, getBy)
 
 import           Fission.Models
 import           Fission.Prelude hiding (Value)
-import           Fission.Storage.Query.Class
+import           Fission.Storage
 
 -- | CIDs associated with a user
 getByUserId :: MonadDBQuery UserCid m => UserId -> Transaction m [Entity UserCid]

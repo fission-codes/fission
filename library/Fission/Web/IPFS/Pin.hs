@@ -18,7 +18,7 @@ import           Fission.Prelude
 import qualified Fission.Web.Error         as Web.Err
 import qualified Fission.User.CID as User.CID
 import           Fission.Models
-import           Fission.Storage.Query.Class
+import            Fission.Storage
 
 type API = PinAPI :<|> UnpinAPI
 

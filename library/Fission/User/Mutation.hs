@@ -8,11 +8,12 @@ module Fission.User.Mutation
 
 import           Crypto.BCrypt
 import           Data.UUID (UUID)
-import           Database.Esqueleto hiding ((=.), update)
+import           Database.Esqueleto hiding ((=.), update, deleteWhere)
 import           Database.Persist          ((=.), update)
 
 import           Fission.Models
 import           Fission.Prelude
+import           Fission.Storage
 
 import qualified Fission.Platform.Heroku.Region.Types as Heroku
 
@@ -100,9 +101,8 @@ hashPassword' password = do
     Nothing           -> Left Error.FailedDigest
     Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
-destroy :: MonadDB m => UserId -> Transaction m ()
-destroy userId =
-  delete <| from \user -> where_ (user ^. UserId ==. val userId)
+destroy :: MonadDBMutation User m => UserId -> Transaction m ()
+destroy userId = deleteWhere (\user -> user ^. UserId ==. val userId)
 
 destroyHerokuAddon :: MonadDB m => UUID -> Transaction m ()
 destroyHerokuAddon uuid =

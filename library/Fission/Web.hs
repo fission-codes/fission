@@ -28,7 +28,9 @@ import qualified Fission.Web.Routes  as Web
 import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
-
+-- REMove
+import Fission.Storage
+import           Fission.Models
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
@@ -36,6 +38,7 @@ app ::
   ( MonadDBQuery UserCid      m
   , MonadDBQuery User         m
   , MonadDBQuery HerokuAddOn  m
+  , MonadDBMutation User      m
   , MonadTime                 m
   , MonadLogger               m
   , MonadDNSLink              m
@@ -61,6 +64,7 @@ server ::
   ( MonadDBQuery UserCid      m
   , MonadDBQuery User         m
   , MonadDBQuery HerokuAddOn  m
+  , MonadDBMutation User      m
   , MonadTime                 m
   , MonadLogger               m
   , MonadDNSLink              m

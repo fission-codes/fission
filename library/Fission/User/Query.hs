@@ -9,7 +9,7 @@ import qualified Database.Persist as P
 
 import           Fission.Models
 import           Fission.Prelude
-import           Fission.Storage.Query.Class
+import           Fission.Storage
 
 -- getHerkouAddonByUserId :: MonadDB m => HerokuAddOnId -> Transaction m (Maybe (Entity User))
 -- getHerkouAddonByUserId addOnId = selectFirst [UserHerokuAddOnId P.==. (Just addOnId), UserActive P.==. True] []

@@ -23,6 +23,7 @@ import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
 import qualified Fission.Web.IPFS.DAG      as DAG
 import qualified Fission.Web.IPFS.Peer     as Peer
+import Fission.Storage
 
 
 type API = AuthedAPI

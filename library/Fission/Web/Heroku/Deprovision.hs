@@ -21,6 +21,7 @@ import qualified Fission.User as User
 import qualified Fission.User.CID as User.CID
 
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
+import Fission.Storage
 
 type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
@@ -29,6 +30,7 @@ destroy ::
   ( MonadDBQuery UserCid     m
   , MonadDBQuery User        m
   , MonadDBQuery HerokuAddOn m
+  , MonadDBMutation User     m
   , MonadThrow               m
   , MonadRemoteIPFS          m
   , MonadLogger              m
@@ -49,6 +51,7 @@ deleteAssociatedWith ::
   ( MonadDBQuery HerokuAddOn m
   , MonadDBQuery User        m
   , MonadDBQuery UserCid     m
+  , MonadDBMutation User     m
   , MonadLogger              m
   , MonadThrow               m
   )
@@ -68,7 +71,12 @@ deleteAssociatedWith uuid' = do
   return (deletedUserCids \\ remainingCIDs)
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-deleteAssociatedRecords :: MonadDB m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
+deleteAssociatedRecords ::
+  MonadDBMutation User m
+  => UserId
+  -> UUID
+  -> [Entity UserCid]
+  -> Transaction m ()
 deleteAssociatedRecords userId uuid userCids = do
   User.CID.destroyAll (entityKey <$> userCids)
   User.destroy userId

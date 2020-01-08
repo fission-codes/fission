@@ -12,12 +12,17 @@ import qualified Fission.Web.Heroku.Provision   as Provision
 import qualified Fission.Web.Heroku.Deprovision as Deprovision
 import           Fission.Web.Server.Reflective
 
+-- REMove
+import Fission.Storage
+import           Fission.Models
+
 type API = Provision.API :<|> Deprovision.API
 
 server ::
   ( MonadDBQuery User        m
   , MonadDBQuery UserCid     m
   , MonadDBQuery HerokuAddOn m
+  , MonadDBMutation User     m
   , MonadTime                m
   , MonadThrow               m
   , MonadLogger              m

@@ -10,6 +10,7 @@ import Servant
 import Fission.Prelude
 import Fission.Models
 import qualified Fission.User.CID as User.CID
+import Fission.Storage
 
 type API = Get '[JSON, PlainText] [CID]
 
