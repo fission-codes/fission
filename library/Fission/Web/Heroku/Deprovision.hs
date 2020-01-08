@@ -53,11 +53,11 @@ deleteAssociatedWith ::
   => UUID
   -> Transaction m [CID]
 deleteAssociatedWith uuid' = do
-  addOnId  <- herokuAddOnByUUID uuid'
-  userId   <- userIdForHerokuAddOn addOnId
-  userCids <- UserCIDQuery.getByUserId userId
+  addOn  <- herokuAddOnByUUID uuid'
+  addOnUser   <- userForHerokuAddOn (entityKey addOn)
+  userCids <- UserCIDQuery.getByUserId (entityKey addOnUser)
 
-  deleteAssociatedRecords userId uuid' userCids
+  deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
 
   let deletedUserCids = getInner userCidCid <$> userCids
   remainingUserCids <- UserCIDQuery.getByCids deletedUserCids
@@ -73,14 +73,14 @@ deleteAssociatedRecords userId uuid userCids = do
   UserMutation.destroyHerokuAddon uuid -- TODO would be nice if this was cascading....
 
 -- | Get the User associated with those Heroku add-ons, throw 410 if not found.
-userIdForHerokuAddOn ::
+userForHerokuAddOn ::
   ( MonadDB     m
   , MonadLogger m
   , MonadThrow  m
   )
   => HerokuAddOnId
-  -> Transaction m UserId
-userIdForHerokuAddOn addOnId = ensureOneId err410 =<< UserQuery.getHerkouAddonByUserId addOnId
+  -> Transaction m (Entity User)
+userForHerokuAddOn addOnId = ensureEntity err410 =<< UserQuery.getHerkouAddonByUserId addOnId
 
 -- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
@@ -89,5 +89,5 @@ herokuAddOnByUUID ::
   , MonadThrow  m
   )
   => UUID
-  -> Transaction m HerokuAddOnId
-herokuAddOnByUUID uuid' = ensureOneId err410 =<< UserQuery.getHerkouAddonByUUID uuid'
+  -> Transaction m (Entity HerokuAddOn)
+herokuAddOnByUUID uuid' = ensureEntity err410 =<< UserQuery.getHerkouAddonByUUID uuid'

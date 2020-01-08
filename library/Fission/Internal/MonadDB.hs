@@ -5,6 +5,7 @@ module Fission.Internal.MonadDB
   , getInner
   , ensureOne
   , ensureOneId
+  , ensureEntity
   ) where
 
 import Control.Monad.Logger
@@ -22,6 +23,11 @@ runDBNow :: (MonadTime m, MonadDB m) => (UTCTime -> Transaction m a) -> m a
 runDBNow timeTransaction = do
   now <- currentTime
   runDB (timeTransaction now)
+
+ensureEntity :: (Exception err, MonadLogger m, MonadThrow m) => err -> Maybe a -> m a
+ensureEntity err = \case
+  Nothing -> throwM err
+  Just x  -> return x
 
 ensureOneId :: (Exception err, MonadLogger m, MonadThrow m) => err -> [Entity a] -> m (Key a)
 ensureOneId err entities = pure . entityKey =<< ensureOne err entities
