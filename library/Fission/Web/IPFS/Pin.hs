@@ -67,7 +67,7 @@ unpin userId cid = do
     UserCidMutation.destroyExact userId cid
     UserCidQuery.getByCids [cid]
 
-  when (length remaining == 0) do
+  when (remaining == []) do
     void <| Web.Err.ensure =<< IPFS.Pin.rm cid
 
   return NoContent

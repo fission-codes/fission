@@ -80,7 +80,7 @@ userIdForHerokuAddOn ::
   )
   => HerokuAddOnId
   -> Transaction m UserId
-userIdForHerokuAddOn addOnId = ensureOneId err410 =<< (UserQuery.getHerkouAddonByUserId addOnId)
+userIdForHerokuAddOn addOnId = ensureOneId err410 =<< UserQuery.getHerkouAddonByUserId addOnId
 
 -- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
@@ -90,4 +90,4 @@ herokuAddOnByUUID ::
   )
   => UUID
   -> Transaction m HerokuAddOnId
-herokuAddOnByUUID uuid' = ensureOneId err410 =<< (UserQuery.getHerkouAddonByUUID uuid')
+herokuAddOnByUUID uuid' = ensureOneId err410 =<< UserQuery.getHerkouAddonByUUID uuid'
