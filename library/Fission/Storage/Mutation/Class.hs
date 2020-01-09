@@ -7,9 +7,16 @@ import           Fission.Models
 import           Fission.Prelude hiding (Value)
 import           Fission.Types
 
+deleteWhereGeneric ::
+  ( PersistEntity model
+  , PersistRecordBackend model SqlBackend
+  , MonadDB m
+  )
+  => (SqlExpr (Entity model) -> SqlExpr (Value Bool))
+  -> Transaction m ()
 deleteWhereGeneric whereClause = delete <| from \model -> where_ (whereClause model)
 
-class MonadDB m => MonadDBMutation model m where -- Note that this is Monad not MonadDB
+class (MonadDB m, PersistEntity model, PersistRecordBackend model SqlBackend) => MonadDBMutation model m where
   deleteWhere :: (SqlExpr (Entity model) -> SqlExpr (Value Bool)) -> Transaction m ()
 
 instance MonadDBMutation User Fission where
