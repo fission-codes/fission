@@ -42,24 +42,24 @@ type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
 server ::
-  ( MonadLinkedIPFS m
-  , MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadLinkedIPFS      m
+  , MonadRemoteIPFS      m
+  , MonadLocalIPFS       m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadTime            m
+  , MonadDBQuery UserCid m
   )
   => ServerT API m
 server = authed :<|> public
 
 authed ::
-  ( MonadDB         m
-  , MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
+  ( MonadDBQuery UserCid m
+  , MonadRemoteIPFS      m
+  , MonadLocalIPFS       m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadTime            m
   )
   => ServerT AuthedAPI m
 authed usr = CID.allForUser usr

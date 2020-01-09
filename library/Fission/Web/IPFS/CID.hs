@@ -14,7 +14,7 @@ import Fission.Storage
 
 type API = Get '[JSON, PlainText] [CID]
 
-allForUser :: MonadDB m => Entity User -> ServerT API m
+allForUser :: MonadDBQuery UserCid m => Entity User -> ServerT API m
 allForUser (Entity userId _) = runDB do
   userCids <- User.CID.getByUserId userId
   return (getInner userCidCid <$> userCids)

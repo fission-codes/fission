@@ -83,7 +83,7 @@ deleteAssociatedRecords userId uuid userCids = do
   User.destroyHerokuAddon uuid
 
 -- | Get the User associated with those Heroku add-ons, throw 410 if not found.
-userIdForHerokuAddOn ::
+userForHerokuAddOn ::
   ( MonadDBQuery User m
   , MonadLogger m
   , MonadThrow  m

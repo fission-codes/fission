@@ -11,17 +11,19 @@ import           Fission.Models
 import           Fission.Prelude
 import           Fission.Storage
 
--- getHerkouAddonByUserId :: MonadDB m => HerokuAddOnId -> Transaction m (Maybe (Entity User))
--- getHerkouAddonByUserId addOnId = selectFirst [UserHerokuAddOnId P.==. (Just addOnId), UserActive P.==. True] []
-
--- getHerkouAddonByUUID :: MonadDB m => UUID -> Transaction m (Maybe (Entity HerokuAddOn))
--- getHerkouAddonByUUID uuid = selectFirst [HerokuAddOnUuid P.==. uuid] []
-getHerkouAddonByUserId :: MonadDBQuery User m => HerokuAddOnId -> Transaction m [Entity User]
+getHerkouAddonByUserId :: MonadDB m => HerokuAddOnId -> Transaction m (Maybe (Entity User))
 getHerkouAddonByUserId addOnId =
-      getOneBy (\user ->
-                  user ^. UserHerokuAddOnId ==. val (Just addOnId)
-                  &&. user ^. UserActive        ==. val True)
+  selectFirst [UserHerokuAddOnId P.==. (Just addOnId), UserActive P.==. True] []
 
-getHerkouAddonByUUID :: MonadDBQuery HerokuAddOn m => UUID -> Transaction m [Entity HerokuAddOn]
-getHerkouAddonByUUID uuid =
-      getOneBy (\herokuAddOn -> herokuAddOn ^. HerokuAddOnUuid ==. val uuid)
+-- TODO think about moving this to query
+getHerkouAddonByUUID :: MonadDB m => UUID -> Transaction m (Maybe (Entity HerokuAddOn))
+getHerkouAddonByUUID uuid = selectFirst [HerokuAddOnUuid P.==. uuid] []
+-- getHerkouAddonByUserId :: MonadDBQuery User m => HerokuAddOnId -> Transaction m [Entity User]
+-- getHerkouAddonByUserId addOnId =
+--       getOneBy (\user ->
+--                   user ^. UserHerokuAddOnId ==. val (Just addOnId)
+--                   &&. user ^. UserActive        ==. val True)
+
+-- getHerkouAddonByUUID :: MonadDBQuery HerokuAddOn m => UUID -> Transaction m [Entity HerokuAddOn]
+-- getHerkouAddonByUUID uuid =
+--       getOneBy (\herokuAddOn -> herokuAddOn ^. HerokuAddOnUuid ==. val uuid)
