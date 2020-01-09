@@ -12,7 +12,7 @@ import           Fission.IPFS.DNSLink.Class as DNSLink
 import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.User.Password.Reset as Reset
-import qualified Fission.Web.Auth.Types  as Auth
+import qualified Fission.Web.Auth.Types as Auth
 
 type API = Create.API
       :<|> VerifyRoute
