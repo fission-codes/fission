@@ -9,13 +9,12 @@ import Servant
 
 import Fission.Prelude
 import Fission.Models
+import qualified Fission.User.CID as User.CID
 
 type API = Get '[JSON, PlainText] [CID]
 
 allForUser :: MonadDB m => Entity User -> ServerT API m
 allForUser (Entity userId _) = runDB do
-  hashes <- select <| from \userCid -> do
-    where_ (userCid ^. UserCidUserFk ==. val userId)
-    return (userCid ^. UserCidCid)
+  userCids <- User.CID.getByUserId userId
+  return (getInner userCidCid <$> userCids)
 
-  return (unValue <$> hashes)
