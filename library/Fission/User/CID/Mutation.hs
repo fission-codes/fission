@@ -62,7 +62,7 @@ destroyAll :: MonadDB m => [Key UserCid] -> Transaction m ()
 destroyAll userCidIds =
   delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)
 
-destroyExact :: MonadDB m => UserId -> CID -> Transaction m ()
+destroyExact :: MonadDBMutation UserCid m => UserId -> CID -> Transaction m ()
 destroyExact userId cid = do
     delete <| from \userCid ->
       where_ (selectExact userCid)
