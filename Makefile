@@ -24,8 +24,14 @@ ghci:
 test:
 	$(stack) build --test --fast $(package)
 
+test-docs:
+	$(stack) test :fission-doctest --fast
+
 test-ghci:
 	$(stack) ghci $(package):test:$(package)-tests --ghci-options='-j6 +RTS -A128m'
+
+test-suite:
+	$(stack) test :fission-test --fast
 
 bench:
 	$(stack) build --fast --bench $(package)

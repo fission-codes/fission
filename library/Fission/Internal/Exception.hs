@@ -28,8 +28,7 @@ runLogged actions = handleWith (logError . displayShow) actions
 -- > `catchWith` \case
 -- >   FooErr -> return 1
 -- >   BarErr -> return 2
--- >   BazErr -> return 3catchWith :: Monad m => ExceptT err m a -> (err -> m a) -> m a
-
+-- >   BazErr -> return 3
 catchWith :: Monad m => ExceptT err m a -> (err -> m a) -> m a
 catchWith = flip handleWith
 

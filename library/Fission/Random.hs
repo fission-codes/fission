@@ -2,6 +2,7 @@
 module Fission.Random
   ( alphaNum
   , alphaNumSymbol
+  , bsRandomLength
   ) where
 
 import qualified Data.ByteString.Random as BS

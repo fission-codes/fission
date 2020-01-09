@@ -183,6 +183,7 @@ tests:
       - Glob
       - lens-aeson
       - QuickCheck
+      - quickcheck-instances
       - yaml
 
   fission-test:
@@ -192,7 +193,6 @@ tests:
       - test
       - test/testsuite
     ghc-options:
-      - -fhpc
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
