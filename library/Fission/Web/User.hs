@@ -29,7 +29,6 @@ type ResetRoute = "reset_password"
 
 server ::
   ( User.MonadDBMutation m
-  , MonadTime            m
   , MonadDNSLink         m
   , MonadLogger          m
   )

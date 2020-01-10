@@ -40,7 +40,6 @@ app ::
   , User.CID.MonadDBQuery    m
   , User.MonadDBMutation     m
   , User.MonadDBQuery        m
-  , MonadTime                m
   , MonadLogger              m
   , MonadDNSLink             m
   , MonadLocalIPFS           m
@@ -66,7 +65,6 @@ server ::
   , User.CID.MonadDBQuery    m
   , User.MonadDBMutation     m
   , User.MonadDBQuery        m
-  , MonadTime                m
   , MonadLogger              m
   , MonadDNSLink             m
   , MonadLocalIPFS           m

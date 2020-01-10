@@ -11,7 +11,6 @@ import           Crypto.BCrypt
 import           Servant
 
 import           Database.Esqueleto
-import qualified Database.Persist as P
 
 import           Fission.Models
 import           Fission.Platform.Heroku.AddOn

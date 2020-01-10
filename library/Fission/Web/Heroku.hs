@@ -21,7 +21,6 @@ server ::
   , User.CID.MonadDBQuery    m
   , User.MonadDBMutation     m
   , User.MonadDBQuery        m
-  , MonadTime                m
   , MonadThrow               m
   , MonadLogger              m
   , MonadLocalIPFS           m

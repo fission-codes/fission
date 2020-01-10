@@ -31,7 +31,6 @@ type API = ReqBody '[JSON]                Request
 
 create ::
   ( User.MonadDBMutation  m
-  , MonadTime             m
   , MonadThrow            m
   , MonadLogger           m
   , MonadLocalIPFS        m
