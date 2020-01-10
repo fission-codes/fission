@@ -26,7 +26,7 @@ type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
-  ( User.CID.MonadDBUserCid m
+  ( User.CID.MonadDBMutation m
   , MonadThrow      m
   , MonadRemoteIPFS m
   , MonadLogger     m
@@ -44,7 +44,7 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( User.CID.MonadDBUserCid m
+  ( User.CID.MonadDBMutation m
   , MonadLogger m
   , MonadThrow  m
   )
@@ -64,7 +64,7 @@ deleteAssociatedWith uuid' = do
   return (deletedUserCids \\ remainingCIDs)
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-deleteAssociatedRecords :: User.CID.MonadDBUserCid m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
+deleteAssociatedRecords :: User.CID.MonadDBMutation m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
 deleteAssociatedRecords userId uuid userCids = do
   User.CID.destroyAll (entityKey <$> userCids)
   User.destroy userId

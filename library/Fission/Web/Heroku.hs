@@ -16,7 +16,7 @@ import qualified Fission.User.CID as User.CID
 type API = Provision.API :<|> Deprovision.API
 
 server ::
-  ( User.CID.MonadDBUserCid m
+  ( User.CID.MonadDBMutation m
   , MonadTime             m
   , MonadThrow            m
   , MonadLogger           m

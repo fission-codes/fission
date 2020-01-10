@@ -48,13 +48,13 @@ server ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m
-  , User.CID.MonadDBUserCid m
+  , User.CID.MonadDBMutation m
   )
   => ServerT API m
 server = authed :<|> public
 
 authed ::
-  ( User.CID.MonadDBUserCid m
+  ( User.CID.MonadDBMutation m
   , MonadRemoteIPFS m
   , MonadLocalIPFS  m
   , MonadLogger     m

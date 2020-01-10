@@ -4,7 +4,7 @@ module Fission.User.CID.Mutation
   , createX
   -- , destroyAll
   -- , destroyExact
-  , MonadDBUserCid(..)
+  , MonadDBMutation(..)
   ) where
 
 import Database.Esqueleto
@@ -60,11 +60,11 @@ createX userId hashes = runDBNow \now -> do
   insertMany_ toInsert
   return newHashes
 
-class MonadDB m => MonadDBUserCid m where
+class MonadDB m => MonadDBMutation m where
   destroyExact :: UserId -> CID -> Transaction m ()
   destroyAll   :: [Key UserCid] -> Transaction m ()
 
-instance MonadDBUserCid Fission where
+instance MonadDBMutation Fission where
 
   -- destroyAll :: MonadDB m => [Key UserCid] -> Transaction m ()
   destroyAll userCidIds =

@@ -34,7 +34,7 @@ import qualified Fission.User.CID as User.CID
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( User.CID.MonadDBUserCid  m
+  ( User.CID.MonadDBMutation  m
   , MonadTime             m
   , MonadLogger           m
   , MonadDNSLink          m
@@ -57,7 +57,7 @@ app handlerNT auth appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( User.CID.MonadDBUserCid  m
+  ( User.CID.MonadDBMutation  m
   , MonadTime             m
   , MonadLogger           m
   , MonadDNSLink          m
