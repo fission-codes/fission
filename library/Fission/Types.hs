@@ -40,6 +40,9 @@ import           Fission.Platform.Heroku.AddOn
 import qualified Fission.Web.Auth              as Auth
 import           Fission.Web.Server.Reflective
 
+import qualified Fission.User as User
+import qualified Fission.User.CID as User.CID
+
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
   deriving newtype ( Functor
@@ -79,10 +82,6 @@ instance MonadAWS Fission where
       |> runAWS env
       |> runResourceT
 
-instance MonadDB Fission where
-  runDB transaction = do
-    pool <- asks dbPool
-    SQL.runSqlPool transaction pool
 
 instance MonadRoute53 Fission where
   update recordType (URL.DomainName domain) content = do
@@ -191,3 +190,32 @@ instance MonadRemoteIPFS Fission where
         |> mkClientEnv manager
         |> runClientM query
         |> liftIO
+
+-- 💾 Database Instances
+
+instance MonadDB Fission where
+  runDB transaction = do
+    pool <- asks dbPool
+    SQL.runSqlPool transaction pool
+
+instance User.MonadDBQuery Fission where
+  getByUsername = User.getByUsername
+  getHerkouAddonByUserId = User.getHerkouAddonByUserId
+  getHerkouAddonByUUID = User.getHerkouAddonByUUID
+
+instance User.MonadDBMutation Fission where
+  createWithHeroku = User.createWithHeroku
+  create = User.create
+  updatePassword = User.updatePassword
+  destroy = User.destroy
+  destroyHerokuAddon = User.destroyHerokuAddon
+
+instance User.CID.MonadDBQuery Fission where
+  getByUserId = User.CID.getByUserId
+  getByCids = User.CID.getByCids
+
+instance User.CID.MonadDBMutation Fission where
+  create = User.CID.create
+  createX = User.CID.createX
+  destroyAll = User.CID.destroyAll
+  destroyExact = User.CID.destroyExact
