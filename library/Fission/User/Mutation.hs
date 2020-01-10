@@ -15,12 +15,17 @@ import           Fission.User.Role.Types
 import qualified Fission.User.Mutation.Error as Error
 import qualified Fission.User.Password.Types as User
 
+hashPassword' :: MonadIO m => Text -> m (Either Error.Create Text)
+hashPassword' password = do
+  hashed <- liftIO <| hashPasswordUsingPolicy slowerBcryptHashingPolicy <| encodeUtf8 password
+  return <| case hashed of
+    Nothing           -> Left Error.FailedDigest
+    Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
 class MonadDB m => MonadDBMutation m where
   createWithHeroku :: MonadDB m => UUID -> Heroku.Region -> Text -> Text -> m (Either Error.Create UserId)
   create :: MonadIO m => Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
   updatePassword :: MonadTime m => UserId -> User.Password -> m (Either Error.Create User.Password)
-  hashPassword' :: MonadIO m => Text -> m (Either Error.Create Text)
   destroy :: MonadDB m => UserId -> Transaction m ()
   destroyHerokuAddon :: MonadDB m => UUID -> Transaction m ()
 
@@ -73,12 +78,6 @@ instance MonadDBMutation Fission where
           ]
 
         return . Right <| User.Password password
-
-  hashPassword' password = do
-    hashed <- liftIO <| hashPasswordUsingPolicy slowerBcryptHashingPolicy <| encodeUtf8 password
-    return <| case hashed of
-      Nothing           -> Left Error.FailedDigest
-      Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
   destroy userId =
     delete <| from \user -> where_ (user ^. UserId ==. val userId)
