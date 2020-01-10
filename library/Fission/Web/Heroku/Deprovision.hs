@@ -17,6 +17,9 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
+import qualified Fission.User as User
+import qualified Fission.User.CID as User.CID
+
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
 type API = Capture "addon_id" UUID
@@ -48,75 +51,41 @@ deleteAssociatedWith ::
   => UUID
   -> Transaction m [CID]
 deleteAssociatedWith uuid' = do
-  addOnId  <- herokuAddOnByUUID uuid'
-  userId   <- userIdForHerokuAddOn addOnId
-  userCids <- cidsForUserId userId
+  addOn     <- herokuAddOnByUUID uuid'
+  addOnUser <- userForHerokuAddOn (entityKey addOn)
+  userCids  <- User.CID.getByUserId (entityKey addOnUser)
 
-  userCids
-    |> associatedRecords uuid'
-    |> delete
+  deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
 
-  let cids = getInner userCidCid <$> userCids
-  remaining <- getRemainingCIDs cids
+  let deletedUserCids = getInner userCidCid <$> userCids
+  remainingUserCids <- User.CID.getByCids deletedUserCids
 
-  let remainingCIDs = getInner userCidCid <$> remaining
-  return (cids \\ remainingCIDs)
-
--- | Find all CIDs that remain from a list
-getRemainingCIDs :: MonadDB m => [CID] -> Transaction m [Entity UserCid]
-getRemainingCIDs cids =
-  select <| from \userCid -> do
-    where_ (userCid ^. UserCidCid `in_` valList cids)
-    return userCid
+  let remainingCIDs = getInner userCidCid <$> remainingUserCids
+  return (deletedUserCids \\ remainingCIDs)
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-associatedRecords :: UUID -> [Entity UserCid] -> SqlQuery ()
-associatedRecords uuid' userCids = do
-  let userCidIds = entityKey <$> userCids
-  from \userCid ->
-    where_ (userCid ^. UserCidId `in_` valList userCidIds)
+deleteAssociatedRecords :: MonadDB m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
+deleteAssociatedRecords userId uuid userCids = do
+  User.CID.destroyAll (entityKey <$> userCids)
+  User.destroy userId
+  User.destroyHerokuAddon uuid
 
-  let userIds' = getInner userCidUserFk <$> userCids
-  from \user ->
-    where_ (user ^. UserId `in_` valList userIds')
-
-  from \herokuAddOn ->
-    where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
-
--- | CIDs associated with a user
-cidsForUserId :: MonadDB m => UserId -> Transaction m [Entity UserCid]
-cidsForUserId userId =
-  select <| from \userCid -> do
-    where_ (userCid ^. UserCidUserFk ==. val userId)
-    return userCid
-
--- | Users associated with those Heroku add-ons
-userIdForHerokuAddOn ::
+-- | Get the User associated with those Heroku add-ons, throw 410 if not found.
+userForHerokuAddOn ::
   ( MonadDB     m
   , MonadLogger m
   , MonadThrow  m
   )
   => HerokuAddOnId
-  -> Transaction m UserId
-userIdForHerokuAddOn addOnId = ensureOneId err410 =<< query
-  where
-    query = select <| from \user -> do
-      where_ <| user ^. UserHerokuAddOnId ==. val (Just addOnId)
-            &&. user ^. UserActive        ==. val True
-      limit 1
-      return user
+  -> Transaction m (Entity User)
+userForHerokuAddOn addOnId = ensureEntity err410 =<< User.getHerkouAddonByUserId addOnId
 
--- | Heroku add-on with a specific UUID
+-- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
   ( MonadDB     m
   , MonadLogger m
   , MonadThrow  m
   )
   => UUID
-  -> Transaction m HerokuAddOnId
-herokuAddOnByUUID uuid' = ensureOneId err410 =<< query
-  where
-    query = select <| from \herokuAddOn -> do
-      where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid')
-      limit 1
-      return herokuAddOn
+  -> Transaction m (Entity HerokuAddOn)
+herokuAddOnByUUID uuid' = ensureEntity err410 =<< User.getHerkouAddonByUUID uuid'

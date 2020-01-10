@@ -1,6 +1,5 @@
 module Fission.Internal.URL
   ( isValidURLCharacter
-  , specials
   ) where
 
 import Data.Word8
@@ -8,18 +7,34 @@ import Data.Word8
 import Fission.Internal.Bool (anyX)
 import Fission.Prelude
 
--- | Check that a byte represents a valid URL character
+{-| Check that a byte represents a valid URL character.
+
+    $setup
+    >>> import Data.Char (ord)
+    >>> fromChar = ord .> fromIntegral
+
+    >>> isValidURLCharacter (fromChar 'a')
+    True
+
+    >>> isValidURLCharacter (fromChar '/')
+    False
+
+    >>> isValidURLCharacter (fromChar '?')
+    False
+
+-}
 isValidURLCharacter :: Word8 -> Bool
-isValidURLCharacter = anyX (isAlpha : isDigit : isSpecial)
-  where
-    isSpecial = (==) <$> specials
+isValidURLCharacter w = isAsciiUpper w
+  || isAsciiLower w
+  || isDigit w
+  || anyX urlSpecials w
 
 -- | List of URL special character checks
-specials :: [Word8]
-specials =
+urlSpecials :: [Word8 -> Bool]
+urlSpecials =
+  fmap (==)
     [ _asterisk
     , _comma
-    , _dollar
     , _exclam
     , _hyphen
     , _parenleft
