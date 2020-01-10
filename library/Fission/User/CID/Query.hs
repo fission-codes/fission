@@ -8,7 +8,7 @@ import           Fission.Prelude
 import           Fission.Types
 
 class MonadDB m => MonadDBQuery m where
-  getByCids :: [CID] -> Transaction m [Entity UserCid]
+  getByCids   :: [CID] -> Transaction m [Entity UserCid]
   getByUserId :: UserId -> Transaction m [Entity UserCid]
 
 instance MonadDBQuery Fission where

@@ -16,6 +16,7 @@ import qualified Database.Persist as P
 import           Fission.Models
 import           Fission.Platform.Heroku.AddOn
 import           Fission.Prelude
+import qualified Fission.User as User
 
 type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
 
@@ -54,24 +55,23 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          else Unauthorized
 
 user ::
-  ( MonadDB     inner
-  , MonadLogger inner
+  ( User.MonadDBQuery m
+  , MonadLogger       m
   )
-  => (inner (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
+  => (m (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
   -> BasicAuthCheck (Entity User)
 user runner = BasicAuthCheck \auth -> runner <| checkUser auth
 
 checkUser ::
-  ( MonadDB     m
-  , MonadLogger m
+  ( User.MonadDBQuery m
+  , MonadLogger       m
   )
   => BasicAuthData
   -> m (BasicAuthResult (Entity User))
 checkUser (BasicAuthData username password) = do
-  mayUser <- runDB <| selectFirst
-    [ UserUsername P.==. decodeUtf8Lenient username
-    , UserActive   P.==. True
-    ] []
+  mayUser <- runDB
+            <| User.getByUsername
+            <| decodeUtf8Lenient username
 
   case mayUser of
     Nothing -> do

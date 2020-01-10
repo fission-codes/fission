@@ -9,12 +9,20 @@ import           Fission.Prelude
 import           Fission.Types
 
 class MonadDB m => MonadDBQuery m where
+  getByUsername          :: Text -> Transaction m (Maybe (Entity User))
   getHerkouAddonByUserId :: HerokuAddOnId -> Transaction m (Maybe (Entity User))
-  getHerkouAddonByUUID :: UUID -> Transaction m (Maybe (Entity HerokuAddOn))
+  getHerkouAddonByUUID   :: UUID -> Transaction m (Maybe (Entity HerokuAddOn))
 
 instance MonadDBQuery Fission where
-  getHerkouAddonByUserId addOnId =
-    selectFirst [UserHerokuAddOnId P.==. (Just addOnId), UserActive P.==. True] []
+  getByUsername username = selectFirst
+    [ UserUsername P.==. username
+    , UserActive   P.==. True
+    ] []
+
+  getHerkouAddonByUserId addOnId = selectFirst
+    [ UserHerokuAddOnId P.==. (Just addOnId)
+    , UserActive P.==. True
+    ] []
 
   getHerkouAddonByUUID uuid =
     selectFirst [HerokuAddOnUuid P.==. uuid] []

@@ -10,8 +10,8 @@ import Fission.Models
 import Fission.Types
 
 class MonadDB m => MonadDBMutation m where
-  create :: MonadTime m => UserId -> CID -> m (Maybe UserCidId)
-  createX :: MonadTime m => UserId -> [CID] -> m [CID]
+  create       :: MonadTime m => UserId -> CID -> m (Maybe UserCidId)
+  createX      :: MonadTime m => UserId -> [CID] -> m [CID]
   destroyExact :: UserId -> CID -> Transaction m ()
   destroyAll   :: [Key UserCid] -> Transaction m ()
 
