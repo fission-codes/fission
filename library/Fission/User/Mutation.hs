@@ -1,6 +1,5 @@
 module Fission.User.Mutation (MonadDBMutation(..)) where
 
-import           Crypto.BCrypt
 import           Data.UUID (UUID)
 import           Database.Esqueleto hiding ((=.), update)
 import           Database.Persist          ((=.), update)
@@ -13,14 +12,7 @@ import qualified Fission.Platform.Heroku.Region.Types as Heroku
 import           Fission.User.Role.Types
 import qualified Fission.User.Mutation.Error as Error
 import qualified Fission.User.Password.Types as User
-
--- TODO MOVE ELSE WHERE
-hashPassword' :: MonadIO m => Text -> m (Either Error.Create Text)
-hashPassword' password = do
-  hashed <- liftIO <| hashPasswordUsingPolicy slowerBcryptHashingPolicy <| encodeUtf8 password
-  return <| case hashed of
-    Nothing           -> Left Error.FailedDigest
-    Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
+import qualified Fission.User.Password as Password
 
 class (MonadDB m, MonadTime m) => MonadDBMutation m where
   -- | Create a new, timestamped entry and heroku add-on
@@ -38,7 +30,7 @@ class (MonadDB m, MonadTime m) => MonadDBMutation m where
   -- | Create a new, timestamped entry with optional heroku add-on
   create :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
   create username password email herokuAddOnId now =
-    hashPassword' password >>= \case
+    Password.hashPassword password >>= \case
       Left err ->
         return (Left err)
 
@@ -61,9 +53,9 @@ class (MonadDB m, MonadTime m) => MonadDBMutation m where
           Nothing ->
             return (Left Error.AlreadyExists)
 
-  updatePassword :: MonadTime m => UserId -> User.Password -> m (Either Error.Create User.Password)
+  updatePassword :: UserId -> User.Password -> m (Either Error.Create User.Password)
   updatePassword userId (User.Password password) =
-    hashPassword' password >>= \case
+    Password.hashPassword password >>= \case
       Left err ->
         return (Left err)
 

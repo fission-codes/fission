@@ -21,7 +21,6 @@ type API = ReqBody '[JSON] User.Password.Reset
 server ::
   ( MonadIO              m
   , User.MonadDBMutation m
-  , MonadTime            m
   , MonadThrow           m
   , MonadLogger          m
   )
