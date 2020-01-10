@@ -23,11 +23,11 @@ hashPassword' password = do
     Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
 class MonadDB m => MonadDBMutation m where
-  createWithHeroku :: MonadDB m => UUID -> Heroku.Region -> Text -> Text -> m (Either Error.Create UserId)
-  create :: MonadIO m => Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
+  createWithHeroku :: UUID -> Heroku.Region -> Text -> Text -> m (Either Error.Create UserId)
+  create :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
   updatePassword :: MonadTime m => UserId -> User.Password -> m (Either Error.Create User.Password)
-  destroy :: MonadDB m => UserId -> Transaction m ()
-  destroyHerokuAddon :: MonadDB m => UUID -> Transaction m ()
+  destroy :: UserId -> Transaction m ()
+  destroyHerokuAddon :: UUID -> Transaction m ()
 
 instance MonadDBMutation Fission where
   -- | Create a new, timestamped entry and heroku add-on
