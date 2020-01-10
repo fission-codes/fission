@@ -11,18 +11,20 @@ import           Fission.Prelude
 import qualified Fission.Web.Heroku.Provision   as Provision
 import qualified Fission.Web.Heroku.Deprovision as Deprovision
 import           Fission.Web.Server.Reflective
+import qualified Fission.User     as User
 import qualified Fission.User.CID as User.CID
 
 type API = Provision.API :<|> Deprovision.API
 
 server ::
   ( User.CID.MonadDBMutation m
-  , MonadTime             m
-  , MonadThrow            m
-  , MonadLogger           m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
-  , MonadReflectiveServer m
+  , User.MonadDBMutation     m
+  , MonadTime                m
+  , MonadThrow               m
+  , MonadLogger              m
+  , MonadLocalIPFS           m
+  , MonadRemoteIPFS          m
+  , MonadReflectiveServer    m
   )
   => ServerT API m
 server = Provision.create

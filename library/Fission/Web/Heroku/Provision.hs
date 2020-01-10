@@ -30,7 +30,7 @@ type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision
 
 create ::
-  ( MonadDB               m
+  ( User.MonadDBMutation  m
   , MonadTime             m
   , MonadThrow            m
   , MonadLogger           m

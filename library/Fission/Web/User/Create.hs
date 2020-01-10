@@ -17,10 +17,10 @@ type API = ReqBody '[JSON] User.Registration
         :> Post    '[JSON] ()
 
 server ::
-  ( MonadDNSLink m
-  , MonadLogger  m
-  , MonadTime    m
-  , MonadDB      m
+  ( MonadDNSLink         m
+  , MonadLogger          m
+  , MonadTime            m
+  , User.MonadDBMutation m
   )
   => ServerT API m
 server (User.Registration username password email) = do

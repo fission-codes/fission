@@ -19,11 +19,11 @@ type API = ReqBody '[JSON] User.Password.Reset
         :> Put     '[JSON] User.Password
 
 server ::
-  ( MonadIO     m
-  , MonadDB     m
-  , MonadTime   m
-  , MonadThrow  m
-  , MonadLogger m
+  ( MonadIO              m
+  , User.MonadDBMutation m
+  , MonadTime            m
+  , MonadThrow           m
+  , MonadLogger          m
   )
   => Entity User
   -> ServerT API m

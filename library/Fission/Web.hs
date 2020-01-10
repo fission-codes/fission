@@ -28,20 +28,23 @@ import qualified Fission.Web.Routes  as Web
 import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
-import qualified Fission.User.CID as User.CID
+
+import qualified Fission.User.CID    as User.CID
+import qualified Fission.User        as User
 
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
   ( User.CID.MonadDBMutation  m
-  , MonadTime             m
-  , MonadLogger           m
-  , MonadDNSLink          m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
-  , MonadLinkedIPFS       m
-  , MonadReflectiveServer m
+  , User.MonadDBMutation      m
+  , MonadTime                 m
+  , MonadLogger               m
+  , MonadDNSLink              m
+  , MonadLocalIPFS            m
+  , MonadRemoteIPFS           m
+  , MonadLinkedIPFS           m
+  , MonadReflectiveServer     m
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -58,13 +61,14 @@ app handlerNT auth appHost = do
 -- | Web handlers for the 'API'
 server ::
   ( User.CID.MonadDBMutation  m
-  , MonadTime             m
-  , MonadLogger           m
-  , MonadDNSLink          m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
-  , MonadLinkedIPFS       m
-  , MonadReflectiveServer m
+  , User.MonadDBMutation      m
+  , MonadTime                 m
+  , MonadLogger               m
+  , MonadDNSLink              m
+  , MonadLocalIPFS            m
+  , MonadRemoteIPFS           m
+  , MonadLinkedIPFS           m
+  , MonadReflectiveServer     m
   )
   => Web.Host
   -> ServerT API m
