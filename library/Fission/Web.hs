@@ -28,12 +28,13 @@ import qualified Fission.Web.Routes  as Web
 import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
+import qualified Fission.User.CID as User.CID
 
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadDB               m
+  ( User.CID.MonadDBUserCid  m
   , MonadTime             m
   , MonadLogger           m
   , MonadDNSLink          m
@@ -56,7 +57,7 @@ app handlerNT auth appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadDB               m
+  ( User.CID.MonadDBUserCid  m
   , MonadTime             m
   , MonadLogger           m
   , MonadDNSLink          m

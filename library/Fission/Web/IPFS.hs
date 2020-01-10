@@ -23,6 +23,7 @@ import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
 import qualified Fission.Web.IPFS.DAG      as DAG
 import qualified Fission.Web.IPFS.Peer     as Peer
+import qualified Fission.User.CID as User.CID
 
 
 type API = AuthedAPI
@@ -47,13 +48,13 @@ server ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m
-  , MonadDB         m
+  , User.CID.MonadDBUserCid m
   )
   => ServerT API m
 server = authed :<|> public
 
 authed ::
-  ( MonadDB         m
+  ( User.CID.MonadDBUserCid m
   , MonadRemoteIPFS m
   , MonadLocalIPFS  m
   , MonadLogger     m

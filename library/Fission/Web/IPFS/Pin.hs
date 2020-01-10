@@ -32,7 +32,7 @@ server ::
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m
-  , MonadDB         m
+  , User.CID.MonadDBUserCid  m
   )
   => Entity User
   -> ServerT API m
@@ -57,7 +57,7 @@ unpin ::
   ( MonadRemoteIPFS m
   , MonadLogger     m
   , MonadThrow      m
-  , MonadDB         m
+  , User.CID.MonadDBUserCid  m
   )
   => UserId
   -> ServerT UnpinAPI m
