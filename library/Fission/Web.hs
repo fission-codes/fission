@@ -36,15 +36,17 @@ import qualified Fission.User        as User
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( User.CID.MonadDBMutation  m
-  , User.MonadDBMutation      m
-  , MonadTime                 m
-  , MonadLogger               m
-  , MonadDNSLink              m
-  , MonadLocalIPFS            m
-  , MonadRemoteIPFS           m
-  , MonadLinkedIPFS           m
-  , MonadReflectiveServer     m
+  ( User.CID.MonadDBMutation m
+  , User.CID.MonadDBQuery    m
+  , User.MonadDBMutation     m
+  , User.MonadDBQuery        m
+  , MonadTime                m
+  , MonadLogger              m
+  , MonadDNSLink             m
+  , MonadLocalIPFS           m
+  , MonadRemoteIPFS          m
+  , MonadLinkedIPFS          m
+  , MonadReflectiveServer    m
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -60,15 +62,17 @@ app handlerNT auth appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( User.CID.MonadDBMutation  m
-  , User.MonadDBMutation      m
-  , MonadTime                 m
-  , MonadLogger               m
-  , MonadDNSLink              m
-  , MonadLocalIPFS            m
-  , MonadRemoteIPFS           m
-  , MonadLinkedIPFS           m
-  , MonadReflectiveServer     m
+  ( User.CID.MonadDBMutation m
+  , User.CID.MonadDBQuery    m
+  , User.MonadDBMutation     m
+  , User.MonadDBQuery        m
+  , MonadTime                m
+  , MonadLogger              m
+  , MonadDNSLink             m
+  , MonadLocalIPFS           m
+  , MonadRemoteIPFS          m
+  , MonadLinkedIPFS          m
+  , MonadReflectiveServer    m
   )
   => Web.Host
   -> ServerT API m

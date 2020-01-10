@@ -15,6 +15,7 @@ import           Fission.User.Role.Types
 import qualified Fission.User.Mutation.Error as Error
 import qualified Fission.User.Password.Types as User
 
+-- TODO MOVE ELSE WHERE
 hashPassword' :: MonadIO m => Text -> m (Either Error.Create Text)
 hashPassword' password = do
   hashed <- liftIO <| hashPasswordUsingPolicy slowerBcryptHashingPolicy <| encodeUtf8 password

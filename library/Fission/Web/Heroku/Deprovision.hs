@@ -26,11 +26,13 @@ type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
-  ( User.CID.MonadDBMutation m
-  , User.MonadDBMutation     m
+  ( User.MonadDBMutation     m
+  , User.MonadDBQuery        m
+  , User.CID.MonadDBMutation m
+  , User.CID.MonadDBQuery    m
+  , MonadLogger              m
   , MonadThrow               m
   , MonadRemoteIPFS          m
-  , MonadLogger              m
   )
   => ServerT API m
 destroy uuid' = do
@@ -45,10 +47,12 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( User.CID.MonadDBMutation m
-  , User.MonadDBMutation m
-  , MonadLogger m
-  , MonadThrow  m
+  ( User.MonadDBMutation     m
+  , User.MonadDBQuery        m
+  , User.CID.MonadDBMutation m
+  , User.CID.MonadDBQuery    m
+  , MonadLogger              m
+  , MonadThrow               m
   )
   => UUID
   -> Transaction m [CID]
@@ -80,9 +84,9 @@ deleteAssociatedRecords userId uuid userCids = do
 
 -- | Get the User associated with those Heroku add-ons, throw 410 if not found.
 userForHerokuAddOn ::
-  ( MonadDB     m
-  , MonadLogger m
-  , MonadThrow  m
+  ( User.MonadDBQuery m
+  , MonadLogger       m
+  , MonadThrow        m
   )
   => HerokuAddOnId
   -> Transaction m (Entity User)
@@ -90,9 +94,9 @@ userForHerokuAddOn addOnId = ensureEntity err410 =<< User.getHerkouAddonByUserId
 
 -- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
-  ( MonadDB     m
-  , MonadLogger m
-  , MonadThrow  m
+  ( User.MonadDBQuery m
+  , MonadLogger       m
+  , MonadThrow        m
   )
   => UUID
   -> Transaction m (Entity HerokuAddOn)
