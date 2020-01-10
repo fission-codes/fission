@@ -56,6 +56,8 @@ newtype Fission a = Fission { unwrapFission :: RIO Config a }
                    , MonadMask
                    )
 
+-- General Instances
+
 instance MonadLogger Fission where
   monadLoggerLog loc src lvl msg = Fission (monadLoggerLog loc src lvl msg)
 
@@ -64,6 +66,8 @@ instance MonadTime Fission where
 
 instance MonadReflectiveServer Fission where
   getHost = asks host
+
+-- 📬 External Services Related Instances
 
 instance MonadHerokuAddOn Fission where
   authorize = do
@@ -138,6 +142,8 @@ instance MonadRoute53 Fission where
           |> rrsTTL ?~ 10
           |> rrsResourceRecords ?~ pure (resourceRecord value)
 
+-- 🌐 DNS Related Instances
+
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do
     IPFS.Gateway gateway <- asks ipfsGateway
@@ -157,6 +163,8 @@ instance MonadDNSLink Fission where
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
+
+-- 🛰️ IPFS Related Instances
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
@@ -191,7 +199,7 @@ instance MonadRemoteIPFS Fission where
         |> runClientM query
         |> liftIO
 
--- 💾 Database Instances
+-- 💾 Database Related Instances
 
 instance MonadDB Fission where
   runDB transaction = do
