@@ -31,14 +31,18 @@ createWithHeroku ::
   -> Text
   -> m (Either Error.Create UserId)
 createWithHeroku herokuUUID herokuRegion username password = runDBNow \now -> do
-  addOnId <- insert HerokuAddOn
-    { herokuAddOnUuid       = herokuUUID
-    , herokuAddOnRegion     = Just herokuRegion
-    , herokuAddOnInsertedAt = now
-    , herokuAddOnModifiedAt = now
-    }
+  let herokuAddOnRecord = HerokuAddOn
+        { herokuAddOnUuid       = herokuUUID
+        , herokuAddOnRegion     = Just herokuRegion
+        , herokuAddOnInsertedAt = now
+        , herokuAddOnModifiedAt = now
+        }
+  insertUnique herokuAddOnRecord >>= \case
+    Just addOnId ->
+      create username password Nothing (Just addOnId) now
 
-  create username password Nothing (Just addOnId) now
+    Nothing ->
+      return (Left Error.AlreadyExists)
 
 -- | Create a new, timestamped entry with optional heroku add-on
 create ::
