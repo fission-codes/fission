@@ -8,10 +8,10 @@ import Network.IPFS.CID.Types as IPFS.CID
 import Fission.Prelude
 import Fission.Models
 
-class (MonadDB m, MonadTime m) => MonadDBMutation m where
+class MonadIO m => MonadDBMutation m where
   -- | Create a new, timestamped entry
-  create :: MonadTime m => UserId -> CID -> m (Maybe UserCidId)
-  create userId cid = runDBNow \now -> do
+  create :: UserId -> CID -> UTCTime -> Transaction m (Maybe UserCidId)
+  create userId cid now = do
     insertUnique UserCid
       { userCidUserFk     = userId
       , userCidCid        = cid
@@ -20,8 +20,8 @@ class (MonadDB m, MonadTime m) => MonadDBMutation m where
       }
 
   -- | Create new 'UserCid's, ignoring existing values (set-like)
-  createX :: MonadTime m => UserId -> [CID] -> m [CID]
-  createX userId hashes = runDBNow \now -> do
+  createX :: UserId -> [CID] -> UTCTime -> Transaction m [CID]
+  createX userId hashes now = do
     existingCIDs <- select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList hashes)
       return (userCid ^. UserCidCid)

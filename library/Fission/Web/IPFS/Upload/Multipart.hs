@@ -46,6 +46,7 @@ add ::
   , MonadLogger              m
   , MonadTime                m
   , MonadThrow               m
+  , MonadDB                  m
   )
   => Entity User
   -> ServerT API m
@@ -58,6 +59,7 @@ textAdd ::
   , MonadTime                m
   , MonadLogger              m
   , MonadThrow               m
+  , MonadDB                  m
   )
   => UserId
   -> ServerT TextAPI m
@@ -73,6 +75,7 @@ jsonAdd ::
   , MonadLogger              m
   , MonadTime                m
   , MonadThrow               m
+  , MonadDB                  m
   )
   => UserId
   -> ServerT JSONAPI m
@@ -85,6 +88,7 @@ run ::
   , MonadLocalIPFS           m
   , MonadRemoteIPFS          m
   , MonadThrow               m
+  , MonadDB                  m
   )
   => UserId
   -> MultipartData Mem
@@ -103,7 +107,7 @@ run uID form qName cont = case lookupFile "file" form of
           Web.Err.throw err
 
         Right _ -> do
-          void <| User.CID.createX uID (IPFS.cIDs struct)
+          void <| runDBNow (\now -> User.CID.createX uID (IPFS.cIDs struct) now)
           cont struct
     where
       humanName :: IPFS.Name

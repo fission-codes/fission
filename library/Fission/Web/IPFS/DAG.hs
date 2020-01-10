@@ -29,6 +29,7 @@ put ::
   , MonadLogger              m
   , MonadThrow               m
   , MonadTime                m
+  , MonadDB                  m
   )
   => Entity User
   -> ServerT API m
@@ -43,5 +44,5 @@ put (Entity userId _) (Serialized rawData) =
           Web.Err.throw err
 
         Right pinnedCID -> do
-          _ <- User.CID.createX userId [newCID]
+          _ <- runDBNow (\now -> User.CID.createX userId [newCID] now)
           return pinnedCID

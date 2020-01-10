@@ -23,6 +23,7 @@ add ::
   , MonadLogger              m
   , MonadThrow               m
   , MonadTime                m
+  , MonadDB                  m
   , User.CID.MonadDBMutation m
   )
   => Entity User
