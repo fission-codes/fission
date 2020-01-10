@@ -15,8 +15,8 @@ import qualified Network.IPFS.Pin   as IPFS.Pin
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
-import qualified Fission.Web.Error         as Web.Err
-import qualified Fission.User.CID as User.CID
+import qualified Fission.Web.Error as Web.Err
+import qualified Fission.User.CID  as User.CID
 import           Fission.Models
 
 type API = PinAPI :<|> UnpinAPI
@@ -39,11 +39,11 @@ server ::
 server (Entity userId _) = pin userId :<|> unpin userId
 
 pin ::
-  ( MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadRemoteIPFS          m
+  , MonadLogger              m
+  , MonadThrow               m
+  , MonadTime                m
+  , User.CID.MonadDBMutation m
   )
   => UserId
   -> ServerT PinAPI m
