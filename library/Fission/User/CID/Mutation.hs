@@ -7,16 +7,10 @@ import Network.IPFS.CID.Types as IPFS.CID
 
 import Fission.Prelude
 import Fission.Models
-import Fission.Types
 
-class MonadDB m => MonadDBMutation m where
-  create       :: MonadTime m => UserId -> CID -> m (Maybe UserCidId)
-  createX      :: MonadTime m => UserId -> [CID] -> m [CID]
-  destroyExact :: UserId -> CID -> Transaction m ()
-  destroyAll   :: [Key UserCid] -> Transaction m ()
-
-instance MonadDBMutation Fission where
+class (MonadDB m, MonadTime m) => MonadDBMutation m where
   -- | Create a new, timestamped entry
+  create :: MonadTime m => UserId -> CID -> m (Maybe UserCidId)
   create userId cid = runDBNow \now -> do
     insertUnique UserCid
       { userCidUserFk     = userId
@@ -26,6 +20,7 @@ instance MonadDBMutation Fission where
       }
 
   -- | Create new 'UserCid's, ignoring existing values (set-like)
+  createX :: MonadTime m => UserId -> [CID] -> m [CID]
   createX userId hashes = runDBNow \now -> do
     existingCIDs <- select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList hashes)
@@ -47,9 +42,11 @@ instance MonadDBMutation Fission where
     insertMany_ toInsert
     return newHashes
 
+  destroyAll :: [Key UserCid] -> Transaction m ()
   destroyAll userCidIds =
     delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)
 
+  destroyExact :: UserId -> CID -> Transaction m ()
   destroyExact userId cid = do
       delete <| from \userCid ->
         where_ (selectExact userCid)

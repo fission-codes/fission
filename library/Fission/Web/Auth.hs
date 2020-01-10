@@ -22,9 +22,10 @@ type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadHerokuAddOn m
-  , MonadDB          inner
-  , MonadLogger      inner
+  ( MonadHerokuAddOn  m
+  , MonadDB           inner
+  , MonadLogger       inner
+  , User.MonadDBQuery inner
   )
   => (forall a . inner a -> IO a)
   -> m (Context Checks)
@@ -56,6 +57,7 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
 
 user ::
   ( User.MonadDBQuery m
+  , MonadDB           m
   , MonadLogger       m
   )
   => (m (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
@@ -64,6 +66,7 @@ user runner = BasicAuthCheck \auth -> runner <| checkUser auth
 
 checkUser ::
   ( User.MonadDBQuery m
+  , MonadDB           m
   , MonadLogger       m
   )
   => BasicAuthData

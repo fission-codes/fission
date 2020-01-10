@@ -7,7 +7,6 @@ import           Database.Persist          ((=.), update)
 
 import           Fission.Models
 import           Fission.Prelude
-import           Fission.Types
 
 import qualified Fission.Platform.Heroku.Region.Types as Heroku
 
@@ -23,15 +22,9 @@ hashPassword' password = do
     Nothing           -> Left Error.FailedDigest
     Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
 
-class MonadDB m => MonadDBMutation m where
-  createWithHeroku   :: UUID -> Heroku.Region -> Text -> Text -> m (Either Error.Create UserId)
-  create             :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
-  updatePassword     :: MonadTime m => UserId -> User.Password -> m (Either Error.Create User.Password)
-  destroy            :: UserId -> Transaction m ()
-  destroyHerokuAddon :: UUID -> Transaction m ()
-
-instance MonadDBMutation Fission where
+class (MonadDB m, MonadTime m) => MonadDBMutation m where
   -- | Create a new, timestamped entry and heroku add-on
+  createWithHeroku :: UUID -> Heroku.Region -> Text -> Text -> m (Either Error.Create UserId)
   createWithHeroku herokuUUID herokuRegion username password = runDBNow \now -> do
     addOnId <- insert HerokuAddOn
       { herokuAddOnUuid       = herokuUUID
@@ -43,6 +36,7 @@ instance MonadDBMutation Fission where
     create username password Nothing (Just addOnId) now
 
   -- | Create a new, timestamped entry with optional heroku add-on
+  create :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
   create username password email herokuAddOnId now =
     hashPassword' password >>= \case
       Left err ->
@@ -67,6 +61,7 @@ instance MonadDBMutation Fission where
           Nothing ->
             return (Left Error.AlreadyExists)
 
+  updatePassword :: MonadTime m => UserId -> User.Password -> m (Either Error.Create User.Password)
   updatePassword userId (User.Password password) =
     hashPassword' password >>= \case
       Left err ->
@@ -80,8 +75,10 @@ instance MonadDBMutation Fission where
 
         return . Right <| User.Password password
 
+  destroy :: UserId -> Transaction m ()
   destroy userId =
     delete <| from \user -> where_ (user ^. UserId ==. val userId)
 
+  destroyHerokuAddon :: UUID -> Transaction m ()
   destroyHerokuAddon uuid =
     delete <| from \herokuAddOn -> where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid)
