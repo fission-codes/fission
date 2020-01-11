@@ -45,6 +45,12 @@ import qualified Fission.User.CID as User.CID
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
+  deriving anyclass ( User.MonadDBQuery
+                    , User.MonadDBMutation
+                    , User.CID.MonadDBQuery
+                    , User.CID.MonadDBMutation
+                    )
+
   deriving newtype ( Functor
                    , Applicative
                    , Monad
@@ -66,6 +72,13 @@ instance MonadTime Fission where
 
 instance MonadReflectiveServer Fission where
   getHost = asks host
+
+-- 💾 Database Related Instances
+
+instance MonadDB Fission where
+  runDB transaction = do
+    pool <- asks dbPool
+    SQL.runSqlPool transaction pool
 
 -- 📬 External Services Related Instances
 
@@ -199,31 +212,3 @@ instance MonadRemoteIPFS Fission where
         |> runClientM query
         |> liftIO
 
--- 💾 Database Related Instances
-
-instance MonadDB Fission where
-  runDB transaction = do
-    pool <- asks dbPool
-    SQL.runSqlPool transaction pool
-
-instance User.MonadDBQuery Fission where
-  getByUsername = User.getByUsername
-  getHerkouAddonByUserId = User.getHerkouAddonByUserId
-  getHerkouAddonByUUID = User.getHerkouAddonByUUID
-
-instance User.MonadDBMutation Fission where
-  createWithHeroku = User.createWithHeroku
-  create = User.create
-  updatePassword = User.updatePassword
-  destroy = User.destroy
-  destroyHerokuAddon = User.destroyHerokuAddon
-
-instance User.CID.MonadDBQuery Fission where
-  getByUserId = User.CID.getByUserId
-  getByCids = User.CID.getByCids
-
-instance User.CID.MonadDBMutation Fission where
-  create = User.CID.create
-  createX = User.CID.createX
-  destroyAll = User.CID.destroyAll
-  destroyExact = User.CID.destroyExact
