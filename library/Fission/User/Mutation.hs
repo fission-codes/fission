@@ -1,4 +1,4 @@
-module Fission.User.Mutation (MonadDBMutation(..)) where
+module Fission.User.Mutation (Insertable (..), Mutable (..)) where
 
 import           Data.UUID (UUID)
 import           Database.Esqueleto hiding ((=.), update)
@@ -14,21 +14,26 @@ import qualified Fission.User.Mutation.Error as Error
 import qualified Fission.User.Password.Types as User
 import qualified Fission.User.Password as Password
 
-class (MonadDB m, MonadTime m) => MonadDBMutation m where
-  -- | Create a new, timestamped entry and heroku add-on
-  createWithHeroku :: UUID -> Heroku.Region -> Text -> Text -> m (Either Error.Create UserId)
-  createWithHeroku herokuUUID herokuRegion username password = runDBNow \now -> do
-    addOnId <- insert HerokuAddOn
-      { herokuAddOnUuid       = herokuUUID
-      , herokuAddOnRegion     = Just herokuRegion
-      , herokuAddOnInsertedAt = now
-      , herokuAddOnModifiedAt = now
-      }
-
-    create username password Nothing (Just addOnId) now
-
+class Insertable m where
   -- | Create a new, timestamped entry with optional heroku add-on
-  create :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> Transaction m (Either Error.Create UserId)
+  create :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> m (Either Error.Create UserId)
+
+  -- | Create a new, timestamped entry and heroku add-on
+  createWithHeroku :: UUID -> Heroku.Region -> Text -> Text -> UTCTime -> m (Either Error.Create UserId)
+
+class Mutable m where
+  updatePassword     :: UserId -> User.Password -> UTCTime -> m (Either Error.Create User.Password)
+  destroy            :: UserId  -> m ()
+  destroyHerokuAddon :: UUID    -> m ()
+
+instance MonadIO m => Insertable (Transaction m) where
+  create ::
+       Text
+    -> Text
+    -> Maybe Text
+    -> Maybe HerokuAddOnId
+    -> UTCTime
+    -> Transaction m (Either Error.Create UserId)
   create username password email herokuAddOnId now =
     Password.hashPassword password >>= \case
       Left err ->
@@ -53,14 +58,32 @@ class (MonadDB m, MonadTime m) => MonadDBMutation m where
           Nothing ->
             return (Left Error.AlreadyExists)
 
-  updatePassword :: UserId -> User.Password -> m (Either Error.Create User.Password)
-  updatePassword userId (User.Password password) =
+  createWithHeroku ::
+       UUID
+    -> Heroku.Region
+    -> Text
+    -> Text
+    -> UTCTime
+    -> Transaction m (Either Error.Create UserId)
+  createWithHeroku herokuUUID herokuRegion username password now = do
+    addOnId <- insert HerokuAddOn -- TODO EXTRACT INTO A TYPECLASS
+      { herokuAddOnUuid       = herokuUUID
+      , herokuAddOnRegion     = Just herokuRegion
+      , herokuAddOnInsertedAt = now
+      , herokuAddOnModifiedAt = now
+      }
+
+    create username password Nothing (Just addOnId) now
+
+instance MonadIO m => Mutable (Transaction m) where
+  updatePassword :: UserId -> User.Password -> UTCTime -> Transaction m (Either Error.Create User.Password)
+  updatePassword userId (User.Password password) now =
     Password.hashPassword password >>= \case
       Left err ->
         return (Left err)
 
       Right secretDigest -> do
-        runDBNow \now -> update userId
+        update userId
           [ UserSecretDigest =. secretDigest
           , UserModifiedAt   =. now
           ]
@@ -68,9 +91,9 @@ class (MonadDB m, MonadTime m) => MonadDBMutation m where
         return . Right <| User.Password password
 
   destroy :: UserId -> Transaction m ()
-  destroy userId =
-    delete <| from \user -> where_ (user ^. UserId ==. val userId)
+  destroy userId = delete <| from \user ->
+    where_ (user ^. UserId ==. val userId)
 
   destroyHerokuAddon :: UUID -> Transaction m ()
-  destroyHerokuAddon uuid =
-    delete <| from \herokuAddOn -> where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid)
+  destroyHerokuAddon uuid = delete <| from \herokuAddOn ->
+    where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid)

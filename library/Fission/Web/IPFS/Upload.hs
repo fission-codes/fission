@@ -13,7 +13,7 @@ import           Fission.Prelude
 import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
 
-import qualified Fission.User.CID  as User.CID
+-- import qualified Fission.User.CID  as User.CID
 
 type API = Simple.API :<|> Multipart.API
 
@@ -24,7 +24,6 @@ add ::
   , MonadThrow               m
   , MonadTime                m
   , MonadDB                  m
-  , User.CID.MonadDBMutation m
   )
   => Entity User
   -> ServerT API m

@@ -19,16 +19,18 @@ type API = ReqBody '[JSON] User.Password.Reset
         :> Put     '[JSON] User.Password
 
 server ::
-  ( MonadIO              m
-  , User.MonadDBMutation m
-  , MonadThrow           m
-  , MonadLogger          m
+  ( MonadIO      m
+  -- , User.Mutable m
+  , MonadThrow   m
+  , MonadLogger  m
+  , MonadTime    m
+  , MonadDB      m
   )
   => Entity User
   -> ServerT API m
-server (Entity userId _) User.Password.Reset { maybePassword } = do
+server (Entity userId _) User.Password.Reset { maybePassword } = runDBNow \now -> do
   password <- maybe User.Password.random pure maybePassword
-  updated  <- User.updatePassword userId password
+  updated  <- User.updatePassword userId password now
 
   case updated of
     Left  err         -> Web.Err.throw err

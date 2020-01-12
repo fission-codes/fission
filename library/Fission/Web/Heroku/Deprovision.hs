@@ -26,10 +26,10 @@ type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
-  ( User.MonadDBMutation     m
+  ( -- User.MonadDBMutation     m
   -- , User.Queryable        m
-  , User.CID.MonadDBMutation m
-  , MonadDB                  m
+  -- , User.CID.Mutable m
+   MonadDB                  m
   , MonadLogger              m
   , MonadThrow               m
   , MonadRemoteIPFS          m
@@ -48,12 +48,13 @@ destroy uuid' = do
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
   ( -- User.MonadDBMutation     m
-  User.Queryable        m
-  -- , User.CID.MonadDBMutation m
-  , MonadLogger              m
-  , MonadThrow               m
+  User.Queryable       m
+  , User.CID.Mutable   m
+  , User.Mutable       m
+  , MonadLogger        m
+  , MonadThrow         m
   -- , MonadIO m
-  , User.CID.Queryable    m
+  , User.CID.Queryable m
   )
   => UUID
   -> m [CID]
@@ -62,7 +63,7 @@ deleteAssociatedWith uuid' = do
   addOnUser <- userForHerokuAddOn (entityKey addOn)
   userCids  <- User.CID.getByUserId (entityKey addOnUser)
 
-  -- deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
+  deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
 
   let deletedUserCids = getInner userCidCid <$> userCids
   remainingUserCids <- User.CID.getByCids deletedUserCids
@@ -72,12 +73,14 @@ deleteAssociatedWith uuid' = do
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
 deleteAssociatedRecords ::
-  User.MonadDBMutation m
-  => User.CID.MonadDBMutation m
+  ( User.Mutable     m
+  , User.CID.Mutable m
+  , Monad            m
+  )
   => UserId
   -> UUID
   -> [Entity UserCid]
-  -> Transaction m ()
+  -> m ()
 deleteAssociatedRecords userId uuid userCids = do
   User.CID.destroyAll (entityKey <$> userCids)
   User.destroy userId

@@ -1,5 +1,5 @@
 -- | Database mutations for 'UserCid's
-module Fission.User.CID.Mutation (MonadDBMutation(..)) where
+module Fission.User.CID.Mutation (Insertable (..), Mutable (..)) where
 
 import Database.Esqueleto
 import RIO.List ((\\))
@@ -8,8 +8,14 @@ import Network.IPFS.CID.Types as IPFS.CID
 import Fission.Prelude
 import Fission.Models
 
-class MonadIO m => MonadDBMutation m where
+class Insertable m where
   -- | Create a new, timestamped entry
+  create :: UserId -> CID -> UTCTime -> m (Maybe UserCidId)
+
+  -- | Create new 'UserCid's, ignoring existing values (set-like)
+  createX :: UserId -> [CID] -> UTCTime -> m [CID]
+
+instance MonadIO m => Insertable (Transaction m) where
   create :: UserId -> CID -> UTCTime -> Transaction m (Maybe UserCidId)
   create userId cid now = do
     insertUnique UserCid
@@ -19,7 +25,6 @@ class MonadIO m => MonadDBMutation m where
       , userCidModifiedAt = now
       }
 
-  -- | Create new 'UserCid's, ignoring existing values (set-like)
   createX :: UserId -> [CID] -> UTCTime -> Transaction m [CID]
   createX userId hashes now = do
     existingCIDs <- select <| from \userCid -> do
@@ -42,6 +47,11 @@ class MonadIO m => MonadDBMutation m where
     insertMany_ toInsert
     return newHashes
 
+class Mutable m where
+  destroyAll   :: [Key UserCid] -> m ()
+  destroyExact :: UserId -> CID -> m ()
+
+instance MonadIO m => Mutable (Transaction m) where
   destroyAll :: [Key UserCid] -> Transaction m ()
   destroyAll userCidIds =
     delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)

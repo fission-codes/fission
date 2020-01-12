@@ -40,8 +40,8 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add ::
-  ( User.CID.MonadDBMutation m
-  , MonadLocalIPFS           m
+  ( -- User.CID.Mutable m
+   MonadLocalIPFS           m
   , MonadRemoteIPFS          m
   , MonadLogger              m
   , MonadTime                m
@@ -53,8 +53,8 @@ add ::
 add (Entity userId _) = textAdd userId :<|> jsonAdd userId
 
 textAdd ::
-  ( User.CID.MonadDBMutation m
-  , MonadLocalIPFS           m
+  ( -- User.CID.Mutable m
+   MonadLocalIPFS           m
   , MonadRemoteIPFS          m
   , MonadTime                m
   , MonadLogger              m
@@ -69,8 +69,8 @@ textAdd uID form queryName = run uID form queryName <| \sparse ->
     Left err   -> Web.Err.throw err
 
 jsonAdd ::
-  ( User.CID.MonadDBMutation m
-  , MonadLocalIPFS           m
+  ( -- User.CID.Mutable m
+   MonadLocalIPFS           m
   , MonadRemoteIPFS          m
   , MonadLogger              m
   , MonadTime                m
@@ -82,8 +82,8 @@ jsonAdd ::
 jsonAdd uID form queryName = run uID form queryName pure
 
 run ::
-  ( User.CID.MonadDBMutation m
-  , MonadTime                m
+  ( -- User.CID.Mutable m
+    MonadTime                m
   , MonadLogger              m
   , MonadLocalIPFS           m
   , MonadRemoteIPFS          m

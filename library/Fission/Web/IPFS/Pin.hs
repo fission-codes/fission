@@ -28,12 +28,12 @@ type UnpinAPI = Capture "cid" CID
              :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server ::
-  ( MonadRemoteIPFS          m
-  , MonadLogger              m
-  , MonadThrow               m
-  , MonadTime                m
-  , MonadDB                  m
-  , User.CID.MonadDBMutation m
+  ( MonadRemoteIPFS  m
+  , MonadLogger      m
+  , MonadThrow       m
+  , MonadTime        m
+  , MonadDB          m
+ --  , User.CID.Mutable m
   -- , User.CID.Queryable    m
   )
   => Entity User
@@ -46,7 +46,7 @@ pin ::
   , MonadThrow               m
   , MonadDB                  m
   , MonadTime                m
-  , User.CID.MonadDBMutation m
+  -- , User.CID.Mutable m
   )
   => UserId
   -> ServerT PinAPI m
@@ -57,17 +57,15 @@ pin userId cid = IPFS.Pin.add cid >>= \case
     pure NoContent
 
 unpin ::
-  ( MonadRemoteIPFS          m
-  , MonadLogger              m
-  , MonadThrow               m
-  , MonadDB                  m
-  , User.CID.MonadDBMutation m
-  -- , User.CID.Queryable    m
+  ( MonadRemoteIPFS  m
+  , MonadLogger      m
+  , MonadThrow       m
+  , MonadDB          m
   )
   => UserId
   -> ServerT UnpinAPI m
 unpin userId cid = do
-  remaining <- runDB do
+  remaining <- runDB do -- TODO: try moving the runDB up to the top level
     User.CID.destroyExact userId cid
     User.CID.getByCids [cid]
 

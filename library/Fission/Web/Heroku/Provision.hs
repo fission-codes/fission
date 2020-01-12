@@ -30,18 +30,24 @@ type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision
 
 create ::
-  ( User.MonadDBMutation  m
-  , MonadThrow            m
+  ( -- User.Mutable          m
+   MonadThrow            m
   , MonadLogger           m
   , MonadLocalIPFS        m
   , MonadReflectiveServer m
+  , MonadTime m
+  -- , MonadIO m
+  , MonadDB m
   )
   => ServerT API m
 create Request {uuid, region} = do
   let username = Text.pack (UUID.toString uuid)
   secret <- Random.alphaNum 50
 
-  User.createWithHeroku uuid region username secret >>= \case
+  dbResult <- runDBNow \now ->
+    User.createWithHeroku uuid region username secret now
+
+  case dbResult of
     Left err ->
       Web.Err.throw err
 
@@ -60,8 +66,8 @@ create Request {uuid, region} = do
         , peers   = ipfsPeers
         , message = "Successfully provisioned Interplanetary Fission!"
         , config  = User.Provision
-           { username = username
-           , password = Secret secret
-           , url      = url'
-           }
+          { username = username
+          , password = Secret secret
+          , url      = url'
+          }
         }

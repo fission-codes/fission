@@ -40,9 +40,6 @@ import           Fission.Platform.Heroku.AddOn
 import qualified Fission.Web.Auth              as Auth
 import           Fission.Web.Server.Reflective
 
-import qualified Fission.User as User
-import qualified Fission.User.CID as User.CID
-
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
   deriving newtype  ( Functor
@@ -54,10 +51,6 @@ newtype Fission a = Fission { unwrapFission :: RIO Config a }
                     , MonadThrow
                     , MonadCatch
                     , MonadMask
-                    )
-
-  deriving anyclass ( User.MonadDBMutation
-                    , User.CID.MonadDBMutation
                     )
 
 instance MonadLogger Fission where

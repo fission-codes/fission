@@ -13,7 +13,7 @@ import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.User.Password.Reset as Reset
 import qualified Fission.Web.Auth.Types as Auth
-import qualified Fission.User     as User
+-- import qualified Fission.User     as User
 
 type API = Create.API
       :<|> VerifyRoute
@@ -28,9 +28,11 @@ type ResetRoute = "reset_password"
                   :> Reset.API
 
 server ::
-  ( User.MonadDBMutation m
-  , MonadDNSLink         m
+  ( -- User.MonadDBMutation m
+   MonadDNSLink         m
   , MonadLogger          m
+  , MonadTime m
+  , MonadDB m
   )
   => ServerT API m
 server = Create.server

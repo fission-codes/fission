@@ -23,7 +23,7 @@ import qualified Fission.Web.IPFS.Download as Download
 import qualified Fission.Web.IPFS.Pin      as Pin
 import qualified Fission.Web.IPFS.DAG      as DAG
 import qualified Fission.Web.IPFS.Peer     as Peer
-import qualified Fission.User.CID as User.CID
+-- import qualified Fission.User.CID as User.CID
 
 
 type API = AuthedAPI
@@ -42,9 +42,9 @@ type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
 server ::
-  ( User.CID.MonadDBMutation m
+  ( -- User.CID.MonadDBMutation m
   -- , User.CID.Queryable    m
-  , MonadDB                  m
+   MonadDB                  m
   , MonadRemoteIPFS          m
   , MonadLinkedIPFS          m
   , MonadLocalIPFS           m
@@ -56,9 +56,9 @@ server ::
 server = authed :<|> public
 
 authed ::
-  ( User.CID.MonadDBMutation m
+  ( -- User.CID.MonadDBMutation m
   -- , User.CID.Queryable    m
-  , MonadDB                  m
+   MonadDB                  m
   , MonadRemoteIPFS          m
   , MonadLocalIPFS           m
   , MonadLogger              m
