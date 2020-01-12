@@ -37,7 +37,6 @@ type API = Web.Swagger.API :<|> Web.API
 
 app ::
   ( User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
   , User.MonadDBMutation     m
   , User.MonadDBQuery        m
   , MonadLogger              m
@@ -62,7 +61,6 @@ app handlerNT auth appHost = do
 -- | Web handlers for the 'API'
 server ::
   ( User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
   , User.MonadDBMutation     m
   , User.MonadDBQuery        m
   , MonadLogger              m

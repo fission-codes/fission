@@ -64,16 +64,19 @@ user ::
 user runner = BasicAuthCheck \auth -> runner <| checkUser auth
 
 checkUser ::
-  ( User.MonadDBQuery m
+  -- ( User.MonadDBQuery m
+  (
+    User.MonadDBQuery m
   , MonadDB           m
   , MonadLogger       m
   )
   => BasicAuthData
   -> m (BasicAuthResult (Entity User))
 checkUser (BasicAuthData username password) = do
-  mayUser <- runDB
-            <| User.getByUsername
-            <| decodeUtf8Lenient username
+  mayUser <- runDB do
+    username
+      |> decodeUtf8Lenient
+      |> User.getByUsername
 
   case mayUser of
     Nothing -> do

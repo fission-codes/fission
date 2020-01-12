@@ -18,7 +18,7 @@ type API = Provision.API :<|> Deprovision.API
 
 server ::
   ( User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   , User.MonadDBMutation     m
   , User.MonadDBQuery        m
   , MonadThrow               m

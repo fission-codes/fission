@@ -45,24 +45,21 @@ import qualified Fission.User.CID as User.CID
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
-  deriving anyclass ( User.MonadDBQuery
-                    , User.MonadDBMutation
-                    , User.CID.MonadDBQuery
-                    , User.CID.MonadDBMutation
+  deriving newtype  ( Functor
+                    , Applicative
+                    , Monad
+                    , MonadIO
+                    , MonadUnliftIO
+                    , MonadReader Config
+                    , MonadThrow
+                    , MonadCatch
+                    , MonadMask
                     )
 
-  deriving newtype ( Functor
-                   , Applicative
-                   , Monad
-                   , MonadIO
-                   , MonadUnliftIO
-                   , MonadReader Config
-                   , MonadThrow
-                   , MonadCatch
-                   , MonadMask
-                   )
-
--- General Instances
+  deriving anyclass ( User.MonadDBQuery
+                    , User.MonadDBMutation
+                    , User.CID.MonadDBMutation
+                    )
 
 instance MonadLogger Fission where
   monadLoggerLog loc src lvl msg = Fission (monadLoggerLog loc src lvl msg)
@@ -70,17 +67,19 @@ instance MonadLogger Fission where
 instance MonadTime Fission where
   currentTime = liftIO getCurrentTime
 
+-- Server
+
 instance MonadReflectiveServer Fission where
   getHost = asks host
 
--- 💾 Database Related Instances
+-- 💾 Database
 
 instance MonadDB Fission where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
 
--- 📬 External Services Related Instances
+-- 📬 External Services
 
 instance MonadHerokuAddOn Fission where
   authorize = do
@@ -155,7 +154,7 @@ instance MonadRoute53 Fission where
           |> rrsTTL ?~ 10
           |> rrsResourceRecords ?~ pure (resourceRecord value)
 
--- 🌐 DNS Related Instances
+-- 🌐 DNS
 
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do
@@ -177,7 +176,7 @@ instance MonadDNSLink Fission where
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
 
--- 🛰️ IPFS Related Instances
+-- 🛰️ IPFS
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
@@ -211,4 +210,3 @@ instance MonadRemoteIPFS Fission where
         |> mkClientEnv manager
         |> runClientM query
         |> liftIO
-

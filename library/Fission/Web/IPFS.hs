@@ -43,7 +43,7 @@ type PublicAPI = "peers" :> Peer.API
 
 server ::
   ( User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   , MonadDB                  m
   , MonadRemoteIPFS          m
   , MonadLinkedIPFS          m
@@ -57,7 +57,7 @@ server = authed :<|> public
 
 authed ::
   ( User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   , MonadDB                  m
   , MonadRemoteIPFS          m
   , MonadLocalIPFS           m

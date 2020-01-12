@@ -29,7 +29,7 @@ destroy ::
   ( User.MonadDBMutation     m
   , User.MonadDBQuery        m
   , User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   , MonadLogger              m
   , MonadThrow               m
   , MonadRemoteIPFS          m
@@ -50,7 +50,7 @@ deleteAssociatedWith ::
   ( User.MonadDBMutation     m
   , User.MonadDBQuery        m
   , User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   , MonadLogger              m
   , MonadThrow               m
   )

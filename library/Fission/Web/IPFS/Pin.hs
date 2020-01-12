@@ -34,7 +34,7 @@ server ::
   , MonadTime                m
   , MonadDB                  m
   , User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   )
   => Entity User
   -> ServerT API m
@@ -62,7 +62,7 @@ unpin ::
   , MonadThrow               m
   , MonadDB                  m
   , User.CID.MonadDBMutation m
-  , User.CID.MonadDBQuery    m
+  -- , User.CID.Queryable    m
   )
   => UserId
   -> ServerT UnpinAPI m
