@@ -26,16 +26,19 @@ add ::
   , MonadRemoteIPFS  m
   , MonadLogger      m
   , MonadThrow       m
-  , MonadTime        m
   , MonadDB          m
-  -- , User.CID.Mutable m
+  , MonadTime        m
   )
   => Entity User
   -> ServerT API m
 add (Entity userId _) (Serialized rawData) = IPFS.addRaw rawData >>= \case
   Right newCID -> IPFS.Pin.add newCID >>= \case
     Right pinnedCID -> do
-      _ <- runDBNow (\now -> User.CID.createX userId [pinnedCID] now)
+      pinnedCID
+        |> return
+        |> User.CID.createX userId
+        |> runDBNow
+
       return pinnedCID
 
     Left err ->

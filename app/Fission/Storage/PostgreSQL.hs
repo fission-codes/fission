@@ -23,7 +23,7 @@ import           Fission.Models
 --
 --   > runOne (runDB updateDBToLatest)
 updateDBToLatest :: MonadIO m => Transaction m ()
-updateDBToLatest = runMigration migrateAll
+updateDBToLatest = Transaction <| runMigration migrateAll
 
 withDBPool ::
   MonadIO m

@@ -14,17 +14,17 @@ class Queryable m where
 
 instance MonadIO m => Queryable (Transaction m) where
   getByUsername :: Text -> Transaction m (Maybe (Entity User))
-  getByUsername username = selectFirst
+  getByUsername username = Transaction <| selectFirst
     [ UserUsername P.==. username
     , UserActive   P.==. True
     ] []
 
   getHerkouAddonByUserId :: HerokuAddOnId -> Transaction m (Maybe (Entity User))
-  getHerkouAddonByUserId addOnId = selectFirst
+  getHerkouAddonByUserId addOnId = Transaction <| selectFirst
     [ UserHerokuAddOnId P.==. (Just addOnId)
     , UserActive P.==. True
     ] []
 
   getHerkouAddonByUUID :: UUID -> Transaction m (Maybe (Entity HerokuAddOn))
-  getHerkouAddonByUUID uuid =
+  getHerkouAddonByUUID uuid = Transaction <|
     selectFirst [HerokuAddOnUuid P.==. uuid] []

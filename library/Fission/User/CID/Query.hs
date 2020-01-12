@@ -15,13 +15,13 @@ class Queryable m where
 
 instance MonadIO m => Queryable (Transaction m) where
   getByUserId :: UserId -> Transaction m [Entity UserCid]
-  getByUserId userId =
+  getByUserId userId = Transaction do
     select <| from \userCid -> do
       where_ (userCid ^. UserCidUserFk ==. val userId)
       return userCid
 
   getByCids :: [CID] -> Transaction m [Entity UserCid]
-  getByCids cids =
+  getByCids cids = Transaction do
     select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList cids)
       return userCid

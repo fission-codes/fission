@@ -40,26 +40,24 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add ::
-  ( -- User.CID.Mutable m
-   MonadLocalIPFS           m
-  , MonadRemoteIPFS          m
-  , MonadLogger              m
-  , MonadTime                m
-  , MonadThrow               m
-  , MonadDB                  m
+  ( MonadRemoteIPFS m
+  , MonadLocalIPFS  m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , MonadDB         m
   )
   => Entity User
   -> ServerT API m
 add (Entity userId _) = textAdd userId :<|> jsonAdd userId
 
 textAdd ::
-  ( -- User.CID.Mutable m
-   MonadLocalIPFS           m
-  , MonadRemoteIPFS          m
-  , MonadTime                m
-  , MonadLogger              m
-  , MonadThrow               m
-  , MonadDB                  m
+  ( MonadRemoteIPFS m
+  , MonadLocalIPFS  m
+  , MonadTime       m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadDB         m
   )
   => UserId
   -> ServerT TextAPI m
@@ -69,26 +67,24 @@ textAdd uID form queryName = run uID form queryName <| \sparse ->
     Left err   -> Web.Err.throw err
 
 jsonAdd ::
-  ( -- User.CID.Mutable m
-   MonadLocalIPFS           m
-  , MonadRemoteIPFS          m
-  , MonadLogger              m
-  , MonadTime                m
-  , MonadThrow               m
-  , MonadDB                  m
+  ( MonadRemoteIPFS m
+  , MonadLocalIPFS  m
+  , MonadLogger     m
+  , MonadTime       m
+  , MonadThrow      m
+  , MonadDB         m
   )
   => UserId
   -> ServerT JSONAPI m
 jsonAdd uID form queryName = run uID form queryName pure
 
 run ::
-  ( -- User.CID.Mutable m
-    MonadTime                m
-  , MonadLogger              m
-  , MonadLocalIPFS           m
-  , MonadRemoteIPFS          m
-  , MonadThrow               m
-  , MonadDB                  m
+  ( MonadDB         m
+  , MonadTime       m
+  , MonadThrow      m
+  , MonadLogger     m
+  , MonadLocalIPFS  m
+  , MonadRemoteIPFS m
   )
   => UserId
   -> MultipartData Mem
@@ -107,7 +103,12 @@ run uID form qName cont = case lookupFile "file" form of
           Web.Err.throw err
 
         Right _ -> do
-          void <| runDBNow (\now -> User.CID.createX uID (IPFS.cIDs struct) now)
+          struct
+            |> IPFS.cIDs
+            |> User.CID.createX uID
+            |> runDBNow
+            |> void
+
           cont struct
     where
       humanName :: IPFS.Name

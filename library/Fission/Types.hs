@@ -67,7 +67,7 @@ instance MonadReflectiveServer Fission where
 -- 💾 Database
 
 instance MonadDB Fission where
-  runDB transaction = do
+  runDB (Transaction transaction) = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
 

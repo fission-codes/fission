@@ -89,7 +89,7 @@ main = do
         logInfo ("Ensuring live DB matches latest schema" :: Text)
         runDB updateDBToLatest
 
-        auth <- Auth.mkAuth (runFission cfg)
+        auth <- Auth.mkAuth (runFission cfg . runDB)
 
         host
           |> Web.app (toHandler (runFission cfg)) auth

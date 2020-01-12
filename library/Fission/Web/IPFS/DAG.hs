@@ -23,13 +23,12 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 put ::
-  ( -- User.CID.MonadDBMutation m
-   MonadLocalIPFS           m
-  , MonadRemoteIPFS          m
-  , MonadLogger              m
-  , MonadThrow               m
-  , MonadTime                m
-  , MonadDB                  m
+  ( MonadLocalIPFS  m
+  , MonadRemoteIPFS m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , MonadDB         m
   )
   => Entity User
   -> ServerT API m
@@ -44,5 +43,9 @@ put (Entity userId _) (Serialized rawData) =
           Web.Err.throw err
 
         Right pinnedCID -> do
-          _ <- runDBNow (\now -> User.CID.createX userId [newCID] now)
+          newCID
+            |> return
+            |> User.CID.createX userId
+            |> runDBNow
+
           return pinnedCID

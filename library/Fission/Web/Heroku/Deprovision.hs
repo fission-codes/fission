@@ -26,17 +26,14 @@ type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
-  ( -- User.MonadDBMutation     m
-  -- , User.Queryable        m
-  -- , User.CID.Mutable m
-   MonadDB                  m
-  , MonadLogger              m
-  , MonadThrow               m
-  , MonadRemoteIPFS          m
+  ( MonadDB         m
+  , MonadLogger     m
+  , MonadThrow      m
+  , MonadRemoteIPFS m
   )
   => ServerT API m
 destroy uuid' = do
-  toUnpin <- runDB (deleteAssociatedWith uuid')
+  toUnpin <- runDB <| deleteAssociatedWith uuid'
 
   forM_ toUnpin \cid ->
     IPFS.Pin.rm cid >>= \case
@@ -47,14 +44,12 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( -- User.MonadDBMutation     m
-  User.Queryable       m
-  , User.CID.Mutable   m
+  ( User.Queryable     m
   , User.Mutable       m
+  , User.CID.Mutable   m
+  , User.CID.Queryable m
   , MonadLogger        m
   , MonadThrow         m
-  -- , MonadIO m
-  , User.CID.Queryable m
   )
   => UUID
   -> m [CID]

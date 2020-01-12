@@ -17,7 +17,7 @@ class Insertable m where
 
 instance MonadIO m => Insertable (Transaction m) where
   create :: UserId -> CID -> UTCTime -> Transaction m (Maybe UserCidId)
-  create userId cid now = do
+  create userId cid now = Transaction do
     insertUnique UserCid
       { userCidUserFk     = userId
       , userCidCid        = cid
@@ -26,7 +26,7 @@ instance MonadIO m => Insertable (Transaction m) where
       }
 
   createX :: UserId -> [CID] -> UTCTime -> Transaction m [CID]
-  createX userId hashes now = do
+  createX userId hashes now = Transaction do
     existingCIDs <- select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList hashes)
       return (userCid ^. UserCidCid)
@@ -53,13 +53,13 @@ class Mutable m where
 
 instance MonadIO m => Mutable (Transaction m) where
   destroyAll :: [Key UserCid] -> Transaction m ()
-  destroyAll userCidIds =
+  destroyAll userCidIds = Transaction <|
     delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)
 
   destroyExact :: UserId -> CID -> Transaction m ()
-  destroyExact userId cid = do
-      delete <| from \userCid ->
-        where_ (selectExact userCid)
+  destroyExact userId cid =
+    Transaction <| delete <| from \userCid ->
+      where_ (selectExact userCid)
     where
       selectExact userCid =
             userCid ^. UserCidCid    ==. val cid

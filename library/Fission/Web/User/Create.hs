@@ -17,19 +17,15 @@ type API = ReqBody '[JSON] User.Registration
         :> Post    '[JSON] ()
 
 server ::
-  ( MonadDNSLink         m
-  , MonadLogger          m
-  -- , User.Mutable m
-  , MonadTime m
-  , MonadDB m
+  ( MonadDNSLink m
+  , MonadLogger  m
+  , MonadTime    m
+  , MonadDB      m
   )
   => ServerT API m
 server (User.Registration username password email) = do
-  Nothing
-    |> User.create username password (Just email)
-    |> runDBNow
-    |> bind Web.Err.ensure
-    |> void
+  newUser <- runDBNow <| User.create username password (Just email) Nothing
+  void <| Web.Err.ensure newUser
 
   splashCID
     |> DNSLink.setWithSubdomain username

@@ -51,12 +51,13 @@ instance MonadIO m => Insertable (Transaction m) where
               , userModifiedAt    = now
               }
 
-        insertUnique newUserRecord >>= \case
-          Just userID ->
-            return (Right userID)
+        Transaction do
+          insertUnique newUserRecord >>= \case
+            Just userID ->
+              return (Right userID)
 
-          Nothing ->
-            return (Left Error.AlreadyExists)
+            Nothing ->
+              return (Left Error.AlreadyExists)
 
   createWithHeroku ::
        UUID
@@ -66,7 +67,7 @@ instance MonadIO m => Insertable (Transaction m) where
     -> UTCTime
     -> Transaction m (Either Error.Create UserId)
   createWithHeroku herokuUUID herokuRegion username password now = do
-    addOnId <- insert HerokuAddOn -- TODO EXTRACT INTO A TYPECLASS
+    addOnId <- Transaction <| insert HerokuAddOn -- TODO EXTRACT INTO A TYPECLASS
       { herokuAddOnUuid       = herokuUUID
       , herokuAddOnRegion     = Just herokuRegion
       , herokuAddOnInsertedAt = now
@@ -77,7 +78,7 @@ instance MonadIO m => Insertable (Transaction m) where
 
 instance MonadIO m => Mutable (Transaction m) where
   updatePassword :: UserId -> User.Password -> UTCTime -> Transaction m (Either Error.Create User.Password)
-  updatePassword userId (User.Password password) now =
+  updatePassword userId (User.Password password) now = Transaction do
     Password.hashPassword password >>= \case
       Left err ->
         return (Left err)
@@ -91,9 +92,9 @@ instance MonadIO m => Mutable (Transaction m) where
         return . Right <| User.Password password
 
   destroy :: UserId -> Transaction m ()
-  destroy userId = delete <| from \user ->
+  destroy userId = Transaction <| delete <| from \user ->
     where_ (user ^. UserId ==. val userId)
 
   destroyHerokuAddon :: UUID -> Transaction m ()
-  destroyHerokuAddon uuid = delete <| from \herokuAddOn ->
+  destroyHerokuAddon uuid = Transaction <| delete <| from \herokuAddOn ->
     where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid)
