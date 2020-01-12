@@ -6,6 +6,7 @@ module Fission.Internal.MonadDB
   , ensureOne
   , ensureOneId
   , ensureEntity
+  , ensureEntityM
   ) where
 
 import Control.Monad.Logger
@@ -28,6 +29,9 @@ ensureEntity :: (Exception err, MonadLogger m, MonadThrow m) => err -> Maybe a -
 ensureEntity err = \case
   Nothing -> throwM err
   Just x  -> return x
+
+ensureEntityM :: (Exception err, MonadLogger m, MonadThrow m) => err -> m (Maybe a) -> m a
+ensureEntityM err maybeEntity = ensureEntity err =<< maybeEntity
 
 ensureOneId :: (Exception err, MonadLogger m, MonadThrow m) => err -> [Entity a] -> m (Key a)
 ensureOneId err entities = pure . entityKey =<< ensureOne err entities

@@ -27,9 +27,9 @@ type API = Capture "addon_id" UUID
 
 destroy ::
   ( User.MonadDBMutation     m
-  , User.MonadDBQuery        m
+  -- , User.Queryable        m
   , User.CID.MonadDBMutation m
-  -- , User.CID.Queryable    m
+  , MonadDB                  m
   , MonadLogger              m
   , MonadThrow               m
   , MonadRemoteIPFS          m
@@ -47,21 +47,22 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( User.MonadDBMutation     m
-  , User.MonadDBQuery        m
-  , User.CID.MonadDBMutation m
-  -- , User.CID.Queryable    m
+  ( -- User.MonadDBMutation     m
+  User.Queryable        m
+  -- , User.CID.MonadDBMutation m
   , MonadLogger              m
   , MonadThrow               m
+  -- , MonadIO m
+  , User.CID.Queryable    m
   )
   => UUID
-  -> Transaction m [CID]
+  -> m [CID]
 deleteAssociatedWith uuid' = do
   addOn     <- herokuAddOnByUUID uuid'
   addOnUser <- userForHerokuAddOn (entityKey addOn)
   userCids  <- User.CID.getByUserId (entityKey addOnUser)
 
-  deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
+  -- deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
 
   let deletedUserCids = getInner userCidCid <$> userCids
   remainingUserCids <- User.CID.getByCids deletedUserCids
@@ -84,20 +85,26 @@ deleteAssociatedRecords userId uuid userCids = do
 
 -- | Get the User associated with those Heroku add-ons, throw 410 if not found.
 userForHerokuAddOn ::
-  ( User.MonadDBQuery m
-  , MonadLogger       m
-  , MonadThrow        m
+  ( MonadLogger    m
+  , MonadThrow     m
+  , User.Queryable m
   )
   => HerokuAddOnId
-  -> Transaction m (Entity User)
-userForHerokuAddOn addOnId = ensureEntity err410 =<< User.getHerkouAddonByUserId addOnId
+  -> m (Entity User)
+userForHerokuAddOn addOnId =
+  addOnId
+    |> User.getHerkouAddonByUserId
+    |> ensureEntityM err410
 
 -- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
-  ( User.MonadDBQuery m
-  , MonadLogger       m
-  , MonadThrow        m
+  ( MonadLogger    m
+  , MonadThrow     m
+  , User.Queryable m
   )
   => UUID
-  -> Transaction m (Entity HerokuAddOn)
-herokuAddOnByUUID uuid' = ensureEntity err410 =<< User.getHerkouAddonByUUID uuid'
+  -> m (Entity HerokuAddOn)
+herokuAddOnByUUID uuid' =
+  uuid'
+    |> User.getHerkouAddonByUUID
+    |> ensureEntityM err410

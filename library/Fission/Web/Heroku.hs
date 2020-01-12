@@ -20,7 +20,7 @@ server ::
   ( User.CID.MonadDBMutation m
   -- , User.CID.Queryable    m
   , User.MonadDBMutation     m
-  , User.MonadDBQuery        m
+  -- , User.Queryable        m
   , MonadThrow               m
   , MonadLogger              m
   , MonadLocalIPFS           m

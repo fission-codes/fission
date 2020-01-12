@@ -24,7 +24,7 @@ mkAuth ::
   ( MonadHerokuAddOn  m
   , MonadDB           inner
   , MonadLogger       inner
-  , User.MonadDBQuery inner
+  -- , User.Queryable inner
   )
   => (forall a . inner a -> IO a)
   -> m (Context Checks)
@@ -55,8 +55,8 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          else Unauthorized
 
 user ::
-  ( User.MonadDBQuery m
-  , MonadDB           m
+  ( -- User.Queryable m
+    MonadDB           m
   , MonadLogger       m
   )
   => (m (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
@@ -64,10 +64,10 @@ user ::
 user runner = BasicAuthCheck \auth -> runner <| checkUser auth
 
 checkUser ::
-  -- ( User.MonadDBQuery m
+  -- ( User.Queryable m
   (
-    User.MonadDBQuery m
-  , MonadDB           m
+    -- User.Queryable m
+    MonadDB           m
   , MonadLogger       m
   )
   => BasicAuthData

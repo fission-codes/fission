@@ -56,8 +56,7 @@ newtype Fission a = Fission { unwrapFission :: RIO Config a }
                     , MonadMask
                     )
 
-  deriving anyclass ( User.MonadDBQuery
-                    , User.MonadDBMutation
+  deriving anyclass ( User.MonadDBMutation
                     , User.CID.MonadDBMutation
                     )
 
