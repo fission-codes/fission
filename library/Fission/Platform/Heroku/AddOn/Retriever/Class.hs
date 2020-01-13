@@ -11,5 +11,4 @@ class Monad m => Retriever m where
   getByUUID :: UUID -> m (Maybe (Entity HerokuAddOn))
 
 instance MonadIO m => Retriever (Transaction m) where
-  getByUUID uuid = Transaction <|
-    selectFirst [HerokuAddOnUuid P.==. uuid] []
+  getByUUID uuid = selectFirst [HerokuAddOnUuid P.==. uuid] []

@@ -14,14 +14,12 @@ class Monad m => Retriever m where
   getByCids :: [CID] -> m [Entity UserCid]
 
 instance MonadIO m => Retriever (Transaction m) where
-  getByUserId :: UserId -> Transaction m [Entity UserCid]
-  getByUserId userId = Transaction do
+  getByUserId userId =
     select <| from \userCid -> do
       where_ (userCid ^. UserCidUserFk ==. val userId)
       return userCid
 
-  getByCids :: [CID] -> Transaction m [Entity UserCid]
-  getByCids cids = Transaction do
+  getByCids cids =
     select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList cids)
       return userCid

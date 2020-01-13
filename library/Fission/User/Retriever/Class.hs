@@ -11,12 +11,12 @@ class Monad m => Retriever m where
   getByHerkouAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
 
 instance MonadIO m => Retriever (Transaction m) where
-  getByUsername username = Transaction <| selectFirst
+  getByUsername username = selectFirst
     [ UserUsername P.==. username
     , UserActive   P.==. True
     ] []
 
-  getByHerkouAddOnId addOnId = Transaction <| selectFirst
+  getByHerkouAddOnId addOnId = selectFirst
     [ UserHerokuAddOnId P.==. Just addOnId
     , UserActive        P.==. True
     ] []

@@ -3,12 +3,13 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
+import           Crypto.BCrypt
 import           Control.Monad.Catch
 import qualified Database.Persist.Sql as SQL
 
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Orphans ()
 
+import           Servant
 import           Servant.Client
 
 import           Network.AWS
@@ -37,19 +38,11 @@ import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
 import           Fission.Platform.Heroku.Authorizer     as Heroku
 
-import qualified Fission.Web.Auth              as Auth
+import qualified Fission.Web.Auth as Auth
 import           Fission.Web.Server.Reflective
 
-import Fission.User.Retriever as User
-import Fission.User.Authorizer.Class as User
-import           Servant
-import Fission.Models
--- import Database.Esqueleto (Entity)
-import           Crypto.BCrypt
-import Fission.Web.Handler.Class
-import Fission.Web.Handler
-import           Control.Monad.Except
-import           Servant
+import           Fission.User as User
+import           Fission.Models
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -70,19 +63,13 @@ instance MonadLogger Fission where
 instance MonadTime Fission where
   currentTime = liftIO getCurrentTime
 
--- Server
-
 instance MonadReflectiveServer Fission where
   getHost = asks host
 
--- 💾 Database
-
 instance MonadDB Fission where
-  runDB (Transaction transaction) = do
+  runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
-
--- 📬 External Services
 
 instance Heroku.Authorizer Fission where
   verify = do
@@ -100,7 +87,6 @@ instance MonadAWS Fission where
     awsAction
       |> runAWS env
       |> runResourceT
-
 
 instance MonadRoute53 Fission where
   update recordType (URL.DomainName domain) content = do
@@ -157,8 +143,6 @@ instance MonadRoute53 Fission where
           |> rrsTTL ?~ 10
           |> rrsResourceRecords ?~ pure (resourceRecord value)
 
--- 🌐 DNS
-
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do
     IPFS.Gateway gateway <- asks ipfsGateway
@@ -178,8 +162,6 @@ instance MonadDNSLink Fission where
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
-
--- 🛰️ IPFS
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
@@ -248,11 +230,3 @@ instance User.Authorizer Fission where
 
       attemptMsg :: ByteString -> ByteString
       attemptMsg username = "Unauthorized user! Attempted with username: " <> username
-
-instance AsHandler Fission where
-  asHandler action = Servant.Handler <| ExceptT do
-    cfg <- ask
-    action
-      |> unwrapFission
-      |> runRIO cfg
-      |> Fission.Prelude.try

@@ -16,14 +16,12 @@ class Monad m => Destroyer m where
   destroyX :: [Key UserCid] -> m ()
 
 instance MonadIO m => Destroyer (Transaction m) where
-  destroyX :: [Key UserCid] -> Transaction m ()
   destroyX userCidIds =
-    Transaction . delete <| from \userCid ->
+    delete <| from \userCid ->
       where_ (userCid ^. UserCidId `in_` valList userCidIds)
 
-  destroy :: UserId -> CID -> Transaction m ()
   destroy userId cid =
-    Transaction . delete <| from \userCid ->
+    delete <| from \userCid ->
       where_ (selectExact userCid)
     where
       selectExact userCid =

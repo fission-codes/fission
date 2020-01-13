@@ -10,5 +10,6 @@ class Monad m => Destroyer m where
   destroy :: UserId -> m ()
 
 instance MonadIO m => Destroyer (Transaction m) where
-  destroy userId = Transaction <| delete <| from \user ->
-    where_ (user ^. UserId ==. val userId)
+  destroy userId =
+    delete <| from \user ->
+      where_ (user ^. UserId ==. val userId)

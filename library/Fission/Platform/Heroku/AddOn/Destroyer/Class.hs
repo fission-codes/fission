@@ -11,5 +11,5 @@ class Monad m => Destroyer m where
   destroyByUUID :: UUID   -> m ()
 
 instance MonadIO m => Destroyer (Transaction m) where
-  destroyByUUID uuid = Transaction <| delete <| from \herokuAddOn ->
+  destroyByUUID uuid = delete <| from \herokuAddOn ->
     where_ (herokuAddOn ^. HerokuAddOnUuid ==. val uuid)

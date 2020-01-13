@@ -37,16 +37,15 @@ instance MonadIO m => Creator (Transaction m) where
               , userModifiedAt    = now
               }
 
-        Transaction do
-          insertUnique newUserRecord >>= \case
-            Just userID ->
-              return (Right userID)
+        insertUnique newUserRecord >>= \case
+          Just userID ->
+            return (Right userID)
 
-            Nothing ->
-              return (Left AlreadyExists)
+          Nothing ->
+            return (Left AlreadyExists)
 
   createWithHeroku herokuUUID herokuRegion username password now = do
-    addOnId <- Transaction <| insert HerokuAddOn -- TODO EXTRACT INTO A TYPECLASS
+    addOnId <- insert HerokuAddOn -- TODO EXTRACT INTO A TYPECLASS
       { herokuAddOnUuid       = herokuUUID
       , herokuAddOnRegion     = Just herokuRegion
       , herokuAddOnInsertedAt = now

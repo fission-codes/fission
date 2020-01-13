@@ -13,15 +13,14 @@ class Monad m => Modifier m where
 
 instance MonadIO m => Modifier (Transaction m) where
   updatePassword userId (Password password) now =
-    Transaction <|
-      Password.hashPassword password >>= \case
-        Left err ->
-          return (Left err)
+    Password.hashPassword password >>= \case
+      Left err ->
+        return (Left err)
 
-        Right secretDigest -> do
-          update userId
-            [ UserSecretDigest =. secretDigest
-            , UserModifiedAt   =. now
-            ]
+      Right secretDigest -> do
+        update userId
+          [ UserSecretDigest =. secretDigest
+          , UserModifiedAt   =. now
+          ]
 
-          return . Right <| Password password
+        return . Right <| Password password
