@@ -40,6 +40,13 @@ import           Fission.Platform.Heroku.Authorizer     as Heroku
 import qualified Fission.Web.Auth              as Auth
 import           Fission.Web.Server.Reflective
 
+import Fission.User.Retriever as User
+import Fission.User.Authorizer.Class as User
+import           Servant
+import Fission.Models
+-- import Database.Esqueleto (Entity)
+import           Crypto.BCrypt
+
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
   deriving newtype  ( Functor
@@ -202,3 +209,38 @@ instance MonadRemoteIPFS Fission where
         |> mkClientEnv manager
         |> runClientM query
         |> liftIO
+
+instance User.Authorizer Fission where
+  verify = do
+    cfg <- ask
+    return (BasicAuthCheck (check' cfg))
+
+    where
+      check' :: Config -> BasicAuthData -> IO (BasicAuthResult (SQL.Entity User))
+      check' cfg (BasicAuthData username password) =
+        username
+          |> decodeUtf8Lenient
+          |> User.getByUsername
+          |> runDB
+          |> bind \case
+            Nothing -> do
+              logWarn <| attemptMsg username
+              return NoSuchUser
+
+            Just usr ->
+              validate' usr username password
+          |> unwrapFission
+          |> runRIO cfg
+
+      validate' :: MonadLogger m => SQL.Entity User -> ByteString -> ByteString -> m (BasicAuthResult (SQL.Entity User))
+      validate' usr@(SQL.Entity _ User { userSecretDigest }) username password =
+        if validatePassword (encodeUtf8 userSecretDigest) password
+           then
+              return (Authorized usr)
+
+           else do
+             logWarn <| attemptMsg username
+             return Unauthorized
+
+      attemptMsg :: ByteString -> ByteString
+      attemptMsg username = "Unauthorized user! Attempted with username: " <> username

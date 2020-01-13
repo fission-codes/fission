@@ -49,8 +49,8 @@ app ::
 app handlerNT auth appHost = do
   appHost
     |> server
-    |> Auth.server      api handlerNT
-    |> serveWithContext api auth
+    |> Auth.authWithContext api handlerNT
+    |> serveWithContext     api auth
   where
     api = Proxy @API
 
