@@ -7,6 +7,7 @@ import           Fission.Models
 import           Fission.Prelude
 
 import qualified Fission.Platform.Heroku.Region.Types as Heroku
+import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import           Fission.User.Role.Types
 import           Fission.User.Creator.Error
@@ -19,7 +20,7 @@ class Monad m => Creator m where
   -- | Create a new, timestamped entry and heroku add-on
   createWithHeroku :: UUID -> Heroku.Region -> Text -> Text -> UTCTime -> m (Either Error UserId)
 
-instance MonadIO m => Creator (Transaction m) where
+instance (MonadIO m, Heroku.AddOn.Creator m) => Creator (Transaction m) where
   create username password email herokuAddOnId now =
     Password.hashPassword password >>= \case
       Left err ->
@@ -45,11 +46,6 @@ instance MonadIO m => Creator (Transaction m) where
             return (Left AlreadyExists)
 
   createWithHeroku herokuUUID herokuRegion username password now = do
-    addOnId <- insert HerokuAddOn -- TODO EXTRACT INTO A TYPECLASS
-      { herokuAddOnUuid       = herokuUUID
-      , herokuAddOnRegion     = Just herokuRegion
-      , herokuAddOnInsertedAt = now
-      , herokuAddOnModifiedAt = now
-      }
-
-    create username password Nothing (Just addOnId) now
+    Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
+      Right addOnId -> create username password Nothing (Just addOnId) now
+      Left  err     -> return (Left err) -- FIXME! Need an open union

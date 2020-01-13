@@ -1,12 +1,12 @@
 -- | Database mutations for 'UserCid's
 module Fission.User.CID.Creator.Class (Creator (..)) where
 
-import Database.Esqueleto
-import RIO.List ((\\))
-import Network.IPFS.CID.Types as IPFS.CID
+import           Database.Esqueleto
+import           RIO.List ((\\))
+import           Network.IPFS.CID.Types as IPFS.CID
 
-import Fission.Prelude
-import Fission.Models
+import           Fission.Prelude
+import           Fission.Models
 
 -- | Actions for creating new @UserCid@s
 class Monad m => Creator m where

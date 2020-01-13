@@ -3,10 +3,10 @@ module Fission.User.Authorizer.Class (Authorizer (..)) where
 import           Servant
 import           Fission.Prelude
 
-import Fission.Models
-import Database.Esqueleto
+import           Fission.Models
+import           Database.Esqueleto
 
--- | Authorization for the Heroku Partner API
+-- | User authorization
 class Monad m => Authorizer m where
-  -- | Verify that the sender is the Heroku Partner web service
+  -- | Verify that the user is registered
   verify :: m (BasicAuthCheck (Entity User))
