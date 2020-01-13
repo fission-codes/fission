@@ -46,16 +46,16 @@ import           Fission.Models
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
-  deriving newtype  ( Functor
-                    , Applicative
-                    , Monad
-                    , MonadIO
-                    , MonadUnliftIO
-                    , MonadReader Config
-                    , MonadThrow
-                    , MonadCatch
-                    , MonadMask
-                    )
+  deriving newtype ( Functor
+                   , Applicative
+                   , Monad
+                   , MonadIO
+                   , MonadUnliftIO
+                   , MonadReader Config
+                   , MonadThrow
+                   , MonadCatch
+                   , MonadMask
+                   )
 
 instance MonadLogger Fission where
   monadLoggerLog loc src lvl msg = Fission (monadLoggerLog loc src lvl msg)
@@ -70,12 +70,6 @@ instance MonadDB Fission where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
-
-instance Heroku.Authorizer Fission where
-  verify = do
-    Heroku.ID       hkuID   <- asks herokuID
-    Heroku.Password hkuPass <- asks herokuPassword
-    return (Auth.basic hkuID hkuPass)
 
 instance MonadAWS Fission where
   liftAWS awsAction = do
@@ -195,6 +189,12 @@ instance MonadRemoteIPFS Fission where
         |> mkClientEnv manager
         |> runClientM query
         |> liftIO
+
+instance Heroku.Authorizer Fission where
+  verify = do
+    Heroku.ID       hkuID   <- asks herokuID
+    Heroku.Password hkuPass <- asks herokuPassword
+    return (Auth.basic hkuID hkuPass)
 
 instance User.Authorizer Fission where
   verify = do
