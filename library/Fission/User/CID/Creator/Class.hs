@@ -1,5 +1,5 @@
 -- | Database mutations for 'UserCid's
-module Fission.User.CID.Mutation (Insertable (..), Mutable (..)) where
+module Fission.User.CID.Creator.Class (Creator (..)) where
 
 import Database.Esqueleto
 import RIO.List ((\\))
@@ -8,14 +8,15 @@ import Network.IPFS.CID.Types as IPFS.CID
 import Fission.Prelude
 import Fission.Models
 
-class Insertable m where
+-- | Actions for creating new @UserCid@s
+class Monad m => Creator m where
   -- | Create a new, timestamped entry
   create :: UserId -> CID -> UTCTime -> m (Maybe UserCidId)
 
   -- | Create new 'UserCid's, ignoring existing values (set-like)
   createX :: UserId -> [CID] -> UTCTime -> m [CID]
 
-instance MonadIO m => Insertable (Transaction m) where
+instance MonadIO m => Creator (Transaction m) where
   create :: UserId -> CID -> UTCTime -> Transaction m (Maybe UserCidId)
   create userId cid now = Transaction do
     insertUnique UserCid
@@ -46,21 +47,3 @@ instance MonadIO m => Insertable (Transaction m) where
 
     insertMany_ toInsert
     return newHashes
-
-class Mutable m where
-  destroyAll   :: [Key UserCid] -> m ()
-  destroyExact :: UserId -> CID -> m ()
-
-instance MonadIO m => Mutable (Transaction m) where
-  destroyAll :: [Key UserCid] -> Transaction m ()
-  destroyAll userCidIds = Transaction <|
-    delete <| from \userCid -> where_ (userCid ^. UserCidId `in_` valList userCidIds)
-
-  destroyExact :: UserId -> CID -> Transaction m ()
-  destroyExact userId cid =
-    Transaction <| delete <| from \userCid ->
-      where_ (selectExact userCid)
-    where
-      selectExact userCid =
-            userCid ^. UserCidCid    ==. val cid
-        &&. userCid ^. UserCidUserFk ==. val userId

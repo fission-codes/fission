@@ -13,7 +13,7 @@ import           Servant
 import           Database.Esqueleto
 
 import           Fission.Models
-import           Fission.Platform.Heroku.AddOn
+import           Fission.Platform.Heroku as Heroku
 import           Fission.Prelude
 import qualified Fission.User as User
 
@@ -21,14 +21,14 @@ type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadHerokuAddOn  m
-  , MonadLogger    inner
-  , User.Queryable inner
+  ( Heroku.Authorizer m
+  , MonadLogger       inner
+  , User.Retriever    inner
   )
   => (forall a . inner a -> IO a)
   -> m (Context Checks)
 mkAuth runner = do
-  herokuAuth <- authorize
+  herokuAuth <- verify
   return <| user runner
          :. herokuAuth
          :. EmptyContext
@@ -54,7 +54,7 @@ basic unOK pwOK = BasicAuthCheck (pure . check')
          else Unauthorized
 
 user ::
-  ( User.Queryable m
+  ( User.Retriever m
   , MonadLogger    m
   )
   => (m (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
@@ -67,7 +67,7 @@ user runner = BasicAuthCheck \auth ->
 checkUser ::
   -- ( User.Queryable m
   (
-    User.Queryable m
+    User.Retriever m
   -- , MonadDB           m
   , MonadLogger    m
   )

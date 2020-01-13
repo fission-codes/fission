@@ -1,7 +1,9 @@
 module Fission.User.CID
-  ( module Fission.User.CID.Query
-  , module Fission.User.CID.Mutation
+  ( module Fission.User.CID.Retriever
+  , module Fission.User.CID.Creator
+  , module Fission.User.CID.Destroyer
   ) where
 
-import Fission.User.CID.Query
-import Fission.User.CID.Mutation
+import Fission.User.CID.Retriever
+import Fission.User.CID.Creator
+import Fission.User.CID.Destroyer

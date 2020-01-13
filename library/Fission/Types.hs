@@ -35,7 +35,7 @@ import qualified Fission.URL as URL
 
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
-import           Fission.Platform.Heroku.AddOn
+import           Fission.Platform.Heroku.Authorizer     as Heroku
 
 import qualified Fission.Web.Auth              as Auth
 import           Fission.Web.Server.Reflective
@@ -73,8 +73,8 @@ instance MonadDB Fission where
 
 -- 📬 External Services
 
-instance MonadHerokuAddOn Fission where
-  authorize = do
+instance Heroku.Authorizer Fission where
+  verify = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
     return (Auth.basic hkuID hkuPass)

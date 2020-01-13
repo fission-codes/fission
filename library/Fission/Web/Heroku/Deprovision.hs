@@ -17,8 +17,9 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
-import qualified Fission.User as User
-import qualified Fission.User.CID as User.CID
+import qualified Fission.User                  as User
+import qualified Fission.User.CID              as User.CID
+import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
@@ -44,12 +45,14 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( User.Queryable     m
-  , User.Mutable       m
-  , User.CID.Mutable   m
-  , User.CID.Queryable m
-  , MonadLogger        m
-  , MonadThrow         m
+  ( User.Retriever         m
+  , User.Destroyer         m
+  , User.CID.Retriever     m
+  , User.CID.Destroyer     m
+  , Heroku.AddOn.Retriever m
+  , Heroku.AddOn.Destroyer m
+  , MonadLogger            m
+  , MonadThrow             m
   )
   => UUID
   -> m [CID]
@@ -68,41 +71,41 @@ deleteAssociatedWith uuid' = do
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
 deleteAssociatedRecords ::
-  ( User.Mutable     m
-  , User.CID.Mutable m
-  , Monad            m
+  ( User.Destroyer         m
+  , User.CID.Destroyer     m
+  , Heroku.AddOn.Destroyer m
   )
   => UserId
   -> UUID
   -> [Entity UserCid]
   -> m ()
 deleteAssociatedRecords userId uuid userCids = do
-  User.CID.destroyAll (entityKey <$> userCids)
+  User.CID.destroyX (entityKey <$> userCids)
   User.destroy userId
-  User.destroyHerokuAddon uuid
+  Heroku.AddOn.destroyByUUID uuid
 
 -- | Get the User associated with those Heroku add-ons, throw 410 if not found.
 userForHerokuAddOn ::
   ( MonadLogger    m
   , MonadThrow     m
-  , User.Queryable m
+  , User.Retriever m
   )
   => HerokuAddOnId
   -> m (Entity User)
 userForHerokuAddOn addOnId =
   addOnId
-    |> User.getHerkouAddonByUserId
+    |> User.getByHerkouAddOnId
     |> ensureEntityM err410
 
 -- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
 herokuAddOnByUUID ::
-  ( MonadLogger    m
-  , MonadThrow     m
-  , User.Queryable m
+  ( MonadLogger            m
+  , MonadThrow             m
+  , Heroku.AddOn.Retriever m
   )
   => UUID
   -> m (Entity HerokuAddOn)
 herokuAddOnByUUID uuid' =
   uuid'
-    |> User.getHerkouAddonByUUID
+    |> Heroku.AddOn.getByUUID
     |> ensureEntityM err410

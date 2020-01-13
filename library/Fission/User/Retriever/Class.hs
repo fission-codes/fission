@@ -1,0 +1,22 @@
+module Fission.User.Retriever.Class (Retriever (..)) where
+
+import           Database.Esqueleto hiding ((=.), update)
+import qualified Database.Persist as P
+
+import           Fission.Models
+import           Fission.Prelude
+
+class Monad m => Retriever m where
+  getByUsername      :: Text          -> m (Maybe (Entity User))
+  getByHerkouAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
+
+instance MonadIO m => Retriever (Transaction m) where
+  getByUsername username = Transaction <| selectFirst
+    [ UserUsername P.==. username
+    , UserActive   P.==. True
+    ] []
+
+  getByHerkouAddOnId addOnId = Transaction <| selectFirst
+    [ UserHerokuAddOnId P.==. Just addOnId
+    , UserActive        P.==. True
+    ] []

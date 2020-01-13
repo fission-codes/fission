@@ -8,9 +8,9 @@ import           Servant
 
 import           Fission.Models
 import           Fission.Prelude
-import           Fission.User.Mutation       as User
-import qualified Fission.User.Password.Types as User
-import qualified Fission.User.Password       as User.Password
+
+import qualified Fission.User          as User
+import qualified Fission.User.Password as User.Password
 
 import qualified Fission.Web.Error                     as Web.Err
 import qualified Fission.Web.User.Password.Reset.Types as User.Password

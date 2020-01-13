@@ -23,8 +23,8 @@ import           Fission.Models
 import           Fission.Prelude
 import           Fission.Internal.MIME
 
-import           Fission.User.CID.Mutation as User.CID
-import qualified Fission.Web.Error        as Web.Err
+import           Fission.User.CID  as User.CID
+import qualified Fission.Web.Error as Web.Err
 
 type API = TextAPI :<|> JSONAPI
 

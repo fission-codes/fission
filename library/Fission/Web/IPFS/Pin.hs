@@ -66,7 +66,7 @@ unpin ::
   -> ServerT UnpinAPI m
 unpin userId cid = do
   remaining <- runDB do
-    User.CID.destroyExact userId cid
+    User.CID.destroy   userId cid
     User.CID.getByCids [cid]
 
   when (remaining == []) do

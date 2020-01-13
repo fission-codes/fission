@@ -23,8 +23,7 @@ import           Fission.Platform.Heroku.Provision.Request.Types
 import qualified Fission.Random               as Random
 import           Fission.Security.Types       (Secret (..))
 import qualified Fission.User.Provision.Types as User
-import qualified Fission.User.Mutation        as User
-
+import qualified Fission.User.Creator         as User
 
 type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision

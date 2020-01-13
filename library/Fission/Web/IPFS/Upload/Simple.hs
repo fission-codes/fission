@@ -15,8 +15,8 @@ import           Network.IPFS.File.Types as File
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.User.CID.Mutation as User.CID
-import qualified Fission.Web.Error         as Web.Err
+import           Fission.User.CID.Creator as User.CID
+import qualified Fission.Web.Error        as Web.Err
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID

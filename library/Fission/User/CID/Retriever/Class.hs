@@ -1,4 +1,4 @@
-module Fission.User.CID.Query (Queryable (..)) where
+module Fission.User.CID.Retriever.Class (Retriever (..)) where
 
 import           Network.IPFS.CID.Types
 import           Database.Esqueleto hiding ((=.), update)
@@ -6,14 +6,14 @@ import           Database.Esqueleto hiding ((=.), update)
 import           Fission.Models
 import           Fission.Prelude
 
-class Queryable m where
+class Monad m => Retriever m where
   -- | CIDs associated with a user
   getByUserId :: UserId -> m [Entity UserCid]
 
   -- | Find all CIDs that remain from a list
   getByCids :: [CID] -> m [Entity UserCid]
 
-instance MonadIO m => Queryable (Transaction m) where
+instance MonadIO m => Retriever (Transaction m) where
   getByUserId :: UserId -> Transaction m [Entity UserCid]
   getByUserId userId = Transaction do
     select <| from \userCid -> do
