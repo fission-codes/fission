@@ -46,11 +46,11 @@ app ::
   -> Context Auth.Checks
   -> Web.Host
   -> Application
-app handlerNT auth appHost = do
+app handlerNT authChecks appHost = do
   appHost
     |> server
     |> Auth.authWithContext api handlerNT
-    |> serveWithContext     api auth
+    |> serveWithContext     api authChecks
   where
     api = Proxy @API
 

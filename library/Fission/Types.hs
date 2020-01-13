@@ -46,6 +46,10 @@ import           Servant
 import Fission.Models
 -- import Database.Esqueleto (Entity)
 import           Crypto.BCrypt
+import Fission.Web.Handler.Class
+import Fission.Web.Handler
+import           Control.Monad.Except
+import           Servant
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -213,11 +217,11 @@ instance MonadRemoteIPFS Fission where
 instance User.Authorizer Fission where
   verify = do
     cfg <- ask
-    return (BasicAuthCheck (check' cfg))
+    return (BasicAuthCheck (check cfg))
 
     where
-      check' :: Config -> BasicAuthData -> IO (BasicAuthResult (SQL.Entity User))
-      check' cfg (BasicAuthData username password) =
+      check :: Config -> BasicAuthData -> IO (BasicAuthResult (SQL.Entity User))
+      check cfg (BasicAuthData username password) =
         username
           |> decodeUtf8Lenient
           |> User.getByUsername
@@ -244,3 +248,11 @@ instance User.Authorizer Fission where
 
       attemptMsg :: ByteString -> ByteString
       attemptMsg username = "Unauthorized user! Attempted with username: " <> username
+
+instance AsHandler Fission where
+  asHandler action = Servant.Handler <| ExceptT do
+    cfg <- ask
+    action
+      |> unwrapFission
+      |> runRIO cfg
+      |> Fission.Prelude.try

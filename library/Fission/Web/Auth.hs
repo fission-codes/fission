@@ -35,10 +35,10 @@ authWithContext
 authWithContext api = hoistServerWithContext api (Proxy @Checks)
 
 basic :: ByteString -> ByteString -> BasicAuthCheck ByteString
-basic unOK pwOK = BasicAuthCheck (return . check')
+basic unOK pwOK = BasicAuthCheck (return . check)
   where
-    check' :: BasicAuthData -> BasicAuthResult ByteString
-    check' (BasicAuthData username password) =
+    check :: BasicAuthData -> BasicAuthResult ByteString
+    check (BasicAuthData username password) =
       if (username == unOK) && (pwOK == password)
          then Authorized username
          else Unauthorized
