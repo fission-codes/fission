@@ -26,8 +26,8 @@ mkAuth = do
   herokuAuth <- Heroku.verify
   return (userAuth :. herokuAuth :. EmptyContext)
 
-authWithContext
-  :: HasServer api Checks
+authWithContext ::
+  HasServer api Checks
   => Proxy api
   -> (forall a . m a -> Handler a)
   -> ServerT api m

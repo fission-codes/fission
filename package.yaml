@@ -146,6 +146,7 @@ dependencies:
   - warp
   - warp-tls
   - word8
+  - world-peace
   - vector
   - yaml
 
