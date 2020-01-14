@@ -65,6 +65,7 @@ import RIO hiding ( Handler
 import Fission.Internal.MonadDB
 import Fission.Internal.Log
 import Fission.Internal.UTF8       (putText, putTextLn, textShow)
+import Fission.Internal.Orphanage.OpenUnion ()
 
 identity :: a -> a
 identity a = a

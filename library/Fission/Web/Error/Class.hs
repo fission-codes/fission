@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Fission.Web.Error.Class (ToServerError (..)) where
 
 import           Servant.Server
@@ -91,9 +89,3 @@ instance ToServerError (OpenUnion '[]) where
 
 instance (ToServerError a, ToServerError (OpenUnion as)) => ToServerError (OpenUnion (a ': as)) where
   toServerError err = openUnion toServerError toServerError err
-
-instance Display (OpenUnion '[]) where
-  display = absurdUnion
-
-instance (Display a, Display (OpenUnion as)) => Display (OpenUnion (a ': as)) where
-  display err = openUnion display display err
