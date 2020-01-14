@@ -18,7 +18,7 @@ type API = ReqBody '[JSON] User.Registration
 
 server ::
   ( MonadDNSLink m
-  -- , MonadLogger  m
+  , MonadLogger  m
   , MonadTime    m
   , MonadDB      m
   )
@@ -27,7 +27,7 @@ server (User.Registration username password email) = do
   Nothing
     |> User.create username password (Just email)
     |> runDBNow
-    |> bind undefined -- Web.Err.ensure
+    |> bind Web.Err.ensure
     |> void
 
   splashCID
