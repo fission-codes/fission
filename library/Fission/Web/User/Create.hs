@@ -10,8 +10,7 @@ import           Fission.Prelude
 import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.Web.Error    as Web.Err
 
-import qualified Fission.User                    as User
-import qualified Fission.User.Registration.Types as User
+import qualified Fission.User as User
 
 type API = ReqBody '[JSON] User.Registration
         :> Post    '[JSON] ()
