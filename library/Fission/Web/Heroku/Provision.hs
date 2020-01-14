@@ -7,7 +7,9 @@ import           Data.UUID as UUID
 import qualified Data.Text as Text
 
 import           Network.IPFS
-import           Network.IPFS.Peer  (getExternalAddress)
+import           Network.IPFS.Peer (getExternalAddress)
+import           Network.IPFS.Peer.Types as IPFS
+
 import           Servant
 
 import           Fission.Prelude
@@ -44,23 +46,10 @@ create Request {uuid, region} = do
   secret
     |> User.createWithHeroku uuid region username
     |> runDBNow
-    |> bind \case
-      Left err ->
-        err |> catchesOpenUnion
-          ( Web.Err.throw
-          , Web.Err.throw
-          , Web.Err.throw
-          )
-
-      Right userID -> do
+    |> bind Web.Err.ensure
+    |> bind \userID -> do
         Web.Host url' <- getHost
-        ipfsPeers     <- getExternalAddress >>= \case
-          Right peers' ->
-            pure peers'
-
-          Left err -> do
-            logError <| textShow err
-            return []
+        ipfsPeers     <- getIPFSPeers
 
         return Provision
           { id      = userID
@@ -72,3 +61,13 @@ create Request {uuid, region} = do
             , url      = url'
             }
           }
+
+getIPFSPeers :: (MonadLocalIPFS m, MonadLogger m) => m [IPFS.Peer]
+getIPFSPeers =
+  getExternalAddress >>= \case
+    Right peers' ->
+      pure peers'
+
+    Left err -> do
+      logError <| textShow err
+      return []
