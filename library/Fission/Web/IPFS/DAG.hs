@@ -23,8 +23,8 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 put ::
-  ( MonadLocalIPFS  m
-  , MonadRemoteIPFS m
+  ( MonadRemoteIPFS m
+  , MonadLocalIPFS  m
   , MonadLogger     m
   , MonadThrow      m
   , MonadTime       m

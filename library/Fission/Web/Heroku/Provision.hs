@@ -29,12 +29,12 @@ type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision
 
 create ::
-  ( MonadThrow            m
+  ( MonadDB               m
+  , MonadTime             m
+  , MonadThrow            m
   , MonadLogger           m
   , MonadLocalIPFS        m
   , MonadReflectiveServer m
-  , MonadTime             m
-  , MonadDB               m
   )
   => ServerT API m
 create Request {uuid, region} = do
