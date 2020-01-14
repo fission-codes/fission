@@ -2,15 +2,15 @@ module Fission.Web.Error.Class (ToServerError (..)) where
 
 import           Servant.Server
 
-import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
-
 import           Network.IPFS.Types
 import           Network.IPFS.Error
 
 import qualified Network.IPFS.Add.Error  as Add
 import qualified Network.IPFS.Get.Error  as Get
 import qualified Network.IPFS.Peer.Error as Peer
+
+import           Fission.Prelude
+import qualified Fission.Internal.UTF8 as UTF8
 
 class ToServerError err where
   toServerError :: err -> ServerError
