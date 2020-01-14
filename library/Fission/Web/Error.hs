@@ -24,19 +24,10 @@ ensure ::
   -> m a
 ensure = either throw pure
 
-ensureM ::
-  ( MonadThrow m
-  , Exception err
-  )
-  => Either err a
-  -> m a
+ensureM :: (MonadThrow m, Exception err) => Either err a -> m a
 ensureM = either throwM pure
 
-ensureMaybe ::
-  MonadThrow m
-  => ServerError
-  -> Maybe a
-  -> m a
+ensureMaybe :: MonadThrow m => ServerError -> Maybe a -> m a
 ensureMaybe err = maybe (throwM err) pure
 
 throw ::

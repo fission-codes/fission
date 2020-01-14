@@ -16,4 +16,5 @@ instance Display AlreadyExists where
   display AlreadyExists = "The username or email already exists in our system"
 
 instance ToServerError AlreadyExists where
-  toServerError AlreadyExists = err409 { errBody = UTF8.showLazyBS AlreadyExists }
+  toServerError AlreadyExists =
+    err409 { errBody = UTF8.showLazyBS <| textDisplay AlreadyExists }

@@ -16,4 +16,5 @@ instance Display Error where
   display AlreadyExists = "This Heroku AddOn has already been created"
 
 instance ToServerError Error where
-  toServerError AlreadyExists = err409 { errBody = UTF8.showLazyBS <| textDisplay AlreadyExists }
+  toServerError AlreadyExists =
+    err409 { errBody = UTF8.showLazyBS <| textDisplay AlreadyExists }

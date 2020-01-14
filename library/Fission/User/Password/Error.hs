@@ -16,4 +16,5 @@ instance Display FailedDigest where
   display FailedDigest  = "Could not create password digest"
 
 instance ToServerError FailedDigest where
-  toServerError FailedDigest  = err500 { errBody = UTF8.showLazyBS FailedDigest }
+  toServerError FailedDigest =
+    err500 { errBody = UTF8.showLazyBS <| textDisplay FailedDigest }
