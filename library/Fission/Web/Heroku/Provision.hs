@@ -46,7 +46,11 @@ create Request {uuid, region} = do
     |> runDBNow
     |> bind \case
       Left err ->
-        Web.Err.throw err
+        err |> catchesOpenUnion
+          ( Web.Err.throw
+          , Web.Err.throw
+          , Web.Err.throw
+          )
 
       Right userID -> do
         Web.Host url' <- getHost

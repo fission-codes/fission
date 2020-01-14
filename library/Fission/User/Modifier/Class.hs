@@ -5,11 +5,10 @@ import           Database.Persist
 import           Fission.Models
 import           Fission.Prelude
 
-import qualified Fission.User.Creator.Error as Create
-import           Fission.User.Password      as Password
+import           Fission.User.Password as Password
 
 class Monad m => Modifier m where
-  updatePassword :: UserId -> Password -> UTCTime -> m (Either Create.Error Password) -- TODO wait, which error?
+  updatePassword :: UserId -> Password -> UTCTime -> m (Either Password.FailedDigest Password)
 
 instance MonadIO m => Modifier (Transaction m) where
   updatePassword userId (Password password) now =

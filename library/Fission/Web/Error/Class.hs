@@ -83,3 +83,42 @@ instance ToServerError Peer.Error where
 
 instance ToServerError Linearization where
   toServerError _ = err500 { errBody = "Unable to linearize IPFS result" }
+
+instance ToServerError a => ToServerError (OpenUnion '[a]) where
+  toServerError = catchesOpenUnion toServerError
+
+instance (ToServerError a, ToServerError b) => ToServerError (OpenUnion '[a, b]) where
+  toServerError = catchesOpenUnion (toServerError, toServerError)
+
+instance
+  ( ToServerError a
+  , ToServerError b
+  , ToServerError c
+  )
+  => ToServerError (OpenUnion '[a, b, c]) where
+  toServerError = catchesOpenUnion (toServerError, toServerError, toServerError)
+
+instance
+  ( ToServerError a
+  , ToServerError b
+  , ToServerError c
+  , ToServerError d
+  )
+  => ToServerError (OpenUnion '[a, b, c, d]) where
+  toServerError = catchesOpenUnion (toServerError, toServerError, toServerError, toServerError)
+
+-- instance
+--   ( ToServerError a
+--   , ToServerError b
+--   , ToServerError c
+--   , ToServerError d
+--   , ToServerError e
+--   )
+--   => ToServerError (OpenUnion '[a, b, c, d, e]) where
+--   toServerError = catchesOpenUnion
+--     ( toServerError
+--     , toServerError
+--     , toServerError
+--     , toServerError
+--     , toServerError
+--     )
