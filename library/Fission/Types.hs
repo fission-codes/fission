@@ -34,11 +34,12 @@ import           Fission.IPFS.Linked
 
 import qualified Fission.URL as URL
 
+import           Fission.Platform.Heroku.Auth.Types     as Heroku
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
-import           Fission.Platform.Heroku.Authorizer     as Heroku
 
 import qualified Fission.Web.Auth as Auth
+import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Reflective
 
 import           Fission.User as User
@@ -190,13 +191,17 @@ instance MonadRemoteIPFS Fission where
         |> runClientM query
         |> liftIO
 
-instance Heroku.Authorizer Fission where
+instance MonadAuth Heroku.Auth Fission where
   verify = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
-    return (Auth.basic hkuID hkuPass)
 
-instance User.Authorizer Fission where
+    hkuPass
+      |> Auth.basic hkuID
+      |> fmap Heroku.Auth
+      |> return
+
+instance MonadAuth (SQL.Entity User) Fission where
   verify = do
     cfg <- ask
     return (BasicAuthCheck (check cfg))
