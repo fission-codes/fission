@@ -1,4 +1,3 @@
--- | TODO make me pluckable
 module Fission.Platform.Heroku.AddOn.Creator.Error (Error (..)) where
 
 import           Servant.Server
