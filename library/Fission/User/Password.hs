@@ -24,7 +24,10 @@ random = do
 
 hashPassword :: MonadIO m => Text -> m (Either User.Creator.Error Text)
 hashPassword password = do
-  hashed <- liftIO <| hashPasswordUsingPolicy slowerBcryptHashingPolicy <| encodeUtf8 password
-  return <| case hashed of
-    Nothing           -> Left User.Creator.FailedDigest
-    Just secretDigest -> Right <| decodeUtf8Lenient secretDigest
+  password
+    |> encodeUtf8
+    |> hashPasswordUsingPolicy slowerBcryptHashingPolicy
+    |> liftIO
+    |> bind \case
+      Nothing           -> return <| Left User.Creator.FailedDigest
+      Just secretDigest -> return <| Right <| decodeUtf8Lenient secretDigest

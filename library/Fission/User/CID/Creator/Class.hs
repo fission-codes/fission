@@ -17,7 +17,6 @@ class Monad m => Creator m where
   createX :: UserId -> [CID] -> UTCTime -> m [CID]
 
 instance MonadIO m => Creator (Transaction m) where
-  create :: UserId -> CID -> UTCTime -> Transaction m (Maybe UserCidId)
   create userId cid now =
     insertUnique UserCid
       { userCidUserFk     = userId
@@ -26,7 +25,6 @@ instance MonadIO m => Creator (Transaction m) where
       , userCidModifiedAt = now
       }
 
-  createX :: UserId -> [CID] -> UTCTime -> Transaction m [CID]
   createX userId hashes now = do
     existingCIDs <- select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList hashes)

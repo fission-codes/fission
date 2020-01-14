@@ -13,14 +13,14 @@ import           Fission.User.Role.Types
 import           Fission.User.Creator.Error
 import qualified Fission.User.Password as Password
 
-class Monad m => Creator m where
+class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry with optional heroku add-on
   create :: Text -> Text -> Maybe Text -> Maybe HerokuAddOnId -> UTCTime -> m (Either Error UserId)
 
   -- | Create a new, timestamped entry and heroku add-on
   createWithHeroku :: UUID -> Heroku.Region -> Text -> Text -> UTCTime -> m (Either Error UserId)
 
-instance (MonadIO m, Heroku.AddOn.Creator m) => Creator (Transaction m) where
+instance MonadIO m => Creator (Transaction m) where
   create username password email herokuAddOnId now =
     Password.hashPassword password >>= \case
       Left err ->
@@ -48,4 +48,5 @@ instance (MonadIO m, Heroku.AddOn.Creator m) => Creator (Transaction m) where
   createWithHeroku herokuUUID herokuRegion username password now = do
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
       Right addOnId -> create username password Nothing (Just addOnId) now
-      Left  err     -> return (Left err) -- FIXME! Need an open union
+      -- Left  err     -> return (Left err) -- FIXME! Need an open union
+      Left  _err     -> return (Left AlreadyExists) -- FIXME! Need an open union
