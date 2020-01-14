@@ -24,8 +24,11 @@ server ::
   )
   => ServerT API m
 server (User.Registration username password email) = do
-  newUser <- runDBNow <| User.create username password (Just email) Nothing
-  void <| Web.Err.ensure newUser
+  Nothing
+    |> User.create username password (Just email)
+    |> runDBNow
+    |> bind Web.Err.ensure
+    |> void
 
   splashCID
     |> DNSLink.setWithSubdomain username
