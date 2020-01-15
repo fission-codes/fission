@@ -23,11 +23,11 @@ server ::
   , MonadRemoteIPFS          m
   , MonadLocalIPFS           m
   , MonadLogger              m
-  , MonadLogger            t
   , MonadThrow               m
-  , MonadThrow             t
   , MonadTime                m
   , MonadDB                t m
+  , MonadLogger            t
+  , MonadThrow             t
   , User.Creator           t
   , User.Retriever         t
   , User.Destroyer         t
