@@ -8,7 +8,7 @@ import           Fission.Prelude
 
 class Monad m => Retriever m where
   getByUsername      :: Text          -> m (Maybe (Entity User))
-  getByHerkouAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
+  getByHerokuAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
 
 instance MonadIO m => Retriever (Transaction m) where
   getByUsername username = selectFirst
@@ -16,7 +16,7 @@ instance MonadIO m => Retriever (Transaction m) where
     , UserActive   P.==. True
     ] []
 
-  getByHerkouAddOnId addOnId = selectFirst
+  getByHerokuAddOnId addOnId = selectFirst
     [ UserHerokuAddOnId P.==. Just addOnId
     , UserActive        P.==. True
     ] []

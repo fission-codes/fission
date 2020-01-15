@@ -65,7 +65,7 @@ deleteAssociatedWith ::
   -> t [CID]
 deleteAssociatedWith uuid' = do
   Entity addOnId _ <- ensureEntityM err410 <| Heroku.AddOn.getByUUID uuid'
-  Entity userId  _ <- ensureEntityM err410 <| User.getByHerkouAddOnId addOnId
+  Entity userId  _ <- ensureEntityM err410 <| User.getByHerokuAddOnId addOnId
   userCids         <- User.CID.getByUserId userId
 
   deleteAssociatedRecords userId uuid' userCids
