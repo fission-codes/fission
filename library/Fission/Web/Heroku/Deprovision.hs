@@ -87,6 +87,6 @@ deleteAssociatedRecords ::
   -> [Entity UserCid]
   -> t ()
 deleteAssociatedRecords userId uuid userCids = do
-  User.CID.destroyX (entityKey <$> userCids)
+  User.CID.destroyMany (entityKey <$> userCids)
   User.destroy userId
   Heroku.AddOn.destroyByUUID uuid

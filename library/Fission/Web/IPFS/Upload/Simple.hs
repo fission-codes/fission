@@ -37,7 +37,7 @@ add (Entity userId _) (Serialized rawData) = IPFS.addRaw rawData >>= \case
     Right pinnedCID -> do
       pinnedCID
         |> pure
-        |> User.CID.createX userId
+        |> User.CID.createMany userId
         |> runDBNow
 
       return pinnedCID

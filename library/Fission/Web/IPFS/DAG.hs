@@ -46,7 +46,7 @@ put (Entity userId _) (Serialized rawData) =
         Right pinnedCID -> do
           newCID
             |> return
-            |> User.CID.createX userId
+            |> User.CID.createMany userId
             |> runDBNow
 
           return pinnedCID

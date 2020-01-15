@@ -14,7 +14,7 @@ class Monad m => Creator m where
   create :: UserId -> CID -> UTCTime -> m (Maybe UserCidId)
 
   -- | Create new 'UserCid's, ignoring existing values (set-like)
-  createX :: UserId -> [CID] -> UTCTime -> m [CID]
+  createMany :: UserId -> [CID] -> UTCTime -> m [CID]
 
 instance MonadIO m => Creator (Transaction m) where
   create userId cid now =
@@ -25,7 +25,7 @@ instance MonadIO m => Creator (Transaction m) where
       , userCidModifiedAt = now
       }
 
-  createX userId hashes now = do
+  createMany userId hashes now = do
     existingCIDs <- select <| from \userCid -> do
       where_ (userCid ^. UserCidCid `in_` valList hashes)
       return (userCid ^. UserCidCid)

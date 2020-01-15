@@ -109,7 +109,7 @@ run uID form qName cont = case lookupFile "file" form of
         Right _ -> do
           struct
             |> IPFS.cIDs
-            |> User.CID.createX uID
+            |> User.CID.createMany uID
             |> runDBNow
             |> void
 
