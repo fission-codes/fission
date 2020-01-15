@@ -67,7 +67,7 @@ instance MonadTime Fission where
 instance MonadReflectiveServer Fission where
   getHost = asks host
 
-instance MonadDB Fission where
+instance MonadDB (Transaction Fission) Fission where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool

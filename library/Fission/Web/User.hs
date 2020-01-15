@@ -9,6 +9,8 @@ import           Servant
 import           Fission.Prelude
 import           Fission.IPFS.DNSLink.Class as DNSLink
 
+import qualified Fission.User as User
+
 import qualified Fission.Web.User.Create as Create
 import qualified Fission.Web.User.Verify as Verify
 import qualified Fission.Web.User.Password.Reset as Reset
@@ -27,10 +29,12 @@ type ResetRoute = "reset_password"
                   :> Reset.API
 
 server ::
-  ( MonadDNSLink m
-  , MonadLogger  m
-  , MonadTime    m
-  , MonadDB      m
+  ( MonadDNSLink    m
+  , MonadLogger     m
+  , MonadTime       m
+  , MonadDB       t m
+  , User.Creator  t
+  , User.Modifier t
   )
   => ServerT API m
 server = Create.server

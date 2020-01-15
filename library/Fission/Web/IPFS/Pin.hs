@@ -28,22 +28,26 @@ type UnpinAPI = Capture "cid" CID
              :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server ::
-  ( MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadRemoteIPFS      m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadTime            m
+  , MonadDB            t m
+  , User.CID.Creator   t
+  , User.CID.Retriever t
+  , User.CID.Destroyer t
   )
   => Entity User
   -> ServerT API m
 server (Entity userId _) = pin userId :<|> unpin userId
 
 pin ::
-  ( MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadRemoteIPFS    m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadTime          m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => UserId
   -> ServerT PinAPI m
@@ -57,10 +61,12 @@ pin userId cid = IPFS.Pin.add cid >>= \case
     pure NoContent
 
 unpin ::
-  ( MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadDB         m
+  ( MonadRemoteIPFS      m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadDB            t m
+  , User.CID.Retriever t
+  , User.CID.Destroyer t
   )
   => UserId
   -> ServerT UnpinAPI m

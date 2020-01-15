@@ -27,10 +27,17 @@ type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
-  ( MonadDB         m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadRemoteIPFS m
+  ( MonadRemoteIPFS          m
+  , MonadLogger              m
+  , MonadLogger            t
+  , MonadThrow             t
+  , MonadDB                t m
+  , User.Retriever         t
+  , User.Destroyer         t
+  , User.CID.Retriever     t
+  , User.CID.Destroyer     t
+  , Heroku.AddOn.Retriever t
+  , Heroku.AddOn.Destroyer t
   )
   => ServerT API m
 destroy uuid' = do
@@ -45,20 +52,20 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( User.Retriever         m
-  , User.Destroyer         m
-  , User.CID.Retriever     m
-  , User.CID.Destroyer     m
-  , Heroku.AddOn.Retriever m
-  , Heroku.AddOn.Destroyer m
-  , MonadLogger            m
-  , MonadThrow             m
+  ( User.Retriever         t
+  , User.Destroyer         t
+  , User.CID.Retriever     t
+  , User.CID.Destroyer     t
+  , Heroku.AddOn.Retriever t
+  , Heroku.AddOn.Destroyer t
+  , MonadLogger            t
+  , MonadThrow             t
   )
   => UUID
-  -> m [CID]
+  -> t [CID]
 deleteAssociatedWith uuid' = do
-  addOn     <- herokuAddOnByUUID uuid'
-  addOnUser <- userForHerokuAddOn (entityKey addOn)
+  addOn     <- ensureEntityM err410 <| Heroku.AddOn.getByUUID uuid'
+  addOnUser <- ensureEntityM err410 <| User.getByHerkouAddOnId <| entityKey addOn
   userCids  <- User.CID.getByUserId (entityKey addOnUser)
 
   deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
@@ -71,41 +78,15 @@ deleteAssociatedWith uuid' = do
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
 deleteAssociatedRecords ::
-  ( User.Destroyer         m
-  , User.CID.Destroyer     m
-  , Heroku.AddOn.Destroyer m
+  ( User.Destroyer         t
+  , User.CID.Destroyer     t
+  , Heroku.AddOn.Destroyer t
   )
   => UserId
   -> UUID
   -> [Entity UserCid]
-  -> m ()
+  -> t ()
 deleteAssociatedRecords userId uuid userCids = do
   User.CID.destroyX (entityKey <$> userCids)
   User.destroy userId
   Heroku.AddOn.destroyByUUID uuid
-
--- | Get the User associated with those Heroku add-ons, throw 410 if not found.
-userForHerokuAddOn ::
-  ( MonadLogger    m
-  , MonadThrow     m
-  , User.Retriever m
-  )
-  => HerokuAddOnId
-  -> m (Entity User)
-userForHerokuAddOn addOnId =
-  addOnId
-    |> User.getByHerkouAddOnId
-    |> ensureEntityM err410
-
--- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
-herokuAddOnByUUID ::
-  ( MonadLogger            m
-  , MonadThrow             m
-  , Heroku.AddOn.Retriever m
-  )
-  => UUID
-  -> m (Entity HerokuAddOn)
-herokuAddOnByUUID uuid' =
-  uuid'
-    |> Heroku.AddOn.getByUUID
-    |> ensureEntityM err410

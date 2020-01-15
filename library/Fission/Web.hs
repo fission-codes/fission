@@ -19,6 +19,10 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
+import qualified Fission.User as User
+import qualified Fission.User.CID as User.CID
+import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.DNS     as DNS
 import qualified Fission.Web.Heroku  as Heroku
@@ -33,14 +37,25 @@ import qualified Fission.Web.User    as User
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadDB               m
-  , MonadTime             m
-  , MonadLogger           m
-  , MonadDNSLink          m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
-  , MonadLinkedIPFS       m
-  , MonadReflectiveServer m
+  ( MonadReflectiveServer    m
+  , MonadLinkedIPFS          m
+  , MonadRemoteIPFS          m
+  , MonadLocalIPFS           m
+  , MonadDNSLink             m
+  , MonadLogger              m
+  , MonadLogger            t
+  , MonadThrow             t
+  , MonadTime                m
+  , MonadDB                t m
+  , Heroku.AddOn.Retriever t
+  , Heroku.AddOn.Destroyer t
+  , User.Creator           t
+  , User.Retriever         t
+  , User.Modifier          t
+  , User.Destroyer         t
+  , User.CID.Creator       t
+  , User.CID.Retriever     t
+  , User.CID.Destroyer     t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -56,14 +71,25 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadDB               m
-  , MonadTime             m
-  , MonadLogger           m
-  , MonadDNSLink          m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
-  , MonadLinkedIPFS       m
-  , MonadReflectiveServer m
+  ( MonadReflectiveServer    m
+  , MonadLinkedIPFS          m
+  , MonadRemoteIPFS          m
+  , MonadLocalIPFS           m
+  , MonadDNSLink             m
+  , MonadLogger              m
+  , MonadLogger            t
+  , MonadThrow             t
+  , MonadTime                m
+  , MonadDB                t m
+  , Heroku.AddOn.Retriever t
+  , Heroku.AddOn.Destroyer t
+  , User.Creator           t
+  , User.Retriever         t
+  , User.Modifier          t
+  , User.Destroyer         t
+  , User.CID.Creator       t
+  , User.CID.Retriever     t
+  , User.CID.Destroyer     t
   )
   => Web.Host
   -> ServerT API m

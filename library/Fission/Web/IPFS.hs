@@ -17,6 +17,8 @@ import           Fission.IPFS.Linked
 import           Fission.Models
 import           Fission.Prelude
 
+import qualified Fission.User.CID as User.CID
+
 import qualified Fission.Web.IPFS.CID      as CID
 import qualified Fission.Web.IPFS.Upload   as Upload
 import qualified Fission.Web.IPFS.Download as Download
@@ -40,24 +42,30 @@ type PublicAPI = "peers" :> Peer.API
             :<|> Download.API
 
 server ::
-  ( MonadDB         m
-  , MonadTime       m
-  , MonadThrow      m
-  , MonadLogger     m
-  , MonadLocalIPFS  m
-  , MonadLinkedIPFS m
-  , MonadRemoteIPFS m
+  ( MonadRemoteIPFS      m
+  , MonadLinkedIPFS      m
+  , MonadLocalIPFS       m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadTime            m
+  , MonadDB            t m
+  , User.CID.Creator   t
+  , User.CID.Retriever t
+  , User.CID.Destroyer t
   )
   => ServerT API m
 server = authed :<|> public
 
 authed ::
-  ( MonadDB         m
-  , MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
+  ( MonadRemoteIPFS      m
+  , MonadLocalIPFS       m
+  , MonadLogger          m
+  , MonadThrow           m
+  , MonadTime            m
+  , MonadDB            t m
+  , User.CID.Creator   t
+  , User.CID.Retriever t
+  , User.CID.Destroyer t
   )
   => ServerT AuthedAPI m
 authed usr = CID.allForUser usr

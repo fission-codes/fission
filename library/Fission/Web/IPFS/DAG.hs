@@ -23,12 +23,13 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 put ::
-  ( MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadRemoteIPFS    m
+  , MonadLocalIPFS     m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadTime          m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => Entity User
   -> ServerT API m

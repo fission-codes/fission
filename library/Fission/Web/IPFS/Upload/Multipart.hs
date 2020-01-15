@@ -40,24 +40,26 @@ type FileRequest = MultipartForm Mem (MultipartData Mem)
 type NameQuery   = QueryParam "name" IPFS.Name
 
 add ::
-  ( MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB         m
+  ( MonadRemoteIPFS    m
+  , MonadLocalIPFS     m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadTime          m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => Entity User
   -> ServerT API m
 add (Entity userId _) = textAdd userId :<|> jsonAdd userId
 
 textAdd ::
-  ( MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadTime       m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadDB         m
+  ( MonadRemoteIPFS    m
+  , MonadLocalIPFS     m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadTime          m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => UserId
   -> ServerT TextAPI m
@@ -67,24 +69,26 @@ textAdd uID form queryName = run uID form queryName <| \sparse ->
     Left err   -> Web.Err.throw err
 
 jsonAdd ::
-  ( MonadRemoteIPFS m
-  , MonadLocalIPFS  m
-  , MonadLogger     m
-  , MonadTime       m
-  , MonadThrow      m
-  , MonadDB         m
+  ( MonadRemoteIPFS    m
+  , MonadLocalIPFS     m
+  , MonadLogger        m
+  , MonadTime          m
+  , MonadThrow         m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => UserId
   -> ServerT JSONAPI m
 jsonAdd uID form queryName = run uID form queryName pure
 
 run ::
-  ( MonadDB         m
-  , MonadTime       m
-  , MonadThrow      m
-  , MonadLogger     m
-  , MonadLocalIPFS  m
-  , MonadRemoteIPFS m
+  ( MonadRemoteIPFS    m
+  , MonadLocalIPFS     m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadTime          m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => UserId
   -> MultipartData Mem
