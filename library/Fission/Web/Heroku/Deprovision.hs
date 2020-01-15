@@ -29,9 +29,9 @@ type API = Capture "addon_id" UUID
 destroy ::
   ( MonadRemoteIPFS          m
   , MonadLogger              m
+  , MonadDB                t m
   , MonadLogger            t
   , MonadThrow             t
-  , MonadDB                t m
   , User.Retriever         t
   , User.Destroyer         t
   , User.CID.Retriever     t
