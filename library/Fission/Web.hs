@@ -37,20 +37,19 @@ import qualified Fission.Web.User    as User
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadReflectiveServer    m
-  , MonadLinkedIPFS          m
-  , MonadRemoteIPFS          m
-  , MonadLocalIPFS           m
-  , MonadDNSLink             m
-  , MonadLogger              m
-  , MonadTime                m
-  , MonadDB                t m
-  , MonadLogger            t
-  , MonadThrow             t
-  , Heroku.AddOn.Retriever t
-  , Heroku.AddOn.Destroyer t
-  , User.CRUD              t
-  , User.CID.CRUD          t
+  ( MonadReflectiveServer m
+  , MonadLinkedIPFS       m
+  , MonadRemoteIPFS       m
+  , MonadLocalIPFS        m
+  , MonadDNSLink          m
+  , MonadLogger           m
+  , MonadTime             m
+  , MonadDB             t m
+  , MonadLogger         t
+  , MonadThrow          t
+  , Heroku.AddOn.CRUD   t
+  , User.CRUD           t
+  , User.CID.CRUD       t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -66,20 +65,19 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadReflectiveServer    m
-  , MonadLinkedIPFS          m
-  , MonadRemoteIPFS          m
-  , MonadLocalIPFS           m
-  , MonadDNSLink             m
-  , MonadLogger              m
-  , MonadTime                m
-  , MonadDB                t m
-  , MonadLogger            t
-  , MonadThrow             t
-  , Heroku.AddOn.Retriever t
-  , Heroku.AddOn.Destroyer t
-  , User.CRUD              t
-  , User.CID.CRUD          t
+  ( MonadReflectiveServer m
+  , MonadLinkedIPFS       m
+  , MonadRemoteIPFS       m
+  , MonadLocalIPFS        m
+  , MonadDNSLink          m
+  , MonadLogger           m
+  , MonadTime             m
+  , MonadDB             t m
+  , MonadLogger         t
+  , MonadThrow          t
+  , Heroku.AddOn.CRUD   t
+  , User.CRUD           t
+  , User.CID.CRUD       t
   )
   => Web.Host
   -> ServerT API m
