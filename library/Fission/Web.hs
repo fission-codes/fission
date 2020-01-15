@@ -43,19 +43,14 @@ app ::
   , MonadLocalIPFS           m
   , MonadDNSLink             m
   , MonadLogger              m
-  , MonadLogger            t
-  , MonadThrow             t
   , MonadTime                m
   , MonadDB                t m
+  , MonadLogger            t
+  , MonadThrow             t
   , Heroku.AddOn.Retriever t
   , Heroku.AddOn.Destroyer t
-  , User.Creator           t
-  , User.Retriever         t
-  , User.Modifier          t
-  , User.Destroyer         t
-  , User.CID.Creator       t
-  , User.CID.Retriever     t
-  , User.CID.Destroyer     t
+  , User.CRUD              t
+  , User.CID.CRUD          t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -77,19 +72,14 @@ server ::
   , MonadLocalIPFS           m
   , MonadDNSLink             m
   , MonadLogger              m
-  , MonadLogger            t
-  , MonadThrow             t
   , MonadTime                m
   , MonadDB                t m
+  , MonadLogger            t
+  , MonadThrow             t
   , Heroku.AddOn.Retriever t
   , Heroku.AddOn.Destroyer t
-  , User.Creator           t
-  , User.Retriever         t
-  , User.Modifier          t
-  , User.Destroyer         t
-  , User.CID.Creator       t
-  , User.CID.Retriever     t
-  , User.CID.Destroyer     t
+  , User.CRUD              t
+  , User.CID.CRUD          t
   )
   => Web.Host
   -> ServerT API m
