@@ -7,7 +7,9 @@ import           Data.UUID as UUID
 import qualified Data.Text as Text
 
 import           Network.IPFS
-import           Network.IPFS.Peer  (getExternalAddress)
+import           Network.IPFS.Peer (getExternalAddress)
+import           Network.IPFS.Peer.Types as IPFS
+
 import           Servant
 
 import           Fission.Prelude
@@ -23,46 +25,50 @@ import           Fission.Platform.Heroku.Provision.Request.Types
 import qualified Fission.Random               as Random
 import           Fission.Security.Types       (Secret (..))
 import qualified Fission.User.Provision.Types as User
-import qualified Fission.User.Mutation        as User
-
+import qualified Fission.User.Creator         as User
 
 type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision
 
 create ::
-  ( MonadDB               m
-  , MonadTime             m
-  , MonadThrow            m
-  , MonadLogger           m
-  , MonadLocalIPFS        m
-  , MonadReflectiveServer m
+  ( MonadTime               m
+  , MonadThrow              m
+  , MonadLogger             m
+  , MonadLocalIPFS          m
+  , MonadReflectiveServer   m
+  , MonadDB               t m
+  , User.Creator          t
   )
   => ServerT API m
 create Request {uuid, region} = do
   let username = Text.pack (UUID.toString uuid)
   secret <- Random.alphaNum 50
 
-  User.createWithHeroku uuid region username secret >>= \case
-    Left err ->
-      Web.Err.throw err
+  secret
+    |> User.createWithHeroku uuid region username
+    |> runDBNow
+    |> bind Web.Err.ensure
+    |> bind \userID -> do
+        Web.Host url' <- getHost
+        ipfsPeers     <- getIPFSPeers
 
-    Right userID -> do
-      Web.Host url' <- getHost
-      ipfsPeers     <- getExternalAddress >>= \case
-        Right peers' ->
-          pure peers'
+        return Provision
+          { id      = userID
+          , peers   = ipfsPeers
+          , message = "Successfully provisioned Interplanetary Fission!"
+          , config  = User.Provision
+            { username = username
+            , password = Secret secret
+            , url      = url'
+            }
+          }
 
-        Left err -> do
-          logError <| textShow err
-          return []
+getIPFSPeers :: (MonadLocalIPFS m, MonadLogger m) => m [IPFS.Peer]
+getIPFSPeers =
+  getExternalAddress >>= \case
+    Right peers' ->
+      pure peers'
 
-      return Provision
-        { id      = userID
-        , peers   = ipfsPeers
-        , message = "Successfully provisioned Interplanetary Fission!"
-        , config  = User.Provision
-           { username = username
-           , password = Secret secret
-           , url      = url'
-           }
-        }
+    Left err -> do
+      logError <| textShow err
+      return []

@@ -6,6 +6,7 @@ module Fission.Prelude
   , module Data.Aeson
   , module Data.Has
   , module Data.Maybe
+  , module Data.WorldPeace
   , module Fission.Internal.Log
   , module Fission.Internal.MonadDB
   , module Flow
@@ -30,6 +31,7 @@ import Network.IPFS.Internal.Orphanage.Utf8Builder ()
 import Data.Aeson
 import Data.Has
 import Data.Maybe
+import Data.WorldPeace
 
 import Flow
 
@@ -60,6 +62,7 @@ import RIO hiding ( Handler
                   , (^.)
                   )
 
+import Fission.Internal.Orphanage.OpenUnion ()
 import Fission.Internal.MonadDB
 import Fission.Internal.Log
 import Fission.Internal.UTF8       (putText, putTextLn, textShow)

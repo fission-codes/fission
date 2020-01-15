@@ -10,8 +10,8 @@ import           Servant
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.User.CID.Mutation as User.CID
-import qualified Fission.Web.Error  as Web.Err
+import           Fission.User.CID.Creator as User.CID
+import qualified Fission.Web.Error        as Web.Err
 
 import           Network.IPFS
 import           Network.IPFS.File.Types as File
@@ -23,12 +23,13 @@ type API = ReqBody '[PlainText, OctetStream] File.Serialized
         :> Post    '[PlainText, OctetStream] IPFS.CID
 
 put ::
-  ( MonadDB         m
-  , MonadLocalIPFS  m
-  , MonadRemoteIPFS m
-  , MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
+  ( MonadRemoteIPFS    m
+  , MonadLocalIPFS     m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadTime          m
+  , MonadDB          t m
+  , User.CID.Creator t
   )
   => Entity User
   -> ServerT API m
@@ -43,5 +44,9 @@ put (Entity userId _) (Serialized rawData) =
           Web.Err.throw err
 
         Right pinnedCID -> do
-          _ <- User.CID.createX userId [newCID]
+          newCID
+            |> return
+            |> User.CID.createMany userId
+            |> runDBNow
+
           return pinnedCID

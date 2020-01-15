@@ -17,8 +17,9 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
-import qualified Fission.User as User
-import qualified Fission.User.CID as User.CID
+import qualified Fission.User                  as User
+import qualified Fission.User.CID              as User.CID
+import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
@@ -26,10 +27,17 @@ type API = Capture "addon_id" UUID
         :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
-  ( MonadDB         m
-  , MonadThrow      m
-  , MonadRemoteIPFS m
-  , MonadLogger     m
+  ( MonadRemoteIPFS          m
+  , MonadLogger              m
+  , MonadDB                t m
+  , MonadLogger            t
+  , MonadThrow             t
+  , User.Retriever         t
+  , User.Destroyer         t
+  , User.CID.Retriever     t
+  , User.CID.Destroyer     t
+  , Heroku.AddOn.Retriever t
+  , Heroku.AddOn.Destroyer t
   )
   => ServerT API m
 destroy uuid' = do
@@ -44,18 +52,23 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( MonadDB     m
-  , MonadLogger m
-  , MonadThrow  m
+  ( MonadThrow             t
+  , MonadLogger            t
+  , User.Retriever         t
+  , User.Destroyer         t
+  , User.CID.Retriever     t
+  , User.CID.Destroyer     t
+  , Heroku.AddOn.Retriever t
+  , Heroku.AddOn.Destroyer t
   )
   => UUID
-  -> Transaction m [CID]
+  -> t [CID]
 deleteAssociatedWith uuid' = do
-  addOn     <- herokuAddOnByUUID uuid'
-  addOnUser <- userForHerokuAddOn (entityKey addOn)
-  userCids  <- User.CID.getByUserId (entityKey addOnUser)
+  Entity addOnId _ <- ensureEntityM err410 (Heroku.AddOn.getByUUID uuid')
+  Entity userId  _ <- ensureEntityM err410 (User.getByHerokuAddOnId addOnId)
+  userCids         <- User.CID.getByUserId userId
 
-  deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
+  deleteAssociatedRecords userId uuid' userCids
 
   let deletedUserCids = getInner userCidCid <$> userCids
   remainingUserCids <- User.CID.getByCids deletedUserCids
@@ -64,28 +77,16 @@ deleteAssociatedWith uuid' = do
   return (deletedUserCids \\ remainingCIDs)
 
 -- | All records associated with the UUID, across the user, user CID, and Heroku add-on tables
-deleteAssociatedRecords :: MonadDB m => UserId -> UUID -> [Entity UserCid] -> Transaction m ()
+deleteAssociatedRecords ::
+  ( User.Destroyer         t
+  , User.CID.Destroyer     t
+  , Heroku.AddOn.Destroyer t
+  )
+  => UserId
+  -> UUID
+  -> [Entity UserCid]
+  -> t ()
 deleteAssociatedRecords userId uuid userCids = do
-  User.CID.destroyAll (entityKey <$> userCids)
+  User.CID.destroyMany (entityKey <$> userCids)
   User.destroy userId
-  User.destroyHerokuAddon uuid
-
--- | Get the User associated with those Heroku add-ons, throw 410 if not found.
-userForHerokuAddOn ::
-  ( MonadDB     m
-  , MonadLogger m
-  , MonadThrow  m
-  )
-  => HerokuAddOnId
-  -> Transaction m (Entity User)
-userForHerokuAddOn addOnId = ensureEntity err410 =<< User.getHerkouAddonByUserId addOnId
-
--- | Get a Heroku add-on with a specific UUID, throw 410 if not found.
-herokuAddOnByUUID ::
-  ( MonadDB     m
-  , MonadLogger m
-  , MonadThrow  m
-  )
-  => UUID
-  -> Transaction m (Entity HerokuAddOn)
-herokuAddOnByUUID uuid' = ensureEntity err410 =<< User.getHerkouAddonByUUID uuid'
+  Heroku.AddOn.destroyByUUID uuid

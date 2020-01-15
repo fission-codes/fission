@@ -1,96 +1,47 @@
 module Fission.Web.Auth
   ( Checks
-  , server
+  , authWithContext
   , basic
-  , user
-  , checkUser
   , mkAuth
+  , module Fission.Web.Auth.Class
+  , module Fission.Web.Auth.Types
   ) where
 
-import           Crypto.BCrypt
 import           Servant
-
 import           Database.Esqueleto
-import qualified Database.Persist as P
 
 import           Fission.Models
-import           Fission.Platform.Heroku.AddOn
+import           Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.Prelude
+import           Fission.Web.Auth.Class
+import           Fission.Web.Auth.Types
 
-type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck ByteString]
+type Checks = '[BasicAuthCheck (Entity User), BasicAuthCheck Heroku.Auth]
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadHerokuAddOn m
-  , MonadDB          inner
-  , MonadLogger      inner
+  ( MonadAuth (Entity User) m
+  , MonadAuth Heroku.Auth   m
   )
-  => (forall a . inner a -> IO a)
-  -> m (Context Checks)
-mkAuth runner = do
-  herokuAuth <- authorize
-  return <| user runner
-         :. herokuAuth
-         :. EmptyContext
+  => m (Context Checks)
+mkAuth = do
+  userAuth   <- verify
+  herokuAuth <- verify
+  return (userAuth :. herokuAuth :. EmptyContext)
 
-server
-  :: HasServer api Checks
+authWithContext ::
+  HasServer api Checks
   => Proxy api
   -> (forall a . m a -> Handler a)
   -> ServerT api m
   -> ServerT api Handler
-server api = hoistServerWithContext api context
-  where
-    context :: Proxy Checks
-    context = Proxy
+authWithContext api = hoistServerWithContext api (Proxy @Checks)
 
 basic :: ByteString -> ByteString -> BasicAuthCheck ByteString
-basic unOK pwOK = BasicAuthCheck (pure . check')
+basic unOK pwOK = BasicAuthCheck (return . check)
   where
-    check' :: BasicAuthData -> BasicAuthResult ByteString
-    check' (BasicAuthData username password) =
+    check :: BasicAuthData -> BasicAuthResult ByteString
+    check (BasicAuthData username password) =
       if (username == unOK) && (pwOK == password)
          then Authorized username
          else Unauthorized
-
-user ::
-  ( MonadDB     inner
-  , MonadLogger inner
-  )
-  => (inner (BasicAuthResult (Entity User)) -> IO (BasicAuthResult (Entity User)))
-  -> BasicAuthCheck (Entity User)
-user runner = BasicAuthCheck \auth -> runner <| checkUser auth
-
-checkUser ::
-  ( MonadDB     m
-  , MonadLogger m
-  )
-  => BasicAuthData
-  -> m (BasicAuthResult (Entity User))
-checkUser (BasicAuthData username password) = do
-  mayUser <- runDB <| selectFirst
-    [ UserUsername P.==. decodeUtf8Lenient username
-    , UserActive   P.==. True
-    ] []
-
-  case mayUser of
-    Nothing -> do
-      logWarn attemptMsg
-      return NoSuchUser
-
-    Just usr ->
-      validate usr
-
-  where
-    validate :: MonadLogger m => Entity User -> m (BasicAuthResult (Entity User))
-    validate usr@(Entity _ User { userSecretDigest }) =
-      if validatePassword (encodeUtf8 userSecretDigest) password
-         then
-           return (Authorized usr)
-
-         else do
-           logWarn attemptMsg
-           return Unauthorized
-
-    attemptMsg :: ByteString
-    attemptMsg = "Unauthorized user! Attempted with username: " <> username

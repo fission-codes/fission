@@ -19,6 +19,10 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
+import qualified Fission.User as User
+import qualified Fission.User.CID as User.CID
+import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.DNS     as DNS
 import qualified Fission.Web.Heroku  as Heroku
@@ -33,37 +37,47 @@ import qualified Fission.Web.User    as User
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadDB               m
-  , MonadTime             m
-  , MonadLogger           m
-  , MonadDNSLink          m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
+  ( MonadReflectiveServer m
   , MonadLinkedIPFS       m
-  , MonadReflectiveServer m
+  , MonadRemoteIPFS       m
+  , MonadLocalIPFS        m
+  , MonadDNSLink          m
+  , MonadLogger           m
+  , MonadTime             m
+  , MonadDB             t m
+  , MonadLogger         t
+  , MonadThrow          t
+  , Heroku.AddOn.CRUD   t
+  , User.CRUD           t
+  , User.CID.CRUD       t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
   -> Web.Host
   -> Application
-app handlerNT auth appHost = do
+app handlerNT authChecks appHost = do
   appHost
     |> server
-    |> Auth.server      api handlerNT
-    |> serveWithContext api auth
+    |> Auth.authWithContext api handlerNT
+    |> serveWithContext     api authChecks
   where
     api = Proxy @API
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadDB               m
-  , MonadTime             m
-  , MonadLogger           m
-  , MonadDNSLink          m
-  , MonadLocalIPFS        m
-  , MonadRemoteIPFS       m
+  ( MonadReflectiveServer m
   , MonadLinkedIPFS       m
-  , MonadReflectiveServer m
+  , MonadRemoteIPFS       m
+  , MonadLocalIPFS        m
+  , MonadDNSLink          m
+  , MonadLogger           m
+  , MonadTime             m
+  , MonadDB             t m
+  , MonadLogger         t
+  , MonadThrow          t
+  , Heroku.AddOn.CRUD   t
+  , User.CRUD           t
+  , User.CID.CRUD       t
   )
   => Web.Host
   -> ServerT API m

@@ -3,12 +3,13 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
+import           Crypto.BCrypt
 import           Control.Monad.Catch
 import qualified Database.Persist.Sql as SQL
 
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Orphans ()
 
+import           Servant
 import           Servant.Client
 
 import           Network.AWS
@@ -33,12 +34,16 @@ import           Fission.IPFS.Linked
 
 import qualified Fission.URL as URL
 
+import           Fission.Platform.Heroku.Auth.Types     as Heroku
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
-import           Fission.Platform.Heroku.AddOn
 
-import qualified Fission.Web.Auth              as Auth
+import qualified Fission.Web.Auth as Auth
+import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Reflective
+
+import           Fission.User as User
+import           Fission.Models
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -62,11 +67,10 @@ instance MonadTime Fission where
 instance MonadReflectiveServer Fission where
   getHost = asks host
 
-instance MonadHerokuAddOn Fission where
-  authorize = do
-    Heroku.ID       hkuID   <- asks herokuID
-    Heroku.Password hkuPass <- asks herokuPassword
-    return (Auth.basic hkuID hkuPass)
+instance MonadDB (Transaction Fission) Fission where
+  runDB transaction = do
+    pool <- asks dbPool
+    SQL.runSqlPool transaction pool
 
 instance MonadAWS Fission where
   liftAWS awsAction = do
@@ -78,11 +82,6 @@ instance MonadAWS Fission where
     awsAction
       |> runAWS env
       |> runResourceT
-
-instance MonadDB Fission where
-  runDB transaction = do
-    pool <- asks dbPool
-    SQL.runSqlPool transaction pool
 
 instance MonadRoute53 Fission where
   update recordType (URL.DomainName domain) content = do
@@ -191,3 +190,48 @@ instance MonadRemoteIPFS Fission where
         |> mkClientEnv manager
         |> runClientM query
         |> liftIO
+
+instance MonadAuth Heroku.Auth Fission where
+  verify = do
+    Heroku.ID       hkuID   <- asks herokuID
+    Heroku.Password hkuPass <- asks herokuPassword
+
+    hkuPass
+      |> Auth.basic hkuID
+      |> fmap Heroku.Auth
+      |> return
+
+instance MonadAuth (SQL.Entity User) Fission where
+  verify = do
+    cfg <- ask
+    return (BasicAuthCheck (check cfg))
+
+    where
+      check :: Config -> BasicAuthData -> IO (BasicAuthResult (SQL.Entity User))
+      check cfg (BasicAuthData username password) =
+        username
+          |> decodeUtf8Lenient
+          |> User.getByUsername
+          |> runDB
+          |> bind \case
+            Nothing -> do
+              logWarn <| attemptMsg username
+              return NoSuchUser
+
+            Just usr ->
+              validate' usr username password
+          |> unwrapFission
+          |> runRIO cfg
+
+      validate' :: MonadLogger m => SQL.Entity User -> ByteString -> ByteString -> m (BasicAuthResult (SQL.Entity User))
+      validate' usr@(SQL.Entity _ User { userSecretDigest }) username password =
+        if validatePassword (encodeUtf8 userSecretDigest) password
+           then
+              return (Authorized usr)
+
+           else do
+             logWarn <| attemptMsg username
+             return Unauthorized
+
+      attemptMsg :: ByteString -> ByteString
+      attemptMsg username = "Unauthorized user! Attempted with username: " <> username
