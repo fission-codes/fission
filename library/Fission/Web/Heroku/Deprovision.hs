@@ -52,23 +52,23 @@ destroy uuid' = do
 
 -- | Delete all records associated with a Heroku UUID
 deleteAssociatedWith ::
-  ( User.Retriever         t
+  ( MonadThrow             t
+  , MonadLogger            t
+  , User.Retriever         t
   , User.Destroyer         t
   , User.CID.Retriever     t
   , User.CID.Destroyer     t
   , Heroku.AddOn.Retriever t
   , Heroku.AddOn.Destroyer t
-  , MonadLogger            t
-  , MonadThrow             t
   )
   => UUID
   -> t [CID]
 deleteAssociatedWith uuid' = do
-  addOn     <- ensureEntityM err410 <| Heroku.AddOn.getByUUID uuid'
-  addOnUser <- ensureEntityM err410 <| User.getByHerkouAddOnId <| entityKey addOn
-  userCids  <- User.CID.getByUserId (entityKey addOnUser)
+  Entity addOnId _ <- ensureEntityM err410 <| Heroku.AddOn.getByUUID uuid'
+  Entity userId  _ <- ensureEntityM err410 <| User.getByHerkouAddOnId addOnId
+  userCids         <- User.CID.getByUserId userId
 
-  deleteAssociatedRecords (entityKey addOnUser) uuid' userCids
+  deleteAssociatedRecords userId uuid' userCids
 
   let deletedUserCids = getInner userCidCid <$> userCids
   remainingUserCids <- User.CID.getByCids deletedUserCids
