@@ -41,7 +41,7 @@ destroy ::
   )
   => ServerT API m
 destroy uuid' = do
-  toUnpin <- runDB <| deleteAssociatedWith uuid'
+  toUnpin <- runDB (deleteAssociatedWith uuid')
 
   forM_ toUnpin \cid ->
     IPFS.Pin.rm cid >>= \case
