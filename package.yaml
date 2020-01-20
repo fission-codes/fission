@@ -100,6 +100,7 @@ dependencies:
   - flow
   - filepath
   - fsnotify
+  - generic-lens
   - Glob
   - haskeline
   - http-client
@@ -202,9 +203,12 @@ tests:
     dependencies:
       - aeson
       - hspec
+      - hspec-expectations
       - hspec-wai
       - hspec-wai-json
       - fission-web-api
+      - QuickCheck
+      - quickcheck-instances
       - tasty
       - tasty-hunit
       - tasty-hspec

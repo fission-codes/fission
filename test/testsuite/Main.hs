@@ -1,3 +1,4 @@
+
 module Main (main) where
 
 import Test.Tasty
@@ -10,12 +11,13 @@ import Fission.Prelude
 
 import qualified Test.Random
 
-
 main :: IO ()
-main = defaultMain tests
+main = defaultMain =<< tests
 
+tests :: IO TestTree
+tests = do
+  randomTests <- Test.Random.tests
 
-tests :: TestTree
-tests = testGroup "Tests"
-  [ Test.Random.tests
-  ]
+  return <| testGroup "Tests"
+    [ randomTests
+    ]

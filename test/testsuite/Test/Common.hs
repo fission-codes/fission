@@ -1,4 +1,8 @@
-module Test.Common (agesAgo, testUser, testUserEntity) where
+module Test.Common
+  ( agesAgo
+  , testUser
+  , testUserEntity
+  ) where
 
 import           Data.Time as Time
 import qualified Database.Persist as Database

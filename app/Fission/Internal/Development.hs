@@ -10,14 +10,14 @@ module Fission.Internal.Development
 import           Data.Pool
 import           Database.Persist.Sql (SqlBackend)
 
-import qualified Network.IPFS.Types            as IPFS
+import qualified Network.IPFS.Types  as IPFS
 import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
 
 import           Fission
 import           Fission.Prelude
 
-import qualified Fission.AWS.Types             as AWS
+import qualified Fission.AWS.Types as AWS
 import           Fission.Web.Types
 
 import qualified Fission.Platform.Heroku.ID.Types       as Hku
