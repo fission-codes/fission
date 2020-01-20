@@ -3,26 +3,28 @@
 module Test.Types where
 
 import           Control.Monad.Writer
-
-import           Fission.Prelude
+import           Data.Generics.Product
+import qualified Network.IPFS.Types  as IPFS
+import           Servant
 
 import           Fission.IPFS.Linked.Class
-import qualified Network.IPFS.Types  as IPFS
--- import qualified Database.Persist.Sql as SQL
+import           Fission.Prelude
 import           Fission.Web.Auth.Class
--- import           Fission.Models
 
-import Data.Generics.Product
-
--- import RIO.HashMap
--- import RIO.State
-import Servant
-
+-- | The result of running a mocked test session
 data MockSession log a = MockSession
-  { effects :: [OpenUnion log]
-  , result  :: a
+  { effects :: [OpenUnion log] -- ^ List of effects that were run
+  , result  :: a               -- ^ Pure return value
   }
 
+{- | Fission's mock type
+
+     Notes:
+     * We will likely want @State@ in here at some stage
+     * @RIO@ because lots of constraints want @MonadIO@
+       * Avoid actual @IO@, or we're going to have to rework this 😉
+
+-}
 newtype FissionMock effs ctx a = FissonMock
   { unMock :: WriterT [OpenUnion effs] (RIO ctx) a }
   deriving
