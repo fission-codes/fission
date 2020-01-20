@@ -15,23 +15,26 @@ dirty:
 profile:
 	$(stack) --work-dir .stack-work-profiling --profile build --fast
 
-install:
+install-dev:
 	$(stack) install --fast
+
+install:
+	$(stack) install 
 
 ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
 
-test:
+quality:
 	$(stack) build --test --fast $(package)
 
-test-docs:
+doctest:
 	$(stack) test :fission-doctest --fast
+
+testsuite:
+	$(stack) test :fission-test --fast
 
 test-ghci:
 	$(stack) ghci $(package):test:$(package)-tests --ghci-options='-j6 +RTS -A128m'
-
-test-suite:
-	$(stack) test :fission-test --fast
 
 bench:
 	$(stack) build --fast --bench $(package)

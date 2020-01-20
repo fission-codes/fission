@@ -13,8 +13,8 @@ import           Fission.Web.Auth.Class
 
 -- | The result of running a mocked test session
 data MockSession log a = MockSession
-  { effects :: [OpenUnion log] -- ^ List of effects that were run
-  , result  :: a               -- ^ Pure return value
+  { effectLog :: [OpenUnion log] -- ^ List of effects that were run
+  , result    :: a               -- ^ Pure return value
   }
 
 {- | Fission's mock type
@@ -42,7 +42,7 @@ runMock ctx action =
     |> unMock
     |> runWriterT
     |> runRIO ctx
-    |> fmap \(result, effects) -> MockSession {..}
+    |> fmap \(result, effectLog) -> MockSession {..}
 
 logEff ::
   ( IsMember eff log

@@ -21,13 +21,13 @@ newtype AuthMock = AuthMock { authCheck :: BasicAuthCheck Text }
 tests :: IO TestTree
 tests = do
   let
-    ctx = AuthMock { authCheck = BasicAuthCheck \_ -> pure dummyAuth }
-    authData  = BasicAuthData "username" "password"
     dummyAuth = Authorized "YUP"
+    authData  = BasicAuthData "username" "password"
+    ctx       = AuthMock { authCheck = BasicAuthCheck \_ -> pure dummyAuth }
 
   MockSession
-    { result  = BasicAuthCheck authCheck
-    , effects = (effects :: [OpenUnion '[GetVerifier]] )
+    { result    = BasicAuthCheck authCheck
+    , effectLog = effectLog :: [OpenUnion '[GetVerifier]]
     } <- runMock ctx verify
 
   authResult <- liftIO <| authCheck authData
@@ -45,12 +45,12 @@ tests = do
     describe "can mock auth" do
       describe "effects" do
         it "fires exectly one effect" do
-          effects
+          effectLog
             |> length
             |> shouldBe 1
 
         it "looked up the auth verifier" do
-          effects `shouldContain` [openUnionLift GetVerifier]
+          effectLog `shouldContain` [openUnionLift GetVerifier]
 
       describe "value" do
         it "uses the encapsulated function" do
