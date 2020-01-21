@@ -13,7 +13,9 @@ newtype Context = Context { authCheckText :: BasicAuthCheck Text }
 tests :: IO TestTree
 tests = do
 
+  --------------
   -- IO SETUP --
+  --------------
 
   let
     dummyAuth = Authorized ("YUP" :: Text)
@@ -27,19 +29,22 @@ tests = do
 
   authResult <- authCheck authData
 
+  -----------
   -- SPECS --
+  -----------
 
-  testSpec "MonadAuth" <| parallel do
-    describe "verify" do
-      describe "effects" do
-        it "fires exactly one effect" do
-          effectLog
-            |> length
-            |> shouldBe 1
+  testSpec "Fission.Web.Auth.Class" <| parallel do
+    describe "MonadAuth" do
+      describe "verify" do
+        describe "effects" do
+          it "fires exactly one effect" do
+            effectLog
+              |> length
+              |> shouldBe 1
 
-        it "looked up the auth verifier" do
-          effectLog `shouldHaveRun` GetVerifier
+          it "looked up the auth verifier" do
+            effectLog `shouldHaveRun` GetVerifier
 
-      describe "value" do
-        it "uses the encapsulated function" do
-          authResult `shouldBe` dummyAuth
+        describe "value" do
+          it "uses the encapsulated function" do
+            authResult `shouldBe` dummyAuth

@@ -1,5 +1,6 @@
 module Fission.Web.Ping
-  ( API
+  ( module Fission.Web.Ping.Types
+  , API
   , pong
   ) where
 

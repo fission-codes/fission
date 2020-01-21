@@ -9,7 +9,7 @@ import           Test.Fission.Prelude
 import qualified Fission.Random as Random
 
 tests :: IO TestTree
-tests = testSpec "Random" <| parallel do
+tests = testSpec "Fission.Random" <| parallel do
   alphaNumSpec
   alphaNumSymbolSpec
   bsRandomLengthSpec
@@ -17,34 +17,16 @@ tests = testSpec "Random" <| parallel do
 alphaNumSpec :: SpecWith ()
 alphaNumSpec =
   describe "alphaNum" do
-    describe "length" do
-      itsProp' "is at most what is specified" \n -> do
-        alphaNum <- Random.alphaNum n
-
-        Text.length alphaNum `shouldSatisfy` \actual ->
-          fromIntegral actual <= n
-
-      itsProp' "is not zero unless specified" \n -> do
-        alphaNum <- Random.alphaNum n
-
-        unless (n == 0) do
-          Text.length alphaNum `shouldSatisfy` (> 0)
+    itsProp' "length is the specified length" \n -> do
+      alphaNum <- Random.alphaNum n
+      Text.length alphaNum `shouldBe` fromIntegral n
 
 alphaNumSymbolSpec :: SpecWith ()
 alphaNumSymbolSpec =
   describe "alphaNumSymbol" do
-    describe "length" do
-      itsProp' "is at most what is specified" \n -> do
-        alphaNumSymbol <- Random.alphaNumSymbol n
-
-        Text.length alphaNumSymbol `shouldSatisfy` \actual ->
-          fromIntegral actual <= n
-
-      itsProp' "is not zero unless specified" \n -> do
-        alphaNumSymbol <- Random.alphaNumSymbol n
-
-        unless (n == 0) do
-          Text.length alphaNumSymbol `shouldSatisfy` (> 0)
+    itsProp' "length is the specified length" \n -> do
+      alphaNum <- Random.alphaNumSymbol n
+      Text.length alphaNum `shouldBe` fromIntegral n
 
 bsRandomLengthSpec :: SpecWith ()
 bsRandomLengthSpec =

@@ -1,5 +1,5 @@
 module Fission.Internal.URL
-  ( isValidURLCharacter
+  ( isURLCharacter
   ) where
 
 import Data.Word8
@@ -13,18 +13,18 @@ import Fission.Prelude
     >>> import Data.Char (ord)
     >>> fromChar = ord .> fromIntegral
 
-    >>> isValidURLCharacter (fromChar 'a')
+    >>> isURLCharacter (fromChar 'a')
     True
 
-    >>> isValidURLCharacter (fromChar '/')
+    >>> isURLCharacter (fromChar '/')
     False
 
-    >>> isValidURLCharacter (fromChar '?')
+    >>> isURLCharacter (fromChar '?')
     False
 
 -}
-isValidURLCharacter :: Word8 -> Bool
-isValidURLCharacter w = isAsciiUpper w
+isURLCharacter :: Word8 -> Bool
+isURLCharacter w = isAsciiUpper w
   || isAsciiLower w
   || isDigit w
   || anyX urlSpecials w

@@ -82,6 +82,13 @@ packages:
   original:
     hackage: raven-haskell-0.1.2.1
 - completed:
+    hackage: servant-quickcheck-0.0.7.4@sha256:a981a06792e9547d13fa2f9f0f55ba46d28113881a0661e49016c18d9e6358cc,3776
+    pantry-tree:
+      size: 976
+      sha256: 652ea0bf673822956b0e87b7fcb5e35023299f3e1711462e4a3493e233728fb9
+  original:
+    hackage: servant-quickcheck-0.0.7.4
+- completed:
     hackage: tasty-rerun-1.1.14@sha256:ba9c19a281535bea566e1044bc02c36ef17abcb310af4b6a149ec11780c7ce35,3083
     pantry-tree:
       size: 284

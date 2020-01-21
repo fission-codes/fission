@@ -110,6 +110,7 @@ dependencies:
   - ip
   - ipfs
   - lens
+  - lens-aeson
   - mime-types
   - monad-logger
   - monad-time
@@ -208,6 +209,7 @@ tests:
       - fission-web-api
       - QuickCheck
       - quickcheck-instances
+      - servant-quickcheck
       - tasty
       - tasty-hunit
       - tasty-hspec

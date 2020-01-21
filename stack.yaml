@@ -49,6 +49,7 @@ extra-deps:
 - ip-1.5.1
 - ipfs-1.0.1
 - raven-haskell-0.1.2.1
+- servant-quickcheck-0.0.7.4
 - tasty-rerun-1.1.14
 - text-time-0.2.0
 
