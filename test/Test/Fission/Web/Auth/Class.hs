@@ -1,25 +1,19 @@
-module Test.Random (tests) where
+module Test.Fission.Web.Auth.Class (tests) where
 
-import qualified RIO.ByteString as BS
-import           Test.Tasty
+import           Servant
+
 import           Test.Tasty.Hspec
 
-import qualified Fission.Random as Random
-import Servant
-import Test.Types
+import           Test.Fission.Prelude
 import           Fission.Web.Auth.Class
-
-import Test.QuickCheck
-
-import Fission.Prelude
-
-import Test.QuickCheck.Instances ()
 
 newtype AuthMock = AuthMock { authCheck :: BasicAuthCheck Text }
   deriving (Generic)
 
 tests :: IO TestTree
 tests = do
+  -- SETUP --
+
   let
     dummyAuth = Authorized "YUP"
     authData  = BasicAuthData "username" "password"
@@ -32,25 +26,18 @@ tests = do
 
   authResult <- liftIO <| authCheck authData
 
-  testSpec "spec" do
-    describe "Random" do
-      describe "bsRandomLength" do
-        it "is the given length" <| property \n -> do
-          alphaNum <- Random.bsRandomLength n
+  -- SPECS --
 
-          alphaNum
-            |> BS.length
-            |> shouldBe (fromIntegral n)
-
-    describe "can mock auth" do
+  testSpec "MonadAuth" <| parallel do
+    describe "verify" do
       describe "effects" do
-        it "fires exectly one effect" do
+        it "fires exactly one effect" do
           effectLog
             |> length
             |> shouldBe 1
 
         it "looked up the auth verifier" do
-          effectLog `shouldContain` [openUnionLift GetVerifier]
+          effectLog `shouldHaveRun` GetVerifier
 
       describe "value" do
         it "uses the encapsulated function" do

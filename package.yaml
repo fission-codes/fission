@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '2.0.7'
+version: '2.0.8'
 category: API
 author:
   - Brooklyn Zelenka
@@ -175,7 +175,7 @@ executables:
 tests:
   fission-doctest:
     main: Main.hs
-    source-dirs: test/doctest
+    source-dirs: doctest
     ghc-options:
       - -threaded
       - -rtsopts
@@ -195,14 +195,13 @@ tests:
     source-dirs:
       - library
       - test
-      - test/testsuite
     ghc-options:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - aeson
       - hspec
+      - hspec-core
       - hspec-expectations
       - hspec-wai
       - hspec-wai-json
@@ -216,29 +215,9 @@ tests:
       - tasty-rerun
       - transformers
 
-  # fission-coverage-code:
-  #   main: Main.hs
-  #   source-dirs: test/code-coverage
-  #   ghc-options:
-  #     - -fhpc
-  #   dependencies:
-  #     - base
-  #     - fission-web-api
-  #     - process
-  #     - regex-compat
-
-  # fission-coverage-docs:
-  #   main: Main.hs
-  #   source-dirs: test/doc-coverage
-  #   dependencies:
-  #     - doctest
-  #     - fission-web-api
-  #     - process
-  #     - regex-compat
-
   fission-lint:
     main: Main.hs
-    source-dirs: test/lint
+    source-dirs: lint
     dependencies:
       - base
       - hlint

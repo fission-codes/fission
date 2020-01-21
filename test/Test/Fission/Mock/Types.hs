@@ -1,14 +1,21 @@
 {-# LANGUAGE UndecidableInstances #-}
 
-module Test.Types where
+module Test.Fission.Mock.Types
+  ( Mock (..)
+  , MockSession (..)
+  , RunDB (..)
+  , GetVerifier (..)
+  ) where
 
 import           Control.Monad.Writer
 import           Data.Generics.Product
 import qualified Network.IPFS.Types  as IPFS
 import           Servant
 
-import           Fission.IPFS.Linked.Class
+import           Test.Fission.Mock.Effect
+
 import           Fission.Prelude
+import           Fission.IPFS.Linked.Class
 import           Fission.Web.Auth.Class
 
 -- | The result of running a mocked test session
@@ -25,7 +32,7 @@ data MockSession log a = MockSession
        * Avoid actual @IO@, or we're going to have to rework this 😉
 
 -}
-newtype FissionMock effs ctx a = FissonMock
+newtype Mock effs ctx a = Mock
   { unMock :: WriterT [OpenUnion effs] (RIO ctx) a }
   deriving
     newtype ( Functor
@@ -35,34 +42,12 @@ newtype FissionMock effs ctx a = FissonMock
             , MonadReader ctx
             , MonadIO
             )
-
-runMock :: MonadIO m => ctx -> FissionMock effs ctx a -> m (MockSession effs a)
-runMock ctx action =
-  action
-    |> unMock
-    |> runWriterT
-    |> runRIO ctx
-    |> fmap \(result, effectLog) -> MockSession {..}
-
-logEff ::
-  ( IsMember eff log
-  , Applicative t
-  , MonadWriter (t (OpenUnion log)) m
-  )
-  => eff
-  -> m ()
-logEff effect =
-  effect
-    |> openUnionLift
-    |> pure
-    |> tell
-
 -- RunDB
 
 data RunDB = RunDB
   deriving (Show, Eq)
 
-instance IsMember RunDB effs => MonadDB (FissionMock effs cfg) (FissionMock effs cfg) where
+instance IsMember RunDB effs => MonadDB (Mock effs cfg) (Mock effs cfg) where
   runDB mock = do
     logEff RunDB
     mock
@@ -72,7 +57,7 @@ instance IsMember RunDB effs => MonadDB (FissionMock effs cfg) (FissionMock effs
 newtype LinkedPeer = LinkedPeer IPFS.Peer
   deriving (Show, Eq)
 
-instance IsMember LinkedPeer logs => MonadLinkedIPFS (FissionMock logs cfg) where
+instance IsMember LinkedPeer logs => MonadLinkedIPFS (Mock logs cfg) where
   getLinkedPeers = do
     let fakePeer = IPFS.Peer "/ip4/FAKE_PEER"
     logEff <| LinkedPeer fakePeer
@@ -87,7 +72,7 @@ instance
   ( IsMember GetVerifier effs
   , HasField' "authCheck" ctx (BasicAuthCheck usr)
   )
-  => MonadAuth usr (FissionMock effs ctx) where
+  => MonadAuth usr (Mock effs ctx) where
   verify = do
     logEff GetVerifier
     asks (getField @"authCheck")
