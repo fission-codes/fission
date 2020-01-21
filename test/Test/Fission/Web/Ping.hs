@@ -13,7 +13,7 @@ import           Fission.Web.Handler
 api :: Proxy API
 api = Proxy @API
 
-server :: MonadIO n => n Pong
+server :: MonadIO m => m Pong
 server = hoistServer api fromHandler (pure pong)
 
 tests :: IO TestTree
