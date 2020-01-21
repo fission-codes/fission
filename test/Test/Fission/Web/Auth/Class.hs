@@ -7,18 +7,18 @@ import           Test.Tasty.Hspec
 import           Test.Fission.Prelude
 import           Fission.Web.Auth.Class
 
-newtype AuthMock = AuthMock { authCheck :: BasicAuthCheck Text }
-  deriving (Generic)
+newtype Context = Context { authCheckText :: BasicAuthCheck Text }
+  deriving Generic
 
 tests :: IO TestTree
 tests = do
 
-  -- SETUP --
+  -- IO SETUP --
 
   let
-    dummyAuth = Authorized "YUP"
+    dummyAuth = Authorized ("YUP" :: Text)
     authData  = BasicAuthData "username" "password"
-    ctx       = AuthMock { authCheck = BasicAuthCheck \_ -> pure dummyAuth }
+    ctx       = Context { authCheckText = BasicAuthCheck \_ -> pure dummyAuth }
 
   MockSession
     { result    = BasicAuthCheck authCheck

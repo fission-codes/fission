@@ -4,6 +4,7 @@ module Test.Fission.Prelude
   , module Test.Tasty
   , module Data.Generics.Product
   , itsProp
+  , itsProp'
   ) where
 
 import           Data.Generics.Product
@@ -19,5 +20,8 @@ import           Test.Fission.Mock
 import           Fission.Prelude hiding (Result (..))
 
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()
-itsProp description times closure =
-  modifyMaxSize (\_ -> times) <| it description <| property closure
+itsProp description times prop =
+  modifyMaxSize (\_ -> times) <| it description <| property prop
+
+itsProp' :: (HasCallStack, Testable a) => String -> a -> SpecWith ()
+itsProp' description prop = itsProp description 10_000 prop

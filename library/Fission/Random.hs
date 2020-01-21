@@ -15,22 +15,30 @@ import Fission.Prelude
 
 -- | Generate random alphanumeric @Text@ with a given length
 alphaNum :: MonadIO m => Natural -> m Text
-alphaNum len =
-  len
-    |> bsRandomLength
-    |> fmap (decodeUtf8Lenient . BS.filter isAsciiAlphaNum)
+alphaNum maxLen = do
+  byteString <- bsRandomLength (maxLen * 2)
+
+  byteString
+    |> BS.filter isAsciiAlphaNum
+    |> decodeUtf8Lenient
+    |> T.take (fromIntegral maxLen)
+    |> return
 
 -- | Generate random alphanumeric symbol @Text@ with a given length
 alphaNumSymbol :: MonadIO m => Natural -> m Text
-alphaNumSymbol len =
-  len
-    |> bsRandomLength
-    |> fmap (decodeUtf8Lenient . BS.filter URL.isValidURLCharacter)
+alphaNumSymbol maxLen = do
+  byteString <- bsRandomLength (maxLen * 2)
+
+  byteString
+    |> BS.filter URL.isValidURLCharacter
+    |> decodeUtf8Lenient
+    |> T.take (fromIntegral maxLen)
+    |> return
 
 -- | Generate random 'ByteString' with a given length
 bsRandomLength :: MonadIO m => Natural -> m ByteString
 bsRandomLength len =
-    len
+  len
     |> (* 100)
     |> BS.random
     |> liftIO

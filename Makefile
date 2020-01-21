@@ -27,6 +27,9 @@ ghci:
 quality:
 	$(stack) build --test --fast $(package)
 
+linter:
+	$(stack) test :fission-lint --fast
+
 doctest:
 	$(stack) test :fission-doctest --fast
 

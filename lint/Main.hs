@@ -9,7 +9,7 @@ arguments =
     [ "benchmark"
     , "app"
     , "library"
-    , "test/testsuite"
+    , "test"
     ]
 
 main :: IO ()

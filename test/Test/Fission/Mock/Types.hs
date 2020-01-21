@@ -9,6 +9,7 @@ module Test.Fission.Mock.Types
 
 import           Control.Monad.Writer
 import           Data.Generics.Product
+import Database.Esqueleto
 import qualified Network.IPFS.Types  as IPFS
 import           Servant
 
@@ -17,6 +18,9 @@ import           Test.Fission.Mock.Effect
 import           Fission.Prelude
 import           Fission.IPFS.Linked.Class
 import           Fission.Web.Auth.Class
+import           Fission.Models
+
+import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 -- | The result of running a mocked test session
 data MockSession log a = MockSession
@@ -70,9 +74,27 @@ data GetVerifier = GetVerifier
 
 instance
   ( IsMember GetVerifier effs
-  , HasField' "authCheck" ctx (BasicAuthCheck usr)
+  , HasField' "authCheckText" ctx (BasicAuthCheck Text)
   )
-  => MonadAuth usr (Mock effs ctx) where
+  => MonadAuth Text (Mock effs ctx) where
   verify = do
     logEff GetVerifier
-    asks (getField @"authCheck")
+    asks (getField @"authCheckText")
+
+instance
+  ( IsMember GetVerifier effs
+  , HasField' "authCheckUser" ctx (BasicAuthCheck (Entity User))
+  )
+  => MonadAuth (Entity User) (Mock effs ctx) where
+  verify = do
+    logEff GetVerifier
+    asks (getField @"authCheckUser")
+
+instance
+  ( IsMember GetVerifier effs
+  , HasField' "authCheckHeroku" ctx (BasicAuthCheck Heroku.Auth)
+  )
+  => MonadAuth Heroku.Auth (Mock effs ctx) where
+  verify = do
+    logEff GetVerifier
+    asks (getField @"authCheckHeroku")
