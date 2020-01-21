@@ -4,21 +4,12 @@ module Test.Fission.Mock
   , runMock
   ) where
 
-import           Control.Monad.Writer
-import           Data.Generics.Product
-import qualified Network.IPFS.Types  as IPFS
-import           Servant
-
-import           Test.Hspec.Core.QuickCheck (modifyMaxSize)
-import           Test.QuickCheck
-import           Test.Tasty.Hspec
+import           Control.Monad.Writer (runWriterT)
 
 import           Test.Fission.Mock.Types
 import           Test.Fission.Mock.Effect
 
-import           Fission.IPFS.Linked.Class
 import           Fission.Prelude
-import           Fission.Web.Auth.Class
 
 -- | Run the action described by a @Mock@
 runMock :: MonadIO m => ctx -> Mock effs ctx a -> m (MockSession effs a)
