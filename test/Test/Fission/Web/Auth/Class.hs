@@ -12,6 +12,7 @@ newtype AuthMock = AuthMock { authCheck :: BasicAuthCheck Text }
 
 tests :: IO TestTree
 tests = do
+
   -- SETUP --
 
   let
@@ -24,7 +25,7 @@ tests = do
     , effectLog = effectLog :: [OpenUnion '[GetVerifier]]
     } <- runMock ctx verify
 
-  authResult <- liftIO <| authCheck authData
+  authResult <- authCheck authData
 
   -- SPECS --
 

@@ -5,10 +5,11 @@ import qualified Test.Fission.Random
 import qualified Test.Fission.Web.Auth.Class as Web.Auth.Class
 
 main :: IO ()
-main = defaultMain . testGroup "Fission Tests" =<< tests
+main = defaultMain =<< tests
 
-tests :: IO [TestTree]
-tests = sequence
+tests :: IO TestTree
+tests =
   [ Web.Auth.Class.tests
   , Test.Fission.Random.tests
-  ]
+  ] |> sequence
+    |> fmap (testGroup "Fission Specs")

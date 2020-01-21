@@ -8,8 +8,6 @@ module Test.Fission.Prelude
 
 import           Data.Generics.Product
 
-import           Test.Fission.Mock
-
 import           Test.Tasty
 import           Test.Tasty.Hspec
 import           Test.Hspec.Core.QuickCheck (modifyMaxSize)
@@ -17,6 +15,7 @@ import           Test.Hspec.Core.QuickCheck (modifyMaxSize)
 import           Test.QuickCheck (Testable, property)
 import           Test.QuickCheck.Instances ()
 
+import           Test.Fission.Mock
 import           Fission.Prelude hiding (Result (..))
 
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()
