@@ -1,8 +1,15 @@
 module Test.Fission.Prelude
-  ( module Fission.Prelude
+  ( module Data.Generics.Product
+  , module Fission.Prelude
+
+  --
   , module Test.Fission.Mock
   , module Test.Tasty
-  , module Data.Generics.Product
+  , module Test.Hspec.Wai
+  , module Test.QuickCheck
+  , module Servant.QuickCheck
+
+  --
   , bodyMatches
   , itsProp
   , itsProp'
@@ -10,6 +17,7 @@ module Test.Fission.Prelude
 
 import           Data.Generics.Product
 import qualified Network.HTTP.Types as HTTP
+
 import           Servant.QuickCheck
 
 import           Test.Tasty
@@ -18,7 +26,7 @@ import           Test.Tasty.Hspec
 import           Test.Hspec.Core.QuickCheck (modifyMaxSize)
 import           Test.Hspec.Wai
 
-import           Test.QuickCheck (Testable, property)
+import           Test.QuickCheck
 import           Test.QuickCheck.Instances ()
 
 import           Test.Fission.Mock
@@ -33,6 +41,6 @@ itsProp' description prop = itsProp description 10_000 prop
 
 bodyMatches :: Value -> [HTTP.Header] -> Body -> Maybe String
 bodyMatches expected _ body =
-  case decode body of -- Here success is Nothing, and errors are Just
+  case decode body of -- NB: Here success is Nothing, and errors are Just
       Just val | val == expected -> Nothing
       _                          -> Just "Body does not match pong"
