@@ -1,20 +1,22 @@
 module Fission.Internal.Mock.Effect.Types
-  ( RunDB          (..)
-  , GetLinkedPeers (..)
-  , GetVerifier    (..)
-  , CheckTime      (..)
-  , RunAWS         (..)
-  , UpdateRoute53  (..)
-  , SetDNSLink     (..)
-  , RunLocalIPFS   (..)
-  , RunRemoteIPFS  (..)
-  , LogMsg         (..)
+  ( RunDB              (..)
+  , GetLinkedPeers     (..)
+  , GetVerifier        (..)
+  , CheckTime          (..)
+  , RunAWS             (..)
+  , UpdateRoute53      (..)
+  , SetDNSLink         (..)
+  , RunLocalIPFS       (..)
+  , RunRemoteIPFS      (..)
+  , LogMsg             (..)
+  , DestroyHerokuAddOn (..)
   ) where
 
 import qualified Network.IPFS.Types  as IPFS
 import qualified RIO.ByteString.Lazy as Lazy
 
 import Control.Monad.Logger
+import           Data.UUID as UUID
 
 import           Fission.Prelude
 
@@ -51,4 +53,7 @@ data RunRemoteIPFS
   deriving (Eq, Show)
 
 data LogMsg = LogMsg LogLevel LogStr
+  deriving (Eq, Show)
+
+data DestroyHerokuAddOn = DestroyHerokuAddOn UUID
   deriving (Eq, Show)

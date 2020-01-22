@@ -42,13 +42,14 @@ type Effs =
    , RunLocalIPFS
    , RunRemoteIPFS
    , LogMsg
+   , DestroyHerokuAddOn
    ]
 
 mockRunner :: Mock Effs a -> IO a
 mockRunner = runMockIO defaultConfig
 
-myServer :: MonadIO m => ServerT Web.Routes.API m
-myServer serverCtx = Auth.authWithContext api (toHandler mockRunner) Web.bizServer
+myServer :: Server Web.Routes.API
+myServer = Auth.authWithContext api (toHandler mockRunner) Web.bizServer
 
 completeServer authChecks =
   Web.bizServer
@@ -60,7 +61,7 @@ tests = do
   authChecks <- mockRunner Auth.mkAuth
 
   testSpec "Fission.Web.Ping" do
-    describe "GET /" do
+    describe "GET /ping" do
       it "follows best practices" do
         withServantServerAndContext api authChecks (pure myServer) \baseURL ->
           serverSatisfies api baseURL defaultArgs do
@@ -70,8 +71,8 @@ tests = do
 
       with (pure <| completeServer authChecks) do
         it "is always be successful" do
-          get "/" `shouldRespondWith` 200
+          get "/ping" `shouldRespondWith` 200
 
         it "contains the text 'pong'" do
-          get "/" `shouldRespondWith` 200
+          get "/ping" `shouldRespondWith` 200
             { matchBody = MatchBody <| bodyMatches <| String "pong" }

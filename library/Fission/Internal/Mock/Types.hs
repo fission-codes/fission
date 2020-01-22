@@ -7,11 +7,14 @@ module Fission.Internal.Mock.Types
   , Mock (..)
   ) where
 
-import Network.IPFS.Remote.Class
+import           Control.Monad.Catch
+import           Control.Monad.Trans.AWS
 
-import Servant.Client
+import           Network.IPFS.Remote.Class
 
-import Fission.Web.Server.Reflective.Class
+import           Servant
+import           Servant.Client
+
 import qualified Fission.Web.Types as Web
 
 import           Network.AWS
@@ -19,7 +22,6 @@ import           Network.AWS
 import           Control.Monad.Writer
 import           Database.Esqueleto
 
-import           Servant
 
 import           Fission.Internal.Mock.Effect as Effect
 import           Fission.Internal.Mock.Effect.Types
@@ -30,20 +32,20 @@ import           Fission.IPFS.Linked.Class
 import           Fission.Web.Auth.Class
 import           Fission.Models
 import Fission.IPFS.DNSLink.Class
+import           Fission.Web.Server.Reflective.Class
 
-import Control.Monad.Trans.AWS
 
 import           Fission.AWS
-
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
-import Fission.Internal.Mock.Session.Types
-import Control.Monad.Catch
+import           Fission.Internal.Mock.Session.Types
 import           Network.IPFS.Local.Class
 
 import           Fission.Internal.Mock.Config.Types as Mock
 
--- import Fission.Platform.Heroku.AddOn.Destroyer.Class as
+import           Fission.User                  as User
+import           Fission.User.CID              as User.CID
+import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 {- | Fission's mock type
 
@@ -162,4 +164,65 @@ instance IsMember LogMsg effs => MonadLogger (Mock effs) where
     Effect.log <| LogMsg lvl <| toLogStr msg
     monadLoggerLog loc src lvl msg
 
-instance
+instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Destroyer (Mock effs) where
+  destroyByUUID uuid = do
+    Effect.log <| DestroyHerokuAddOn uuid
+    pure ()
+
+instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Retriever (Mock effs) where
+  getByUUID uuid = do
+    Effect.log <| DestroyHerokuAddOn uuid
+    pure Nothing
+
+instance Heroku.AddOn.Creator (Mock effs) where
+  create _ _ _ = do
+    -- Effect.log <| DestroyHerokuAddOn uuid
+    -- pure Nothing
+    undefined
+
+instance User.Retriever (Mock effs) where
+  getByUsername _username = do
+    -- Effect.log <| DestroyHerokuAddOn uuid
+    pure Nothing
+
+  getByHerokuAddOnId _ = do
+    -- Effect.log <| DestroyHerokuAddOn uuid
+    pure Nothing
+
+instance IsMember DestroyHerokuAddOn effs => User.Creator (Mock effs) where
+  create _ _ _ _ _ = do
+    -- Effect.log <| DestroyHerokuAddOn uuid
+    undefined
+
+  createWithHeroku _ _ _ _ _ = do
+    -- Effect.log <| DestroyHerokuAddOn uuid
+    undefined
+
+instance User.Modifier (Mock effs) where
+  updatePassword _ _ _ = do
+    undefined
+
+instance User.Destroyer (Mock effs) where
+  destroy _ = do
+    undefined
+
+instance User.CID.Retriever (Mock effs) where
+  getByUserId _ = do
+    undefined
+
+  getByCids _ = do
+    undefined
+
+instance User.CID.Creator (Mock effs) where
+  create _ _ _ = do
+    undefined
+
+  createMany _ _ _ = do
+    undefined
+
+instance User.CID.Destroyer (Mock effs) where
+  destroy _ _ = do
+    undefined
+
+  destroyMany _ = do
+    undefined
