@@ -7,6 +7,15 @@ import Servant.Client as Client
 
 import Fission.Prelude
 
+instance Arbitrary BaseUrl where
+  arbitrary = do
+    baseUrlScheme <- oneof [pure Client.Http, pure Client.Https]
+    baseUrlHost <- arbitrary
+    baseUrlPort <- arbitrary
+    baseUrlPath <- arbitrary
+
+    return BaseUrl {..}
+
 instance ToSchema BaseUrl where
   declareNamedSchema _ =
     mempty

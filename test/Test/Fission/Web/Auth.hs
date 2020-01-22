@@ -19,20 +19,21 @@ data Context = Context
   , authCheckUser   :: BasicAuthCheck (Entity User)
   } deriving Generic
 
+userAuth   = Authorized <| Fixture.entity Fixture.testUser
+herokuAuth = Authorized <| Heroku.Auth "FAKE HEROKU"
+authData   = BasicAuthData "username" "password"
+
+ctx = Context
+  { authCheckHeroku = BasicAuthCheck \_ -> pure herokuAuth
+  , authCheckUser   = BasicAuthCheck \_ -> pure userAuth
+  }
+
 tests :: IO TestTree
 tests = do
 
-  -- IO SETUP --
-
-  let
-    userAuth   = Authorized <| Fixture.entity Fixture.testUser
-    herokuAuth = Authorized <| Heroku.Auth "FAKE HEROKU"
-    authData   = BasicAuthData "username" "password"
-
-    ctx = Context
-      { authCheckHeroku = BasicAuthCheck \_ -> pure herokuAuth
-      , authCheckUser   = BasicAuthCheck \_ -> pure userAuth
-      }
+  ------------------------
+  -- EFFECTFIUL SESSION --
+  ------------------------
 
   MockSession
     { effectLog = effectLog :: [OpenUnion '[GetVerifier]]

@@ -5,6 +5,7 @@ import qualified Data.Aeson as JSON
 import qualified Data.Yaml  as YAML
 
 import qualified Network.HTTP.Client as HTTP
+import           Servant
 
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
@@ -90,6 +91,7 @@ main = do
         runDB updateDBToLatest
 
         auth <- Auth.mkAuth
+        logDebugN <| layoutWithContext (Proxy @Web.API) auth
 
         host
           |> Web.app (toHandler (runFission cfg)) auth

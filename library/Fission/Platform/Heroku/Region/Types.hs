@@ -23,6 +23,18 @@ data Region
 
 derivePersistField "Region"
 
+instance Arbitrary Region where
+  arbitrary = elements
+    [ California
+    , Dublin
+    , Frankfurt
+    , Oregon
+    , Singapore
+    , Sydney
+    , Tokyo
+    , Virginia
+    ]
+
 instance ToJSON Region where
   toJSON = String . \case
     California -> "amazon-web-services::us-west-1"
@@ -35,7 +47,7 @@ instance ToJSON Region where
     Virginia   -> "amazon-web-services::us-east-1"
 
 instance FromJSON Region where
-  parseJSON = withText "Region" <| \case
+  parseJSON = withText "Region" \case
     "amazon-web-services::us-west-1"      -> return California
     "amazon-web-services::eu-west-1"      -> return Dublin
     "amazon-web-services::eu-central-1"   -> return Frankfurt

@@ -118,6 +118,8 @@ dependencies:
   - persistent
   - persistent-postgresql
   - persistent-template
+  - QuickCheck
+  - quickcheck-instances
   - random-bytestring
   - resource-pool
   - regex-compat
@@ -187,8 +189,6 @@ tests:
       - doctest
       - Glob
       - lens-aeson
-      - QuickCheck
-      - quickcheck-instances
       - yaml
 
   fission-test:

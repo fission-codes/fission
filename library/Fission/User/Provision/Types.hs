@@ -16,6 +16,13 @@ data Provision = Provision
              , Generic
              )
 
+instance Arbitrary Provision where
+  arbitrary = do
+    url      <- arbitrary
+    username <- arbitrary
+    password <- arbitrary
+    return Provision {..}
+
 instance FromJSON Provision where
   parseJSON = withObject "User.Provision" \obj -> do
     url      <- obj .: "INTERPLANETARY_FISSION_URL"

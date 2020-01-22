@@ -21,6 +21,9 @@ newtype Secret = Secret { unSecret :: Text }
                     , ToJSON
                     )
 
+instance Arbitrary Secret where
+  arbitrary = Secret <$> arbitrary
+
 instance ToSchema Secret where
   declareNamedSchema _ =
     mempty

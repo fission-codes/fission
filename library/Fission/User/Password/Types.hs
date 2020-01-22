@@ -11,6 +11,9 @@ newtype Password = Password { password :: Text }
                     )
   deriving anyclass ( ToSchema )
 
+instance Arbitrary Password where
+  arbitrary = Password <$> arbitrary
+
 instance ToJSON Password where
   toJSON (Password password) = toJSON (String password)
 

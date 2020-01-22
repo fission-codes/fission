@@ -1,4 +1,4 @@
-module Test.Fission.Fixture.Entity (entity) where
+module Fission.Internal.Fixture.Entity (entity) where
 
 import qualified Database.Persist as Database
 import qualified Database.Persist.Sql as Database

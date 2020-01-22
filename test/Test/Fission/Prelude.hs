@@ -13,6 +13,7 @@ module Test.Fission.Prelude
   , bodyMatches
   , itsProp
   , itsProp'
+  , shouldHaveRun
   ) where
 
 import           Data.Generics.Product
@@ -44,3 +45,13 @@ bodyMatches expected _ body =
   case decode body of -- NB: Here success is Nothing, and errors are Just
       Just val | val == expected -> Nothing
       _                          -> Just "Body does not match pong"
+
+shouldHaveRun ::
+  ( Eq   (OpenUnion logs)
+  , Show (OpenUnion logs)
+  , IsMember eff logs
+  )
+  => [OpenUnion logs]
+  -> eff
+  -> Expectation
+shouldHaveRun effLog eff = effLog `shouldContain` [openUnionLift eff]

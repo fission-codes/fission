@@ -1,6 +1,4 @@
-module Test.Fission.Fixture.Time
-  ( agesAgo
-  ) where
+module Fission.Internal.Fixture.Time (agesAgo) where
 
 import           Data.Time as Time
 
