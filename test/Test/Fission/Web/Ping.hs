@@ -12,20 +12,14 @@ import qualified Fission.Web.Routes as Web.Routes
 import qualified Fission.Web as Web
 import qualified Fission.Web.Auth as Auth
 
-import           Test.Fission.Fixture.Entity as Fixture
-import           Test.Fission.Fixture.User   as Fixture
-
 import Fission.Internal.Orphanage.CID ()
 import Fission.Internal.Orphanage.Serilaized ()
 
 import           Control.Monad.Writer
-import           Data.Generics.Product
 import           Database.Esqueleto (Entity (..))
 
 import qualified Network.IPFS.Types as IPFS
 import           Servant
-
-import           Test.Fission.Mock.Effect
 
 import           Fission.Prelude
 import           Fission.IPFS.Linked.Class
@@ -34,34 +28,24 @@ import           Fission.Models
 
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
-data TestContext = TestContext
-  { linkedPeers     :: NonEmpty IPFS.Peer
-  -- , authCheckText   :: BasicAuthCheck Text
-  , authCheckUser   :: BasicAuthCheck (Entity User)
-  , authCheckHeroku :: BasicAuthCheck Heroku.Auth
-  , now             :: Maybe UTCTime
-  } deriving Generic
-
-ctx = TestContext
-  { linkedPeers     = pure <| IPFS.Peer "ipv4/somePeer"
-  , authCheckUser   = BasicAuthCheck \_ -> pure <| Authorized <| Fixture.entity Fixture.testUser
-  , authCheckHeroku = BasicAuthCheck \_ -> pure <| Authorized <| Heroku.Auth "FAKE HEROKU"
-  , now = Nothing
-  }
-
 api :: Proxy Web.Routes.API
 api = Proxy @Web.Routes.API
 
 type Effs =
-  '[ SetDNSLink
-   , CheckTime
-   , RunDB
+  '[ CheckTime
    , GetLinkedPeers
    , GetVerifier
+   , RunAWS
+   , RunDB
+   , SetDNSLink
+   , UpdateRoute53
+   , RunLocalIPFS
+   , RunRemoteIPFS
+   , LogMsg
    ]
 
-mockRunner :: Mock Effs  TestContext a -> IO a
-mockRunner = runMockIO ctx
+mockRunner :: Mock Effs a -> IO a
+mockRunner = runMockIO defaultConfig
 
 myServer :: MonadIO m => ServerT Web.Routes.API m
 myServer serverCtx = Auth.authWithContext api (toHandler mockRunner) Web.bizServer

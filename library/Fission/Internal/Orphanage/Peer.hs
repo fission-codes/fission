@@ -2,10 +2,6 @@
 
 module Fission.Internal.Orphanage.Peer () where
 
-import           Data.List.NonEmpty  as NonEmpty
-import qualified RIO.ByteString.Lazy as Lazy
-import           Servant
-
 import qualified Network.IPFS.Types  as IPFS
 
 import           Fission.Prelude

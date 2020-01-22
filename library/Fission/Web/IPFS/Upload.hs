@@ -12,7 +12,7 @@ import           Fission.Prelude
 
 import qualified Fission.User.CID as User.CID
 
-import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
+-- import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
 
 type API = Simple.API -- :<|> Multipart.API

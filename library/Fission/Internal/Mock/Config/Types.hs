@@ -1,45 +1,34 @@
 module Fission.Internal.Mock.Config.Types (Config (..)) where
 
-import Fission.Environment ((.!~))
-
-import           Network.AWS
 import           Network.AWS.Route53
 
-import           Control.Monad.Writer
-import           Data.Generics.Product
+import qualified Network.IPFS.Types         as IPFS
+import           Network.IPFS.Process.Error as Process
+
+import Network.IPFS.File.Types as File
+
+import Network.IPFS.Client.Pin as Network.Pin
+
 import           Database.Esqueleto
-
-import qualified Network.IPFS.Types as IPFS
 import           Servant
-import           Servant.Auth
+import           Servant.Client
 
-import           Fission.Internal.Mock.Effect
-
-import           Fission.Prelude
-import           Fission.IPFS.Linked.Class
-import           Fission.Web.Auth.Class
 import           Fission.Models
-import Fission.IPFS.DNSLink.Class
-
-import Fission.AWS.Route53.Class
-
-import Fission.Internal.Fixture.Time as Fixture
-import Fission.URL.DomainName.Types
+import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import           Fission.URL.Types as URL
 
-import Fission.URL.Types as URL
-import Network.IPFS.Types
-
-import Database.Esqueleto
-
-
-data Config m = Config
-  { setDNSLink     :: Maybe URL.Subdomain -> CID -> m (Either ServerError URL.DomainName)
-  , updateRoute53  :: RecordType -> URL.DomainName -> Text -> m (Either ServerError ChangeResourceRecordSetsResponse)
-  , now            :: m UTCTime
-  , getLinkedPeers :: m (NonEmpty IPFS.Peer)
-  , anyVerifier    :: forall a . a -> m (BasicAuth a)
-  , userVerifier   :: m (BasicAuth (Entity User))
-  , herokuVerifier :: m (BasicAuth Heroku.Auth)
-  , dbRunner       :: m (forall n a . n a -> m a)
+data Config = Config
+  { setDNSLink      :: Maybe URL.Subdomain -> IPFS.CID -> (Either ServerError URL.DomainName)
+  , updateRoute53   :: RecordType -> URL.DomainName -> Text -> (Either ServerError ChangeResourceRecordSetsResponse)
+  , now             :: UTCTime
+  , linkedPeers     :: NonEmpty IPFS.Peer
+  , userVerifier    :: BasicAuthCheck (Entity User)
+  , herokuVerifier  :: BasicAuthCheck Heroku.Auth
+  , forceAuthed     :: Bool
+  , localIPFSCall   :: Either Process.Error Process.RawMessage
+  , remoteIPFSAdd   :: Either ClientError IPFS.CID
+  , remoteIPFSCat   :: Either ClientError File.Serialized
+  , remoteIPFSPin   :: Either ClientError Network.Pin.Response
+  , remoteIPFSUnpin :: Either ClientError Network.Pin.Response
   }

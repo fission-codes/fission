@@ -1,9 +1,8 @@
 module Test.Fission.Prelude
-  ( module Data.Generics.Product
-  , module Fission.Prelude
+  ( module Fission.Prelude
+  , module Fission.Internal.Mock
 
   --
-  , module Test.Fission.Mock
   , module Test.Tasty
   , module Test.Hspec.Wai
   , module Test.QuickCheck
@@ -16,7 +15,6 @@ module Test.Fission.Prelude
   , shouldHaveRun
   ) where
 
-import           Data.Generics.Product
 import qualified Network.HTTP.Types as HTTP
 
 import           Servant.QuickCheck
@@ -30,19 +28,21 @@ import           Test.Hspec.Wai
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances ()
 
-import           Test.Fission.Mock
-import           Fission.Prelude hiding (Result (..))
+import           Fission.Internal.Mock
+import           Fission.Prelude hiding (Result (..), log)
 
+-- | Prop test with description
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()
 itsProp description times prop =
   modifyMaxSize (\_ -> times) <| it description <| property prop
 
+-- | Prop test with the default number of tries (10k)
 itsProp' :: (HasCallStack, Testable a) => String -> a -> SpecWith ()
 itsProp' description prop = itsProp description 10_000 prop
 
 bodyMatches :: Value -> [HTTP.Header] -> Body -> Maybe String
-bodyMatches expected _ body =
-  case decode body of -- NB: Here success is Nothing, and errors are Just
+bodyMatches expected _ jsonBody =
+  case decode jsonBody of -- NB: Here success is Nothing, and errors are Just
       Just val | val == expected -> Nothing
       _                          -> Just "Body does not match pong"
 

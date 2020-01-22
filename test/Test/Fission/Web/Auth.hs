@@ -4,29 +4,14 @@ import           Database.Esqueleto
 import           Servant
 
 import           Test.Tasty.Hspec
+import           Test.Fission.Prelude as Mock
 
-import           Test.Fission.Prelude
 import           Fission.Models
 import           Fission.Web.Auth
 
-import           Test.Fission.Fixture.Entity as Fixture
-import           Test.Fission.Fixture.User   as Fixture
-
+import           Fission.Internal.Fixture.Entity as Fixture
+import           Fission.Internal.Fixture.User   as Fixture
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
-
-data Context = Context
-  { authCheckHeroku :: BasicAuthCheck Heroku.Auth
-  , authCheckUser   :: BasicAuthCheck (Entity User)
-  } deriving Generic
-
-userAuth   = Authorized <| Fixture.entity Fixture.testUser
-herokuAuth = Authorized <| Heroku.Auth "FAKE HEROKU"
-authData   = BasicAuthData "username" "password"
-
-ctx = Context
-  { authCheckHeroku = BasicAuthCheck \_ -> pure herokuAuth
-  , authCheckUser   = BasicAuthCheck \_ -> pure userAuth
-  }
 
 tests :: IO TestTree
 tests = do
@@ -35,17 +20,19 @@ tests = do
   -- EFFECTFIUL SESSION --
   ------------------------
 
-  MockSession
+  Mock.Session
     { effectLog = effectLog :: [OpenUnion '[GetVerifier]]
     , result = BasicAuthCheck userVerifier
             :. BasicAuthCheck herokuVerifier
             :. EmptyContext
-    } <- runMock ctx mkAuth
+    } <- runMock defaultConfig mkAuth
 
-  userResult   <- userVerifier   authData
-  herokuResult <- herokuVerifier authData
+  userResult   <- userVerifier   <| BasicAuthData "username" "password"
+  herokuResult <- herokuVerifier <| BasicAuthData "username" "password"
 
+  -----------
   -- SPECS --
+  -----------
 
   testSpec "Fission.Web.Auth" <| parallel do
     describe "mkAuth" do
@@ -58,8 +45,8 @@ tests = do
       describe "value" do
         context "user auth" do
           it "uses the encapsulated function" do
-            userResult `shouldBe` userAuth
+            userResult `shouldBe` Authorized (Fixture.entity Fixture.user)
 
         context "heroku auth" do
           it "uses the encapsulated function" do
-            herokuResult `shouldBe` herokuAuth
+            herokuResult `shouldBe` Authorized (Heroku.Auth "FAKE HEROKU")

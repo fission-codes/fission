@@ -100,7 +100,6 @@ dependencies:
   - flow
   - filepath
   - fsnotify
-  - generic-lens
   - Glob
   - haskeline
   - http-client

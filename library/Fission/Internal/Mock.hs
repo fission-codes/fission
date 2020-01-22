@@ -1,30 +1,33 @@
 module Fission.Internal.Mock
-  ( module Fission.Internal.Mock.Effect
-  , module Fission.Internal.Mock.Types
+  ( module Fission.Internal.Mock.Types
+  , module Fission.Internal.Mock.Effect
+  , module Fission.Internal.Mock.Config
   , runMock
   , runMockIO
   ) where
 
 import           Control.Monad.Writer (runWriterT)
 
+import           Fission.Internal.Mock.Types as Mock
 import           Fission.Internal.Mock.Types
-import           Fission.Internal.Mock.Effect
 
+import           Fission.Internal.Mock.Config
+import           Fission.Internal.Mock.Effect
 import           Fission.Prelude
 
 -- | Run the action described by a @Mock@
-runMock :: MonadIO m => ctx -> Mock effs ctx a -> m (MockSession effs a)
-runMock ctx action =
+runMock :: MonadIO m => Mock.Config -> Mock effs a -> m (Mock.Session effs a)
+runMock cfg action = do
   action
     |> unMock
     |> runWriterT
-    |> runRIO ctx
-    |> fmap \(result, effectLog) -> MockSession {..}
+    |> runRIO cfg
+    |> fmap \(result, effectLog) -> Mock.Session {..}
 
-runMockIO :: MonadIO m => ctx -> Mock effs ctx a -> m a
-runMockIO ctx action =
+runMockIO :: MonadIO m => Mock.Config -> Mock effs a -> m a
+runMockIO cfg action = do
   action
     |> unMock
     |> runWriterT
-    |> runRIO ctx
+    |> runRIO cfg
     |> fmap fst
