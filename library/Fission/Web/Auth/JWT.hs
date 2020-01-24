@@ -27,11 +27,11 @@ import qualified Fission.User     as User
 import           Fission.User.DID as DID
 
 handler ::
-  ( MonadTime   m
-  , MonadLogger m
-  , MonadThrow  m
-  , User.Retriever     t
-  , MonadDB   t  m
+  ( MonadTime        m
+  , MonadLogger      m
+  , MonadThrow       m
+  , MonadDB        t m
+  , User.Retriever t
   )
   => Auth.BearerToken
   -> m (Entity User)

@@ -18,11 +18,11 @@ import qualified Data.ByteString.Char8  as Ch
 import qualified Data.ByteString.Base64 as Base64
 
 handler ::
-  ( MonadIO     m
-  , MonadLogger m
-  , MonadThrow  m
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadThrow       m
+  , MonadDB        t m
   , User.Retriever t
-  , MonadDB t m
   )
   => Auth.BasicToken
   -> m (Entity User)
@@ -35,9 +35,9 @@ handler token = do
         Right usr -> return usr
 
 checkUser ::
-  ( MonadDB     t m
+  ( MonadLogger      m
+  , MonadDB        t m
   , User.Retriever t
-  , MonadLogger m
   )
   => BasicAuthData
   -> m (Either Auth.Error (Entity User))

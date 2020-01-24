@@ -35,9 +35,9 @@ type Checks = '[AuthHandler Request DID, AuthHandler Request (Entity User), Basi
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadAuth (AuthHandler Request DID) m
+  ( MonadAuth (AuthHandler Request DID)           m
   , MonadAuth (AuthHandler Request (Entity User)) m
-  , MonadAuth (BasicAuthCheck Heroku.Auth) m
+  , MonadAuth (BasicAuthCheck Heroku.Auth)        m
   )
   => m (Context Checks)
 mkAuth = do
@@ -71,11 +71,11 @@ basic unOK pwOK = BasicAuthCheck (return . check)
 -- Uses basic auth for "Basic " tokens 
 -- Uses our custom jwt auth for "Bearer " tokens 
 handler ::
-  ( MonadLogger m
-  , MonadThrow  m
+  ( MonadLogger      m
+  , MonadThrow       m
+  , MonadTime        m
+  , MonadDB        t m
   , User.Retriever t
-  , MonadTime   m
-  , MonadDB t  m
   )
   => Request
   -> m (Entity User)
