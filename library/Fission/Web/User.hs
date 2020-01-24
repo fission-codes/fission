@@ -1,7 +1,8 @@
 module Fission.Web.User
-  ( server
-  , API
+  ( API
+  , Auth
   , VerifyRoute
+  , server
   ) where
 
 import           Servant
@@ -25,19 +26,21 @@ type API = RegisterRoute
       :<|> EmailRoute
       :<|> ResetRoute
 
+type Auth = Auth.HigherOrder
+
 type RegisterRoute = Auth.RegisterDid
                     :> Create.API
 
 type VerifyRoute = "verify"
-                   :> Auth.HigherOrder
+                   :> Auth
                    :> Verify.API
 
 type UpdateDIDRoute = "update_did"
-                    :> Auth.HigherOrder
+                    :> Auth
                     :> UpdateDID.API
 
 type ResetRoute = "reset_password"
-                  :> Auth.HigherOrder
+                  :> Auth
                   :> Reset.API
 
 type EmailRoute = "email"
