@@ -1,7 +1,11 @@
 module Fission.Web.User
   ( API
   , Auth
+  , RegisterRoute
   , VerifyRoute
+  , UpdateDIDRoute
+  , ResetRoute
+  , EmailRoute
   , server
   ) where
 
