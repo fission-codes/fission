@@ -196,7 +196,7 @@ instance MonadRemoteIPFS Fission where
         |> liftIO
 
 instance MonadAuth (BasicAuthCheck Heroku.Auth) Fission where
-  verify = do
+  getVerifier = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
 
@@ -206,13 +206,13 @@ instance MonadAuth (BasicAuthCheck Heroku.Auth) Fission where
       |> return
 
 instance MonadAuth (AuthHandler Request DID) Fission where
-  verify = do
+  getVerifier = do
     cfg <- ask
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.DID.handler req
 
 instance MonadAuth (AuthHandler Request (SQL.Entity User)) Fission where
-  verify = do
+  getVerifier = do
     cfg <- ask
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req

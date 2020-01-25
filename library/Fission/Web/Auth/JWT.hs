@@ -69,9 +69,8 @@ parseJWT token = do
   Right payload
 
 getParts :: ByteString -> Either JWT.Error (ByteString, ByteString, ByteString)
-getParts token = do
-  let parts = Ch.split '.' token
-  case parts of
+getParts token =
+  case Ch.split '.' token of
     [header, payload, sig] -> Right (header, payload, sig)
     _ -> Left ParseError
 

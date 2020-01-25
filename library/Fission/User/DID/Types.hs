@@ -8,7 +8,8 @@ newtype DID = DID { unDID :: Text }
   deriving          ( Eq
                     , Generic
                     , Show
-                    , ToJSON
-                    , FromJSON
                     )
-  deriving anyclass ( ToSchema )
+  deriving anyclass ( ToJSON
+                    , FromJSON
+                    , ToSchema
+                    )

@@ -29,7 +29,5 @@ server (Username username) = do
 
   case mayUser of
     Nothing -> throwM err404
-    Just (Entity _ user) -> do
-      case userEmail user of
-        Nothing -> return <| Email ""
-        Just email -> return <| Email email
+    Just (Entity _ user) -> 
+      return . Email <| maybe "" identity <| userEmail user

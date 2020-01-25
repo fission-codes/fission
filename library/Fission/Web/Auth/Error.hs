@@ -11,10 +11,11 @@ data Error
            , Eq
            , Generic
            , ToJSON
+           , Show
            )
 
-instance Show Error where
-  show = \case
+instance Display Error where
+  display = \case
     NoToken      -> "No token included on request"
     BadToken     -> "Token is improperly formatted"
     NoSuchUser   -> "No such user exists"

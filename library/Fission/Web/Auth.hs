@@ -41,9 +41,9 @@ mkAuth ::
   )
   => m (Context Checks)
 mkAuth = do
-  didAuth    <- verify
-  userAuth   <- verify
-  herokuAuth <- verify
+  didAuth    <- getVerifier
+  userAuth   <- getVerifier
+  herokuAuth <- getVerifier
   return <| didAuth
          :. userAuth
          :. herokuAuth

@@ -75,8 +75,7 @@ checkUser (BasicAuthData username password) = do
     attemptMsg = "Unauthorized user! Attempted with username: " <> username
 
 parseBasic :: Auth.BasicToken -> Either Auth.Error BasicAuthData
-parseBasic (Auth.BasicToken token) = do
-  let parts = Ch.split ':' <| Base64.decodeLenient token  
-  case parts of
+parseBasic (Auth.BasicToken token) =
+  case Ch.split ':' (Base64.decodeLenient token) of
     [un,pw] -> Right <| BasicAuthData un pw
     _ -> Left Auth.BadToken

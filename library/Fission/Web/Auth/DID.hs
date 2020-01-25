@@ -23,10 +23,10 @@ handler ::
   -> m DID
 handler req = 
   case getToken req of
-    Auth.Bearer token -> 
+    Auth.Bearer token@(BearerToken bearer) -> 
       JWT.validateJWT token >>= \case
         Left err -> do
-          logWarn <| "Failed registration with token " <> Auth.unBearer token
+          logWarn <| "Failed registration with token " <> bearer
           throwM err
         Right did' -> return did'
 

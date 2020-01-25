@@ -9,12 +9,11 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified Network.IPFS.Internal.UTF8 as UTF8
 
 newtype Username = Username { username :: Text }
-  deriving          ( Eq
-                    , Generic
-                    , Show
-                    )
+  deriving          ( Generic )
   deriving anyclass ( ToParamSchema )
-  deriving newtype  ( IsString
+  deriving newtype  ( Show
+                    , Eq
+                    , IsString
                     , ToHttpApiData
                     )
 

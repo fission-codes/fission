@@ -10,4 +10,4 @@ fissionSecurity = SecurityScheme (SecuritySchemeApiKey keyParams) describe
     keyParams = ApiKeyParams "Authorization" ApiKeyHeader
 
     describe :: Maybe Text
-    describe = Just "A higher-order auth type that accepts both basic auth and fission-formatted jwts as described here: https://whitepaper.fission.codes/identity/authentication"
+    describe = Just "A higher-order auth type that accepts both Basic Auth and Fission-formatted JWTs as described here: https://whitepaper.fission.codes/identity/authentication"
