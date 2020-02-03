@@ -9,41 +9,36 @@ module Fission.Internal.Mock.Types
 
 import           Control.Monad.Catch
 import           Control.Monad.Trans.AWS
+import           Control.Monad.Writer
 
-import Database.Esqueleto as Database
+import           Database.Esqueleto as Database
 
+import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
-import qualified Network.IPFS.Types  as IPFS
+import qualified Network.IPFS.Types as IPFS
+import           Network.AWS
 
 import           Servant
 import           Servant.Client
 
-import qualified Fission.Web.Types as Web
+import           Fission.Internal.Fixture            as Fixture
+import           Fission.Internal.Mock.Effect        as Effect
+import           Fission.Internal.Mock.Config.Types  as Mock
+import           Fission.Internal.Mock.Session.Types
 
-import           Network.AWS
-
-import           Control.Monad.Writer
-
-import           Fission.Internal.Mock.Effect as Effect
-import           Fission.Internal.Mock.Effect.Types
-import           Fission.Internal.Mock.Config.Types
-import           Fission.Internal.Fixture as Fixture
+import           Fission.Internal.Mock.Effect.Types -- for reexport
+import           Fission.Internal.Mock.Config.Types -- for reexport
 
 import           Fission.Prelude
 import           Fission.IPFS.Linked.Class
 import           Fission.Web.Auth.Class
 import           Fission.Models
-import Fission.IPFS.DNSLink.Class
+import           Fission.IPFS.DNSLink.Class
 import           Fission.Web.Server.Reflective.Class
-
+import qualified Fission.Web.Types as Web
 
 import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
-
-import           Fission.Internal.Mock.Session.Types
-import           Network.IPFS.Local.Class
-
-import           Fission.Internal.Mock.Config.Types as Mock
 
 import           Fission.User                  as User
 import           Fission.User.CID              as User.CID
@@ -136,7 +131,7 @@ instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
     asks localIPFSCall
 
 instance IsMember RunRemoteIPFS effs => MonadRemoteIPFS (Mock effs) where
-  runRemote = undefined 
+  runRemote = undefined
   ipfsAdd bs = do
     Effect.log <| RemoteIPFSAdd bs
     asks remoteIPFSAdd
@@ -216,7 +211,7 @@ instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
     return . pure . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
     -- UserCID fixture goes here
 
-  getByCids cids = 
+  getByCids cids =
     cids
       |> foldr folder (0, [])
       |> snd
@@ -246,6 +241,6 @@ instance IsMember DestroyUserCID effs => User.CID.Destroyer (Mock effs) where
   destroy uid cid =
     Effect.log <| DestroyUserCID uid cid
 
-  destroyMany cidIds = 
+  destroyMany cidIds =
     forM_ cidIds \id ->
       Effect.log <| DestroyUserCIDById id
