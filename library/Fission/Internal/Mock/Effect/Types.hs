@@ -16,6 +16,7 @@ module Fission.Internal.Mock.Effect.Types
   , RetrieveUserCID    (..)
   , CreateUserCID      (..)
   , DestroyUserCID     (..)
+  , FissionEffs
   ) where
 
 import qualified Network.IPFS.Types  as IPFS
@@ -26,6 +27,26 @@ import           Data.UUID as UUID
 
 import           Fission.Prelude
 import           Fission.Models
+
+type FissionEffs =
+  '[ CheckTime
+   , RunAWS
+   , RunDB
+   , SetDNSLink
+   , UpdateRoute53
+   , RunLocalIPFS
+   , RunRemoteIPFS
+   , LogMsg
+   , DestroyHerokuAddOn
+   , DestroyUser
+   , DestroyUserCID
+   , RetrieveUser
+   , RetrieveUserCID
+   , ModifyUser
+   , CreateUser
+   , CreateUserCID
+   , CreateHerokuAddOn
+   ]
 
 data RunDB = RunDB
   deriving (Eq, Show)
