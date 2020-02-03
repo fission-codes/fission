@@ -4,6 +4,7 @@ module Test.Fission.Prelude
 
   --
   , module Test.Tasty
+  , module Test.Tasty.Hspec
   , module Test.Hspec.Wai
   , module Test.QuickCheck
   , module Servant.QuickCheck
@@ -19,13 +20,13 @@ import qualified Network.HTTP.Types as HTTP
 
 import           Servant.QuickCheck
 
-import           Test.Tasty
+import           Test.Tasty (TestTree, testGroup, defaultMain)
 import           Test.Tasty.Hspec
 
 import           Test.Hspec.Core.QuickCheck (modifyMaxSize)
-import           Test.Hspec.Wai
+import           Test.Hspec.Wai hiding (pending, pendingWith)
 
-import           Test.QuickCheck
+import           Test.QuickCheck hiding (Result (..))
 import           Test.QuickCheck.Instances ()
 
 import           Fission.Internal.Mock

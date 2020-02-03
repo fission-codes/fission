@@ -10,7 +10,10 @@ module Fission.Internal.Mock.Types
 import           Control.Monad.Catch
 import           Control.Monad.Trans.AWS
 
+import Database.Esqueleto as Database
+
 import           Network.IPFS.Remote.Class
+import qualified Network.IPFS.Types  as IPFS
 
 import           Servant
 import           Servant.Client
@@ -20,12 +23,11 @@ import qualified Fission.Web.Types as Web
 import           Network.AWS
 
 import           Control.Monad.Writer
-import           Database.Esqueleto
-
 
 import           Fission.Internal.Mock.Effect as Effect
 import           Fission.Internal.Mock.Effect.Types
 import           Fission.Internal.Mock.Config.Types
+import           Fission.Internal.Fixture as Fixture
 
 import           Fission.Prelude
 import           Fission.IPFS.Linked.Class
@@ -73,30 +75,24 @@ instance IsMember RunDB effs => MonadDB (Mock effs) (Mock effs) where
     Effect.log RunDB
     transaction
 
-instance IsMember GetLinkedPeers effs => MonadLinkedIPFS (Mock effs) where
+instance MonadLinkedIPFS (Mock effs) where
   getLinkedPeers = do
     peerList <- asks linkedPeers
-    Effect.log (GetLinkedPeers peerList)
     return peerList
 
-instance IsMember GetVerifier effs => MonadAuth Text (Mock effs) where
+instance MonadAuth Text (Mock effs) where
   verify = do
-    Effect.log GetVerifier
     isAuthed <- asks forceAuthed
     return <| BasicAuthCheck \_ ->
       return <| if isAuthed
                   then Authorized "YUP"
                   else Unauthorized
 
-instance IsMember GetVerifier effs => MonadAuth (Entity User) (Mock effs) where
-  verify = do
-    Effect.log GetVerifier
-    asks userVerifier
+instance MonadAuth (Entity User) (Mock effs) where
+  verify = asks userVerifier
 
-instance IsMember GetVerifier effs => MonadAuth Heroku.Auth (Mock effs) where
-  verify = do
-    Effect.log GetVerifier
-    asks herokuVerifier
+instance MonadAuth Heroku.Auth (Mock effs) where
+  verify = asks herokuVerifier
 
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
@@ -140,6 +136,7 @@ instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
     asks localIPFSCall
 
 instance IsMember RunRemoteIPFS effs => MonadRemoteIPFS (Mock effs) where
+  runRemote = undefined 
   ipfsAdd bs = do
     Effect.log <| RemoteIPFSAdd bs
     asks remoteIPFSAdd
@@ -172,57 +169,83 @@ instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Destroyer (Mock effs) 
 instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Retriever (Mock effs) where
   getByUUID uuid = do
     Effect.log <| DestroyHerokuAddOn uuid
-    pure Nothing
+    return Nothing
 
-instance Heroku.AddOn.Creator (Mock effs) where
-  create _ _ _ = do
-    -- Effect.log <| DestroyHerokuAddOn uuid
-    -- pure Nothing
-    undefined
+instance IsMember CreateHerokuAddOn effs => Heroku.AddOn.Creator (Mock effs) where
+  create uuid _ _ = do
+    Effect.log <| CreateHerokuAddOn uuid
+    return . Right <| Database.toSqlKey 0
 
-instance User.Retriever (Mock effs) where
-  getByUsername _username = do
-    -- Effect.log <| DestroyHerokuAddOn uuid
-    pure Nothing
+instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
+  getByUsername username = do
+    Effect.log <| GetUserByUsername username
+    return . Just <| Fixture.entity Fixture.user
 
-  getByHerokuAddOnId _ = do
-    -- Effect.log <| DestroyHerokuAddOn uuid
-    pure Nothing
+  getByHerokuAddOnId id = do
+    Effect.log <| GetUserByHerokuAddOnId id
+    pure <| Just <| Fixture.entity Fixture.user
 
-instance IsMember DestroyHerokuAddOn effs => User.Creator (Mock effs) where
+instance
+  ( IsMember CreateHerokuAddOn effs
+  , IsMember CreateUser        effs
+  )
+  => User.Creator (Mock effs) where
   create _ _ _ _ _ = do
-    -- Effect.log <| DestroyHerokuAddOn uuid
-    undefined
+    Effect.log CreateUser
+    return . Right <| Database.toSqlKey 0
 
-  createWithHeroku _ _ _ _ _ = do
-    -- Effect.log <| DestroyHerokuAddOn uuid
-    undefined
+  createWithHeroku uuid _ _ _ _ = do
+    Effect.log CreateUser
+    Effect.log <| CreateHerokuAddOn uuid
+    return . Right <| Database.toSqlKey 0
 
-instance User.Modifier (Mock effs) where
-  updatePassword _ _ _ = do
-    undefined
+instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
+  updatePassword uID password _ = do
+    Effect.log <| ModifyUser uID
+    return <| Right password
 
-instance User.Destroyer (Mock effs) where
-  destroy _ = do
-    undefined
+instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
+  destroy uid = Effect.log <| DestroyUser uid
 
-instance User.CID.Retriever (Mock effs) where
-  getByUserId _ = do
-    undefined
+instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
+  getByUserId uid = do
+    Effect.log <| GetUserCIDByUserId uid
+    let
+      userId = Database.toSqlKey 0
+      cid    = IPFS.CID "Qm12345"
+    return . pure . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
+    -- UserCID fixture goes here
 
-  getByCids _ = do
-    undefined
+  getByCids cids = 
+    cids
+      |> foldr folder (0, [])
+      |> snd
+      |> sequence
+    where
+      folder cid (counter, acc) =
+        (counter + 1, action cid counter : acc)
 
-instance User.CID.Creator (Mock effs) where
-  create _ _ _ = do
-    undefined
+      action :: IPFS.CID -> Int64 -> Mock effs (Entity UserCid)
+      action cid rawUserId = do
+        let userId = Database.toSqlKey rawUserId
+        Effect.log <| GetUserCIDByCID cid
+        return . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
 
-  createMany _ _ _ = do
-    undefined
+instance IsMember CreateUserCID effs => User.CID.Creator (Mock effs) where
+  create uid cid _ = do
+    Effect.log <| CreateUserCID uid cid
+    return . Just <| Database.toSqlKey 0
 
-instance User.CID.Destroyer (Mock effs) where
-  destroy _ _ = do
-    undefined
+  createMany uid cids _ = do
+    forM_ cids \cid ->
+      Effect.log <| CreateUserCID uid cid
 
-  destroyMany _ = do
-    undefined
+    return cids
+
+instance IsMember DestroyUserCID effs => User.CID.Destroyer (Mock effs) where
+  destroy uid cid =
+    Effect.log <| DestroyUserCID uid cid
+
+  destroyMany cidIds = 
+    forM_ cidIds \id ->
+      Effect.log <| DestroyUserCIDById id

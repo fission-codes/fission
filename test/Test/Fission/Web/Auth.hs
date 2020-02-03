@@ -1,16 +1,14 @@
 module Test.Fission.Web.Auth (tests) where
 
-import           Database.Esqueleto
 import           Servant
 
 import           Test.Tasty.Hspec
 import           Test.Fission.Prelude as Mock
 
-import           Fission.Models
-import           Fission.Web.Auth
-
 import           Fission.Internal.Fixture.Entity as Fixture
 import           Fission.Internal.Fixture.User   as Fixture
+
+import           Fission.Web.Auth
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 tests :: IO TestTree
@@ -21,7 +19,7 @@ tests = do
   ------------------------
 
   Mock.Session
-    { effectLog = effectLog :: [OpenUnion '[GetVerifier]]
+    { effectLog = _effectLog :: [OpenUnion '[]]
     , result = BasicAuthCheck userVerifier
             :. BasicAuthCheck herokuVerifier
             :. EmptyContext
@@ -36,12 +34,6 @@ tests = do
 
   testSpec "Fission.Web.Auth" <| parallel do
     describe "mkAuth" do
-      describe "effects" do
-        it "fires exactly two effects" do
-          effectLog
-            |> length
-            |> shouldBe 2
-
       describe "value" do
         context "user auth" do
           it "uses the encapsulated function" do

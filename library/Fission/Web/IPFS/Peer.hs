@@ -27,5 +27,6 @@ get ::
 get = do
   remotePeers <- getLinkedPeers
   getExternalAddress >>= \case
+    Right []    -> return remotePeers
     Right peers -> return (remotePeers <> NonEmpty.fromList peers)
     Left err    -> Web.Err.throw err

@@ -1,7 +1,5 @@
 module Fission.Internal.Mock.Effect.Types
   ( RunDB              (..)
-  , GetLinkedPeers     (..)
-  , GetVerifier        (..)
   , CheckTime          (..)
   , RunAWS             (..)
   , UpdateRoute53      (..)
@@ -9,7 +7,15 @@ module Fission.Internal.Mock.Effect.Types
   , RunLocalIPFS       (..)
   , RunRemoteIPFS      (..)
   , LogMsg             (..)
+  , CreateHerokuAddOn  (..)
   , DestroyHerokuAddOn (..)
+  , RetrieveUser       (..)
+  , CreateUser         (..)
+  , ModifyUser         (..)
+  , DestroyUser        (..)
+  , RetrieveUserCID    (..)
+  , CreateUserCID      (..)
+  , DestroyUserCID     (..)
   ) where
 
 import qualified Network.IPFS.Types  as IPFS
@@ -19,14 +25,9 @@ import Control.Monad.Logger
 import           Data.UUID as UUID
 
 import           Fission.Prelude
+import           Fission.Models
 
 data RunDB = RunDB
-  deriving (Eq, Show)
-
-newtype GetLinkedPeers = GetLinkedPeers (NonEmpty IPFS.Peer)
-  deriving (Eq, Show)
-
-data GetVerifier = GetVerifier
   deriving (Eq, Show)
 
 data CheckTime = CheckTime
@@ -56,4 +57,34 @@ data LogMsg = LogMsg LogLevel LogStr
   deriving (Eq, Show)
 
 data DestroyHerokuAddOn = DestroyHerokuAddOn UUID
+  deriving (Eq, Show)
+
+data CreateHerokuAddOn = CreateHerokuAddOn UUID
+  deriving (Eq, Show)
+
+data RetrieveUser
+  = GetUserByUsername Text
+  | GetUserByHerokuAddOnId HerokuAddOnId
+  deriving (Eq, Show)
+
+data CreateUser = CreateUser
+  deriving (Eq, Show)
+
+data ModifyUser = ModifyUser UserId
+  deriving (Eq, Show)
+
+data DestroyUser = DestroyUser UserId
+  deriving (Eq, Show)
+
+data RetrieveUserCID
+  = GetUserCIDByUserId UserId
+  | GetUserCIDByCID    IPFS.CID
+  deriving (Eq, Show)
+
+data CreateUserCID = CreateUserCID UserId IPFS.CID
+  deriving (Eq, Show)
+
+data DestroyUserCID
+  = DestroyUserCID UserId IPFS.CID
+  | DestroyUserCIDById UserCidId
   deriving (Eq, Show)
