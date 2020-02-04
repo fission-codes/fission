@@ -12,7 +12,7 @@ import qualified RIO.ByteString.Lazy as Lazy
 import           Servant
 import           Servant.Client
 
-import           Network.AWS
+import           Network.AWS as AWS
 import           Network.AWS.Route53
 
 import           Network.IPFS
@@ -117,7 +117,7 @@ instance MonadRoute53 Fission where
 
         req <- createChangeRequest
 
-        within NorthVirginia do
+        AWS.within NorthVirginia do
           res <- send req
           return <| validate res
 

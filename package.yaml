@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '2.0.7'
+version: '2.0.8'
 category: API
 author:
   - Brooklyn Zelenka
@@ -109,6 +109,7 @@ dependencies:
   - ip
   - ipfs
   - lens
+  - lens-aeson
   - mime-types
   - monad-logger
   - monad-time
@@ -116,6 +117,8 @@ dependencies:
   - persistent
   - persistent-postgresql
   - persistent-template
+  - QuickCheck
+  - quickcheck-instances
   - random-bytestring
   - resource-pool
   - regex-compat
@@ -174,7 +177,7 @@ executables:
 tests:
   fission-doctest:
     main: Main.hs
-    source-dirs: test/doctest
+    source-dirs: doctest
     ghc-options:
       - -threaded
       - -rtsopts
@@ -185,8 +188,6 @@ tests:
       - doctest
       - Glob
       - lens-aeson
-      - QuickCheck
-      - quickcheck-instances
       - yaml
 
   fission-test:
@@ -194,17 +195,20 @@ tests:
     source-dirs:
       - library
       - test
-      - test/testsuite
     ghc-options:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - aeson
       - hspec
+      - hspec-core
+      - hspec-expectations
       - hspec-wai
       - hspec-wai-json
       - fission-web-api
+      - QuickCheck
+      - quickcheck-instances
+      - servant-quickcheck
       - tasty
       - tasty-hunit
       - tasty-hspec
@@ -212,29 +216,9 @@ tests:
       - tasty-rerun
       - transformers
 
-  # fission-coverage-code:
-  #   main: Main.hs
-  #   source-dirs: test/code-coverage
-  #   ghc-options:
-  #     - -fhpc
-  #   dependencies:
-  #     - base
-  #     - fission-web-api
-  #     - process
-  #     - regex-compat
-
-  # fission-coverage-docs:
-  #   main: Main.hs
-  #   source-dirs: test/doc-coverage
-  #   dependencies:
-  #     - doctest
-  #     - fission-web-api
-  #     - process
-  #     - regex-compat
-
   fission-lint:
     main: Main.hs
-    source-dirs: test/lint
+    source-dirs: lint
     dependencies:
       - base
       - hlint

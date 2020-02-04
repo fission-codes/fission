@@ -13,6 +13,7 @@ module Fission.Prelude
   , module RIO
   , module RIO.Process
   , module RIO.Time
+  , module Test.QuickCheck
   , headMaybe
   , identity
   , intercalate
@@ -61,6 +62,9 @@ import RIO hiding ( Handler
                   , (&)
                   , (^.)
                   )
+
+import Test.QuickCheck hiding (Result (..))
+import Test.QuickCheck.Instances ()
 
 import Fission.Internal.Orphanage.OpenUnion ()
 import Fission.Internal.MonadDB

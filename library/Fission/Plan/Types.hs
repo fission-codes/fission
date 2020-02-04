@@ -11,11 +11,15 @@ import Fission.Prelude
 data Tier
   = Test
   | Free
-  --  | Paid
+  --  | Basic
+  --  | Pro
   deriving ( Eq
            , Show
            , Generic
            )
+
+instance Arbitrary Tier where
+  arbitrary = elements [Test, Free]
 
 instance ToJSON Tier where
   toJSON tier = String <| Text.toLower <| textDisplay <| displayShow tier

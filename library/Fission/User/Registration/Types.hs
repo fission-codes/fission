@@ -10,6 +10,14 @@ data Registration = Registration
   , email    :: !Text
   }
 
+instance Arbitrary Registration where
+  arbitrary = do
+    username <- arbitrary
+    password <- arbitrary
+    email    <- arbitrary
+
+    return Registration {..}
+
 instance ToJSON Registration where
   toJSON Registration { username, password, email } =
     Object [ ("username", String username)

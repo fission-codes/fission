@@ -3,6 +3,9 @@ package = fission-web-api
 stack_yaml = STACK_YAML="stack.yaml"
 stack = $(stack_yaml) stack
 
+serve:
+	$(stack) run
+
 build:
 	$(stack) build --fast $(package):lib
 
@@ -15,26 +18,32 @@ dirty:
 profile:
 	$(stack) --work-dir .stack-work-profiling --profile build --fast
 
-install:
+install-dev:
 	$(stack) install --fast
+
+install:
+	$(stack) install 
 
 ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
 
-test:
+quality:
 	$(stack) build --test --fast $(package)
 
-test-docs:
+linter:
+	$(stack) test :fission-lint --fast
+
+doctest:
 	$(stack) test :fission-doctest --fast
+
+testsuite:
+	$(stack) test :fission-test --fast
 
 test-ghci:
 	$(stack) ghci $(package):test:$(package)-tests --ghci-options='-j6 +RTS -A128m'
 
-test-suite:
-	$(stack) test :fission-test --fast
-
 bench:
-	$(stack) build --fast --bench $(package)
+	$(stack) build --bench $(package)
 
 dev:
 	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"

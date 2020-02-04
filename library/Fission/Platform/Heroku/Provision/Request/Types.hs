@@ -18,6 +18,16 @@ data Request = Request
              , Show
              )
 
+instance Arbitrary Request where
+  arbitrary = do
+    callbackUrl <- arbitrary
+    name        <- arbitrary
+    plan        <- arbitrary
+    region      <- arbitrary
+    uuid        <- arbitrary
+
+    return Request {..}
+
 instance ToJSON Request where
   toJSON Request {..} = object
     [ "callback_url" .= callbackUrl

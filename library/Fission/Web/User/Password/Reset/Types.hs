@@ -8,6 +8,9 @@ import qualified Fission.User.Password.Types as User
 newtype Reset = Reset { maybePassword :: Maybe User.Password }
   deriving Show
 
+instance Arbitrary Reset where
+  arbitrary = Reset <$> arbitrary
+
 instance ToJSON Reset where
   toJSON (Reset password) =
     Object [("password", maybe Null (String . User.password) password)]

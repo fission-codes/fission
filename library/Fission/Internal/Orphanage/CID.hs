@@ -10,6 +10,12 @@ import           RIO
 import qualified RIO.Text as Text
 import           Network.IPFS.CID.Types
 
+import           Test.QuickCheck
+import           Test.QuickCheck.Instances.Text ()
+
+instance Arbitrary CID where
+  arbitrary = CID <$> arbitrary
+
 instance PersistField CID where
   toPersistValue (CID hash) = PersistText hash
   fromPersistValue = \case

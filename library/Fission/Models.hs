@@ -61,6 +61,9 @@ UserCid
   deriving Show Eq
 |]
 
+instance Arbitrary UserId where
+  arbitrary = toSqlKey <$> arbitrary
+
 instance Digestable UserId where
   digest = digest . UTF8.textShow
 

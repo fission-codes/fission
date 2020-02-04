@@ -6,11 +6,16 @@ import           Database.Persist.Sql
 import           Network.IPFS.Types as IPFS
 import qualified Servant.Client as Client
 
+import          Test.QuickCheck
+import          Test.QuickCheck.Instances ()
+
 import           Fission.Models
 import           Fission.Prelude
 
 import qualified Fission.User.Provision.Types  as User
 import           Fission.Security.Types
+
+import Fission.Internal.Orphanage.Peer ()
 
 {-| Response Parameters
 
@@ -46,6 +51,14 @@ data Provision = Provision
   } deriving ( Eq
              , Show
              )
+
+instance Arbitrary Provision where
+  arbitrary = do
+    id      <- arbitrary
+    config  <- arbitrary
+    peers   <- arbitrary
+    message <- arbitrary
+    return Provision {..}
 
 instance FromJSON Provision where
   parseJSON = withObject "Provision" \obj -> do

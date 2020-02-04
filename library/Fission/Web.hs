@@ -3,6 +3,7 @@ module Fission.Web
   ( API
   , app
   , server
+  , bizServer
   ) where
 
 import           Network.IPFS
@@ -19,8 +20,8 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
-import qualified Fission.User as User
-import qualified Fission.User.CID as User.CID
+import qualified Fission.User                  as User
+import qualified Fission.User.CID              as User.CID
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Auth    as Auth
@@ -87,3 +88,25 @@ server appHost = Web.Swagger.server fromHandler appHost
             :<|> User.server
             :<|> pure Ping.pong
             :<|> DNS.server
+
+bizServer ::
+  ( MonadReflectiveServer m
+  , MonadLinkedIPFS       m
+  , MonadRemoteIPFS       m
+  , MonadLocalIPFS        m
+  , MonadDNSLink          m
+  , MonadLogger           m
+  , MonadTime             m
+  , MonadDB             t m
+  , MonadLogger         t
+  , MonadThrow          t
+  , Heroku.AddOn.CRUD   t
+  , User.CRUD           t
+  , User.CID.CRUD       t
+  )
+  => ServerT Web.API m
+bizServer = IPFS.server
+       :<|> (\_ -> Heroku.server)
+       :<|> User.server
+       :<|> pure Ping.pong
+       :<|> DNS.server
