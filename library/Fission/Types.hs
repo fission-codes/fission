@@ -13,7 +13,7 @@ import           Servant
 import           Servant.Client
 
 import           Network.AWS as AWS
-import           Network.AWS.Route53
+import           Network.AWS.Route53 as Route53
 
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
@@ -25,7 +25,8 @@ import           Fission.Prelude
 import           Fission.Config.Types
 
 import           Fission.AWS
-import           Fission.AWS.Types as AWS
+import           Fission.AWS.Types   as AWS
+import           Fission.AWS.Route53 as Route53
 
 import           Fission.Internal.UTF8
 
@@ -84,59 +85,13 @@ instance MonadAWS Fission where
       |> runResourceT
 
 instance MonadRoute53 Fission where
-  update recordType (URL.DomainName domain) content = do
+  update recordType domain content = do
     AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
 
     if mockRoute53
-       then changeRecordMock
-       else changeRecord'
-
-    where
-      changeRecordMock = do
-          mockTime <- currentTime
-
-          let
-            mockMessage = mconcat
-              [ "MOCK: Updating DNS "
-              , show recordType
-              , " record at: "
-              , show domain
-              , " with "
-              , show content
-              ]
-
-            mockId             = "test123"
-            mockChangeInfo     = changeInfo mockId Pending mockTime
-            mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
-
-          logDebug mockMessage
-          return (Right mockRecordResponse)
-
-      changeRecord' = do
-        logDebug <| "Updating DNS record at: " <> displayShow domain
-
-        req <- createChangeRequest
-
-        AWS.within NorthVirginia do
-          res <- send req
-          return <| validate res
-
-      -- | Create the AWS change request for Route53
-      createChangeRequest = do
-        ZoneID zoneId <- asks awsZoneID
-        content
-          |> addValue (resourceRecordSet domain recordType)
-          |> change Upsert
-          |> return
-          |> changeBatch
-          |> changeResourceRecordSets (ResourceId zoneId)
-          |> return
-
-      addValue :: ResourceRecordSet -> Text -> ResourceRecordSet
-      addValue recordSet value =
-        recordSet
-          |> rrsTTL ?~ 10
-          |> rrsResourceRecords ?~ pure (resourceRecord value)
+      then Route53.changeRecordMock recordType domain content
+      else
+        Route53.changeRecord' recordType domain content =<< asks awsZoneID
 
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do
