@@ -16,10 +16,14 @@ import           Database.Esqueleto as Database
 import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
 import qualified Network.IPFS.Types as IPFS
+
 import           Network.AWS
+import           Network.Wai as Wai
 
 import           Servant
 import           Servant.Client
+import           Servant.Server.Experimental.Auth
+
 
 import           Fission.Internal.Fixture            as Fixture
 import           Fission.Internal.Mock.Effect        as Effect
@@ -30,10 +34,14 @@ import           Fission.Internal.Mock.Effect.Types -- for reexport
 import           Fission.Internal.Mock.Config.Types -- for reexport
 
 import           Fission.Prelude
+
 import           Fission.IPFS.Linked.Class
-import           Fission.Web.Auth.Class
-import           Fission.Models
 import           Fission.IPFS.DNSLink.Class
+
+import           Fission.Models
+import           Fission.User.DID.Types
+
+import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Reflective.Class
 import qualified Fission.Web.Types as Web
 
@@ -83,11 +91,14 @@ instance MonadAuth (BasicAuthCheck String) (Mock effs) where
                   then Authorized "YUP"
                   else Unauthorized
 
-instance MonadAuth (BasicAuthCheck (Entity User)) (Mock effs) where
-  getVerifier = asks userVerifier
-
 instance MonadAuth (BasicAuthCheck Heroku.Auth) (Mock effs) where
   getVerifier = asks herokuVerifier
+
+instance MonadAuth (AuthHandler Wai.Request DID) (Mock effs) where
+  getVerifier = asks didVerifier
+
+instance MonadAuth (AuthHandler Wai.Request (Entity User)) (Mock effs) where
+  getVerifier = asks userVerifier
 
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
@@ -213,11 +224,12 @@ instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
 instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
   getByUserId uid = do
     Effect.log <| GetUserCIDByUserId uid
+
     let
       userId = Database.toSqlKey 0
       cid    = IPFS.CID "Qm12345"
+
     return . pure . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
-    -- UserCID fixture goes here
 
   getByCids cids =
     cids

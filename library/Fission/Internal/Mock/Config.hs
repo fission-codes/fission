@@ -9,10 +9,12 @@ import           Network.IPFS.File.Types as File
 import           Network.IPFS.Client.Pin as IPFS.Client
 
 import           Servant
+import Servant.Server.Experimental.Auth
 
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.URL.Types as URL
+import           Fission.User.DID.Types
 
 import           Fission.Internal.Fixture.Time as Fixture
 import           Fission.Internal.Fixture.Entity as Fixture
@@ -26,7 +28,8 @@ defaultConfig :: Config
 defaultConfig = Config
   { now             = agesAgo
   , linkedPeers     = pure <| IPFS.Peer "ipv4/fakepeeraddress"
-  , userVerifier    = BasicAuthCheck \_ -> pure . Authorized <| Fixture.entity Fixture.user
+  , didVerifier     = mkAuthHandler \_ -> return <| DID "thisismydid"
+  , userVerifier    = mkAuthHandler \_ -> return <| Fixture.entity Fixture.user
   , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized <| Heroku.Auth "FAKE HEROKU"
   , localIPFSCall   = Right "Qm1234567890"
   , forceAuthed     = True
