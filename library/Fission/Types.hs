@@ -87,11 +87,17 @@ instance MonadAWS Fission where
 instance MonadRoute53 Fission where
   update recordType domain content = do
     AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
-
     if mockRoute53
       then Route53.changeRecordMock recordType domain content
       else
         Route53.changeRecord' recordType domain content =<< asks awsZoneID
+
+  createZone domain = do
+    AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
+    if mockRoute53
+      then Route53.createHostedZoneMock domain
+      else Route53.createHostedZone' domain
+
 
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do

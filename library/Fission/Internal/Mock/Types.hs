@@ -105,19 +105,26 @@ instance IsMember CheckTime effs => MonadTime (Mock effs) where
     asks now
 
 instance
-  ( IsMember RunAWS        effs
-  , IsMember UpdateRoute53 effs
+  ( IsMember RunAWS           effs
+  , IsMember UpdateRoute53    effs
+  , IsMember CreateHostedZone effs
   )
   => MonadRoute53 (Mock effs) where
   update r d t = do
     Effect.log UpdateRoute53
     runner <- asks updateRoute53
     return <| runner r d t
+  
+  createZone d = do
+    Effect.log CreateHostedZone
+    runner <- asks createHostedZone
+    return <| runner d
 
 instance
-  ( IsMember UpdateRoute53 effs
-  , IsMember SetDNSLink    effs
-  , IsMember RunAWS        effs
+  ( IsMember UpdateRoute53    effs
+  , IsMember CreateHostedZone effs
+  , IsMember SetDNSLink       effs
+  , IsMember RunAWS           effs
   )
   => MonadDNSLink (Mock effs) where
   set s c = do

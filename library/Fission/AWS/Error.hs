@@ -3,15 +3,15 @@ module Fission.AWS.Error (validate) where
 import RIO
 
 import Servant
-import Network.AWS.Route53
 
+import Fission.AWS.Response as AWS
 import Fission.Web.Error
 
-validate :: ChangeResourceRecordSetsResponse -> Either ServerError ChangeResourceRecordSetsResponse
-validate changeSet =
-  if status >= 300
-    then Left (toServerError status)
-    else Right changeSet
+validate :: AWS.Response a => a -> Either ServerError a
+validate res =
+  if code >= 300
+    then Left (toServerError code)
+    else Right res
 
   where
-    status = changeSet ^. crrsrsResponseStatus
+    code = status res

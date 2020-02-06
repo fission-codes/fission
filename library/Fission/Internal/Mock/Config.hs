@@ -3,7 +3,6 @@ module Fission.Internal.Mock.Config
   , defaultConfig
   ) where
 
-import           Network.AWS.Route53
 import qualified Network.IPFS.Types as IPFS
 import           Network.IPFS.File.Types as File
 import           Network.IPFS.Client.Pin as IPFS.Client
@@ -13,6 +12,8 @@ import           Servant
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.URL.Types as URL
+
+import           Fission.AWS.Route53 as Route53
 
 import           Fission.Internal.Fixture.Time as Fixture
 import           Fission.Internal.Fixture.Entity as Fixture
@@ -34,10 +35,7 @@ defaultConfig = Config
   , remoteIPFSCat   = Right <| File.Serialized "hello world"
   , remoteIPFSPin   = Right <| IPFS.Client.Response [IPFS.CID "Qmfhajhfjka"]
   , remoteIPFSUnpin = Right <| IPFS.Client.Response [IPFS.CID "Qmhjsdahjhkjas"]
-  , setDNSLink      = \_ _   -> Right <| DomainName "example.com"
-  , updateRoute53   = \_ _ _ ->
-      agesAgo
-        |> changeInfo "ciId" Insync
-        |> changeResourceRecordSetsResponse 200
-        |> Right
+  , setDNSLink      = \_ _ -> Right <| DomainName "example.com"
+  , updateRoute53   = Route53.changeRecordMockPure agesAgo
+  , createHostedZone = Route53.createHostedZoneMockPure agesAgo 
   }

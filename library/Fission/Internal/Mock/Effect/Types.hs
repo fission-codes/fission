@@ -3,6 +3,7 @@ module Fission.Internal.Mock.Effect.Types
   , CheckTime          (..)
   , RunAWS             (..)
   , UpdateRoute53      (..)
+  , CreateHostedZone   (..)
   , SetDNSLink         (..)
   , RunLocalIPFS       (..)
   , RunRemoteIPFS      (..)
@@ -34,6 +35,7 @@ type FissionEffs =
    , RunDB
    , SetDNSLink
    , UpdateRoute53
+   , CreateHostedZone
    , RunLocalIPFS
    , RunRemoteIPFS
    , LogMsg
@@ -58,6 +60,9 @@ data RunAWS = RunAWS
   deriving (Eq, Show)
 
 data UpdateRoute53 = UpdateRoute53
+  deriving (Eq, Show)
+
+data CreateHostedZone = CreateHostedZone
   deriving (Eq, Show)
 
 data SetDNSLink = SetDNSLink
