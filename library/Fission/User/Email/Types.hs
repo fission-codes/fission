@@ -29,6 +29,4 @@ instance MimeUnrender PlainText Email where
     bs
       |> Lazy.toStrict
       |> decodeUtf8'
-      |> \case
-          Left err  -> Left  <| show err
-          Right txt -> Right <| Email txt
+      |> bimap show Email
