@@ -25,17 +25,17 @@ import           Fission.Internal.Orphanage.Serilaized ()
 
 defaultConfig :: Config
 defaultConfig = Config
-  { now             = agesAgo
-  , linkedPeers     = pure <| IPFS.Peer "ipv4/fakepeeraddress"
-  , userVerifier    = BasicAuthCheck \_ -> pure . Authorized <| Fixture.entity Fixture.user
-  , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized <| Heroku.Auth "FAKE HEROKU"
-  , localIPFSCall   = Right "Qm1234567890"
-  , forceAuthed     = True
-  , remoteIPFSAdd   = Right <| IPFS.CID "Qm1234567890"
-  , remoteIPFSCat   = Right <| File.Serialized "hello world"
-  , remoteIPFSPin   = Right <| IPFS.Client.Response [IPFS.CID "Qmfhajhfjka"]
-  , remoteIPFSUnpin = Right <| IPFS.Client.Response [IPFS.CID "Qmhjsdahjhkjas"]
-  , setDNSLink      = \_ _ -> Right <| DomainName "example.com"
-  , updateRoute53   = Route53.changeRecordMockPure agesAgo
+  { now              = agesAgo
+  , linkedPeers      = pure <| IPFS.Peer "ipv4/fakepeeraddress"
+  , userVerifier     = BasicAuthCheck \_ -> pure . Authorized <| Fixture.entity Fixture.user
+  , herokuVerifier   = BasicAuthCheck \_ -> pure . Authorized <| Heroku.Auth "FAKE HEROKU"
+  , localIPFSCall    = Right "Qm1234567890"
+  , forceAuthed      = True
+  , remoteIPFSAdd    = Right <| IPFS.CID "Qm1234567890"
+  , remoteIPFSCat    = Right <| File.Serialized "hello world"
+  , remoteIPFSPin    = Right <| IPFS.Client.Response [IPFS.CID "Qmfhajhfjka"]
+  , remoteIPFSUnpin  = Right <| IPFS.Client.Response [IPFS.CID "Qmhjsdahjhkjas"]
+  , setDNSLink       = \_ _ -> Right <| DomainName "example.com"
+  , updateRoute53    = Route53.changeRecordMockPure agesAgo
   , createHostedZone = Route53.createHostedZoneMockPure agesAgo 
   }
