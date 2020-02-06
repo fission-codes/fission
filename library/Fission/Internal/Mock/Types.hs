@@ -75,19 +75,19 @@ instance MonadLinkedIPFS (Mock effs) where
     peerList <- asks linkedPeers
     return peerList
 
-instance MonadAuth Text (Mock effs) where
-  verify = do
+instance MonadAuth (BasicAuthCheck String) (Mock effs) where
+  getVerifier = do
     isAuthed <- asks forceAuthed
     return <| BasicAuthCheck \_ ->
       return <| if isAuthed
                   then Authorized "YUP"
                   else Unauthorized
 
-instance MonadAuth (Entity User) (Mock effs) where
-  verify = asks userVerifier
+instance MonadAuth (BasicAuthCheck (Entity User)) (Mock effs) where
+  getVerifier = asks userVerifier
 
-instance MonadAuth Heroku.Auth (Mock effs) where
-  verify = asks herokuVerifier
+instance MonadAuth (BasicAuthCheck Heroku.Auth) (Mock effs) where
+  getVerifier = asks herokuVerifier
 
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
@@ -176,6 +176,10 @@ instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
     Effect.log <| GetUserByUsername username
     return . Just <| Fixture.entity Fixture.user
 
+  getByDid did = do
+    Effect.log <| GetUserByDid did
+    return . Just <| Fixture.entity Fixture.user
+
   getByHerokuAddOnId id = do
     Effect.log <| GetUserByHerokuAddOnId id
     pure <| Just <| Fixture.entity Fixture.user
@@ -198,6 +202,10 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
   updatePassword uID password _ = do
     Effect.log <| ModifyUser uID
     return <| Right password
+
+  updateDID uID newDID _ = do
+    Effect.log <| ModifyUser uID
+    return newDID
 
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
   destroy uid = Effect.log <| DestroyUser uid

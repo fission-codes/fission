@@ -10,7 +10,7 @@ import           Fission.User.DID      as DID
 
 class Monad m => Modifier m where
   updatePassword :: UserId -> Password -> UTCTime -> m (Either Password.FailedDigest Password)
-  updateDID :: UserId -> DID -> UTCTime -> m (DID)
+  updateDID      :: UserId -> DID -> UTCTime -> m (DID)
 
 instance MonadIO m => Modifier (Transaction m) where
   updatePassword userId (Password password) now =

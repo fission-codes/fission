@@ -22,11 +22,12 @@ module Fission.Internal.Mock.Effect.Types
 import qualified Network.IPFS.Types  as IPFS
 import qualified RIO.ByteString.Lazy as Lazy
 
-import Control.Monad.Logger
+import           Control.Monad.Logger
 import           Data.UUID as UUID
 
 import           Fission.Prelude
 import           Fission.Models
+import           Fission.User.DID.Types
 
 type FissionEffs =
   '[ CheckTime
@@ -85,6 +86,7 @@ data CreateHerokuAddOn = CreateHerokuAddOn UUID
 
 data RetrieveUser
   = GetUserByUsername Text
+  | GetUserByDid      DID
   | GetUserByHerokuAddOnId HerokuAddOnId
   deriving (Eq, Show)
 
