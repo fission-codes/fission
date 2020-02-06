@@ -3,22 +3,18 @@ module Fission.Web.DNS
   , server
   ) where
 
-import           Network.IPFS.CID.Types
-import           Database.Esqueleto
 import           Servant
 
-import           Fission.Prelude
-import           Fission.Models
-
 import           Fission.IPFS.DNSLink.Class as DNSLink
-import qualified Fission.URL.Types          as URL
-import           Fission.Web.Error          as Web.Err
 
-type API = Capture "cid" CID
-        :> PutAccepted '[PlainText, OctetStream] URL.DomainName
+import           Fission.Web.Auth.Types     as Auth
+import qualified Fission.Web.DNS.Create as DNS.Create
+import qualified Fission.Web.DNS.Update as DNS.Update
 
-server :: MonadDNSLink m => Entity User -> ServerT API m
-server (Entity _id User { userUsername }) cid =
-  cid
-    |> DNSLink.set (Just (URL.Subdomain userUsername))
-    |> bind Web.Err.ensureM
+type API = Auth.ExistingUser :> UnauthedAPI
+type UnauthedAPI = DNS.Create.API
+              :<|> DNS.Update.API
+
+server :: MonadDNSLink m => ServerT API m
+server usr = DNS.Create.server usr
+        :<|> DNS.Update.server usr

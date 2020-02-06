@@ -13,7 +13,11 @@ newtype DomainName = DomainName { getDomainName :: Text }
                     , Generic
                     , Show
                     )
+  deriving anyclass ( ToParamSchema )
   deriving newtype  ( IsString )
+
+instance FromHttpApiData DomainName where
+  parseUrlPiece = Right . DomainName
 
 instance ToSchema DomainName where
   declareNamedSchema _ =

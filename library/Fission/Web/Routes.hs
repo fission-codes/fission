@@ -35,6 +35,4 @@ type HerokuRoute = "heroku"
                    :> Auth.HerokuAddOnAPI
                    :> Heroku.API
 
-type DNSRoute = "dns"
-                :> Auth.ExistingUser
-                :> DNS.API
+type DNSRoute = "dns" :> DNS.API
