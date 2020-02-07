@@ -19,7 +19,7 @@ instance MonadIO m => Retriever (Transaction m) where
     , UserActive   P.==. True
     ] []
 
-  getByDid (DID did) = selectFirst
+  getByDid did = selectFirst
     [ UserDid      P.==. Just did
     , UserActive   P.==. True
     ] []

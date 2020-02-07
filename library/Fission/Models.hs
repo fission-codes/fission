@@ -18,12 +18,15 @@ import           Fission.Prelude
 
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
+
+import           Fission.User.DID.Types
 import           Fission.User.Role.Types
 
 import           Fission.Internal.Orphanage.CID  ()
 import           Fission.Internal.Orphanage.UUID ()
 
 import qualified Fission.Internal.UTF8 as UTF8
+
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 HerokuAddOn
@@ -37,7 +40,7 @@ HerokuAddOn
   deriving Show Eq
 
 User
-  did           Text          Maybe
+  did           DID           Maybe
   username      Text
   email         Text          Maybe
   role          Role

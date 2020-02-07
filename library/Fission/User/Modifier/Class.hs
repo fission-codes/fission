@@ -26,9 +26,10 @@ instance MonadIO m => Modifier (Transaction m) where
 
         return . Right <| Password password
 
-  updateDID userID (DID did) now = do
+  updateDID userID did now = do
     update userID
       [ UserDid          =. Just did
       , UserModifiedAt   =. now
       ]
-    return <| DID did
+
+    return did

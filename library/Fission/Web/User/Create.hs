@@ -29,7 +29,7 @@ server ::
   -> ServerT API m
 server did (User.Registration username email) = do
   Nothing
-    |> User.create username (Left did) (Just email)
+    |> User.create username did (Just email)
     |> runDBNow
     |> bind Web.Err.ensure
     |> void

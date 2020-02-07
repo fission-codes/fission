@@ -27,7 +27,7 @@ class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry with optional heroku add-on
   create ::
        Text
-    -> Either DID Text
+    -> DID
     -> Maybe Text
     -> Maybe HerokuAddOnId
     -> UTCTime
@@ -43,44 +43,47 @@ class Heroku.AddOn.Creator m => Creator m where
     -> m (Either Errors UserId)
 
 instance MonadIO m => Creator (Transaction m) where
-  create username didOrPW email herokuAddOnId now =
-    parsePW didOrPW >>= \case
+  create username did email herokuAddOnId now =
+    User
+      { userDid           = Just did
+      , userUsername      = username
+      , userEmail         = email
+      , userRole          = Regular
+      , userActive        = True
+      , userHerokuAddOnId = herokuAddOnId
+      , userSecretDigest  = Nothing
+      , userInsertedAt    = now
+      , userModifiedAt    = now
+      }
+    |> insertUnique
+    |> bind \case
+      Just userID ->
+        return (Right userID)
+
+      Nothing ->
+        return . Left <| openUnionLift User.AlreadyExists
+
+  createWithHeroku herokuUUID herokuRegion username password now =
+    Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
       Left err ->
-        return <| Left <| openUnionLift err
+        return . Left <| openUnionLift err
 
-      Right maybeDigest -> do
-        let 
-          maybeDid = parseDID didOrPW
-          newUserRecord = User
-              { userDid           = maybeDid
-              , userUsername      = username
-              , userEmail         = email
-              , userRole          = Regular
-              , userActive        = True
-              , userHerokuAddOnId = herokuAddOnId
-              , userSecretDigest  = maybeDigest
-              , userInsertedAt    = now
-              , userModifiedAt    = now
-              }
-
-        insertUnique newUserRecord >>= \case
+      Right herokuAddOnId ->
+        User
+          { userDid           = Nothing
+          , userUsername      = username
+          , userEmail         = Nothing
+          , userRole          = Regular
+          , userActive        = True
+          , userHerokuAddOnId = Just herokuAddOnId
+          , userSecretDigest  = Just password
+          , userInsertedAt    = now
+          , userModifiedAt    = now
+          }
+        |> insertUnique
+        |> bind \case
           Just userID ->
             return (Right userID)
 
           Nothing ->
             return <| Left <| openUnionLift User.AlreadyExists
-    where
-      -- parsePW :: MonadIO m => Either DID Text -> m (Either Password.FailedDigest (Maybe Text))
-      parsePW (Left _) = return <| Right Nothing
-      parsePW (Right pw) = Password.hashPassword pw >>= \case
-        Left err -> return <| Left err
-        Right digest -> return <| Right <| Just digest
-
-      parseDID :: Either DID Text -> Maybe Text
-      parseDID (Left did) = Just <| unDID did
-      parseDID (Right _) = Nothing
-
-  createWithHeroku herokuUUID herokuRegion username password now = do
-    Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
-      Right addOnId -> create username (Right password) Nothing (Just addOnId) now
-      Left  err     -> return <| Left <| openUnionLift err
