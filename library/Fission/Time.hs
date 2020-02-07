@@ -14,6 +14,5 @@ doherty = 0.4
 dohertyMicroSeconds :: Int
 dohertyMicroSeconds = 400000
 
-getCurrentPOSIXTime :: MonadTime m => m Integer
-getCurrentPOSIXTime =
-  currentTime >>= return . round . utcTimeToPOSIXSeconds 
+getCurrentPOSIXTime :: MonadTime m => m Int
+getCurrentPOSIXTime = round . utcTimeToPOSIXSeconds <$> currentTime

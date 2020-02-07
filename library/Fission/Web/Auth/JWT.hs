@@ -97,7 +97,7 @@ validateHeader bytes =
 
 validateTime :: MonadTime m => JWT.Payload -> m (Either JWT.Error ())
 validateTime JWT.Payload { exp, nbf } = do
-  time <- fromIntegral <$> getCurrentPOSIXTime
+  time <- getCurrentPOSIXTime
   return if | time > exp -> Left JWT.Expired
             | time < nbf -> Left JWT.TooEarly
             | otherwise  -> Right ()
