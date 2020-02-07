@@ -1,6 +1,7 @@
 module Fission.Web.Auth.Token.Basic
   ( handler
   , checkUser
+  , parseBasic
   ) where
 
 import qualified Data.ByteString.Char8  as Ch
@@ -14,9 +15,10 @@ import           Fission.Prelude
 import           Fission.Models
 import qualified Fission.User as User
 
+import Fission.Web.Error
+
 import qualified Fission.Web.Auth.Error as Auth
 import qualified Fission.Web.Auth.Token.Basic.Types as Auth.Basic
-
 
 handler ::
   ( MonadIO          m
@@ -28,12 +30,8 @@ handler ::
   => Auth.Basic.Token
   -> m (Entity User)
 handler token = do
-  case parseBasic token of
-    Left err -> throwM err
-    Right auth -> do
-      checkUser auth >>= \case
-        Left err -> throwM err
-        Right usr -> return usr
+  auth <- ensureM <| parseBasic token
+  ensureM =<< checkUser auth
 
 checkUser ::
   ( MonadLogger      m
