@@ -13,4 +13,4 @@ runFission :: MonadIO m => Config -> Fission a -> m a
 runFission cfg actions =
   actions
     |> unwrapFission
-      |> runRIO cfg
+    |> runRIO cfg
