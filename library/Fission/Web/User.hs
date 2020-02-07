@@ -33,22 +33,22 @@ type API = RegisterRoute
 type Auth = Auth.HigherOrder
 
 type RegisterRoute = Auth.RegisterDid
-                    :> Create.API
+                  :> Create.API
 
 type VerifyRoute = "verify"
                    :> Auth
                    :> Verify.API
 
 type UpdateDIDRoute = "update_did"
-                    :> Auth
-                    :> UpdateDID.API
+                      :> Auth
+                      :> UpdateDID.API
 
 type ResetRoute = "reset_password"
                   :> Auth
                   :> Reset.API
 
 type EmailRoute = "email"
-                   :> Email.API
+                  :> Email.API
 
 server ::
   ( MonadDNSLink     m
