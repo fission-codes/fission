@@ -3,12 +3,15 @@ module Fission.AWS.CertManager
   , requestCertMock
   , describeCert'
   , describeCertMock
+  , parseValidation
   , module Fission.AWS.CertManager.Class
   ) where
 
 import           Fission.Prelude
 import           RIO ((^.))
+import           Control.Lens ((&))
 import           Servant
+import qualified Data.List.NonEmpty  as NonEmpty 
 
 import           Network.AWS         as AWS
 import           Network.AWS.CertificateManager
@@ -31,7 +34,11 @@ requestCert' ::
 requestCert' (URL.DomainName domain) = do
   logDebug <| "Requesting cert for domain: " <> displayShow domain
 
-  res <- send <| requestCertificate domain
+  let 
+    req' = requestCertificate domain
+    req = req' & rcValidationMethod ?~  DNS
+
+  res <- send <| req
 
   return <| case validate res of 
     Left err -> Left err
@@ -55,22 +62,49 @@ describeCert' ::
   , MonadLogger m
   )
   => CertARN
-  -> m (Either ServerError DescribeCertificateResponse)
+  -> m (Either ServerError CertificateDetail)
 describeCert' (CertARN arn) = do
   logDebug <| "Describing cert : " <> displayShow arn
 
   res <- send <| describeCertificate arn
-  return <| validate res
+  logDebugN "blah 1"
+  return <| case validate res of
+    Left err -> Left err
+    Right res' -> 
+      case res' ^. dcrsCertificate of
+        Nothing -> Left <| toServerError CertManager.CertNotFound
+        Just details -> Right details
 
 describeCertMock :: 
   ( MonadAWS    m
   , MonadLogger m
   )
   => CertARN
-  -> m (Either ServerError DescribeCertificateResponse)
+  -> m (Either ServerError CertificateDetail)
 describeCertMock arn = do
   logDebug <| "MOCK: Describing Cert for arn: " <> show arn
-  let 
-    mockStatus = 300
-    mockRes    = describeCertificateResponse mockStatus
-  return <| Right mockRes
+  return <| Right certificateDetail
+
+parseValidation :: MonadLogger m => CertificateDetail -> m ()
+parseValidation details = do
+  logDebugN "tick1"
+  case details ^. cdDomainValidationOptions of
+    Nothing -> logDebugN "no validation options"
+    Just opts -> do
+      logDebugN "tick2"
+      let opt = NonEmpty.head opts
+      case opt ^. dvResourceRecord of
+        Nothing -> logDebugN "no resource record"
+        Just record -> do
+          logDebugN "tick3"
+          logDebugN <| mconcat 
+            [ "Resource record:"
+            , "\nName: "
+            , record ^. rrName
+            , "\nType: "
+            , textShow <| record ^. rrType
+            , "\nValue: "
+            , record ^. rrValue
+            ]
+
+  return ()

@@ -12,4 +12,4 @@ import           Fission.URL.Types as URL
 
 class MonadAWS m => MonadCertManager m where
   requestCert  :: URL.DomainName -> m (Either ServerError CertARN)
-  describeCert :: CertARN -> m (Either ServerError DescribeCertificateResponse)
+  describeCert :: CertARN -> m (Either ServerError CertificateDetail)
