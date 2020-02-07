@@ -4,6 +4,7 @@ module Fission.Web.Swagger
   ) where
 
 import           Data.Swagger
+
 import           Servant
 import           Servant.Swagger
 import           Servant.Swagger.UI
@@ -13,11 +14,11 @@ import           Fission.Prelude
 import           Fission.Internal.Orphanage.BasicAuth     ()
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import           Fission.Internal.Orphanage.MultipartForm ()
-import           Fission.Internal.Orphanage.HigherOrder ()
-import           Fission.Internal.Orphanage.RegisterDid ()
+import           Fission.Internal.Orphanage.HigherOrder   ()
+import           Fission.Internal.Orphanage.RegisterDid   ()
 
 import qualified Fission.Web.Routes as Web
-import qualified Fission.Web.Types as Web
+import qualified Fission.Web.Types  as Web
 
 type API = SwaggerSchemaUI "docs" "docs.json"
 
