@@ -69,21 +69,26 @@ instance MonadIO m => Creator (Transaction m) where
         return . Left <| openUnionLift err
 
       Right herokuAddOnId ->
-        User
-          { userDid           = Nothing
-          , userUsername      = username
-          , userEmail         = Nothing
-          , userRole          = Regular
-          , userActive        = True
-          , userHerokuAddOnId = Just herokuAddOnId
-          , userSecretDigest  = Just password
-          , userInsertedAt    = now
-          , userModifiedAt    = now
-          }
-        |> insertUnique
-        |> bind \case
-          Just userID ->
-            return (Right userID)
+        Password.hashPassword password >>= \case
+          Left err ->
+            return . Left <| openUnionLift err
 
-          Nothing ->
-            return <| Left <| openUnionLift User.AlreadyExists
+          Right secretDigest ->
+            User
+              { userDid           = Nothing
+              , userUsername      = username
+              , userEmail         = Nothing
+              , userRole          = Regular
+              , userActive        = True
+              , userHerokuAddOnId = Just herokuAddOnId
+              , userSecretDigest  = Just secretDigest
+              , userInsertedAt    = now
+              , userModifiedAt    = now
+              }
+            |> insertUnique
+            |> bind \case
+              Just userID ->
+                return (Right userID)
+
+              Nothing ->
+                return . Left <| openUnionLift User.AlreadyExists
