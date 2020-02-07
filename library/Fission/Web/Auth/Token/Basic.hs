@@ -30,8 +30,11 @@ handler ::
   => Auth.Basic.Token
   -> m (Entity User)
 handler token = do
-  auth <- ensureM <| parseBasic token
-  ensureM =<< checkUser auth
+  token
+    |> parseBasic
+    |> ensureM
+    |> bind checkUser
+    |> bind ensureM
 
 checkUser ::
   ( MonadLogger      m
