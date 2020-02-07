@@ -2,7 +2,6 @@
 
 module Fission.Internal.Orphanage.RegisterDid () where
 
-
 import Fission.Prelude
 
 import Servant
@@ -13,6 +12,7 @@ import Fission.Web.Auth.Types
 import Fission.Web.Swagger.Auth
 
 instance HasSwagger api => HasSwagger (RegisterDid :> api) where
-  toSwagger _ = Proxy @api
-             |> toSwagger
-             |> securityDefinitions .~ [("Fission Auth", fissionSecurity)]
+  toSwagger _ =
+    Proxy @api
+      |> toSwagger
+      |> securityDefinitions .~ [("Fission Auth", fissionSecurity)]

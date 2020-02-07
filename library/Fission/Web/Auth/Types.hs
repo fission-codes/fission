@@ -3,9 +3,7 @@ module Fission.Web.Auth.Types
   ( HerokuAddOnAPI
   , RegisterDid
   , HigherOrder
-  , Token (..)
-  , BasicToken (..)
-  , BearerToken (..)
+  , module Fission.Web.Auth.Token
   ) where
 
 import Database.Esqueleto
@@ -21,6 +19,8 @@ import Fission.Platform.Heroku.Auth.Types as Heroku
 
 import Fission.User.DID.Types
 
+import Fission.Web.Auth.Token
+
 -- | Authorization check for the Heroku Addon API
 type HerokuAddOnAPI = BasicAuth "heroku add-on api" Heroku.Auth
 
@@ -33,11 +33,3 @@ type instance AuthClientData (AuthProtect "register-did") = ()
 type HigherOrder = AuthProtect "higher-order"
 type instance AuthServerData (AuthProtect "higher-order") = Entity User
 type instance AuthClientData (AuthProtect "higher-order") = (Maybe BasicAuthData)
-
-data Token
-  = Basic BasicToken
-  | Bearer BearerToken
-  | None
-
-newtype BasicToken = BasicToken { unBasic :: ByteString }
-newtype BearerToken = BearerToken { unBearer :: ByteString }

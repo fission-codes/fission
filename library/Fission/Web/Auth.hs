@@ -23,7 +23,7 @@ import           Network.Wai
 import           Fission.Web.Auth.Class
 import           Fission.Web.Auth.Types
 import           Fission.Web.Auth.Types as Auth
-import           Fission.Web.Auth.Utils
+import           Fission.Web.Auth.Token as Token
 import qualified Fission.Web.Auth.Error as Auth
 import qualified Fission.Web.Auth.Basic as Basic
 import qualified Fission.Web.Auth.JWT       as JWT
@@ -68,19 +68,20 @@ basic unOK pwOK = BasicAuthCheck (return . check)
          else Unauthorized
 
 -- | Higher order auth handler
--- Uses basic auth for "Basic " tokens 
--- Uses our custom jwt auth for "Bearer " tokens 
+-- Uses basic auth for "Basic " tokens
+-- Uses our custom jwt auth for "Bearer " tokens
 handler ::
   ( MonadLogger      m
   , MonadThrow       m
   , MonadTime        m
   , MonadDB        t m
+  , MonadThrow     t
   , User.Retriever t
   )
   => Request
   -> m (Entity User)
 handler req =
-  case getToken req of
-    Auth.None -> throwM Auth.NoToken
-    Auth.Basic basic' -> Basic.handler basic'
-    Auth.Bearer bearer -> JWT.handler bearer
+  case Token.get req of
+    Nothing                   -> throwM Auth.NoToken
+    Just (Auth.Bearer bearer) -> JWT.handler bearer
+    Just (Auth.Basic basic')  -> Basic.handler basic'

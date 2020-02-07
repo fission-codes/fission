@@ -1,4 +1,4 @@
-module Fission.Web.Auth.Basic ( handler ) where
+module Fission.Web.Auth.Token.Basic ( handler ) where
 
 import           Fission.Prelude
 import           Fission.Models
@@ -9,7 +9,7 @@ import           Database.Esqueleto
 
 import           Crypto.BCrypt
 
-import qualified Fission.Web.Auth.Types as Auth
+-- import qualified Fission.Web.Auth.Types as Auth
 import qualified Fission.Web.Auth.Error as Auth
 
 import qualified Fission.User as User

@@ -5,11 +5,13 @@ import           Fission.Prelude
 import           Network.Wai
 
 import           Fission.Web.Auth.Types as Auth
-import           Fission.Web.Auth.Utils
+import           Fission.Web.Auth.Token as Token
 import qualified Fission.Web.Auth.Error as Auth
-import qualified Fission.Web.Auth.JWT       as JWT
+import qualified Fission.Web.Auth.JWT   as JWT
 
 import           Fission.User.DID.Types
+
+import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
 
 -- | Auth handler for registering DIDs
 -- Ensures properly formatted token but does not check against DB
@@ -21,9 +23,9 @@ handler ::
   )
   => Request
   -> m DID
-handler req = 
-  case getToken req of
-    Auth.Bearer token@(BearerToken bearer) -> 
+handler req =
+  case Token.get req of
+    Just (Auth.Bearer token@(Auth.Bearer.Token bearer)) ->
       JWT.validateJWT token >>= \case
         Left err -> do
           logWarn <| "Failed registration with token " <> bearer
