@@ -17,6 +17,8 @@ import           Fission.Internal.Orphanage.PlainText   ()
 import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
 
+import           Fission.AWS.CertManager
+
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
@@ -26,6 +28,7 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.DNS     as DNS
+import qualified Fission.Web.Cert    as Cert
 import qualified Fission.Web.Heroku  as Heroku
 import qualified Fission.Web.IPFS    as IPFS
 import qualified Fission.Web.Ping    as Ping
@@ -43,6 +46,7 @@ app ::
   , MonadRemoteIPFS       m
   , MonadLocalIPFS        m
   , MonadDNSLink          m
+  , MonadCertManager      m
   , MonadLogger           m
   , MonadTime             m
   , MonadDB             t m
@@ -71,6 +75,7 @@ server ::
   , MonadRemoteIPFS       m
   , MonadLocalIPFS        m
   , MonadDNSLink          m
+  , MonadCertManager      m
   , MonadLogger           m
   , MonadTime             m
   , MonadDB             t m
@@ -88,6 +93,7 @@ server appHost = Web.Swagger.server fromHandler appHost
             :<|> User.server
             :<|> pure Ping.pong
             :<|> DNS.server
+            :<|> Cert.server
 
 bizServer ::
   ( MonadReflectiveServer m
@@ -95,6 +101,7 @@ bizServer ::
   , MonadRemoteIPFS       m
   , MonadLocalIPFS        m
   , MonadDNSLink          m
+  , MonadCertManager      m
   , MonadLogger           m
   , MonadTime             m
   , MonadDB             t m
@@ -110,3 +117,4 @@ bizServer = IPFS.server
        :<|> User.server
        :<|> pure Ping.pong
        :<|> DNS.server
+       :<|> Cert.server

@@ -63,6 +63,7 @@ main = do
     awsZoneID             = zoneID
     awsDomainName         = domainName
     awsRoute53MockEnabled = route53MockEnabled
+    awsCertManagerMockEnabled = certManagerMockEnabled
 
   isVerbose  <- isDebugEnabled
   logOptions <- logOptionsHandle stdout isVerbose

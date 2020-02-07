@@ -92,11 +92,12 @@ run logFunc dbPool processCtx httpManager action =
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
     ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
 
-    awsAccessKey          = "SOME_AWS_ACCESS_KEY"
-    awsSecretKey          = "SOME_AWS_SECRET_KEY"
-    awsZoneID             = "SOME_AWS_ZONE_ID"
-    awsDomainName         = "SOME_AWS_DOMAIN_NAME"
-    awsRoute53MockEnabled = AWS.Route53MockEnabled True
+    awsAccessKey              = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey              = "SOME_AWS_SECRET_KEY"
+    awsZoneID                 = "SOME_AWS_ZONE_ID"
+    awsDomainName             = "SOME_AWS_DOMAIN_NAME"
+    awsRoute53MockEnabled     = AWS.Route53MockEnabled True
+    awsCertManagerMockEnabled = AWS.CertManagerMockEnabled True
 
 {- | Setup a complete development configuration with all pure defaults set
 
@@ -137,11 +138,12 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
-    awsAccessKey          = "SOME_AWS_ACCESS_KEY"
-    awsSecretKey          = "SOME_AWS_SECRET_KEY"
-    awsZoneID             = "SOME_AWS_ZONE_ID"
-    awsDomainName         = "SOME_AWS_DOMAIN_NAME"
-    awsRoute53MockEnabled = AWS.Route53MockEnabled True
+    awsAccessKey              = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey              = "SOME_AWS_SECRET_KEY"
+    awsZoneID                 = "SOME_AWS_ZONE_ID"
+    awsDomainName             = "SOME_AWS_DOMAIN_NAME"
+    awsRoute53MockEnabled     = AWS.Route53MockEnabled True
+    awsCertManagerMockEnabled = AWS.CertManagerMockEnabled True
 
 {- | Setup a complete development configuration.
 

@@ -19,6 +19,13 @@ packages:
   original:
     hackage: amazonka-1.6.1
 - completed:
+    hackage: amazonka-certificatemanager-1.6.1@sha256:de2b08cbe6a489e8812940094e453577e7a00c513d7ab016ea375b379a3f0bdc,3798
+    pantry-tree:
+      size: 3967
+      sha256: 134d5225e74ff15d572a383df9f2a5b5806b2348e3efffba426d26d7fa277da8
+  original:
+    hackage: amazonka-certificatemanager-1.6.1
+- completed:
     hackage: amazonka-core-1.6.1@sha256:9bc59ce403c6eeba3b3eaf3f10e5f0b6a33b6edbbf8f6de0dd6f4c67b86fa698,5135
     pantry-tree:
       size: 3438

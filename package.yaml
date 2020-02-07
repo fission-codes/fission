@@ -85,6 +85,7 @@ dependencies:
   - aeson
   - aeson-casing
   - amazonka
+  - amazonka-certificatemanager
   - amazonka-core
   - amazonka-route53
   - base

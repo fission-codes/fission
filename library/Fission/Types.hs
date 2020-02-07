@@ -25,8 +25,9 @@ import           Fission.Prelude
 import           Fission.Config.Types
 
 import           Fission.AWS
-import           Fission.AWS.Types   as AWS
-import           Fission.AWS.Route53 as Route53
+import           Fission.AWS.Types       as AWS
+import           Fission.AWS.Route53     as Route53
+import           Fission.AWS.CertManager as CertManager
 
 import           Fission.Internal.UTF8
 
@@ -98,6 +99,19 @@ instance MonadRoute53 Fission where
       then Route53.createHostedZoneMock domain
       else Route53.createHostedZone' domain
 
+
+instance MonadCertManager Fission where
+  requestCert domain = do
+    AWS.CertManagerMockEnabled mockCertManager <- asks awsCertManagerMockEnabled
+    if mockCertManager
+      then CertManager.requestCertMock domain
+      else CertManager.requestCert' domain
+
+  describeCert arn = do
+    AWS.CertManagerMockEnabled mockCertManager <- asks awsCertManagerMockEnabled
+    if mockCertManager
+      then CertManager.describeCertMock arn
+      else CertManager.describeCert' arn
 
 instance MonadDNSLink Fission where
   set maySubdomain (CID hash) = do

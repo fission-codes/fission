@@ -8,21 +8,23 @@ import qualified Fission.AWS.Types as AWS
 import qualified Fission.URL.Types as URL
 
 data Environment = Environment
-  { accessKey   :: !AWS.AccessKey  -- ^ Access Key
-  , secretKey   :: !AWS.SecretKey  -- ^ Secret Key
-  , zoneID      :: !AWS.ZoneID     -- ^ Hosted Zone
-  , domainName  :: !URL.DomainName -- ^ Domain Name
-  , route53MockEnabled :: !AWS.Route53MockEnabled
+  { accessKey              :: !AWS.AccessKey  -- ^ Access Key
+  , secretKey              :: !AWS.SecretKey  -- ^ Secret Key
+  , zoneID                 :: !AWS.ZoneID     -- ^ Hosted Zone
+  , domainName             :: !URL.DomainName -- ^ Domain Name
+  , route53MockEnabled     :: !AWS.Route53MockEnabled
+  , certManagerMockEnabled :: !AWS.CertManagerMockEnabled
   }
 
 instance Show Environment where
   show Environment {..} = intercalate "\n"
     [ "Environment {"
-    , "  accessKey          = HIDDEN"
-    , "  secretKey          = HIDDEN"
-    , "  zoneId             = " <> show zoneID
-    , "  domainName         = " <> show domainName
-    , "  route53MockEnabled = " <> show route53MockEnabled
+    , "  accessKey             = HIDDEN"
+    , "  secretKey             = HIDDEN"
+    , "  zoneId                = " <> show zoneID
+    , "  domainName            = " <> show domainName
+    , "  route53MockEnabled    = " <> show route53MockEnabled
+    , "  certMangerMockEnabled = " <> show certManagerMockEnabled
     , "}"
     ]
 
@@ -33,5 +35,6 @@ instance FromJSON Environment where
     zoneID             <- obj .: "zone_id"
     domainName         <- obj .: "domain_name"
     route53MockEnabled <- obj .:? "route53_mock_enabled" .!= AWS.Route53MockEnabled False
+    certManagerMockEnabled <- obj .:? "cert_manager_mock_enabled" .!= AWS.CertManagerMockEnabled False
 
     return <| Environment {..}

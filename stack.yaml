@@ -40,6 +40,7 @@ packages:
 extra-deps:
 - alex-3.2.4
 - amazonka-1.6.1
+- amazonka-certificatemanager-1.6.1
 - amazonka-core-1.6.1
 - amazonka-route53-1.6.1
 - ekg-wai-0.1.0.3
