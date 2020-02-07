@@ -8,10 +8,8 @@ import qualified Database.Persist.Sql as SQL
 
 import qualified RIO.ByteString.Lazy as Lazy
 
-import           Servant
 import           Servant.Client
 import           Servant.Server.Experimental.Auth
-import           Network.Wai
 
 import           Network.AWS as AWS hiding (Request)
 import           Network.AWS.Route53
@@ -20,7 +18,7 @@ import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
-import qualified Network.IPFS.Peer as Peer
+import qualified Network.IPFS.Peer          as Peer
 
 import           Fission.Prelude
 import           Fission.Config.Types
@@ -48,6 +46,8 @@ import           Fission.Web.Handler
 
 import           Fission.User.DID.Types
 import           Fission.Models
+
+import           Fission.Web.Auth.Token.Basic.Class
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -195,7 +195,7 @@ instance MonadRemoteIPFS Fission where
         |> runClientM query
         |> liftIO
 
-instance MonadAuth (BasicAuthCheck Heroku.Auth) Fission where
+instance MonadBasicAuth Heroku.Auth Fission where
   getVerifier = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
@@ -205,13 +205,13 @@ instance MonadAuth (BasicAuthCheck Heroku.Auth) Fission where
       |> fmap Heroku.Auth
       |> return
 
-instance MonadAuth (AuthHandler Request DID) Fission where
+instance MonadAuth DID Fission where
   getVerifier = do
     cfg <- ask
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.DID.handler req
 
-instance MonadAuth (AuthHandler Request (SQL.Entity User)) Fission where
+instance MonadAuth (SQL.Entity User) Fission where
   getVerifier = do
     cfg <- ask
     return <| mkAuthHandler \req ->

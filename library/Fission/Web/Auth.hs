@@ -13,37 +13,43 @@ import           Fission.Models
 
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
+import           Network.Wai
 import           Servant
 import           Servant.Server.Experimental.Auth
 
 import           Database.Esqueleto
 
-import           Network.Wai
-
-import           Fission.Web.Auth.Class
-import           Fission.Web.Auth.Types
-import           Fission.Web.Auth.Types as Auth
-import           Fission.Web.Auth.Token as Token
-import qualified Fission.Web.Auth.Error as Auth
-import qualified Fission.Web.Auth.Basic as Basic
-import qualified Fission.Web.Auth.JWT       as JWT
+import           Fission.Web.Auth.Class             as Auth
+import           Fission.Web.Auth.Types             as Auth
+import           Fission.Web.Auth.Token             as Token
+import qualified Fission.Web.Auth.Error             as Auth
+import qualified Fission.Web.Auth.Token.Basic       as Basic
+import           Fission.Web.Auth.Token.Basic.Class as BasicAuth
+import qualified Fission.Web.Auth.JWT               as JWT
 
 import qualified Fission.User as User
 import           Fission.User.DID.Types
 
-type Checks = '[AuthHandler Request DID, AuthHandler Request (Entity User), BasicAuthCheck Heroku.Auth]
+-- Reexport
+import           Fission.Web.Auth.Class
+import           Fission.Web.Auth.Types
+
+type Checks = '[ AuthHandler    Request DID
+               , AuthHandler    Request (Entity User)
+               , BasicAuthCheck Heroku.Auth
+               ]
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadAuth (AuthHandler Request DID)           m
-  , MonadAuth (AuthHandler Request (Entity User)) m
-  , MonadAuth (BasicAuthCheck Heroku.Auth)        m
+  ( MonadAuth      DID           m
+  , MonadAuth      (Entity User) m
+  , MonadBasicAuth Heroku.Auth   m
   )
   => m (Context Checks)
 mkAuth = do
-  didAuth    <- getVerifier
-  userAuth   <- getVerifier
-  herokuAuth <- getVerifier
+  didAuth    <- Auth.getVerifier
+  userAuth   <- Auth.getVerifier
+  herokuAuth <- BasicAuth.getVerifier
   return <| didAuth
          :. userAuth
          :. herokuAuth

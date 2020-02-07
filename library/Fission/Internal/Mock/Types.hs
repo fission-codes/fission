@@ -18,20 +18,14 @@ import           Network.IPFS.Remote.Class
 import qualified Network.IPFS.Types as IPFS
 
 import           Network.AWS
-import           Network.Wai as Wai
 
-import           Servant
 import           Servant.Client
-import           Servant.Server.Experimental.Auth
-
+import           Servant.Server
 
 import           Fission.Internal.Fixture            as Fixture
 import           Fission.Internal.Mock.Effect        as Effect
 import           Fission.Internal.Mock.Config.Types  as Mock
 import           Fission.Internal.Mock.Session.Types
-
-import           Fission.Internal.Mock.Effect.Types -- for reexport
-import           Fission.Internal.Mock.Config.Types -- for reexport
 
 import           Fission.Prelude
 
@@ -45,12 +39,19 @@ import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Reflective.Class
 import qualified Fission.Web.Types as Web
 
+import           Fission.Web.Auth.Token.Basic.Class
+
 import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.User                  as User
 import           Fission.User.CID              as User.CID
 import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
+
+-- Reexport
+
+import           Fission.Internal.Mock.Effect.Types -- for reexport
+import           Fission.Internal.Mock.Config.Types -- for reexport
 
 {- | Fission's mock type
 
@@ -83,7 +84,7 @@ instance MonadLinkedIPFS (Mock effs) where
     peerList <- asks linkedPeers
     return peerList
 
-instance MonadAuth (BasicAuthCheck String) (Mock effs) where
+instance MonadBasicAuth String (Mock effs) where
   getVerifier = do
     isAuthed <- asks forceAuthed
     return <| BasicAuthCheck \_ ->
@@ -91,13 +92,13 @@ instance MonadAuth (BasicAuthCheck String) (Mock effs) where
                   then Authorized "YUP"
                   else Unauthorized
 
-instance MonadAuth (BasicAuthCheck Heroku.Auth) (Mock effs) where
+instance MonadBasicAuth Heroku.Auth (Mock effs) where
   getVerifier = asks herokuVerifier
 
-instance MonadAuth (AuthHandler Wai.Request DID) (Mock effs) where
+instance MonadAuth DID (Mock effs) where
   getVerifier = asks didVerifier
 
-instance MonadAuth (AuthHandler Wai.Request (Entity User)) (Mock effs) where
+instance MonadAuth (Entity User) (Mock effs) where
   getVerifier = asks userVerifier
 
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
