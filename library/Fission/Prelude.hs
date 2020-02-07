@@ -63,6 +63,7 @@ import RIO hiding ( Handler
                   , ($)
                   , (&)
                   , (^.)
+                  , exp
                   )
 
 import Test.QuickCheck hiding (Result (..))

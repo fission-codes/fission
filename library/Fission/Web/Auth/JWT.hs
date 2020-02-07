@@ -96,13 +96,11 @@ validateHeader bytes =
         _                  -> Left BadHeader
 
 validateTime :: MonadTime m => JWT.Payload -> m (Either JWT.Error ())
-validateTime pl = do
-  time <- getCurrentPOSIXTime
-  return <|
-    case (time > JWT.exp pl, time < JWT.nbf pl) of
-      (True, _) -> Left JWT.Expired
-      (_, True) -> Left JWT.TooEarly
-      _         -> Right ()
+validateTime JWT.Payload { exp, nbf } = do
+  time <- fromIntegral <$> getCurrentPOSIXTime
+  return if | time > exp -> Left JWT.Expired
+            | time < nbf -> Left JWT.TooEarly
+            | otherwise  -> Right ()
 
 validateSig :: ByteString -> ByteString -> ByteString -> Either JWT.Error ()
 validateSig content pubkey64 sig64 =
