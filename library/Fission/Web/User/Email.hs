@@ -15,19 +15,20 @@ import           Fission.User.Email.Types
 
 import           Database.Esqueleto
 
-type API = Capture "username" Username
-            :> Get '[PlainText] Email
+type API = QueryParam "username" Username
+        :> QueryParam "email"    Email
+        :> Get '[JSON] Bool
 
 server ::
   ( MonadThrow       m
   , MonadDB        t m
+  , MonadThrow     t
   , User.Retriever t
   )
   => ServerT API m
-server (Username username) = do
-  mayUser <- runDB <| User.getByUsername username
+server (Just username) (Just reqEmail) =
+  runDB <| User.getByUsername username >>= \case
+    Nothing -> throwM err401
+    Just (Entity _ User { userEmail }) -> return <| maybe False (== reqEmail) userEmail
 
-  case mayUser of
-    Nothing -> throwM err404
-    Just (Entity _ user) -> 
-      return . Email <| maybe "" identity <| userEmail user
+server _ _ = throwM err404

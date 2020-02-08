@@ -55,6 +55,7 @@ server ::
   , MonadLogger      m
   , MonadTime        m
   , MonadDB        t m
+  , MonadThrow     t
   , User.Creator   t
   , User.Retriever t
   , User.Modifier  t

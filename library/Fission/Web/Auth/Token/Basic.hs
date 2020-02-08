@@ -13,9 +13,11 @@ import           Servant
 
 import           Fission.Prelude
 import           Fission.Models
-import qualified Fission.User as User
 
-import Fission.Web.Error
+import qualified Fission.User as User
+import           Fission.User.Username.Types
+
+import           Fission.Web.Error
 
 import qualified Fission.Web.Auth.Error as Auth
 import qualified Fission.Web.Auth.Token.Basic.Types as Auth.Basic
@@ -46,6 +48,7 @@ checkUser ::
 checkUser (BasicAuthData username password) = do
   username
     |> decodeUtf8Lenient
+    |> Username
     |> User.getByUsername
     |> runDB
     |> bind \case

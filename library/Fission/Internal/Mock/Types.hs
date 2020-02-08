@@ -46,6 +46,7 @@ import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.User                  as User
 import           Fission.User.CID              as User.CID
+
 import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 -- Reexport

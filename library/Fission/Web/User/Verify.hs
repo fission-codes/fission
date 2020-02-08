@@ -18,5 +18,4 @@ server ::
   Monad m
   => Entity User
   -> ServerT API m
-server (Entity _ User { userUsername }) = 
-  return <| Username userUsername
+server (Entity _ User { userUsername }) = return userUsername

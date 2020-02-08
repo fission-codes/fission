@@ -15,7 +15,10 @@ import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 import qualified Fission.User.Creator.Error as User
 import qualified Fission.User.Password      as Password
 import           Fission.User.DID           as DID
+
+import           Fission.User.Username.Types
 import           Fission.User.Role.Types
+import           Fission.User.Email.Types
 
 type Errors = OpenUnion
   '[ User.AlreadyExists
@@ -26,9 +29,9 @@ type Errors = OpenUnion
 class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry with optional heroku add-on
   create ::
-       Text
+       Username
     -> DID
-    -> Maybe Text
+    -> Maybe Email
     -> Maybe HerokuAddOnId
     -> UTCTime
     -> m (Either Errors UserId)
@@ -37,7 +40,7 @@ class Heroku.AddOn.Creator m => Creator m where
   createWithHeroku ::
        UUID
     -> Heroku.Region
-    -> Text
+    -> Username
     -> Text
     -> UTCTime
     -> m (Either Errors UserId)

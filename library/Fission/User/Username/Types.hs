@@ -1,12 +1,18 @@
 module Fission.User.Username.Types (Username (..)) where
 
-import Fission.Prelude
+import           Database.Persist.Class
+import           Database.Persist.Types
+import           Database.Persist.Sql
 
-import Data.Swagger
-import Servant
+import           Data.Swagger
+import           Servant
 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
 import qualified Network.IPFS.Internal.UTF8 as UTF8
+
+import           Fission.Prelude
 
 newtype Username = Username { username :: Text }
   deriving          ( Generic )
@@ -16,6 +22,18 @@ newtype Username = Username { username :: Text }
                     , IsString
                     , ToHttpApiData
                     )
+
+instance Arbitrary Username where
+  arbitrary = Username <$> arbitrary
+
+instance PersistField Username where
+  toPersistValue (Username un) = PersistText un
+  fromPersistValue = \case
+    PersistText un -> Right (Username un)
+    other          -> Left ("Invalid Persistent Username: " <> Text.pack (show other))
+
+instance PersistFieldSql Username where
+  sqlType _pxy = SqlString
 
 instance ToJSON Username where
   toJSON (Username username) = toJSON (String username)

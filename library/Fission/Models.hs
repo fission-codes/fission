@@ -21,6 +21,8 @@ import           Fission.Security
 
 import           Fission.User.DID.Types
 import           Fission.User.Role.Types
+import           Fission.User.Email.Types
+import           Fission.User.Username.Types
 
 import           Fission.Internal.Orphanage.CID  ()
 import           Fission.Internal.Orphanage.UUID ()
@@ -41,8 +43,8 @@ HerokuAddOn
 
 User
   did           DID           Maybe
-  username      Text
-  email         Text          Maybe
+  username      Username
+  email         Email         Maybe
   role          Role
   active        Bool
   herokuAddOnId HerokuAddOnId Maybe

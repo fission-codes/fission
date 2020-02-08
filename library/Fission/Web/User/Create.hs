@@ -3,17 +3,17 @@ module Fission.Web.User.Create
   , server
   ) where
 
-import           Fission.Prelude
-
 import           Servant
 
-import           Fission.IPFS.DNSLink as DNSLink
-import qualified Fission.User as User
-import           Network.IPFS.CID.Types
-
+import           Fission.Prelude
 import           Fission.Web.Error as Web.Err
 
+import           Fission.IPFS.DNSLink   as DNSLink
+import           Network.IPFS.CID.Types
+
+import qualified Fission.User as User
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
 type API = ReqBody '[JSON] User.Registration
         :> Post    '[JSON] ()
@@ -27,7 +27,7 @@ server ::
   )
   => DID
   -> ServerT API m
-server did (User.Registration username email) = do
+server did (User.Registration username@(Username rawUN) email) = do
   Nothing
     |> User.create username did (Just email)
     |> runDBNow
@@ -35,7 +35,7 @@ server did (User.Registration username email) = do
     |> void
 
   splashCID
-    |> DNSLink.setWithSubdomain username
+    |> DNSLink.setWithSubdomain rawUN
     |> bind Web.Err.ensureM
     |> void
 

@@ -3,10 +3,12 @@ module Fission.User.Registration.Types ( Registration(..) ) where
 import Data.Swagger hiding (email)
 
 import Fission.Prelude
+import Fission.User.Email.Types
+import Fission.User.Username.Types
 
 data Registration = Registration
-  { username :: !Text
-  , email    :: !Text
+  { username :: !Username
+  , email    :: !Email
   }
 
 instance Arbitrary Registration where
@@ -17,9 +19,9 @@ instance Arbitrary Registration where
     return Registration {..}
 
 instance ToJSON Registration where
-  toJSON Registration { username, email } =
-    Object [ ("username", String username)
-           , ("email", String email)
+  toJSON Registration { username = Username username', email = Email email' } =
+    Object [ ("username", String username')
+           , ("email",    String email')
            ]
 
 instance FromJSON Registration where

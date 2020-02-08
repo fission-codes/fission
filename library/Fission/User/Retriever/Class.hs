@@ -3,13 +3,14 @@ module Fission.User.Retriever.Class (Retriever (..)) where
 import           Database.Esqueleto hiding ((=.), update)
 import qualified Database.Persist as P
 
-import           Fission.Models
 import           Fission.Prelude
+import           Fission.Models
 
+import           Fission.User.Username.Types
 import           Fission.User.DID.Types
 
 class Monad m => Retriever m where
-  getByUsername      :: Text          -> m (Maybe (Entity User))
+  getByUsername      :: Username      -> m (Maybe (Entity User))
   getByDid           :: DID           -> m (Maybe (Entity User))
   getByHerokuAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
 
