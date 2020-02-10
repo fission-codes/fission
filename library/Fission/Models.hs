@@ -29,6 +29,8 @@ import           Fission.Internal.Orphanage.UUID ()
 
 import qualified Fission.Internal.UTF8 as UTF8
 
+-- NB: The `!force` on user email uniqueness is due to a warning that
+--     NULLs are not consider equal. This is what we want.
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 HerokuAddOn
@@ -54,6 +56,8 @@ User
   modifiedAt    UTCTime
 
   UniqueUsername username
+  UniqueEmail    email !force
+
   deriving Show Eq
 
 UserCid

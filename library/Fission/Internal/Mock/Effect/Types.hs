@@ -29,6 +29,7 @@ import           Fission.Prelude
 import           Fission.Models
 
 import           Fission.User.DID.Types
+import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
 type FissionEffs =
@@ -87,9 +88,10 @@ data CreateHerokuAddOn = CreateHerokuAddOn UUID
   deriving (Eq, Show)
 
 data RetrieveUser
-  = GetUserByUsername Username
-  | GetUserByDid      DID
+  = GetUserByUsername      Username
+  | GetUserByDid           DID
   | GetUserByHerokuAddOnId HerokuAddOnId
+  | GetUserByEmail         Email
   deriving (Eq, Show)
 
 data CreateUser = CreateUser

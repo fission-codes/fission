@@ -197,6 +197,10 @@ instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
     Effect.log <| GetUserByHerokuAddOnId id
     pure <| Just <| Fixture.entity Fixture.user
 
+  getByEmail email = do
+    Effect.log <| GetUserByEmail email
+    pure <| Just <| Fixture.entity Fixture.user
+
 instance
   ( IsMember CreateHerokuAddOn effs
   , IsMember CreateUser        effs
