@@ -16,7 +16,7 @@ import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
 type API = ReqBody '[JSON] User.Registration
-        :> Verb 'PUT 201 '[JSON] NoContent
+        :> PutCreated '[JSON] NoContent
 
 server ::
   ( MonadDNSLink   m
