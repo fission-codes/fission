@@ -90,4 +90,4 @@ handler req =
   case Token.get req of
     Nothing                   -> throwM Auth.NoToken
     Just (Auth.Bearer bearer) -> JWT.handler bearer
-    Just (Auth.Basic basic')  -> Basic.handler basic'
+    Just (Auth.Basic  basic') -> Basic.handler basic'

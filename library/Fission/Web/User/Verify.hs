@@ -14,8 +14,5 @@ import Database.Esqueleto
 
 type API = Get '[PlainText] Username
 
-server ::
-  Monad m
-  => Entity User
-  -> ServerT API m
+server :: Monad m => Entity User -> ServerT API m
 server (Entity _ User { userUsername }) = return userUsername

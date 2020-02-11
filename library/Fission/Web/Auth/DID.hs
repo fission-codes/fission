@@ -30,6 +30,8 @@ handler req =
         Left err -> do
           logWarn <| "Failed registration with token " <> bearer
           throwM err
-        Right did' -> return did'
+
+        Right did' ->
+          return did'
 
     _ -> throwM Auth.NoToken
