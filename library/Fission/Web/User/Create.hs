@@ -16,7 +16,7 @@ import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
 type API = ReqBody '[JSON] User.Registration
-        :> Post    '[JSON] ()
+        :> Verb 'PUT 201 '[JSON] NoContent
 
 server ::
   ( MonadDNSLink   m
@@ -38,6 +38,8 @@ server did (User.Registration username@(Username rawUN) email) = do
     |> DNSLink.setWithSubdomain rawUN
     |> bind Web.Err.ensureM
     |> void
+
+  return NoContent
 
 splashCID :: CID
 splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"
