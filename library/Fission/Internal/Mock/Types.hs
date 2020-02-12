@@ -51,8 +51,8 @@ import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 -- Reexport
 
-import           Fission.Internal.Mock.Effect.Types -- for reexport
-import           Fission.Internal.Mock.Config.Types -- for reexport
+import           Fission.Internal.Mock.Effect.Types
+import           Fission.Internal.Mock.Config.Types
 
 {- | Fission's mock type
 
