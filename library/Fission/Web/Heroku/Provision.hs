@@ -26,6 +26,7 @@ import qualified Fission.Random               as Random
 import           Fission.Security.Types       (Secret (..))
 import qualified Fission.User.Provision.Types as User
 import qualified Fission.User.Creator         as User
+import           Fission.User.Username.Types
 
 type API = ReqBody '[JSON]                Request
         :> Post    '[Heroku.VendorJSONv3] Provision
@@ -41,7 +42,7 @@ create ::
   )
   => ServerT API m
 create Request {uuid, region} = do
-  let username = Text.pack (UUID.toString uuid)
+  let username = Username <| Text.pack <| UUID.toString uuid
   secret <- Random.alphaNum 50
 
   secret

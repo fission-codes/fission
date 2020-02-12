@@ -4,16 +4,19 @@ module Fission.Web.User.Create
   ) where
 
 import           Servant
-import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
-import           Fission.IPFS.DNSLink as DNSLink
-import           Fission.Web.Error    as Web.Err
+import           Fission.Web.Error as Web.Err
+
+import           Fission.IPFS.DNSLink   as DNSLink
+import           Network.IPFS.CID.Types
 
 import qualified Fission.User as User
+import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
 type API = ReqBody '[JSON] User.Registration
-        :> Post    '[JSON] ()
+        :> PutCreated '[JSON] NoContent
 
 server ::
   ( MonadDNSLink   m
@@ -22,18 +25,21 @@ server ::
   , MonadDB      t m
   , User.Creator t
   )
-  => ServerT API m
-server (User.Registration username password email) = do
+  => DID
+  -> ServerT API m
+server did (User.Registration username@(Username rawUN) email) = do
   Nothing
-    |> User.create username password (Just email)
+    |> User.create username did (Just email)
     |> runDBNow
     |> bind Web.Err.ensure
     |> void
 
   splashCID
-    |> DNSLink.setWithSubdomain username
+    |> DNSLink.setWithSubdomain rawUN
     |> bind Web.Err.ensureM
     |> void
+
+  return NoContent
 
 splashCID :: CID
 splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"

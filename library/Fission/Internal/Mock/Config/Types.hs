@@ -4,26 +4,29 @@ import           Network.AWS.Route53
 
 import qualified Network.IPFS.Types         as IPFS
 import           Network.IPFS.Process.Error as Process
-
-import Network.IPFS.File.Types as File
-
-import Network.IPFS.Client.Pin as Network.Pin
+import           Network.IPFS.File.Types    as File
+import           Network.IPFS.Client.Pin    as Network.Pin
 
 import           Database.Esqueleto
+import           Network.Wai as Wai
+
 import           Servant
 import           Servant.Client
+import           Servant.Server.Experimental.Auth
 
 import           Fission.Models
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.URL.Types as URL
+import           Fission.User.DID.Types
 
 data Config = Config
   { setDNSLink      :: Maybe URL.Subdomain -> IPFS.CID -> (Either ServerError URL.DomainName)
   , updateRoute53   :: RecordType -> URL.DomainName -> Text -> (Either ServerError ChangeResourceRecordSetsResponse)
   , now             :: UTCTime
   , linkedPeers     :: NonEmpty IPFS.Peer
-  , userVerifier    :: BasicAuthCheck (Entity User)
+  , userVerifier    :: AuthHandler Wai.Request (Entity User)
+  , didVerifier     :: AuthHandler Wai.Request DID
   , herokuVerifier  :: BasicAuthCheck Heroku.Auth
   , forceAuthed     :: Bool
   , localIPFSCall   :: Either Process.Error Process.RawMessage

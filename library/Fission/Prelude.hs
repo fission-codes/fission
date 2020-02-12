@@ -4,6 +4,7 @@ module Fission.Prelude
   , module Control.Monad.Logger
   , module Control.Monad.Time
   , module Data.Aeson
+  , module Data.Bifunctor
   , module Data.Has
   , module Data.Maybe
   , module Data.WorldPeace
@@ -20,6 +21,7 @@ module Fission.Prelude
   , putText
   , putTextLn
   , textShow
+  , displayLazyBS
   , bind
   ) where
 
@@ -30,6 +32,7 @@ import Control.Monad.Time
 import Network.IPFS.Internal.Orphanage.Utf8Builder ()
 
 import Data.Aeson
+import Data.Bifunctor (bimap)
 import Data.Has
 import Data.Maybe
 import Data.WorldPeace
@@ -61,6 +64,7 @@ import RIO hiding ( Handler
                   , ($)
                   , (&)
                   , (^.)
+                  , exp
                   )
 
 import Test.QuickCheck hiding (Result (..))
@@ -69,7 +73,7 @@ import Test.QuickCheck.Instances ()
 import Fission.Internal.Orphanage.OpenUnion ()
 import Fission.Internal.MonadDB
 import Fission.Internal.Log
-import Fission.Internal.UTF8       (putText, putTextLn, textShow)
+import Fission.Internal.UTF8       (putText, putTextLn, textShow, displayLazyBS)
 
 identity :: a -> a
 identity a = a

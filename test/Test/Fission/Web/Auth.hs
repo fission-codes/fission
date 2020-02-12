@@ -1,6 +1,8 @@
 module Test.Fission.Web.Auth (tests) where
 
+import           Network.Wai
 import           Servant
+import           Servant.Server.Experimental.Auth
 
 import           Test.Tasty.Hspec
 import           Test.Fission.Prelude as Mock
@@ -10,6 +12,7 @@ import           Fission.Internal.Fixture.User   as Fixture
 
 import           Fission.Web.Auth
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import           Fission.User.DID.Types
 
 tests :: IO TestTree
 tests = do
@@ -20,12 +23,14 @@ tests = do
 
   Mock.Session
     { effectLog = _effectLog :: [OpenUnion '[]]
-    , result = BasicAuthCheck userVerifier
+    , result = AuthHandler    didVerifier
+            :. AuthHandler    userVerifier
             :. BasicAuthCheck herokuVerifier
             :. EmptyContext
     } <- runMock defaultConfig mkAuth
 
-  userResult   <- userVerifier   <| BasicAuthData "username" "password"
+  didResult    <- runHandler <| didVerifier  defaultRequest
+  userResult   <- runHandler <| userVerifier defaultRequest
   herokuResult <- herokuVerifier <| BasicAuthData "username" "password"
 
   -----------
@@ -37,7 +42,11 @@ tests = do
       describe "value" do
         context "user auth" do
           it "uses the encapsulated function" do
-            userResult `shouldBe` Authorized (Fixture.entity Fixture.user)
+            userResult `shouldBe` Right (Fixture.entity Fixture.user)
+
+        context "DID auth" do
+          it "uses the encapsulated function" do
+            didResult `shouldBe` Right (DID "thisismydid")
 
         context "heroku auth" do
           it "uses the encapsulated function" do

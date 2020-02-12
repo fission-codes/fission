@@ -4,6 +4,7 @@ module Fission.Internal.UTF8
   , putText
   , putTextLn
   , showLazyBS
+  , displayLazyBS
   , stripN
   , stripNBS
   , stripNewline
@@ -40,6 +41,9 @@ instance Textable Lazy.ByteString where
 showLazyBS :: Show a => a -> Lazy.ByteString
 showLazyBS = textToLazyBS . textDisplay . displayShow
 
+displayLazyBS :: Display a => a -> Lazy.ByteString
+displayLazyBS = Lazy.fromStrict . encodeUtf8 . textDisplay
+
 textToLazyBS :: Text -> Lazy.ByteString
 textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
 
@@ -56,9 +60,10 @@ textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
 
 -}
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
-stripNewline bs = bs
-               |> Lazy.stripSuffix "\n"
-               |> fromMaybe bs
+stripNewline bs =
+  bs
+    |> Lazy.stripSuffix "\n"
+    |> fromMaybe bs
 
 {-| Show text.
 

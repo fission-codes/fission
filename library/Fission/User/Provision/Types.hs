@@ -5,11 +5,12 @@ import qualified Servant.Client as Client
 
 import           Fission.Prelude
 import           Fission.Security
+import           Fission.User.Username.Types
 import           Fission.Internal.Orphanage.BaseUrl ()
 
 data Provision = Provision
   { url      :: Client.BaseUrl
-  , username :: Text
+  , username :: Username
   , password :: Secret
   } deriving ( Eq
              , Show

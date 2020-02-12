@@ -6,8 +6,13 @@ module Fission.Web.User.Verify
 import Servant
 
 import Fission.Prelude
+import Fission.Models
 
-type API = Get '[JSON] Bool
+import Fission.User.Username.Types
 
-server :: Applicative m => ServerT API m
-server = pure True
+import Database.Esqueleto
+
+type API = Get '[PlainText] Username
+
+server :: Monad m => Entity User -> ServerT API m
+server (Entity _ User { userUsername }) = return userUsername

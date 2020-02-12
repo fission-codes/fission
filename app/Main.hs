@@ -19,9 +19,10 @@ import           Fission.Prelude
 import           Fission.Storage.PostgreSQL
 
 import qualified Fission.Web       as Web
-import qualified Fission.Web.CORS  as CORS
 import qualified Fission.Web.Log   as Web.Log
 import qualified Fission.Web.Types as Web
+
+import qualified Fission.Web.Middleware.CORS as CORS
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest.Types as Hku
 import qualified Fission.Platform.Heroku.ID.Types             as Hku

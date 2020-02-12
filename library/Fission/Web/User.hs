@@ -1,7 +1,11 @@
 module Fission.Web.User
-  ( server
-  , API
+  ( API
+  , Auth
+  , RegisterRoute
   , VerifyRoute
+  , UpdateDIDRoute
+  , ResetRoute
+  , server
   ) where
 
 import           Servant
@@ -11,32 +15,45 @@ import           Fission.IPFS.DNSLink.Class as DNSLink
 
 import qualified Fission.User as User
 
-import qualified Fission.Web.User.Create as Create
-import qualified Fission.Web.User.Verify as Verify
-import qualified Fission.Web.User.Password.Reset as Reset
-import qualified Fission.Web.Auth.Types as Auth
+import qualified Fission.Web.User.Create          as Create
+import qualified Fission.Web.User.Verify          as Verify
+import qualified Fission.Web.User.Password.Reset  as Reset
+import qualified Fission.Web.User.UpdateDID       as UpdateDID
 
-type API = Create.API
+import qualified Fission.Web.Auth.Types           as Auth
+
+type API = RegisterRoute
       :<|> VerifyRoute
+      :<|> UpdateDIDRoute
       :<|> ResetRoute
 
+type Auth = Auth.HigherOrder
+
+type RegisterRoute = Auth.RegisterDid
+                  :> Create.API
+
 type VerifyRoute = "verify"
-                   :> Auth.ExistingUser
+                   :> Auth
                    :> Verify.API
 
+type UpdateDIDRoute = "update_did"
+                      :> Auth
+                      :> UpdateDID.API
+
 type ResetRoute = "reset_password"
-                  :> Auth.ExistingUser
+                  :> Auth
                   :> Reset.API
 
 server ::
-  ( MonadDNSLink    m
-  , MonadLogger     m
-  , MonadTime       m
-  , MonadDB       t m
-  , User.Creator  t
-  , User.Modifier t
+  ( MonadDNSLink     m
+  , MonadLogger      m
+  , MonadTime        m
+  , MonadDB        t m
+  , User.Creator   t
+  , User.Modifier  t
   )
   => ServerT API m
 server = Create.server
-    :<|> (\_ -> Verify.server)
+    :<|> Verify.server
+    :<|> UpdateDID.server
     :<|> Reset.server

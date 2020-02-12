@@ -1,6 +1,7 @@
 -- | Top-level router type for the application
 module Fission.Web.Routes
   ( API
+  , UserPrefix
   , UserRoute
   , HerokuRoute
   , IPFSPrefix
@@ -24,8 +25,10 @@ type API = IPFSRoute
       :<|> PingRoute
       :<|> DNSRoute
 
-type UserRoute = "user" :> User.API
 type PingRoute = "ping" :> Ping.API
+
+type UserRoute = UserPrefix :> User.API
+type UserPrefix = "user"
 
 type IPFSRoute  = IPFSPrefix :> IPFS.API
 type IPFSPrefix = "ipfs"
@@ -36,5 +39,5 @@ type HerokuRoute = "heroku"
                    :> Heroku.API
 
 type DNSRoute = "dns"
-                :> Auth.ExistingUser
+                :> Auth.HigherOrder
                 :> DNS.API

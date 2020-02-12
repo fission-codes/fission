@@ -14,7 +14,11 @@ import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
 import qualified Fission.User.Password      as Password
+import           Fission.User.DID           as DID
+
+import           Fission.User.Username.Types
 import           Fission.User.Role.Types
+import           Fission.User.Email.Types
 
 type Errors = OpenUnion
   '[ User.AlreadyExists
@@ -25,9 +29,9 @@ type Errors = OpenUnion
 class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry with optional heroku add-on
   create ::
-       Text
-    -> Text
-    -> Maybe Text
+       Username
+    -> DID
+    -> Maybe Email
     -> Maybe HerokuAddOnId
     -> UTCTime
     -> m (Either Errors UserId)
@@ -36,37 +40,58 @@ class Heroku.AddOn.Creator m => Creator m where
   createWithHeroku ::
        UUID
     -> Heroku.Region
-    -> Text
+    -> Username
     -> Text
     -> UTCTime
     -> m (Either Errors UserId)
 
 instance MonadIO m => Creator (Transaction m) where
-  create username password email herokuAddOnId now =
-    Password.hashPassword password >>= \case
-      Left err ->
-        return <| Left <| openUnionLift err
+  create username did email herokuAddOnId now =
+    User
+      { userDid           = Just did
+      , userUsername      = username
+      , userEmail         = email
+      , userRole          = Regular
+      , userActive        = True
+      , userHerokuAddOnId = herokuAddOnId
+      , userSecretDigest  = Nothing
+      , userInsertedAt    = now
+      , userModifiedAt    = now
+      }
+    |> insertUnique
+    |> bind \case
+      Just userID ->
+        return (Right userID)
 
-      Right secretDigest -> do
-        let newUserRecord = User
-              { userUsername      = username
-              , userEmail         = email
+      Nothing ->
+        return . Left <| openUnionLift User.AlreadyExists
+
+  createWithHeroku herokuUUID herokuRegion username password now =
+    Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
+      Left err ->
+        return . Left <| openUnionLift err
+
+      Right herokuAddOnId ->
+        Password.hashPassword password >>= \case
+          Left err ->
+            return . Left <| openUnionLift err
+
+          Right secretDigest ->
+            User
+              { userDid           = Nothing
+              , userUsername      = username
+              , userEmail         = Nothing
               , userRole          = Regular
               , userActive        = True
-              , userHerokuAddOnId = herokuAddOnId
-              , userSecretDigest  = secretDigest
+              , userHerokuAddOnId = Just herokuAddOnId
+              , userSecretDigest  = Just secretDigest
               , userInsertedAt    = now
               , userModifiedAt    = now
               }
+            |> insertUnique
+            |> bind \case
+              Just userID ->
+                return (Right userID)
 
-        insertUnique newUserRecord >>= \case
-          Just userID ->
-            return (Right userID)
-
-          Nothing ->
-            return <| Left <| openUnionLift User.AlreadyExists
-
-  createWithHeroku herokuUUID herokuRegion username password now = do
-    Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
-      Right addOnId -> create username password Nothing (Just addOnId) now
-      Left  err     -> return <| Left <| openUnionLift err
+              Nothing ->
+                return . Left <| openUnionLift User.AlreadyExists
