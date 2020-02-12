@@ -18,7 +18,6 @@
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 resolver: lts-14.25
-allow-newer: true
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -47,7 +46,7 @@ extra-deps:
 - happy-1.19.12
 - ipfs-1.0.1
 - raven-haskell-0.1.4.0
-- servant-quickcheck-0.0.8.0
+- servant-quickcheck-0.0.7.4
 - tasty-rerun-1.1.17
 - text-time-0.2.0
 
