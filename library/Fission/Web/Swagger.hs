@@ -17,6 +17,8 @@ import           Fission.Internal.Orphanage.MultipartForm ()
 import           Fission.Internal.Orphanage.HigherOrder   ()
 import           Fission.Internal.Orphanage.RegisterDid   ()
 
+import qualified Fission.Internal.Meta as Meta
+
 import qualified Fission.Web.Routes as Web
 import qualified Fission.Web.Types  as Web
 
@@ -46,11 +48,16 @@ app proxy appHost =
     |> host               ?~ Host (Web.getRawHost appHost) Nothing
     |> schemes            ?~ [Https]
     |> info . title       .~ "The Fission API"
-    |> info . version     .~ "2.0.0"
+    |> info . version     .~ version'
     |> info . description ?~ blurb
     |> info . contact     ?~ fissionContact
     |> info . license     ?~ projectLicense
   where
+    version' =
+      Meta.package
+        |> bind Meta.version
+        |> maybe "unknown" identity
+
     fissionContact =
       mempty
         |> name  ?~"Team Fission"
