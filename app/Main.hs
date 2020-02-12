@@ -88,7 +88,7 @@ main = do
         logDebug . displayShow =<< ask
         when (env |> web |> Web.monitor) Monitor.wai
 
-        logInfoN "Ensuring live DB matches latest schema"
+        logInfo ("Ensuring live DB matches latest schema" :: Text)
         runDB updateDBToLatest
 
         auth <- Auth.mkAuth
