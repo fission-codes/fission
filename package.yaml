@@ -1,15 +1,13 @@
 name: fission-web-api
-version: '2.1.1'
+version: '2.1.2'
 category: API
 author:
   - Brooklyn Zelenka
   - Daniel Holmgren
-  - Ben Church
   - Steven Vandevelde
 maintainer:
   - brooklyn@fission.codes
   - daniel@fission.codes
-  - ben@fission.codes
   - steven@fission.codes
 copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
@@ -98,8 +96,9 @@ dependencies:
   - envy
   - esqueleto
   - exceptions
-  - flow
+  - file-embed
   - filepath
+  - flow
   - fsnotify
   - Glob
   - haskeline
