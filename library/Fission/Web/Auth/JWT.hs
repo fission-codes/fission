@@ -5,9 +5,6 @@ module Fission.Web.Auth.JWT
   , module Fission.Web.Auth.JWT.Error
   ) where
 
-import           Fission.Prelude
-import           Fission.Models
-
 import           Database.Esqueleto
 
 import qualified Data.ByteString.Char8  as Ch
@@ -16,6 +13,10 @@ import qualified Data.ByteString.Base64 as Base64
 
 import qualified Crypto.PubKey.Ed25519 as Ed
 import           Crypto.Error
+
+import           Fission.Prelude
+import           Fission.Models
+import           Fission.Web.Error.Class
 
 import qualified Fission.Internal.Crypto as Crypto
 
@@ -52,7 +53,7 @@ handler token@(Auth.Bearer.Token rawToken) =
 
     Right did -> do
       runDB <| User.getByDid did >>= \case
-        Nothing -> throwM JWT.NoUser
+        Nothing -> throwM <| toServerError JWT.NoUser
         Just usr -> return usr
 
 validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error DID)

@@ -21,6 +21,7 @@ module Fission.Prelude
   , putText
   , putTextLn
   , textShow
+  , displayLazyBS
   , bind
   ) where
 
@@ -72,7 +73,7 @@ import Test.QuickCheck.Instances ()
 import Fission.Internal.Orphanage.OpenUnion ()
 import Fission.Internal.MonadDB
 import Fission.Internal.Log
-import Fission.Internal.UTF8       (putText, putTextLn, textShow)
+import Fission.Internal.UTF8       (putText, putTextLn, textShow, displayLazyBS)
 
 identity :: a -> a
 identity a = a
