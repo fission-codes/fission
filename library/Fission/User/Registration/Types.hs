@@ -29,7 +29,7 @@ instance FromJSON Registration where
     username <- obj .:  "username"
     email    <- obj .: "email"
 
-    return <| Registration {..}
+    return Registration {..}
 
 instance ToSchema Registration where
   declareNamedSchema _ = do

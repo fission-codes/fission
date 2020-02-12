@@ -57,6 +57,7 @@ instance MimeRender PlainText Username where
 
 instance MimeUnrender PlainText Username where
   mimeUnrender _proxy bs =
-    case bs |> Lazy.toStrict |> decodeUtf8' of
-      Left err  -> Left  <| show err
-      Right txt -> Right <| Username txt
+    bs
+      |> Lazy.toStrict
+      |> decodeUtf8'
+      |> bimap show Username
