@@ -14,7 +14,7 @@ package :: Maybe Package
 package = fromContents $(embedFile "./package.yaml")
 
 fromContents :: ByteString -> Maybe Package
-fromContents fileContents =
+fromContents contents =
   case Yaml.decodeEither' contents of
     Left  _err -> Nothing
     Right val  -> Just val
