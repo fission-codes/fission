@@ -14,9 +14,9 @@ import           Network.Wai.Middleware.RequestLogger
 import qualified RIO
 
 import           Fission
-import           Fission.App
 import           Fission.Prelude
 import           Fission.Storage.PostgreSQL
+import           Fission.Internal.App
 
 import qualified Fission.Web       as Web
 import qualified Fission.Web.Log   as Web.Log

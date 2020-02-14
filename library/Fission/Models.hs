@@ -19,6 +19,10 @@ import           Fission.Prelude
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
+import qualified Fission.App.Types    as App
+import qualified Fission.Domain.Types as Domain
+import qualified Fission.Domain.Subdomain.Types as Domain
+
 import           Fission.User.DID.Types
 import           Fission.User.Role.Types
 import           Fission.User.Email.Types
@@ -65,38 +69,39 @@ User
 
   deriving Show Eq
 
-UserCid
-  userFk     UserId
+LoosePin
+  ownerId    UserId
   cid        CID
 
   insertedAt UTCTime
   modifiedAt UTCTime
 
-  UniqueUserCid userFk cid
+  UniqueCidPerUser ownerId cid
+
   deriving Show Eq
 
 App
-  owner            UserId
+  ownerId     UserId
+  cid         CID
 
-  name             AppName
-  description      Description
+  name        App.Name
+  description App.Description
 
-  cid              CID
-  fissionSubdomain Subdomain
+  insertedAt  UTCTime
+  modifiedAt  UTCTime
 
-  insertedAt       UTCTime
-  modifiedAt       UTCTime
-
-  UniqueAppNamePerOwner UserId AppName
+  UniqueAppNamePerOwner name ownerId
 
   deriving Show Eq
 
 Domain
-  owner      UserId
-  domain     DomainName
+  ownerId    UserId
+  domainName Domain.Name
 
   insertedAt UTCTime
   modifiedAt UTCTime
+
+  UniqueDomainNamePerOwner domainName ownerId
 
   deriving Show Eq
 
@@ -104,12 +109,12 @@ AppDomain
   appId      AppId
   domainId   DomainId
 
-  subdomain  Subdomain Maybe
+  subdomain  Domain.Subdomain Maybe
 
   insertedAt UTCTime
   modifiedAt UTCTime
 
-  UniqueSubdomainPerDomain domainId subdomain
+  UniqueSubdomainPerDomain domainId subdomain !force
 
   deriving Show Eq
 |]
