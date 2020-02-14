@@ -1,4 +1,4 @@
-module Fission.User.CID.Retriever.Class (Retriever (..)) where
+module Fission.LoosePin.Retriever.Class (Retriever (..)) where
 
 import           Network.IPFS.CID.Types
 import           Database.Esqueleto hiding ((=.), update)

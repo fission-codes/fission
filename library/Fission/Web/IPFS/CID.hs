@@ -9,15 +9,15 @@ import           Servant
 
 import           Fission.Prelude
 import           Fission.Models
-import qualified Fission.User.CID as User.CID
+import qualified Fission.LoosePin as LoosePin
 
 type API = Get '[JSON, PlainText] [CID]
 
 allForUser ::
   ( MonadDB            t m
-  , User.CID.Retriever t
+  , LoosePin.Retriever t
   )
   => Entity User -> ServerT API m
 allForUser (Entity userId _) = runDB do
-  userCids <- User.CID.getByUserId userId
-  return (getInner userCidCid <$> userCids)
+  pins <- LoosePin.getByUserId userId
+  return (getInner loosePinCid <$> pins)

@@ -23,7 +23,7 @@ import           Fission.Models
 import           Fission.Prelude
 import           Fission.Internal.MIME
 
-import           Fission.User.CID  as User.CID
+import           Fission.LoosePin  as LoosePin
 import qualified Fission.Web.Error as Web.Err
 
 type API = TextAPI :<|> JSONAPI
@@ -46,7 +46,7 @@ add ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => Entity User
   -> ServerT API m
@@ -59,7 +59,7 @@ textAdd ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => UserId
   -> ServerT TextAPI m
@@ -75,7 +75,7 @@ jsonAdd ::
   , MonadTime          m
   , MonadThrow         m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => UserId
   -> ServerT JSONAPI m
@@ -88,7 +88,7 @@ run ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => UserId
   -> MultipartData Mem
@@ -109,7 +109,7 @@ run uID form qName cont = case lookupFile "file" form of
         Right _ -> do
           struct
             |> IPFS.cIDs
-            |> User.CID.createMany uID
+            |> LoosePin.createMany uID
             |> runDBNow
             |> void
 

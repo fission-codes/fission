@@ -10,7 +10,7 @@ import           Servant
 import           Fission.Models
 import           Fission.Prelude
 
-import qualified Fission.User.CID as User.CID
+import qualified Fission.LoosePin as LoosePin
 
 -- import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
 import qualified Fission.Web.IPFS.Upload.Simple    as Simple
@@ -24,7 +24,7 @@ add ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => Entity User
   -> ServerT API m

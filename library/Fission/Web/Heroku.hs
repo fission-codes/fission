@@ -9,7 +9,7 @@ import           Servant
 import           Fission.Prelude
 
 import qualified Fission.User                  as User
-import qualified Fission.User.CID              as User.CID
+import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Heroku.Provision   as Provision
@@ -31,8 +31,8 @@ server ::
   , User.Creator           t
   , User.Retriever         t
   , User.Destroyer         t
-  , User.CID.Retriever     t
-  , User.CID.Destroyer     t
+  , LoosePin.Retriever     t
+  , LoosePin.Destroyer     t
   , Heroku.AddOn.Destroyer t
   , Heroku.AddOn.Retriever t
   )

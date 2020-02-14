@@ -45,7 +45,7 @@ import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.User                  as User
-import           Fission.User.CID              as User.CID
+import           Fission.LoosePin              as LoosePin
 
 import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
@@ -206,7 +206,7 @@ instance
   , IsMember CreateUser        effs
   )
   => User.Creator (Mock effs) where
-  create _ _ _ _ _ = do
+  create _ _ _ _ = do
     Effect.log CreateUser
     return . Right <| Database.toSqlKey 0
 
@@ -227,15 +227,15 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
   destroy uid = Effect.log <| DestroyUser uid
 
-instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
+instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
   getByUserId uid = do
-    Effect.log <| GetUserCIDByUserId uid
+    Effect.log <| GetLoosePinByUserId uid
 
     let
       userId = Database.toSqlKey 0
       cid    = IPFS.CID "Qm12345"
 
-    return . pure . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
+    return . pure . Fixture.entity <| LoosePin userId cid Fixture.agesAgo Fixture.agesAgo
 
   getByCids cids =
     cids
@@ -246,27 +246,27 @@ instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
       folder cid (counter, acc) =
         (counter + 1, action cid counter : acc)
 
-      action :: IPFS.CID -> Int64 -> Mock effs (Entity UserCid)
+      action :: IPFS.CID -> Int64 -> Mock effs (Entity LoosePin)
       action cid rawUserId = do
         let userId = Database.toSqlKey rawUserId
-        Effect.log <| GetUserCIDByCID cid
-        return . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
+        Effect.log <| GetLoosePinByCID cid
+        return . Fixture.entity <| LoosePin userId cid Fixture.agesAgo Fixture.agesAgo
 
-instance IsMember CreateUserCID effs => User.CID.Creator (Mock effs) where
+instance IsMember CreateLoosePin effs => LoosePin.Creator (Mock effs) where
   create uid cid _ = do
-    Effect.log <| CreateUserCID uid cid
+    Effect.log <| CreateLoosePin uid cid
     return . Just <| Database.toSqlKey 0
 
   createMany uid cids _ = do
     forM_ cids \cid ->
-      Effect.log <| CreateUserCID uid cid
+      Effect.log <| CreateLoosePin uid cid
 
     return cids
 
-instance IsMember DestroyUserCID effs => User.CID.Destroyer (Mock effs) where
+instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
   destroy uid cid =
-    Effect.log <| DestroyUserCID uid cid
+    Effect.log <| DestroyLoosePin uid cid
 
   destroyMany cidIds =
     forM_ cidIds \id ->
-      Effect.log <| DestroyUserCIDById id
+      Effect.log <| DestroyLoosePinById id

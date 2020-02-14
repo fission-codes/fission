@@ -10,7 +10,7 @@ import           Servant
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.User.CID.Creator as User.CID
+import           Fission.LoosePin.Creator as LoosePin
 import qualified Fission.Web.Error        as Web.Err
 
 import           Network.IPFS
@@ -29,7 +29,7 @@ put ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => Entity User
   -> ServerT API m
@@ -46,7 +46,7 @@ put (Entity userId _) (Serialized rawData) =
         Right pinnedCID -> do
           newCID
             |> return
-            |> User.CID.createMany userId
+            |> LoosePin.createMany userId
             |> runDBNow
 
           return pinnedCID

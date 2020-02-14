@@ -15,7 +15,7 @@ import           Network.IPFS.File.Types as File
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.User.CID.Creator as User.CID
+import           Fission.LoosePin.Creator as LoosePin
 import qualified Fission.Web.Error        as Web.Err
 
 type API = ReqBody '[PlainText, OctetStream] File.Serialized
@@ -28,7 +28,7 @@ add ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => Entity User
   -> ServerT API m
@@ -37,7 +37,7 @@ add (Entity userId _) (Serialized rawData) = IPFS.addRaw rawData >>= \case
     Right pinnedCID -> do
       pinnedCID
         |> pure
-        |> User.CID.createMany userId
+        |> LoosePin.createMany userId
         |> runDBNow
 
       return pinnedCID

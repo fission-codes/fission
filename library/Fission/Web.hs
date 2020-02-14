@@ -21,7 +21,7 @@ import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
 import qualified Fission.User                  as User
-import qualified Fission.User.CID              as User.CID
+import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Auth    as Auth
@@ -50,7 +50,7 @@ app ::
   , MonadThrow          t
   , Heroku.AddOn.CRUD   t
   , User.CRUD           t
-  , User.CID.CRUD       t
+  , LoosePin.CRUD       t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -78,7 +78,7 @@ server ::
   , MonadThrow          t
   , Heroku.AddOn.CRUD   t
   , User.CRUD           t
-  , User.CID.CRUD       t
+  , LoosePin.CRUD       t
   )
   => Web.Host
   -> ServerT API m
@@ -102,7 +102,7 @@ bizServer ::
   , MonadThrow          t
   , Heroku.AddOn.CRUD   t
   , User.CRUD           t
-  , User.CID.CRUD       t
+  , LoosePin.CRUD       t
   )
   => ServerT Web.API m
 bizServer = IPFS.server
