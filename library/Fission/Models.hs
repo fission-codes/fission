@@ -41,6 +41,7 @@ HerokuAddOn
   modifiedAt UTCTime
 
   UniqueUUID uuid
+
   deriving Show Eq
 
 User
@@ -86,6 +87,17 @@ App
   insertedAt       UTCTime
   modifiedAt       UTCTime
 
+  UniqueAppNamePerOwner UserId AppName
+
+  deriving Show Eq
+
+Domain
+  owner      UserId
+  domain     DomainName
+
+  insertedAt UTCTime
+  modifiedAt UTCTime
+
   deriving Show Eq
 
 AppDomain
@@ -97,16 +109,7 @@ AppDomain
   insertedAt UTCTime
   modifiedAt UTCTime
 
-  UniqueDomainSubdomain domainId subdomain
-
-  deriving Show Eq
-
-Domain
-  owner      UserId
-  domain     DomainName
-
-  insertedAt UTCTime
-  modifiedAt UTCTime
+  UniqueSubdomainPerDomain domainId subdomain
 
   deriving Show Eq
 |]
