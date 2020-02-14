@@ -45,10 +45,14 @@ HerokuAddOn
 
 User
   did           DID           Maybe
-  username      Username
   email         Email         Maybe
+  username      Username
+
   role          Role
   active        Bool
+
+  dataRoot      CID
+
   herokuAddOnId HerokuAddOnId Maybe
   secretDigest  SecretDigest  Maybe
 
@@ -68,6 +72,42 @@ UserCid
   modifiedAt UTCTime
 
   UniqueUserCid userFk cid
+  deriving Show Eq
+
+App
+  owner            UserId
+
+  name             AppName
+  description      Description
+
+  cid              CID
+  fissionSubdomain Subdomain
+
+  insertedAt       UTCTime
+  modifiedAt       UTCTime
+
+  deriving Show Eq
+
+AppDomain
+  appId      AppId
+  domainId   DomainId
+
+  subdomain  Subdomain Maybe
+
+  insertedAt UTCTime
+  modifiedAt UTCTime
+
+  UniqueDomainSubdomain domainId subdomain
+
+  deriving Show Eq
+
+Domain
+  owner      UserId
+  domain     DomainName
+
+  insertedAt UTCTime
+  modifiedAt UTCTime
+
   deriving Show Eq
 |]
 
