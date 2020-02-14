@@ -122,6 +122,7 @@ AppDomain
 instance Arbitrary UserId where
   arbitrary = toSqlKey <$> arbitrary
 
+-- TODO: remove?
 instance Digestable UserId where
   digest = digest . UTF8.textShow
 

@@ -6,8 +6,12 @@ module Fission.User.Creator.Class
 import           Data.UUID (UUID)
 import           Database.Esqueleto
 
+import           Network.IPFS.CID.Types
+
 import           Fission.Models
 import           Fission.Prelude
+
+import qualified Fission.Error     as Error
 
 import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
@@ -27,12 +31,11 @@ type Errors = OpenUnion
    ]
 
 class Heroku.AddOn.Creator m => Creator m where
-  -- | Create a new, timestamped entry with optional heroku add-on
+  -- | Create a new, timestamped entry
   create ::
        Username
     -> DID
-    -> Maybe Email
-    -> Maybe HerokuAddOnId
+    -> Email
     -> UTCTime
     -> m (Either Errors UserId)
 
@@ -46,25 +49,21 @@ class Heroku.AddOn.Creator m => Creator m where
     -> m (Either Errors UserId)
 
 instance MonadIO m => Creator (Transaction m) where
-  create username did email herokuAddOnId now =
+  create username did email now =
     User
       { userDid           = Just did
       , userUsername      = username
-      , userEmail         = email
+      , userEmail         = Just email
       , userRole          = Regular
       , userActive        = True
-      , userHerokuAddOnId = herokuAddOnId
+      , userHerokuAddOnId = Nothing
       , userSecretDigest  = Nothing
+      , userDataRoot      = blankCID
       , userInsertedAt    = now
       , userModifiedAt    = now
       }
-    |> insertUnique
-    |> bind \case
-      Just userID ->
-        return (Right userID)
-
-      Nothing ->
-        return . Left <| openUnionLift User.AlreadyExists
+      |> insertUnique
+      |> fmap (Error.fromMaybe' User.AlreadyExists)
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
@@ -85,6 +84,7 @@ instance MonadIO m => Creator (Transaction m) where
               , userActive        = True
               , userHerokuAddOnId = Just herokuAddOnId
               , userSecretDigest  = Just secretDigest
+              , userDataRoot      = blankCID
               , userInsertedAt    = now
               , userModifiedAt    = now
               }
@@ -95,3 +95,6 @@ instance MonadIO m => Creator (Transaction m) where
 
               Nothing ->
                 return . Left <| openUnionLift User.AlreadyExists
+
+blankCID :: CID
+blankCID = CID "Qmc5m94Gu7z62RC8waSKkZUrCCBJPyHbkpmGzEePxy2oXJ" -- FIXME! Move & change to base FFS

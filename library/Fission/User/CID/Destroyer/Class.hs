@@ -13,12 +13,12 @@ class Monad m => Destroyer m where
   destroy :: UserId -> CID -> m ()
 
   -- | Destroy several @UserCid@s by they primary keys
-  destroyMany :: [Key UserCid] -> m ()
+  destroyMany :: [LoosePinId] -> m ()
 
 instance MonadIO m => Destroyer (Transaction m) where
   destroyMany userCidIds =
     delete <| from \userCid ->
-      where_ (userCid ^. UserCidId `in_` valList userCidIds)
+      where_ (userCid ^. LoosePinId `in_` valList userCidIds)
 
   destroy userId cid =
     delete <| from \userCid ->
