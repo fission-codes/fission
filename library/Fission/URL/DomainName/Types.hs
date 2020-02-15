@@ -1,19 +1,32 @@
 module Fission.URL.DomainName.Types (DomainName (..)) where
 
-import           Data.Swagger
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
+import           Database.Persist.Postgresql hiding (get)
+import           Data.Swagger                hiding (get)
+
 import           Servant
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
--- | Type safety wrapper for Route53 domain names
-newtype DomainName = DomainName { getDomainName :: Text }
+-- | Type safety wrapper for domain names
+newtype DomainName = DomainName { get :: Text }
   deriving          ( Eq
                     , Generic
                     , Show
                     )
   deriving newtype  ( IsString )
+
+instance PersistField DomainName where
+  toPersistValue (DomainName name') = PersistText name'
+  fromPersistValue = \case
+    PersistText name' -> Right (DomainName name')
+    other             -> Left ("Invalid Persistent Domain Name: " <> Text.pack (show other))
+
+instance PersistFieldSql DomainName where
+  sqlType _pxy = SqlString
 
 instance ToSchema DomainName where
   declareNamedSchema _ =
@@ -29,13 +42,14 @@ instance FromJSON DomainName where
     DomainName <$> parseJSON (String txt)
 
 instance MimeRender PlainText DomainName where
-  mimeRender _ = UTF8.textToLazyBS . getDomainName
+  mimeRender _ = UTF8.textToLazyBS . get
 
 instance MimeRender OctetStream DomainName where
-  mimeRender _ = UTF8.textToLazyBS . getDomainName
+  mimeRender _ = UTF8.textToLazyBS . get
 
 instance MimeUnrender PlainText DomainName where
   mimeUnrender _proxy bs =
-    case bs |> Lazy.toStrict |> decodeUtf8' of
-      Left err  -> Left <| show err
-      Right txt -> Right <| DomainName txt
+    bs
+      |> Lazy.toStrict
+      |> decodeUtf8'
+      |> bimap show DomainName

@@ -19,9 +19,8 @@ import           Fission.Prelude
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
-import qualified Fission.App.Types    as App
-import qualified Fission.Domain.Types as Domain
-import qualified Fission.Domain.Subdomain.Types as Domain
+import qualified Fission.App as App
+import           Fission.URL
 
 import           Fission.User.DID.Types
 import           Fission.User.Role.Types
@@ -96,7 +95,7 @@ App
 
 Domain
   ownerId    UserId
-  domainName Domain.Name
+  domainName DomainName
 
   insertedAt UTCTime
   modifiedAt UTCTime
@@ -109,7 +108,7 @@ AppDomain
   appId      AppId
   domainId   DomainId
 
-  subdomain  Domain.Subdomain Maybe
+  subdomain  Subdomain Maybe
 
   insertedAt UTCTime
   modifiedAt UTCTime
