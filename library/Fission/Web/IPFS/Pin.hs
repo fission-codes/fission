@@ -75,7 +75,7 @@ unpin userId cid = do
     LoosePin.destroy userId cid
     LoosePin.getByCids [cid]
 
-  when (remaining == []) do
+  when (null remaining) do
     void <| Web.Err.ensure =<< IPFS.Pin.rm cid
 
   return NoContent
