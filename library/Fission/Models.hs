@@ -83,13 +83,8 @@ App
   ownerId     UserId
   cid         CID
 
-  name        App.Name
-  description App.Description
-
   insertedAt  UTCTime
   modifiedAt  UTCTime
-
-  UniqueAppNamePerOwner name ownerId
 
   deriving Show Eq
 
@@ -121,7 +116,6 @@ AppDomain
 instance Arbitrary UserId where
   arbitrary = toSqlKey <$> arbitrary
 
--- TODO: remove?
 instance Digestable UserId where
   digest = digest . UTF8.textShow
 
