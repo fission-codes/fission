@@ -44,7 +44,9 @@ HerokuAddOn
   deriving Show Eq
 
 User
-  did           DID           Maybe
+  didAlgorithm  DID.Algorithm Maybe
+  didPK         DID.PublicKey Maybe
+
   username      Username
   email         Email         Maybe
   role          Role

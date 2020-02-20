@@ -1,4 +1,7 @@
-module Fission.User.DID.Types (DID (..)) where
+module Fission.User.DID.Types
+  ( PublicKey (..)
+  , Algorithm (..)
+  ) where
 
 import qualified RIO.Text as Text
 
@@ -7,7 +10,20 @@ import           Database.Persist.Postgresql
 
 import           Fission.Prelude
 
-newtype DID = DID { unDID :: Text }
+data Algorithm
+  = EdDSA
+  | ECDSA
+  | SECP
+  | RSA_4096
+  deriving ( Eq
+           , Generic
+           , Show
+           , ToJSON
+           , FromJSON
+           , ToSchema
+           )
+
+newtype PublicKey = PublicKey { unPublicKey :: Text }
   deriving          ( Eq
                     , Generic
                     , Show
@@ -17,11 +33,11 @@ newtype DID = DID { unDID :: Text }
                     , ToSchema
                     )
 
-instance PersistField DID where
-  toPersistValue (DID pk) = PersistText pk
+instance PersistField PublicKey where
+  toPersistValue (PublicKey pk) = PersistText pk
   fromPersistValue = \case
-    PersistText pk -> Right (DID pk)
-    other          -> Left ("Invalid Persistent DID: " <> Text.pack (show other))
+    PersistText pk -> Right (PublicKey pk)
+    other          -> Left ("Invalid Persistent PublicKey: " <> Text.pack (show other))
 
-instance PersistFieldSql DID where
+instance PersistFieldSql PublicKey where
   sqlType _pxy = SqlString
