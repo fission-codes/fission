@@ -33,6 +33,7 @@ import qualified Fission.Web.Routes  as Web
 import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
+import qualified Fission.Web.App     as App
 
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
@@ -83,11 +84,7 @@ server ::
   => Web.Host
   -> ServerT API m
 server appHost = Web.Swagger.server fromHandler appHost
-            :<|> IPFS.server
-            :<|> (\_ -> Heroku.server)
-            :<|> User.server
-            :<|> pure Ping.pong
-            :<|> DNS.server
+            :<|> bizServer
 
 bizServer ::
   ( MonadReflectiveServer m
@@ -106,6 +103,7 @@ bizServer ::
   )
   => ServerT Web.API m
 bizServer = IPFS.server
+       :<|> App.server -- FIXME
        :<|> (\_ -> Heroku.server)
        :<|> User.server
        :<|> pure Ping.pong

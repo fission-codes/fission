@@ -19,7 +19,6 @@ import           Fission.Prelude
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
-import qualified Fission.App as App
 import           Fission.URL
 
 import           Fission.User.DID.Types
@@ -123,5 +122,15 @@ instance ToSchema UserId where
   declareNamedSchema _ =
     mempty
       |> type_ ?~ SwaggerInteger
-      |> NamedSchema (Just "UserID")
+      |> NamedSchema (Just "UserId")
+      |> pure
+
+instance Arbitrary AppId where
+  arbitrary = toSqlKey <$> arbitrary
+
+instance ToSchema AppId where
+  declareNamedSchema _ =
+    mempty
+      |> type_ ?~ SwaggerInteger
+      |> NamedSchema (Just "AppId")
       |> pure

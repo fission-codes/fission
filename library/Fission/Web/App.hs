@@ -15,44 +15,33 @@ import qualified Fission.URL.Types          as URL
 import           Fission.Web.Error          as Web.Err
 import           Fission.User.Username.Types
 
-type CreateAPI = QueryParam "subdomain" Subdomain
-              :> QueryParam "domain"    DomainName
-              :> QueryParam "cid"       CID
-              :> PutAccepted '[PlainText, OctetStream] NoResponse
+import qualified Fission.Web.App.Create  as Create
+import qualified Fission.Web.App.Destroy as Destroy
 
-create :: MonadDNSLink m => Entity User -> ServerT API m
-create (Entity userId _) mayRawSubdomain mayDomain mayCID = do
-  (maySubdomain, domain) <- mkDomains
-  -- ensure rights for domain
-  -- create AppDomain with subdomain (it's a maybe, so just include directly)
-  -- set DNS
-  return NoContent
-  where
-    cid :: CID
-    cid = maybe defaultCID mayCID
+type API
+  =    Create.API
+  -- :<|> Destroy.API
 
-    defaultCID :: CID
-    defaultCID = "Qm12345"
+server = Create.create
+   -- :<|> Destroy.destroy
 
-    mkDomains :: m (Maybe Subdomain, DomainName)
-    mkDomains = case (mayRawSubdomain, mayDomain) of
-      (Just subdomain, Just customDomain) -> return (Just subdomain, customDomain)
-      (Nothing,        Just customDomain) -> return (Nothing,        customDomain)
-      (Just subdomain, Nothing) -> return (subdomain, fission.name)
-      (Nothing,        Nothing) -> do
-        subdomain <- mkRandomSubdomain
-        return (Just subdomain, fission.name)
+-- type DomainCreateAPI
+--   =  Capture "domain" DomainName
+--   :> PutAccepted '[PlainText, OctetStream, JSON] NoResponse
 
-    opinion    = []
-    size       = []
-    age        = []
-    shape      = []
-    colour     = []
-    origin     = []
-    material   = []
-    purpose    = []
+-- type PurchaseDomainAPI
+--   =  Capture "domain" DomainName
+--   :> "purchase"
+--   :> PutCreated '[PlainText, OctetStream, JSON] NoResponse
 
-    nouns      = []
+-- type UnregisterDomainAPI
+--   =  Capture "domain" DomainName
+--   :> Delete '[PlainText, OctetStream, JSON] NoResponse
+
+-- type TransferDomainAPI
+--   =  Capture "domain" DomainName
+--   :> "purchase"
+--   :> PutCreated '[PlainText, OctetStream, JSON] NoResponse
 
 {-
   DOMAIN NAME
@@ -70,5 +59,4 @@ create (Entity userId _) mayRawSubdomain mayDomain mayCID = do
 
       PUT /app/boris.fission.name
       PUT /app/boris.fission.name/Qmabcdef
-
 -}

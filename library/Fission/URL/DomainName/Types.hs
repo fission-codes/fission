@@ -37,6 +37,12 @@ instance ToSchema DomainName where
       |> NamedSchema (Just "DomainName")
       |> pure
 
+instance ToParamSchema DomainName where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+
+instance FromHttpApiData DomainName where
+  parseUrlPiece = Right . DomainName
+
 instance FromJSON DomainName where
   parseJSON = withText "AWS.DomainName" \txt ->
     DomainName <$> parseJSON (String txt)

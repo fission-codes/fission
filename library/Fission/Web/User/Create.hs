@@ -32,5 +32,6 @@ server did (User.Registration username@(Username rawUN) email) = do
   Web.Err.ensureM =<< DNSLink.setWithSubdomain rawUN splashCID
   return NoContent
 
+-- FIXME: switch to data root, not a splash. Splash now lives on the app
 splashCID :: CID
 splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"
