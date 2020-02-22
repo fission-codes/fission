@@ -62,42 +62,24 @@ instance MimeUnrender PlainText Subdomain where
 
 instance Arbitrary Subdomain where
   arbitrary = do
-    mayOpinion  <- frequency <| twoThirds opinions
-    maySize     <- frequency <| twoThirds sizes
-    mayAge      <- frequency <| twoThirds ages
-    mayShape    <- frequency <| twoThirds shapes
-    mayColour   <- frequency <| twoThirds colours
-    mayMaterial <- frequency <| twoThirds materials
+    generators <- sublistOf [opinions, sizes, ages, shapes, colours, materials]
 
-    let
-      adjectives :: [Text]
-      adjectives = catMaybes
-        [ mayOpinion
-        , maySize
-        , mayAge
-        , mayShape
-        , mayColour
-        , mayMaterial
-        ]
-
-    if null adjectives
+    if null generators
       then
         arbitrary
 
       else do
-        noun <- oneof <| pure <$> nouns
-        return . Subdomain <| Text.intercalate "-" (adjectives <> [noun])
+        adjectives <- sequence (elements <$> take 3 generators)
+        noun       <- elements nouns
+        return . Subdomain <| Text.intercalate "-" <| adjectives <> [noun]
 
 opinions :: [Text]
 opinions =
-  [ "really"
-  , "amazing"
+  [ "amazing"
   , "beautiful"
   , "ugly"
-  , "fugly"
   , "quick"
   , "wonderful"
-  , "slim"
   , "awesome"
   , "sweet"
   , "tubular"
@@ -137,6 +119,8 @@ opinions =
   , "obtuse"
   , "fun"
   , "charming"
+  , "wicked"
+  , "gnarly"
   ]
 
 sizes :: [Text]
@@ -219,11 +203,7 @@ materials =
   , "stone"
   , "diamond"
   , "plastic"
-  , "copper"
-  , "gold"
-  , "silver"
   , "tin"
-  , "platinum"
   , "carbon"
   , "cardboard"
   , "paper"
@@ -303,10 +283,5 @@ nouns =
   , "prince"
   , "chef"
   , "barista"
+  , "ufo"
   ]
-
-twoThirds :: [Text] -> [(Int, Gen (Maybe Text))]
-twoThirds txts = (length txts * 3, pure Nothing) : (twoChances <$> txts)
-  where
-    twoChances :: Text -> (Int, Gen (Maybe Text))
-    twoChances txt = (2, pure <| Just txt)

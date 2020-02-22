@@ -103,7 +103,7 @@ bizServer ::
   )
   => ServerT Web.API m
 bizServer = IPFS.server
-       :<|> App.server -- FIXME
+       :<|> App.server
        :<|> (\_ -> Heroku.server)
        :<|> User.server
        :<|> pure Ping.pong
