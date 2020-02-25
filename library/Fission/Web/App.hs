@@ -3,7 +3,7 @@ module Fission.Web.App
   , server
   ) where
 
-import           Network.IPFS.CID.Types
+-- import           Network.IPFS.CID.Types
 import           Database.Esqueleto
 import           Servant
 
@@ -11,17 +11,27 @@ import           Fission.Prelude
 import           Fission.Models
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
-import qualified Fission.URL.Types          as URL
-import           Fission.Web.Error          as Web.Err
-import           Fission.User.Username.Types
+-- import qualified Fission.URL.Types          as URL
+-- import           Fission.Web.Error          as Web.Err
+-- import           Fission.User.Username.Types
+
+import qualified Fission.App.Creator.Class  as App
 
 import qualified Fission.Web.App.Create  as Create
-import qualified Fission.Web.App.Destroy as Destroy
+-- import qualified Fission.Web.App.Destroy as Destroy
 
 type API
   =    Create.API
   -- :<|> Destroy.API
 
+server ::
+  ( MonadTime      m
+  , MonadDNSLink   m
+  , MonadDB      t m
+  , App.Creator  t
+  )
+  => Entity User
+  -> ServerT API m
 server = Create.create
    -- :<|> Destroy.destroy
 

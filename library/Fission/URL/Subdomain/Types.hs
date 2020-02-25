@@ -19,6 +19,9 @@ newtype Subdomain = Subdomain { get :: Text }
                     )
   deriving newtype  ( IsString )
 
+instance ToJSON Subdomain where
+  toJSON (Subdomain sub) = String sub
+
 instance PersistField Subdomain where
   toPersistValue (Subdomain name') = PersistText name'
   fromPersistValue = \case

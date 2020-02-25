@@ -20,6 +20,8 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
+import qualified Fission.App.Creator.Class  as App
+
 import qualified Fission.User                  as User
 import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
@@ -52,6 +54,7 @@ app ::
   , Heroku.AddOn.CRUD   t
   , User.CRUD           t
   , LoosePin.CRUD       t
+  , App.Creator         t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -80,6 +83,7 @@ server ::
   , Heroku.AddOn.CRUD   t
   , User.CRUD           t
   , LoosePin.CRUD       t
+  , App.Creator         t
   )
   => Web.Host
   -> ServerT API m
@@ -100,6 +104,7 @@ bizServer ::
   , Heroku.AddOn.CRUD   t
   , User.CRUD           t
   , LoosePin.CRUD       t
+  , App.Creator         t
   )
   => ServerT Web.API m
 bizServer = IPFS.server

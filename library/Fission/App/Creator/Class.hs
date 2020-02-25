@@ -5,7 +5,7 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 import           Fission.Models
-import           Fission.URL.Subdomain.Types
+import           Fission.URL
 
 import qualified Fission.App.Domain.Associate.Class as AppDomain
 import qualified Fission.App.Domain.Associate.Error as AppDomain
