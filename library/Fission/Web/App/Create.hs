@@ -31,8 +31,11 @@ create (Entity userId _) mayRawSubdomain mayDomain mayCID = do
 
   -- -- create AppDomain with subdomain (it's a maybe, so just include directly)
 
-  insertUnique
-    |>
+  -- AppDomain.create
+  -- App.associateDomain
+
+  -- insertUnique
+  --   |>
 
   -- -- set DNS
   return undefined

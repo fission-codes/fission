@@ -115,6 +115,7 @@ dependencies:
   - monad-logger
   - monad-time
   - mtl
+  - path-pieces
   - persistent
   - persistent-postgresql
   - persistent-template

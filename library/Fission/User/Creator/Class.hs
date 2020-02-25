@@ -11,7 +11,7 @@ import           Network.IPFS.CID.Types
 import           Fission.Models
 import           Fission.Prelude
 
-import qualified Fission.Error     as Error
+import qualified Fission.Error as Error
 
 import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn

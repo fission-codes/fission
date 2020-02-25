@@ -16,8 +16,12 @@ newtype DomainName = DomainName { get :: Text }
   deriving          ( Eq
                     , Generic
                     , Show
+                    , Read
+                    , Ord
                     )
-  deriving newtype  ( IsString )
+  deriving newtype  ( IsString
+                    , PathPiece
+                    )
 
 instance PersistField DomainName where
   toPersistValue (DomainName name') = PersistText name'
@@ -40,8 +44,14 @@ instance ToSchema DomainName where
 instance ToParamSchema DomainName where
   toParamSchema _ = mempty |> type_ ?~ SwaggerString
 
+instance ToHttpApiData DomainName where
+  toUrlPiece (DomainName domainName) = domainName
+
 instance FromHttpApiData DomainName where
   parseUrlPiece = Right . DomainName
+
+instance ToJSON DomainName where
+  toJSON (DomainName domainName) = String domainName
 
 instance FromJSON DomainName where
   parseJSON = withText "AWS.DomainName" \txt ->

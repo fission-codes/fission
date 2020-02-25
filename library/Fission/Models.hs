@@ -46,6 +46,8 @@ HerokuAddOn
 
   deriving Show Eq
 
+--------------------------------------------------------------------------------
+
 User
   did           DID           Maybe
   email         Email         Maybe
@@ -67,6 +69,22 @@ User
 
   deriving Show Eq
 
+------------
+-- Events --
+------------
+
+UpdateUserDataRootEvent
+  userId      UserId
+  newDataRoot CID
+
+  writer      DID
+
+  insertedAt  UTCTime
+
+  deriving Show Eq
+
+--------------------------------------------------------------------------------
+
 LoosePin
   ownerId    UserId
   cid        CID
@@ -78,6 +96,22 @@ LoosePin
 
   deriving Show Eq
 
+--------------------------------------------------------------------------------
+
+Domain
+  ownerId    UserId
+  domainName DomainName
+
+  insertedAt UTCTime
+  modifiedAt UTCTime
+
+  Primary domainName
+  UniqueDomainNamePerOwner domainName ownerId
+
+  deriving Show Eq
+
+--------------------------------------------------------------------------------
+
 App
   ownerId     UserId
   cid         CID
@@ -87,30 +121,71 @@ App
 
   deriving Show Eq
 
-Domain
-  ownerId    UserId
-  domainName DomainName
+------------
+-- Events --
+------------
 
+CreateAppEvent
+  ownerId     UserId
+  cid         CID
+
+  insertedAt  UTCTime
+  deriving Show Eq
+
+DestroyAppEvent
+  appId      AppId
   insertedAt UTCTime
-  modifiedAt UTCTime
-
-  UniqueDomainNamePerOwner domainName ownerId
 
   deriving Show Eq
+
+SetAppCIDEvent
+  appId  AppId
+  newCID CID
+
+  insertedAt UTCTime
+
+  deriving Show Eq
+
+--------------------------------------------------------------------------------
 
 AppDomain
   appId      AppId
-  domainId   DomainId
 
+  domainName DomainName
   subdomain  Subdomain Maybe
 
   insertedAt UTCTime
-  modifiedAt UTCTime
 
-  UniqueSubdomainPerDomain domainId subdomain !force
+  UniqueSubdomainPerDomain domainName subdomain !force
+
+  deriving Show Eq
+
+------------
+-- Events --
+------------
+
+AssociateAppDomainEvent
+  appId      AppId
+
+  domainName DomainName
+  subdomain  Subdomain Maybe
+
+  insertedAt UTCTime
+
+  deriving Show Eq
+
+DissociateAppDomainEvent
+  appId      AppId
+
+  domainName DomainName
+  subdomain  Subdomain Maybe
+
+  insertedAt UTCTime
 
   deriving Show Eq
 |]
+
+-- FIXME: event log of all updates
 
 instance Arbitrary UserId where
   arbitrary = toSqlKey <$> arbitrary
