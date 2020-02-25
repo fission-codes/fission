@@ -1,6 +1,6 @@
 module Fission.App.Creator.Class (Creator (..)) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto (insert)
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
@@ -17,7 +17,7 @@ type Errors = OpenUnion
 class Monad m => Creator m where
   create :: UserId -> CID -> UTCTime -> m (Either Errors (AppId, Subdomain))
 
-instance AppDomain.Associate m => Creator (Transaction m) where
+instance MonadIO m => Creator (Transaction m) where
   create ownerId cid now = do
     appId <- insert App
       { appOwnerId    = ownerId
@@ -26,5 +26,5 @@ instance AppDomain.Associate m => Creator (Transaction m) where
       , appModifiedAt = now
       }
 
-  AppDomain.associateDefault appId subdomain now
-    <&> fmap \subdomain -> (appId, subdomain)
+    AppDomain.associateDefault appId now
+      <&> fmap \subdomain -> (appId, subdomain)
