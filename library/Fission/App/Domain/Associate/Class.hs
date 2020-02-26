@@ -1,5 +1,6 @@
 module Fission.App.Domain.Associate.Class
   ( Associate (..)
+  , Errors
   , associateDefault
   ) where
 

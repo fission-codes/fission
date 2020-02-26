@@ -24,6 +24,8 @@ module Fission.Prelude
   , textShow
   , displayLazyBS
   , bind
+  , ok
+  , noop
   ) where
 
 import Control.Lens         ((%~), (.~), (?~), (^?))
@@ -83,3 +85,9 @@ identity a = a
 
 bind :: Monad m => (a -> m b) -> m a -> m b
 bind = (=<<)
+
+ok :: Either err ()
+ok = Right ()
+
+noop :: Applicative f => f ()
+noop = pure ()

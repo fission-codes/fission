@@ -15,6 +15,9 @@ import qualified Fission.Internal.UTF8 as UTF8
 class ToServerError err where
   toServerError :: err -> ServerError
 
+instance ToServerError ServerError where
+  toServerError = identity
+
 instance ToServerError Int where
   toServerError = \case
     300 -> err300

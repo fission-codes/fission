@@ -2,6 +2,7 @@ module Fission.Error
   ( openLeft
   , fromMaybe
   , fromMaybe'
+  -- , fromEither
   ) where
 
 import Data.WorldPeace
@@ -20,3 +21,7 @@ fromMaybe err okHandler = maybe (openLeft err) (Right . okHandler)
 
 fromMaybe' :: IsMember err errs => err -> Maybe a -> Either (OpenUnion errs) a
 fromMaybe' err = fromMaybe err id
+
+-- fromEither :: IsMember err errs => Either err a -> Either (OpenUnion errs) a
+-- fromEither (Left  err) = openLeft err
+-- fromEither (Right a)   = Right a
