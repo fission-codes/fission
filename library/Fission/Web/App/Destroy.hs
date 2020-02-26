@@ -1,20 +1,31 @@
 module Fission.Web.App.Destroy
   ( API
-  -- , server
+  , destroy
   ) where
 
--- import           Network.IPFS.CID.Types
--- import           Database.Esqueleto
+import           Database.Esqueleto
 import           Servant
 
--- import           Fission.Prelude
+import           Fission.Prelude
 import           Fission.Models
+import           Fission.URL.Types
 
--- import           Fission.IPFS.DNSLink.Class as DNSLink
--- import qualified Fission.URL.Types          as URL
--- import           Fission.Web.Error          as Web.Err
--- import           Fission.User.Username.Types
+import qualified Fission.App.Destroyer.Class as App
+import           Fission.Web.Error.Class
 
 type API
-  =  Capture "appId" AppId
-  -- :> Deleted '[JSON] NoResponse
+  =  Capture "url" URL
+  :> DeleteNoContent '[JSON] NoContent
+
+destroy ::
+  ( MonadTime       m
+  , MonadThrow      m
+  , MonadDB       t m
+  , App.Destroyer t
+  )
+  => Entity User
+  -> ServerT API m
+destroy (Entity userId _) URL {..} =
+  runDBNow (App.destroyByURL userId domainName subdomain) >>= \case
+    Right () -> return NoContent
+    Left err -> throwM <| toServerError err

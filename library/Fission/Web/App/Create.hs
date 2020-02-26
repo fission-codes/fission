@@ -26,7 +26,7 @@ create ::
   )
   => Entity User
   -> ServerT API m
-create (Entity userId _) = do
+create (Entity userId _) =
   splashCID
     |> App.create userId
     |> runDBNow
