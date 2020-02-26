@@ -13,43 +13,54 @@ import           Fission.Models.Error
 import           Fission.Error
 
 import qualified Fission.App.Domain.Retriever.Class as AppDomain
+import qualified Fission.App.Retriever.Class as App
 
 type Errors = OpenUnion
   '[ NotFound            App
    , ActionNotAuthorized App
+   , NotFound            AppDomain
    ]
 
 class Monad m => Destroyer m where
   destroy      :: UserId -> AppId -> UTCTime -> m (Either Errors ())
   destroyByURL :: UserId -> DomainName -> Maybe Subdomain -> UTCTime -> m (Either Errors ())
 
-instance AppDomain.Retriever m => Destroyer (Transaction m) where
+instance (MonadIO m) => Destroyer (Transaction m) where
   destroy userId appId now = do
-    AppDomain.allForApp appId >>= \case
-      Left err -> return <| Left err
-      Right appDomains ->
-        guardOwnedBy userId app \_ -> do
-        -- FIXME move to App.Retriever.allDomainsFor appId
+    appDomains <- AppDomain.allForApp appId
+    destroyAssociated userId appId appDomains now
 
-        putMany (toEvent now <$> appDomains)
-        deleteCascade appId
-        return ok
+  destroyByURL userId domainName maySubdomain now =
+    AppDomain.allSiblingsByDomain domainName maySubdomain >>= \case
+      Left  errs ->
+        return . Left <| relaxOpenUnion errs
 
-  destroyByURL userId domainName maySubdomain now = do
-  -- FIXME move to App.Retriever.allDomainsByURL domainName URL
-    appDomains <- select <| from \appDomain -> do
-      where_ <| appDomain ^. AppDomainDomainName ==. val domainName
-            &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
-      return appDomain
+      Right [] ->
+        return . openLeft <| NotFound @AppDomain
 
-    case appDomains of
-      (Entity appId AppDomain {..} : _) -> do
-        putMany (toEvent now <$> appDomains)
-        deleteCascade appId
-        return ok
+      Right appDomains@(Entity _ AppDomain {appDomainAppId} : _) ->
+        destroyAssociated userId appDomainAppId appDomains now
 
-      _ ->
-        return ok
+destroyAssociated ::
+  MonadIO m
+  => UserId
+  -> AppId
+  -> [Entity AppDomain]
+  -> UTCTime
+  -> Transaction m (Either Errors ())
+destroyAssociated userId appId appDomains now =
+  App.byId appId >>= \case
+    Left err ->
+      return <| openLeft err
+
+    Right (Entity _ app) ->
+      if isOwnedBy userId app
+        then do
+          putMany (toEvent now <$> appDomains)
+          deleteCascade appId
+          return ok
+        else
+          return . openLeft <| ActionNotAuthorized @App userId
 
 toEvent :: UTCTime -> Entity AppDomain -> DissociateAppDomainEvent
 toEvent now (Entity _ AppDomain {..}) =
@@ -60,4 +71,5 @@ toEvent now (Entity _ AppDomain {..}) =
     , dissociateAppDomainEventInsertedAt = now
     }
 
--- common :: UserId -> Entity AppDomain ->
+isOwnedBy :: UserId -> App -> Bool
+isOwnedBy userId App { appOwnerId } = userId == appOwnerId
