@@ -7,8 +7,8 @@ import           Fission.Prelude
 import qualified Fission.URL.Types as URL
 
 data Environment = Environment
-  { baseUserDataRootDomain :: !URL.DomainName -- ^ Domain Name
-  , defaultDataCID         :: !CID
+  { baseUserDataRootDomain :: !URL.DomainName -- ^ Domain name for user data
+  , defaultDataCID         :: !CID            -- ^ Initial user data CID
   }
 
 instance Show Environment where
