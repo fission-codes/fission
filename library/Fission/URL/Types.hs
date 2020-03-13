@@ -25,7 +25,7 @@ data URL = URL
 
 instance FromHttpApiData URL where
   parseUrlPiece txt =
-    if any (== "") tokens
+    if any Text.null tokens
       then err
       else parse Nothing tokens
 

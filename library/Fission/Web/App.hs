@@ -3,7 +3,6 @@ module Fission.Web.App
   , server
   ) where
 
--- import           Network.IPFS.CID.Types
 import           Database.Esqueleto
 import           Servant
 
@@ -11,9 +10,6 @@ import           Fission.Prelude
 import           Fission.Models
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
--- import qualified Fission.URL.Types          as URL
--- import           Fission.Web.Error          as Web.Err
--- import           Fission.User.Username.Types
 
 import qualified Fission.App.Creator.Class   as App
 import qualified Fission.App.Destroyer.Class as App
@@ -36,39 +32,3 @@ server ::
   -> ServerT API m
 server user = Create.create user
          :<|> Destroy.server user
-
--- type DomainCreateAPI
---   =  Capture "domain" DomainName
---   :> PutAccepted '[PlainText, OctetStream, JSON] NoResponse
-
--- type PurchaseDomainAPI
---   =  Capture "domain" DomainName
---   :> "purchase"
---   :> PutCreated '[PlainText, OctetStream, JSON] NoResponse
-
--- type UnregisterDomainAPI
---   =  Capture "domain" DomainName
---   :> Delete '[PlainText, OctetStream, JSON] NoResponse
-
--- type TransferDomainAPI
---   =  Capture "domain" DomainName
---   :> "purchase"
---   :> PutCreated '[PlainText, OctetStream, JSON] NoResponse
-
-{-
-  DOMAIN NAME
-    REGSITER
-      PUT /domain/register/foo.com
-
-    PURCHASE
-      PUT /domain/purchase/foo.com
-
-  APP
-    CREATE
-      PUT /app -- autogenerate app name & cid
-
-      PUT /app?domain=fission.name&subdoman=pretzelfacts&cid=Qm12345
-
-      PUT /app/boris.fission.name
-      PUT /app/boris.fission.name/Qmabcdef
--}
