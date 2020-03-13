@@ -35,13 +35,20 @@ instance MonadDNSLink m => Modifier (Transaction m) where
           then do
             update appId [AppCid =. newCID]
             insert (SetAppCIDEvent appId newCID now)
-
-            -- Update DNS records for each registered AppDomain
-            appDomains <- selectList [AppDomainAppId ==. appId] []
-            forM_ appDomains \(Entity _ AppDomain {..}) ->
-              DNSLink.set appDomainDomainName appDomainSubdomain newCID
-
+            updateAssociatedDNS appId newCID
             return ok
-
           else
             return . Error.openLeft <| ActionNotAuthorized @App userId
+
+-- | Update DNS records for each registered @AppDomain@
+updateAssociatedDNS ::
+  ( MonadIO                   m
+  , MonadDNSLink (Transaction m)
+  )
+  => AppId
+  -> CID
+  -> Transaction m ()
+updateAssociatedDNS appId newCID = do
+  appDomains <- selectList [AppDomainAppId ==. appId] []
+  forM_ appDomains \(Entity _ AppDomain {..}) ->
+    DNSLink.set appDomainDomainName appDomainSubdomain newCID
