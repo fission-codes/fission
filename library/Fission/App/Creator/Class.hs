@@ -12,12 +12,15 @@ import           Fission.URL
 
 import           Fission.IPFS.DNSLink as DNSLink
 
+import           Fission.Authorization
+
 import qualified Fission.App.Domain.Associate.Class as AppDomain
 import qualified Fission.App.Domain.Associate.Error as AppDomain
 
 type Errors = OpenUnion
   '[ ServerError
    , AppDomain.AlreadyExists
+   , Unauthorized
    ]
 
 class Monad m => Creator m where
@@ -32,7 +35,7 @@ instance (MonadDNSLink m, MonadIO m) => Creator (Transaction m) where
       , appModifiedAt = now
       }
 
-    AppDomain.associateDefault appId now >>= \case
+    AppDomain.associateDefault ownerId appId now >>= \case
       Left err ->
         return . Left <| relaxOpenUnion err
 
