@@ -36,7 +36,8 @@ server ::
   )
   => Entity User
   -> ServerT API m
-server user = destroyByURL user :<|> destroyById user
+server user = destroyByURL user
+        :<|> destroyById   user
 
 destroyByURL ::
   ( MonadTime       m
