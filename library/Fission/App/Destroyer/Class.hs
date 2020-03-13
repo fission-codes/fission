@@ -9,6 +9,8 @@ import           Fission.Prelude
 import           Fission.Models
 import           Fission.URL
 
+import           Fission.Authorization
+
 import           Fission.Models.Error
 import           Fission.Error
 
@@ -70,6 +72,3 @@ toEvent now (Entity _ AppDomain {..}) =
     , dissociateAppDomainEventSubdomain  = appDomainSubdomain
     , dissociateAppDomainEventInsertedAt = now
     }
-
-isOwnedBy :: UserId -> App -> Bool
-isOwnedBy userId App { appOwnerId } = userId == appOwnerId
