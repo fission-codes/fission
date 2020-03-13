@@ -34,7 +34,7 @@ instance MonadDNSLink m => Modifier (Transaction m) where
         if isOwnedBy userId app
           then do
             update appId [AppCid =. newCID]
-            insert (SetAppCIDEvent appId newCID now)
+            insert <| SetAppCIDEvent appId newCID now
             updateAssociatedDNS appId newCID
             return ok
           else
