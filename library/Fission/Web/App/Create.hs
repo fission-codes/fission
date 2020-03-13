@@ -35,7 +35,7 @@ create (Entity userId _) =
       Left err             -> throwM <| toServerError err
 
 splashCID :: CID
-splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN"
+splashCID = CID "QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN" -- FIXME use config
 
 defaultDomain :: DomainName
-defaultDomain = DomainName "fission.app"
+defaultDomain = DomainName "fission.app" -- FIXME use config

@@ -31,8 +31,10 @@ import qualified Fission.Platform.Heroku.Password.Types       as Hku
 import           Fission.Environment.IPFS.Types    as IPFS
 import           Fission.Environment.Types
 import qualified Fission.Environment.AWS.Types     as AWS
+import qualified Fission.Environment.FFS.Types     as FFS
 import qualified Fission.Environment.Storage.Types as Storage
 import qualified Fission.Environment.Web.Types     as Web
+import qualified Fission.Environment.WebApp.Types  as WebApp
 
 import qualified Fission.Web.Log.Sentry as Sentry
 import qualified Fission.Monitor        as Monitor
@@ -49,6 +51,8 @@ main = do
     Storage.Environment {..} = env |> storage
     Web.Environment     {..} = env |> web
     AWS.Environment     {..} = env |> aws
+    WebApp.Environment  {..} = env |> webApp
+    FFS.Environment     {..} = env |> ffs
 
     herokuID       = Hku.ID       <| encodeUtf8 <| Hku.id <| manifest
     herokuPassword = Hku.Password <| encodeUtf8 <| Hku.password <| Hku.api <| manifest
@@ -62,7 +66,6 @@ main = do
     awsAccessKey          = accessKey
     awsSecretKey          = secretKey
     awsZoneID             = zoneID
-    awsDomainName         = domainName
     awsRoute53MockEnabled = route53MockEnabled
 
   isVerbose  <- isDebugEnabled

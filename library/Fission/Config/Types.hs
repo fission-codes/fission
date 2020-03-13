@@ -2,12 +2,13 @@
 module Fission.Config.Types (Config (..)) where
 
 import qualified Network.HTTP.Client as HTTP
-
-import Data.Pool
-import Database.Persist.Sql (SqlBackend)
+import           Network.IPFS.CID.Types
 
 import qualified Network.AWS.Auth   as AWS
 import qualified Network.IPFS.Types as IPFS
+
+import           Data.Pool
+import           Database.Persist.Sql (SqlBackend)
 
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
@@ -19,45 +20,51 @@ import           Fission.Web.Types
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { processCtx            :: !ProcessContext
-  , logFunc               :: !LogFunc
-  , httpManager           :: !HTTP.Manager
-  , ipfsPath              :: !IPFS.BinPath
-  , ipfsURL               :: !IPFS.URL
-  , ipfsRemotePeer        :: !IPFS.Peer
-  , ipfsTimeout           :: !IPFS.Timeout
-  , ipfsGateway           :: !IPFS.Gateway
-  , host                  :: !Host
-  , dbPool                :: !(Pool SqlBackend)
-  , herokuID              :: !Heroku.ID
-  , herokuPassword        :: !Heroku.Password
-  , awsAccessKey          :: !AWS.AccessKey
-  , awsSecretKey          :: !AWS.SecretKey
-  , awsZoneID             :: !AWS.ZoneID
-  , awsDomainName         :: !URL.DomainName
-  , awsRoute53MockEnabled :: !AWS.Route53MockEnabled
+  { processCtx             :: !ProcessContext
+  , logFunc                :: !LogFunc
+  , httpManager            :: !HTTP.Manager
+  , ipfsPath               :: !IPFS.BinPath
+  , ipfsURL                :: !IPFS.URL
+  , ipfsRemotePeer         :: !IPFS.Peer
+  , ipfsTimeout            :: !IPFS.Timeout
+  , ipfsGateway            :: !IPFS.Gateway
+  , host                   :: !Host
+  , dbPool                 :: !(Pool SqlBackend)
+  , herokuID               :: !Heroku.ID
+  , herokuPassword         :: !Heroku.Password
+  , awsAccessKey           :: !AWS.AccessKey
+  , awsSecretKey           :: !AWS.SecretKey
+  , awsZoneID              :: !AWS.ZoneID
+  , awsRoute53MockEnabled  :: !AWS.Route53MockEnabled
+  , appPlaceholder         :: !CID
+  , baseAppDomainName      :: !URL.DomainName
+  , baseUserDataRootDomain :: !URL.DomainName
+  , defaultDataCID         :: !CID
   } deriving Generic
 
 instance Show Config where
   show Config {..} = intercalate "\n"
     [ "Config {"
-    , "  processCtx            = **SOME PROC CONTEXT**"
-    , "  logFunc               = **SOME LOG FUNCTION**"
-    , "  httpManager           = **SOME HTTP MANAGER**"
-    , "  ipfsPath              = " <> show ipfsPath
-    , "  ipfsURL               = " <> show ipfsURL
-    , "  ipfsRemotePeer        = " <> show ipfsRemotePeer
-    , "  ipfsTimeout           = " <> show ipfsTimeout
-    , "  ipfsGateway           = " <> show ipfsGateway
-    , "  host                  = " <> show host
-    , "  dbPool                = " <> show dbPool
-    , "  herokuID              = " <> show herokuID
-    , "  herokuPassword        = " <> show herokuPassword
-    , "  awsAccessKey          = " <> show awsAccessKey
-    , "  awsSecretKey          = HIDDEN"
-    , "  awsZoneID             = " <> show awsZoneID
-    , "  awsDomainName         = " <> show awsDomainName
-    , "  awsRoute53MockEnabled = " <> show awsRoute53MockEnabled
+    , "  processCtx             = **SOME PROC CONTEXT**"
+    , "  logFunc                = **SOME LOG FUNCTION**"
+    , "  httpManager            = **SOME HTTP MANAGER**"
+    , "  ipfsPath               = " <> show ipfsPath
+    , "  ipfsURL                = " <> show ipfsURL
+    , "  ipfsRemotePeer         = " <> show ipfsRemotePeer
+    , "  ipfsTimeout            = " <> show ipfsTimeout
+    , "  ipfsGateway            = " <> show ipfsGateway
+    , "  host                   = " <> show host
+    , "  dbPool                 = " <> show dbPool
+    , "  herokuID               = " <> show herokuID
+    , "  herokuPassword         = " <> show herokuPassword
+    , "  awsAccessKey           = " <> show awsAccessKey
+    , "  awsSecretKey           = HIDDEN"
+    , "  awsZoneID              = " <> show awsZoneID
+    , "  awsRoute53MockEnabled  = " <> show awsRoute53MockEnabled
+    , "  appPlaceholder         = " <> show appPlaceholder
+    , "  baseAppDomainName      = " <> show baseAppDomainName
+    , "  baseUserDataRootDomain = " <> show baseUserDataRootDomain
+    , "  defaultDataCID         = " <> show defaultDataCID
     , "}"
     ]
 

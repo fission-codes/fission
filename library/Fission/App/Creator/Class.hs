@@ -25,7 +25,7 @@ type Errors = OpenUnion
 class Monad m => Creator m where
   create :: UserId -> CID -> UTCTime -> m (Either Errors (AppId, Subdomain))
 
-instance (MonadDNSLink m, MonadIO m) => Creator (Transaction m) where
+instance MonadDNSLink m => Creator (Transaction m) where
   create ownerId cid now = do
     appId <- insert App
       { appOwnerId    = ownerId
@@ -40,7 +40,7 @@ instance (MonadDNSLink m, MonadIO m) => Creator (Transaction m) where
 
       Right subdomain ->
         cid
-          |> DNSLink.setBase (Just subdomain) -- FIXME
+          |> DNSLink.setBase (Just subdomain)
           |> fmap \case
             Left  err -> Error.openLeft err
             Right _   -> Right (appId, subdomain)

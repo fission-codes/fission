@@ -162,7 +162,7 @@ instance MonadDNSLink Fission where
           |> fmap \_ -> Right baseURL
 
   setBase subdomain cid = do
-    domain <- asks awsDomainName
+    domain <- asks baseAppDomainName
     DNSLink.set domain subdomain cid
 
 instance MonadLinkedIPFS Fission where

@@ -35,8 +35,9 @@ instance MonadDNSLink m => Modifier (Transaction m) where
           then do
             update appId [AppCid =. newCID]
             insert (SetAppCIDEvent appId newCID now)
-            appDomains <- selectList [AppDomainAppId ==. appId] []
 
+            -- Update DNS records for each registered AppDomain
+            appDomains <- selectList [AppDomainAppId ==. appId] []
             forM_ appDomains \(Entity _ AppDomain {..}) ->
               DNSLink.set appDomainDomainName appDomainSubdomain newCID
 
