@@ -51,10 +51,10 @@ instance MonadIO m => Dissociate (Transaction m) where
               }
 
             howMany <- deleteCount <| from \appDomain ->
-              where_ <|  appDomain ^. AppDomainAppId     ==. val appId
-                    &&. appDomain ^. AppDomainDomainName ==. val domainName
-                    &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
+              where_ <|  appDomain ^. AppDomainAppId      ==. val appId
+                     &&. appDomain ^. AppDomainDomainName ==. val domainName
+                     &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
 
             return case howMany of
               0 -> Error.openLeft <| DissociateDomain.NotRegisteredToApp appId domainName maySubdomain
-              _ -> Right ()
+              _ -> ok

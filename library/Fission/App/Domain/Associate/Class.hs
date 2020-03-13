@@ -78,4 +78,4 @@ associateDefault userId appId now = do
     <&> fmap \_ -> subdomain
 
 defaultDomainName :: DomainName
-defaultDomainName = DomainName "fission.app"
+defaultDomainName = DomainName "fission.app" -- FIXME: user config

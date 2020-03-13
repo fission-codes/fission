@@ -3,8 +3,7 @@ module Fission.App.Domain.Retriever.Class
   , Errors
   ) where
 
-import           Database.Esqueleto
-import qualified Database.Persist as P
+import           Database.Persist
 
 import           Fission.Prelude
 import           Fission.Models
@@ -18,16 +17,16 @@ type Errors = OpenUnion
    ]
 
 class Monad m => Retriever m where
-  allForApp :: AppId -> m [Entity AppDomain]
+  allForApp           :: AppId -> m [Entity AppDomain]
   allSiblingsByDomain :: DomainName -> Maybe Subdomain -> m (Either Errors [Entity AppDomain])
 
 instance MonadIO m => Retriever (Transaction m) where
-  allForApp appId = P.selectList [AppDomainAppId P.==. appId] []
+  allForApp appId = selectList [AppDomainAppId ==. appId] []
 
   allSiblingsByDomain domainName maySubdomain = do
-    mayAppDomain <- P.selectFirst
-      [ AppDomainDomainName P.==. domainName
-      , AppDomainSubdomain  P.==. maySubdomain
+    mayAppDomain <- selectFirst
+      [ AppDomainDomainName ==. domainName
+      , AppDomainSubdomain  ==. maySubdomain
       ]
       []
 
@@ -36,4 +35,4 @@ instance MonadIO m => Retriever (Transaction m) where
         return . openLeft <| NotFound @AppDomain
 
       Just (Entity _ AppDomain {appDomainAppId}) ->
-        Right <$> P.selectList [AppDomainAppId P.==. appDomainAppId] []
+        Right <$> selectList [AppDomainAppId ==. appDomainAppId] []
