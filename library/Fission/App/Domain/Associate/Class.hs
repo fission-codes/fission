@@ -61,7 +61,7 @@ instance MonadIO m => Associate (Transaction m) where
               |> insertUnique
               |> fmap \case
                 Nothing -> Error.openLeft <| AppDomain.AlreadyExists appId domainName maySubdomain
-                Just _  -> return ()
+                Just _  -> ok
 
 associateDefault ::
   ( MonadIO   m
