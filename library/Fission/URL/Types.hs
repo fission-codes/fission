@@ -4,6 +4,9 @@ module Fission.URL.Types
   , module Fission.URL.Subdomain.Types
   ) where
 
+import           Data.Swagger hiding (URL)
+import           Servant
+
 import qualified RIO.List as List
 import qualified RIO.Text as Text
 
@@ -19,6 +22,29 @@ data URL = URL
   deriving ( Show
            , Eq
            )
+
+instance FromHttpApiData URL where
+  parseUrlPiece txt =
+    if any (== "") tokens
+      then err
+      else parse Nothing tokens
+
+    where
+      tokens :: [Text]
+      tokens = Text.split (== '.') txt
+
+      parse :: Maybe Text -> [Text] -> Either Text URL
+      parse _       []           = err
+      parse _       [_]          = err
+      parse acc     [dom, tld]   = Right <| URL (DomainName (dom <> "." <> tld)) (Subdomain <$> acc)
+      parse Nothing (sub : more) = parse (Just sub)        more
+      parse acc     (sub : more) = parse (acc <> Just ("." <> sub)) more
+
+      err :: Either Text URL
+      err = Left "Improperly formatted URL"
+
+instance ToParamSchema URL where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString
 
 instance FromJSON URL where
   parseJSON = withText "URL" \txt -> do

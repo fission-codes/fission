@@ -20,7 +20,8 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
-import qualified Fission.App.Creator.Class  as App
+import qualified Fission.App.Creator.Class   as App
+import qualified Fission.App.Destroyer.Class as App
 
 import qualified Fission.User                  as User
 import qualified Fission.LoosePin              as LoosePin
@@ -55,6 +56,7 @@ app ::
   , User.CRUD           t
   , LoosePin.CRUD       t
   , App.Creator         t
+  , App.Destroyer       t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -84,6 +86,7 @@ server ::
   , User.CRUD           t
   , LoosePin.CRUD       t
   , App.Creator         t
+  , App.Destroyer       t
   )
   => Web.Host
   -> ServerT API m
@@ -105,6 +108,7 @@ bizServer ::
   , User.CRUD           t
   , LoosePin.CRUD       t
   , App.Creator         t
+  , App.Destroyer       t
   )
   => ServerT Web.API m
 bizServer = IPFS.server

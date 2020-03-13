@@ -15,25 +15,27 @@ import           Fission.IPFS.DNSLink.Class as DNSLink
 -- import           Fission.Web.Error          as Web.Err
 -- import           Fission.User.Username.Types
 
-import qualified Fission.App.Creator.Class  as App
+import qualified Fission.App.Creator.Class   as App
+import qualified Fission.App.Destroyer.Class as App
 
 import qualified Fission.Web.App.Create  as Create
--- import qualified Fission.Web.App.Destroy as Destroy
+import qualified Fission.Web.App.Destroy as Destroy
 
 type API
   =    Create.API
-  -- :<|> Destroy.API
+  :<|> Destroy.API
 
 server ::
-  ( MonadTime      m
-  , MonadDNSLink   m
-  , MonadDB      t m
-  , App.Creator  t
+  ( MonadTime       m
+  , MonadDNSLink    m
+  , MonadDB       t m
+  , App.Creator   t
+  , App.Destroyer t
   )
   => Entity User
   -> ServerT API m
-server = Create.create
-   -- :<|> Destroy.destroy
+server user = Create.create user
+         :<|> Destroy.server user
 
 -- type DomainCreateAPI
 --   =  Capture "domain" DomainName

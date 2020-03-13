@@ -213,3 +213,6 @@ instance ToSchema AppId where
       |> type_ ?~ SwaggerInteger
       |> NamedSchema (Just "AppId")
       |> pure
+
+instance ToParamSchema AppId where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString

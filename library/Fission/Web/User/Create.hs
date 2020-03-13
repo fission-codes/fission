@@ -28,7 +28,7 @@ server ::
   => DID
   -> ServerT API m
 server did (User.Registration username@(Username rawUN) email) = do
-  Web.Err.ensure =<< runDBNow (User.create username did email)
+  Web.Err.ensure =<< runDBNow (User.create username did email) -- FIXME: CREATE FIRST APP AS PART OF THIS
   Web.Err.ensureM =<< DNSLink.setWithSubdomain rawUN splashCID
   return NoContent
 
