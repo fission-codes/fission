@@ -49,12 +49,6 @@ import           Fission.Models
 
 import           Fission.Web.Auth.Token.Basic.Class
 
--- import Fission.App.Creator.Class as App
--- import qualified Fission.App.Domain.Associate.Class as AppDomain
--- import qualified Fission.App.Domain.Associate.Error as AppDomain
--- import           Fission.IPFS.DNSLink as DNSLink
--- import qualified Fission.Error as Error
-
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
   deriving newtype ( Functor
@@ -222,20 +216,3 @@ instance MonadAuth (SQL.Entity User) Fission where
     cfg <- ask
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req
-
--- instance App.Creator Fission where
---   create ownerId cid now = do
---     appId <- SQL.insert App
---       { appOwnerId    = ownerId
---       , appCid        = cid
---       , appInsertedAt = now
---       , appModifiedAt = now
---       }
-
---     AppDomain.associateDefault appId now >>= \case
---       Left err -> return <| Left <| relaxOpenUnion err
-
---       Right subdomain ->
---         DNSLink.set (Just subdomain) cid >>= return . \case
---           Left  err -> Error.openLeft err
---           Right _   -> Right (appId, subdomain)
