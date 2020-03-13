@@ -29,10 +29,10 @@ brew services start ipfs
 ```shell
 # Enable sample Heroku config
 # Note: You will have to edit this file to input dummy data
-cp example-config/addon-manifest.json.example addon-manifest.json
+cp addon-manifest.json.example addon-manifest.json
 
 # Setup env file
-cp example-config/env.yaml.example env.yaml
+cp env.yaml.example env.yaml
 ```
 
 ## Run Server
