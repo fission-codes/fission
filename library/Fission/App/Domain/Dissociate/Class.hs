@@ -8,40 +8,62 @@ import           Database.Esqueleto
 
 import           Fission.Prelude
 import           Fission.Models
+import           Fission.Models.Error
+import           Fission.Ownership
 import           Fission.URL
 
 import qualified Fission.Error as Error
 
 import qualified Fission.App.Domain.Dissociate.Error as DissociateDomain
+import qualified Fission.App.Retriever.Class         as App
 
 type Errors = OpenUnion
   '[ DissociateDomain.NotRegisteredToApp
+   , ActionNotAuthorized App
+   , NotFound            App
    ]
 
 class Monad m => Dissociate m where
-  dissociate    :: AppId -> DomainName -> Maybe Subdomain -> UTCTime -> m (Either Errors ())
+  dissociate ::
+       UserId
+    -> AppId
+    -> DomainName
+    -> Maybe Subdomain
+    -> UTCTime
+    -> m (Either Errors ())
+
   -- dissociateAll :: AppId -> UTCTime -> m (Either Errors ())
 
   -- FIXME: move to Domain/Delete
   -- dissociateAllByDomainName :: AppId -> DomainName -> UTCTime -> m (Either Errors ())
 
 instance MonadIO m => Dissociate (Transaction m) where
-  dissociate appId domainName maySubdomain now = do
-    insert_ DissociateAppDomainEvent
-      { dissociateAppDomainEventAppId      = appId
-      , dissociateAppDomainEventDomainName = domainName
-      , dissociateAppDomainEventSubdomain  = maySubdomain
-      , dissociateAppDomainEventInsertedAt = now
-      }
+  dissociate userId appId domainName maySubdomain now =
+    App.byId appId >>= \case
+      Left err ->
+        return <| Error.openLeft err
 
-    howMany <- deleteCount <| from \appDomain ->
-      where_ <|  appDomain ^. AppDomainAppId      ==. val appId
-             &&. appDomain ^. AppDomainDomainName ==. val domainName
-             &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
+      Right app ->
+        case isOwnedBy userId app of
+          False ->
+            return . Error.openLeft <| ActionNotAuthorized @App userId
 
-    return case howMany of
-      0 -> Error.openLeft <| DissociateDomain.NotRegisteredToApp appId domainName maySubdomain
-      _ -> Right ()
+          True -> do
+            insert_ DissociateAppDomainEvent
+              { dissociateAppDomainEventAppId      = appId
+              , dissociateAppDomainEventDomainName = domainName
+              , dissociateAppDomainEventSubdomain  = maySubdomain
+              , dissociateAppDomainEventInsertedAt = now
+              }
+
+            howMany <- deleteCount <| from \appDomain ->
+              where_ <|  appDomain ^. AppDomainAppId      ==. val appId
+                    &&. appDomain ^. AppDomainDomainName ==. val domainName
+                    &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
+
+            return case howMany of
+              0 -> Error.openLeft <| DissociateDomain.NotRegisteredToApp appId domainName maySubdomain
+              _ -> Right ()
 
   -- dissociateAllByDomainName appId domainName now = do
   --   appDomains <- select <| from \appDomain -> do

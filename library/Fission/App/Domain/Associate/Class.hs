@@ -8,20 +8,20 @@ import           Database.Esqueleto (Entity (..), insert_, insertUnique)
 
 import           Fission.Prelude
 import           Fission.Models
+import           Fission.Models.Error
 import           Fission.URL
 
-import           Fission.Authorization.Error
 import           Fission.Ownership
 
-import qualified Fission.App.Retriever.Class as App
+import qualified Fission.App.Retriever.Class        as App
 import qualified Fission.App.Domain.Associate.Error as AppDomain
 
 import qualified Fission.Error as Error
-import           Fission.Models.Error
 
 type Errors = OpenUnion
   '[ AppDomain.AlreadyExists
-   , Unauthorized
+   , ActionNotAuthorized App
+   , NotFound            App
    ]
 
 class Monad m => Associate m where
@@ -36,13 +36,13 @@ class Monad m => Associate m where
 instance MonadIO m => Associate (Transaction m) where
   associate userId appId domainName maySubdomain now =
     App.byId appId >>= \case
-      Left NotFound ->
-        return <| Error.openLeft Unauthorized
+      Left err ->
+        return <| Error.openLeft err
 
       Right (Entity _ app) ->
         case isOwnedBy userId app of
           False ->
-            return <| Error.openLeft Unauthorized
+            return . Error.openLeft <| ActionNotAuthorized @App userId
 
           True -> do
             insert_ AssociateAppDomainEvent

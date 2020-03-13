@@ -7,20 +7,19 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 import           Fission.Models
+import           Fission.Models.Error
 import           Fission.URL
 
-import           Fission.Authorization.Error
 import qualified Fission.Error as Error
 
-import           Fission.IPFS.DNSLink as DNSLink
-
-import qualified Fission.App.Domain.Associate.Class as AppDomain
-import qualified Fission.App.Domain.Associate.Error as AppDomain
+import qualified Fission.App.Domain.Associate as AppDomain
+import           Fission.IPFS.DNSLink         as DNSLink
 
 type Errors = OpenUnion
   '[ ServerError
    , AppDomain.AlreadyExists
-   , Unauthorized
+   , ActionNotAuthorized App
+   , NotFound            App
    ]
 
 class Monad m => Creator m where
