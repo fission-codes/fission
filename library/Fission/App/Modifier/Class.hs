@@ -26,9 +26,9 @@ class Monad m => Modifier m where
 
 instance MonadDNSLink m => Modifier (Transaction m) where
   updateCID userId appId newCID now =
-    App.byId appId >>= \case
+    App.byId userId appId >>= \case
       Left err ->
-        return <| Error.openLeft err
+        return . Left <| relaxOpenUnion err
 
       Right (Entity _ app) -> do
         if isOwnedBy userId app

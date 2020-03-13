@@ -9,9 +9,8 @@ import           Database.Esqueleto (Entity (..), insert_, insertUnique)
 import           Fission.Prelude
 import           Fission.Models
 import           Fission.Models.Error
-import           Fission.URL
-
 import           Fission.Ownership
+import           Fission.URL
 
 import qualified Fission.App.Retriever.Class        as App
 import qualified Fission.App.Domain.Associate.Error as AppDomain
@@ -35,9 +34,9 @@ class Monad m => Associate m where
 
 instance MonadIO m => Associate (Transaction m) where
   associate userId appId domainName maySubdomain now =
-    App.byId appId >>= \case
+    App.byId userId appId >>= \case
       Left err ->
-        return <| Error.openLeft err
+        return . Left <| relaxOpenUnion err
 
       Right (Entity _ app) ->
         case isOwnedBy userId app of

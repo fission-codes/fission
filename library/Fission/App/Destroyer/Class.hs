@@ -50,9 +50,9 @@ destroyAssociated ::
   -> UTCTime
   -> Transaction m (Either Errors ())
 destroyAssociated userId appId appDomains now =
-  App.byId appId >>= \case
+  App.byId userId appId >>= \case
     Left err ->
-      return <| openLeft err
+      return . Left <| relaxOpenUnion err
 
     Right (Entity _ app) ->
       if isOwnedBy userId app
