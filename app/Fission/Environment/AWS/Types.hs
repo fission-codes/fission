@@ -7,9 +7,9 @@ import           Fission.Prelude
 import qualified Fission.AWS.Types as AWS
 
 data Environment = Environment
-  { accessKey   :: !AWS.AccessKey  -- ^ Access Key
-  , secretKey   :: !AWS.SecretKey  -- ^ Secret Key
-  , zoneID      :: !AWS.ZoneID     -- ^ Hosted Zone
+  { accessKey          :: !AWS.AccessKey  -- ^ Access Key
+  , secretKey          :: !AWS.SecretKey  -- ^ Secret Key
+  , zoneID             :: !AWS.ZoneID     -- ^ Hosted Zone
   , route53MockEnabled :: !AWS.Route53MockEnabled
   }
 
