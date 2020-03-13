@@ -51,7 +51,7 @@ instance MonadIO m => Dissociate (Transaction m) where
               }
 
             howMany <- deleteCount <| from \appDomain ->
-              where_ <|  appDomain ^. AppDomainAppId      ==. val appId
+              where_ <|  appDomain ^. AppDomainAppId     ==. val appId
                     &&. appDomain ^. AppDomainDomainName ==. val domainName
                     &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
 
