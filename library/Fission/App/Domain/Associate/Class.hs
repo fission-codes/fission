@@ -10,7 +10,9 @@ import           Fission.Prelude
 import           Fission.Models
 import           Fission.URL
 
-import           Fission.Authorization
+import           Fission.Authorization.Error
+import           Fission.Ownership
+
 import qualified Fission.App.Retriever.Class as App
 import qualified Fission.App.Domain.Associate.Error as AppDomain
 

@@ -6,13 +6,13 @@ import           Database.Esqueleto (insert)
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
-import qualified Fission.Error as Error
 import           Fission.Models
 import           Fission.URL
 
-import           Fission.IPFS.DNSLink as DNSLink
+import           Fission.Authorization.Error
+import qualified Fission.Error as Error
 
-import           Fission.Authorization
+import           Fission.IPFS.DNSLink as DNSLink
 
 import qualified Fission.App.Domain.Associate.Class as AppDomain
 import qualified Fission.App.Domain.Associate.Error as AppDomain
@@ -40,6 +40,8 @@ instance (MonadDNSLink m, MonadIO m) => Creator (Transaction m) where
         return . Left <| relaxOpenUnion err
 
       Right subdomain ->
-        DNSLink.set (Just subdomain) cid <&> \case
-          Left  err -> Error.openLeft err
-          Right _   -> Right (appId, subdomain)
+        cid
+          |> DNSLink.set (Just subdomain)
+          |> fmap \case
+            Left  err -> Error.openLeft err
+            Right _   -> Right (appId, subdomain)

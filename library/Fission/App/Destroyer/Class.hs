@@ -7,9 +7,8 @@ import           Database.Esqueleto
 
 import           Fission.Prelude
 import           Fission.Models
+import           Fission.Ownership
 import           Fission.URL
-
-import           Fission.Authorization
 
 import           Fission.Models.Error
 import           Fission.Error
