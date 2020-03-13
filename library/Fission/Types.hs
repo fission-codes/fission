@@ -28,7 +28,7 @@ import           Fission.AWS.Types as AWS
 
 import           Fission.Internal.UTF8
 
-import           Fission.IPFS.DNSLink
+import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
 
 import qualified Fission.URL as URL
@@ -143,9 +143,8 @@ instance MonadRoute53 Fission where
           |> rrsResourceRecords ?~ pure (resourceRecord value)
 
 instance MonadDNSLink Fission where
-  set maySubdomain (CID hash) = do
+  set domain maySubdomain (CID hash) = do
     IPFS.Gateway gateway <- asks ipfsGateway
-    domain               <- asks awsDomainName
 
     let
       baseURL    = URL.normalizePrefix domain maySubdomain
@@ -161,6 +160,10 @@ instance MonadDNSLink Fission where
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
+
+  setBase subdomain cid = do
+    domain <- asks awsDomainName
+    DNSLink.set domain subdomain cid
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer

@@ -40,7 +40,7 @@ instance (MonadDNSLink m, MonadIO m) => Creator (Transaction m) where
 
       Right subdomain ->
         cid
-          |> DNSLink.set (Just subdomain)
+          |> DNSLink.setBase (Just subdomain) -- FIXME
           |> fmap \case
             Left  err -> Error.openLeft err
             Right _   -> Right (appId, subdomain)

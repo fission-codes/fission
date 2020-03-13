@@ -37,7 +37,8 @@ defaultConfig = Config
   , remoteIPFSCat   = Right <| File.Serialized "hello world"
   , remoteIPFSPin   = Right <| IPFS.Client.Response [IPFS.CID "Qmfhajhfjka"]
   , remoteIPFSUnpin = Right <| IPFS.Client.Response [IPFS.CID "Qmhjsdahjhkjas"]
-  , setDNSLink      = \_ _   -> Right <| DomainName "example.com"
+  , setDNSLink      = \_ _ _ -> Right <| DomainName "example.com"
+  , getBaseDomain   = DomainName "example.com"
   , updateRoute53   = \_ _ _ ->
       agesAgo
         |> changeInfo "ciId" Insync

@@ -133,10 +133,16 @@ instance
   , IsMember RunAWS        effs
   )
   => MonadDNSLink (Mock effs) where
-  set s c = do
+  set d s c = do
     Effect.log SetDNSLink
     runner <- asks setDNSLink
-    return <| runner s c
+    return <| runner d s c
+
+  setBase s c = do
+    Effect.log SetDNSLink
+    baseDomain <- asks getBaseDomain
+    runner <- asks setDNSLink
+    return <| runner baseDomain s c
 
 instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
   runLocal _ _ = do
