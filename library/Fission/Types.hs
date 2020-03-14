@@ -48,6 +48,7 @@ import           Fission.User.DID.Types
 import           Fission.Models
 
 import           Fission.Web.Auth.Token.Basic.Class
+import           Fission.App.Domain.Class
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -219,3 +220,6 @@ instance MonadAuth (SQL.Entity User) Fission where
     cfg <- ask
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req
+
+instance HasBaseAppDomain Fission where
+  get = asks baseAppDomainName

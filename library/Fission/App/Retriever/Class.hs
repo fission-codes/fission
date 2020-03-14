@@ -22,7 +22,9 @@ instance MonadIO m => Retriever (Transaction m) where
     appId
       |> getEntity
       |> fmap \case
-        Nothing  -> openLeft <| NotFound @App
+        Nothing  ->
+          openLeft <| NotFound @App
+
         Just app ->
           if isOwnedBy userId app
             then Right app

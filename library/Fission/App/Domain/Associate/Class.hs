@@ -1,7 +1,6 @@
 module Fission.App.Domain.Associate.Class
   ( Associate (..)
   , Errors
-  , associateDefault
   ) where
 
 import           Database.Esqueleto (Entity (..), insert_, insertUnique)
@@ -61,20 +60,3 @@ instance MonadIO m => Associate (Transaction m) where
               |> fmap \case
                 Nothing -> Error.openLeft <| AppDomain.AlreadyExists appId domainName maySubdomain
                 Just _  -> ok
-
-associateDefault ::
-  ( MonadIO   m
-  , Associate m
-  )
-  => UserId
-  -> AppId
-  -> UTCTime
-  -> m (Either Errors Subdomain)
-associateDefault userId appId now = do
-  subdomain <- liftIO (generate arbitrary)
-
-  associate userId appId defaultDomainName (Just subdomain) now
-    <&> fmap \_ -> subdomain
-
-defaultDomainName :: DomainName
-defaultDomainName = DomainName "fission.app" -- FIXME: user config

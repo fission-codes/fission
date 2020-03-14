@@ -23,6 +23,8 @@ import           Fission.Web.Server.Reflective
 import qualified Fission.App.Creator.Class   as App
 import qualified Fission.App.Destroyer.Class as App
 
+import           Fission.App.Domain.Class
+
 import qualified Fission.User                  as User
 import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
@@ -42,7 +44,8 @@ import qualified Fission.Web.App     as App
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadReflectiveServer m
+  ( HasBaseAppDomain      m
+  , MonadReflectiveServer m
   , MonadLinkedIPFS       m
   , MonadRemoteIPFS       m
   , MonadLocalIPFS        m
@@ -72,7 +75,8 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadReflectiveServer m
+  ( HasBaseAppDomain      m
+  , MonadReflectiveServer m
   , MonadLinkedIPFS       m
   , MonadRemoteIPFS       m
   , MonadLocalIPFS        m
@@ -94,7 +98,8 @@ server appHost = Web.Swagger.server fromHandler appHost
             :<|> bizServer
 
 bizServer ::
-  ( MonadReflectiveServer m
+  ( HasBaseAppDomain      m
+  , MonadReflectiveServer m
   , MonadLinkedIPFS       m
   , MonadRemoteIPFS       m
   , MonadLocalIPFS        m

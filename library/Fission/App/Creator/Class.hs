@@ -10,6 +10,8 @@ import           Fission.Models
 import           Fission.Models.Error
 import           Fission.URL
 
+import Fission.App.Domain.Class
+
 import qualified Fission.Error as Error
 
 import qualified Fission.App.Domain.Associate as AppDomain
@@ -25,7 +27,7 @@ type Errors = OpenUnion
 class Monad m => Creator m where
   create :: UserId -> CID -> UTCTime -> m (Either Errors (AppId, Subdomain))
 
-instance MonadDNSLink m => Creator (Transaction m) where
+instance (HasBaseAppDomain m, MonadDNSLink m) => Creator (Transaction m) where
   create ownerId cid now = do
     appId <- insert App
       { appOwnerId    = ownerId
