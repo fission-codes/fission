@@ -87,6 +87,6 @@ deleteAssociatedRecords ::
   -> [Entity LoosePin]
   -> t ()
 deleteAssociatedRecords userId uuid loosePins = do
-  LoosePin.destroyMany (entityKey <$> loosePins)
+  LoosePin.destroyMany userId (entityKey <$> loosePins)
   User.destroy userId
   Heroku.AddOn.destroyByUUID uuid

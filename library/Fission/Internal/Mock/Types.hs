@@ -270,9 +270,9 @@ instance IsMember CreateLoosePin effs => LoosePin.Creator (Mock effs) where
     return cids
 
 instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
-  destroy uid cid =
-    Effect.log <| DestroyLoosePin uid cid
+  destroy userId cid =
+    Effect.log <| DestroyLoosePin userId cid
 
-  destroyMany cidIds =
+  destroyMany userId cidIds =
     forM_ cidIds \id ->
-      Effect.log <| DestroyLoosePinById id
+      Effect.log <| DestroyLoosePinById userId id

@@ -13,17 +13,15 @@ class Monad m => Destroyer m where
   destroy :: UserId -> CID -> m ()
 
   -- | Destroy several @LoosePin@s by they primary keys
-  destroyMany :: [LoosePinId] -> m ()
+  destroyMany :: UserId -> [LoosePinId] -> m ()
 
 instance MonadIO m => Destroyer (Transaction m) where
-  destroyMany userCidIds =
-    delete <| from \userCid ->
-      where_ (userCid ^. LoosePinId `in_` valList userCidIds)
+  destroyMany userId userCidIds =
+    delete <| from \pin ->
+      where_ <| pin ^. LoosePinId `in_` valList userCidIds
+            &&. pin ^. LoosePinOwnerId ==. val userId
 
   destroy userId cid =
-    delete <| from \userCid ->
-      where_ (selectExact userCid)
-    where
-      selectExact userCid =
-            userCid ^. LoosePinCid     ==. val cid
-        &&. userCid ^. LoosePinOwnerId ==. val userId
+    delete <| from \pin ->
+      where_ <| pin ^. LoosePinCid     ==. val cid
+            &&. pin ^. LoosePinOwnerId ==. val userId

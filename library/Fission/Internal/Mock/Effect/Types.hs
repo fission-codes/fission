@@ -126,5 +126,5 @@ data CreateLoosePin
 
 data DestroyLoosePin
   = DestroyLoosePin     UserId IPFS.CID
-  | DestroyLoosePinById LoosePinId
+  | DestroyLoosePinById UserId LoosePinId
   deriving (Eq, Show)
