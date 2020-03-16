@@ -24,6 +24,22 @@ import           Fission.User.Username.Types
 import           Fission.User.Role.Types
 import           Fission.User.Email.Types
 
+import qualified Fission.App.Creator as App
+import           Fission.URL.Subdomain.Types
+
+
+
+
+
+import Fission.App.Content.Class as App.DefaultContent
+import Fission.App.Domain.Class
+
+
+import           Fission.IPFS.DNSLink
+
+
+
+
 type Errors = OpenUnion
   '[ User.AlreadyExists
    , Heroku.AddOn.Error
@@ -37,7 +53,7 @@ class Heroku.AddOn.Creator m => Creator m where
     -> DID
     -> Email
     -> UTCTime
-    -> m (Either Errors UserId)
+    -> m (Either Errors (UserId, Subdomain))
 
   -- | Create a new, timestamped entry and heroku add-on
   createWithHeroku ::
@@ -48,7 +64,13 @@ class Heroku.AddOn.Creator m => Creator m where
     -> UTCTime
     -> m (Either Errors UserId)
 
-instance MonadIO m => Creator (Transaction m) where
+instance
+  ( MonadIO           m
+  , MonadDNSLink      m
+  , HasBaseAppDomain  m
+  , HasBaseAppContent m
+  )
+  => Creator (Transaction m) where
   create username did email now =
     User
       { userDid           = Just did
@@ -63,7 +85,14 @@ instance MonadIO m => Creator (Transaction m) where
       , userModifiedAt    = now
       }
       |> insertUnique
-      |> fmap (Error.fromMaybe' User.AlreadyExists)
+      |> bind \case
+        Nothing ->
+          return (Error.openLeft User.AlreadyExists)
+
+        Just userId ->
+          App.createWithPlaceholder userId now >>= \case
+            Left err             -> undefined
+            Right (_, subdomain) -> return <| Right (userId, subdomain)
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case

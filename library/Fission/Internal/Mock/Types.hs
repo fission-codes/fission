@@ -47,6 +47,7 @@ import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.User                  as User
 import           Fission.LoosePin              as LoosePin
 
+import           Fission.App                   as App
 import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 -- Reexport
@@ -214,7 +215,8 @@ instance
   => User.Creator (Mock effs) where
   create _ _ _ _ = do
     Effect.log CreateUser
-    return . Right <| Database.toSqlKey 0
+    Effect.log Create
+    return <| Right (Database.toSqlKey 0)
 
   createWithHeroku uuid _ _ _ _ = do
     Effect.log CreateUser

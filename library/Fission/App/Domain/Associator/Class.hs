@@ -1,5 +1,5 @@
-module Fission.App.Domain.Associate.Class
-  ( Associate (..)
+module Fission.App.Domain.Associator.Class
+  ( Associator (..)
   , Errors
   ) where
 
@@ -11,8 +11,8 @@ import           Fission.Models.Error
 import           Fission.Ownership
 import           Fission.URL
 
-import qualified Fission.App.Retriever.Class        as App
-import qualified Fission.App.Domain.Associate.Error as AppDomain
+import qualified Fission.App.Retriever.Class         as App
+import qualified Fission.App.Domain.Associator.Error as AppDomain
 
 import qualified Fission.Error as Error
 
@@ -22,7 +22,7 @@ type Errors = OpenUnion
    , NotFound            App
    ]
 
-class Monad m => Associate m where
+class Monad m => Associator m where
   associate ::
        UserId
     -> AppId
@@ -31,7 +31,7 @@ class Monad m => Associate m where
     -> UTCTime
     -> m (Either Errors ())
 
-instance MonadIO m => Associate (Transaction m) where
+instance MonadIO m => Associator (Transaction m) where
   associate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->

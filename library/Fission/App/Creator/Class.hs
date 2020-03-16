@@ -1,21 +1,23 @@
-module Fission.App.Creator.Class (Creator (..)) where
-
-import Servant
+module Fission.App.Creator.Class
+  ( Creator (..)
+  , Errors
+  ) where
 
 import           Database.Esqueleto (insert)
 import           Network.IPFS.CID.Types
+import           Servant
 
 import           Fission.Prelude
 import           Fission.Models
 import           Fission.Models.Error
 import           Fission.URL
 
-import Fission.App.Domain.Class
-
-import qualified Fission.Error as Error
-
+import           Fission.App.Domain.Class
 import qualified Fission.App.Domain.Associate as AppDomain
-import           Fission.IPFS.DNSLink         as DNSLink
+
+import qualified Fission.Error        as Error
+import           Fission.IPFS.DNSLink as DNSLink
+
 
 type Errors = OpenUnion
   '[ ServerError

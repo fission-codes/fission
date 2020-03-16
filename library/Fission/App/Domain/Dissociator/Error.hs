@@ -1,4 +1,4 @@
-module Fission.App.Domain.Dissociate.Error (NotRegisteredToApp (..)) where
+module Fission.App.Domain.Dissociator.Error (NotRegisteredToApp (..)) where
 
 import Fission.Prelude
 import Fission.Models

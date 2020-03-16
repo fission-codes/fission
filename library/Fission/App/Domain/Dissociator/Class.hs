@@ -1,5 +1,5 @@
-module Fission.App.Domain.Dissociate.Class
-  ( Dissociate (..)
+module Fission.App.Domain.Dissociator.Class
+  ( Dissociator (..)
   , Errors
   ) where
 
@@ -22,7 +22,7 @@ type Errors = OpenUnion
    , NotFound            App
    ]
 
-class Monad m => Dissociate m where
+class Monad m => Dissociator m where
   dissociate ::
        UserId
     -> AppId
@@ -31,7 +31,7 @@ class Monad m => Dissociate m where
     -> UTCTime
     -> m (Either Errors ())
 
-instance MonadIO m => Dissociate (Transaction m) where
+instance MonadIO m => Dissociator (Transaction m) where
   dissociate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->

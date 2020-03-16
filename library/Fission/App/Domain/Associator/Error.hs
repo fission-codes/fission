@@ -1,4 +1,4 @@
-module Fission.App.Domain.Associate.Error (AlreadyExists (..)) where
+module Fission.App.Domain.Associator.Error (AlreadyExists (..)) where
 
 import           Servant.Server
 
