@@ -13,8 +13,8 @@ import           Database.Esqueleto
 import qualified Fission.User as User
 import           Fission.User.DID.Types
 
-type API = ReqBody '[JSON] DID
-        :> Post    '[JSON] DID
+type API = ReqBody      '[JSON] DID
+        :> PutNoContent '[PlainText, OctetStream, JSON] NoContent
 
 server ::
   ( MonadTime       m
@@ -23,4 +23,6 @@ server ::
   )
   => Entity User
   -> ServerT API m
-server (Entity userID _) did = runDBNow (User.updateDID userID did)
+server (Entity userID _) did = do
+  runDBNow (User.updateDID userID did)
+  return NoContent

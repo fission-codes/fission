@@ -13,7 +13,7 @@ import           Fission.Models
 import qualified Fission.User as User
 
 type API = Capture "newCID" CID
-        :> PatchNoContent '[JSON] NoContent
+        :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
 
 server ::
   ( MonadLogger     m
