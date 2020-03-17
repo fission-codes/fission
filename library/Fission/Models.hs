@@ -9,6 +9,7 @@ module Fission.Models where
 import           Database.Persist.Postgresql
 import           Database.Persist.TH
 
+import           Data.Aeson.Types
 import           Data.UUID
 import           Data.Swagger
 
@@ -188,6 +189,10 @@ DissociateAppDomainEvent
   deriving Show Eq
 |]
 
+------------
+-- UserId --
+------------
+
 instance Arbitrary UserId where
   arbitrary = toSqlKey <$> arbitrary
 
@@ -204,6 +209,10 @@ instance ToSchema UserId where
       |> NamedSchema (Just "UserId")
       |> pure
 
+-----------
+-- AppId --
+-----------
+
 instance Arbitrary AppId where
   arbitrary = toSqlKey <$> arbitrary
 
@@ -216,3 +225,9 @@ instance ToSchema AppId where
 
 instance ToParamSchema AppId where
   toParamSchema _ = mempty |> type_ ?~ SwaggerString
+
+instance Display AppId where
+  display = displayShow
+
+instance ToJSONKey AppId where
+  toJSONKey = toJSONKeyText textDisplay
