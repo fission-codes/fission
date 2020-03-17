@@ -94,7 +94,6 @@ LoosePin
   cid        CID
 
   insertedAt UTCTime
-  modifiedAt UTCTime
 
   UniqueCidPerUser ownerId cid
 
@@ -188,8 +187,6 @@ DissociateAppDomainEvent
 
   deriving Show Eq
 |]
-
--- FIXME: event log of all updates
 
 instance Arbitrary UserId where
   arbitrary = toSqlKey <$> arbitrary

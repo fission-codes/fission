@@ -46,6 +46,24 @@ instance FromHttpApiData URL where
 instance ToParamSchema URL where
   toParamSchema _ = mempty |> type_ ?~ SwaggerString
 
+instance ToSchema URL where
+  declareNamedSchema _ =
+    mempty
+      |> type_       ?~ SwaggerString
+      |> description ?~ "A domain name, potentially with a subdomain"
+      |> example     ?~ toJSON (URL (DomainName "example.com") (Just (Subdomain "foo")))
+      |> NamedSchema (Just "URL")
+      |> pure
+
+instance ToJSON URL where
+  toJSON URL {..} = String ("https://" <> normalizedSubdomain <> domain)
+    where
+      DomainName domain = domainName
+
+      normalizedSubdomain = case subdomain of
+        Nothing -> ""
+        Just (Subdomain sub) -> sub <> "."
+
 instance FromJSON URL where
   parseJSON = withText "URL" \txt -> do
     let

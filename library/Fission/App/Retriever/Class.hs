@@ -2,7 +2,7 @@ module Fission.App.Retriever.Class (Retriever (..)) where
 
 import           Database.Esqueleto
 
-import           Fission.Prelude
+import           Fission.Prelude hiding (on)
 import           Fission.Models
 import           Fission.Ownership
 
@@ -14,7 +14,8 @@ type Errors = OpenUnion
    ]
 
 class Monad m => Retriever m where
-  byId :: UserId -> AppId -> m (Either Errors (Entity App))
+  byId    :: UserId -> AppId -> m (Either Errors (Entity App))
+  ownedBy :: UserId -> m [Entity App]
 
 instance MonadIO m => Retriever (Transaction m) where
   byId userId appId =
@@ -28,3 +29,8 @@ instance MonadIO m => Retriever (Transaction m) where
           if isOwnedBy userId app
             then Right app
             else openLeft <| ActionNotAuthorized @App userId
+
+  ownedBy userId = do
+    select <| from \app -> do
+      where_ (app ^. AppOwnerId ==. val userId)
+      return app

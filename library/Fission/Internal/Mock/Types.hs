@@ -247,7 +247,7 @@ instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
       userId = Database.toSqlKey 0
       cid    = IPFS.CID "Qm12345"
 
-    return . pure . Fixture.entity <| LoosePin userId cid Fixture.agesAgo Fixture.agesAgo
+    return . pure . Fixture.entity <| LoosePin userId cid Fixture.agesAgo
 
   getByCids cids =
     cids
@@ -262,7 +262,7 @@ instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
       action cid rawUserId = do
         let userId = Database.toSqlKey rawUserId
         Effect.log <| GetLoosePinByCID cid
-        return . Fixture.entity <| LoosePin userId cid Fixture.agesAgo Fixture.agesAgo
+        return . Fixture.entity <| LoosePin userId cid Fixture.agesAgo
 
 instance IsMember CreateLoosePin effs => LoosePin.Creator (Mock effs) where
   create uid cid _ = do

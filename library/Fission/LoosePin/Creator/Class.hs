@@ -22,7 +22,6 @@ instance MonadIO m => Creator (Transaction m) where
       { loosePinOwnerId    = userId
       , loosePinCid        = cid
       , loosePinInsertedAt = now
-      , loosePinModifiedAt = now
       }
 
   createMany userId hashes now = do
@@ -36,7 +35,6 @@ instance MonadIO m => Creator (Transaction m) where
         { loosePinOwnerId    = userId
         , loosePinCid        = cid
         , loosePinInsertedAt = now
-        , loosePinModifiedAt = now
         }
 
       existingRawCIDs = unValue <$> existingCIDs

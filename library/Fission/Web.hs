@@ -55,11 +55,11 @@ app ::
   , MonadLogger             t
   , MonadThrow              t
   , Heroku.AddOn.CRUD       t
-  , User.CRUD               t
   , LoosePin.CRUD           t
-  , App.Creator             t
-  , App.Destroyer           t
+  , User.CRUD               t
+  , App.CRUD                t
   , App.Content.Initializer t
+  , App.Domain.Retriever    t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -87,11 +87,11 @@ server ::
   , MonadLogger             t
   , MonadThrow              t
   , Heroku.AddOn.CRUD       t
-  , User.CRUD               t
   , LoosePin.CRUD           t
-  , App.Creator             t
-  , App.Destroyer           t
+  , User.CRUD               t
+  , App.CRUD                t
   , App.Content.Initializer t
+  , App.Domain.Retriever    t
   )
   => Web.Host
   -> ServerT API m
@@ -111,11 +111,11 @@ bizServer ::
   , MonadLogger             t
   , MonadThrow              t
   , Heroku.AddOn.CRUD       t
-  , User.CRUD               t
   , LoosePin.CRUD           t
-  , App.Creator             t
-  , App.Destroyer           t
+  , User.CRUD               t
+  , App.CRUD                t
   , App.Content.Initializer t
+  , App.Domain.Retriever    t
   )
   => ServerT Web.API m
 bizServer = IPFS.server

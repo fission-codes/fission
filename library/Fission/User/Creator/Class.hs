@@ -15,6 +15,7 @@ import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
+import           Fission.User.Modifier      as User
 import qualified Fission.User.Password      as Password
 import           Fission.User.Types
 
@@ -83,12 +84,19 @@ instance
         Nothing ->
           return (Error.openLeft User.AlreadyExists)
 
-        Just userId -> do
-          -- FIXME Add data root
+        Just userId ->
+          now
+            |> User.setData userId did App.Content.empty
+            |> bind \case
+              Left err ->
+                return (Error.openLeft err)
 
-          App.createWithPlaceholder userId now <&> \case
-            Left err             -> Error.relaxedLeft err
-            Right (_, subdomain) -> Right (userId, subdomain)
+              Right () ->
+                now
+                  |> App.createWithPlaceholder userId
+                  |> fmap \case
+                    Left err             -> Error.relaxedLeft err
+                    Right (_, subdomain) -> Right (userId, subdomain)
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
