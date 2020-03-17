@@ -6,18 +6,18 @@ module Fission.App.Domain.Associator.Class
 import           Database.Esqueleto (Entity (..), insert_, insertUnique)
 
 import           Fission.Prelude
+import           Fission.Error
 import           Fission.Models
-import           Fission.Models.Error
 import           Fission.Ownership
 import           Fission.URL
 
-import qualified Fission.App.Retriever.Class         as App
-import qualified Fission.App.Domain.Associator.Error as AppDomain
+import qualified Fission.App.Retriever    as App
+import qualified Fission.App.Domain.Error as AppDomain
 
 import qualified Fission.Error as Error
 
 type Errors = OpenUnion
-  '[ AppDomain.AlreadyExists
+  '[ AppDomain.AlreadyAssociated
    , ActionNotAuthorized App
    , NotFound            App
    ]
@@ -58,5 +58,5 @@ instance MonadIO m => Associator (Transaction m) where
               }
               |> insertUnique
               |> fmap \case
-                Nothing -> Error.openLeft <| AppDomain.AlreadyExists appId domainName maySubdomain
+                Nothing -> Error.openLeft <| AppDomain.AlreadyAssociated appId domainName maySubdomain
                 Just _  -> ok

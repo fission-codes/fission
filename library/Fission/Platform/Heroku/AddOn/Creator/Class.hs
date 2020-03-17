@@ -3,14 +3,14 @@ module Fission.Platform.Heroku.AddOn.Creator.Class (Creator (..)) where
 import           Data.UUID (UUID)
 import           Database.Esqueleto
 
-import           Fission.Models
 import           Fission.Prelude
+import           Fission.Error.Types
+import           Fission.Models
 
 import           Fission.Platform.Heroku.Region.Types
-import           Fission.Platform.Heroku.AddOn.Creator.Error
 
 class Monad m => Creator m where
-  create :: UUID -> Region -> UTCTime -> m (Either Error HerokuAddOnId)
+  create :: UUID -> Region -> UTCTime -> m (Either (AlreadyExists HerokuAddOn) HerokuAddOnId)
 
 instance MonadIO m => Creator (Transaction m) where
   create uuid region now =

@@ -1,6 +1,5 @@
 module Fission.App.Domain.Associator
   ( module Fission.App.Domain.Associator.Class
-  , module Fission.App.Domain.Associator.Error
   , associateDefault
   ) where
 
@@ -10,8 +9,9 @@ import           Fission.URL.Types
 
 import qualified Fission.App.Domain.Initializer as AppDomain
 
+-- Re-export
+
 import           Fission.App.Domain.Associator.Class
-import           Fission.App.Domain.Associator.Error
 
 associateDefault ::
   ( MonadIO               m

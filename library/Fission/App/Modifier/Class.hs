@@ -8,16 +8,14 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 import           Fission.Models
-import           Fission.Models.Error
 import           Fission.Ownership
 
-import qualified Fission.Error as Error
-
-import qualified Fission.App.Retriever.Class as App
-import           Fission.IPFS.DNSLink.Class  as DNSLink
+import qualified Fission.App.Retriever as App
+import           Fission.Error         as Error
+import           Fission.IPFS.DNSLink  as DNSLink
 
 type Errors = OpenUnion
-  '[ NotFound App
+  '[ NotFound            App
    , ActionNotAuthorized App
    ]
 

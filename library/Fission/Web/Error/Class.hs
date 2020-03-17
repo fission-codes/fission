@@ -1,5 +1,8 @@
 module Fission.Web.Error.Class (ToServerError (..)) where
 
+import           RIO
+import           Data.WorldPeace
+
 import           Servant.Server
 
 import           Network.IPFS.Types
@@ -9,14 +12,13 @@ import qualified Network.IPFS.Add.Error  as Add
 import qualified Network.IPFS.Get.Error  as Get
 import qualified Network.IPFS.Peer.Error as Peer
 
-import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
 class ToServerError err where
   toServerError :: err -> ServerError
 
 instance ToServerError ServerError where
-  toServerError = identity
+  toServerError = id
 
 instance ToServerError Int where
   toServerError = \case

@@ -20,10 +20,9 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
-import qualified Fission.App.Creator.Class   as App
-import qualified Fission.App.Destroyer.Class as App
-
-import           Fission.App.Domain.Class
+import qualified Fission.App         as App
+import qualified Fission.App.Content as App.Content
+import qualified Fission.App.Domain  as App.Domain
 
 import qualified Fission.User                  as User
 import qualified Fission.LoosePin              as LoosePin
@@ -44,22 +43,23 @@ import qualified Fission.Web.App     as App
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( HasBaseAppDomain      m
-  , MonadReflectiveServer m
-  , MonadLinkedIPFS       m
-  , MonadRemoteIPFS       m
-  , MonadLocalIPFS        m
-  , MonadDNSLink          m
-  , MonadLogger           m
-  , MonadTime             m
-  , MonadDB             t m
-  , MonadLogger         t
-  , MonadThrow          t
-  , Heroku.AddOn.CRUD   t
-  , User.CRUD           t
-  , LoosePin.CRUD       t
-  , App.Creator         t
-  , App.Destroyer       t
+  ( App.Domain.Initializer    m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadLocalIPFS            m
+  , MonadDNSLink              m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , User.CRUD               t
+  , LoosePin.CRUD           t
+  , App.Creator             t
+  , App.Destroyer           t
+  , App.Content.Initializer t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -75,22 +75,23 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( HasBaseAppDomain      m
-  , MonadReflectiveServer m
-  , MonadLinkedIPFS       m
-  , MonadRemoteIPFS       m
-  , MonadLocalIPFS        m
-  , MonadDNSLink          m
-  , MonadLogger           m
-  , MonadTime             m
-  , MonadDB             t m
-  , MonadLogger         t
-  , MonadThrow          t
-  , Heroku.AddOn.CRUD   t
-  , User.CRUD           t
-  , LoosePin.CRUD       t
-  , App.Creator         t
-  , App.Destroyer       t
+  ( App.Domain.Initializer    m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadLocalIPFS            m
+  , MonadDNSLink              m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , User.CRUD               t
+  , LoosePin.CRUD           t
+  , App.Creator             t
+  , App.Destroyer           t
+  , App.Content.Initializer t
   )
   => Web.Host
   -> ServerT API m
@@ -98,22 +99,23 @@ server appHost = Web.Swagger.server fromHandler appHost
             :<|> bizServer
 
 bizServer ::
-  ( HasBaseAppDomain      m
-  , MonadReflectiveServer m
-  , MonadLinkedIPFS       m
-  , MonadRemoteIPFS       m
-  , MonadLocalIPFS        m
-  , MonadDNSLink          m
-  , MonadLogger           m
-  , MonadTime             m
-  , MonadDB             t m
-  , MonadLogger         t
-  , MonadThrow          t
-  , Heroku.AddOn.CRUD   t
-  , User.CRUD           t
-  , LoosePin.CRUD       t
-  , App.Creator         t
-  , App.Destroyer       t
+  ( App.Domain.Initializer    m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadLocalIPFS            m
+  , MonadDNSLink              m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , User.CRUD               t
+  , LoosePin.CRUD           t
+  , App.Creator             t
+  , App.Destroyer           t
+  , App.Content.Initializer t
   )
   => ServerT Web.API m
 bizServer = IPFS.server

@@ -14,6 +14,8 @@ import           Servant.Server
 import           Fission.Prelude
 import           Fission.Web.Error.Class
 
+import           Fission.Internal.Orphanage.ServerError ()
+
 ensure ::
   ( MonadLogger m
   , MonadThrow  m

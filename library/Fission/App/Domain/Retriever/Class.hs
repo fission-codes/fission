@@ -6,11 +6,9 @@ module Fission.App.Domain.Retriever.Class
 import           Database.Persist
 
 import           Fission.Prelude
+import           Fission.Error
 import           Fission.Models
 import           Fission.URL
-
-import           Fission.Models.Error
-import           Fission.Error
 
 type Errors = OpenUnion
   '[ NotFound AppDomain

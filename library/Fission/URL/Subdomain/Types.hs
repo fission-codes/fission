@@ -17,7 +17,9 @@ newtype Subdomain = Subdomain { get :: Text }
                     , Generic
                     , Show
                     )
-  deriving newtype  ( IsString )
+  deriving newtype  ( IsString
+                    , Display
+                    )
 
 instance ToJSON Subdomain where
   toJSON (Subdomain sub) = String sub

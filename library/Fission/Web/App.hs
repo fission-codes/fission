@@ -10,10 +10,10 @@ import           Fission.Prelude
 import           Fission.Models
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
-import           Fission.App.Domain.Class
 
-import qualified Fission.App.Creator.Class   as App
-import qualified Fission.App.Destroyer.Class as App
+import qualified Fission.App         as App
+import qualified Fission.App.Content as App.Content
+import qualified Fission.App.Domain  as App.Domain
 
 import qualified Fission.Web.App.Create  as Create
 import qualified Fission.Web.App.Destroy as Destroy
@@ -23,12 +23,13 @@ type API
   :<|> Destroy.API
 
 server ::
-  ( HasBaseAppDomain m
-  , MonadTime        m
-  , MonadDNSLink     m
-  , MonadDB        t m
-  , App.Creator    t
-  , App.Destroyer  t
+  ( App.Domain.Initializer    m
+  , MonadTime                 m
+  , MonadDNSLink              m
+  , MonadDB                 t m
+  , App.Creator             t
+  , App.Destroyer           t
+  , App.Content.Initializer t
   )
   => Entity User
   -> ServerT API m

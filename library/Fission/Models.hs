@@ -194,6 +194,9 @@ DissociateAppDomainEvent
 instance Arbitrary UserId where
   arbitrary = toSqlKey <$> arbitrary
 
+instance Display UserId where
+  display = displayShow
+
 instance Digestable UserId where
   digest = digest . UTF8.textShow
 

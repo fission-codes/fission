@@ -34,6 +34,7 @@ import           Fission.IPFS.DNSLink.Class
 
 import           Fission.Models
 import           Fission.User.DID.Types
+import           Fission.URL.Types
 
 import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Reflective.Class
@@ -46,8 +47,6 @@ import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.User                  as User
 import           Fission.LoosePin              as LoosePin
-
-import           Fission.App                   as App
 import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 -- Reexport
@@ -211,12 +210,13 @@ instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
 instance
   ( IsMember CreateHerokuAddOn effs
   , IsMember CreateUser        effs
+  , IsMember UpdateRoute53     effs
   )
   => User.Creator (Mock effs) where
   create _ _ _ _ = do
     Effect.log CreateUser
-    Effect.log Create
-    return <| Right (Database.toSqlKey 0)
+    Effect.log UpdateRoute53
+    return <| Right (Database.toSqlKey 0, Subdomain "new-subdomain")
 
   createWithHeroku uuid _ _ _ _ = do
     Effect.log CreateUser

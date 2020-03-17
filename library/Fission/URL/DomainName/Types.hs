@@ -21,6 +21,7 @@ newtype DomainName = DomainName { get :: Text }
                     )
   deriving newtype  ( IsString
                     , PathPiece
+                    , Display
                     )
 
 instance PersistField DomainName where

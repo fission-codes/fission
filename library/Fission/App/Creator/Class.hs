@@ -8,20 +8,16 @@ import           Network.IPFS.CID.Types
 import           Servant
 
 import           Fission.Prelude
+import           Fission.Error as Error
 import           Fission.Models
-import           Fission.Models.Error
 import           Fission.URL
 
-import           Fission.App.Domain.Class
-import qualified Fission.App.Domain.Associate as AppDomain
-
-import qualified Fission.Error        as Error
+import qualified Fission.App.Domain   as AppDomain
 import           Fission.IPFS.DNSLink as DNSLink
-
 
 type Errors = OpenUnion
   '[ ServerError
-   , AppDomain.AlreadyExists
+   , AppDomain.AlreadyAssociated
    , ActionNotAuthorized App
    , NotFound            App
    ]
@@ -29,7 +25,7 @@ type Errors = OpenUnion
 class Monad m => Creator m where
   create :: UserId -> CID -> UTCTime -> m (Either Errors (AppId, Subdomain))
 
-instance (HasBaseAppDomain m, MonadDNSLink m) => Creator (Transaction m) where
+instance (AppDomain.Initializer m, MonadDNSLink m) => Creator (Transaction m) where
   create ownerId cid now = do
     appId <- insert App
       { appOwnerId    = ownerId

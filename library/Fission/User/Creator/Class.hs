@@ -4,46 +4,40 @@ module Fission.User.Creator.Class
   ) where
 
 import           Data.UUID (UUID)
-import           Database.Esqueleto
+import           Database.Esqueleto hiding ((<&>))
+import           Servant
 
-import           Network.IPFS.CID.Types
-
-import           Fission.Models
 import           Fission.Prelude
-
-import qualified Fission.Error as Error
+import           Fission.Error as Error
+import           Fission.Models
 
 import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
 import qualified Fission.User.Password      as Password
-import           Fission.User.DID           as DID
+import           Fission.User.Types
 
-import           Fission.User.Username.Types
-import           Fission.User.Role.Types
-import           Fission.User.Email.Types
-
+import qualified Fission.App.Domain as AppDomain
 import qualified Fission.App.Creator as App
-import           Fission.URL.Subdomain.Types
-
-
-
-
-
-import Fission.App.Content.Class as App.DefaultContent
-import Fission.App.Domain.Class
-
 
 import           Fission.IPFS.DNSLink
+import           Fission.URL.Subdomain.Types
 
-
-
+import qualified Fission.App.Content as App.Content
+import qualified Fission.App.Domain  as App.Domain
 
 type Errors = OpenUnion
-  '[ User.AlreadyExists
-   , Heroku.AddOn.Error
+  '[ ActionNotAuthorized App
+   , NotFound            App
+
+   , AlreadyExists HerokuAddOn
+   , AppDomain.AlreadyAssociated
+   , User.AlreadyExists
+
    , Password.FailedDigest
+
+   , ServerError
    ]
 
 class Heroku.AddOn.Creator m => Creator m where
@@ -65,10 +59,10 @@ class Heroku.AddOn.Creator m => Creator m where
     -> m (Either Errors UserId)
 
 instance
-  ( MonadIO           m
-  , MonadDNSLink      m
-  , HasBaseAppDomain  m
-  , HasBaseAppContent m
+  ( MonadIO                 m
+  , MonadDNSLink            m
+  , App.Domain.Initializer  m
+  , App.Content.Initializer m
   )
   => Creator (Transaction m) where
   create username did email now =
@@ -80,7 +74,7 @@ instance
       , userActive        = True
       , userHerokuAddOnId = Nothing
       , userSecretDigest  = Nothing
-      , userDataRoot      = blankCID
+      , userDataRoot      = App.Content.empty
       , userInsertedAt    = now
       , userModifiedAt    = now
       }
@@ -90,9 +84,9 @@ instance
           return (Error.openLeft User.AlreadyExists)
 
         Just userId ->
-          App.createWithPlaceholder userId now >>= \case
-            Left err             -> undefined
-            Right (_, subdomain) -> return <| Right (userId, subdomain)
+          App.createWithPlaceholder userId now <&> \case
+            Left err             -> Error.relaxedLeft err
+            Right (_, subdomain) -> Right (userId, subdomain)
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
@@ -113,7 +107,7 @@ instance
               , userActive        = True
               , userHerokuAddOnId = Just herokuAddOnId
               , userSecretDigest  = Just secretDigest
-              , userDataRoot      = blankCID
+              , userDataRoot      = App.Content.empty
               , userInsertedAt    = now
               , userModifiedAt    = now
               }
@@ -124,6 +118,3 @@ instance
 
               Nothing ->
                 return . Left <| openUnionLift User.AlreadyExists
-
-blankCID :: CID
-blankCID = CID "Qmc5m94Gu7z62RC8waSKkZUrCCBJPyHbkpmGzEePxy2oXJ" -- FIXME! Move & change to base FFS

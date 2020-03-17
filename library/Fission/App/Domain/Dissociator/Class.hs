@@ -6,18 +6,16 @@ module Fission.App.Domain.Dissociator.Class
 import           Database.Esqueleto
 
 import           Fission.Prelude
+import           Fission.Error as Error
 import           Fission.Models
-import           Fission.Models.Error
 import           Fission.Ownership
 import           Fission.URL
 
-import qualified Fission.Error as Error
-
-import qualified Fission.App.Domain.Dissociate.Error as DissociateDomain
-import qualified Fission.App.Retriever.Class         as App
+import           Fission.App.Domain.Error as Domain
+import qualified Fission.App.Retriever    as App
 
 type Errors = OpenUnion
-  '[ DissociateDomain.NotRegisteredToApp
+  '[ Domain.NotRegisteredToApp
    , ActionNotAuthorized App
    , NotFound            App
    ]
@@ -56,5 +54,5 @@ instance MonadIO m => Dissociator (Transaction m) where
                      &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
 
             return case howMany of
-              0 -> Error.openLeft <| DissociateDomain.NotRegisteredToApp appId domainName maySubdomain
+              0 -> Error.openLeft <| Domain.NotRegisteredToApp appId domainName maySubdomain
               _ -> ok

@@ -7,7 +7,6 @@ import           Fission.Models
 import           Fission.Ownership
 
 import           Fission.Error
-import           Fission.Models.Error
 
 type Errors = OpenUnion
   '[ ActionNotAuthorized App

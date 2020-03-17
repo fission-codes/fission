@@ -6,15 +6,13 @@ module Fission.App.Destroyer.Class
 import           Database.Esqueleto
 
 import           Fission.Prelude
+import           Fission.Error
 import           Fission.Models
 import           Fission.Ownership
 import           Fission.URL
 
-import           Fission.Models.Error
-import           Fission.Error
-
-import qualified Fission.App.Domain.Retriever.Class as AppDomain
-import qualified Fission.App.Retriever.Class as App
+import qualified Fission.App.Retriever        as App
+import qualified Fission.App.Domain.Retriever as AppDomain
 
 type Errors = OpenUnion
   '[ NotFound            App

@@ -33,12 +33,9 @@ import           Fission.IPFS.Linked
 
 import qualified Fission.URL as URL
 
-import           Fission.Platform.Heroku.Auth.Types     as Heroku
-import qualified Fission.Platform.Heroku.ID.Types       as Heroku
-import qualified Fission.Platform.Heroku.Password.Types as Heroku
+import           Fission.Platform.Heroku.Types as Heroku
 
-import           Fission.Web.Auth.Class
-import qualified Fission.Web.Auth     as Auth
+import           Fission.Web.Auth     as Auth
 import qualified Fission.Web.Auth.DID as Auth.DID
 
 import           Fission.Web.Server.Reflective
@@ -48,8 +45,9 @@ import           Fission.User.DID.Types
 import           Fission.Models
 
 import           Fission.Web.Auth.Token.Basic.Class
-import           Fission.App.Content.Class as AppContent
-import           Fission.App.Domain.Class  as AppDomain
+
+import           Fission.App.Content as App.Content
+import           Fission.App.Domain  as App.Domain
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -222,8 +220,8 @@ instance MonadAuth (SQL.Entity User) Fission where
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req
 
-instance HasBaseAppDomain Fission where
-  get = asks baseAppDomainName
+instance App.Domain.Initializer Fission where
+  initial = asks baseAppDomainName
 
-instance HasBaseAppContent Fission where
-  get = asks appPlaceholder
+instance App.Content.Initializer Fission where
+  placeholder = asks appPlaceholder

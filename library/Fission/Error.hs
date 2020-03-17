@@ -1,14 +1,21 @@
 module Fission.Error
   ( openLeft
+  , relaxedLeft
   , fromMaybe
   , fromMaybe'
+  , module Fission.Error.Types
   ) where
 
 import Data.WorldPeace
 import RIO hiding (fromMaybe)
 
+import Fission.Error.Types
+
 openLeft :: IsMember err errs => err -> Either (OpenUnion errs) a
 openLeft err = Left (openUnionLift err)
+
+relaxedLeft :: Contains errsA errsB => OpenUnion errsA -> Either (OpenUnion errsB) a
+relaxedLeft = Left . relaxOpenUnion
 
 fromMaybe ::
   IsMember err errs
