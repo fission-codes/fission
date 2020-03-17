@@ -1,8 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
 
-{-# LANGUAGE NoDeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes      #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE NoDeriveAnyClass     #-}
+{-# LANGUAGE QuasiQuotes          #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Fission.Models where
 

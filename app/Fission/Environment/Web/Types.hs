@@ -11,14 +11,12 @@ data Environment = Environment
   , port      :: !Web.Port -- ^ Web app's port
   , isTLS     :: !Bool     -- ^ Run over TLS
   , pretty    :: !Bool     -- ^ Pretty-print requests
-  , monitor   :: !Bool     -- ^ Live monitor application
   , sentryDSN :: !(Maybe Sentry.DSN) -- ^ Sentry DSN key
   } deriving Show
 
 instance FromJSON Environment where
   parseJSON = withObject "Web Config" \obj -> do
     sentryDSN <- obj .:? "sentry_dsn"
-    monitor   <- obj .:? "monitor" .!= False
     pretty    <- obj .:? "pretty"  .!= False
     isTLS     <- obj .:? "tls"     .!= True
     port      <- obj .:? "port"    .!= Web.Port if isTLS then 443 else 80

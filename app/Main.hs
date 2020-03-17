@@ -37,7 +37,6 @@ import qualified Fission.Environment.Web.Types     as Web
 import qualified Fission.Environment.WebApp.Types  as WebApp
 
 import qualified Fission.Web.Log.Sentry as Sentry
-import qualified Fission.Monitor        as Monitor
 
 import           Fission.Web.Handler
 import           Fission.Web.Auth as Auth
@@ -89,7 +88,6 @@ main = do
       let cfg = Config {..}
       runFission cfg do
         logDebug . displayShow =<< ask
-        when (env |> web |> Web.monitor) Monitor.wai
 
         logInfo ("Ensuring live DB matches latest schema" :: Text)
         runDB updateDBToLatest

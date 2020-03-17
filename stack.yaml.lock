@@ -12,34 +12,6 @@ packages:
   original:
     hackage: alex-3.2.5
 - completed:
-    hackage: amazonka-1.6.1@sha256:d863557379350ed6bbb91187abeb8c349a654f60b140d138710486f58ae7c476,3536
-    pantry-tree:
-      size: 992
-      sha256: 55747f9b56063ea1be73a962e1ce44528b9856e119e2d9f1238397b3112b6e70
-  original:
-    hackage: amazonka-1.6.1
-- completed:
-    hackage: amazonka-core-1.6.1@sha256:9bc59ce403c6eeba3b3eaf3f10e5f0b6a33b6edbbf8f6de0dd6f4c67b86fa698,5135
-    pantry-tree:
-      size: 3438
-      sha256: c13e643176308771491ec0e06390e269047bb1b28be4535992842f7426a95eb4
-  original:
-    hackage: amazonka-core-1.6.1
-- completed:
-    hackage: amazonka-route53-1.6.1@sha256:a9839d8fc55de06a4fb242bc6597d454251363478909d4fe7dca8832c2a1fd73,5949
-    pantry-tree:
-      size: 14749
-      sha256: 47d8253fc03a0dbef989bd2c6fc8fdf6b46ede0b686111f375dd6f6c94e45b02
-  original:
-    hackage: amazonka-route53-1.6.1
-- completed:
-    hackage: ekg-wai-0.1.0.3@sha256:d6b62107589f7ddd30b6c56dbb22f9904e274fd9ce24807db76833fab9506c9e,1992
-    pantry-tree:
-      size: 1343
-      sha256: 44df3e2517bad85677bdf841ce83b2b3f1b1d3d30c2c7c3ce3ab4dac75662e81
-  original:
-    hackage: ekg-wai-0.1.0.3
-- completed:
     hackage: happy-1.19.12@sha256:acc67bfbf3af87892766781dd064c9447181ea81269a7a1e5fc9ace4a8fa4768,5691
     pantry-tree:
       size: 8693
@@ -47,12 +19,19 @@ packages:
   original:
     hackage: happy-1.19.12
 - completed:
-    hackage: ipfs-1.0.1@sha256:2230e2a781b6dfb66f054ae384527e85031ed401deb70fca3db7b7e22ecaaceb,5363
+    size: 40128
+    url: https://github.com/fission-suite/ipfs-haskell/archive/c7fd74fb4c5486ec48f446d08743e4423159baeb.tar.gz
+    cabal-file:
+      size: 5201
+      sha256: 6697b0aa89d4feda9fc0abbd4edbf76ed6fccec8cde042844f27f351666104db
+    name: ipfs
+    version: 1.0.2
+    sha256: b7ed23b53dc96bfdccc856d329fb9a1cfb52bcfd18beaf767040588b50e0c8a4
     pantry-tree:
-      size: 3558
-      sha256: f01edc360223143d3a861ef2787840c0672371807df84e8164c632791f0c5f02
+      size: 4737
+      sha256: a2dbe3e13893f28e268d9b6d54cc27a53316e7dc3db53877fe6e4dacd1779d00
   original:
-    hackage: ipfs-1.0.1
+    url: https://github.com/fission-suite/ipfs-haskell/archive/c7fd74fb4c5486ec48f446d08743e4423159baeb.tar.gz
 - completed:
     hackage: raven-haskell-0.1.4.0@sha256:64eca8650d140fc853a951af0cf4e2ce255b90491b9e3014d82be2e79593c43a,1251
     pantry-tree:
@@ -83,7 +62,7 @@ packages:
     hackage: text-time-0.2.0
 snapshots:
 - completed:
-    size: 524163
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/25.yaml
-    sha256: 97548b4e927a8a862d4a203687ca18a3f5d2ae75b4b72c946fb29c17df1a5082
-  original: lts-14.25
+    size: 491163
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/4.yaml
+    sha256: bc60043a06b58902b533baa80fb566c0ec495c41e428bc0f8c1e8c15b2a4c468
+  original: lts-15.4

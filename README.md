@@ -138,19 +138,6 @@ Default: `/usr/local/bin/ipfs`
 
 Path to the local IPFS binary
 
-
-### `MONITOR`
-
-Default: `false`
-
-Live monitoring dashboard
-
-```
-export MONITOR=true
-stack run
-open http://localhost:9630
-```
-
 # Load Test
 
 A very simple local load test:
@@ -217,9 +204,9 @@ curl -i \
 
 ## Valid Types
 
+* `application/json; charset=utf-8`
 * `application/octet-stream`
 * `text/plain; charset=UTF-8`
-* `multipart/form-data`
 
 ## Defaults
 
