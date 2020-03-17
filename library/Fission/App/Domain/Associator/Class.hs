@@ -35,7 +35,7 @@ instance MonadIO m => Associator (Transaction m) where
   associate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
-        return . Left <| relaxOpenUnion err
+        return <| relaxedLeft err
 
       Right (Entity _ app) ->
         case isOwnedBy userId app of

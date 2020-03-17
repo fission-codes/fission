@@ -50,7 +50,7 @@ destroyAssociated ::
 destroyAssociated userId appId appDomains now =
   App.byId userId appId >>= \case
     Left err ->
-      return . Left <| relaxOpenUnion err
+      return <| relaxedLeft err
 
     Right (Entity _ app) ->
       if isOwnedBy userId app

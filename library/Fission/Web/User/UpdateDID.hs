@@ -25,6 +25,5 @@ server ::
   -> ServerT API m
 server (Entity userID _) did =
   did
-    |> User.updateDID userID 
+    |> User.updateDID userID
     |> runDBNow
-

@@ -33,7 +33,7 @@ instance MonadIO m => Dissociator (Transaction m) where
   dissociate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
-        return . Left <| relaxOpenUnion err
+        return <| Error.relaxedLeft err
 
       Right app ->
         case isOwnedBy userId app of
