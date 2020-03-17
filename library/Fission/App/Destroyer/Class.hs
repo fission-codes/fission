@@ -32,7 +32,7 @@ instance (MonadIO m) => Destroyer (Transaction m) where
   destroyByURL userId domainName maySubdomain now =
     AppDomain.allSiblingsByDomain domainName maySubdomain >>= \case
       Left  errs ->
-        return . Left <| relaxOpenUnion errs
+        return <| relaxedLeft errs
 
       Right [] ->
         return . openLeft <| NotFound @AppDomain

@@ -36,7 +36,7 @@ instance (AppDomain.Initializer m, MonadDNSLink m) => Creator (Transaction m) wh
 
     AppDomain.associateDefault ownerId appId now >>= \case
       Left err ->
-        return . Left <| relaxOpenUnion err
+        return <| Error.relaxedLeft err
 
       Right subdomain ->
         cid
