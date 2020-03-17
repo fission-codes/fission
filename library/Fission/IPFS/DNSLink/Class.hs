@@ -9,8 +9,8 @@ import           Fission.Prelude hiding (set)
 
 class MonadRoute53 m => MonadDNSLink m where
   set :: DomainName -> Maybe URL.Subdomain -> CID -> m (Either ServerError URL.DomainName)
-  setBase :: Maybe URL.Subdomain -> CID -> m (Either ServerError URL.DomainName)
+  setBase :: URL.Subdomain -> CID -> m (Either ServerError URL.DomainName)
 
 instance MonadDNSLink m => MonadDNSLink (Transaction m) where
   set domainName maySubdomain cid = lift <| set domainName maySubdomain cid
-  setBase maySubdomain cid = lift <| setBase maySubdomain cid
+  setBase subdomain cid = lift <| setBase subdomain cid

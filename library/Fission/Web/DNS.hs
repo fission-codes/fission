@@ -21,5 +21,5 @@ type API = Capture "cid" CID
 server :: MonadDNSLink m => Entity User -> ServerT API m
 server (Entity _id User { userUsername = Username rawUN}) cid =
   cid
-    |> DNSLink.setBase (Just (URL.Subdomain rawUN))
+    |> DNSLink.setBase (URL.Subdomain rawUN)
     |> bind Web.Err.ensureM

@@ -83,7 +83,9 @@ instance
         Nothing ->
           return (Error.openLeft User.AlreadyExists)
 
-        Just userId ->
+        Just userId -> do
+          -- FIXME Add data root
+
           App.createWithPlaceholder userId now <&> \case
             Left err             -> Error.relaxedLeft err
             Right (_, subdomain) -> Right (userId, subdomain)

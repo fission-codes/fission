@@ -163,7 +163,7 @@ instance MonadDNSLink Fission where
 
   setBase subdomain cid = do
     domain <- asks baseAppDomainName
-    DNSLink.set domain subdomain cid
+    DNSLink.set domain (Just subdomain) cid
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer

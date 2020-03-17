@@ -142,7 +142,7 @@ instance
     Effect.log SetDNSLink
     baseDomain <- asks getBaseDomain
     runner <- asks setDNSLink
-    return <| runner baseDomain s c
+    return <| runner baseDomain (Just s) c
 
 instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
   runLocal _ _ = do
@@ -231,6 +231,10 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
   updateDID uID newDID _ = do
     Effect.log <| ModifyUser uID
     return newDID
+
+  setData uID _ _ _ = do
+    Effect.log <| ModifyUser uID
+    return ok
 
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
   destroy uid = Effect.log <| DestroyUser uid

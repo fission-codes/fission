@@ -40,7 +40,7 @@ instance (AppDomain.Initializer m, MonadDNSLink m) => Creator (Transaction m) wh
 
       Right subdomain ->
         cid
-          |> DNSLink.setBase (Just subdomain)
+          |> DNSLink.setBase subdomain
           |> fmap \case
             Left  err -> Error.openLeft err
             Right _   -> Right (appId, subdomain)
