@@ -103,7 +103,6 @@ dependencies:
   - http-client-tls
   - http-media
   - http-types
-  # - ip
   - ipfs
   - lens
   - lens-aeson
