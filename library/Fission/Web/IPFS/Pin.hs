@@ -27,7 +27,7 @@ type PinAPI
   :> Put '[PlainText, OctetStream] NoContent
 
 type UnpinAPI
-  =  Summary "[DEPRECATED] Pin an otherwise unassociated CID"
+  =  Summary "Unpin a CID"
   :> Capture "cid" CID
   :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
