@@ -18,8 +18,10 @@ import           Fission.Prelude
 import           Fission.LoosePin.Creator as LoosePin
 import qualified Fission.Web.Error        as Web.Err
 
-type API = ReqBody '[PlainText, OctetStream] File.Serialized
-        :> Post    '[PlainText, OctetStream] IPFS.CID
+type API
+  =  Summary "Directly upload a file"
+  :> ReqBody '[PlainText, OctetStream] File.Serialized
+  :> Post    '[PlainText, OctetStream] IPFS.CID
 
 add ::
   ( MonadLocalIPFS     m

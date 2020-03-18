@@ -12,8 +12,10 @@ import           Fission.Web.Error as Web.Error
 import           Fission.Models
 import qualified Fission.User as User
 
-type API = Capture "newCID" CID
-        :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
+type API
+  =  Summary "Set/update file system content"
+  :> Capture "newCID" CID
+  :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
 
 server ::
   ( MonadLogger     m

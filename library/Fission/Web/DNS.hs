@@ -15,8 +15,10 @@ import qualified Fission.URL.Types          as URL
 import           Fission.Web.Error          as Web.Err
 import           Fission.User.Username.Types
 
-type API = Capture "cid" CID
-        :> PutAccepted '[PlainText, OctetStream] URL.DomainName
+type API
+  =  Summary "[DEPRECATED] Set default app DNSLink"
+  :> Capture "cid" CID
+  :> PutAccepted '[PlainText, OctetStream] URL.DomainName
 
 server :: MonadDNSLink m => Entity User -> ServerT API m
 server (Entity _id User { userUsername = Username rawUN}) cid =

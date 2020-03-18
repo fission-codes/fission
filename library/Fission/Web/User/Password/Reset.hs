@@ -15,8 +15,10 @@ import qualified Fission.User.Password as User.Password
 import qualified Fission.Web.Error                     as Web.Err
 import qualified Fission.Web.User.Password.Reset.Types as User.Password
 
-type API = ReqBody '[JSON] User.Password.Reset
-        :> Put     '[JSON] User.Password
+type API
+  =  Summary "Reset password"
+  :> ReqBody '[JSON] User.Password.Reset
+  :> Put     '[JSON] User.Password
 
 server ::
   ( MonadThrow      m

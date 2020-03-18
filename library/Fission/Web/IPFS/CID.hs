@@ -11,7 +11,9 @@ import           Fission.Prelude
 import           Fission.Models
 import qualified Fission.LoosePin as LoosePin
 
-type API = Get '[JSON, PlainText] [CID]
+type API
+  =  Summary "Index of all (your) CIDs"
+  :> Get '[JSON, PlainText] [CID]
 
 allForUser ::
   ( MonadDB            t m

@@ -16,11 +16,15 @@ import           Network.IPFS.File.Types as File
 type API =  PathAPI
        :<|> QueryAPI
 
-type PathAPI = Capture "cid" IPFS.CID
-            :> Get '[OctetStream, PlainText] File.Serialized
+type PathAPI
+  =  Summary "Get a file by CID"
+  :> Capture "cid" IPFS.CID
+  :> Get '[OctetStream, PlainText] File.Serialized
 
-type QueryAPI = QueryParam "cid" IPFS.CID
-             :> Get '[OctetStream, PlainText] File.Serialized
+type QueryAPI
+  =  Summary "Get a file by CID"
+  :> QueryParam "cid" IPFS.CID
+  :> Get '[OctetStream, PlainText] File.Serialized
 
 get ::
   ( MonadLocalIPFS m

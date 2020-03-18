@@ -4,7 +4,6 @@ module Fission.Web.User.Create
   ) where
 
 import           Servant
-import           Servant.Swagger
 
 import           Fission.Prelude
 
@@ -14,8 +13,10 @@ import           Fission.IPFS.DNSLink as DNSLink
 import qualified Fission.User as User
 import           Fission.User.DID.Types
 
-type API = ReqBody '[JSON] User.Registration
-        :> PutCreated '[JSON] NoContent
+type API
+  =  Summary "Register a new user"
+  :> ReqBody    '[JSON] User.Registration
+  :> PutCreated '[JSON] NoContent
 
 server ::
   ( MonadDNSLink   m
