@@ -16,7 +16,7 @@ import qualified Fission.Web.Error                     as Web.Err
 import qualified Fission.Web.User.Password.Reset.Types as User.Password
 
 type API
-  =  Summary "Reset password"
+  =  Summary "[DEPRECATED] Reset password"
   :> ReqBody '[JSON] User.Password.Reset
   :> Patch   '[JSON] User.Password
 
