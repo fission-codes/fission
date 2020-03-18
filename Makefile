@@ -38,7 +38,7 @@ docs:
 
 docserver:
 	http-server ./.stack-work/dist/x86_64-osx/Cabal-3.0.1.0/doc/html/$(package) -p 1313 & \
-    open http://127.0.0.1:1313
+    open http://localhost:1313
 
 doctest:
 	$(stack) test :fission-doctest --fast
