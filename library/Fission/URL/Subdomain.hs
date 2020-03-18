@@ -21,7 +21,7 @@ normalizePrefix domain Nothing          = domain
     >>> :set -XOverloadedStrings
 
     >>> prefix (DomainName "domain") (Subdomain "sub")
-    DomainName {getDomainName = "sub.domain"}
+    DomainName {get = "sub.domain"}
 
 -}
 prefix :: DomainName -> Subdomain -> DomainName
