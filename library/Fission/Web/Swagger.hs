@@ -36,8 +36,8 @@ docs host' =
     |> fission (Proxy @Web.API)
     |> app
     |> dns
-    |> ipfs
     |> heroku
+    |> ipfs
     |> ping
     |> user
 
