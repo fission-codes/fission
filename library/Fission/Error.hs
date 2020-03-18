@@ -6,9 +6,7 @@ module Fission.Error
   , module Fission.Error.Types
   ) where
 
-import Data.WorldPeace
-import RIO hiding (fromMaybe)
-
+import Fission.Prelude hiding (fromMaybe)
 import Fission.Error.Types
 
 openLeft :: IsMember err errs => err -> Either (OpenUnion errs) a
@@ -26,4 +24,4 @@ fromMaybe ::
 fromMaybe err okHandler = maybe (openLeft err) (Right . okHandler)
 
 fromMaybe' :: IsMember err errs => err -> Maybe a -> Either (OpenUnion errs) a
-fromMaybe' err = fromMaybe err id
+fromMaybe' err = fromMaybe err identity
