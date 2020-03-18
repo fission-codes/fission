@@ -7,7 +7,7 @@ import           Data.Swagger
 
 import           Servant
 import           Servant.Swagger
-import           Servant.Swagger.UI
+import           Servant.Swagger.UI.ReDoc
 import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 
 import           Fission.Prelude
@@ -27,7 +27,7 @@ server :: (forall a . Handler a -> m a) -> Web.Host -> ServerT API m
 server fromHandler appHost =
   appHost
     |> docs
-    |> swaggerSchemaUIServer
+    |> redocSchemaUIServer
     |> hoistServer (Proxy @API) fromHandler
 
 docs :: Web.Host -> Swagger

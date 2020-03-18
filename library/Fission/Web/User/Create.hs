@@ -4,6 +4,7 @@ module Fission.Web.User.Create
   ) where
 
 import           Servant
+import           Servant.Swagger
 
 import           Fission.Prelude
 
