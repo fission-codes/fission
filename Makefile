@@ -22,7 +22,7 @@ install-dev:
 	$(stack) install --fast
 
 install:
-	$(stack) install 
+	$(stack) install
 
 ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
@@ -32,6 +32,13 @@ quality:
 
 linter:
 	$(stack) test :fission-lint --fast
+
+docs:
+	$(stack) haddock $(package) --open
+
+docserver:
+	http-server ./.stack-work/dist/x86_64-osx/Cabal-3.0.1.0/doc/html/$(package) -p 1313 & \
+    open http://127.0.0.1:1313
 
 doctest:
 	$(stack) test :fission-doctest --fast

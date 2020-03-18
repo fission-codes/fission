@@ -19,19 +19,19 @@ packages:
   original:
     hackage: happy-1.19.12
 - completed:
-    size: 40128
-    url: https://github.com/fission-suite/ipfs-haskell/archive/c7fd74fb4c5486ec48f446d08743e4423159baeb.tar.gz
-    cabal-file:
-      size: 5201
-      sha256: 6697b0aa89d4feda9fc0abbd4edbf76ed6fccec8cde042844f27f351666104db
-    name: ipfs
-    version: 1.0.2
-    sha256: b7ed23b53dc96bfdccc856d329fb9a1cfb52bcfd18beaf767040588b50e0c8a4
+    hackage: hspec-wai-json-0.10.1@sha256:67b405c38f0a9e2771480c8d3ecd8aeb8d8776a35d3b2906cb1b76c9538617e4,1629
     pantry-tree:
-      size: 4737
-      sha256: a2dbe3e13893f28e268d9b6d54cc27a53316e7dc3db53877fe6e4dacd1779d00
+      size: 349
+      sha256: fb9e89b79cde3276baa484c860c6b9eeebdbc1a5c43301293351a25bc4c08e87
   original:
-    url: https://github.com/fission-suite/ipfs-haskell/archive/c7fd74fb4c5486ec48f446d08743e4423159baeb.tar.gz
+    hackage: hspec-wai-json-0.10.1
+- completed:
+    hackage: ipfs-1.0.2@sha256:3acd5170b32288676ec8cfcc59e6c7a5bf6895949732978db8810f1f6cd7629d,5207
+    pantry-tree:
+      size: 3558
+      sha256: 8165c93ea00b74ee2326b54bd836bbc656d6ab93f97de800cfd1c6310cac7229
+  original:
+    hackage: ipfs-1.0.2
 - completed:
     hackage: raven-haskell-0.1.4.0@sha256:64eca8650d140fc853a951af0cf4e2ce255b90491b9e3014d82be2e79593c43a,1251
     pantry-tree:
@@ -46,13 +46,6 @@ packages:
       sha256: 652ea0bf673822956b0e87b7fcb5e35023299f3e1711462e4a3493e233728fb9
   original:
     hackage: servant-quickcheck-0.0.7.4
-- completed:
-    hackage: tasty-rerun-1.1.17@sha256:5ee1675e13b27d2450ad6290df4f80403b331b15cf503c9618bcb541d1c7bf40,1314
-    pantry-tree:
-      size: 334
-      sha256: 25a3eeb82ba138ef12fcab0a11bddc8a64442ef9fdd4e3b19667bc599db232ba
-  original:
-    hackage: tasty-rerun-1.1.17
 - completed:
     hackage: text-time-0.2.0@sha256:ae94071e29a5265f60de19c054a5308cee54a849678fbb8ea8d9657510c87b4c,1757
     pantry-tree:

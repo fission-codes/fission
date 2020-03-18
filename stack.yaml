@@ -39,22 +39,12 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - alex-3.2.5
-# - amazonka-1.6.1
-# - amazonka-core-1.6.1
-# - amazonka-route53-1.6.1
-# - Cabal-3.0.0.0
-# - directory-1.3.6.0
 - happy-1.19.12
-#- ipfs-1.0.2@sha2-c7fd74fb4c5486ec48f446d08743e4423159baeb 
-- github: fission-suite/ipfs-haskell
-  commit: c7fd74fb4c5486ec48f446d08743e4423159baeb 
+- hspec-wai-json-0.10.1
+- ipfs-1.0.2
 - raven-haskell-0.1.4.0
 - servant-quickcheck-0.0.7.4
-- tasty-rerun-1.1.17
 - text-time-0.2.0
-# - ekg-core-0.1.1.7
-# - ekg-json-0.1.0.6
-# - unix-2.7.2.2
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
