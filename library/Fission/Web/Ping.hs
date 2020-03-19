@@ -7,7 +7,9 @@ module Fission.Web.Ping
 import Servant
 import Fission.Web.Ping.Types
 
-type API = Get '[JSON, PlainText] Pong
+type API
+  = Summary "Simple Ping"
+  :> Get '[JSON, PlainText] Pong
 
 pong :: Pong
 pong = Pong "pong"

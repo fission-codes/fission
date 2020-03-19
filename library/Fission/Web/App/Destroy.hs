@@ -20,12 +20,14 @@ import           Fission.Web.Error.Class
 type API = ByURLAPI :<|> ByIdAPI
 
 type ByURLAPI
-  =  "associated"
+  =  Summary "Destroy app by URL"
+  :> "associated"
   :> Capture "url" URL
   :> DeleteNoContent '[JSON] NoContent
 
 type ByIdAPI
-  =  Capture "appId" AppId
+  =  Summary "Destroy app by ID"
+  :> Capture "appId" AppId
   :> DeleteNoContent '[JSON] NoContent
 
 server ::

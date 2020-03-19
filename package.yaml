@@ -131,6 +131,7 @@ dependencies:
   - servant-server
   - servant-swagger
   - servant-swagger-ui
+  - servant-swagger-ui-redoc
   - streaming-commons
   - swagger2
   - text

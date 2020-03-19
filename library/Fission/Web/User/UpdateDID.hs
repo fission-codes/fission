@@ -13,8 +13,10 @@ import           Database.Esqueleto
 import qualified Fission.User as User
 import           Fission.User.DID.Types
 
-type API = ReqBody '[JSON] DID
-        :> Patch   '[PlainText, OctetStream, JSON] NoContent
+type API
+  =  Summary "Set DID"
+  :> ReqBody '[JSON] DID
+  :> Patch   '[PlainText, OctetStream, JSON] NoContent
 
 server ::
   ( MonadTime       m

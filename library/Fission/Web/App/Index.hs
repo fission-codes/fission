@@ -15,7 +15,8 @@ import qualified Fission.App        as App
 import qualified Fission.App.Domain as App.Domain
 
 type API
-  = Get '[JSON] (Map AppId [URL])
+  =  Summary "Index of all (your) apps"
+  :> Get '[JSON] (Map AppId [URL])
 
 index ::
   ( MonadDB              t m

@@ -23,8 +23,10 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
-type API = Capture "addon_id" UUID
-        :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
+type API
+  =  Summary "Deprovision Heroku add-on"
+  :> Capture "addon_id" UUID
+  :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
   ( MonadRemoteIPFS          m

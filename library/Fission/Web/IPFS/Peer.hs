@@ -14,7 +14,9 @@ import           Fission.IPFS.Linked
 import           Fission.Prelude
 import qualified Fission.Web.Error  as Web.Err
 
-type API = Get '[JSON, PlainText, OctetStream] (NonEmpty IPFS.Peer)
+type API
+  =  Summary "Recommended IPFS peers"
+  :> Get '[JSON, PlainText, OctetStream] (NonEmpty IPFS.Peer)
 
 -- | Get a list of valid IPFS addresses that a user could use to join our network
 get ::

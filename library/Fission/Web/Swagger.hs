@@ -7,7 +7,7 @@ import           Data.Swagger
 
 import           Servant
 import           Servant.Swagger
-import           Servant.Swagger.UI
+import           Servant.Swagger.UI.ReDoc
 import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 
 import           Fission.Prelude
@@ -27,21 +27,22 @@ server :: (forall a . Handler a -> m a) -> Web.Host -> ServerT API m
 server fromHandler appHost =
   appHost
     |> docs
-    |> swaggerSchemaUIServer
+    |> redocSchemaUIServer
     |> hoistServer (Proxy @API) fromHandler
 
 docs :: Web.Host -> Swagger
 docs host' =
   host'
-    |> app (Proxy @Web.API)
+    |> fission (Proxy @Web.API)
+    |> app
     |> dns
-    |> ipfs
     |> heroku
+    |> ipfs
     |> ping
     |> user
 
-app :: HasSwagger api => Proxy api -> Web.Host -> Swagger
-app proxy appHost =
+fission :: HasSwagger api => Proxy api -> Web.Host -> Swagger
+fission proxy appHost =
   proxy
     |> toSwagger
     |> host               ?~ Host (Web.getRawHost appHost) Nothing
@@ -69,13 +70,17 @@ app proxy appHost =
     blurb =
       "Bootstrapped & distributed backend-as-a-service with user-controlled data"
 
+app :: Swagger -> Swagger
+app = makeDocs (Proxy @Web.AppRoute)
+  ["App" |> description ?~ "Hosted applications"]
+
 dns :: Swagger -> Swagger
 dns = makeDocs (Proxy @Web.DNSRoute)
   ["DNS" |> description ?~ "DNS management"]
 
 user :: Swagger -> Swagger
 user = makeDocs (Proxy @Web.UserRoute)
-  ["Users" |> description ?~ "Accounts, authentication, and stats"]
+  ["User" |> description ?~ "Accounts, authentication, and stats"]
 
 heroku :: Swagger -> Swagger
 heroku = makeDocs (Proxy @Web.HerokuRoute)

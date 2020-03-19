@@ -28,8 +28,10 @@ import qualified Fission.User.Provision.Types as User
 import qualified Fission.User.Creator         as User
 import           Fission.User.Username.Types
 
-type API = ReqBody '[JSON]                Request
-        :> Post    '[Heroku.VendorJSONv3] Provision
+type API
+  =  Summary "Provision a new Heroku add-on"
+  :> ReqBody '[JSON]                Request
+  :> Post    '[Heroku.VendorJSONv3] Provision
 
 create ::
   ( MonadTime               m

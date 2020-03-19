@@ -21,11 +21,15 @@ import           Fission.Models
 
 type API = PinAPI :<|> UnpinAPI
 
-type PinAPI = Capture "cid" CID
-           :> Put '[PlainText, OctetStream] NoContent
+type PinAPI
+  =  Summary "[DEPRECATED] Pin an otherwise unassociated CID"
+  :> Capture "cid" CID
+  :> Put '[PlainText, OctetStream] NoContent
 
-type UnpinAPI = Capture "cid" CID
-             :> DeleteAccepted '[PlainText, OctetStream] NoContent
+type UnpinAPI
+  =  Summary "Unpin a CID"
+  :> Capture "cid" CID
+  :> DeleteAccepted '[PlainText, OctetStream] NoContent
 
 server ::
   ( MonadRemoteIPFS      m
