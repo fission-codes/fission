@@ -70,7 +70,7 @@ User
   modifiedAt    UTCTime
 
   UniqueUsername username
-  UniqueEmail    email !force
+  -- UniqueEmail    email !force
 
   deriving Show Eq
 
