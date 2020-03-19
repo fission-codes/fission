@@ -22,9 +22,11 @@ import           Fission.Web.Types
 
 import qualified Fission.Platform.Heroku.ID.Types       as Hku
 import qualified Fission.Platform.Heroku.Password.Types as Hku
-import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
 
+import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
 import           Fission.Storage.PostgreSQL
+
+import           Fission.URL.Types
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -95,8 +97,13 @@ run logFunc dbPool processCtx httpManager action =
     awsAccessKey          = "SOME_AWS_ACCESS_KEY"
     awsSecretKey          = "SOME_AWS_SECRET_KEY"
     awsZoneID             = "SOME_AWS_ZONE_ID"
-    awsDomainName         = "SOME_AWS_DOMAIN_NAME"
     awsRoute53MockEnabled = AWS.Route53MockEnabled True
+
+    baseAppDomainName      = DomainName "appdomain.com"
+    baseUserDataRootDomain = DomainName "userdata.com"
+
+    appPlaceholder = IPFS.CID "QmAppPlaceholder"
+    defaultDataCID = IPFS.CID "QmUserData"
 
 {- | Setup a complete development configuration with all pure defaults set
 
@@ -145,8 +152,13 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     awsAccessKey          = "SOME_AWS_ACCESS_KEY"
     awsSecretKey          = "SOME_AWS_SECRET_KEY"
     awsZoneID             = "SOME_AWS_ZONE_ID"
-    awsDomainName         = "SOME_AWS_DOMAIN_NAME"
     awsRoute53MockEnabled = AWS.Route53MockEnabled True
+
+    baseAppDomainName      = DomainName "appdomain.com"
+    baseUserDataRootDomain = DomainName "userdata.com"
+
+    appPlaceholder = IPFS.CID "QmAppPlaceholder"
+    defaultDataCID = IPFS.CID "QmUserData"
 
 {- | Setup a complete development configuration.
 

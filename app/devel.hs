@@ -10,7 +10,6 @@ import RIO.Text      as Text
 
 import Network.Wai.Handler.Warp     (runSettings)
 import System.Environment           (getEnv)
-import System.Remote.Monitoring.Wai
 
 import           Fission.Internal.Development
 import           Fission.Internal.UTF8

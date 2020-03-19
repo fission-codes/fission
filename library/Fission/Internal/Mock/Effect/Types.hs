@@ -13,9 +13,9 @@ module Fission.Internal.Mock.Effect.Types
   , CreateUser         (..)
   , ModifyUser         (..)
   , DestroyUser        (..)
-  , RetrieveUserCID    (..)
-  , CreateUserCID      (..)
-  , DestroyUserCID     (..)
+  , RetrieveLoosePin   (..)
+  , CreateLoosePin     (..)
+  , DestroyLoosePin    (..)
   , FissionEffs
   ) where
 
@@ -43,31 +43,37 @@ type FissionEffs =
    , LogMsg
    , DestroyHerokuAddOn
    , DestroyUser
-   , DestroyUserCID
+   , DestroyLoosePin
    , RetrieveUser
-   , RetrieveUserCID
+   , RetrieveLoosePin
    , ModifyUser
    , CreateUser
-   , CreateUserCID
+   , CreateLoosePin
    , CreateHerokuAddOn
    ]
 
-data RunDB = RunDB
+data RunDB
+  = RunDB
   deriving (Eq, Show)
 
-data CheckTime = CheckTime
+data CheckTime
+  = CheckTime
   deriving (Eq, Show)
 
-data RunAWS = RunAWS
+data RunAWS
+  = RunAWS
   deriving (Eq, Show)
 
-data UpdateRoute53 = UpdateRoute53
+data UpdateRoute53
+  = UpdateRoute53
   deriving (Eq, Show)
 
-data SetDNSLink = SetDNSLink
+data SetDNSLink
+  = SetDNSLink
   deriving (Eq, Show)
 
-data RunLocalIPFS = RunLocalIPFS
+data RunLocalIPFS
+  = RunLocalIPFS
   deriving (Eq, Show)
 
 data RunRemoteIPFS
@@ -78,13 +84,16 @@ data RunRemoteIPFS
   | RemoteIPFSUnpin IPFS.CID Bool
   deriving (Eq, Show)
 
-data LogMsg = LogMsg LogLevel LogStr
+data LogMsg
+  = LogMsg LogLevel LogStr
   deriving (Eq, Show)
 
-data DestroyHerokuAddOn = DestroyHerokuAddOn UUID
+data DestroyHerokuAddOn
+  = DestroyHerokuAddOn UUID
   deriving (Eq, Show)
 
-data CreateHerokuAddOn = CreateHerokuAddOn UUID
+data CreateHerokuAddOn
+  = CreateHerokuAddOn UUID
   deriving (Eq, Show)
 
 data RetrieveUser
@@ -94,24 +103,28 @@ data RetrieveUser
   | GetUserByEmail         Email
   deriving (Eq, Show)
 
-data CreateUser = CreateUser
+data CreateUser
+  = CreateUser
   deriving (Eq, Show)
 
-data ModifyUser = ModifyUser UserId
+data ModifyUser
+  = ModifyUser UserId
   deriving (Eq, Show)
 
-data DestroyUser = DestroyUser UserId
+data DestroyUser
+  = DestroyUser UserId
   deriving (Eq, Show)
 
-data RetrieveUserCID
-  = GetUserCIDByUserId UserId
-  | GetUserCIDByCID    IPFS.CID
+data RetrieveLoosePin
+  = GetLoosePinByUserId UserId
+  | GetLoosePinByCID    IPFS.CID
   deriving (Eq, Show)
 
-data CreateUserCID = CreateUserCID UserId IPFS.CID
+data CreateLoosePin
+  = CreateLoosePin UserId IPFS.CID
   deriving (Eq, Show)
 
-data DestroyUserCID
-  = DestroyUserCID UserId IPFS.CID
-  | DestroyUserCIDById UserCidId
+data DestroyLoosePin
+  = DestroyLoosePin     UserId IPFS.CID
+  | DestroyLoosePinById UserId LoosePinId
   deriving (Eq, Show)

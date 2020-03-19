@@ -4,18 +4,22 @@ module Fission.Web.IPFS.Upload
   ) where
 
 import           Database.Esqueleto
-import           Network.IPFS
 import           Servant
+
+import           Network.IPFS
+import qualified Network.IPFS.Pin        as IPFS.Pin
+import qualified Network.IPFS.Add        as IPFS
+import qualified Network.IPFS.Types      as IPFS
+import           Network.IPFS.File.Types as File
 
 import           Fission.Models
 import           Fission.Prelude
 
-import qualified Fission.User.CID as User.CID
+import           Fission.LoosePin.Creator as LoosePin
+import qualified Fission.Web.Error        as Web.Err
 
--- import qualified Fission.Web.IPFS.Upload.Multipart as Multipart
-import qualified Fission.Web.IPFS.Upload.Simple    as Simple
-
-type API = Simple.API -- :<|> Multipart.API
+type API = ReqBody '[PlainText, OctetStream] File.Serialized
+        :> Post    '[PlainText, OctetStream] IPFS.CID
 
 add ::
   ( MonadLocalIPFS     m
@@ -24,9 +28,22 @@ add ::
   , MonadThrow         m
   , MonadTime          m
   , MonadDB          t m
-  , User.CID.Creator t
+  , LoosePin.Creator t
   )
   => Entity User
   -> ServerT API m
-add usr = Simple.add    usr
-     -- :<|> Multipart.add usr
+add (Entity userId _) (Serialized rawData) = IPFS.addRaw rawData >>= \case
+  Right newCID -> IPFS.Pin.add newCID >>= \case
+    Right pinnedCID -> do
+      pinnedCID
+        |> pure
+        |> LoosePin.createMany userId
+        |> runDBNow
+
+      return pinnedCID
+
+    Left err ->
+      Web.Err.throw err
+
+  Left err ->
+    Web.Err.throw err

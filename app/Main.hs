@@ -14,9 +14,9 @@ import           Network.Wai.Middleware.RequestLogger
 import qualified RIO
 
 import           Fission
-import           Fission.App
 import           Fission.Prelude
 import           Fission.Storage.PostgreSQL
+import           Fission.Internal.App
 
 import qualified Fission.Web       as Web
 import qualified Fission.Web.Log   as Web.Log
@@ -31,11 +31,12 @@ import qualified Fission.Platform.Heroku.Password.Types       as Hku
 import           Fission.Environment.IPFS.Types    as IPFS
 import           Fission.Environment.Types
 import qualified Fission.Environment.AWS.Types     as AWS
+import qualified Fission.Environment.FFS.Types     as FFS
 import qualified Fission.Environment.Storage.Types as Storage
 import qualified Fission.Environment.Web.Types     as Web
+import qualified Fission.Environment.WebApp.Types  as WebApp
 
 import qualified Fission.Web.Log.Sentry as Sentry
-import qualified Fission.Monitor        as Monitor
 
 import           Fission.Web.Handler
 import           Fission.Web.Auth as Auth
@@ -49,6 +50,8 @@ main = do
     Storage.Environment {..} = env |> storage
     Web.Environment     {..} = env |> web
     AWS.Environment     {..} = env |> aws
+    WebApp.Environment  {..} = env |> webApp
+    FFS.Environment     {..} = env |> ffs
 
     herokuID       = Hku.ID       <| encodeUtf8 <| Hku.id <| manifest
     herokuPassword = Hku.Password <| encodeUtf8 <| Hku.password <| Hku.api <| manifest
@@ -62,7 +65,6 @@ main = do
     awsAccessKey          = accessKey
     awsSecretKey          = secretKey
     awsZoneID             = zoneID
-    awsDomainName         = domainName
     awsRoute53MockEnabled = route53MockEnabled
 
   isVerbose  <- isDebugEnabled
@@ -86,7 +88,6 @@ main = do
       let cfg = Config {..}
       runFission cfg do
         logDebug . displayShow =<< ask
-        when (env |> web |> Web.monitor) Monitor.wai
 
         logInfo ("Ensuring live DB matches latest schema" :: Text)
         runDB updateDBToLatest

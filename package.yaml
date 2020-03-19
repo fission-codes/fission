@@ -1,5 +1,5 @@
 name: fission-web-api
-version: '2.1.2'
+version: '2.2.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -92,21 +92,17 @@ dependencies:
   - bytestring
   - data-default-class
   - data-has
-  - ekg-wai
   - envy
   - esqueleto
   - exceptions
   - file-embed
   - filepath
   - flow
-  - fsnotify
   - Glob
-  - haskeline
   - http-client
   - http-client-tls
   - http-media
   - http-types
-  - ip
   - ipfs
   - lens
   - lens-aeson
@@ -115,6 +111,7 @@ dependencies:
   - monad-logger
   - monad-time
   - mtl
+  - path-pieces
   - persistent
   - persistent-postgresql
   - persistent-template
@@ -131,7 +128,6 @@ dependencies:
   - servant-auth-swagger
   - servant-client
   - servant-client-core
-  - servant-multipart
   - servant-server
   - servant-swagger
   - servant-swagger-ui

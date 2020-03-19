@@ -20,8 +20,12 @@ import           Fission.IPFS.Linked
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective
 
+import qualified Fission.App         as App
+import qualified Fission.App.Content as App.Content
+import qualified Fission.App.Domain  as App.Domain
+
 import qualified Fission.User                  as User
-import qualified Fission.User.CID              as User.CID
+import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 import qualified Fission.Web.Auth    as Auth
@@ -33,24 +37,29 @@ import qualified Fission.Web.Routes  as Web
 import qualified Fission.Web.Swagger as Web.Swagger
 import qualified Fission.Web.Types   as Web
 import qualified Fission.Web.User    as User
+import qualified Fission.Web.App     as App
 
 -- | Top level web API type. Handled by 'server'.
 type API = Web.Swagger.API :<|> Web.API
 
 app ::
-  ( MonadReflectiveServer m
-  , MonadLinkedIPFS       m
-  , MonadRemoteIPFS       m
-  , MonadLocalIPFS        m
-  , MonadDNSLink          m
-  , MonadLogger           m
-  , MonadTime             m
-  , MonadDB             t m
-  , MonadLogger         t
-  , MonadThrow          t
-  , Heroku.AddOn.CRUD   t
-  , User.CRUD           t
-  , User.CID.CRUD       t
+  ( App.Domain.Initializer    m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadLocalIPFS            m
+  , MonadDNSLink              m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , LoosePin.CRUD           t
+  , User.CRUD               t
+  , App.CRUD                t
+  , App.Content.Initializer t
+  , App.Domain.Retriever    t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -66,46 +75,51 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( MonadReflectiveServer m
-  , MonadLinkedIPFS       m
-  , MonadRemoteIPFS       m
-  , MonadLocalIPFS        m
-  , MonadDNSLink          m
-  , MonadLogger           m
-  , MonadTime             m
-  , MonadDB             t m
-  , MonadLogger         t
-  , MonadThrow          t
-  , Heroku.AddOn.CRUD   t
-  , User.CRUD           t
-  , User.CID.CRUD       t
+  ( App.Domain.Initializer    m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadLocalIPFS            m
+  , MonadDNSLink              m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , LoosePin.CRUD           t
+  , User.CRUD               t
+  , App.CRUD                t
+  , App.Content.Initializer t
+  , App.Domain.Retriever    t
   )
   => Web.Host
   -> ServerT API m
 server appHost = Web.Swagger.server fromHandler appHost
-            :<|> IPFS.server
-            :<|> (\_ -> Heroku.server)
-            :<|> User.server
-            :<|> pure Ping.pong
-            :<|> DNS.server
+            :<|> bizServer
 
 bizServer ::
-  ( MonadReflectiveServer m
-  , MonadLinkedIPFS       m
-  , MonadRemoteIPFS       m
-  , MonadLocalIPFS        m
-  , MonadDNSLink          m
-  , MonadLogger           m
-  , MonadTime             m
-  , MonadDB             t m
-  , MonadLogger         t
-  , MonadThrow          t
-  , Heroku.AddOn.CRUD   t
-  , User.CRUD           t
-  , User.CID.CRUD       t
+  ( App.Domain.Initializer    m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadLocalIPFS            m
+  , MonadDNSLink              m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , LoosePin.CRUD           t
+  , User.CRUD               t
+  , App.CRUD                t
+  , App.Content.Initializer t
+  , App.Domain.Retriever    t
   )
   => ServerT Web.API m
 bizServer = IPFS.server
+       :<|> App.server
        :<|> (\_ -> Heroku.server)
        :<|> User.server
        :<|> pure Ping.pong

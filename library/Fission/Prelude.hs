@@ -15,6 +15,7 @@ module Fission.Prelude
   , module RIO.Process
   , module RIO.Time
   , module Test.QuickCheck
+  , module Web.PathPieces
   , headMaybe
   , identity
   , intercalate
@@ -23,6 +24,8 @@ module Fission.Prelude
   , textShow
   , displayLazyBS
   , bind
+  , ok
+  , noop
   ) where
 
 import Control.Lens         ((%~), (.~), (?~), (^?))
@@ -70,6 +73,8 @@ import RIO hiding ( Handler
 import Test.QuickCheck hiding (Result (..))
 import Test.QuickCheck.Instances ()
 
+import Web.PathPieces
+
 import Fission.Internal.Orphanage.OpenUnion ()
 import Fission.Internal.MonadDB
 import Fission.Internal.Log
@@ -80,3 +85,9 @@ identity a = a
 
 bind :: Monad m => (a -> m b) -> m a -> m b
 bind = (=<<)
+
+ok :: Either err ()
+ok = Right ()
+
+noop :: Applicative f => f ()
+noop = pure ()

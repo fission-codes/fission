@@ -19,30 +19,42 @@ import qualified Fission.Web.User.Create          as Create
 import qualified Fission.Web.User.Verify          as Verify
 import qualified Fission.Web.User.Password.Reset  as Reset
 import qualified Fission.Web.User.UpdateDID       as UpdateDID
+import qualified Fission.Web.User.UpdateData      as UpdateData
 
 import qualified Fission.Web.Auth.Types           as Auth
 
 type API = RegisterRoute
       :<|> VerifyRoute
       :<|> UpdateDIDRoute
+      :<|> UpdateDataRoute
       :<|> ResetRoute
 
-type Auth = Auth.HigherOrder
+type Auth
+  = Auth.HigherOrder
 
-type RegisterRoute = Auth.RegisterDid
-                  :> Create.API
+type RegisterRoute
+  = Auth.RegisterDid
+    :> Create.API
 
-type VerifyRoute = "verify"
-                   :> Auth
-                   :> Verify.API
+type VerifyRoute
+  = "verify"
+    :> Auth
+    :> Verify.API
 
-type UpdateDIDRoute = "update_did"
-                      :> Auth
-                      :> UpdateDID.API
+type UpdateDIDRoute
+  = "did"
+    :> Auth
+    :> UpdateDID.API
 
-type ResetRoute = "reset_password"
-                  :> Auth
-                  :> Reset.API
+type UpdateDataRoute
+  = "data"
+    :> Auth
+    :> UpdateData.API
+
+type ResetRoute
+  = "reset_password"
+    :> Auth
+    :> Reset.API
 
 server ::
   ( MonadDNSLink     m
@@ -56,4 +68,5 @@ server ::
 server = Create.server
     :<|> Verify.server
     :<|> UpdateDID.server
+    :<|> UpdateData.server
     :<|> Reset.server

@@ -21,7 +21,8 @@ import           Fission.URL.Types as URL
 import           Fission.User.DID.Types
 
 data Config = Config
-  { setDNSLink      :: Maybe URL.Subdomain -> IPFS.CID -> (Either ServerError URL.DomainName)
+  { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> (Either ServerError URL.DomainName)
+  , getBaseDomain   :: URL.DomainName
   , updateRoute53   :: RecordType -> URL.DomainName -> Text -> (Either ServerError ChangeResourceRecordSetsResponse)
   , now             :: UTCTime
   , linkedPeers     :: NonEmpty IPFS.Peer

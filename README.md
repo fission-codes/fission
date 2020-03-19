@@ -29,10 +29,10 @@ brew services start ipfs
 ```shell
 # Enable sample Heroku config
 # Note: You will have to edit this file to input dummy data
-cp example-config/addon-manifest.json.example addon-manifest.json
+cp addon-manifest.json.example addon-manifest.json
 
 # Setup env file
-cp example-config/env.yaml.example env.yaml
+cp env.yaml.example env.yaml
 ```
 
 ## Run Server
@@ -138,19 +138,6 @@ Default: `/usr/local/bin/ipfs`
 
 Path to the local IPFS binary
 
-
-### `MONITOR`
-
-Default: `false`
-
-Live monitoring dashboard
-
-```
-export MONITOR=true
-stack run
-open http://localhost:9630
-```
-
 # Load Test
 
 A very simple local load test:
@@ -217,9 +204,9 @@ curl -i \
 
 ## Valid Types
 
+* `application/json; charset=utf-8`
 * `application/octet-stream`
 * `text/plain; charset=UTF-8`
-* `multipart/form-data`
 
 ## Defaults
 

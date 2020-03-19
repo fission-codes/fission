@@ -28,17 +28,14 @@ import           Fission.AWS.Types as AWS
 
 import           Fission.Internal.UTF8
 
-import           Fission.IPFS.DNSLink
+import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
 
 import qualified Fission.URL as URL
 
-import           Fission.Platform.Heroku.Auth.Types     as Heroku
-import qualified Fission.Platform.Heroku.ID.Types       as Heroku
-import qualified Fission.Platform.Heroku.Password.Types as Heroku
+import           Fission.Platform.Heroku.Types as Heroku
 
-import           Fission.Web.Auth.Class
-import qualified Fission.Web.Auth     as Auth
+import           Fission.Web.Auth     as Auth
 import qualified Fission.Web.Auth.DID as Auth.DID
 
 import           Fission.Web.Server.Reflective
@@ -48,6 +45,9 @@ import           Fission.User.DID.Types
 import           Fission.Models
 
 import           Fission.Web.Auth.Token.Basic.Class
+
+import           Fission.App.Content as App.Content
+import           Fission.App.Domain  as App.Domain
 
 -- | The top-level app type
 newtype Fission a = Fission { unwrapFission :: RIO Config a }
@@ -143,9 +143,8 @@ instance MonadRoute53 Fission where
           |> rrsResourceRecords ?~ pure (resourceRecord value)
 
 instance MonadDNSLink Fission where
-  set maySubdomain (CID hash) = do
+  set domain maySubdomain (CID hash) = do
     IPFS.Gateway gateway <- asks ipfsGateway
-    domain               <- asks awsDomainName
 
     let
       baseURL    = URL.normalizePrefix domain maySubdomain
@@ -161,6 +160,10 @@ instance MonadDNSLink Fission where
           |> wrapIn dnsLink
           |> update Txt dnsLinkURL
           |> fmap \_ -> Right baseURL
+
+  setBase subdomain cid = do
+    domain <- asks baseAppDomainName
+    DNSLink.set domain (Just subdomain) cid
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
@@ -216,3 +219,9 @@ instance MonadAuth (SQL.Entity User) Fission where
     cfg <- ask
     return <| mkAuthHandler \req ->
       toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req
+
+instance App.Domain.Initializer Fission where
+  initial = asks baseAppDomainName
+
+instance App.Content.Initializer Fission where
+  placeholder = asks appPlaceholder

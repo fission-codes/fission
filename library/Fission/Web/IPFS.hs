@@ -15,7 +15,7 @@ import           Servant
 import           Fission.IPFS.Linked
 import           Fission.Prelude
 
-import qualified Fission.User.CID as User.CID
+import qualified Fission.LoosePin as LoosePin
 import qualified Fission.Web.Auth.Types as Auth
 
 import qualified Fission.Web.IPFS.CID      as CID
@@ -48,9 +48,9 @@ server ::
   , MonadThrow           m
   , MonadTime            m
   , MonadDB            t m
-  , User.CID.Creator   t
-  , User.CID.Retriever t
-  , User.CID.Destroyer t
+  , LoosePin.Creator   t
+  , LoosePin.Retriever t
+  , LoosePin.Destroyer t
   )
   => ServerT API m
 server = authed :<|> public
@@ -62,9 +62,9 @@ authed ::
   , MonadThrow           m
   , MonadTime            m
   , MonadDB            t m
-  , User.CID.Creator   t
-  , User.CID.Retriever t
-  , User.CID.Destroyer t
+  , LoosePin.Creator   t
+  , LoosePin.Retriever t
+  , LoosePin.Destroyer t
   )
   => ServerT AuthedAPI m
 authed usr = CID.allForUser usr

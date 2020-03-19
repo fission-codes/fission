@@ -34,6 +34,7 @@ import           Fission.IPFS.DNSLink.Class
 
 import           Fission.Models
 import           Fission.User.DID.Types
+import           Fission.URL.Types
 
 import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Reflective.Class
@@ -45,8 +46,7 @@ import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.User                  as User
-import           Fission.User.CID              as User.CID
-
+import           Fission.LoosePin              as LoosePin
 import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
 -- Reexport
@@ -133,10 +133,16 @@ instance
   , IsMember RunAWS        effs
   )
   => MonadDNSLink (Mock effs) where
-  set s c = do
+  set d s c = do
     Effect.log SetDNSLink
     runner <- asks setDNSLink
-    return <| runner s c
+    return <| runner d s c
+
+  setBase s c = do
+    Effect.log SetDNSLink
+    baseDomain <- asks getBaseDomain
+    runner <- asks setDNSLink
+    return <| runner baseDomain (Just s) c
 
 instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
   runLocal _ _ = do
@@ -204,11 +210,13 @@ instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
 instance
   ( IsMember CreateHerokuAddOn effs
   , IsMember CreateUser        effs
+  , IsMember UpdateRoute53     effs
   )
   => User.Creator (Mock effs) where
-  create _ _ _ _ _ = do
+  create _ _ _ _ = do
     Effect.log CreateUser
-    return . Right <| Database.toSqlKey 0
+    Effect.log UpdateRoute53
+    return <| Right (Database.toSqlKey 0, Subdomain "new-subdomain")
 
   createWithHeroku uuid _ _ _ _ = do
     Effect.log CreateUser
@@ -224,18 +232,22 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
     Effect.log <| ModifyUser uID
     return newDID
 
+  setData uID _ _ _ = do
+    Effect.log <| ModifyUser uID
+    return ok
+
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
   destroy uid = Effect.log <| DestroyUser uid
 
-instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
+instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
   getByUserId uid = do
-    Effect.log <| GetUserCIDByUserId uid
+    Effect.log <| GetLoosePinByUserId uid
 
     let
       userId = Database.toSqlKey 0
       cid    = IPFS.CID "Qm12345"
 
-    return . pure . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
+    return . pure . Fixture.entity <| LoosePin userId cid Fixture.agesAgo
 
   getByCids cids =
     cids
@@ -246,27 +258,27 @@ instance IsMember RetrieveUserCID effs => User.CID.Retriever (Mock effs) where
       folder cid (counter, acc) =
         (counter + 1, action cid counter : acc)
 
-      action :: IPFS.CID -> Int64 -> Mock effs (Entity UserCid)
+      action :: IPFS.CID -> Int64 -> Mock effs (Entity LoosePin)
       action cid rawUserId = do
         let userId = Database.toSqlKey rawUserId
-        Effect.log <| GetUserCIDByCID cid
-        return . Fixture.entity <| UserCid userId cid Fixture.agesAgo Fixture.agesAgo
+        Effect.log <| GetLoosePinByCID cid
+        return . Fixture.entity <| LoosePin userId cid Fixture.agesAgo
 
-instance IsMember CreateUserCID effs => User.CID.Creator (Mock effs) where
+instance IsMember CreateLoosePin effs => LoosePin.Creator (Mock effs) where
   create uid cid _ = do
-    Effect.log <| CreateUserCID uid cid
+    Effect.log <| CreateLoosePin uid cid
     return . Just <| Database.toSqlKey 0
 
   createMany uid cids _ = do
     forM_ cids \cid ->
-      Effect.log <| CreateUserCID uid cid
+      Effect.log <| CreateLoosePin uid cid
 
     return cids
 
-instance IsMember DestroyUserCID effs => User.CID.Destroyer (Mock effs) where
-  destroy uid cid =
-    Effect.log <| DestroyUserCID uid cid
+instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
+  destroy userId cid =
+    Effect.log <| DestroyLoosePin userId cid
 
-  destroyMany cidIds =
+  destroyMany userId cidIds =
     forM_ cidIds \id ->
-      Effect.log <| DestroyUserCIDById id
+      Effect.log <| DestroyLoosePinById userId id

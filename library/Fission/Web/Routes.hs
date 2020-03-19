@@ -10,7 +10,7 @@ module Fission.Web.Routes
   , DNSRoute
   ) where
 
-import Servant
+import           Servant
 
 import qualified Fission.Web.IPFS       as IPFS
 import qualified Fission.Web.Ping       as Ping
@@ -18,26 +18,46 @@ import qualified Fission.Web.Heroku     as Heroku
 import qualified Fission.Web.DNS        as DNS
 import qualified Fission.Web.Auth.Types as Auth
 import qualified Fission.Web.User       as User
+import qualified Fission.Web.App        as App
 
-type API = IPFSRoute
-      :<|> HerokuRoute
-      :<|> UserRoute
-      :<|> PingRoute
-      :<|> DNSRoute
+type API
+  =    IPFSRoute
+  :<|> AppRoute
+  :<|> HerokuRoute
+  :<|> UserRoute
+  :<|> PingRoute
+  :<|> DNSRoute
 
-type PingRoute = "ping" :> Ping.API
+type AppRoute
+  =  "app"
+  :> Auth.HigherOrder
+  :> App.API
 
-type UserRoute = UserPrefix :> User.API
-type UserPrefix = "user"
+type PingRoute
+  =  "ping"
+  :> Ping.API
 
-type IPFSRoute  = IPFSPrefix :> IPFS.API
-type IPFSPrefix = "ipfs"
+type UserRoute
+  =  UserPrefix
+  :> User.API
 
-type HerokuRoute = "heroku"
-                   :> "resources"
-                   :> Auth.HerokuAddOnAPI
-                   :> Heroku.API
+type UserPrefix
+  = "user"
 
-type DNSRoute = "dns"
-                :> Auth.HigherOrder
-                :> DNS.API
+type IPFSRoute
+  =  IPFSPrefix
+  :> IPFS.API
+
+type IPFSPrefix
+  = "ipfs"
+
+type HerokuRoute
+  =  "heroku"
+  :> "resources"
+  :> Auth.HerokuAddOnAPI
+  :> Heroku.API
+
+type DNSRoute
+  =  "dns"
+  :> Auth.HigherOrder
+  :> DNS.API

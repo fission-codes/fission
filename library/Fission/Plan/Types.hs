@@ -42,5 +42,5 @@ instance ToSchema Tier where
     genericDeclareNamedSchema <| defaultSchemaOptions
       { Swagger.constructorTagModifier = camelCase }
 
-cantParse :: (Monad m, Show a) => a -> m b
+cantParse :: (MonadFail m, Show a) => a -> m b
 cantParse other = fail <| "Unable to parse " <> show other
