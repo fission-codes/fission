@@ -61,7 +61,7 @@ User
   role          Role
   active        Bool
 
-  dataRoot      CID           default=Qmc5m94Gu7z62RC8waSKkZUrCCBJPyHbkpmGzEePxy2oXJ
+  dataRoot      CID
 
   herokuAddOnId HerokuAddOnId Maybe
   secretDigest  SecretDigest  Maybe
@@ -70,7 +70,7 @@ User
   modifiedAt    UTCTime
 
   UniqueUsername username
-  UniqueEmail    email !force
+  -- UniqueEmail    email !force
 
   deriving Show Eq
 
