@@ -110,7 +110,6 @@ Domain
   modifiedAt UTCTime
 
   Primary domainName
-  UniqueDomainNamePerOwner domainName ownerId
 
   deriving Show Eq
 
