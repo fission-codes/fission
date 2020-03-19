@@ -134,6 +134,7 @@ CreateAppEvent
   cid         CID
 
   insertedAt  UTCTime
+
   deriving Show Eq
 
 DestroyAppEvent
