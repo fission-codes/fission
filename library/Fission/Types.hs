@@ -26,8 +26,6 @@ import           Fission.Config.Types
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
 
-import           Fission.Internal.UTF8
-
 import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
 
@@ -156,10 +154,8 @@ instance MonadDNSLink Fission where
         return (Left err)
 
       Right _ ->
-        "\""
-          |> wrapIn dnsLink
-          |> update Txt dnsLinkURL
-          |> fmap \_ -> Right baseURL
+        update Txt dnsLinkURL ("\"" <> dnsLink <> "\"")
+          <&> \_ -> Right baseURL
 
   setBase subdomain cid = do
     domain <- asks baseAppDomainName
