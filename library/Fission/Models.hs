@@ -61,7 +61,7 @@ User
   role          Role
   active        Bool
 
-  dataRoot      CID
+  dataRoot      CID           default=Qmc5m94Gu7z62RC8waSKkZUrCCBJPyHbkpmGzEePxy2oXJ
 
   herokuAddOnId HerokuAddOnId Maybe
   secretDigest  SecretDigest  Maybe
