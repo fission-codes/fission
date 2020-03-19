@@ -14,7 +14,7 @@ import qualified Fission.User as User
 import           Fission.User.DID.Types
 
 type API
-  =  Summary "Register a new user"
+  =  Summary "Register a new user (with user-controlled DID)"
   :> ReqBody    '[JSON] User.Registration
   :> PutCreated '[JSON] NoContent
 
