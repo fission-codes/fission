@@ -10,6 +10,8 @@ module Fission.App.Domain
   , Actions
   ) where
 
+import Fission.Prelude
+
 import Fission.App.Domain.Error
 import Fission.App.Domain.Types
 
@@ -24,3 +26,18 @@ type Actions m
     , Dissociator m
     , Retriever   m
     )
+
+foo :: (Creator m, Retriever m) => m ()
+foo =
+  allSiblingsByDomain defaultDomain Nothing >>= \case
+    Right _ ->
+      return ()
+
+    Left -> do
+
+      return ()
+
+  -- maybeDomain <- lookup domain name with default domain
+  -- case maybeDomain of
+  --   Just _ -> noop
+  --   Nothing -> create domain
