@@ -28,13 +28,12 @@ import           Fission.User.Role.Types
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
+import qualified Fission.App.Domain.Types as App.Domain
+
 import           Fission.Internal.Orphanage.CID  ()
 import           Fission.Internal.Orphanage.UUID ()
 
 import qualified Fission.Internal.UTF8 as UTF8
-
--- NB: The `!force` on user email uniqueness is due to a warning that
---     NULLs are not consider equal. This is what we want.
 
 share
   [ mkPersist       sqlSettings
@@ -154,14 +153,17 @@ SetAppCIDEvent
 --------------------------------------------------------------------------------
 
 AppDomain
-  appId      AppId
+  appId         AppId
 
-  domainName DomainName
-  subdomain  Subdomain Maybe
+  domainName    DomainName
 
-  insertedAt UTCTime
+  subdomain     Subdomain Maybe
+  isBareDomain  App.Domain.IsBare Maybe -- Hack around nullable constraint
 
-  UniqueSubdomainPerDomain domainName subdomain !force
+  insertedAt    UTCTime
+
+  UniqueSubdomainPerDomain domainName subdomain    !force
+  UniqueBareDomain         domainName isBareDomain !force -- Hack around nullable constraint
 
   deriving Show Eq
 

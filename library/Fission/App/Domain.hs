@@ -1,5 +1,6 @@
 module Fission.App.Domain
   ( module Fission.App.Domain.Error
+  , module Fission.App.Domain.Types
 
   , module Fission.App.Domain.Initializer
   , module Fission.App.Domain.Associator
@@ -10,6 +11,7 @@ module Fission.App.Domain
   ) where
 
 import Fission.App.Domain.Error
+import Fission.App.Domain.Types
 
 import Fission.App.Domain.Initializer
 import Fission.App.Domain.Associator

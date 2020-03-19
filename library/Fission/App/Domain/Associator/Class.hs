@@ -13,6 +13,7 @@ import           Fission.URL
 
 import qualified Fission.App.Retriever    as App
 import qualified Fission.App.Domain.Error as AppDomain
+import qualified Fission.App.Domain.Types as AppDomain
 
 import qualified Fission.Error as Error
 
@@ -51,10 +52,11 @@ instance MonadIO m => Associator (Transaction m) where
               }
 
             AppDomain
-              { appDomainAppId      = appId
-              , appDomainDomainName = domainName
-              , appDomainSubdomain  = maySubdomain
-              , appDomainInsertedAt = now
+              { appDomainAppId        = appId
+              , appDomainDomainName   = domainName
+              , appDomainSubdomain    = maySubdomain
+              , appDomainIsBareDomain = maybe (Just AppDomain.IsBare) (\_ -> Nothing) maySubdomain
+              , appDomainInsertedAt   = now
               }
               |> insertUnique
               |> fmap \case
