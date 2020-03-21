@@ -35,6 +35,7 @@ type Errors = OpenUnion
    , AlreadyExists HerokuAddOn
    , AppDomain.AlreadyAssociated
    , User.AlreadyExists
+   , User.InvalidUsername
 
    , Password.FailedDigest
 
@@ -74,36 +75,41 @@ instance
   )
   => Creator (Transaction m) where
   create username did email now =
-    User
-      { userDid           = Just did
-      , userUsername      = username
-      , userEmail         = Just email
-      , userRole          = Regular
-      , userActive        = True
-      , userHerokuAddOnId = Nothing
-      , userSecretDigest  = Nothing
-      , userDataRoot      = App.Content.empty
-      , userInsertedAt    = now
-      , userModifiedAt    = now
-      }
-      |> insertUnique
-      |> bind \case
-        Nothing ->
-          return (Error.openLeft User.AlreadyExists)
+    case isValid username of
+      False ->
+        return (Error.openLeft User.InvalidUsername)
 
-        Just userId ->
-          now
-            |> User.setData userId did App.Content.empty
-            |> bind \case
-              Left err ->
-                return (Error.openLeft err)
+      True  ->
+        User
+          { userDid           = Just did
+          , userUsername      = username
+          , userEmail         = Just email
+          , userRole          = Regular
+          , userActive        = True
+          , userHerokuAddOnId = Nothing
+          , userSecretDigest  = Nothing
+          , userDataRoot      = App.Content.empty
+          , userInsertedAt    = now
+          , userModifiedAt    = now
+          }
+          |> insertUnique
+          |> bind \case
+            Nothing ->
+              return (Error.openLeft User.AlreadyExists)
 
-              Right () ->
-                now
-                  |> App.createWithPlaceholder userId
-                  |> fmap \case
-                    Left err             -> Error.relaxedLeft err
-                    Right (_, subdomain) -> Right (userId, subdomain)
+            Just userId ->
+              now
+                |> User.setData userId did App.Content.empty
+                |> bind \case
+                  Left err ->
+                    return (Error.openLeft err)
+
+                  Right () ->
+                    now
+                      |> App.createWithPlaceholder userId
+                      |> fmap \case
+                        Left err             -> Error.relaxedLeft err
+                        Right (_, subdomain) -> Right (userId, subdomain)
 
   createWithPassword username password email now =
     Password.hashPassword password >>= \case
