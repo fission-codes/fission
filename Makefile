@@ -52,6 +52,12 @@ test-ghci:
 bench:
 	$(stack) build --bench $(package)
 
+bench_http1:
+	ab -n 10000 -c 100 http://localhost:1337/ping/
+
+bench_http2:
+	h2load -n10000 -c100 -t2 http://localhost:1337/ping/
+
 dev:
 	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"
 
