@@ -17,6 +17,7 @@ import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 import qualified Fission.User.Creator.Error as User
 import           Fission.User.Modifier      as User
 import           Fission.User.Password      as Password
+import qualified Fission.User.Username      as Username
 import           Fission.User.Types
 
 import qualified Fission.App.Domain  as AppDomain
@@ -35,8 +36,8 @@ type Errors = OpenUnion
    , AlreadyExists HerokuAddOn
    , AppDomain.AlreadyAssociated
    , User.AlreadyExists
-   , User.InvalidUsername
-
+  
+   , Username.Invalid
    , Password.FailedDigest
 
    , ServerError
@@ -75,11 +76,11 @@ instance
   )
   => Creator (Transaction m) where
   create username did email now =
-    case isValid username of
-      False ->
-        return (Error.openLeft User.InvalidUsername)
+    case Username.check username of
+      Left err ->
+        return (Error.openLeft err)
 
-      True  ->
+      Right _ ->
         User
           { userDid           = Just did
           , userUsername      = username
