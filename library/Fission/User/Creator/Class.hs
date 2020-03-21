@@ -17,8 +17,9 @@ import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 import qualified Fission.User.Creator.Error as User
 import           Fission.User.Modifier      as User
 import           Fission.User.Password      as Password
-import qualified Fission.User.Username      as Username
 import           Fission.User.Types
+import qualified Fission.User.Username      as Username
+import qualified Fission.User.Validation    as User
 
 import qualified Fission.App.Domain  as AppDomain
 import qualified Fission.App.Creator as App
@@ -76,41 +77,37 @@ instance
   )
   => Creator (Transaction m) where
   create username did email now =
-    case Username.check username of
-      Left err ->
-        return (Error.openLeft err)
+    User
+      { userDid           = Just did
+      , userUsername      = username
+      , userEmail         = Just email
+      , userRole          = Regular
+      , userActive        = True
+      , userHerokuAddOnId = Nothing
+      , userSecretDigest  = Nothing
+      , userDataRoot      = App.Content.empty
+      , userInsertedAt    = now
+      , userModifiedAt    = now
+      }
+      |> User.check
+      |> \case
+        Left err ->
+          return (Error.openLeft err)
 
-      Right _ ->
-        User
-          { userDid           = Just did
-          , userUsername      = username
-          , userEmail         = Just email
-          , userRole          = Regular
-          , userActive        = True
-          , userHerokuAddOnId = Nothing
-          , userSecretDigest  = Nothing
-          , userDataRoot      = App.Content.empty
-          , userInsertedAt    = now
-          , userModifiedAt    = now
-          }
-          |> insertUnique
-          |> bind \case
+        Right user ->
+          insertUnique user >>= \case
             Nothing ->
               return (Error.openLeft User.AlreadyExists)
 
             Just userId ->
-              now
-                |> User.setData userId did App.Content.empty
-                |> bind \case
-                  Left err ->
-                    return (Error.openLeft err)
+              User.setData userId did App.Content.empty now >>= \case
+                Left err ->
+                  return (Error.openLeft err)
 
-                  Right () ->
-                    now
-                      |> App.createWithPlaceholder userId
-                      |> fmap \case
-                        Left err             -> Error.relaxedLeft err
-                        Right (_, subdomain) -> Right (userId, subdomain)
+                Right () ->
+                  App.createWithPlaceholder userId now <&> \case
+                    Left err             -> Error.relaxedLeft err
+                    Right (_, subdomain) -> Right (userId, subdomain)
 
   createWithPassword username password email now =
     Password.hashPassword password >>= \case
