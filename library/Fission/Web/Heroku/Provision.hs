@@ -27,6 +27,7 @@ import           Fission.Security.Types       (Secret (..))
 import qualified Fission.User.Provision.Types as User
 import qualified Fission.User.Creator         as User
 import           Fission.User.Username.Types
+import           Fission.User.Password.Types
 
 type API
   =  Summary "Provision a new Heroku add-on"
@@ -48,6 +49,7 @@ create Request {uuid, region} = do
   secret <- Random.alphaNum 50
 
   secret
+    |> Password
     |> User.createWithHeroku uuid region username
     |> runDBNow
     |> bind Web.Err.ensure

@@ -218,6 +218,11 @@ instance
     Effect.log UpdateRoute53
     return <| Right (Database.toSqlKey 0, Subdomain "new-subdomain")
 
+  createWithPassword _ _ _ _ = do
+    Effect.log CreateUser
+    Effect.log UpdateRoute53
+    return <| Right (Database.toSqlKey 0)
+
   createWithHeroku uuid _ _ _ _ = do
     Effect.log CreateUser
     Effect.log <| CreateHerokuAddOn uuid
