@@ -34,9 +34,9 @@ server ::
   )
   => DID 
   -> ServerT API m
-server did = serverPut did :<|> serverPost did
+server did = create did :<|> create did
 
-serverPut ::
+create ::
   ( MonadDNSLink   m
   , MonadLogger    m
   , MonadTime      m
@@ -44,20 +44,8 @@ serverPut ::
   , User.Creator t
   )
   => DID
-  -> ServerT PutAPI m
-serverPut did (User.Registration username email) = do
-  Web.Err.ensure =<< runDBNow (User.create username did email)
-  return NoContent
-
-serverPost ::
-  ( MonadDNSLink   m
-  , MonadLogger    m
-  , MonadTime      m
-  , MonadDB      t m
-  , User.Creator t
-  )
-  => DID
-  -> ServerT PostAPI m
-serverPost did (User.Registration username email) = do
+  -> User.Registration
+  -> m NoContent
+create did (User.Registration username email) = do
   Web.Err.ensure =<< runDBNow (User.create username did email)
   return NoContent
