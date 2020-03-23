@@ -34,18 +34,8 @@ server ::
   )
   => DID 
   -> ServerT API m
-server did = create did :<|> create did
-
-create ::
-  ( MonadDNSLink   m
-  , MonadLogger    m
-  , MonadTime      m
-  , MonadDB      t m
-  , User.Creator t
-  )
-  => DID
-  -> User.Registration
-  -> m NoContent
-create did (User.Registration username email) = do
-  Web.Err.ensure =<< runDBNow (User.create username did email)
-  return NoContent
+server did = create :<|> create
+  where
+    create (User.Registration username email) = do
+      Web.Err.ensure =<< runDBNow (User.create username did email)
+      return NoContent
