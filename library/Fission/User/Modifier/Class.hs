@@ -20,7 +20,7 @@ class Monad m => Modifier m where
   setData        :: UserId -> DID -> CID -> UTCTime -> m (Either ServerError ())
 
 instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
-  updatePassword userId (Password password) now =
+  updatePassword userId password now =
     Password.hashPassword password >>= \case
       Left err ->
         return (Left err)
@@ -31,7 +31,7 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
           , UserModifiedAt   =. now
           ]
 
-        return . Right <| Password password
+        return (Right password)
 
   updateDID userID did now = do
     update userID

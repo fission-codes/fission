@@ -16,10 +16,10 @@ import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
 import           Fission.User.Modifier      as User
-import qualified Fission.User.Password      as Password
+import           Fission.User.Password      as Password
 import           Fission.User.Types
 
-import qualified Fission.App.Domain as AppDomain
+import qualified Fission.App.Domain  as AppDomain
 import qualified Fission.App.Creator as App
 
 import           Fission.IPFS.DNSLink
@@ -50,12 +50,19 @@ class Heroku.AddOn.Creator m => Creator m where
     -> UTCTime
     -> m (Either Errors (UserId, Subdomain))
 
+  createWithPassword ::
+       Username
+    -> Password
+    -> Email
+    -> UTCTime
+    -> m (Either Errors UserId)
+
   -- | Create a new, timestamped entry and heroku add-on
   createWithHeroku ::
        UUID
     -> Heroku.Region
     -> Username
-    -> Text
+    -> Password
     -> UTCTime
     -> m (Either Errors UserId)
 
@@ -97,6 +104,36 @@ instance
                   |> fmap \case
                     Left err             -> Error.relaxedLeft err
                     Right (_, subdomain) -> Right (userId, subdomain)
+
+  createWithPassword username password email now =
+    Password.hashPassword password >>= \case
+      Left err ->
+        return (Error.openLeft err)
+
+      Right secretDigest ->
+        User
+          { userDid           = Nothing
+          , userUsername      = username
+          , userEmail         = Just email
+          , userRole          = Regular
+          , userActive        = True
+          , userHerokuAddOnId = Nothing
+          , userSecretDigest  = Just secretDigest
+          , userDataRoot      = App.Content.empty
+          , userInsertedAt    = now
+          , userModifiedAt    = now
+          }
+          |> insertUnique
+          |> bind \case
+            Nothing ->
+              return (Error.openLeft User.AlreadyExists)
+
+            Just userId ->
+              now
+                |> App.createWithPlaceholder userId
+                |> fmap \case
+                  Left err -> Error.relaxedLeft err
+                  Right _  -> Right userId
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case

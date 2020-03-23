@@ -20,8 +20,8 @@ random = do
   pass <- Random.alphaNum 50
   return (User.Password pass)
 
-hashPassword :: MonadIO m => Text -> m (Either FailedDigest Text)
-hashPassword password = do
+hashPassword :: MonadIO m => User.Password -> m (Either FailedDigest Text)
+hashPassword (User.Password password) = do
   password
     |> encodeUtf8
     |> hashPasswordUsingPolicy slowerBcryptHashingPolicy

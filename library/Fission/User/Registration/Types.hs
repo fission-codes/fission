@@ -5,15 +5,18 @@ import Data.Swagger hiding (email)
 import Fission.Prelude
 import Fission.User.Email.Types
 import Fission.User.Username.Types
+import Fission.User.Password.Types
 
 data Registration = Registration
   { username :: !Username
   , email    :: !Email
+  , password :: !(Maybe Password)
   }
 
 instance Arbitrary Registration where
   arbitrary = do
     username <- arbitrary
+    password <- arbitrary
     email    <- arbitrary
 
     return Registration {..}
@@ -26,7 +29,8 @@ instance ToJSON Registration where
 
 instance FromJSON Registration where
   parseJSON = withObject "Registration" \obj -> do
-    username <- obj .:  "username"
+    username <- obj .: "username"
+    password <- obj .: "password"
     email    <- obj .: "email"
 
     return Registration {..}
@@ -48,6 +52,7 @@ instance ToSchema Registration where
       |> example ?~ toJSON Registration
            { username = "username"
            , email    = "alice@example.com"
+           , password = Nothing
            }
       |> NamedSchema (Just "Registration")
       |> pure
