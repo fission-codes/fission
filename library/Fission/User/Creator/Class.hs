@@ -105,6 +105,7 @@ instance
                     Left err             -> Error.relaxedLeft err
                     Right (_, subdomain) -> Right (userId, subdomain)
 
+  -- FIXME: remove
   createWithPassword username password email now =
     Password.hashPassword password >>= \case
       Left err ->

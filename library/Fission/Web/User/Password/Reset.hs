@@ -18,7 +18,7 @@ import qualified Fission.Web.User.Password.Reset.Types as User.Password
 type API
   =  Summary "[DEPRECATED] Reset password"
   :> ReqBody '[JSON] User.Password.Reset
-  :> Patch   '[JSON] User.Password
+  :> Put     '[JSON] User.Password
 
 server ::
   ( MonadThrow      m
