@@ -18,8 +18,10 @@ check username =
     else Left Invalid
 
 isValid :: Username -> Bool
-isValid (Username username) =
-  elem username blacklist && not (Text.isInfixOf "." username)
+isValid (Username username) = not (inBlacklist || hasDot)
+  where
+    inBlacklist = elem username blacklist
+    hasDot      = Text.isInfixOf "." username
 
 -- | Dangerous potential usernames
 blacklist :: [Text]
