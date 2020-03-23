@@ -12,18 +12,18 @@ import           Fission.IPFS.DNSLink as DNSLink
 
 import qualified Fission.User as User
 import           Fission.User.DID.Types
+ 
+type API = DID_API :<|> PasswordAPI
 
-type PutAPI
+type DID_API
   =  Summary "Register a new user (must auth with user-controlled DID)"
   :> ReqBody    '[JSON] User.Registration
   :> PutCreated '[JSON] NoContent
 
-type PostAPI
+type PasswordAPI
   =  Summary "[DEPRECATED] Register a new user (must auth with user-controlled DID)"
   :> ReqBody     '[JSON] User.Registration
   :> PostCreated '[JSON] NoContent
-
-type API = PutAPI :<|> PostAPI
 
 server ::
   ( MonadDNSLink   m
