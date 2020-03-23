@@ -20,7 +20,7 @@ type PutAPI
 
 type PostAPI
   =  Summary "[DEPRECATED] Register a new user (must auth with user-controlled DID)"
-  :> ReqBody    '[JSON] User.Registration
+  :> ReqBody     '[JSON] User.Registration
   :> PostCreated '[JSON] NoContent
 
 type API = PutAPI :<|> PostAPI
@@ -34,8 +34,17 @@ server ::
   )
   => DID 
   -> ServerT API m
-server did = create :<|> create
+server did = create :<|> createWithPassword
   where
-    create (User.Registration username email) = do
+    create (User.Registration {username, email}) = do
       Web.Err.ensure =<< runDBNow (User.create username did email)
       return NoContent
+
+    createWithPassword (User.Registration {username, password, email}) = do
+      case password of
+        Just pass -> do
+          Web.Err.ensure =<< runDBNow (User.createWithPassword username pass email)
+          return NoContent
+
+        Nothing ->
+          Web.Err.throw err422 { errBody = "Missing password" }
