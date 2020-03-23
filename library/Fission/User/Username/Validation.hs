@@ -19,7 +19,7 @@ check username =
 
 isValid :: Username -> Bool
 isValid (Username username) =
-  elem username blacklist && Text.isInfixOf "." username
+  elem username blacklist && not (Text.isInfixOf "." username)
 
 -- | Dangerous potential usernames
 blacklist :: [Text]
