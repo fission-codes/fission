@@ -5,6 +5,8 @@ module Fission.User.Username.Validation
   , isValid
   ) where
 
+import qualified RIO.Text as Text
+
 import           Fission.Prelude
 import           Fission.User.Username.Types
 import           Fission.User.Username.Error
@@ -16,7 +18,8 @@ check username =
     else Left Invalid
 
 isValid :: Username -> Bool
-isValid (Username username) = elem username blacklist
+isValid (Username username) =
+  elem username blacklist && Text.isInfixOf "." username
 
 -- | Dangerous potential usernames
 blacklist :: [Text]

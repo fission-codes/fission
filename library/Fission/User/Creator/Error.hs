@@ -1,7 +1,4 @@
-module Fission.User.Creator.Error
-  ( AlreadyExists   (..)
-  , InvalidUsername (..)
-  ) where
+module Fission.User.Creator.Error (AlreadyExists (..)) where
 
 import           Servant.Server
 
@@ -21,16 +18,3 @@ instance Display AlreadyExists where
 instance ToServerError AlreadyExists where
   toServerError AlreadyExists =
     err409 { errBody = UTF8.showLazyBS <| textDisplay AlreadyExists }
-
-data InvalidUsername = InvalidUsername
-  deriving ( Show
-           , Eq
-           , Exception
-           )
-
-instance Display InvalidUsername where
-  display InvalidUsername = "Invalid username"
-
-instance ToServerError InvalidUsername where
-  toServerError InvalidUsername =
-    err422 { errBody = UTF8.showLazyBS <| textDisplay InvalidUsername }
