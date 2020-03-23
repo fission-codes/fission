@@ -23,11 +23,13 @@ import qualified Fission.Web.User.UpdateData      as UpdateData
 
 import qualified Fission.Web.Auth.Types           as Auth
 
-type API = RegisterRoute
-      :<|> VerifyRoute
-      :<|> UpdateDIDRoute
-      :<|> UpdateDataRoute
-      :<|> ResetRoute
+type API
+  = RegisterRoute
+    :<|> Create.PasswordAPI
+    :<|> VerifyRoute
+    :<|> UpdateDIDRoute
+    :<|> UpdateDataRoute
+    :<|> ResetRoute
 
 type Auth
   = Auth.HigherOrder
@@ -66,6 +68,7 @@ server ::
   )
   => ServerT API m
 server = Create.server
+    :<|> Create.withPassword
     :<|> Verify.server
     :<|> UpdateDID.server
     :<|> UpdateData.server
