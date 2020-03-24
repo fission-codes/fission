@@ -45,6 +45,10 @@ Simple as that!
 
 If you'd like to redeploy everytime you change a file, use `fission watch`
 
+## Web API Documentation
+
+Available at https://runfission.com/docs
+
 ## Development
 
 ### Create Database
