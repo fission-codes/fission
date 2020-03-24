@@ -78,8 +78,7 @@ make dev
 # Live code checking
 make dev
 
-# Dev Web Server
-export DEBUG=true
-make serve
+# Run server in debug/verbose mode
+DEBUG=true make serve
 ```
 
