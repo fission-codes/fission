@@ -21,13 +21,14 @@ type API = ByURLAPI :<|> ByIdAPI
 
 type ByURLAPI
   =  Summary "Destroy app by URL"
-  :> Description ""
+  :> Description "Destroy app by any associated URL"
   :> "associated"
   :> Capture "url" URL
   :> DeleteNoContent '[JSON] NoContent
 
 type ByIdAPI
   =  Summary "Destroy app by ID"
+  :> Description "Destroy app by its ID"
   :> Capture "appId" AppId
   :> DeleteNoContent '[JSON] NoContent
 
