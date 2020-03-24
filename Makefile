@@ -58,8 +58,11 @@ docserver:
 doctest:
 	$(stack) test :fission-doctest --fast
 
-testsuite:
+unit-test:
 	$(stack) test :fission-test --fast
+
+test:
+	make unit-test && make doctest
 
 test-ghci:
 	$(stack) ghci $(package):test:$(package)-tests --ghci-options='-j6 +RTS -A128m'
