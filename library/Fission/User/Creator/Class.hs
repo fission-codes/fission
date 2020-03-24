@@ -18,6 +18,8 @@ import qualified Fission.User.Creator.Error as User
 import           Fission.User.Modifier      as User
 import           Fission.User.Password      as Password
 import           Fission.User.Types
+import qualified Fission.User.Username      as Username
+import qualified Fission.User.Validation    as User
 
 import qualified Fission.App.Domain  as AppDomain
 import qualified Fission.App.Creator as App
@@ -35,7 +37,8 @@ type Errors = OpenUnion
    , AlreadyExists HerokuAddOn
    , AppDomain.AlreadyAssociated
    , User.AlreadyExists
-
+  
+   , Username.Invalid
    , Password.FailedDigest
 
    , ServerError
@@ -86,22 +89,23 @@ instance
       , userInsertedAt    = now
       , userModifiedAt    = now
       }
-      |> insertUnique
-      |> bind \case
-        Nothing ->
-          return (Error.openLeft User.AlreadyExists)
+      |> User.check
+      |> \case
+        Left err ->
+          return (Error.openLeft err)
 
-        Just userId ->
-          now
-            |> User.setData userId did App.Content.empty
-            |> bind \case
-              Left err ->
-                return (Error.openLeft err)
+        Right user ->
+          insertUnique user >>= \case
+            Nothing ->
+              return (Error.openLeft User.AlreadyExists)
 
-              Right () ->
-                now
-                  |> App.createWithPlaceholder userId
-                  |> fmap \case
+            Just userId ->
+              User.setData userId did App.Content.empty now >>= \case
+                Left err ->
+                  return (Error.openLeft err)
+
+                Right () ->
+                  App.createWithPlaceholder userId now <&> \case
                     Left err             -> Error.relaxedLeft err
                     Right (_, subdomain) -> Right (userId, subdomain)
 
