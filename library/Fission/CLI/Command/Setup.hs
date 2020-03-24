@@ -51,8 +51,8 @@ setup = do
 
   if doesExist
     then
-      Client.run User.Client.verify >>= \case
-        Right (User.Username username) ->
+      Client.run User.Client.whoami >>= \case
+        Right (User.Username {username}) ->
           CLI.Success.loggedInAs username
 
         Left err ->
@@ -83,6 +83,8 @@ createAccount ::
 createAccount = do
   username <- User.Username <$> Prompt.reaskNotEmpty' "Username: "
   email    <- User.Email    <$> Prompt.reaskNotEmpty' "Email: "
+
+  let password = Nothing
 
   Client.run (User.Client.register User.Registration {..}) >>= \case
     Right _ok ->

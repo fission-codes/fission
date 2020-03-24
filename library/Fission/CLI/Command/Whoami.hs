@@ -39,8 +39,6 @@ whoami =
     False -> do
       CLI.Error.notConnected Error.NoKeyFile
     True ->
-      Client.run User.verify >>= \case
-        Left err -> 
-          CLI.Error.notConnected err
-        Right (User.Username username) -> 
-          CLI.Success.loggedInAs <| username
+      Client.run User.whoami >>= \case
+        Right (User.Username username) ->  CLI.Success.loggedInAs username
+        Left err ->  CLI.Error.notConnected err
