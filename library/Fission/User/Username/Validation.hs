@@ -3,13 +3,19 @@
 module Fission.User.Username.Validation
   ( check
   , isValid
+  , isUsernameChar
   ) where
 
-import qualified RIO.Text as Text
+import qualified Data.Char as Char
+import qualified RIO.Text  as Text
 
 import           Fission.Prelude
-import           Fission.User.Username.Types
+
 import           Fission.User.Username.Error
+import           Fission.User.Username.Types
+
+-- $setup
+-- >>> :set -XOverloadedStrings
 
 check :: Username -> Either Invalid Username
 check username =
@@ -17,11 +23,62 @@ check username =
     then Right username
     else Left Invalid
 
+-- | Confirm that a username is valid
+--
+-- >>> isValid (Username "simple")
+-- True
+--
+-- >>> isValid (Username "happy-name")
+-- True
+--
+-- Blacklisted words are not allowed
+--
+-- >>> isValid (Username "recovery")
+-- False
+--
+-- Nor are various characters
+--
+-- >>> isValid (Username "under_score")
+-- False
+--
+-- >>> isValid (Username "plus+plus")
+-- False
+--
+-- >>> isValid (Username "-startswith")
+-- False
+--
+-- >>> isValid (Username "endswith-")
+-- False
+--
+-- >>> isValid (Username "with.space")
+-- False
+--
+-- >>> isValid (Username "with.dot")
+-- False
+--
+-- >>> isValid (Username "has.two.dots")
+-- False
+--
+-- >>> isValid (Username "name&with#chars")
+-- False
 isValid :: Username -> Bool
-isValid (Username username) = not (inBlacklist || hasDot)
+isValid (Username username) = all (== True) preds
   where
-    inBlacklist = elem username blacklist
-    hasDot      = Text.isInfixOf "." username
+    preds :: [Bool]
+    preds = [okChars, not startsWithHyphen, not endsInHyphen, not inBlacklist]
+
+    inBlacklist      = elem username blacklist
+    okChars          = Text.all isUsernameChar username
+   
+    startsWithHyphen = Text.isPrefixOf "-" username
+    endsInHyphen     = Text.isSuffixOf "-" username
+
+isUsernameChar :: Char -> Bool
+isUsernameChar c =
+     Char.isAsciiUpper c
+  || Char.isAsciiLower c
+  || Char.isDigit      c
+  || c == '-'
 
 -- | Dangerous potential usernames
 blacklist :: [Text]
@@ -427,6 +484,11 @@ blacklist =
   , "purchase"
   , "put"
   , "quota"
+<<<<<<< HEAD
+=======
+  , "recover"
+  , "recovery"
+>>>>>>> verify-bug
   , "redirect"
   , "reduce"
   , "refund"
