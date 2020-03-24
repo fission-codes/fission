@@ -1,5 +1,5 @@
-name: fission-web-api
-version: '2.2.5'
+name: fission
+version: '2.2.6'
 category: API
 author:
   - Brooklyn Zelenka
@@ -13,7 +13,7 @@ copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/web-api
-tested-with: GHC==8.6.5
+tested-with: GHC==8.8.3
 extra-source-files:
   - README.md
 
@@ -85,6 +85,7 @@ dependencies:
   - amazonka
   - amazonka-core
   - amazonka-route53
+  - ansi-terminal
   - base
   - base64-bytestring
   - bcrypt
@@ -98,7 +99,9 @@ dependencies:
   - file-embed
   - filepath
   - flow
+  - fsnotify
   - Glob
+  - haskeline
   - http-client
   - http-client-tls
   - http-media
@@ -111,6 +114,9 @@ dependencies:
   - monad-logger
   - monad-time
   - mtl
+  - network-uri
+  - optparse-applicative
+  - optparse-simple
   - path-pieces
   - persistent
   - persistent-postgresql
@@ -149,6 +155,7 @@ dependencies:
   - warp-tls
   - word8
   - world-peace
+  - utf8-string
   - vault
   - vector
   - yaml
@@ -159,9 +166,9 @@ library:
 executables:
   fission-web:
     main: Main.hs
-    source-dirs: app
+    source-dirs: web
     dependencies:
-      - fission-web-api
+      - fission
       - raven-haskell
       - wai-logger
     ghc-options:
@@ -173,6 +180,25 @@ executables:
       - -optc-ffast-math
       - -optc-O3
       - -O2
+
+    fission-cli:
+    main: Main.hs
+    source-dirs: cli
+    dependencies:
+      - fission
+      - wai-logger
+    ghc-options:
+      - -threaded
+      - -flate-specialise
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -with-rtsopts=-T
+      - -optc-ffast-math
+      - -optc-O3
+      - -O2
+    # uncomment to build a static binary on Linux
+    # cc-options: -static
+    # ld-options: -static -pthread
 
 tests:
   fission-doctest:
@@ -205,7 +231,7 @@ tests:
       - hspec-expectations
       - hspec-wai
       - hspec-wai-json
-      - fission-web-api
+      - fission
       - QuickCheck
       - quickcheck-instances
       - servant-quickcheck
@@ -235,4 +261,4 @@ benchmarks:
       - -O2
     dependencies:
       - criterion
-      - fission-web-api
+      - fission

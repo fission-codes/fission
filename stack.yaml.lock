@@ -33,6 +33,13 @@ packages:
   original:
     hackage: ipfs-1.0.2
 - completed:
+    hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
+    pantry-tree:
+      size: 11577
+      sha256: ed5ce184eaad3b4239f86d1d478d0b5ed6a93af5aac72f19f376c1690585576d
+  original:
+    hackage: lzma-clib-5.2.2
+- completed:
     hackage: raven-haskell-0.1.4.0@sha256:64eca8650d140fc853a951af0cf4e2ce255b90491b9e3014d82be2e79593c43a,1251
     pantry-tree:
       size: 632
@@ -47,6 +54,13 @@ packages:
   original:
     hackage: servant-quickcheck-0.0.7.4
 - completed:
+    hackage: tasty-rerun-1.1.17@sha256:5ee1675e13b27d2450ad6290df4f80403b331b15cf503c9618bcb541d1c7bf40,1314
+    pantry-tree:
+      size: 334
+      sha256: 25a3eeb82ba138ef12fcab0a11bddc8a64442ef9fdd4e3b19667bc599db232ba
+  original:
+    hackage: tasty-rerun-1.1.17
+- completed:
     hackage: text-time-0.2.0@sha256:ae94071e29a5265f60de19c054a5308cee54a849678fbb8ea8d9657510c87b4c,1757
     pantry-tree:
       size: 637
@@ -55,7 +69,7 @@ packages:
     hackage: text-time-0.2.0
 snapshots:
 - completed:
-    size: 491163
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/4.yaml
-    sha256: bc60043a06b58902b533baa80fb566c0ec495c41e428bc0f8c1e8c15b2a4c468
-  original: lts-15.4
+    size: 491372
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/5.yaml
+    sha256: 1b549cfff328040c382a70a84a2087aac8dab6d778bf92f32a93a771a1980dfc
+  original: lts-15.5

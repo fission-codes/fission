@@ -1,7 +1,10 @@
-package = fission-web-api
+package = fission
 
 stack_yaml = STACK_YAML="stack.yaml"
 stack = $(stack_yaml) stack
+
+init:
+	cp addon-manifest.json.example addon-manifest.json && cp env.yaml.example env.yaml
 
 serve:
 	$(stack) run
@@ -11,6 +14,12 @@ build:
 
 release:
 	$(stack) build
+
+release-cli:
+	$(stack) build fission:fission-cli
+
+release-web:
+	$(stack) build fission:fission-web
 
 dirty:
 	$(stack) build --ghc-options=-fforce-recomp $(package)

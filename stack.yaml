@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-15.4
+resolver: lts-15.5
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -42,8 +42,10 @@ extra-deps:
 - happy-1.19.12
 - hspec-wai-json-0.10.1
 - ipfs-1.0.2
+- lzma-clib-5.2.2
 - raven-haskell-0.1.4.0
 - servant-quickcheck-0.0.7.4
+- tasty-rerun-1.1.17
 - text-time-0.2.0
 
 # Override default flag values for local packages and extra-deps

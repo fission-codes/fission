@@ -1,0 +1,34 @@
+# This is the complex Azure configuration, which is intended for use
+# on open source libraries which need compatibility across multiple GHC
+# versions, must work with cabal-install, and should be
+# cross-platform. For more information and other options, see:
+#
+# https://docs.haskellstack.org/en/stable/azure_ci/
+
+#
+# For better organization, you split various jobs into seprate parts
+# and each of them are controlled via individual file.
+jobs:
+- template: ./.azure/azure-linux-template.yml
+  parameters:
+    name: ubuntu18_LTS
+    vmImage: ubuntu-18.04
+    os: linux
+
+# - template: ./.azure/azure-linux-template.yml
+#   parameters:
+#     name: ubuntu20_LTS
+#     vmImage: ubuntu-20.04
+#     os: linux
+
+- template: ./.azure/azure-osx-template.yml
+  parameters:
+    name: macOS
+    vmImage: macOS-10.15
+    os: osx
+
+# - template: ./.azure/azure-windows-template.yml
+#   parameters:
+#    name: Windows
+#    vmImage: windows-2019
+#    os: windows
