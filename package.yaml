@@ -181,7 +181,7 @@ executables:
       - -optc-O3
       - -O2
 
-    fission-cli:
+  fission-cli:
     main: Main.hs
     source-dirs: cli
     dependencies:

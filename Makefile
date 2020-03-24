@@ -12,6 +12,12 @@ serve:
 build:
 	$(stack) build --fast $(package):lib
 
+build-cli:
+	$(stack) build --fast $(package):fission-cli
+
+build-web:
+	$(stack) build --fast $(package):fission-web
+
 release:
 	$(stack) build
 
