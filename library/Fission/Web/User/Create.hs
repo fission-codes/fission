@@ -23,7 +23,7 @@ type API
 
 type PasswordAPI
   =  Summary "Create user with password"
-  :> Description "[DEPRECATED] Register a new user (must auth with user-controlled DID)"
+  :> Description "DEPRECATED ⛔ Register a new user (must auth with user-controlled DID)"
   :> ReqBody     '[JSON] User.Registration
   :> PostCreated '[JSON] ()
 

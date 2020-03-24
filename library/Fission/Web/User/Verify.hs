@@ -9,7 +9,7 @@ import Fission.Prelude
 
 type API
   =  Summary "Validate auth"
-  :> Description "[DEPRECATED] Verify user auth -- prefer /user/whoami"
+  :> Description "DEPRECATED ⛔ Verify user auth -- prefer /user/whoami"
   :> Get '[JSON] Bool
 
 server :: Monad m => ServerT API m
