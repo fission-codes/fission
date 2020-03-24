@@ -7,7 +7,7 @@ init:
 	cp addon-manifest.json.example addon-manifest.json && cp env.yaml.example env.yaml
 
 serve:
-	$(stack) run
+	$(stack) run fission-web
 
 build:
 	$(stack) build --fast $(package):lib
