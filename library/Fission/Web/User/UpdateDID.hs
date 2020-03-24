@@ -9,12 +9,12 @@ import           Fission.Models
 import           Servant
 import           Database.Esqueleto
 
-
 import qualified Fission.User as User
 import           Fission.User.DID.Types
 
 type API
-  =  Summary "Set DID"
+  =  Summary "Update DID"
+  :> Description "Set currently authenticated user's root DID to another public key"
   :> ReqBody '[JSON] DID
   :> Patch   '[PlainText, OctetStream, JSON] NoContent
 

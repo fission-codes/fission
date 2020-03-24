@@ -22,12 +22,14 @@ import           Fission.Models
 type API = PinAPI :<|> UnpinAPI
 
 type PinAPI
-  =  Summary "[DEPRECATED] Pin an otherwise unassociated CID"
+  =  Summary "Pin CID"
+  :> Description "DEPRECATED ⛔ Pin an otherwise unassociated CID"
   :> Capture "cid" CID
   :> Put '[PlainText, OctetStream] NoContent
 
 type UnpinAPI
-  =  Summary "Unpin a CID"
+  =  Summary "Unpin CID"
+  :> Description "DEPRECATED ⛔ Unpin an otherwise unassociated CID"
   :> Capture "cid" CID
   :> DeleteAccepted '[PlainText, OctetStream] NoContent
 

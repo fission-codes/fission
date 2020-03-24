@@ -16,12 +16,14 @@ import qualified Fission.User as User
 import           Fission.User.DID.Types
  
 type API
-  =  Summary "Register a new user (must auth with user-controlled DID)"
+  =  Summary "Create user with DID"
+  :> Description "Register a new user (must auth with user-controlled DID)"
   :> ReqBody    '[JSON] User.Registration
   :> PutCreated '[JSON] NoContent
 
 type PasswordAPI
-  =  Summary "[DEPRECATED] Register a new user (must auth with user-controlled DID)"
+  =  Summary "Create user with password"
+  :> Description "DEPRECATED ⛔ Register a new user (must auth with user-controlled DID)"
   :> ReqBody     '[JSON] User.Registration
   :> PostCreated '[JSON] ()
 

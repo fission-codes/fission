@@ -13,7 +13,8 @@ import           Fission.Models
 import qualified Fission.User as User
 
 type API
-  =  Summary "Set/update file system content"
+  =  Summary "Update data root"
+  :> Description "Set/update currently authenticated user's file system content"
   :> Capture "newCID" CID
   :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
 

@@ -24,7 +24,8 @@ import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
 type API
-  =  Summary "Deprovision Heroku add-on"
+  =  Summary "Deprovision"
+  :> Description "Deprovision a Heroku add-on (for the Heroku partner service only)"
   :> Capture "addon_id" UUID
   :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
 

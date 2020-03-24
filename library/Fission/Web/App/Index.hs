@@ -15,7 +15,8 @@ import qualified Fission.App        as App
 import qualified Fission.App.Domain as App.Domain
 
 type API
-  =  Summary "Index of all (your) apps"
+  =  Summary "App index"
+  :> Description "A list of all of your apps and their associated domain names"
   :> Get '[JSON] (Map AppId [URL])
 
 index ::

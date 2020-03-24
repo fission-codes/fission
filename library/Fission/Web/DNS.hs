@@ -16,7 +16,8 @@ import           Fission.Web.Error          as Web.Err
 import           Fission.User.Username.Types
 
 type API
-  =  Summary "[DEPRECATED] Set default app DNSLink"
+  =  Summary "Set default app's DNSLink"
+  :> Description "DEPRECATED ⛔ Set default app's DNSLink to a CID"
   :> Capture "cid" CID
   :> PutAccepted '[PlainText, OctetStream] URL.DomainName
 

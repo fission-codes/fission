@@ -20,7 +20,8 @@ import qualified Network.IPFS.DAG        as IPFS.DAG
 import qualified Network.IPFS.Pin        as IPFS.Pin
 
 type API
-  =  Summary "Upload otherwise unassociated data"
+  =  Summary "Upload file"
+  :> Description "Upload some data not associated to a user app or file system"
   :> ReqBody '[PlainText, OctetStream] File.Serialized
   :> Post    '[PlainText, OctetStream] IPFS.CID
 

@@ -19,7 +19,8 @@ import           Fission.LoosePin.Creator as LoosePin
 import qualified Fission.Web.Error        as Web.Err
 
 type API
-  =  Summary "Directly upload a file"
+  =  Summary "Upload file"
+  :> Description "Directly upload a file over HTTP"
   :> ReqBody '[PlainText, OctetStream] File.Serialized
   :> Post    '[PlainText, OctetStream] IPFS.CID
 
