@@ -12,7 +12,7 @@ maintainer:
 copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
-github: fission-suite/web-api
+github: fission-suite/fission
 tested-with: GHC==8.8.3
 extra-source-files:
   - README.md
