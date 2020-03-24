@@ -15,7 +15,7 @@ data Invalid = Invalid
            )
 
 instance Display Invalid where
-  display Invalid = "Invalid username"
+  display Invalid = "Invalid username (must be alphanumeric separated with hyphens)"
 
 instance ToServerError Invalid where
   toServerError Invalid =
