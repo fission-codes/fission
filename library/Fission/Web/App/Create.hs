@@ -18,7 +18,8 @@ import           Fission.App.Content as App.Content
 import           Fission.IPFS.DNSLink.Class as DNSLink
 
 type API
-  =  Summary "Create a new app"
+  =  Summary "Create app"
+  :> Description "Creates a new app, assigns an initial subdomain, and sets an asset placeholder"
   :> PostAccepted '[JSON] (Subdomain, DomainName)
 
 create ::

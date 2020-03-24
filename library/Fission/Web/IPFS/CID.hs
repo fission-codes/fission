@@ -12,7 +12,8 @@ import           Fission.Models
 import qualified Fission.LoosePin as LoosePin
 
 type API
-  =  Summary "Index of all (your) CIDs"
+  =  Summary "CID Index"
+  :> Description "List of all of your pinned CIDs (not associated with your personal file system or apps)"
   :> Get '[JSON, PlainText] [CID]
 
 allForUser ::

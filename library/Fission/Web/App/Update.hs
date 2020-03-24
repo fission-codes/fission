@@ -15,6 +15,7 @@ import           Fission.Web.Error as Web.Error
 
 type API
   =  Summary "Set app content"
+  :> Description "Update the content (CID) for an app"
   :> Capture "appID"  AppId
   :> Capture "newCID" CID
   :> PatchAccepted '[JSON] NoContent

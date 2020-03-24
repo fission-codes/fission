@@ -17,12 +17,14 @@ type API =  PathAPI
        :<|> QueryAPI
 
 type PathAPI
-  =  Summary "Get a file by CID (path)"
+  =  Summary "Get a file (path)"
+  :> Description "Download a file by its CID"
   :> Capture "cid" IPFS.CID
   :> Get '[OctetStream, PlainText] File.Serialized
 
 type QueryAPI
-  =  Summary "Get a file by CID (query param)"
+  =  Summary "Get a file (query param)"
+  :> Description "Download a file by its CID"
   :> QueryParam "cid" IPFS.CID
   :> Get '[OctetStream, PlainText] File.Serialized
 

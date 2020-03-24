@@ -11,7 +11,8 @@ import Fission.Models
 import Fission.User.Username.Types
 
 type API
-  =  Summary "Get your username"
+  =  Summary "Get username"
+  :> Description "Get username registered to currently authenticated user"
   :> Get '[PlainText, JSON] Username
 
 server :: Monad m => Entity User -> ServerT API m

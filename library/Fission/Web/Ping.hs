@@ -9,6 +9,7 @@ import Fission.Web.Ping.Types
 
 type API
   = Summary "Simple Ping"
+  :> Description "A quick way to check for liveness"
   :> Get '[JSON, PlainText] Pong
 
 pong :: Pong

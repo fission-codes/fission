@@ -30,7 +30,8 @@ import           Fission.User.Username.Types
 import           Fission.User.Password.Types
 
 type API
-  =  Summary "Provision a new Heroku add-on"
+  =  Summary "Provision"
+  :> Description "Provision a new Heroku add-on (for the Heroku partner service only)"
   :> ReqBody '[JSON]                Request
   :> Post    '[Heroku.VendorJSONv3] Provision
 

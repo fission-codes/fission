@@ -15,7 +15,8 @@ import           Fission.Prelude
 import qualified Fission.Web.Error  as Web.Err
 
 type API
-  =  Summary "Recommended IPFS peers"
+  =  Summary "Peer inded"
+  :> Description "List of recommended IPFS peers"
   :> Get '[JSON, PlainText, OctetStream] (NonEmpty IPFS.Peer)
 
 -- | Get a list of valid IPFS addresses that a user could use to join our network
