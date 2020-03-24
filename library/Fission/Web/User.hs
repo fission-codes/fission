@@ -20,16 +20,18 @@ import qualified Fission.Web.User.Verify          as Verify
 import qualified Fission.Web.User.Password.Reset  as Reset
 import qualified Fission.Web.User.UpdateDID       as UpdateDID
 import qualified Fission.Web.User.UpdateData      as UpdateData
+import qualified Fission.Web.User.WhoAmI          as WhoAmI
 
-import qualified Fission.Web.Auth.Types           as Auth
+import qualified Fission.Web.Auth.Types as Auth
 
 type API
-  = RegisterRoute
-    :<|> Create.PasswordAPI
-    :<|> VerifyRoute
-    :<|> UpdateDIDRoute
-    :<|> UpdateDataRoute
-    :<|> ResetRoute
+  =   RegisterRoute
+ :<|> Create.PasswordAPI
+ :<|> WhoAmIRoute
+ :<|> VerifyRoute
+ :<|> UpdateDIDRoute
+ :<|> UpdateDataRoute
+ :<|> ResetRoute
 
 type Auth
   = Auth.HigherOrder
@@ -37,6 +39,11 @@ type Auth
 type RegisterRoute
   = Auth.RegisterDid
     :> Create.API
+
+type WhoAmIRoute
+  = "whoami"
+    :> Auth
+    :> WhoAmI.API
 
 type VerifyRoute
   = "verify"
@@ -69,7 +76,8 @@ server ::
   => ServerT API m
 server = Create.server
     :<|> Create.withPassword
-    :<|> Verify.server
+    :<|> WhoAmI.server
+    :<|> (\_ -> Verify.server)
     :<|> UpdateDID.server
     :<|> UpdateData.server
     :<|> Reset.server
