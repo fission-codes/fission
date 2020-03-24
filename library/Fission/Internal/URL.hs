@@ -24,7 +24,8 @@ import Fission.Prelude
 
 -}
 isURLCharacter :: Word8 -> Bool
-isURLCharacter w = isAsciiUpper w
+isURLCharacter w
+  =  isAsciiUpper w
   || isAsciiLower w
   || isDigit w
   || anyX urlSpecials w

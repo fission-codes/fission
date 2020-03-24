@@ -67,4 +67,4 @@ live:
 setup:
 	stack install ghcid && stack install yesod-bin
 
-.PHONY : build dirty run install ghci test test-ghci watch
+.PHONY : build dirty run install ghci test test-ghci watch doctest lint
