@@ -484,11 +484,8 @@ blacklist =
   , "purchase"
   , "put"
   , "quota"
-<<<<<<< HEAD
-=======
   , "recover"
   , "recovery"
->>>>>>> verify-bug
   , "redirect"
   , "reduce"
   , "refund"
