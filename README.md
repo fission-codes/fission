@@ -3,7 +3,6 @@
 [![Build Status](https://dev.azure.com/fission/fission-cli/_apis/build/status/fission-suite.fission?branchName=master)](https://dev.azure.com/fission/fission-cli/_build/latest?definitionId=2&branchName=master)
 [![Test Status](https://travis-ci.org/fission-suite/web-api.svg?branch=master)](https://travis-ci.org/fission-suite/web-api)
 ![License](https://img.shields.io/github/license/fission-suite/fission)
-[![Built by FISSION](https://img.shields.io/badge/⌘-Built_by_FISSION-purple.svg)](https://fission.codes)
 [![Discord](https://img.shields.io/discord/478735028319158273.svg)](https://fission.codes/discord)
 [![Discourse](https://img.shields.io/discourse/https/talk.fission.codes/topics)](https://talk.fission.codes)
 
