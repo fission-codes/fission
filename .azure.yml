@@ -11,15 +11,15 @@
 jobs:
 - template: ./.azure/ubuntu.yml
   parameters:
-    name: ubuntu_18_04_LTS
+    name: ubuntu-18.04-LTS
     vmImage: ubuntu-18.04
     os: linux
 
-# - template: ./.azure/azure-linux-template.yml
-#   parameters:
-#     name: ubuntu20_LTS
-#     vmImage: ubuntu-20.04
-#     os: linux
+- template: ./.azure/ubuntu.yml
+  parameters:
+    name: ubuntu-latest
+    vmImage: ubuntu-latest
+    os: linux
 
 - template: ./.azure/macos.yml
   parameters:
