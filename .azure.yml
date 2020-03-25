@@ -32,6 +32,3 @@ jobs:
    name: Windows
    vmImage: windows-2019
    os: windows
-
-pr:
-- autoCancel: true
