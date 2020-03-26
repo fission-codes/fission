@@ -19,10 +19,10 @@ matrix:
 install:
   - curl -sSL https://get.haskellstack.org/ | sh
   - stack --version
-  - stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+  # - stack build --system-ghc --test --fast --no-run-tests --no-run-benchmarks
 
 script:
-  - stack test --system-ghc
+  - make test
 
 notifications:
   email: false

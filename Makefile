@@ -1,16 +1,34 @@
-package = fission-web-api
+package = fission
 
 stack_yaml = STACK_YAML="stack.yaml"
 stack = $(stack_yaml) stack
 
+init:
+	cp addon-manifest.json.example addon-manifest.json && cp env.yaml.example env.yaml
+
 serve:
-	$(stack) run
+	$(stack) run fission-web
 
 build:
 	$(stack) build --fast $(package):lib
 
+build-cli:
+	$(stack) build --fast $(package):fission-cli
+
+build-web:
+	$(stack) build --fast $(package):fission-web
+
 release:
 	$(stack) build
+
+release-cli:
+	$(stack) build fission:fission-cli
+
+release-cli-ubuntu:
+	 $(stack) build fission:fission-cli --docker --docker-image=fpco/stack-build:lts-15
+
+release-web:
+	$(stack) build fission:fission-web
 
 dirty:
 	$(stack) build --ghc-options=-fforce-recomp $(package)
@@ -43,8 +61,11 @@ docserver:
 doctest:
 	$(stack) test :fission-doctest --fast
 
-testsuite:
+unit-test:
 	$(stack) test :fission-test --fast
+
+test:
+	make unit-test && make doctest
 
 test-ghci:
 	$(stack) ghci $(package):test:$(package)-tests --ghci-options='-j6 +RTS -A128m'

@@ -5,6 +5,7 @@ module Fission.Web.User
   , VerifyRoute
   , UpdateDIDRoute
   , ResetRoute
+  , WhoAmIRoute
   , server
   ) where
 
