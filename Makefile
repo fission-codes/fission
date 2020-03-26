@@ -24,8 +24,11 @@ release:
 release-cli:
 	$(stack) build fission:fission-cli
 
-release-cli-ubuntu:
+release-cli-ubuntu-lts:
 	 $(stack) build fission:fission-cli --docker --docker-image=fpco/stack-build:lts-15
+
+release-cli-ubuntu-latest:
+	 $(stack) build fission:fission-cli --docker --docker-image=fission-suite/fission-ubuntu-19-10
 
 release-web:
 	$(stack) build fission:fission-web
