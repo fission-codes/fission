@@ -9,13 +9,16 @@ import           Fission.Models
 import           Servant
 import           Database.Esqueleto
 
-import           Fission.PublicKey.Types
 import qualified Fission.User as User
+
+import Fission.User.DID.Types
+-- import           Fission.PublicKey.Types
 
 type API
   =  Summary "Update Public Key"
   :> Description "Set currently authenticated user's root public key to another one"
-  :> ReqBody '[JSON] PublicKey -- FIXME also need the algo
+  -- :> ReqBody '[JSON] DID -- FIXME also need the algo?
+  :> ReqBody '[JSON] PublicKey -- FIXME also need the algo?
   :> Patch   '[PlainText, OctetStream, JSON] NoContent
 
 server ::
@@ -25,6 +28,7 @@ server ::
   )
   => Entity User
   -> ServerT API m
-server (Entity userID _) (Key { publicKey, algorithm }) = do
-  runDBNow (User.updatePublicKey userID publicKey algorithm)
+-- server (Entity userID _) DID { publicKey, algorithm } = do
+server (Entity userID _) pk = do
+  runDBNow $ User.updatePublicKey userID pk Ed25519
   return NoContent

@@ -1,13 +1,23 @@
 -- | 
 
-module Fission.User.DID.Types (Key (..)) where
+module Fission.User.DID.Types
+  ( DID    (..)
+  , Method (..)
+  , module Fission.PublicKey.Types
+  ) where
 
 import           Fission.Prelude
 import           Fission.PublicKey.Types
 
--- _Probably_ toss this whole DID thing for now
-newtype Key = Key
-  { unKey :: PublicKey
-  }
-  deriving (Show, Eq)
+data DID = DID
+  { publicKey :: !PublicKey
+  , algorithm :: !Algorithm
+  , method    :: !Method
+  } deriving (Show, Eq)
 
+-- instance ToJSON Key where
+--   toJSON =
+
+data Method
+  = Key
+  deriving (Show, Eq)

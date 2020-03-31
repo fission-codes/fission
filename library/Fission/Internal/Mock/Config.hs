@@ -28,7 +28,7 @@ defaultConfig :: Config
 defaultConfig = Config
   { now             = agesAgo
   , linkedPeers     = pure <| IPFS.Peer "ipv4/fakepeeraddress"
-  , didVerifier     = mkAuthHandler \_ -> return <| DID "thisismydid"
+  , pkVerifier      = mkAuthHandler \_ -> return <| PublicKey "thisismydid"
   , userVerifier    = mkAuthHandler \_ -> return <| Fixture.entity Fixture.user
   , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized <| Heroku.Auth "FAKE HEROKU"
   , localIPFSCall   = Right "Qm1234567890"

@@ -11,7 +11,7 @@ import Data.Swagger
 import Fission.Web.Auth.Types
 import Fission.Web.Swagger.Auth
 
-instance HasSwagger api => HasSwagger (RegisterDid :> api) where
+instance HasSwagger api => HasSwagger (RegisterPublicKey :> api) where
   toSwagger _ =
     Proxy @api
       |> toSwagger

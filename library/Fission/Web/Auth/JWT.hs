@@ -5,22 +5,24 @@ module Fission.Web.Auth.JWT
   , module Fission.Web.Auth.JWT.Error
   ) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto (Entity (..))
 
-import qualified Data.ByteString.Char8  as Ch
-import qualified Data.ByteString.Lazy   as BS.Lazy
-import qualified Data.ByteString.Base64 as Base64
+import Control.Monad.Trans.Except
+
+-- import qualified Data.ByteString.Char8  as Ch
+-- import qualified Data.ByteString.Lazy   as BS.Lazy
+-- import qualified Data.ByteString.Base64 as Base64
 
 import qualified Crypto.PubKey.Ed25519 as Ed
 import           Crypto.Error
+
+import qualified RIO.ByteString.Lazy as Lazy
 
 import           Fission.Prelude
 import           Fission.Models
 import           Fission.Web.Error.Class
 
 import qualified Fission.Internal.Crypto as Crypto
-
-import           Fission.Time
 
 import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.JWT.Error as JWT
@@ -59,44 +61,35 @@ handler token@(Auth.Bearer.Token rawToken) =
         Just usr -> return usr
 
 validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error PublicKey)
-validateJWT token =
-  case parseJWT token of
-    Left err -> return <| Left err
-    Right pl ->
-      validateTime pl >>= \case
-        Left err -> return <| Left err
-        Right _ -> return <| Right <| iss pl
+validateJWT rawToken = runExceptT do
+  Token {..} <- except $ parseJWT rawToken
+  ExceptT $ validateTime claims <&> \case
+    Left err -> Left err
+    Right _  -> Right $ iss claims
 
-parseJWT :: Auth.Bearer.Token -> Either JWT.Error JWT.Claims
+parseJWT :: Auth.Bearer.Token -> Either JWT.Error JWT.Token
 parseJWT (Auth.Bearer.Token rawToken) = do
-  (rawHeader, rawClaims, sig64) <- getParts rawToken
-  void <| validateHeader rawHeader
-  payload <- decodePart rawClaims
+  token@Token {..} <- either (\_ -> Left ParseError) Right $
+    eitherDecode $ Lazy.fromStrict rawToken
+   
+  validateHeader header
 
   let
-    content = rawHeader <> "." <> rawClaims
-    did = iss payload
+    Claims {..} = claims
+    content     = Lazy.toStrict $ encode header <> "." <> encode claims
+ 
+  pubkey64 <- DID.toPubkey iss -- FIXME right, we do want the `did:key` here
+  void $ validateSig content pubkey64 (encodeUtf8 $ textDisplay $ displayShow sig) -- FIXME
 
-  pubkey64 <- DID.toPubkey did -- FIXME right, we do want the `did:key` here
-  void <| validateSig content pubkey64 sig64
+  Right token
 
-  Right payload
-
-getParts :: ByteString -> Either JWT.Error (ByteString, ByteString, ByteString)
-getParts token =
-  case Ch.split '.' token of
-    [header, payload, sig] -> Right (header, payload, sig)
-    _ -> Left ParseError
-
-validateHeader :: ByteString -> Either JWT.Error ()
-validateHeader bytes =
-  case decodePart bytes of
-    Left err -> Left err
-    Right header ->
-      case (typ header, alg header) of
-        ("JWT", "Ed25519") -> Right ()
-        ("JWT", _)         -> Left UnsupportedAlg
-        _                  -> Left BadHeader
+validateHeader :: Header -> Either JWT.Error ()
+validateHeader Header {..} =
+  case (typ, alg) of
+    (JWT, JWT.Ed25519) -> Right ()
+    -- (JWT, JWT.RSA2048) -> Right ()
+    -- (JWT, _)           -> Left UnsupportedAlg
+    _                  -> Left BadHeader
 
 validateTime :: MonadTime m => JWT.Claims -> m (Either JWT.Error ())
 validateTime JWT.Claims { exp, nbf } = do
@@ -113,12 +106,6 @@ validateSig content pubkey64 sig64 =
       case Ed.verify pk (Crypto.pack content) sig of
         False -> Left IncorrectSignature
         True -> Right ()
-    _ -> Left BadSignature
-
-decodePart :: FromJSON a => ByteString -> Either JWT.Error a
-decodePart bytes =
-  bytes
-    |> Base64.decodeLenient
-    |> BS.Lazy.fromStrict
-    |> decode
-    |> maybe (Left ParseError) Right
+ 
+    _ ->
+      Left BadSignature

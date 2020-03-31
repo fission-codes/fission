@@ -64,7 +64,6 @@ import RIO hiding ( Handler
                   , id
                   , timeout
                   , const
-                  , ($)
                   , (&)
                   , (^.)
                   , exp

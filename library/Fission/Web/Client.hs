@@ -57,7 +57,7 @@ basicClient p auth x = (client p) (Auth.getBasicAuth auth) x
 
 registerClient ::
   ( HasClient ClientM api
-  , Client ClientM api ~ (AuthenticatedRequest Auth.RegisterDid -> a -> ClientM b)
+  , Client ClientM api ~ (AuthenticatedRequest Auth.RegisterPublicKey -> a -> ClientM b)
   )
   => Proxy api
   -> a

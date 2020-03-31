@@ -17,6 +17,7 @@ import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.Types     as Auth
 
 import           Fission.PublicKey.Types
+-- import Fission.Web.Auth.JWT
 
 import qualified Fission.Key.Store as Key
 import qualified Fission.Key.Error as Key
@@ -59,30 +60,30 @@ mkAuthReq = do
     Right sk -> Right \req ->
       let
         pubkey = Ed.toPublic sk
-        payload = JWT.Payload
+        claims = JWT.Claims
           { iss = PublicKey <| decodeUtf8Lenient <| Crypto.unpack pubkey
           , nbf = Just time
           , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
-        token   = create payload <| Key.signWith sk
+        token   = create claims <| Key.signWith sk
         encoded = decodeUtf8Lenient <| encodeToken token
       in
         addHeader "Authorization" encoded req
 
-create :: JWT.Payload -> (ByteString -> Ed.Signature) -> JWT.Token
-create payload signF = JWT.Token {..}
+create :: JWT.Claims -> (ByteString -> Ed.Signature) -> JWT.Token
+create claims signF = JWT.Token {..}
   where
     header     = defaultHeader
     headerRaw  = encodePart header
-    payloadRaw = encodePart payload
-    toSign     = headerRaw <> "." <> payloadRaw
+    claimsRaw = encodePart claims
+    toSign     = headerRaw <> "." <> claimsRaw
     sig        = signF toSign
 
 defaultHeader :: JWT.Header
 defaultHeader =
   JWT.Header
     { typ = JWT
-    , alg = Ed25519
+    , alg = JWT.Ed25519
     }
 
 encodePart :: ToJSON a => a -> ByteString
@@ -97,7 +98,7 @@ encodeToken token = mconcat
   [ "Bearer "
   , encodePart <| header token
   , "."
-  , encodePart <| payload token
+  , encodePart <| claims token
   , "."
   , Crypto.toBase64 <| sig token
   ]

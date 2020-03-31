@@ -22,7 +22,7 @@ handler ::
   , MonadTime   m
   )
   => Request
-  -> m DID
+  -> m PublicKey
 handler req =
   case Token.get req of
     Just (Auth.Bearer token@(Auth.Bearer.Token bearer)) ->

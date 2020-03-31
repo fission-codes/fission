@@ -144,11 +144,11 @@ updateDID ::
   , MonadWebClient m
   )
   => BasicAuthData
-  -> DID
+  -> PublicKey
   -> m ()
-updateDID auth did =
-  did
-    |> User.Client.updateDID auth
+updateDID auth pk =
+  Ed25519
+    |> User.Client.updatePublicKey auth pk
     |> Client.run
     |> bind \case
       Left err ->

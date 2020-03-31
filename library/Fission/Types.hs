@@ -204,7 +204,7 @@ instance MonadBasicAuth Heroku.Auth Fission where
       |> fmap Heroku.Auth
       |> return
 
-instance MonadAuth DID Fission where
+instance MonadAuth PublicKey Fission where -- FIXME Maybe it *should* be DID?
   getVerifier = do
     cfg <- ask
     return <| mkAuthHandler \req ->

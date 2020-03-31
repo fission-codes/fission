@@ -22,8 +22,9 @@ user = User
 
   --
 
-  , userDid      = Just <| DID "1498b5467a63dffa2dc9d9e069caf075d16fc33fdd4c3b01bfadae6433767d93"
-  , userDataRoot = CID "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
+  , userPublicKey = Just $ PublicKey "1498b5467a63dffa2dc9d9e069caf075d16fc33fdd4c3b01bfadae6433767d93"
+  , userAlgorithm = Just Ed25519
+  , userDataRoot  = CID "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
 
   --
 
