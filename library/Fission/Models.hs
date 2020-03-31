@@ -54,7 +54,9 @@ HerokuAddOn
 --------------------------------------------------------------------------------
 
 User
-  did           DID           Maybe
+  publicKey     Key.PublicKey Maybe -- Renamed from DID
+  algorithm     Key.Algorithm Maybe
+
   email         Email         Maybe
   username      Username
 
@@ -69,8 +71,9 @@ User
   insertedAt    UTCTime
   modifiedAt    UTCTime
 
-  UniqueUsername username
-  -- UniqueEmail    email !force
+  UniqueUsername  username
+  UniquePublicKey publicKey !force
+  UniqueEmail     email     !force
 
   deriving Show Eq
 
@@ -82,7 +85,7 @@ UpdateUserDataRootEvent
   userId      UserId
   newDataRoot CID
 
-  writer      DID
+  writer      PublicKey
 
   insertedAt  UTCTime
 
