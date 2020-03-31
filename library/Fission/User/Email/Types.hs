@@ -29,7 +29,7 @@ instance Arbitrary Email where
   arbitrary = Email <$> arbitrary
 
 instance ToJSON Email where
-  toJSON (Email email') = toJSON (String email')
+  toJSON (Email email') = String email'
 
 instance FromJSON Email where
   parseJSON = withText "Email" \txt -> return (Email txt)

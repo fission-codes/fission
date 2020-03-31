@@ -1,24 +1,27 @@
 module Fission.User.DID
   ( fromPubkey
   , toPubkey
-  , module Fission.User.DID.Types
+  , DID.Key (..) -- so just this now :thinking:
   )
   where
 
-import           Fission.Prelude
-
-import qualified Data.ByteArray (ByteArrayAccess)
 import qualified RIO.Text as Text
 
+import           Fission.Prelude
 import           Fission.PublicKey.Types
+ 
+import qualified Fission.User.DID.Types as DID
+
 import           Fission.Web.Auth.JWT.Error as JWT
-import qualified Fission.Internal.Crypto    as Crypto
+-- import qualified Fission.Internal.Crypto    as Crypto
 
-fromPubkey :: ByteArrayAccess a => a -> DID
-fromPubkey pubkey = DID ("did:key:" <> decodeUtf8Lenient (Crypto.toBase64 pubkey))
+  -- Hmmmmmm just the constructor now?
+fromPubkey :: PublicKey -> DID.Key
+fromPubkey pk = DID.Key pk -- ("did:key:" <> pk))
+-- decodeUtf8Lenient (Crypto.toBase64 pubkey))
 
-toPubkey :: DID -> Either JWT.Error ByteString
-toPubkey (DID did) = 
+toPubkey :: DID.Key -> Either JWT.Error ByteString
+toPubkey (DID.Key (PublicKey did)) =
   case Text.stripPrefix "did:key:" did of
     Nothing     -> Left JWT.DIDNotSupported
     Just pubkey -> Right (encodeUtf8 pubkey)

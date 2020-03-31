@@ -28,6 +28,8 @@ import           Fission.Web.Auth.JWT.Error as JWT
 import qualified Fission.User     as User
 import           Fission.User.DID as DID
 
+import           Fission.PublicKey.Types
+
 import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
 
 -- Reexport
@@ -51,12 +53,12 @@ handler token@(Auth.Bearer.Token rawToken) =
       logWarn <| "Failed login with token " <> rawToken
       throwM err
 
-    Right did -> do
-      runDB <| User.getByDid did >>= \case
+    Right pk -> do
+      runDB <| User.getByPublicKey pk >>= \case
         Nothing -> throwM <| toServerError JWT.NoUser
         Just usr -> return usr
 
-validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error DID)
+validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error PublicKey)
 validateJWT token =
   case parseJWT token of
     Left err -> return <| Left err
@@ -65,17 +67,17 @@ validateJWT token =
         Left err -> return <| Left err
         Right _ -> return <| Right <| iss pl
 
-parseJWT :: Auth.Bearer.Token -> Either JWT.Error JWT.Payload
+parseJWT :: Auth.Bearer.Token -> Either JWT.Error JWT.Claims
 parseJWT (Auth.Bearer.Token rawToken) = do
-  (headerRaw, payloadRaw, sig64) <- getParts rawToken
-  void <| validateHeader headerRaw
-  payload <- decodePart payloadRaw
+  (rawHeader, rawClaims, sig64) <- getParts rawToken
+  void <| validateHeader rawHeader
+  payload <- decodePart rawClaims
 
   let
-    content = headerRaw <> "." <> payloadRaw
+    content = rawHeader <> "." <> rawClaims
     did = iss payload
 
-  pubkey64 <- DID.toPubkey did
+  pubkey64 <- DID.toPubkey did -- FIXME right, we do want the `did:key` here
   void <| validateSig content pubkey64 sig64
 
   Right payload
@@ -96,12 +98,13 @@ validateHeader bytes =
         ("JWT", _)         -> Left UnsupportedAlg
         _                  -> Left BadHeader
 
-validateTime :: MonadTime m => JWT.Payload -> m (Either JWT.Error ())
-validateTime JWT.Payload { exp, nbf } = do
-  time <- getCurrentPOSIXTime
-  return if | time > exp -> Left JWT.Expired
-            | time < nbf -> Left JWT.TooEarly
-            | otherwise  -> Right ()
+validateTime :: MonadTime m => JWT.Claims -> m (Either JWT.Error ())
+validateTime JWT.Claims { exp, nbf } = do
+  time <- currentTime
+  return case (time > exp, nbf) of
+    (True, _) -> Left JWT.Expired
+    (_, Just nbf') -> if time < nbf' then Left JWT.TooEarly else ok
+    _ -> ok
 
 validateSig :: ByteString -> ByteString -> ByteString -> Either JWT.Error ()
 validateSig content pubkey64 sig64 =

@@ -23,7 +23,8 @@ import           Fission.Security
 
 import           Fission.URL
 
-import           Fission.User.DID.Types
+import qualified Fission.PublicKey.Types as Key
+
 import           Fission.User.Role.Types
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
@@ -84,8 +85,6 @@ User
 UpdateUserDataRootEvent
   userId      UserId
   newDataRoot CID
-
-  writer      PublicKey
 
   insertedAt  UTCTime
 

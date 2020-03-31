@@ -28,7 +28,8 @@ import           Data.UUID as UUID
 import           Fission.Prelude
 import           Fission.Models
 
-import           Fission.User.DID.Types
+import           Fission.PublicKey.Types
+
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
@@ -98,7 +99,7 @@ data CreateHerokuAddOn
 
 data RetrieveUser
   = GetUserByUsername      Username
-  | GetUserByDid           DID
+  | GetUserByPublicKey     PublicKey
   | GetUserByHerokuAddOnId HerokuAddOnId
   | GetUserByEmail         Email
   deriving (Eq, Show)

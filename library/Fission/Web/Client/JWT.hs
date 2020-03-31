@@ -4,25 +4,24 @@ module Fission.Web.Client.JWT
   , getRegisterAuth
   ) where
 
-import           Servant.Client.Core
-
 import qualified Data.ByteString.Lazy   as BS.Lazy
 import qualified Data.ByteString.Base64 as Base64
 
-import           Fission.Web.Auth.JWT.Types  as JWT
-import           Fission.Web.Auth.Types      as Auth
+import qualified Crypto.PubKey.Ed25519 as Ed
 
-import qualified Fission.User.DID as DID
+import           Servant.Client.Core
+ 
+import           Fission.Prelude
+
+import           Fission.Web.Auth.JWT.Types as JWT
+import           Fission.Web.Auth.Types     as Auth
+
+import           Fission.PublicKey.Types
 
 import qualified Fission.Key.Store as Key
 import qualified Fission.Key.Error as Key
 
-import           Fission.Prelude
-import           Fission.Time
-
-import qualified Crypto.PubKey.Ed25519   as Ed
 import qualified Fission.Internal.Crypto as Crypto
-
 import qualified Fission.Internal.Orphanage.ClientM ()
 
 getSigAuth ::
@@ -40,7 +39,7 @@ getRegisterAuth ::
   , MonadTime m
   , MonadThrow m
   )
-  => m (AuthenticatedRequest Auth.RegisterDid)
+  => m (AuthenticatedRequest Auth.RegisterPublicKey)
 getRegisterAuth = mkAuthReq >>= \case
   Left err -> throwM err
   Right authReq -> return (mkAuthenticatedRequest () \_ -> authReq)
@@ -51,18 +50,21 @@ mkAuthReq ::
   )
   => m (Either Key.Error (Request -> Request))
 mkAuthReq = do
-  time <- getCurrentPOSIXTime
-  Key.readEd >>= return . \case
-    Left err -> Left err
+  time <- currentTime
+ 
+  Key.readEd <&> \case
+    Left err ->
+      Left err
+     
     Right sk -> Right \req ->
       let
         pubkey = Ed.toPublic sk
         payload = JWT.Payload
-          { iss = DID.fromPubkey pubkey
-          , nbf = time
-          , exp = time + 300
+          { iss = PublicKey <| decodeUtf8Lenient <| Crypto.unpack pubkey
+          , nbf = Just time
+          , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
-        token = create payload <| Key.signWith sk
+        token   = create payload <| Key.signWith sk
         encoded = decodeUtf8Lenient <| encodeToken token
       in
         addHeader "Authorization" encoded req
@@ -79,8 +81,8 @@ create payload signF = JWT.Token {..}
 defaultHeader :: JWT.Header
 defaultHeader =
   JWT.Header
-    { typ = "JWT"
-    , alg = "Ed25519"
+    { typ = JWT
+    , alg = Ed25519
     }
 
 encodePart :: ToJSON a => a -> ByteString

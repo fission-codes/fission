@@ -19,7 +19,6 @@ import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
-
 -- Property testing
 --
 -- $setup

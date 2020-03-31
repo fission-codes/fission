@@ -11,13 +11,29 @@ import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.URL.Subdomain.Types
 import           Fission.User.Username.Types
 
-import           Fission.User.Password as Password
-import           Fission.User.DID      as DID
+import           Fission.PublicKey.Types as PublicKey
+import           Fission.User.Password   as Password
 
 class Monad m => Modifier m where
-  updatePassword :: UserId -> Password   -> UTCTime -> m (Either Password.FailedDigest Password)
-  updateDID      :: UserId -> DID        -> UTCTime -> m (DID)
-  setData        :: UserId -> DID -> CID -> UTCTime -> m (Either ServerError ())
+  updatePassword ::
+       UserId
+    -> Password
+    -> UTCTime
+    -> m (Either Password.FailedDigest Password)
+
+  updatePublicKey ::
+       UserId
+    -> PublicKey
+    -> PublicKey.Algorithm
+    -> UTCTime
+    -> m PublicKey
+   
+  setData ::
+       UserId
+ --   -> PublicKey -- Record full credential in middleware logger
+    -> CID
+    -> UTCTime
+    -> m (Either ServerError ())
 
 instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
   updatePassword userId password now =
@@ -33,15 +49,16 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
 
         return (Right password)
 
-  updateDID userID did now = do
+  updatePublicKey userID pk algo now = do
     update userID
-      [ UserDid        =. Just did
+      [ UserPublicKey  =. Just pk
+      , UserAlgorithm  =. Just algo
       , UserModifiedAt =. now
       ]
 
-    return did
+    return pk
 
-  setData userId writerDID newCID now = do
+  setData userId newCID now = do
     User {userUsername = Username username} <- updateGet userId
       [ UserDataRoot   =. newCID
       , UserModifiedAt =. now
@@ -50,7 +67,6 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
     insert_ UpdateUserDataRootEvent
       { updateUserDataRootEventUserId      = userId
       , updateUserDataRootEventNewDataRoot = newCID
-      , updateUserDataRootEventWriter      = writerDID
       , updateUserDataRootEventInsertedAt  = now
       }
 

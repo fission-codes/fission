@@ -1,7 +1,7 @@
 module Fission.Web.Client.User
   ( register
   , verify
-  , updateDID
+  , updatePublicKey
   , whoami
   ) where
 
@@ -27,5 +27,5 @@ verify = sigClient' <| Proxy @(UserPrefix :> User.VerifyRoute)
 whoami :: ClientM User.Username
 whoami = sigClient' <| Proxy @(UserPrefix :> User.WhoAmIRoute)
 
-updateDID :: BasicAuthData -> User.DID -> ClientM NoContent
-updateDID = basicClient <| Proxy @(UserPrefix :> User.UpdateDIDRoute)
+updatePublicKey :: BasicAuthData -> User.DID -> ClientM NoContent
+updatePublicKey = basicClient <| Proxy @(UserPrefix :> User.UpdatePublicKeyRoute)

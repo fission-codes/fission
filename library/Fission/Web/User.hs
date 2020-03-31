@@ -3,7 +3,7 @@ module Fission.Web.User
   , Auth
   , RegisterRoute
   , VerifyRoute
-  , UpdateDIDRoute
+  , UpdatePublicKeyRoute
   , ResetRoute
   , WhoAmIRoute
   , server
@@ -18,8 +18,8 @@ import qualified Fission.User as User
 
 import qualified Fission.Web.User.Create          as Create
 import qualified Fission.Web.User.Verify          as Verify
-import qualified Fission.Web.User.Password.Reset  as Reset
-import qualified Fission.Web.User.UpdateDID       as UpdateDID
+import qualified Fission.Web.User.Password.Reset  as Rese
+import qualified Fission.Web.User.UpdatePublicKey as UpdatePublicKey
 import qualified Fission.Web.User.UpdateData      as UpdateData
 import qualified Fission.Web.User.WhoAmI          as WhoAmI
 
@@ -30,7 +30,7 @@ type API
  :<|> Create.PasswordAPI
  :<|> WhoAmIRoute
  :<|> VerifyRoute
- :<|> UpdateDIDRoute
+ :<|> UpdatePublicKeyRoute
  :<|> UpdateDataRoute
  :<|> ResetRoute
 
@@ -51,10 +51,10 @@ type VerifyRoute
     :> Auth
     :> Verify.API
 
-type UpdateDIDRoute
+type UpdatePublicKeyRoute
   = "did"
     :> Auth
-    :> UpdateDID.API
+    :> UpdatePublicKey.API
 
 type UpdateDataRoute
   = "data"
@@ -79,6 +79,6 @@ server = Create.server
     :<|> Create.withPassword
     :<|> WhoAmI.server
     :<|> (\_ -> Verify.server)
-    :<|> UpdateDID.server
+    :<|> UpdatePublicKey.server
     :<|> UpdateData.server
     :<|> Reset.server

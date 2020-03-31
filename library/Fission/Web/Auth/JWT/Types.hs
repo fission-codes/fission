@@ -1,35 +1,21 @@
 module Fission.Web.Auth.JWT.Types
-  ( Token     (..)
-  , Header    (..)
-  , Payload   (..)
+  ( Token  (..)
 
   -- * reexports
-  , module Fission.Web.Auth.JWT.Algorithm.Types
-  , module Fission.Web.Auth.JWT.Typ.Types
-  , module Fission.Web.Auth.JWT.Payload.Types
+  , module Fission.Web.Auth.JWT.Claims.Types
+  , module Fission.Web.Auth.JWT.Header.Types
   ) where
 
 
 import qualified Crypto.PubKey.Ed25519 as Ed
 
 import           Fission.Prelude
-import           Fission.User.DID.Types
- 
-import           Fission.Web.Auth.JWT.Algorithm.Types
-import           Fission.Web.Auth.JWT.Typ.Types
-import           Fission.Web.Auth.JWT.Payload.Types
+
+import           Fission.Web.Auth.JWT.Claims.Types
+import           Fission.Web.Auth.JWT.Header.Types
 
 data Token = Token
-  { header  :: !Header
-  , payload :: !Payload
-  , sig     :: !Ed.Signature
-  } deriving (Show, Generic)
-
-data Header = Header
-  { typ :: !Typ
-  , alg :: !Algorithm
-  } deriving ( Show
-             , Generic
-             , FromJSON
-             , ToJSON
-             )
+  { header :: !Header
+  , claims :: !Claims
+  , sig    :: !Ed.Signature -- FIXME: Ed25519 *OR* RSA
+  } deriving (Show, Eq)

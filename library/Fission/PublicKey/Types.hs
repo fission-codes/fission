@@ -1,3 +1,4 @@
+-- FIXME move to Fission.Key.Public
 module Fission.PublicKey.Types
   ( PublicKey (..)
   , Algorithm (..)
@@ -28,6 +29,9 @@ instance PersistField PublicKey where
     PersistText txt -> Right (PublicKey txt)
     other           -> Left  ("Invalid Persistent DID: " <> Text.pack (show other))
 
+instance PersistFieldSql PublicKey where
+  sqlType _pxy = SqlString
+
 -----------------------------------------------------------------------------------
 
 data Algorithm
@@ -51,3 +55,6 @@ instance ToSchema Algorithm where
       |> type_ ?~ SwaggerString
       |> NamedSchema (Just "PublicKeyAlgorithm")
       |> pure
+
+instance PersistFieldSql Algorithm where
+  sqlType _pxy = SqlString

@@ -1,4 +1,4 @@
-module Fission.Web.User.UpdateDID
+module Fission.Web.User.UpdatePublicKey
   ( API
   , server
   ) where
@@ -9,13 +9,13 @@ import           Fission.Models
 import           Servant
 import           Database.Esqueleto
 
+import           Fission.PublicKey.Types
 import qualified Fission.User as User
-import           Fission.User.DID.Types
 
 type API
-  =  Summary "Update DID"
-  :> Description "Set currently authenticated user's root DID to another public key"
-  :> ReqBody '[JSON] DID
+  =  Summary "Update Public Key"
+  :> Description "Set currently authenticated user's root public key to another one"
+  :> ReqBody '[JSON] PublicKey -- FIXME also need the algo
   :> Patch   '[PlainText, OctetStream, JSON] NoContent
 
 server ::
@@ -25,6 +25,6 @@ server ::
   )
   => Entity User
   -> ServerT API m
-server (Entity userID _) did = do
-  runDBNow (User.updateDID userID did)
+server (Entity userID _) (Key { publicKey, algorithm }) = do
+  runDBNow (User.updatePublicKey userID publicKey algorithm)
   return NoContent

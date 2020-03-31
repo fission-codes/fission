@@ -12,9 +12,9 @@ import           Fission.Prelude
 import           Fission.Web.Error    as Web.Err
 import           Fission.IPFS.DNSLink as DNSLink
 
+import           Fission.PublicKey.Types as PK
 import qualified Fission.User as User
-import           Fission.User.DID.Types
- 
+
 type API
   =  Summary "Create user with DID"
   :> Description "Register a new user (must auth with user-controlled DID)"
@@ -34,10 +34,10 @@ server ::
   , MonadDB      t m
   , User.Creator t
   )
-  => DID 
+  => (PublicKey, PK.Algorithm)
   -> ServerT API m
-server did (User.Registration {username, email}) = do
-  Web.Err.ensure =<< runDBNow (User.create username did email)
+server (pk, algo) (User.Registration {username, email}) = do
+  Web.Err.ensure =<< runDBNow (User.create username pk algo email)
   return NoContent
 
 withPassword ::
