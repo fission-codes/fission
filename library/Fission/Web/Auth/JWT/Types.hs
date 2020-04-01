@@ -2,10 +2,10 @@ module Fission.Web.Auth.JWT.Types
   ( Token  (..)
 
   -- * reexports
+ 
   , module Fission.Web.Auth.JWT.Claims.Types
   , module Fission.Web.Auth.JWT.Header.Types
   ) where
-
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified RIO.ByteString.Lazy        as Lazy
@@ -44,7 +44,7 @@ instance FromJSON Token where
           errOrSig =
             case Ed.signature (Lazy.toStrict sig') of
               CryptoFailed err ->
-                Left $ show sig' <> "is not a valid signature -- " <> show err
+                Left $ show sig' <> " is not a valid signature. " <> show err
 
               CryptoPassed s ->
                 Right s
