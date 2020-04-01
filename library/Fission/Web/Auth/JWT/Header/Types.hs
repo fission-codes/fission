@@ -1,4 +1,4 @@
--- |
+-- | JWT Header as specific in RFC 7519
 
 module Fission.Web.Auth.JWT.Header.Types
   ( Header    (..)
