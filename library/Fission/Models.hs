@@ -55,7 +55,7 @@ HerokuAddOn
 --------------------------------------------------------------------------------
 
 User
-  publicKey     Key.PublicKey Maybe -- Renamed from DID
+  publicKey     Key.PublicKey Maybe
   algorithm     Key.Algorithm Maybe
 
   email         Email         Maybe
@@ -73,7 +73,7 @@ User
   modifiedAt    UTCTime
 
   UniqueUsername  username
-  -- UniquePublicKey publicKey !force
+  UniquePublicKey publicKey !force
   -- UniqueEmail     email     !force
 
   deriving Show Eq
