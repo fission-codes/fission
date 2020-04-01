@@ -41,7 +41,8 @@ type UnauthedAPI
     :> CID.API
       :<|> Upload.API
       :<|> Pin.API
-      :<|> "dag" :> DAG.API
+      :<|> "dag"
+           :> DAG.API
 
 type PublicAPI
   = "peers"
