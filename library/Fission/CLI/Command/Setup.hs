@@ -1,15 +1,15 @@
 -- | Setup command
 module Fission.CLI.Command.Setup (command, setup) where
 
-import           Fission.Prelude
 
 import           Options.Applicative.Simple (addCommand)
-import           Servant.API
-
 import qualified RIO.Text as Text
 
-import Servant.Client.Core
 import           Network.HTTP.Types.Status
+import           Servant.Client.Core
+import           Servant.API
+
+import           Fission.Prelude
 
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
@@ -22,10 +22,7 @@ import           Fission.Web.Client       as Client
 import qualified Fission.Web.Client.User  as User.Client
 
 import           Fission.PublicKey.Types as PK
-
-import qualified Fission.User.Username.Types     as User
-import qualified Fission.User.Email.Types        as User
-import qualified Fission.User.Registration.Types as User
+import qualified Fission.User.Types      as User
 
 import           Fission.CLI.Config.Types
 import           Fission.CLI.Config.Base
@@ -146,13 +143,10 @@ updateDID ::
   -> PK.PublicKey
   -> m ()
 updateDID auth pk = do
-  (pk, Ed25519)
-    |> User.Client.updatePublicKey auth
-    |> Client.run
-    |> bind \case
-      Left err ->
-        CLI.Error.put err "Could not upgrade account"
+  Client.run (User.Client.updatePublicKey auth (pk, Ed25519)) >>= \case
+    Left err ->
+      CLI.Error.put err "Could not upgrade account"
 
-      Right _ -> do
-        _ <- Env.Partial.deleteHomeAuth
-        CLI.Success.putOk "Upgrade successful!"
+    Right _ -> do
+      _ <- Env.Partial.deleteHomeAuth
+      CLI.Success.putOk "Upgrade successful!"
