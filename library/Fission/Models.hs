@@ -73,8 +73,8 @@ User
   modifiedAt    UTCTime
 
   UniqueUsername  username
-  UniquePublicKey publicKey !force
-  UniqueEmail     email     !force
+  -- UniquePublicKey publicKey !force
+  -- UniqueEmail     email     !force
 
   deriving Show Eq
 

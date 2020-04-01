@@ -34,14 +34,20 @@ instance FromJSON Claims where
 -------------------------------
 -- Here's our DSL
 
-newtype Attenuation = Attenuation [Right]
+newtype Attenuation = Attenuation (Map FFSPath Right)
 
-data Right
+data Right = Right Permission FFSPath
+  deriving (Eq, Show)
+
+data Permission
   = ReadOnly -- AKA None
-  | AppendOnly FFSPath
+  | AppendOnly
+  | SuperUser
+  deriving (Eq, Ord, Show)
 
 data FFSPath -- TODO move to FFS description
   = Root
   | Private   FFSPath
   | Public    FFSPath
   | NamedNode Text
+  deriving (Eq, Show)

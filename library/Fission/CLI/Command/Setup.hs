@@ -146,7 +146,7 @@ updateDID ::
   -> PK.PublicKey
   -> m ()
 updateDID auth pk = do
-  (pk, Ed25519) -- NOTE TO SELF: It's confusing, but I believe that this is correct
+  (pk, Ed25519)
     |> User.Client.updatePublicKey auth
     |> Client.run
     |> bind \case
