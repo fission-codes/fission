@@ -5,6 +5,7 @@ module Fission.Web.Auth.JWT
  
   , module Fission.Web.Auth.JWT.Types
   , module Fission.Web.Auth.JWT.Error
+  , module Fission.Web.Auth.JWT.Validation
   ) where
 
 import           Fission.Prelude
@@ -22,10 +23,7 @@ import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
 
 import           Fission.Web.Auth.JWT.Types
 import           Fission.Web.Auth.JWT.Error
-
------------------------
-import  Fission.Web.Auth.JWT.Validation
-------------------------------
+import           Fission.Web.Auth.JWT.Validation
 
 handler ::
   ( MonadTime        m
@@ -38,12 +36,12 @@ handler ::
   => Auth.Bearer.Token
   -> m (Entity User)
 handler token@(Auth.Bearer.Token rawToken) =
-  validateJWT token >>= \case
+  parse token >>= \case
     Left err -> do
       logWarn $ "Failed login with token " <> rawToken
       throwM err
 
-    Right User.DID {..} -> do
+    Right Token {claims = Claims {iss = User.DID {publicKey}}} -> do
       runDB $ User.getByPublicKey publicKey >>= \case
         Nothing  -> throwM $ toServerError JWT.NoUser
         Just usr -> return usr

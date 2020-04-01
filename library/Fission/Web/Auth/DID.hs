@@ -26,12 +26,12 @@ handler ::
 handler req =
   case Token.get req of
     Just (Auth.Bearer token@(Auth.Bearer.Token bearer)) ->
-      JWT.validateJWT token >>= \case
+      JWT.parse token >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> bearer
           throwM err
 
-        Right did' ->
-          return did'
+        Right JWT.Token {claims = JWT.Claims {iss}} ->
+          return iss
 
     _ -> throwM Auth.NoToken

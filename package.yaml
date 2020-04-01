@@ -130,6 +130,7 @@ dependencies:
   - regex-compat
   - rio
   - rio-orphans
+  - RSA
   - scientific
   - servant
   - servant-auth-server

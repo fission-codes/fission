@@ -12,7 +12,12 @@ module Fission.Web.Auth.JWT.Validation
 import           Crypto.Error
 import           Crypto.Hash.Algorithms (SHA256 (..))
 
+import qualified Data.Binary as Binary
+
+import qualified Codec.Crypto.RSA.Pure as Codec.RSA
+
 import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA        as Crypto.RSA
 import qualified Crypto.PubKey.RSA.PKCS15 as Crypto.RSA.PKCS
 
 import qualified RIO.ByteString.Lazy as Lazy
@@ -50,19 +55,17 @@ checkSignature token@Token {header = JWT.Header {alg}} =
   case alg of
     Ed25519 -> checkEd25519Signature token
     RSA2048 -> undefined
-
+ 
 checkRSA2048Signature :: JWT.Token -> Either JWT.Error JWT.Token
 checkRSA2048Signature token@Token {..} =
-  case toRSAPublicKey (encodeUtf8 pk) of
-    CryptoPassed pk' ->
-      if Crypto.RSA.PKCS.verify (Just SHA256) pk' content sig64
-        then Right token
-        else Left IncorrectSignature
-
-    _ ->
-      Left BadSignature
+  if Crypto.RSA.PKCS.verify (Just SHA256) pk content sig64
+    then Right token
+    else Left IncorrectSignature
+ 
   where
-    Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
+    pk = Crypto.RSA.PublicKey {..}
+    Codec.RSA.PublicKey {public_size, public_n, public_e} = Binary.decode . Lazy.fromStrict $ encodeUtf8 pk'
+    Claims {iss = User.DID {publicKey = Key.Public pk'}} = claims
     sig64   = encodeUtf8 $ textDisplay $ displayShow sig
     content = Lazy.toStrict $ encode header <> "." <> encode claims
 
