@@ -9,8 +9,11 @@ module Fission.Web.Auth.JWT.Validation
   , checkRSA2048Signature
   ) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Crypto.Error
+import           Crypto.Hash.Algorithms (SHA256 (..))
+
+import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA.PKCS15 as Crypto.RSA.PKCS
 
 import qualified RIO.ByteString.Lazy as Lazy
 
@@ -50,20 +53,32 @@ checkSignature token@Token {header = JWT.Header {alg}} =
 
 checkRSA2048Signature :: JWT.Token -> Either JWT.Error JWT.Token
 checkRSA2048Signature token@Token {..} =
-
-checkEd25519Signature :: JWT.Token -> Either JWT.Error JWT.Token
-checkEd25519Signature token@Token {..} =
-  case (cryptoPK, cryptoSig) of
-    (CryptoPassed pk', CryptoPassed sig') ->
-      if Ed25519.verify pk' (Crypto.pack content) sig'
+  case toRSAPublicKey (encodeUtf8 pk) of
+    CryptoPassed pk' ->
+      if Crypto.RSA.PKCS.verify (Just SHA256) pk' content sig64
         then Right token
         else Left IncorrectSignature
 
     _ ->
       Left BadSignature
   where
+    Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
+    sig64   = encodeUtf8 $ textDisplay $ displayShow sig
+    content = Lazy.toStrict $ encode header <> "." <> encode claims
+
+checkEd25519Signature :: JWT.Token -> Either JWT.Error JWT.Token
+checkEd25519Signature token@Token {..} =
+  case (cryptoPK, cryptoSig) of
+    (CryptoPassed pk', CryptoPassed sig') ->
+      if Crypto.Ed25519.verify pk' content sig'
+        then Right token
+        else Left IncorrectSignature
+
+    _ ->
+      Left BadSignature
+  where
+    Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
     cryptoPK  = Crypto.base64ToEdPubKey $ encodeUtf8 pk
     cryptoSig = Crypto.base64ToSignature sig64
     sig64     = encodeUtf8 $ textDisplay $ displayShow sig
-    content   = Lazy.toStrict $ encode header <> "." <> encode claims
-    Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
+    content   = Crypto.pack . Lazy.toStrict $ encode header <> "." <> encode claims
