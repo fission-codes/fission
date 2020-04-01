@@ -1,8 +1,8 @@
 module Fission.Web.Auth.DID (handler) where
 
-import           Fission.Prelude
-
 import           Network.Wai
+
+import           Fission.Prelude
 
 import           Fission.Web.Auth.Types as Auth
 import           Fission.Web.Auth.Token as Token
