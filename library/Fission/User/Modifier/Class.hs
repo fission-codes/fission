@@ -30,7 +30,6 @@ class Monad m => Modifier m where
    
   setData ::
        UserId
- --   -> PublicKey -- Record full credential in middleware logger
     -> CID
     -> UTCTime
     -> m (Either ServerError ())
