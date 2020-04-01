@@ -67,12 +67,13 @@ validateJWT rawToken = runExceptT do
     Left err -> Left err
     Right _  -> Right $ iss claims
 
+-- FIXME rename to vakluidate
 parseJWT :: Auth.Bearer.Token -> Either JWT.Error JWT.Token
 parseJWT (Auth.Bearer.Token rawToken) = do
   token@Token {..} <- either (\_ -> Left ParseError) Right $
     eitherDecode $ Lazy.fromStrict rawToken
    
-  validateHeader header
+  -- validateHeader header
 
   let
     Claims {..} = claims
@@ -83,21 +84,23 @@ parseJWT (Auth.Bearer.Token rawToken) = do
 
   Right token
 
-validateHeader :: Header -> Either JWT.Error ()
-validateHeader Header {..} =
-  case (typ, alg) of
-    (JWT, JWT.Ed25519) -> Right ()
-    -- (JWT, JWT.RSA2048) -> Right ()
-    -- (JWT, _)           -> Left UnsupportedAlg
-    _                  -> Left BadHeader
+-- validateHeader :: Header -> Either JWT.Error ()
+-- validateHeader Header {..} =
+--   case (typ, alg) of
+--     (JWT, JWT.Ed25519) -> Right ()
+--     -- (JWT, JWT.RSA2048) -> Right ()
+--     -- (JWT, _)           -> Left UnsupportedAlg
+--     _                  -> Left BadHeader
+
+-- TODO Probbaly also should be called in the FromJSON
 
 validateTime :: MonadTime m => JWT.Claims -> m (Either JWT.Error ())
 validateTime JWT.Claims { exp, nbf } = do
   time <- currentTime
   return case (time > exp, nbf) of
-    (True, _) -> Left JWT.Expired
-    (_, Just nbf') -> if time < nbf' then Left JWT.TooEarly else ok
-    _ -> ok
+    (True, _        ) -> Left JWT.Expired
+    (_,    Just nbf') -> if time < nbf' then Left JWT.TooEarly else ok
+    _                 -> ok
 
 validateSig :: ByteString -> ByteString -> ByteString -> Either JWT.Error ()
 validateSig content pubkey64 sig64 =

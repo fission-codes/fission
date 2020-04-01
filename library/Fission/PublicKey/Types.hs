@@ -4,7 +4,8 @@ module Fission.PublicKey.Types
   , Algorithm (..)
   ) where
 
-import qualified RIO.Text as Text
+import           Data.Binary as Binary
+import qualified RIO.Text    as Text
 
 import           Data.Swagger
 import           Database.Persist.Postgresql
@@ -31,6 +32,11 @@ instance PersistField PublicKey where
 
 instance PersistFieldSql PublicKey where
   sqlType _pxy = SqlString
+
+instance Binary PublicKey where
+  get     = PublicKey . decodeUtf8Lenient <$> Binary.get
+  put     = Binary.put . encodeUtf8 . publicKey
+  putList = Binary.putList . fmap (encodeUtf8 . publicKey)
 
 -----------------------------------------------------------------------------------
 

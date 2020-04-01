@@ -17,7 +17,7 @@ import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.Types     as Auth
 
 import           Fission.PublicKey.Types
--- import Fission.Web.Auth.JWT
+import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
 
 import qualified Fission.Key.Store as Key
 import qualified Fission.Key.Error as Key
@@ -82,8 +82,9 @@ create claims signF = JWT.Token {..}
 defaultHeader :: JWT.Header
 defaultHeader =
   JWT.Header
-    { typ = JWT
+    { typ = JWT.Typ.JWT
     , alg = JWT.Ed25519
+    , cty = Nothing
     }
 
 encodePart :: ToJSON a => a -> ByteString
