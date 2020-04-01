@@ -29,9 +29,7 @@ type PasswordAPI
 
 withDID ::
   ( MonadDNSLink   m
- --  , MonadLogger    m
   , MonadTime      m
---   , MonadThrow m
   , MonadDB      t m
   , User.Creator t
   )
@@ -39,7 +37,6 @@ withDID ::
   -> ServerT API m
 withDID DID {..} User.Registration {username, email} = do
   Web.Err.ensureM =<< runDBNow (User.create username publicKey algorithm email)
-  --- runDBNow $ User.create username publicKey algorithm email
   return NoContent
 
 withPassword ::
