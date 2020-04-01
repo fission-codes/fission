@@ -1,4 +1,4 @@
--- | 
+-- | JOSE @"typ"@ (Type) Header Parameter
 
 module Fission.Web.Auth.JWT.Header.Typ.Types (Typ (..)) where
 

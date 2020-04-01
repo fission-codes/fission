@@ -1,4 +1,4 @@
--- | 
+-- | JOSE @"cty"@ (Content Type) Header Parameter
 
 module Fission.Web.Auth.JWT.Header.Cty.Types (Cty (..)) where
 
