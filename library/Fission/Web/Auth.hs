@@ -90,6 +90,6 @@ handler ::
   -> m (Entity User)
 handler req =
   case Token.get req of
-    Nothing                   -> throwM Auth.NoToken
     Just (Auth.Bearer bearer) -> JWT.handler bearer
     Just (Auth.Basic  basic') -> Basic.handler basic'
+    Nothing                   -> throwM Auth.NoToken
