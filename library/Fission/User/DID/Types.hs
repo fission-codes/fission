@@ -3,7 +3,6 @@
 module Fission.User.DID.Types
   ( DID    (..)
   , Method (..)
-  , module Fission.PublicKey.Types
   ) where
 
 import           Data.Binary
@@ -13,7 +12,7 @@ import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
 
 import           Fission.Prelude
-import           Fission.PublicKey.Types
+import           Fission.Key as Key
 
 -- | A DID key, broken into its constituant parts
 --
@@ -46,8 +45,8 @@ import           Fission.PublicKey.Types
 -- NOTE: The multihash is in little-endian base-7 with continuation flags
 -- More here:https://github.com/multiformats/unsigned-varint
 data DID = DID
-  { publicKey :: !PublicKey
-  , algorithm :: !Algorithm
+  { publicKey :: !Key.Public
+  , algorithm :: !Key.Algorithm
   , method    :: !Method
   } deriving (Show, Eq)
 
@@ -90,23 +89,23 @@ instance FromJSON DID where
           |> \case
             (0xed : 0x01 : edKeyW8s) ->
               return DID
-                { publicKey = PublicKey $ foo edKeyW8s
+                { publicKey = Key.Public $ bytesToText edKeyW8s
                 , algorithm = Ed25519
                 , method    = Key
                 }
 
             (0x00 : 0x75 : 0x01 : rsaKeyW8s) ->
               return DID
-                { publicKey = PublicKey $ foo rsaKeyW8s
+                { publicKey = Key.Public $ bytesToText rsaKeyW8s
                 , algorithm = RSA2048
                 , method    = Key
                 }
 
             nope ->
               fail $ show nope <> " is not an acceptable did:key"
-
-foo :: [Word8] -> Text
-foo = decodeUtf8Lenient . BS.pack
+    where
+      bytesToText :: [Word8] -> Text
+      bytesToText = decodeUtf8Lenient . BS.pack
 
 data Method
   = Key

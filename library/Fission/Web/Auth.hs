@@ -4,6 +4,9 @@ module Fission.Web.Auth
   , basic
   , mkAuth
   , handler
+
+  -- * Reexports
+ 
   , module Fission.Web.Auth.Class
   , module Fission.Web.Auth.Types
   ) where
@@ -27,8 +30,6 @@ import qualified Fission.Web.Auth.JWT               as JWT
 
 import qualified Fission.User as User
 import           Fission.User.DID.Types
-
-import Fission.PublicKey.Types
 
 -- Reexport
  

@@ -10,7 +10,7 @@ import           Servant.Client
 
 import           Fission.Prelude
  
-import           Fission.PublicKey.Types as PK
+import qualified Fission.Key as Key
 
 import qualified Fission.User.Registration.Types as User
 import qualified Fission.User.Username.Types     as User
@@ -28,5 +28,5 @@ verify = sigClient' $ Proxy @(UserPrefix :> User.VerifyRoute)
 whoami :: ClientM User.Username
 whoami = sigClient' $ Proxy @(UserPrefix :> User.WhoAmIRoute)
 
-updatePublicKey :: BasicAuthData -> (PublicKey, PK.Algorithm) -> ClientM NoContent
+updatePublicKey :: BasicAuthData -> (Key.Public, Key.Algorithm) -> ClientM NoContent
 updatePublicKey = basicClient $ Proxy @(UserPrefix :> User.UpdatePublicKeyRoute)

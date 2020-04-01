@@ -1,6 +1,9 @@
 -- | 
 
-module Fission.Web.Auth.JWT.Claims.Types (Claims (..)) where
+module Fission.Web.Auth.JWT.Claims.Types
+  ( Claims (..)
+  , Attenuation (..)
+  ) where
 
 import           Data.Time.Clock.POSIX
 
@@ -31,16 +34,13 @@ instance FromJSON Claims where
 
     return Claims {..}
 
--------------------------------
--- Here's our DSL
-
 newtype Attenuation = Attenuation (Map FFSPath Right)
 
 data Right = Right Permission FFSPath
   deriving (Eq, Show)
 
 data Permission
-  = ReadOnly -- AKA None
+  = ReadOnly
   | AppendOnly
   | SuperUser
   deriving (Eq, Ord, Show)

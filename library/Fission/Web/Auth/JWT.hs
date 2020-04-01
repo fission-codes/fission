@@ -13,6 +13,7 @@ import           Crypto.Error
 import qualified RIO.ByteString.Lazy as Lazy
 
 import           Fission.Prelude
+import           Fission.Key as Key
 import           Fission.Models
 import           Fission.Web.Error.Class
 
@@ -21,13 +22,10 @@ import qualified Fission.Internal.Crypto as Crypto
 import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.JWT.Error as JWT
 
-import qualified Fission.User     as User
-import           Fission.User.DID as DID
-
-import           Fission.PublicKey.Types
+import qualified Fission.User as User
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
-
+ 
 -- Reexport
 
 import           Fission.Web.Auth.JWT.Types
@@ -49,12 +47,12 @@ handler token@(Auth.Bearer.Token rawToken) =
       logWarn $ "Failed login with token " <> rawToken
       throwM err
 
-    Right DID {..} -> do
+    Right User.DID {..} -> do
       runDB $ User.getByPublicKey publicKey >>= \case
         Nothing  -> throwM $ toServerError JWT.NoUser
         Just usr -> return usr
 
-validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error DID)
+validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error User.DID)
 validateJWT rawToken = runExceptT do
   Token {claims} <- except $ parseJWT rawToken
   ExceptT $ validateTime claims <&> \case
@@ -64,13 +62,13 @@ validateJWT rawToken = runExceptT do
 -- FIXME rename to vakluidate
 parseJWT :: Auth.Bearer.Token -> Either JWT.Error JWT.Token
 parseJWT (Auth.Bearer.Token rawToken) = do
-  token@Token {..} <- either (\_ -> Left ParseError) Right $
+  token@Token {..} <- either (\_ -> Left JWT.ParseError) Right $
     eitherDecode $ Lazy.fromStrict rawToken
    
   -- validateHeader header
 
   let
-    Claims {iss = DID {publicKey}} = claims
+    Claims {iss = User.DID {publicKey}} = claims
     content     = Lazy.toStrict $ encode header <> "." <> encode claims
  
   -- pubkey64 <- publicKey iss -- FIXME right, we do want the `did:key` here
@@ -96,8 +94,8 @@ validateTime JWT.Claims { exp, nbf } = do
     (_,    Just nbf') -> if time < nbf' then Left JWT.TooEarly else ok
     _                 -> ok
 
-validateSig :: ByteString -> PublicKey -> ByteString -> Either JWT.Error ()
-validateSig content (PublicKey pk64) sig64 =
+validateSig :: ByteString -> Key.Public -> ByteString -> Either JWT.Error ()
+validateSig content (Key.Public pk64) sig64 =
   case (cryptoPK, cryptoSig) of
     (CryptoPassed pk, CryptoPassed sig) ->
       if Ed.verify pk (Crypto.pack content) sig

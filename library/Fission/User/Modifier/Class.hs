@@ -11,8 +11,8 @@ import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.URL.Subdomain.Types
 import           Fission.User.Username.Types
 
-import           Fission.PublicKey.Types as PublicKey
-import           Fission.User.Password   as Password
+import           Fission.Key           as Key
+import           Fission.User.Password as Password
 
 class Monad m => Modifier m where
   updatePassword ::
@@ -23,10 +23,10 @@ class Monad m => Modifier m where
 
   updatePublicKey ::
        UserId
-    -> PublicKey
-    -> PublicKey.Algorithm
+    -> Key.Public
+    -> Key.Algorithm
     -> UTCTime
-    -> m PublicKey
+    -> m Key.Public
    
   setData ::
        UserId

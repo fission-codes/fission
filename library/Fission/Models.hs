@@ -23,7 +23,7 @@ import           Fission.Security
 
 import           Fission.URL
 
-import qualified Fission.PublicKey.Types as Key
+import qualified Fission.Key as Key
 
 import           Fission.User.Role.Types
 import           Fission.User.Email.Types
@@ -55,7 +55,7 @@ HerokuAddOn
 --------------------------------------------------------------------------------
 
 User
-  publicKey     Key.PublicKey Maybe
+  publicKey     Key.Public    Maybe
   algorithm     Key.Algorithm Maybe
 
   email         Email         Maybe

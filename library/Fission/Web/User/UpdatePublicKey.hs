@@ -8,13 +8,13 @@ import           Servant
 import           Fission.Prelude
 import           Fission.Models
 
-import           Fission.PublicKey.Types
+import qualified Fission.Key  as Key
 import qualified Fission.User as User
 
 type API
   =  Summary "Update Public Key"
   :> Description "Set currently authenticated user's root public key to another one"
-  :> ReqBody '[JSON] (PublicKey, Algorithm)
+  :> ReqBody '[JSON] (Key.Public, Key.Algorithm)
   :> Patch   '[PlainText, OctetStream, JSON] NoContent
 
 server ::

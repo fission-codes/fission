@@ -14,8 +14,10 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
  
-import           Fission.URL.Types as URL
+import           Fission.Key as Key
 import           Fission.User.DID.Types
+
+import           Fission.URL.Types as URL
 
 import           Fission.Internal.Fixture.Time   as Fixture
 import           Fission.Internal.Fixture.Entity as Fixture
@@ -29,7 +31,12 @@ defaultConfig :: Config
 defaultConfig = Config
   { now             = agesAgo
   , linkedPeers     = pure $ IPFS.Peer "ipv4/fakepeeraddress"
-  , didVerifier     = mkAuthHandler \_ -> return $ DID (PublicKey "thisismydid") RSA2048 Key
+  , didVerifier     = mkAuthHandler \_ ->
+      return $ DID
+        { publicKey = Key.Public "thisismydid"
+        , algorithm = RSA2048
+        , method    = Key
+        }
   , userVerifier    = mkAuthHandler \_ -> return $ Fixture.entity Fixture.user
   , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized $ Heroku.Auth "FAKE HEROKU"
   , localIPFSCall   = Right "Qm1234567890"

@@ -13,15 +13,12 @@ import           Servant.Client.Core
  
 import           Fission.Prelude
 
-import           Fission.User.DID.Types as DID
+import qualified Fission.Key      as Key
+import           Fission.User.DID as DID
 
-import           Fission.Web.Auth.JWT.Types as JWT
-import           Fission.Web.Auth.Types     as Auth
-
+import           Fission.Web.Auth.Types                as Auth
+import           Fission.Web.Auth.JWT.Types            as JWT
 import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
-
-import qualified Fission.Key.Store as Key
-import qualified Fission.Key.Error as Key
 
 import qualified Fission.Internal.Crypto as Crypto
 import qualified Fission.Internal.Orphanage.ClientM ()
@@ -63,8 +60,8 @@ mkAuthReq = do
         rawPK = Ed.toPublic sk
  
         did = DID
-          { publicKey = PublicKey . decodeUtf8Lenient $ Crypto.unpack rawPK
-          , algorithm = DID.Ed25519
+          { publicKey = Key.Public . decodeUtf8Lenient $ Crypto.unpack rawPK
+          , algorithm = Key.Ed25519
           , method    = DID.Key
           }
 

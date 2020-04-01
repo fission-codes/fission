@@ -11,7 +11,7 @@ import           Fission.Prelude
 import           Fission.Error as Error
 import           Fission.Models
 
-import           Fission.PublicKey.Types as PublicKey
+import           Fission.Key as Key
 
 import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
@@ -50,8 +50,8 @@ class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry
   create ::
        Username
-    -> PublicKey
-    -> PublicKey.Algorithm
+    -> Key.Public
+    -> Key.Algorithm
     -> Email
     -> UTCTime
     -> m (Either Errors (UserId, Subdomain))

@@ -21,13 +21,12 @@ import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.Web.Client       as Client
 import qualified Fission.Web.Client.User  as User.Client
 
-import           Fission.PublicKey.Types as PK
-import qualified Fission.User.Types      as User
+import qualified Fission.Key  as Key
+import qualified Fission.User as User
 
 import           Fission.CLI.Config.Types
 import           Fission.CLI.Config.Base
 
-import qualified Fission.Key.Store as Key
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m => BaseConfig -> CommandM (m ())
@@ -126,7 +125,7 @@ upgradeAccount auth = do
         CLI.Error.put err "Could not read key file"
 
       Right cryptoPK ->
-        updateDID auth . PublicKey . Text.pack $ show cryptoPK
+        updateDID auth . Key.Public . Text.pack $ show cryptoPK
 
 createKey :: MonadIO m => m ()
 createKey = do
@@ -140,10 +139,10 @@ updateDID ::
   , MonadWebClient m
   )
   => BasicAuthData
-  -> PK.PublicKey
+  -> Key.Public
   -> m ()
 updateDID auth pk = do
-  Client.run (User.Client.updatePublicKey auth (pk, Ed25519)) >>= \case
+  Client.run (User.Client.updatePublicKey auth (pk, Key.Ed25519)) >>= \case
     Left err ->
       CLI.Error.put err "Could not upgrade account"
 

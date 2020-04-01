@@ -3,16 +3,15 @@ module Fission.User.Retriever.Class (Retriever (..)) where
 import           Database.Persist
 
 import           Fission.Prelude
+import qualified Fission.Key as Key
 import           Fission.Models
-
-import          Fission.PublicKey.Types as PublicKey
 
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
 class Monad m => Retriever m where
   getByUsername      :: Username      -> m (Maybe (Entity User))
-  getByPublicKey     :: PublicKey     -> m (Maybe (Entity User))
+  getByPublicKey     :: Key.Public    -> m (Maybe (Entity User))
   getByHerokuAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
   getByEmail         :: Email         -> m (Maybe (Entity User))
 
