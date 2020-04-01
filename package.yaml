@@ -89,6 +89,7 @@ dependencies:
   - base
   - base58string
   - base64-bytestring
+  - binary
   - bcrypt
   - cryptonite
   - bytestring
