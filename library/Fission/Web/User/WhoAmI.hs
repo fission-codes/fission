@@ -3,7 +3,6 @@ module Fission.Web.User.WhoAmI
   , server
   ) where
 
-import Database.Esqueleto (Entity (..))
 import Servant
 
 import Fission.Prelude

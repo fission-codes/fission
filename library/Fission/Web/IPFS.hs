@@ -25,20 +25,27 @@ import qualified Fission.Web.IPFS.Pin      as Pin
 import qualified Fission.Web.IPFS.DAG      as DAG
 import qualified Fission.Web.IPFS.Peer     as Peer
 
-type API = AuthedAPI
-      :<|> PublicAPI
+type API
+  =    AuthedAPI
+  :<|> PublicAPI
 
-type Auth = Auth.HigherOrder
+type Auth
+  = Auth.HigherOrder
 
-type AuthedAPI = Auth :> UnauthedAPI
+type AuthedAPI
+  = Auth
+    :> UnauthedAPI
 
-type UnauthedAPI = "cids" :> CID.API
-              :<|> Upload.API
-              :<|> Pin.API
-              :<|> "dag" :> DAG.API
+type UnauthedAPI
+  = "cids"
+    :> CID.API
+      :<|> Upload.API
+      :<|> Pin.API
+      :<|> "dag" :> DAG.API
 
-type PublicAPI = "peers" :> Peer.API
-            :<|> Download.API
+type PublicAPI
+  = "peers"
+    :> Peer.API :<|> Download.API
 
 server ::
   ( MonadRemoteIPFS      m

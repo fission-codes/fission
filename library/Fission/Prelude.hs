@@ -16,6 +16,7 @@ module Fission.Prelude
   , module RIO.Time
   , module Test.QuickCheck
   , module Web.PathPieces
+  , Entity (..)
   , headMaybe
   , identity
   , intercalate
@@ -39,6 +40,8 @@ import Data.Bifunctor (bimap)
 import Data.Has
 import Data.Maybe
 import Data.WorldPeace
+
+import Database.Persist (Entity (..))
 
 import Flow
 

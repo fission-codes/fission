@@ -5,13 +5,7 @@ module Fission.Web.Auth.JWT
   , module Fission.Web.Auth.JWT.Error
   ) where
 
-import           Database.Esqueleto (Entity (..))
-
-import Control.Monad.Trans.Except
-
--- import qualified Data.ByteString.Char8  as Ch
--- import qualified Data.ByteString.Lazy   as BS.Lazy
--- import qualified Data.ByteString.Base64 as Base64
+import           Control.Monad.Trans.Except
 
 import qualified Crypto.PubKey.Ed25519 as Ed
 import           Crypto.Error

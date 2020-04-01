@@ -17,8 +17,6 @@ import           Network.Wai
 import           Servant
 import           Servant.Server.Experimental.Auth
 
-import           Database.Esqueleto
-
 import           Fission.Web.Auth.Class             as Auth
 import           Fission.Web.Auth.Types             as Auth
 import           Fission.Web.Auth.Token             as Token
@@ -30,7 +28,10 @@ import qualified Fission.Web.Auth.JWT               as JWT
 import qualified Fission.User as User
 import           Fission.User.DID.Types
 
+import Fission.PublicKey.Types
+
 -- Reexport
+ 
 import           Fission.Web.Auth.Class
 import           Fission.Web.Auth.Types
 
@@ -50,10 +51,10 @@ mkAuth = do
   didAuth    <- Auth.getVerifier
   userAuth   <- Auth.getVerifier
   herokuAuth <- BasicAuth.getVerifier
-  return <| didAuth
-         :. userAuth
-         :. herokuAuth
-         :. EmptyContext
+  return $ didAuth
+        :. userAuth
+        :. herokuAuth
+        :. EmptyContext
 
 authWithContext ::
   HasServer api Checks

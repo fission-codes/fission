@@ -23,7 +23,7 @@ import Fission.PublicKey.Types as PK
 -- | Authorization check for the Heroku Addon API
 type HerokuAddOnAPI = BasicAuth "heroku add-on api" Heroku.Auth
 
--- | Authorization check to return encoded did for registering new users
+-- | Authorization check to return encoded PK for registering new users
 type RegisterPublicKey = AuthProtect "register-pk"
 type instance AuthServerData (AuthProtect "register-pk") = (PublicKey, PK.Algorithm)
 type instance AuthClientData (AuthProtect "register-pk") = ()

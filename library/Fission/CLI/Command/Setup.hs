@@ -19,6 +19,8 @@ import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.Web.Client       as Client
 import qualified Fission.Web.Client.User  as User.Client
 
+import           Fission.PublicKey.Types
+
 import qualified Fission.User.Username.Types     as User
 import qualified Fission.User.Email.Types        as User
 import qualified Fission.User.Registration.Types as User
@@ -114,11 +116,11 @@ upgradeAccount ::
   => BasicAuthData
   -> m ()
 upgradeAccount auth = do
-  shouldUpgrade <- Prompt.reaskYN <| mconcat
-                [ "Upgrade account \""
-                , decodeUtf8Lenient (basicAuthUsername auth)
-                , "\"? (y/n) "
-                ]
+  shouldUpgrade <- Prompt.reaskYN $ mconcat
+    [ "Upgrade account \""
+    , decodeUtf8Lenient (basicAuthUsername auth)
+    , "\"? (y/n) "
+    ]
 
   when shouldUpgrade do
     createKey
@@ -129,7 +131,9 @@ upgradeAccount auth = do
 
       Right pubkey ->
         pubkey
-          |> DID.fromPubkey
+        -- FIXME! wrong module's pubkey, apparently
+          |> undefined
+        --   |> DID.fromPubkey
           |> updateDID auth
 
 createKey :: MonadIO m => m ()
@@ -147,8 +151,8 @@ updateDID ::
   -> PublicKey
   -> m ()
 updateDID auth pk =
-  Ed25519
-    |> User.Client.updatePublicKey auth pk
+  (pk, Ed25519)
+    |> User.Client.updatePublicKey auth
     |> Client.run
     |> bind \case
       Left err ->

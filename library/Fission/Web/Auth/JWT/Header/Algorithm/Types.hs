@@ -5,6 +5,8 @@ module Fission.Web.Auth.JWT.Header.Algorithm.Types (Algorithm (..)) where
 import qualified RIO.Text as Text
 import           Fission.Prelude
 
+
+-- FIXME: Replace all call sites with PublicKey.Algorithm!
 data Algorithm
   = RS256
   | Ed25519

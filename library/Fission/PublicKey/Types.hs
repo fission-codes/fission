@@ -38,6 +38,14 @@ instance Binary PublicKey where
   put     = Binary.put . encodeUtf8 . publicKey
   putList = Binary.putList . fmap (encodeUtf8 . publicKey)
 
+instance ToSchema PublicKey where
+  declareNamedSchema _ =
+    mempty
+      |> type_ ?~ SwaggerInteger
+      |> description ?~ "A public key"
+      |> NamedSchema (Just "PublicKey")
+      |> pure
+
 -----------------------------------------------------------------------------------
 
 data Algorithm
@@ -45,6 +53,17 @@ data Algorithm
   | Ed25519
   deriving (Eq, Show)
 
+instance ToJSON Algorithm where
+  toJSON = String . \case
+    RSA2048 -> "RS256" -- Per the JWT Spec
+    Ed25519 -> "Ed25519"
+
+instance FromJSON Algorithm where
+  parseJSON = withText "JWT.Algorithm" \case
+    "RS256"   -> return RSA2048
+    "Ed25519" -> return Ed25519
+    other     -> fail (Text.unpack other <> " is not a valid JWT algorithm")
+   
 instance PersistField Algorithm where
   toPersistValue = \case
     RSA2048 -> PersistText "RSA2048"
