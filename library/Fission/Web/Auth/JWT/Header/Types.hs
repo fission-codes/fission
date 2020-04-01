@@ -5,12 +5,13 @@ module Fission.Web.Auth.JWT.Header.Types
 
   -- * Reexports
 
-  , module Fission.Web.Auth.JWT.Header.Algorithm.Types
+  , module Fission.Key.Asymmetric.Algorithm.Types
   ) where
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.JWT.Header.Algorithm.Types
+import           Fission.Key.Asymmetric.Algorithm.Types
+
 import           Fission.Web.Auth.JWT.Header.Cty.Types
 import           Fission.Web.Auth.JWT.Header.Typ.Types
 
