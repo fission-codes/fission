@@ -18,7 +18,7 @@ import           Fission.Models
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.URL.Types as URL
-import           Fission.PublicKey.Types
+import           Fission.User.DID.Types
 
 data Config = Config
   { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> (Either ServerError URL.DomainName)
@@ -27,7 +27,7 @@ data Config = Config
   , now             :: UTCTime
   , linkedPeers     :: NonEmpty IPFS.Peer
   , userVerifier    :: AuthHandler Wai.Request (Entity User)
-  , pkVerifier      :: AuthHandler Wai.Request PublicKey
+  , didVerifier     :: AuthHandler Wai.Request DID
   , herokuVerifier  :: BasicAuthCheck Heroku.Auth
   , forceAuthed     :: Bool
   , localIPFSCall   :: Either Process.Error Process.RawMessage

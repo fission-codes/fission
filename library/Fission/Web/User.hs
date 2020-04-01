@@ -38,7 +38,7 @@ type Auth
   = Auth.HigherOrder
 
 type RegisterRoute
-  = Auth.RegisterPublicKey
+  = Auth.RegisterDID
     :> Create.API
 
 type WhoAmIRoute
@@ -75,7 +75,7 @@ server ::
   , User.Modifier  t
   )
   => ServerT API m
-server = Create.server
+server = Create.withDID
     :<|> Create.withPassword
     :<|> WhoAmI.server
     :<|> (\_ -> Verify.server)

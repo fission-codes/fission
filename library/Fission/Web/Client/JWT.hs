@@ -13,10 +13,11 @@ import           Servant.Client.Core
  
 import           Fission.Prelude
 
+import           Fission.User.DID.Types as DID
+
 import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.Types     as Auth
 
-import           Fission.PublicKey.Types
 import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
 
 import qualified Fission.Key.Store as Key
@@ -40,7 +41,7 @@ getRegisterAuth ::
   , MonadTime m
   , MonadThrow m
   )
-  => m (AuthenticatedRequest Auth.RegisterPublicKey)
+  => m (AuthenticatedRequest Auth.RegisterDID)
 getRegisterAuth = mkAuthReq >>= \case
   Left err -> throwM err
   Right authReq -> return (mkAuthenticatedRequest () \_ -> authReq)
@@ -59,14 +60,26 @@ mkAuthReq = do
      
     Right sk -> Right \req ->
       let
-        pubkey = Ed.toPublic sk
+        rawPK = Ed.toPublic sk
+ 
+        did = DID
+          { publicKey = PublicKey . decodeUtf8Lenient $ Crypto.unpack rawPK
+          , algorithm = DID.Ed25519
+          , method    = DID.Key
+          }
+
         claims = JWT.Claims
-          { iss = PublicKey <| decodeUtf8Lenient <| Crypto.unpack pubkey
+          { iss = did
           , nbf = Just time
           , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
-        token   = create claims <| Key.signWith sk
-        encoded = decodeUtf8Lenient <| encodeToken token
+
+        encoded =
+          sk
+            |> Key.signWith
+            |> create claims
+            |> encodeToken
+            |> decodeUtf8Lenient
       in
         addHeader "Authorization" encoded req
 

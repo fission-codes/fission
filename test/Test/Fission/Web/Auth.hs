@@ -23,13 +23,13 @@ tests = do
 
   Mock.Session
     { effectLog = _effectLog :: [OpenUnion '[]]
-    , result = AuthHandler    pkVerifier
+    , result = AuthHandler    didVerifier
             :. AuthHandler    userVerifier
             :. BasicAuthCheck herokuVerifier
             :. EmptyContext
     } <- runMock defaultConfig mkAuth
 
-  didResult    <- runHandler $ pkVerifier  defaultRequest
+  didResult    <- runHandler $ didVerifier  defaultRequest
   userResult   <- runHandler $ userVerifier defaultRequest
   herokuResult <- herokuVerifier $ BasicAuthData "username" "password"
 

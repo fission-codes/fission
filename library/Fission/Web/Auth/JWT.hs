@@ -46,17 +46,17 @@ handler ::
 handler token@(Auth.Bearer.Token rawToken) =
   validateJWT token >>= \case
     Left err -> do
-      logWarn <| "Failed login with token " <> rawToken
+      logWarn $ "Failed login with token " <> rawToken
       throwM err
 
-    Right pk -> do
-      runDB <| User.getByPublicKey pk >>= \case
-        Nothing -> throwM <| toServerError JWT.NoUser
+    Right DID {..} -> do
+      runDB $ User.getByPublicKey publicKey >>= \case
+        Nothing  -> throwM $ toServerError JWT.NoUser
         Just usr -> return usr
 
-validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error PublicKey)
+validateJWT :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error DID)
 validateJWT rawToken = runExceptT do
-  Token {..} <- except $ parseJWT rawToken
+  Token {claims} <- except $ parseJWT rawToken
   ExceptT $ validateTime claims <&> \case
     Left err -> Left err
     Right _  -> Right $ iss claims
@@ -70,11 +70,11 @@ parseJWT (Auth.Bearer.Token rawToken) = do
   -- validateHeader header
 
   let
-    Claims {..} = claims
+    Claims {iss = DID {publicKey}} = claims
     content     = Lazy.toStrict $ encode header <> "." <> encode claims
  
-  pubkey64 <- DID.toPubkey iss -- FIXME right, we do want the `did:key` here
-  void $ validateSig content pubkey64 (encodeUtf8 $ textDisplay $ displayShow sig) -- FIXME
+  -- pubkey64 <- publicKey iss -- FIXME right, we do want the `did:key` here
+  void $ validateSig content publicKey (encodeUtf8 $ textDisplay $ displayShow sig) -- FIXME
 
   Right token
 
@@ -96,13 +96,16 @@ validateTime JWT.Claims { exp, nbf } = do
     (_,    Just nbf') -> if time < nbf' then Left JWT.TooEarly else ok
     _                 -> ok
 
-validateSig :: ByteString -> ByteString -> ByteString -> Either JWT.Error ()
-validateSig content pubkey64 sig64 =
-  case (Crypto.base64ToEdPubKey pubkey64, Crypto.base64ToSignature sig64) of
+validateSig :: ByteString -> PublicKey -> ByteString -> Either JWT.Error ()
+validateSig content (PublicKey pk64) sig64 =
+  case (cryptoPK, cryptoSig) of
     (CryptoPassed pk, CryptoPassed sig) ->
-      case Ed.verify pk (Crypto.pack content) sig of
-        False -> Left IncorrectSignature
-        True -> Right ()
- 
+      if Ed.verify pk (Crypto.pack content) sig
+        then ok
+        else Left IncorrectSignature
+
     _ ->
       Left BadSignature
+  where
+    cryptoPK  = Crypto.base64ToEdPubKey $ encodeUtf8 pk64
+    cryptoSig = Crypto.base64ToSignature sig64

@@ -6,6 +6,8 @@ import           Fission.Prelude
 import           Options.Applicative.Simple (addCommand)
 import           Servant.API
 
+import qualified RIO.Text as Text
+
 import Servant.Client.Core
 import           Network.HTTP.Types.Status
 
@@ -19,14 +21,11 @@ import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.Web.Client       as Client
 import qualified Fission.Web.Client.User  as User.Client
 
-import           Fission.PublicKey.Types
+import           Fission.PublicKey.Types as PK
 
 import qualified Fission.User.Username.Types     as User
 import qualified Fission.User.Email.Types        as User
 import qualified Fission.User.Registration.Types as User
-
-import qualified Fission.User.DID as DID
-import           Fission.User.DID.Types
 
 import           Fission.CLI.Config.Types
 import           Fission.CLI.Config.Base
@@ -129,12 +128,8 @@ upgradeAccount auth = do
       Left err ->
         CLI.Error.put err "Could not read key file"
 
-      Right pubkey ->
-        pubkey
-        -- FIXME! wrong module's pubkey, apparently
-          |> undefined
-        --   |> DID.fromPubkey
-          |> updateDID auth
+      Right cryptoPK ->
+        updateDID auth . PublicKey . Text.pack $ show cryptoPK
 
 createKey :: MonadIO m => m ()
 createKey = do
@@ -148,16 +143,16 @@ updateDID ::
   , MonadWebClient m
   )
   => BasicAuthData
-  -> PublicKey
+  -> PK.PublicKey
   -> m ()
-updateDID auth pk =
-  (pk, Ed25519)
+updateDID auth pk = do
+  (pk, Ed25519) -- NOTE TO SELF: It's confusing, but I believe that this is correct
     |> User.Client.updatePublicKey auth
     |> Client.run
     |> bind \case
       Left err ->
         CLI.Error.put err "Could not upgrade account"
 
-      Right _ok -> do
+      Right _ -> do
         _ <- Env.Partial.deleteHomeAuth
         CLI.Success.putOk "Upgrade successful!"

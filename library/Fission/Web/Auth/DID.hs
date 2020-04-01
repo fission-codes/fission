@@ -22,13 +22,13 @@ handler ::
   , MonadTime   m
   )
   => Request
-  -> m PublicKey
+  -> m DID
 handler req =
   case Token.get req of
     Just (Auth.Bearer token@(Auth.Bearer.Token bearer)) ->
       JWT.validateJWT token >>= \case
         Left err -> do
-          logWarn <| "Failed registration with token " <> bearer
+          logWarn $ "Failed registration with token " <> bearer
           throwM err
 
         Right did' ->

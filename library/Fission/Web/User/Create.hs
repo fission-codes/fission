@@ -1,7 +1,7 @@
 module Fission.Web.User.Create
   ( API
   , PasswordAPI
-  , server
+  , withDID
   , withPassword
   ) where
 
@@ -12,8 +12,8 @@ import           Fission.Prelude
 import           Fission.Web.Error    as Web.Err
 import           Fission.IPFS.DNSLink as DNSLink
 
-import           Fission.PublicKey.Types as PK
 import qualified Fission.User as User
+import           Fission.User.DID.Types
 
 type API
   =  Summary "Create user with DID"
@@ -27,17 +27,19 @@ type PasswordAPI
   :> ReqBody     '[JSON] User.Registration
   :> PostCreated '[JSON] ()
 
-server ::
+withDID ::
   ( MonadDNSLink   m
-  , MonadLogger    m
+ --  , MonadLogger    m
   , MonadTime      m
+--   , MonadThrow m
   , MonadDB      t m
   , User.Creator t
   )
-  => (PublicKey, PK.Algorithm)
+  => DID
   -> ServerT API m
-server (pk, algo) (User.Registration {username, email}) = do
-  Web.Err.ensure =<< runDBNow (User.create username pk algo email)
+withDID DID {..} User.Registration {username, email} = do
+  Web.Err.ensureM =<< runDBNow (User.create username publicKey algorithm email)
+  --- runDBNow $ User.create username publicKey algorithm email
   return NoContent
 
 withPassword ::

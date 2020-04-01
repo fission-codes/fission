@@ -5,10 +5,10 @@ module Fission.Web.Auth.JWT.Claims.Types (Claims (..)) where
 import           Data.Time.Clock.POSIX
 
 import           Fission.Prelude
-import           Fission.PublicKey.Types
+import           Fission.User.DID.Types
 
 data Claims = Claims
-  { iss        :: !PublicKey
+  { iss        :: !DID
   , exp        :: !UTCTime
   , nbf        :: !(Maybe UTCTime)
   } deriving (Eq, Show)

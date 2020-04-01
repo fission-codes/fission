@@ -96,8 +96,8 @@ instance MonadBasicAuth String (Mock effs) where
 instance MonadBasicAuth Heroku.Auth (Mock effs) where
   getVerifier = asks herokuVerifier
 
-instance MonadAuth PublicKey (Mock effs) where -- FIXME Maybe it *should* be DID?
-  getVerifier = asks pkVerifier
+instance MonadAuth DID (Mock effs) where
+  getVerifier = asks didVerifier
 
 instance MonadAuth (Entity User) (Mock effs) where
   getVerifier = asks userVerifier
@@ -105,7 +105,7 @@ instance MonadAuth (Entity User) (Mock effs) where
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
     Effect.log RunAWS
-    env <- newEnv <| FromKeys "FAKE_ACCESS_KEY" "FAKE_SECRET_KEY"
+    env <- newEnv $ FromKeys "FAKE_ACCESS_KEY" "FAKE_SECRET_KEY"
 
     awsAction
       |> runAWST env
