@@ -30,3 +30,18 @@ instance FromJSON Claims where
     exp <- obj .: "exp"
 
     return Claims {..}
+
+-------------------------------
+-- Here's our DSL
+
+newtype Attenuation = Attenuation [Right]
+
+data Right
+  = ReadOnly -- AKA None
+  | AppendOnly FFSPath
+
+data FFSPath -- TODO move to FFS description
+  = Root
+  | Private   FFSPath
+  | Public    FFSPath
+  | NamedNode Text
