@@ -54,7 +54,7 @@ checkSignature :: JWT -> Either JWT.Error JWT
 checkSignature jwt@JWT {header = JWT.Header {alg}} =
   case alg of
     Ed25519 -> checkEd25519Signature jwt
-    RSA2048 -> undefined -- FIXME!!!!!!!
+    RSA2048 -> checkRSA2048Signature jwt
  
 checkRSA2048Signature :: JWT -> Either JWT.Error JWT
 checkRSA2048Signature jwt@JWT {..} =
@@ -81,6 +81,7 @@ checkEd25519Signature jwt@JWT {..} =
 
     _ ->
       Left BadSignature
+     
   where
     Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
     cryptoPK  = Crypto.base64ToEdPubKey $ encodeUtf8 pk
