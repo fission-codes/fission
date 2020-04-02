@@ -85,6 +85,10 @@ instance ToJSON DID where
         case algo of
           Ed25519 -> [0xed, 0x01]
           RSA2048 -> [0x00, 0x75, 0x01]
+                  --   ^     ^     ^
+                  --   |     |     |
+                  --   |    "expect 373 Bytes", encoded in the mix-endian format
+                  --  "raw"
 
 instance FromJSON DID where
   parseJSON = withText "DID" \txt ->
