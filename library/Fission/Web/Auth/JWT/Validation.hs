@@ -32,49 +32,51 @@ import           Fission.Web.Auth.JWT.Types as JWT
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
 
-parse :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error JWT.Token) -- NOTE: was validate
+parse :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error JWT) -- NOTE: was validate
 parse bearerToken = do
   now <- currentTime
   return (checkSignature =<< checkTime now =<< pureParse bearerToken)
 
-pureParse :: Auth.Bearer.Token -> Either JWT.Error JWT.Token
+pureParse :: Auth.Bearer.Token -> Either JWT.Error JWT
 pureParse (Auth.Bearer.Token bearerToken) =
   case eitherDecode (Lazy.fromStrict bearerToken) of
     Left  _   -> Left JWT.ParseError
     Right jwt -> Right jwt
 
-checkTime :: UTCTime -> JWT.Token -> Either JWT.Error JWT.Token
-checkTime now token@Token {claims = JWT.Claims { exp, nbf }} = do
+checkTime :: UTCTime -> JWT -> Either JWT.Error JWT
+checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
   case (now > exp, nbf) of
     (True, _) -> Left JWT.Expired
-    (_, Just nbf') -> if now < nbf' then Left JWT.TooEarly else Right token
-    _ -> Right token
+    (_, Just nbf') -> if now < nbf' then Left JWT.TooEarly else Right jwt
+    _ -> Right jwt
 
-checkSignature :: JWT.Token -> Either JWT.Error JWT.Token
-checkSignature token@Token {header = JWT.Header {alg}} =
+checkSignature :: JWT -> Either JWT.Error JWT
+checkSignature jwt@JWT {header = JWT.Header {alg}} =
   case alg of
-    Ed25519 -> checkEd25519Signature token
-    RSA2048 -> undefined
+    Ed25519 -> checkEd25519Signature jwt
+    RSA2048 -> undefined -- FIXME!!!!!!!
  
-checkRSA2048Signature :: JWT.Token -> Either JWT.Error JWT.Token
-checkRSA2048Signature token@Token {..} =
+checkRSA2048Signature :: JWT -> Either JWT.Error JWT
+checkRSA2048Signature jwt@JWT {..} =
   if Crypto.RSA.PKCS.verify (Just SHA256) pk content sig64
-    then Right token
+    then Right jwt
     else Left IncorrectSignature
  
   where
-    pk = Crypto.RSA.PublicKey {..}
-    Codec.RSA.PublicKey {public_size, public_n, public_e} = Binary.decode . Lazy.fromStrict $ encodeUtf8 pk'
-    Claims {iss = User.DID {publicKey = Key.Public pk'}} = claims
+    pk      = Crypto.RSA.PublicKey {..}
     sig64   = encodeUtf8 $ textDisplay $ displayShow sig
     content = Lazy.toStrict $ encode header <> "." <> encode claims
+ 
+    Claims {iss = User.DID {publicKey = Key.Public pk'}}  = claims
+    Codec.RSA.PublicKey {public_size, public_n, public_e} =
+      Binary.decode . Lazy.fromStrict $ encodeUtf8 pk'
 
-checkEd25519Signature :: JWT.Token -> Either JWT.Error JWT.Token
-checkEd25519Signature token@Token {..} =
+checkEd25519Signature :: JWT -> Either JWT.Error JWT
+checkEd25519Signature jwt@JWT {..} =
   case (cryptoPK, cryptoSig) of
     (CryptoPassed pk', CryptoPassed sig') ->
       if Crypto.Ed25519.verify pk' content sig'
-        then Right token
+        then Right jwt
         else Left IncorrectSignature
 
     _ ->

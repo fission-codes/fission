@@ -7,7 +7,7 @@ module Fission.Web.Client.JWT
 import qualified Data.ByteString.Lazy   as BS.Lazy
 import qualified Data.ByteString.Base64 as Base64
 
-import qualified Crypto.PubKey.Ed25519 as Ed
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import           Servant.Client.Core
  
@@ -15,10 +15,13 @@ import           Fission.Prelude
 
 import qualified Fission.Key      as Key
 import           Fission.User.DID as DID
+ 
+import           Fission.Key.Asymmetric.Algorithm.Types as Key
 
 import           Fission.Web.Auth.Types                as Auth
 import           Fission.Web.Auth.JWT.Types            as JWT
 import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
+import qualified Fission.Web.Auth.JWT.Signature.Types  as JWT.Signature
 
 import qualified Fission.Internal.Crypto as Crypto
 import qualified Fission.Internal.Orphanage.ClientM ()
@@ -57,7 +60,7 @@ mkAuthReq = do
      
     Right sk -> Right \req ->
       let
-        rawPK = Ed.toPublic sk
+        rawPK = Ed25519.toPublic sk
  
         did = DID
           { publicKey = Key.Public . decodeUtf8Lenient $ Crypto.unpack rawPK
@@ -80,22 +83,32 @@ mkAuthReq = do
       in
         addHeader "Authorization" encoded req
 
-create :: JWT.Claims -> (ByteString -> Ed.Signature) -> JWT.Token
-create claims signF = JWT.Token {..}
+create :: JWT.Claims -> (ByteString -> Ed25519.Signature) -> JWT
+create claims signF = JWT {..}
   where
     header     = defaultHeader
     headerRaw  = encodePart header
-    claimsRaw = encodePart claims
+    claimsRaw  = encodePart claims
     toSign     = headerRaw <> "." <> claimsRaw
-    sig        = signF toSign
+    sig        = JWT.Signature.Ed25519 $ signF toSign
 
 defaultHeader :: JWT.Header
 defaultHeader =
   JWT.Header
     { typ = JWT.Typ.JWT
-    , alg = JWT.Ed25519
+    , alg = Key.Ed25519
     , cty = Nothing
     }
+
+encodeToken :: JWT -> ByteString
+encodeToken JWT {..} = mconcat
+  [ "Bearer "
+  , encodePart header
+  , "."
+  , encodePart claims
+  , "."
+  , BS.Lazy.toStrict $ encode sig
+  ]
 
 encodePart :: ToJSON a => a -> ByteString
 encodePart part =
@@ -103,13 +116,3 @@ encodePart part =
     |> encode
     |> BS.Lazy.toStrict
     |> Base64.encode
-
-encodeToken :: JWT.Token -> ByteString
-encodeToken token = mconcat
-  [ "Bearer "
-  , encodePart <| header token
-  , "."
-  , encodePart <| claims token
-  , "."
-  , Crypto.toBase64 <| sig token
-  ]

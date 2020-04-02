@@ -41,7 +41,7 @@ handler token@(Auth.Bearer.Token rawToken) =
       logWarn $ "Failed login with token " <> rawToken
       throwM err
 
-    Right Token {claims = Claims {iss = User.DID {publicKey}}} -> do
+    Right JWT {claims = Claims {iss = User.DID {publicKey}}} -> do
       runDB $ User.getByPublicKey publicKey >>= \case
         Nothing  -> throwM $ toServerError JWT.NoUser
         Just usr -> return usr
