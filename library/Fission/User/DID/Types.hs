@@ -93,14 +93,14 @@ instance FromJSON DID where
             case (BS58.BTC.toBinary b58 :: [Word8]) of
               (0xed : 0x01 : edKeyW8s) ->
                 return DID
-                  { publicKey = Key.Public $ UTF8.toBase58Text edKeyW8s
+                  { publicKey = Key.Public $ UTF8.fromRawBytes edKeyW8s
                   , algorithm = Ed25519
                   , method    = Key
                   }
 
               (0x00 : 0x75 : 0x01 : rsaKeyW8s) ->
                 return DID
-                  { publicKey = Key.Public $ UTF8.toBase58Text rsaKeyW8s
+                  { publicKey = Key.Public $ UTF8.fromRawBytes rsaKeyW8s
                   , algorithm = RSA2048
                   , method    = Key
                   }
