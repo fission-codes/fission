@@ -19,9 +19,9 @@ import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 tests :: IO TestTree
 tests = do
 
-  ------------------------
-  -- EFFECTFIUL SESSION --
-  ------------------------
+  -----------------------
+  -- EFFECTFUL SESSION --
+  -----------------------
 
   Mock.Session
     { effectLog = _effectLog :: [OpenUnion '[]]
