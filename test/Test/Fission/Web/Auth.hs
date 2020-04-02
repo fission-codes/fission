@@ -6,7 +6,7 @@ import           Servant.Server.Experimental.Auth
 
 import           Test.Tasty.Hspec
 import           Test.Fission.Prelude as Mock
-
+ 
 import           Fission.Key as Key
 import           Fission.User.DID.Types
 
@@ -15,7 +15,6 @@ import           Fission.Internal.Fixture.User   as Fixture
 
 import           Fission.Web.Auth
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
-import           Fission.User.DID.Types
 
 tests :: IO TestTree
 tests = do
@@ -49,8 +48,7 @@ tests = do
 
         context "DID auth" do
           it "uses the encapsulated function" do
-            didResult `shouldBe` Right $
-              DID (Key.PublicKey "thisismydid") RSA2048 Key
+            didResult `shouldBe` Right (DID (Key.Public "thisismydid") RSA2048 Key)
 
         context "heroku auth" do
           it "uses the encapsulated function" do
