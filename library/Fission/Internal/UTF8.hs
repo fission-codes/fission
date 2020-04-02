@@ -5,6 +5,8 @@ module Fission.Internal.UTF8
   , putTextLn
   , showLazyBS
   , displayLazyBS
+  , toBase58Text
+  , fromRawBytes
   , stripN
   , stripNBS
   , stripNewline
@@ -13,7 +15,13 @@ module Fission.Internal.UTF8
   , wrapIn
   ) where
 
+import           Data.Binary hiding (encode)
+import           Data.Base58String.Bitcoin as BS58.BTC
+
+import qualified Data.Aeson as JSON
+
 import           Flow
+
 import           RIO
 import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
@@ -45,6 +53,17 @@ displayLazyBS = Lazy.fromStrict . encodeUtf8 . textDisplay
 
 textToLazyBS :: Text -> Lazy.ByteString
 textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
+ 
+fromRawBytes :: [Word8] -> Text
+fromRawBytes = decodeUtf8Lenient . Strict.pack
+
+toBase58Text :: Binary a => a -> Text
+toBase58Text bin =
+  bin
+    |> BS58.BTC.fromBinary
+    |> JSON.encode
+    |> Lazy.toStrict
+    |> decodeUtf8Lenient
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 

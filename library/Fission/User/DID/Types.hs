@@ -15,6 +15,7 @@ import           Fission.Prelude
 import           Fission.Key as Key
  
 import           Fission.User.DID.Method.Types
+import qualified Fission.Internal.UTF8 as UTF8
 
 -- | A DID key, broken into its constituant parts
 --
@@ -52,9 +53,17 @@ data DID = DID
   , method    :: !Method
   } deriving (Show, Eq)
 
+instance Arbitrary DID where
+  arbitrary = do
+    publicKey <- arbitrary
+    algorithm <- arbitrary
+    method    <- arbitrary
+
+    return DID {..}
+
 instance ToJSON DID where
   toJSON (DID (Key.Public pk) algo method) =
-    String (header <> toBase58Text multicodec64)
+    String (header <> UTF8.toBase58Text multicodec64)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"
@@ -80,17 +89,17 @@ instance FromJSON DID where
             fail $ show fragment <> " is not a properly formatted multicodec"
            
           Just b58 ->
-            case BS58.BTC.toBinary b58 of
+            case (BS58.BTC.toBinary b58 :: [Word8]) of
               (0xed : 0x01 : edKeyW8s) ->
                 return DID
-                  { publicKey = Key.Public $ bytesToText edKeyW8s
+                  { publicKey = Key.Public $ UTF8.toBase58Text edKeyW8s
                   , algorithm = Ed25519
                   , method    = Key
                   }
 
               (0x00 : 0x75 : 0x01 : rsaKeyW8s) ->
                 return DID
-                  { publicKey = Key.Public $ bytesToText rsaKeyW8s
+                  { publicKey = Key.Public $ UTF8.toBase58Text rsaKeyW8s
                   , algorithm = RSA2048
                   , method    = Key
                   }
@@ -98,21 +107,3 @@ instance FromJSON DID where
               nope ->
                 fail $ show nope <> " is not an acceptable did:key"
 
-instance Arbitrary DID where
-  arbitrary = do
-    publicKey <- arbitrary
-    algorithm <- arbitrary
-    method    <- arbitrary
-
-    return DID {..}
-
-bytesToText :: [Word8] -> Text
-bytesToText = decodeUtf8Lenient . BS.pack
-
-toBase58Text :: Binary a => a -> Text
-toBase58Text bin =
-  bin
-    |> BS58.BTC.fromBinary
-    |> encode
-    |> BS.Lazy.toStrict
-    |> decodeUtf8Lenient
