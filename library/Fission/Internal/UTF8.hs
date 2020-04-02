@@ -13,6 +13,7 @@ module Fission.Internal.UTF8
   , textToLazyBS
   , textShow
   , wrapIn
+  , foo
   ) where
 
 import           Data.Binary hiding (encode)
@@ -34,6 +35,7 @@ import qualified RIO.Text            as Text
 -- >>> import Test.QuickCheck
 -- >>> import Test.QuickCheck.Instances ()
 -- >>> import qualified Data.Text as Text
+-- >>> import qualified RIO.ByteString      as Strict
 -- >>> import qualified RIO.ByteString.Lazy as Lazy
 
 class Textable a where
@@ -57,13 +59,38 @@ textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
 fromRawBytes :: [Word8] -> Text
 fromRawBytes = decodeUtf8Lenient . Strict.pack
 
-toBase58Text :: Binary a => a -> Text
+-- | Convert any binary object to 'Text'
+--
+-- >>> toBase58Text "hello world"
+-- "StV1DL6CwTryKyV"
+--
+-- >>> toBase58Text $ Strict.pack ([0x0ed, 0x01] :: [Word8] )
+-- "K36"
+--
+-- >>> toBase58Text $ Strict.pack ([0xed, 0x01, 0x01, 0x23, 0x45, 0x67] :: [Word8])
+-- "332DkaEge"
+--
+-- NOTE that base58 text does not concatenate without decoding to some base2 first
+--
+-- >>> toBase58Text "hello world" == toBase58Text "hello " <> toBase58Text "world"
+-- False
+toBase58Text :: Strict.ByteString -> Text
 toBase58Text bin =
   bin
-    |> BS58.BTC.fromBinary
+    |> BS58.BTC.fromBytes
     |> JSON.encode
+    |> stripPrefix "\""
+    |> stripSuffix "\""
     |> Lazy.toStrict
     |> decodeUtf8Lenient
+  where
+    stripPrefix pfx bs = maybe bs id $ Lazy.stripPrefix pfx bs
+    stripSuffix pfx bs = maybe bs id $ Lazy.stripSuffix pfx bs
+
+foo bin =
+  bin
+    |> BS58.BTC.fromBinary
+    |> show
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 
@@ -102,9 +129,10 @@ textShow = textDisplay . displayShow
 
 -}
 stripNBS :: Natural -> Lazy.ByteString -> Lazy.ByteString
-stripNBS n bs = bs
-             |> Lazy.take ((Lazy.length bs) - i)
-             |> Lazy.drop i
+stripNBS n bs =
+  bs
+    |> Lazy.take ((Lazy.length bs) - i)
+    |> Lazy.drop i
   where
     i :: Int64
     i = fromIntegral n
