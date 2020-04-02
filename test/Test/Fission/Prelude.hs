@@ -35,7 +35,7 @@ import           Fission.Prelude hiding (Result (..), log)
 -- | Prop test with description
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()
 itsProp description times prop =
-  modifyMaxSize (\_ -> times) <| it description <| property prop
+  modifyMaxSize (\_ -> times) . it description $ property prop
 
 -- | Prop test with the default number of tries (10k)
 itsProp' :: (HasCallStack, Testable a) => String -> a -> SpecWith ()
@@ -45,7 +45,7 @@ bodyMatches :: Value -> [HTTP.Header] -> Body -> Maybe String
 bodyMatches expected _ jsonBody =
   case decode jsonBody of -- NB: Here success is Nothing, and errors are Just
       Just val | val == expected -> Nothing
-      _                          -> Just "Body does not match pong"
+      _                          -> Just "Body does not match"
 
 shouldHaveRun ::
   ( Eq   (OpenUnion logs)

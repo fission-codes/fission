@@ -9,6 +9,9 @@ data Method
 instance Display Method where
   display Key = "key"
 
+instance Arbitrary Method where
+  arbitrary = elements [Key]
+
 instance ToJSON Method where
   toJSON Key = "key"
 

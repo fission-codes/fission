@@ -3,8 +3,11 @@ module Fission.Key.Asymmetric.Public.Types
   , Algorithm (..)
   ) where
 
-import           Data.Binary as Binary
-import qualified RIO.Text    as Text
+import           Data.Base58String.Bitcoin as BS58.BTC
+import           Data.Binary               as Binary
+import           Data.List.NonEmpty        as NonEmpty
+
+import qualified RIO.Text as Text
 
 import           Data.Swagger
 import           Database.Persist.Postgresql
@@ -14,6 +17,12 @@ import           Fission.Key.Asymmetric.Algorithm.Types
 
 newtype Public = Public { publicKey :: Text }
   deriving (Eq, Show)
+
+instance Arbitrary Public where
+  arbitrary = do
+    nonempty :: NonEmpty Word8 <- arbitrary
+    let pk = BS58.BTC.toText . BS58.BTC.fromBinary $ NonEmpty.toList nonempty
+    return (Public pk)
 
 instance FromJSON Public where
   parseJSON = withText "PublicKey" (pure . Public)

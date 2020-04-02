@@ -15,6 +15,9 @@ data Algorithm
   | Ed25519
   deriving (Eq, Show)
 
+instance Arbitrary Algorithm where
+  arbitrary = elements [RSA2048, Ed25519]
+
 instance ToJSON Algorithm where
   toJSON = String . \case
     RSA2048 -> "RS256" -- Per the JWT Spec (RFC 7519)

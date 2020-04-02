@@ -4,7 +4,7 @@ module Fission.User.DID.Types
   , module Fission.User.DID.Method.Types
   ) where
 
-import           Data.Binary
+import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
 
 import qualified RIO.ByteString      as BS
@@ -98,8 +98,21 @@ instance FromJSON DID where
               nope ->
                 fail $ show nope <> " is not an acceptable did:key"
 
+instance Arbitrary DID where
+  arbitrary = do
+    publicKey <- arbitrary
+    algorithm <- arbitrary
+    method    <- arbitrary
+
+    return DID {..}
+
 bytesToText :: [Word8] -> Text
 bytesToText = decodeUtf8Lenient . BS.pack
 
 toBase58Text :: Binary a => a -> Text
-toBase58Text bin = decodeUtf8Lenient . BS58.BTC.toBytes $ BS58.BTC.fromBinary bin
+toBase58Text bin =
+  bin
+    |> BS58.BTC.fromBinary
+    |> encode
+    |> BS.Lazy.toStrict
+    |> decodeUtf8Lenient
