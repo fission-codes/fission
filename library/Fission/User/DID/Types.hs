@@ -6,17 +6,15 @@ module Fission.User.DID.Types
 
 import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
-import Data.Base58String as BS58
 
-import qualified RIO.ByteString      as BS
-import qualified RIO.ByteString.Lazy as BS.Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString as BS
+import qualified RIO.Text       as Text
 
 import           Fission.Prelude
-import           Fission.Key as Key
- 
-import           Fission.User.DID.Method.Types
 import qualified Fission.Internal.UTF8 as UTF8
+
+import           Fission.Key as Key
+import           Fission.User.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
 
