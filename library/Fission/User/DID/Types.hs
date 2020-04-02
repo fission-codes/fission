@@ -49,10 +49,10 @@ More here: https://github.com/multiformats/unsigned-varint
 
 ==== __Examples__
 
->>> decode' "\"did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy\""
+>>> decode' "\"did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy\"" :: Maybe DID
 Just (DID {publicKey = Public {publicKey = "AAAAC3NzaC1lZDI1NTE5AAAAIIPnL+R9+OrIm26I1MSOnu4ofAtJ5PjmfiO9ukShjoST"}, algorithm = Ed25519, method = Key})
 
->>> decode' "\"did:key:z1ArJG77479Lcdo6AYX1efdvVo2dhSeAwPpazVKhFb8Sg4w35AKjx4sdfLy36LnuBq8b3JGt4SJCsnT3mmnujxxehgTiNcXw495k5dafYE9Zt77T8xCWdDkrLLvbGBzV17vNunkgkZKaA5WqwhV4QmFdFCCvEHszNe62SxFCR6g2YqAimX1DSWwVQFc12iuRYrXj8nWeMv2iQG3ZMCvKo2XsW7SXR1Kai29HZdwFQQneEdoEbTWHtFRUh5MpZuX95WNkaZy4JWHjQUNGgNRM6gGrgnmF5ibbXXoTNGhwCH2Qt9DR9khd6t38ufNUdcffapWk5cuGo5pfM1Zye9vapGMpLxQgRUnSyXiz41tSbMHzveTYggiCShVZJ27VLigREDMBqbU8bUNXZBL5L2yTaQieUhPbHsuM1FUD4AGfGQwAmdUstsMC4tjLoYjRBe6vJnwMMxB2ks89M2Yu2aYPf5WgkRGAX9EeXmmiq72A2dPThP4XGaP8pmWw7658BUTuA\""
+>>> decode' "\"did:key:z1ArJG77479Lcdo6AYX1efdvVo2dhSeAwPpazVKhFb8Sg4w35AKjx4sdfLy36LnuBq8b3JGt4SJCsnT3mmnujxxehgTiNcXw495k5dafYE9Zt77T8xCWdDkrLLvbGBzV17vNunkgkZKaA5WqwhV4QmFdFCCvEHszNe62SxFCR6g2YqAimX1DSWwVQFc12iuRYrXj8nWeMv2iQG3ZMCvKo2XsW7SXR1Kai29HZdwFQQneEdoEbTWHtFRUh5MpZuX95WNkaZy4JWHjQUNGgNRM6gGrgnmF5ibbXXoTNGhwCH2Qt9DR9khd6t38ufNUdcffapWk5cuGo5pfM1Zye9vapGMpLxQgRUnSyXiz41tSbMHzveTYggiCShVZJ27VLigREDMBqbU8bUNXZBL5L2yTaQieUhPbHsuM1FUD4AGfGQwAmdUstsMC4tjLoYjRBe6vJnwMMxB2ks89M2Yu2aYPf5WgkRGAX9EeXmmiq72A2dPThP4XGaP8pmWw7658BUTuA\"" :: Maybe DID
 Just (DID {publicKey = Public {publicKey = "AAAAB3NzaC1yc2EAAAADAQABAAABAQDkrRwcO9XZOWdwcK9CUQbzD3NMGlmkoRWu/BS5b/C9lm7PIyjBIhshnd6Y29upBKra7dJ7b1qOJDRQS5uvu93OZi/6pGXcqlYHS9WWJtpEQM+VXeJ2PcnKl5ok2mWgeOEqjHRorT+2dVlISjvOk4dRTJR2sB3el8ynQ1W7LuiEio22352O0DYV89DMhMPVVoSvXVBbsvuJv4VJ4e2XYlilsYyF/6zba4rvEP37MJBExNUqlWUbmIAzFbSoJSdickzHJtLCaBu8Eapu/bu90ecNiFIEaXDSvjD+wVqNwqaarWDor248BULN0u3mVTxHh185k8kBAK6ITBnDMJzjsk11"}, algorithm = RSA2048, method = Key})
 
 -}
@@ -87,7 +87,7 @@ instance ToJSON DID where
           RSA2048 -> [0x00, 0x75, 0x01]
                   {-   ^     ^     ^
                        |     |     |
-                       |    "expect 373 Bytes", encoded in the mix-endian format
+                       |    "expect 373 Bytes", encoded in the mixed-endian format
                      "raw"
                   -}
 
