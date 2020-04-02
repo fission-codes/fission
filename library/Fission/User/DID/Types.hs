@@ -6,6 +6,7 @@ module Fission.User.DID.Types
 
 import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
+import Data.Base58String as BS58
 
 import qualified RIO.ByteString      as BS
 import qualified RIO.ByteString.Lazy as BS.Lazy
@@ -85,26 +86,20 @@ instance FromJSON DID where
         fail $ show txt <> " does not have a valid did:key header"
 
       Just fragment ->
-        case decode' . BS.Lazy.fromStrict . encodeUtf8 $ fragment of
-          Nothing ->
-            fail $ show fragment <> " is not a properly formatted multicodec"
-           
-          Just b58 ->
-            case (BS58.BTC.toBinary b58 :: [Word8]) of
-              (0xed : 0x01 : edKeyW8s) ->
-                return DID
-                  { publicKey = Key.Public $ UTF8.fromRawBytes edKeyW8s
-                  , algorithm = Ed25519
-                  , method    = Key
-                  }
+        case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
+          (0xed : 0x01 : edKeyW8s) ->
+            return DID
+              { publicKey = Key.Public $ UTF8.fromRawBytes edKeyW8s
+              , algorithm = Ed25519
+              , method    = Key
+              }
 
-              (0x00 : 0x75 : 0x01 : rsaKeyW8s) ->
-                return DID
-                  { publicKey = Key.Public $ UTF8.fromRawBytes rsaKeyW8s
-                  , algorithm = RSA2048
-                  , method    = Key
-                  }
+          (0x00 : 0x75 : 0x01 : rsaKeyW8s) ->
+            return DID
+              { publicKey = Key.Public $ UTF8.fromRawBytes rsaKeyW8s
+              , algorithm = RSA2048
+              , method    = Key
+              }
 
-              nope ->
-                fail $ show nope <> " is not an acceptable did:key"
-
+          nope ->
+            fail $ show nope <> " is not an acceptable did:key"

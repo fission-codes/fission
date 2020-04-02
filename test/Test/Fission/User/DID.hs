@@ -1,8 +1,6 @@
 module Test.Fission.User.DID (tests) where
 
-import qualified Data.Aeson as JSON
-
-import qualified RIO.Text            as Text  
+import qualified Data.Aeson          as JSON
 import qualified RIO.ByteString.Lazy as Lazy.BS
 
 import           Fission.User.DID
@@ -17,4 +15,4 @@ tests =
         JSON.decode' (JSON.encode did) == Just did
 
       itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
-        Lazy.BS.isPrefixOf "did:key:z" (JSON.encode did)
+        Lazy.BS.isPrefixOf "\"did:key:z" (JSON.encode did)

@@ -7,19 +7,20 @@ module Fission.Internal.UTF8
   , displayLazyBS
   , toBase58Text
   , fromRawBytes
+  , stripOptionalPrefix
+  , stripOptionalPrefixBS
+  , stripOptionalSuffix
+  , stripOptionalSuffixBS
   , stripN
   , stripNBS
   , stripNewline
   , textToLazyBS
   , textShow
   , wrapIn
-  , foo
   ) where
 
 import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
-
-import qualified Data.Aeson as JSON
 
 import           Flow
 
@@ -28,8 +29,6 @@ import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
--- Property testing
---
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Test.QuickCheck
@@ -75,22 +74,19 @@ fromRawBytes = decodeUtf8Lenient . Strict.pack
 -- >>> toBase58Text "hello world" == toBase58Text "hello " <> toBase58Text "world"
 -- False
 toBase58Text :: Strict.ByteString -> Text
-toBase58Text bin =
-  bin
-    |> BS58.BTC.fromBytes
-    |> JSON.encode
-    |> stripPrefix "\""
-    |> stripSuffix "\""
-    |> Lazy.toStrict
-    |> decodeUtf8Lenient
-  where
-    stripPrefix pfx bs = maybe bs id $ Lazy.stripPrefix pfx bs
-    stripSuffix pfx bs = maybe bs id $ Lazy.stripSuffix pfx bs
+toBase58Text = BS58.BTC.toText . BS58.BTC.fromBytes
 
-foo bin =
-  bin
-    |> BS58.BTC.fromBinary
-    |> show
+stripOptionalPrefix :: Text -> Text -> Text
+stripOptionalPrefix pfx txt = maybe txt id $ Text.stripPrefix pfx txt
+
+stripOptionalSuffix :: Text -> Text -> Text
+stripOptionalSuffix sfx txt = maybe txt id $ Text.stripSuffix sfx txt
+
+stripOptionalPrefixBS :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
+stripOptionalPrefixBS pfx bs = maybe bs id $ Lazy.stripPrefix pfx bs
+ 
+stripOptionalSuffixBS :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
+stripOptionalSuffixBS sfx bs = maybe bs id $ Lazy.stripSuffix sfx bs
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 
