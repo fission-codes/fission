@@ -27,7 +27,7 @@ tests =
 
             expected :: Text
             expected =
-              "did:key:z1ArJG77479Lcdo6AYX1efdvVo2dhSeAwPpazVKhFb8Sg4w35AKjx4sdfLy36LnuBq8b3JGt4SJCsnT3mmnujxxehgTiNcXw495k5dafYE9Zt77T8xCWdDkrLLvbGBzV17vNunkgkZKaA5WqwhV4QmFdFCCvEHszNe62SxFCR6g2YqAimX1DSWwVQFc12iuRYrXj8nWeMv2iQG3ZMCvKo2XsW7SXR1Kai29HZdwFQQneEdoEbTWHtFRUh5MpZuX95WNkaZy4JWHjQUNGgNRM6gGrgnmF5ibbXXoTNGhwCH2Qt9DR9khd6t38ufNUdcffapWk5cuGo5pfM1Zye9vapGMpLxQgRUnSyXiz41tSbMHzveTYggiCShVZJ27VLigREDMBqbU8bUNXZBL5L2yTaQieUhPbHsuM1FUD4AGfGQwAmdUstsMC4tjLoYjRBe6vJnwMMxB2ks89M2Yu2aYPf5WgkRGAX9EeXmmiq72A2dPThP4XGaP8pmWw7658BUTuA"
+              "did:key:z1MdJPaWBebKxtE33AszRWYTF67wCLeFdcsqc3R87hyLKzBKiz49Nyah7i9hzSqMKbQ42UgbfdVFBTRckZECVjkaHTv3QPDKWn1sGRm5GEyzarr4EAT1gUUfXVrwe7satzr3WxZrcpvLzZrviEtV1GhYCr49nyJTn2uamYvozqALP4KKqnR1mgkpo3c8QyZ9DF9HufhXkucFpv8oD5KQWHP8iGhbmqUAWLvTh9CKVx2c2dZWC7cN8VYGWrJYnREUb9t1VptPH15bgVJVVvp1Ho2pervHe37nxoTEM2Ti9cZRKJyUVHdgCjXrpJD4ytSCCSDvTVHXKQitrQTixJoQzBC6dFVKozNUV7eULx5MJq372LQUkz6XJuHK8GgDw8EVNrcmZRDmLVdJGLZDXz3QVJFFQBxDwH7xpd19zciGSoMNnetcAsASMYTx6xCg8u16KE9X8dey38tcSLwREWjaYP8PmmPvVqzBkSsuKw1tSCb7md9axmTP3sKgfyADAcBgk"
           in
             encode (DID (Key.Public rsaKey) RSA2048 Key)
               `shouldBe` JSON.encode expected

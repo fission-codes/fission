@@ -52,7 +52,7 @@ More here: https://github.com/multiformats/unsigned-varint
 >>> decode' "\"did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy\"" :: Maybe DID
 Just (DID {publicKey = Public {publicKey = "AAAAC3NzaC1lZDI1NTE5AAAAIIPnL+R9+OrIm26I1MSOnu4ofAtJ5PjmfiO9ukShjoST"}, algorithm = Ed25519, method = Key})
 
->>> decode' "\"did:key:z1ArJG77479Lcdo6AYX1efdvVo2dhSeAwPpazVKhFb8Sg4w35AKjx4sdfLy36LnuBq8b3JGt4SJCsnT3mmnujxxehgTiNcXw495k5dafYE9Zt77T8xCWdDkrLLvbGBzV17vNunkgkZKaA5WqwhV4QmFdFCCvEHszNe62SxFCR6g2YqAimX1DSWwVQFc12iuRYrXj8nWeMv2iQG3ZMCvKo2XsW7SXR1Kai29HZdwFQQneEdoEbTWHtFRUh5MpZuX95WNkaZy4JWHjQUNGgNRM6gGrgnmF5ibbXXoTNGhwCH2Qt9DR9khd6t38ufNUdcffapWk5cuGo5pfM1Zye9vapGMpLxQgRUnSyXiz41tSbMHzveTYggiCShVZJ27VLigREDMBqbU8bUNXZBL5L2yTaQieUhPbHsuM1FUD4AGfGQwAmdUstsMC4tjLoYjRBe6vJnwMMxB2ks89M2Yu2aYPf5WgkRGAX9EeXmmiq72A2dPThP4XGaP8pmWw7658BUTuA\"" :: Maybe DID
+>>> decode' "\"did:key:z1MdJPaWBebKxtE33AszRWYTF67wCLeFdcsqc3R87hyLKzBKiz49Nyah7i9hzSqMKbQ42UgbfdVFBTRckZECVjkaHTv3QPDKWn1sGRm5GEyzarr4EAT1gUUfXVrwe7satzr3WxZrcpvLzZrviEtV1GhYCr49nyJTn2uamYvozqALP4KKqnR1mgkpo3c8QyZ9DF9HufhXkucFpv8oD5KQWHP8iGhbmqUAWLvTh9CKVx2c2dZWC7cN8VYGWrJYnREUb9t1VptPH15bgVJVVvp1Ho2pervHe37nxoTEM2Ti9cZRKJyUVHdgCjXrpJD4ytSCCSDvTVHXKQitrQTixJoQzBC6dFVKozNUV7eULx5MJq372LQUkz6XJuHK8GgDw8EVNrcmZRDmLVdJGLZDXz3QVJFFQBxDwH7xpd19zciGSoMNnetcAsASMYTx6xCg8u16KE9X8dey38tcSLwREWjaYP8PmmPvVqzBkSsuKw1tSCb7md9axmTP3sKgfyADAcBgk\""
 Just (DID {publicKey = Public {publicKey = "AAAAB3NzaC1yc2EAAAADAQABAAABAQDkrRwcO9XZOWdwcK9CUQbzD3NMGlmkoRWu/BS5b/C9lm7PIyjBIhshnd6Y29upBKra7dJ7b1qOJDRQS5uvu93OZi/6pGXcqlYHS9WWJtpEQM+VXeJ2PcnKl5ok2mWgeOEqjHRorT+2dVlISjvOk4dRTJR2sB3el8ynQ1W7LuiEio22352O0DYV89DMhMPVVoSvXVBbsvuJv4VJ4e2XYlilsYyF/6zba4rvEP37MJBExNUqlWUbmIAzFbSoJSdickzHJtLCaBu8Eapu/bu90ecNiFIEaXDSvjD+wVqNwqaarWDor248BULN0u3mVTxHh185k8kBAK6ITBnDMJzjsk11"}, algorithm = RSA2048, method = Key})
 
 -}
@@ -71,20 +71,20 @@ instance Arbitrary DID where
     return DID {..}
 
 instance ToJSON DID where
-  toJSON (DID (Key.Public pk) algo method) =
-    String (header <> UTF8.toBase58Text multicodec64)
+  toJSON (DID (Key.Public pk) algo method) = -- NOTE `pk` here is base2, not base58
+    String (header <> UTF8.toBase58Text multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"
 
-      multicodec64 :: ByteString
-      multicodec64 = BS.pack magicBytes <> encodeUtf8 pk
+      multicodecW8 :: ByteString
+      multicodecW8 = BS.pack magicBytes <> encodeUtf8 pk
 
       magicBytes :: [Word8]
       magicBytes =
         case algo of
           Ed25519 -> [0xed, 0x01]
-          RSA2048 -> [0x00, 0x75, 0x01]
+          RSA2048 -> [0x00, 0xF5, 0x02]
                   {-   ^     ^     ^
                        |     |     |
                        |    "expect 373 Bytes", encoded in the mixed-endian format
@@ -106,7 +106,7 @@ instance FromJSON DID where
               , method    = Key
               }
 
-          (0x00 : 0x75 : 0x01 : rsaKeyW8s) ->
+          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
             return DID
               { publicKey = Key.Public $ UTF8.fromRawBytes rsaKeyW8s
               , algorithm = RSA2048
