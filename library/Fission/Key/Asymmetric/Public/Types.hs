@@ -16,9 +16,7 @@ newtype Public = Public { publicKey :: Text }
   deriving (Eq, Show)
 
 instance Arbitrary Public where
-  arbitrary = do
-    nonempty :: Text <- arbitrary
-    return (Public nonempty)
+  arbitrary = Public <$> arbitrary
 
 instance FromJSON Public where
   parseJSON = withText "PublicKey" (pure . Public)
