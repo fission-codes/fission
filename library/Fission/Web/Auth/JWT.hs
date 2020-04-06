@@ -9,7 +9,6 @@ module Fission.Web.Auth.JWT
   ) where
 
 import           Fission.Prelude
-import           Fission.Key             as Key
 import           Fission.Web.Error.Class
 
 import           Fission.Models

@@ -7,6 +7,9 @@ import Fission.Prelude hiding (length)
 newtype Signature = Signature { unSignature :: ByteString }
   deriving (Eq, Show)
 
+instance Arbitrary Signature where
+  arbitrary = Signature <$> arbitrary
+
 instance FromJSON Signature where
   parseJSON = withText "RS256Siganture" \txt ->
     return . Signature $ encodeUtf8 txt

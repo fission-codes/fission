@@ -9,6 +9,9 @@ data Typ
   = JWT
   deriving (Eq, Show, Read)
 
+instance Arbitrary Typ where
+  arbitrary = return JWT
+
 instance FromJSON Typ where
   parseJSON = withText "JWT.Typ" \case
     "JWT" -> return JWT

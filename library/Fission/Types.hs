@@ -173,13 +173,13 @@ instance MonadLocalIPFS Fission where
 
       runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' >>= \case
         (ExitSuccess, contents, _) ->
-          return <| Right contents
+          return $ Right contents
 
         (ExitFailure _, _, stdErr)
           | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
-              return . Left <| Process.Timeout secs
+              return . Left $ Process.Timeout secs
           | otherwise ->
-              return . Left <| Process.UnknownErr stdErr
+              return . Left $ Process.UnknownErr stdErr
 
 instance MonadRemoteIPFS Fission where
     runRemote query = do

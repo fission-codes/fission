@@ -83,6 +83,7 @@ mkAuthReq = do
       in
         addHeader "Authorization" encoded req
 
+-- FIXME: MOVED TO SIGNATURE MODULE
 create :: JWT.Claims -> (ByteString -> Ed25519.Signature) -> JWT
 create claims signF = JWT {..}
   where
@@ -110,6 +111,7 @@ encodeToken JWT {..} = mconcat
   , BS.Lazy.toStrict $ encode sig
   ]
 
+-- FIXME moved to Signature module
 encodePart :: ToJSON a => a -> ByteString
 encodePart part =
   part

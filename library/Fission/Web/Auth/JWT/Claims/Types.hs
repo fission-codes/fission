@@ -16,6 +16,13 @@ data Claims = Claims
   , nbf        :: !(Maybe UTCTime)
   } deriving (Eq, Show)
 
+instance Arbitrary Claims where
+  arbitrary = do
+    iss <- arbitrary
+    exp <- arbitrary
+    nbf <- arbitrary
+    return Claims {..}
+
 instance ToJSON Claims where
   toJSON Claims {..} = object
     [ "iss" .= iss

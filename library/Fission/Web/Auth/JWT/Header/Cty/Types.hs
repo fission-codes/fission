@@ -30,6 +30,9 @@ data Cty
   = JWT
   deriving (Eq, Show, Read)
 
+instance Arbitrary Cty where
+  arbitrary = return JWT
+
 instance ToJSON Cty where
   toJSON JWT = String "JWT"
 

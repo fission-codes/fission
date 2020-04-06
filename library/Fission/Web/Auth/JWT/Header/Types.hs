@@ -21,6 +21,13 @@ data Header = Header
   , cty :: !(Maybe Cty)
   } deriving (Show, Eq)
 
+instance Arbitrary Header where
+  arbitrary = do
+    typ <- arbitrary
+    alg <- arbitrary
+    cty <- arbitrary
+    return Header {..}
+
 instance ToJSON Header where
   toJSON Header {..} = object
     [ "typ" .= typ
