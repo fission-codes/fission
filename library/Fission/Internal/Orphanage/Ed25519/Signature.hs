@@ -17,6 +17,7 @@ import qualified Data.ByteArray         as BA
 import           Fission.Prelude
  
 import qualified Data.ByteString.Base64 as Base64
+import qualified Data.ByteString.Base64.URL as B64URL
 
 import qualified RIO.Text.Partial as PText
 
@@ -37,6 +38,7 @@ instance ToJSON Ed25519.Signature where
 instance FromJSON Ed25519.Signature where
   parseJSON = withText "Ed25519.Signature" \txt ->
     txt
+      |> fromURLEncoding
       |> encodeUtf8
       |> Crypto.base64ToSignature
       |> \case
@@ -45,3 +47,5 @@ instance FromJSON Ed25519.Signature where
 
           CryptoPassed sig ->
             return sig
+
+fromURLEncoding = PText.replace "-" "+" . PText.replace "_" "/"

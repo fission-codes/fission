@@ -27,27 +27,41 @@ tests =
     it "foo"
       let
         jwt :: JWT = Unsafe.unsafePerformIO (generate arbitrary)
-        json = JSON.encode jwt
       in
-        JSON.eitherDecode json `shouldBe` Right jwt
+        JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt -- Just jwt { claims = clms }
+
+    it "bar"
+      let
+        jwt :: JWT = Unsafe.unsafePerformIO (generate arbitrary)
+        encoded =
+          JSON.encode jwt
+
+        jwt' =
+          encoded
+            |> Lazy.take (Lazy.length encoded - 2)
+            |> Lazy.drop 2
+      in
+        Lazy.filter (not . isValidChar) jwt' `shouldBe` ""
 
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(jwt :: JWT) ->
-        JSON.decode' (JSON.encode jwt) == Just jwt
+        JSON.decode' (JSON.encode jwt) `shouldBe` Just jwt
 
       describe "format" do
         itsProp' "contains exactly two '.'s"  \(jwt :: JWT) ->
-          Lazy.count (fromIntegral $ ord '.') (JSON.encode jwt) == 2
+          Lazy.count (fromIntegral $ ord '.') (JSON.encode jwt) `shouldBe` 2
          
         itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
           let
-            encoded = JSON.encode jwt
+            encoded =
+              JSON.encode jwt
+             
             jwt' =
               encoded
                 |> Lazy.take (Lazy.length encoded - 2)
                 |> Lazy.drop 2
           in
-            Lazy.filter (not . isValidChar) jwt' == ""
+            Lazy.filter (not . isValidChar) jwt' `shouldBe` ""
  
 isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 validB64URLChars

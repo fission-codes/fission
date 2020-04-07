@@ -14,12 +14,18 @@ data Claims = Claims
   { iss        :: !DID
   , exp        :: !UTCTime
   , nbf        :: !(Maybe UTCTime)
-  } deriving (Eq, Show)
+  } deriving Show
+
+instance Eq Claims where
+  jwtA == jwtB =
+                       (iss jwtA == iss jwtB)
+    &&      (roundUTC (exp jwtA) ==      roundUTC (exp jwtB))
+    && (fmap roundUTC (nbf jwtA) == fmap roundUTC (nbf jwtB))
 
 instance Arbitrary Claims where
   arbitrary = do
     iss <- arbitrary
-    exp <- arbitrary
+    exp <- fromSeconds . toSeconds <$> arbitrary
     nbf <- arbitrary
     return Claims {..}
 
@@ -29,9 +35,11 @@ instance ToJSON Claims where
     , "nbf" .= fmap toSeconds nbf
     , "exp" .= toSeconds exp
     ]
-    where
-      toSeconds :: UTCTime -> Int
-      toSeconds = round . utcTimeToPOSIXSeconds
+
+roundUTC = fromSeconds . toSeconds
+
+toSeconds :: UTCTime -> Int
+toSeconds = round . utcTimeToPOSIXSeconds
 
 instance FromJSON Claims where
   parseJSON = withObject "JWT.Payload" \obj -> do
@@ -40,9 +48,9 @@ instance FromJSON Claims where
     exp <-      fromSeconds <$> obj .: "exp"
 
     return Claims {..}
-    where
-      fromSeconds :: Int -> UTCTime
-      fromSeconds n = posixSecondsToUTCTime $ secondsToNominalDiffTime $ fromIntegral n
+ 
+fromSeconds :: Int -> UTCTime
+fromSeconds n = posixSecondsToUTCTime $ secondsToNominalDiffTime $ fromIntegral n
 
 newtype Attenuation = Attenuation (Map FFSPath Right)
 

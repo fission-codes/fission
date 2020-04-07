@@ -83,7 +83,7 @@ instance ToJSON JWT where
       signed :: ByteString
       signed =
         case sig of
-          Ed25519 edSig -> Crypto.toBase64 edSig
+          Ed25519 edSig -> stripPadding . encodeUtf8 . toURLEncoding . decodeUtf8Lenient . stripQuotes $ Crypto.toBase64 edSig
           RS256 (RS256.Signature rsSig) -> encodeB64 $ decodeUtf8Lenient rsSig
 
       encodeB64 :: ToJSON a => a -> ByteString
@@ -91,12 +91,18 @@ instance ToJSON JWT where
         jsonable
           |> encode
           |> Lazy.toStrict
-          |> UTF8.stripOptionalPrefixBS "\""
-          |> UTF8.stripOptionalSuffixBS "\""
+          |> stripQuotes
           |> B64URL.encode
-          |> UTF8.stripOptionalSuffixBS "=" -- per RFC7515
-          |> UTF8.stripOptionalSuffixBS "=" -- incase they trail
-          |> UTF8.stripOptionalSuffixBS "=" -- incase they trail
+          |> stripPadding
+
+      toURLEncoding = PText.replace "+" "-" . PText.replace "/" "_"
+
+      stripQuotes = UTF8.stripOptionalPrefixBS "\"" . UTF8.stripOptionalSuffixBS "\""
+
+      stripPadding  =
+        UTF8.stripOptionalSuffixBS "=" -- per RFC7515
+        . UTF8.stripOptionalSuffixBS "=" -- incase they trail
+        . UTF8.stripOptionalSuffixBS "=" -- incase they trail
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
@@ -106,7 +112,7 @@ instance FromJSON JWT where
           result = do
             header <- foo rawHeader
             claims <- foo rawClaims
-            sig    <- Signature.parse (alg header) $ wrappy {-}$ quux -} rawSig
+            sig    <- Signature.parse (alg header) $ wrappy $ {- quux -} rawSig
             return JWT {..}
 
         case result of
@@ -144,7 +150,7 @@ bar bs = B64.decodeLenient (Lazy.pack padded)
 quux bs = (Lazy.pack padded)
   where
     n :: Int
-    n = rem (fromIntegral $ Lazy.length bs) 2 -- 4
+    n = rem (fromIntegral $ Lazy.length bs)  4
 
     unpacked :: [Word8]
     unpacked = Lazy.unpack bs
