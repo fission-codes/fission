@@ -10,8 +10,11 @@ module Fission.Web.Auth.JWT.Types
 import           Crypto.Error
 import           Crypto.PubKey.Ed25519 (toPublic)
 
-import Fission.Internal.Crypto as Crypto
+import Fission.Internal.RSA2048.Pair.Types
 
+import Fission.Internal.Crypto as Crypto
+import qualified Crypto.PubKey.RSA     as RSA
+import qualified System.IO.Unsafe as Unsafe
 import qualified Data.ByteString.Base64.URL as B64URL
  
 import           Fission.Web.Auth.JWT.Signature.Types       as Signature
@@ -74,7 +77,27 @@ instance Arbitrary JWT where
          
         return JWT {..}
 
-      Alg.RSA2048 -> arbitrary -- skip for now ()
+      Alg.RSA2048 ->
+        genRSA header claims'
+  
+genRSA :: Header -> Claims -> Gen JWT
+genRSA header claims' = do
+  Pair _pk sk <- arbitrary
+
+  let
+    pk = Key.Public "FAKE_publickey"
+
+    did = DID
+      { publicKey = pk
+      , algorithm = Alg.RSA2048
+      , method    = Key
+      }
+
+    claims = claims' { iss = did }
+
+  return (Unsafe.unsafePerformIO (RS256.sign header claims sk)) >>= \case
+    Right sig -> return JWT {..}
+    Left  _   -> genRSA header claims -- try again
 
 instance ToJSON JWT where
   toJSON JWT {..} = String . decodeUtf8Lenient $
@@ -84,7 +107,8 @@ instance ToJSON JWT where
       signed =
         case sig of
           Ed25519 edSig -> stripPadding . encodeUtf8 . toURLEncoding . decodeUtf8Lenient . stripQuotes $ Crypto.toBase64 edSig
-          RS256 (RS256.Signature rsSig) -> encodeB64 $ decodeUtf8Lenient rsSig
+          RS256 (RS256.Signature rsSig) -> stripPadding . encodeUtf8 . toURLEncoding . decodeUtf8Lenient . stripQuotes $ Crypto.toBase64  rsSig
+          -- RS256 (RS256.Signature rsSig) -> toURLEncoding $ toURLEncoding $ Crypto.toBase64 rsSig
 
       encodeB64 :: ToJSON a => a -> ByteString
       encodeB64 jsonable =
@@ -100,7 +124,7 @@ instance ToJSON JWT where
       stripQuotes = UTF8.stripOptionalPrefixBS "\"" . UTF8.stripOptionalSuffixBS "\""
 
       stripPadding  =
-        UTF8.stripOptionalSuffixBS "=" -- per RFC7515
+          UTF8.stripOptionalSuffixBS "=" -- per RFC7515
         . UTF8.stripOptionalSuffixBS "=" -- incase they trail
         . UTF8.stripOptionalSuffixBS "=" -- incase they trail
 

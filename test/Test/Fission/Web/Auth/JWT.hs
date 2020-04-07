@@ -48,7 +48,7 @@ tests =
         JSON.decode' (JSON.encode jwt) `shouldBe` Just jwt
 
       describe "format" do
-        itsProp' "contains exactly two '.'s"  \(jwt :: JWT) ->
+        itsProp "contains exactly two '.'s"  100 \(jwt :: JWT) ->
           Lazy.count (fromIntegral $ ord '.') (JSON.encode jwt) `shouldBe` 2
          
         itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
