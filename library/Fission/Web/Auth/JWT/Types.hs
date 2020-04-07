@@ -10,6 +10,8 @@ module Fission.Web.Auth.JWT.Types
 import           Crypto.Error
 import           Crypto.PubKey.Ed25519 (toPublic)
 
+import Data.Aeson as JSON
+
 import Fission.Internal.RSA2048.Pair.Types
 
 import Fission.Internal.Crypto as Crypto
@@ -106,23 +108,34 @@ instance ToJSON JWT where
       signed :: ByteString
       signed =
         case sig of
-          Ed25519 edSig -> stripPadding . encodeUtf8 . toURLEncoding . decodeUtf8Lenient . stripQuotes $ Crypto.toBase64 edSig
-          RS256 (RS256.Signature rsSig) -> stripPadding . encodeUtf8 . toURLEncoding . decodeUtf8Lenient . stripQuotes $ Crypto.toBase64  rsSig
-          -- RS256 (RS256.Signature rsSig) -> toURLEncoding $ toURLEncoding $ Crypto.toBase64 rsSig
+          Ed25519 edSig                 -> encodeSig edSig
+          RS256 (RS256.Signature rsSig) -> encodeSig rsSig
+
+      encodeSig raw =
+        raw
+          |> Crypto.toBase64
+          |> stripQuotes
+          |> decodeUtf8Lenient
+          |> toURLEncoding
+          |> encodeUtf8
+          |> stripPadding
 
       encodeB64 :: ToJSON a => a -> ByteString
       encodeB64 jsonable =
         jsonable
-          |> encode
+          |> JSON.encode
           |> Lazy.toStrict
           |> stripQuotes
           |> B64URL.encode
           |> stripPadding
 
+      toURLEncoding :: Text -> Text
       toURLEncoding = PText.replace "+" "-" . PText.replace "/" "_"
 
+      stripQuotes :: ByteString -> ByteString
       stripQuotes = UTF8.stripOptionalPrefixBS "\"" . UTF8.stripOptionalSuffixBS "\""
 
+      stripPadding :: ByteString -> ByteString
       stripPadding  =
           UTF8.stripOptionalSuffixBS "=" -- per RFC7515
         . UTF8.stripOptionalSuffixBS "=" -- incase they trail
@@ -130,7 +143,7 @@ instance ToJSON JWT where
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
-    case Char8.split '.' . Lazy.fromStrict $ encodeUtf8 txt of
+    case Char8.split '.' . Lazy.fromStrict $ encodeUtf8 $ PText.replace "=" "" txt of
       [rawHeader, rawClaims, rawSig] -> do
         let
           result = do

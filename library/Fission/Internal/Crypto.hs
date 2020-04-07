@@ -3,6 +3,7 @@ module Fission.Internal.Crypto
   , unpack
   , base64ToSignature
   , base64ToEdPubKey
+  , base64ToBytes
   , toBase64
   ) where
 

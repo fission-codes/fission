@@ -9,6 +9,8 @@ import qualified Fission.Key.Store as Key
 import qualified Fission.Web.Auth.JWT.Header.Types    as JWT
 import qualified Fission.Web.Auth.JWT.Claims.Types    as JWT
 import qualified Fission.Web.Auth.JWT.Signature.Types as JWT.Sig
+ 
+import qualified Fission.Internal.Crypto as Crypto
 
 sign ::
      JWT.Header

@@ -49,7 +49,7 @@ setup = do
   if doesExist
     then
       Client.run User.Client.whoami >>= \case
-        Right (User.Username {username}) ->
+        Right User.Username {username} ->
           CLI.Success.loggedInAs username
 
         Left err ->

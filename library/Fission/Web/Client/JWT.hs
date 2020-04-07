@@ -9,6 +9,8 @@ import qualified Data.ByteString.Base64 as Base64
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
+import qualified RIO.ByteString.Lazy as Lazy
+
 import           Servant.Client.Core
  
 import           Fission.Prelude
@@ -63,14 +65,14 @@ mkAuthReq = do
         rawPK = Ed25519.toPublic sk
  
         did = DID
-          { publicKey = Key.Public . decodeUtf8Lenient $ Crypto.unpack rawPK
+          { publicKey = Key.Public $ decodeUtf8Lenient $ Crypto.toBase64 {-Crypto.unpack --} rawPK
           , algorithm = Key.Ed25519
           , method    = DID.Key
           }
 
         claims = JWT.Claims
           { iss = did
-          , nbf = Just time
+          , nbf = Nothing
           , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
 
@@ -102,13 +104,14 @@ defaultHeader =
     }
 
 encodeToken :: JWT -> ByteString
-encodeToken JWT {..} = mconcat
+encodeToken jwt = Lazy.toStrict $ mconcat
   [ "Bearer "
-  , encodePart header
-  , "."
-  , encodePart claims
-  , "."
-  , BS.Lazy.toStrict $ encode sig
+  , encode jwt
+  -- , encodePart header
+  -- , "."
+  -- , encodePart claims
+  -- , "."
+  -- , BS.Lazy.toStrict $ encode sig
   ]
 
 -- FIXME moved to Signature module

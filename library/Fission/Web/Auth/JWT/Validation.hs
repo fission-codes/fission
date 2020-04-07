@@ -2,7 +2,7 @@
 
 module Fission.Web.Auth.JWT.Validation
   ( parse
-  , pureParse
+  , fromBearer
   , checkTime
   , checkSignature
   , checkEd25519Signature
@@ -21,9 +21,11 @@ import qualified Crypto.PubKey.RSA        as Crypto.RSA
 import qualified Crypto.PubKey.RSA.PKCS15 as Crypto.RSA.PKCS
 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text as Text
 
 import           Fission.Prelude
 import qualified Fission.Internal.Crypto as Crypto
+import qualified Fission.Internal.UTF8   as UTF8
 import           Fission.Key             as Key
 import qualified Fission.User            as User
 
@@ -32,13 +34,13 @@ import           Fission.Web.Auth.JWT.Types as JWT
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
 
-parse :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error JWT) -- NOTE: was validate
+parse :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error JWT)
 parse bearerToken = do
   now <- currentTime
-  return (checkSignature =<< checkTime now =<< pureParse bearerToken)
+  return (checkSignature =<< checkTime now =<< fromBearer bearerToken)
 
-pureParse :: Auth.Bearer.Token -> Either JWT.Error JWT
-pureParse (Auth.Bearer.Token bearerToken) =
+fromBearer :: Auth.Bearer.Token -> Either JWT.Error JWT
+fromBearer (Auth.Bearer.Token bearerToken) =
   case eitherDecode (Lazy.fromStrict bearerToken) of
     Left  _   -> Left JWT.ParseError
     Right jwt -> Right jwt
@@ -73,18 +75,19 @@ checkRSA2048Signature jwt@JWT {..} =
 
 checkEd25519Signature :: JWT -> Either JWT.Error JWT
 checkEd25519Signature jwt@JWT {..} =
-  case (cryptoPK, cryptoSig) of
+  case (Crypto.base64ToEdPubKey (encodeUtf8 pk), Crypto.Ed25519.signature sig) of
     (CryptoPassed pk', CryptoPassed sig') ->
       if Crypto.Ed25519.verify pk' content sig'
         then Right jwt
-        else Left IncorrectSignature
+        else trace (Text.pack $ show content <> " / " <> show pk' <> " / " <> show sig') $ Left IncorrectSignature
 
-    _ ->
+    (CryptoFailed _, _) ->
+      Left BadPublicKey
+
+    (_, CryptoFailed _) ->
       Left BadSignature
-     
+    
   where
     Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
-    cryptoPK  = Crypto.base64ToEdPubKey $ encodeUtf8 pk
-    cryptoSig = Crypto.base64ToSignature sig64
-    sig64     = encodeUtf8 $ textDisplay $ displayShow sig
-    content   = Crypto.pack . Lazy.toStrict $ encode header <> "." <> encode claims
+   --  content   = Lazy.toStrict $ encode header <> "." <> encode claims
+    content = Crypto.toBase64 $ Lazy.toStrict $ encode header <> "." <> encode claims
