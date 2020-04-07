@@ -18,6 +18,8 @@ import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Test.Fission.Prelude      as Mock
 import qualified Test.Fission.Web.Auth.JWT as JWT
 
+import qualified Test.Fission.Web.Auth.Signature.Ed25519 as Ed
+
 tests :: IO TestTree
 tests = do
 
@@ -43,6 +45,7 @@ tests = do
 
   testSpec "Fission.Web.Auth" $ parallel do
     describe "JWT" JWT.tests
+    describe "Ed25519 ========================>" Ed.tests
     describe "mkAuth" do
       describe "value" do
         context "user auth" do

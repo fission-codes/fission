@@ -114,7 +114,7 @@ instance ToJSON JWT where
       encodeSig raw =
         raw
           |> Crypto.toBase64
-          |> stripQuotes
+          -- |> stripQuotes
           |> decodeUtf8Lenient
           |> toURLEncoding
           |> encodeUtf8

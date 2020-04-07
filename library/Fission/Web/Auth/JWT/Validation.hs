@@ -90,4 +90,7 @@ checkEd25519Signature jwt@JWT {..} =
   where
     Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
    --  content   = Lazy.toStrict $ encode header <> "." <> encode claims
-    content = Crypto.toBase64 $ Lazy.toStrict $ encode header <> "." <> encode claims
+    content =
+      UTF8.stripOptionalSuffixBS "=" $
+      UTF8.stripOptionalSuffixBS "=" $
+        {-Crypto.toBase64 $ -} Lazy.toStrict $ encode header <> "." <> encode claims

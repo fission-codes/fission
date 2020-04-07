@@ -58,7 +58,7 @@ sign bs = readEd <&> \case
 
 signWith :: Ed.SecretKey -> ByteString -> Ed.Signature
 signWith sk bs =
-  Ed.sign sk (Ed.toPublic sk) (Crypto.pack bs)
+  Ed.sign sk (Ed.toPublic sk) bs -- (Crypto.pack bs)
 
 publicKeyX :: MonadIO m => m (Either Key.Error X.PublicKey)
 publicKeyX = pure . fmap X.toPublic =<< readX
