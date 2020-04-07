@@ -1,4 +1,6 @@
-module Test.Fission.Web.Auth.JWT where
+module Test.Fission.Web.Auth.JWT (tests) where
+
+import RIO.Char (ord)
 
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
@@ -7,26 +9,54 @@ import qualified RIO.ByteString.Lazy        as Lazy
 import           Fission.Web.Auth.JWT
 
 import           Test.Fission.Prelude
+import qualified System.IO.Unsafe as Unsafe
 
-tests :: IO TestTree
+import Fission.User.DID
+
+import Fission.Key.Asymmetric.Algorithm.Types
+import Fission.Web.Auth.JWT.Signature.Types
+import qualified Fission.Web.Auth.JWT.Signature.RS256.Types as RS256
+
+import Fission.Key
+
+import Data.Time.Clock
+
+tests :: SpecWith ()
 tests =
-  testSpec "Fission.Web.Auth.JWT" do
+  describe "Fission.Web.Auth.JWT" do
+    it "foo"
+      let
+        jwt :: JWT = Unsafe.unsafePerformIO (generate arbitrary)
+        json = JSON.encode jwt
+      in
+        JSON.eitherDecode json `shouldBe` Right jwt
+
     describe "serialization" do
+      itsProp' "serialize+deserialize is the identity function" \(jwt :: JWT) ->
+        JSON.decode' (JSON.encode jwt) == Just jwt
+
       describe "format" do
-        itsProp' "contains only valid JWT caharacters" \(jwt :: JWT) ->
-          Lazy.filter (not . containedIn) (JSON.encode jwt) == ""
-        -- [a-zA-Z0-9-_.]+
+        itsProp' "contains exactly two '.'s"  \(jwt :: JWT) ->
+          Lazy.count (fromIntegral $ ord '.') (JSON.encode jwt) == 2
+         
+        itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
+          let
+            encoded = JSON.encode jwt
+            jwt' =
+              encoded
+                |> Lazy.take (Lazy.length encoded - 2)
+                |> Lazy.drop 2
+          in
+            Lazy.filter (not . isValidChar) jwt' == ""
+ 
+isValidChar :: Word8 -> Bool
+isValidChar w8 = Lazy.elem w8 validB64URLChars
 
-        -- itsProp' "contains exactly two '.'s" \
-
-containedIn w8 = Lazy.elem w8 validJWTChars
-
-validJWTChars :: Lazy.ByteString
-validJWTChars = Lazy.Char8.pack chars
+validB64URLChars :: Lazy.ByteString
+validB64URLChars = Lazy.Char8.pack chars
   where
     chars :: [Char]
-    chars =
-           ['a'..'z']
-        <> ['A'..'Z']
-        <> ['0'..'9']
-        <> ['_', '-', '.']
+    chars = ['a'..'z']
+         <> ['A'..'Z']
+         <> ['0'..'9']
+         <> ['_', '-', '.']

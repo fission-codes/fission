@@ -82,11 +82,11 @@ stripOptionalPrefix pfx txt = maybe txt id $ Text.stripPrefix pfx txt
 stripOptionalSuffix :: Text -> Text -> Text
 stripOptionalSuffix sfx txt = maybe txt id $ Text.stripSuffix sfx txt
 
-stripOptionalPrefixBS :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
-stripOptionalPrefixBS pfx bs = maybe bs id $ Lazy.stripPrefix pfx bs
+stripOptionalPrefixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
+stripOptionalPrefixBS pfx bs = maybe bs id $ Strict.stripPrefix pfx bs
  
-stripOptionalSuffixBS :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
-stripOptionalSuffixBS sfx bs = maybe bs id $ Lazy.stripSuffix sfx bs
+stripOptionalSuffixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
+stripOptionalSuffixBS sfx bs = maybe bs id $ Strict.stripSuffix sfx bs
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 

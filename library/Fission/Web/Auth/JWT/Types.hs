@@ -7,15 +7,21 @@ module Fission.Web.Auth.JWT.Types
   , module Fission.Web.Auth.JWT.Header.Types
   ) where
 
+import           Crypto.Error
 import           Crypto.PubKey.Ed25519 (toPublic)
-import qualified Crypto.PubKey.RSA     as RSA
+
+import Fission.Internal.Crypto as Crypto
+
+import qualified Data.ByteString.Base64.URL as B64URL
+ 
+import           Fission.Web.Auth.JWT.Signature.Types       as Signature
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.List            as List
 import qualified RIO.Text            as Text
-
-import qualified System.IO.Unsafe as Unsafe
+import RIO.Char (ord)
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
@@ -23,7 +29,7 @@ import qualified Fission.Internal.UTF8 as UTF8
 import qualified Fission.Key as Key
  
 import qualified Fission.Key.Asymmetric.Algorithm.Types as Alg
-
+import qualified Data.ByteString.Base64.URL.Lazy as B64
 import Fission.User.DID.Types
 
 import           Fission.Web.Auth.JWT.Claims.Types
@@ -34,6 +40,8 @@ import qualified Fission.Web.Auth.JWT.Signature.RS256   as RS256
 import qualified Fission.Web.Auth.JWT.Signature.Ed25519 as Ed25519
 
 import Fission.Internal.Orphanage.Ed25519.SecretKey ()
+ 
+import qualified RIO.Text.Partial as PText
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --    and some specifics (claims, etc) for Fission's use case
@@ -53,17 +61,10 @@ instance Arbitrary JWT where
         sk <- arbitrary
 
         let
-          pk =
-            sk
-              |> toPublic
-              |> show
-              |> Text.pack
-              |> UTF8.stripOptionalPrefix "\""
-              |> UTF8.stripOptionalSuffix "\""
-              |> Key.Public
+          pkBS :: ByteString = Crypto.toBase64 $ toPublic sk
 
           did = DID
-            { publicKey = pk
+            { publicKey = Key.Public $ decodeUtf8Lenient pkBS
             , algorithm = Alg.Ed25519
             , method    = Key
             }
@@ -73,47 +74,29 @@ instance Arbitrary JWT where
          
         return JWT {..}
 
-      Alg.RSA2048 -> do
-        exp <- elements [3, 5, 17, 257, 65537]
- 
-        let
-          (pk', sk) = Unsafe.unsafePerformIO $ RSA.generate 2048 exp
-
-          pk =
-            pk'
-              |> show
-              |> Text.pack
-              |> UTF8.stripOptionalPrefix "\""
-              |> UTF8.stripOptionalSuffix "\""
-              |> Key.Public
-
-          did = DID
-            { publicKey = pk
-            , algorithm = Alg.RSA2048
-            , method    = Key
-            }
-
-          claims = claims' { iss = did }
-       
-        return (Unsafe.unsafePerformIO (RS256.sign header claims sk)) >>= \case
-          Right sig -> return JWT {..}
-          Left  _   -> arbitrary -- try again
+      Alg.RSA2048 -> arbitrary -- skip for now ()
 
 instance ToJSON JWT where
-  toJSON JWT {..} = String encoded
+  toJSON JWT {..} = String . decodeUtf8Lenient $
+    encodeB64 header <> "." <> encodeB64 claims <> "." <> signed
     where
-      encoded :: Text
-      encoded = decodeUtf8Lenient (toStrictBytes payload) <> signed
-
-      signed :: Text
+      signed :: ByteString
       signed =
-        UTF8.stripOptionalPrefix "\"" . UTF8.stripOptionalSuffix "\"" $
-          case sig of
-            Ed25519 edSig -> Text.pack $ show edSig
-            RS256 (RS256.Signature rsSig) -> decodeUtf8Lenient rsSig
+        case sig of
+          Ed25519 edSig -> Crypto.toBase64 edSig
+          RS256 (RS256.Signature rsSig) -> encodeB64 $ decodeUtf8Lenient rsSig
 
-      payload :: Lazy.ByteString
-      payload = encode header <> "." <> encode claims <> "."
+      encodeB64 :: ToJSON a => a -> ByteString
+      encodeB64 jsonable =
+        jsonable
+          |> encode
+          |> Lazy.toStrict
+          |> UTF8.stripOptionalPrefixBS "\""
+          |> UTF8.stripOptionalSuffixBS "\""
+          |> B64URL.encode
+          |> UTF8.stripOptionalSuffixBS "=" -- per RFC7515
+          |> UTF8.stripOptionalSuffixBS "=" -- incase they trail
+          |> UTF8.stripOptionalSuffixBS "=" -- incase they trail
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
@@ -121,9 +104,9 @@ instance FromJSON JWT where
       [rawHeader, rawClaims, rawSig] -> do
         let
           result = do
-            header <- eitherDecode rawHeader
-            claims <- eitherDecode rawClaims
-            sig    <- Signature.parse (alg header) rawSig
+            header <- foo rawHeader
+            claims <- foo rawClaims
+            sig    <- Signature.parse (alg header) $ wrappy {-}$ quux -} rawSig
             return JWT {..}
 
         case result of
@@ -132,3 +115,39 @@ instance FromJSON JWT where
 
       _ ->
         fail $ show txt <> " is not a valid JWT.Token"
+
+foo :: FromJSON x => Lazy.ByteString -> Either String x
+foo bs = eitherDecode $ B64.decodeLenient (Lazy.pack padded)
+  where
+    n :: Int
+    n = rem (fromIntegral $ Lazy.length bs) 4
+
+    unpacked :: [Word8]
+    unpacked = Lazy.unpack bs
+ 
+    padded :: [Word8]
+    padded = unpacked <> take n (List.repeat $ fromIntegral $ ord '=')
+
+wrappy x = "\"" <> x <> "\""
+
+bar bs = B64.decodeLenient (Lazy.pack padded)
+  where
+    n :: Int
+    n = rem (fromIntegral $ Lazy.length bs) 4
+
+    unpacked :: [Word8]
+    unpacked = Lazy.unpack bs
+
+    padded :: [Word8]
+    padded = unpacked <> take n (List.repeat $ fromIntegral $ ord '=')
+
+quux bs = (Lazy.pack padded)
+  where
+    n :: Int
+    n = rem (fromIntegral $ Lazy.length bs) 2 -- 4
+
+    unpacked :: [Word8]
+    unpacked = Lazy.unpack bs
+
+    padded :: [Word8]
+    padded = unpacked <> take n (List.repeat $ fromIntegral $ ord '=')

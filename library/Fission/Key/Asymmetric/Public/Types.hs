@@ -3,13 +3,15 @@ module Fission.Key.Asymmetric.Public.Types
   , Algorithm (..)
   ) where
 
-import           Data.Binary as Binary
-import qualified RIO.Text    as Text
+import           Data.Binary    as Binary
+import           Data.ByteArray
+
+import qualified RIO.Text as Text hiding (length)
 
 import           Data.Swagger
 import           Database.Persist.Postgresql
 
-import           Fission.Prelude
+import           Fission.Prelude hiding (length)
 import           Fission.Key.Asymmetric.Algorithm.Types
 
 newtype Public = Public { publicKey :: Text }
@@ -46,3 +48,7 @@ instance ToSchema Public where
       |> description ?~ "A public key"
       |> NamedSchema (Just "PublicKey")
       |> pure
+
+instance ByteArrayAccess Public where
+  length        (Public txt) = length $ encodeUtf8 txt
+  withByteArray (Public txt) = withByteArray $ encodeUtf8 txt

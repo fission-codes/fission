@@ -29,8 +29,8 @@ import           Fission.Key.Error as Key
 
 create :: MonadIO m => m (Either Key.Error ())
 create = exists >>= \case
-  True -> return <| Left Key.AlreadyExists
-  False -> return . Right =<< forceCreate
+  True  -> return $ Left Key.AlreadyExists
+  False -> Right <$> forceCreate
 
 forceCreate :: MonadIO m => m ()
 forceCreate = do
@@ -40,7 +40,7 @@ forceCreate = do
 delete :: MonadIO m => m ()
 delete = exists >>= \case
   False -> return ()
-  True -> removeFile =<< location
+  True  -> removeFile =<< location
 
 writeKey :: MonadIO m => X.SecretKey -> m ()
 writeKey key = do
@@ -52,9 +52,9 @@ sign ::
   MonadIO m
   => ByteString
   -> m (Either Key.Error Ed.Signature)
-sign bs = readEd >>= \case
-  Left err -> return <| Left err
-  Right sk -> return <| Right <| signWith sk bs
+sign bs = readEd <&> \case
+  Left err -> Left err
+  Right sk -> Right $ signWith sk bs
 
 signWith :: Ed.SecretKey -> ByteString -> Ed.Signature
 signWith sk bs =
@@ -74,25 +74,25 @@ readEd = readKey Ed.secretKey
 
 readKey ::
   MonadIO m
-  =>(BA.ScrubbedBytes -> CryptoFailable a)
+  => (BA.ScrubbedBytes -> CryptoFailable a)
   -> m (Either Key.Error a)
-readKey f = readBytes >>= \case
-  Left err -> return <| Left err
-  Right bytes -> return <| parseKey f bytes
+readKey f = readBytes <&> \case
+  Left  err   -> Left err
+  Right bytes -> parseKey f bytes
 
 readBytes :: MonadIO m => m (Either Key.Error BA.ScrubbedBytes)
 readBytes = exists >>= \case
-  False -> return <| Left Key.DoesNotExist
+  False -> return $ Left Key.DoesNotExist
   True -> do
     path <- location
     bs <- readFileBinary path
-    return . Right <| Crypto.pack bs
+    return . Right $ Crypto.pack bs
 
 parseKey :: (BA.ScrubbedBytes -> CryptoFailable a) -> BA.ScrubbedBytes -> Either Key.Error a
 parseKey f bytes =
   case f bytes of
-    CryptoPassed sk -> Right sk
-    CryptoFailed err -> Left <| Key.ParseError err
+    CryptoPassed sk  -> Right sk
+    CryptoFailed err -> Left $ Key.ParseError err
 
 exists :: MonadIO m => m Bool
 exists = doesFileExist =<< location
@@ -100,4 +100,4 @@ exists = doesFileExist =<< location
 location :: MonadIO m => m FilePath
 location = do
   home <- getHomeDirectory
-  return <| home </> ".ssh" </> "fission"
+  return $ home </> ".ssh" </> "fission"

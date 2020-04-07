@@ -17,7 +17,7 @@ data Signature
 instance ToJSON Signature where
   toJSON = \case
     Ed25519 sig -> toJSON sig
-    RS256   bs  -> toJSON  bs
+    RS256   sig -> toJSON sig
 
 instance ByteArrayAccess Signature where
   length = \case
