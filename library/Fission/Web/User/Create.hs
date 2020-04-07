@@ -6,6 +6,7 @@ module Fission.Web.User.Create
   ) where
 
 import           Servant
+import qualified RIO.Text as Text
 
 import           Fission.Prelude
 
@@ -31,11 +32,13 @@ withDID ::
   ( MonadDNSLink   m
   , MonadTime      m
   , MonadDB      t m
+  , MonadLogger m
   , User.Creator t
   )
   => DID
   -> ServerT API m
-withDID DID {..} User.Registration {username, email} = do
+withDID did@(DID {..}) User.Registration {username, email} = do
+  logDebug $ Text.pack $ show did
   Web.Err.ensureM =<< runDBNow (User.create username publicKey algorithm email)
   return NoContent
 

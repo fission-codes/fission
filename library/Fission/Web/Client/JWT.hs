@@ -65,7 +65,7 @@ mkAuthReq = do
         rawPK = Ed25519.toPublic sk
  
         did = DID
-          { publicKey = Key.Public $ decodeUtf8Lenient $ Crypto.toBase64 {-Crypto.unpack --} rawPK
+          { publicKey = Key.Public $ decodeUtf8Lenient $ Crypto.toBase64 $ Crypto.unpack rawPK
           , algorithm = Key.Ed25519
           , method    = DID.Key
           }
@@ -76,6 +76,7 @@ mkAuthReq = do
           , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
 
+        -- FIXME TODO THE ISSUE *MUST* BE HERE
         encoded =
           sk
             |> Key.signWith
@@ -92,7 +93,8 @@ create claims signF = JWT {..}
     header     = defaultHeader
     headerRaw  = encodePart header
     claimsRaw  = encodePart claims
-    toSign     = headerRaw <> "." <> claimsRaw
+    toSign     = Lazy.toStrict $ encode header <> "." <> encode claims
+    -- toSign     = headerRaw <> "." <> claimsRaw
     sig        = JWT.Signature.Ed25519 $ signF toSign
 
 defaultHeader :: JWT.Header

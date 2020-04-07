@@ -51,7 +51,7 @@ instance MonadLogger FissionBase where
 instance MonadWebClient FissionBase where
   run cmd = do
     Client.Runner runner <- asks fissionAPI
-    liftIO <| runner cmd
+    liftIO $ runner cmd
 
 instance MonadLocalIPFS FissionBase where
   runLocal opts arg = do
