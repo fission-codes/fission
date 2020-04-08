@@ -8,7 +8,7 @@ module Fission.Web.Auth.JWT.Types
   ) where
 
 import qualified System.IO.Unsafe as Unsafe
-
+ 
 import           Crypto.PubKey.Ed25519 (toPublic)
 
 import qualified Data.ByteString.Base64.URL as B64URL
@@ -37,7 +37,7 @@ import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
 import           Fission.Internal.RSA2048.Pair.Types
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
---    and some specifics (claims, etc) for Fission's use case
+--     and some specifics (claims, etc) for Fission's use case
 data JWT = JWT
   { header :: !Header
   , claims :: !Claims
@@ -85,7 +85,7 @@ genRSA header claims' = do
 
     claims = claims' { iss = did }
 
-  return (Unsafe.unsafePerformIO (RS256.sign header claims sk)) >>= \case
+  case Unsafe.unsafePerformIO $ RS256.sign header claims sk of
     Right sig -> return JWT {..}
     Left  _   -> genRSA header claims
 
