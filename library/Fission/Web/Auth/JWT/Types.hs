@@ -110,7 +110,7 @@ instance ToJSON JWT where
         jsonable
           |> encode
           |> Lazy.toStrict
-          |> UTF8.stripQuotes
+          |> UTF8.stripQuotesBS
           |> BS.B64.URL.encode
           |> UTF8.stripPadding
 

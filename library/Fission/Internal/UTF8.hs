@@ -9,10 +9,14 @@ module Fission.Internal.UTF8
   , fromRawBytes
   , stripOptionalPrefix
   , stripOptionalPrefixBS
+  , stripOptionalPrefixLazyBS
   , stripOptionalSuffix
   , stripOptionalSuffixBS
+  , stripOptionalSuffixLazyBS
   , stripPadding
   , stripQuotes
+  , stripQuotesBS
+  , stripQuotesLazyBS
   , stripN
   , stripNBS
   , stripNewline
@@ -90,14 +94,27 @@ stripOptionalPrefixBS pfx bs = maybe bs id $ Strict.stripPrefix pfx bs
 stripOptionalSuffixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
 stripOptionalSuffixBS sfx bs = maybe bs id $ Strict.stripSuffix sfx bs
 
+stripOptionalPrefixLazyBS :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
+stripOptionalPrefixLazyBS pfx bs = maybe bs id $ Lazy.stripPrefix pfx bs
+
+stripOptionalSuffixLazyBS :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
+stripOptionalSuffixLazyBS sfx bs = maybe bs id $ Lazy.stripSuffix sfx bs
+
 stripPadding :: ByteString -> ByteString
 stripPadding  =
     stripOptionalSuffixBS "=" -- per RFC7515
   . stripOptionalSuffixBS "=" -- incase they trail
   . stripOptionalSuffixBS "=" -- incase they trail
 
-stripQuotes :: ByteString -> ByteString
-stripQuotes = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
+stripQuotes :: Text -> Text
+stripQuotes = stripOptionalPrefix "\"" . stripOptionalSuffix "\""
+
+stripQuotesBS :: ByteString -> ByteString
+stripQuotesBS = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
+
+stripQuotesLazyBS :: Lazy.ByteString -> Lazy.ByteString
+stripQuotesLazyBS = stripOptionalPrefixLazyBS "\"" . stripOptionalSuffixLazyBS "\""
+
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 

@@ -15,8 +15,9 @@ import           Fission.Internal.Fixture.User   as Fixture
 import           Fission.Web.Auth
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
  
-import           Test.Fission.Prelude      as Mock
-import qualified Test.Fission.Web.Auth.JWT as JWT
+import           Test.Fission.Prelude         as Mock
+import qualified Test.Fission.Web.Auth.JWT    as JWT
+import qualified Test.Fission.Web.Auth.Bearer as Bearer
 
 import qualified Test.Fission.Web.Auth.Signature.Ed25519 as Ed
 
@@ -44,8 +45,9 @@ tests = do
   -----------
 
   testSpec "Fission.Web.Auth" $ parallel do
-    JWT.tests
     Ed.tests
+    JWT.tests
+    Bearer.tests
 
     describe "mkAuth" do
       describe "value" do

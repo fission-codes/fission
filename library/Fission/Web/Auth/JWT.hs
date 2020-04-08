@@ -37,7 +37,7 @@ handler ::
 handler token@(Auth.Bearer.Token rawToken) =
   parse token >>= \case
     Left err -> do
-      logWarn $ "Failed login with token " <> rawToken
+      logWarn $ "Failed login with token " <> encode rawToken
       throwM err
 
     Right JWT {claims = Claims {iss = User.DID {publicKey}}} -> do

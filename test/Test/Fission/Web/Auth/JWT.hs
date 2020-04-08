@@ -1,7 +1,5 @@
 module Test.Fission.Web.Auth.JWT (tests) where
 
-import qualified System.IO.Unsafe as Unsafe
-
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
 import qualified RIO.ByteString.Lazy        as Lazy
@@ -18,7 +16,7 @@ tests =
         JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
 
       describe "format" do
-        itsProp "contains exactly two '.'s"  100 \(jwt :: JWT) ->
+        itsProp' "contains exactly two '.'s" \(jwt :: JWT) ->
           jwt
             |> JSON.encode
             |> Lazy.count (fromIntegral $ ord '.')
