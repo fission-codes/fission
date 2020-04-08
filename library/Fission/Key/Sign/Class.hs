@@ -10,4 +10,4 @@ class Signer secret where
     MonadRandom m
     => secret       -- ^ Shared secret or private key
     -> ByteString   -- ^ Message to sign
-    -> m ByteString -- ^ Siganture
+    -> m ByteString -- ^ Signature
