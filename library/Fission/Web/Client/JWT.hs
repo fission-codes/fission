@@ -4,13 +4,8 @@ module Fission.Web.Client.JWT
   , getRegisterAuth
   ) where
 
-import qualified Data.ByteString.Lazy   as BS.Lazy
-import qualified Data.ByteString.Base64 as Base64
-
 import qualified Crypto.PubKey.Ed25519 as Ed25519
-
-import qualified RIO.ByteString.Lazy as Lazy
-
+import qualified RIO.ByteString.Lazy   as Lazy
 import           Servant.Client.Core
  
 import           Fission.Prelude
@@ -25,12 +20,12 @@ import           Fission.Web.Auth.JWT.Types            as JWT
 import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
 import qualified Fission.Web.Auth.JWT.Signature.Types  as JWT.Signature
 
-import qualified Fission.Internal.Crypto as Crypto
 import qualified Fission.Internal.Orphanage.ClientM ()
+import qualified Fission.Internal.Base64 as B64
 
 getSigAuth ::
-  ( MonadIO m
-  , MonadTime m
+  ( MonadIO    m
+  , MonadTime  m
   , MonadThrow m
   )
   => m (AuthenticatedRequest Auth.HigherOrder)
@@ -39,8 +34,8 @@ getSigAuth = mkAuthReq >>= \case
   Right authReq -> return (mkAuthenticatedRequest Nothing \_ -> authReq)
 
 getRegisterAuth ::
-  ( MonadIO m
-  , MonadTime m
+  ( MonadIO    m
+  , MonadTime  m
   , MonadThrow m
   )
   => m (AuthenticatedRequest Auth.RegisterDID)
@@ -65,7 +60,7 @@ mkAuthReq = do
         rawPK = Ed25519.toPublic sk
  
         did = DID
-          { publicKey = Key.Public $ decodeUtf8Lenient $ Crypto.toBase64 $ Crypto.unpack rawPK
+          { publicKey = Key.Public . decodeUtf8Lenient $ B64.toB64ByteString rawPK
           , algorithm = Key.Ed25519
           , method    = DID.Key
           }
@@ -76,7 +71,6 @@ mkAuthReq = do
           , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
 
-        -- FIXME TODO THE ISSUE *MUST* BE HERE
         encoded =
           sk
             |> Key.signWith
@@ -90,12 +84,9 @@ mkAuthReq = do
 create :: JWT.Claims -> (ByteString -> Ed25519.Signature) -> JWT
 create claims signF = JWT {..}
   where
-    header     = defaultHeader
-    headerRaw  = encodePart header
-    claimsRaw  = encodePart claims
-    toSign     = Lazy.toStrict $ encode header <> "." <> encode claims
-    -- toSign     = headerRaw <> "." <> claimsRaw
-    sig        = JWT.Signature.Ed25519 $ signF toSign
+    header = defaultHeader
+    toSign = Lazy.toStrict $ encode header <> "." <> encode claims
+    sig    = JWT.Signature.Ed25519 $ signF toSign
 
 defaultHeader :: JWT.Header
 defaultHeader =
@@ -106,20 +97,4 @@ defaultHeader =
     }
 
 encodeToken :: JWT -> ByteString
-encodeToken jwt = Lazy.toStrict $ mconcat
-  [ "Bearer "
-  , encode jwt
-  -- , encodePart header
-  -- , "."
-  -- , encodePart claims
-  -- , "."
-  -- , BS.Lazy.toStrict $ encode sig
-  ]
-
--- FIXME moved to Signature module
-encodePart :: ToJSON a => a -> ByteString
-encodePart part =
-  part
-    |> encode
-    |> BS.Lazy.toStrict
-    |> Base64.encode
+encodeToken jwt = Lazy.toStrict $ "Bearer " <> encode jwt

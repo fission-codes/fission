@@ -7,15 +7,14 @@ module Fission.Web.Auth.JWT.Types
   , module Fission.Web.Auth.JWT.Header.Types
   ) where
 
-import           Crypto.Error
 import           Crypto.PubKey.Ed25519 (toPublic)
 
 import Data.Aeson as JSON
 
+import qualified Fission.Internal.Base64 as B64
+
 import Fission.Internal.RSA2048.Pair.Types
 
-import Fission.Internal.Crypto as Crypto
-import qualified Crypto.PubKey.RSA     as RSA
 import qualified System.IO.Unsafe as Unsafe
 import qualified Data.ByteString.Base64.URL as B64URL
  
@@ -25,7 +24,6 @@ import qualified Data.ByteString.Lazy.Char8 as Char8
 
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.List            as List
-import qualified RIO.Text            as Text
 import RIO.Char (ord)
 
 import           Fission.Prelude
@@ -66,7 +64,7 @@ instance Arbitrary JWT where
         sk <- arbitrary
 
         let
-          pkBS :: ByteString = Crypto.toBase64 $ toPublic sk
+          pkBS :: ByteString = B64.toB64ByteString $ toPublic sk
 
           did = DID
             { publicKey = Key.Public $ decodeUtf8Lenient pkBS
@@ -99,7 +97,7 @@ genRSA header claims' = do
 
   return (Unsafe.unsafePerformIO (RS256.sign header claims sk)) >>= \case
     Right sig -> return JWT {..}
-    Left  _   -> genRSA header claims -- try again
+    Left  _   -> genRSA header claims
 
 instance ToJSON JWT where
   toJSON JWT {..} = String . decodeUtf8Lenient $
@@ -111,16 +109,15 @@ instance ToJSON JWT where
           Ed25519 edSig                 -> encodeSig edSig
           RS256 (RS256.Signature rsSig) -> encodeSig rsSig
 
-      encodeSig raw =
+      encodeSig raw = -- FIXME extract
         raw
-          |> Crypto.toBase64
-          -- |> stripQuotes
+          |> B64.toB64ByteString
           |> decodeUtf8Lenient
           |> toURLEncoding
           |> encodeUtf8
           |> stripPadding
 
-      encodeB64 :: ToJSON a => a -> ByteString
+      encodeB64 :: ToJSON a => a -> ByteString -- FIXME extract
       encodeB64 jsonable =
         jsonable
           |> JSON.encode
@@ -135,7 +132,7 @@ instance ToJSON JWT where
       stripQuotes :: ByteString -> ByteString
       stripQuotes = UTF8.stripOptionalPrefixBS "\"" . UTF8.stripOptionalSuffixBS "\""
 
-      stripPadding :: ByteString -> ByteString
+      stripPadding :: ByteString -> ByteString -- FIXME extract!
       stripPadding  =
           UTF8.stripOptionalSuffixBS "=" -- per RFC7515
         . UTF8.stripOptionalSuffixBS "=" -- incase they trail
@@ -147,9 +144,9 @@ instance FromJSON JWT where
       [rawHeader, rawClaims, rawSig] -> do
         let
           result = do
-            header <- foo rawHeader
-            claims <- foo rawClaims
-            sig    <- Signature.parse (alg header) $ wrappy $ {- quux -} rawSig
+            header <- addPadding rawHeader
+            claims <- addPadding rawClaims
+            sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
             return JWT {..}
 
         case result of
@@ -159,38 +156,12 @@ instance FromJSON JWT where
       _ ->
         fail $ show txt <> " is not a valid JWT.Token"
 
-foo :: FromJSON x => Lazy.ByteString -> Either String x
-foo bs = eitherDecode $ B64.decodeLenient (Lazy.pack padded)
+-- FIXME extract... but alos double check it's actually required. I think t's probbaly not
+addPadding :: FromJSON x => Lazy.ByteString -> Either String x
+addPadding bs = eitherDecode $ B64.decodeLenient (Lazy.pack padded)
   where
     n :: Int
     n = rem (fromIntegral $ Lazy.length bs) 4
 
-    unpacked :: [Word8]
-    unpacked = Lazy.unpack bs
- 
     padded :: [Word8]
-    padded = unpacked <> take n (List.repeat $ fromIntegral $ ord '=')
-
-wrappy x = "\"" <> x <> "\""
-
-bar bs = B64.decodeLenient (Lazy.pack padded)
-  where
-    n :: Int
-    n = rem (fromIntegral $ Lazy.length bs) 4
-
-    unpacked :: [Word8]
-    unpacked = Lazy.unpack bs
-
-    padded :: [Word8]
-    padded = unpacked <> take n (List.repeat $ fromIntegral $ ord '=')
-
-quux bs = (Lazy.pack padded)
-  where
-    n :: Int
-    n = rem (fromIntegral $ Lazy.length bs)  4
-
-    unpacked :: [Word8]
-    unpacked = Lazy.unpack bs
-
-    padded :: [Word8]
-    padded = unpacked <> take n (List.repeat $ fromIntegral $ ord '=')
+    padded = Lazy.unpack bs <> take n (List.repeat $ fromIntegral $ ord '=')

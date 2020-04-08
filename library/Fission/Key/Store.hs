@@ -12,20 +12,21 @@ module Fission.Key.Store
   , location
   ) where
 
-import           Fission.Prelude
 import           RIO.Directory
 import           RIO.FilePath
 import           RIO.File
 
 import qualified Crypto.PubKey.Curve25519 as X
-import qualified Crypto.PubKey.Ed25519 as Ed
+import qualified Crypto.PubKey.Ed25519    as Ed
 import           Crypto.Error
-
-import qualified Fission.Internal.Crypto as Crypto
 
 import qualified Data.ByteArray as BA
 
+import           Fission.Prelude
 import           Fission.Key.Error as Key
+ 
+import qualified Fission.Internal.Base64          as B64
+import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 create :: MonadIO m => m (Either Key.Error ())
 create = exists >>= \case
@@ -45,20 +46,15 @@ delete = exists >>= \case
 writeKey :: MonadIO m => X.SecretKey -> m ()
 writeKey key = do
   path <- location
-  let bs = Crypto.unpack key
-  writeBinaryFile path bs
+  writeBinaryFile path $ B64.toByteString key
 
-sign ::
-  MonadIO m
-  => ByteString
-  -> m (Either Key.Error Ed.Signature)
+sign :: MonadIO m => ByteString -> m (Either Key.Error Ed.Signature)
 sign bs = readEd <&> \case
   Left err -> Left err
   Right sk -> Right $ signWith sk bs
 
 signWith :: Ed.SecretKey -> ByteString -> Ed.Signature
-signWith sk bs =
-  Ed.sign sk (Ed.toPublic sk) bs -- (Crypto.pack bs)
+signWith sk bs = Ed.sign sk (Ed.toPublic sk) bs
 
 publicKeyX :: MonadIO m => m (Either Key.Error X.PublicKey)
 publicKeyX = pure . fmap X.toPublic =<< readX
@@ -82,11 +78,13 @@ readKey f = readBytes <&> \case
 
 readBytes :: MonadIO m => m (Either Key.Error BA.ScrubbedBytes)
 readBytes = exists >>= \case
-  False -> return $ Left Key.DoesNotExist
+  False ->
+    return $ Left Key.DoesNotExist
+   
   True -> do
     path <- location
-    bs <- readFileBinary path
-    return . Right $ Crypto.pack bs
+    bs   <- readFileBinary path
+    return . Right $ B64.Scrubbed.scrub bs
 
 parseKey :: (BA.ScrubbedBytes -> CryptoFailable a) -> BA.ScrubbedBytes -> Either Key.Error a
 parseKey f bytes =

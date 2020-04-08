@@ -36,6 +36,8 @@ instance ToJSON Claims where
     , "exp" .= toSeconds exp
     ]
 
+-- FIXME move to a time module
+roundUTC :: UTCTime -> UTCTime
 roundUTC = fromSeconds . toSeconds
 
 toSeconds :: UTCTime -> Int

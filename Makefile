@@ -46,9 +46,9 @@ ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
 
 quality:
-	$(stack) build --test --fast $(package)
+	make test && make lint
 
-linter:
+lint:
 	$(stack) test :fission-lint --fast
 
 docs:
