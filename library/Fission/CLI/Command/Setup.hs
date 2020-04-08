@@ -1,7 +1,6 @@
 -- | Setup command
 module Fission.CLI.Command.Setup (command, setup) where
 
-
 import           Options.Applicative.Simple (addCommand)
 import qualified RIO.Text as Text
 
