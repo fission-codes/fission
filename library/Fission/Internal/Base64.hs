@@ -9,10 +9,8 @@ import qualified Data.ByteArray         as BA
 
 import           Fission.Prelude
 
--- was pack ... shit... actually it was toBase64
 toB64ByteString :: BA.ByteArrayAccess a => a -> ByteString
 toB64ByteString = BS64.encode . toByteString
 
--- was unpack
 toByteString :: BA.ByteArrayAccess a => a -> ByteString
 toByteString = BS.pack . BA.unpack

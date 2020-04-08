@@ -120,11 +120,8 @@ upgradeAccount auth = do
     createKey
     UTF8.putText "📝 Upgrading your account... "
     Key.publicKeyEd >>= \case
-      Left err ->
-        CLI.Error.put err "Could not read key file"
-
-      Right cryptoPK ->
-        updateDID auth . Key.Public . Text.pack $ show cryptoPK
+      Left  err -> CLI.Error.put err "Could not read key file"
+      Right pk  -> updateDID auth . Key.Public . Text.pack $ show pk
 
 createKey :: MonadIO m => m ()
 createKey = do
