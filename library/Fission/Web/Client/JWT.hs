@@ -43,21 +43,18 @@ getRegisterAuth = mkAuthReq >>= \case
   Left err -> throwM err
   Right authReq -> return (mkAuthenticatedRequest () \_ -> authReq)
 
-mkAuthReq ::
-  ( MonadIO m
-  , MonadTime m
-  )
-  => m (Either Key.Error (Request -> Request))
+mkAuthReq :: (MonadIO m, MonadTime m) => m (Either Key.Error (Request -> Request))
 mkAuthReq = do
   time <- currentTime
  
   Key.readEd <&> \case
-    Left err ->
-      Left err
-     
-    Right sk -> Right \req ->
-      let
-        rawPK = Ed25519.toPublic sk
+    Left err -> Left err
+    Right sk -> Right \req -> addHeader "Authorization" encoded req
+      where
+        encoded = decodeUtf8Lenient . Lazy.toStrict $ "Bearer " <> encode JWT {..}
+        sig     = JWT.Signature.Ed25519 $ Key.signWith sk toSign
+        toSign  = Lazy.toStrict $ encode header <> "." <> encode claims
+        rawPK   = Ed25519.toPublic sk
  
         did = DID
           { publicKey = Key.Public . decodeUtf8Lenient $ B64.toB64ByteString rawPK
@@ -71,30 +68,9 @@ mkAuthReq = do
           , exp = addUTCTime (secondsToNominalDiffTime 300) time
           }
 
-        encoded =
-          sk
-            |> Key.signWith
-            |> create claims
-            |> encodeToken
-            |> decodeUtf8Lenient
-      in
-        addHeader "Authorization" encoded req
+        header = JWT.Header
+          { typ = JWT.Typ.JWT
+          , alg = Key.Ed25519
+          , cty = Nothing
+          }
 
--- FIXME: MOVED TO SIGNATURE MODULE
-create :: JWT.Claims -> (ByteString -> Ed25519.Signature) -> JWT
-create claims signF = JWT {..}
-  where
-    header = defaultHeader
-    toSign = Lazy.toStrict $ encode header <> "." <> encode claims
-    sig    = JWT.Signature.Ed25519 $ signF toSign
-
-defaultHeader :: JWT.Header
-defaultHeader =
-  JWT.Header
-    { typ = JWT.Typ.JWT
-    , alg = Key.Ed25519
-    , cty = Nothing
-    }
-
-encodeToken :: JWT -> ByteString
-encodeToken jwt = Lazy.toStrict $ "Bearer " <> encode jwt
