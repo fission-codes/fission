@@ -4,10 +4,10 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
 import qualified RIO.ByteString.Lazy        as Lazy
 
-import RIO.Text as Text
-
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 import           Fission.Web.Auth.JWT
+ 
+import qualified Fission.Internal.UTF8 as UTF8
 
 import           Test.Fission.Prelude
 
@@ -25,6 +25,12 @@ tests =
             |> Lazy.count (fromIntegral $ ord '"')
             |> shouldBe 2
 
+        itsProp' "starts with Bearer" \(bearer :: Bearer.Token) ->
+          bearer
+            |> JSON.encode
+            |> Lazy.isPrefixOf "Bearer "
+            |> shouldBe True
+
         itsProp' "contains only valid base64 URL characters" \(bearer :: Bearer.Token) ->
           let
             encoded = JSON.encode bearer
@@ -36,9 +42,18 @@ tests =
               |> shouldBe mempty
 
       describe "incoming" do
-        itsProp' "can handle quotes (Postel's Law)" \(jwt :: JWT) ->
-          trace (Text.pack $ show $ "\"Bearer " <> JSON.encode jwt <> "\"") $
-                eitherDecode ("\"Bearer " <> JSON.encode jwt <> "\"") `shouldBe` Right (Bearer.Token jwt)
+        describe "Postel's Law" do
+          itsProp' "lowercase 'bearer'" \(jwt :: JWT) ->
+            let
+              encoded = "bearer " <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\""
+            in
+              eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
+
+          itsProp' "escaped internal quotes" \(jwt :: JWT) ->
+            let
+              encoded = "\"Bearer \\\"" <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\\\"\""
+            in
+              eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
 
 isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 (" " <> validB64URLChars)
