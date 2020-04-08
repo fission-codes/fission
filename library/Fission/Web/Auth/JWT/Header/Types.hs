@@ -37,7 +37,7 @@ instance ToJSON Header where
 
 instance FromJSON Header where
   parseJSON = withObject "JWT.Header" \obj -> do
-    typ <- obj .: "typ"
-    alg <- obj .: "alg"
-    cty <- obj .: "cty"
+    typ <- obj .:  "typ"
+    alg <- obj .:  "alg"
+    cty <- obj .:? "cty"
     return Header {..}

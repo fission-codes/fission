@@ -38,7 +38,7 @@ withDID ::
   => DID
   -> ServerT API m
 withDID did@(DID {..}) User.Registration {username, email} = do
-  logDebug $ Text.pack $ show did
+  logInfo $ Text.pack $ show did
   Web.Err.ensureM =<< runDBNow (User.create username publicKey algorithm email)
   return NoContent
 
@@ -47,14 +47,15 @@ withPassword ::
   , MonadLogger    m
   , MonadTime      m
   , MonadDB      t m
+  , MonadLogger m
   , User.Creator t
   )
   => ServerT PasswordAPI m
 withPassword User.Registration {username, password, email} = do
-    case password of
-      Just pass -> do
-        Web.Err.ensure =<< runDBNow (User.createWithPassword username pass email)
-        return ()
+  case password of
+    Just pass -> do
+      Web.Err.ensure =<< runDBNow (User.createWithPassword username pass email)
+      return ()
 
-      Nothing ->
-        Web.Err.throw err422 { errBody = "Missing password" }
+    Nothing ->
+      Web.Err.throw err422 { errBody = "Missing password" }
