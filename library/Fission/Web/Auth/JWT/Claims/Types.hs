@@ -1,5 +1,3 @@
--- | 
-
 module Fission.Web.Auth.JWT.Claims.Types
   ( Claims (..)
   , Attenuation (..)
