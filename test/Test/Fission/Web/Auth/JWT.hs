@@ -15,7 +15,7 @@ tests =
   describe "Fission.Web.Auth.JWT" do
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(jwt :: JWT) ->
-        JSON.decode' (JSON.encode jwt) `shouldBe` Just jwt
+        JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
 
       describe "format" do
         itsProp "contains exactly two '.'s"  100 \(jwt :: JWT) ->

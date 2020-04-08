@@ -11,10 +11,9 @@ import qualified System.IO.Unsafe as Unsafe
  
 import           Crypto.PubKey.Ed25519 (toPublic)
 
-import qualified Data.ByteString.Base64.URL as B64URL
+import qualified Data.ByteString.Base64.URL as BS.B64.URL
 import qualified Data.ByteString.Lazy.Char8 as Char8
-
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.ByteString.Lazy        as Lazy
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
@@ -31,7 +30,7 @@ import qualified Fission.Web.Auth.JWT.Signature.RS256   as RS256
 import qualified Fission.Web.Auth.JWT.Signature.Ed25519 as Ed25519
 
 import qualified Fission.Internal.Base64     as B64
-import qualified Fission.Internal.Base64.URL as BS64.URL
+import qualified Fission.Internal.Base64.URL as B64.URL
 
 import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
 import           Fission.Internal.RSA2048.Pair.Types
@@ -102,7 +101,9 @@ instance ToJSON JWT where
       encodeSig raw =
         raw
           |> B64.toB64ByteString
-          |> B64URL.encode
+          |> decodeUtf8Lenient
+          |> B64.URL.encode
+          |> encodeUtf8
           |> UTF8.stripPadding
 
       encodeB64 jsonable =
@@ -110,17 +111,17 @@ instance ToJSON JWT where
           |> encode
           |> Lazy.toStrict
           |> UTF8.stripQuotes
-          |> B64URL.encode
+          |> BS.B64.URL.encode
           |> UTF8.stripPadding
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
-    case Char8.split '.' . Lazy.fromStrict $ UTF8.stripPadding $ encodeUtf8 $ txt of
+    case Char8.split '.' . Lazy.fromStrict $ UTF8.stripPadding $ B64.toByteString $ encodeUtf8 $ txt of
       [rawHeader, rawClaims, rawSig] -> do
         let
           result = do
-            header <- BS64.URL.addPadding rawHeader
-            claims <- BS64.URL.addPadding rawClaims
+            header <- B64.URL.addPadding rawHeader
+            claims <- B64.URL.addPadding rawClaims
             sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
             return JWT {..}
 

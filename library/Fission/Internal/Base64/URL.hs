@@ -7,10 +7,10 @@ module Fission.Internal.Base64.URL
   ) where
 
 import qualified Data.ByteString.Base64.URL.Lazy as Lazy.BS64
-import qualified RIO.Text.Partial as Text.Partial
- 
+
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.List            as List
+import qualified RIO.Text.Partial    as Text.Partial
  
 import           Fission.Prelude hiding (encode, decode)
 
