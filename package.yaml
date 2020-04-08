@@ -1,5 +1,5 @@
 name: fission
-version: '2.2.6'
+version: '2.2.7'
 category: API
 author:
   - Brooklyn Zelenka
@@ -87,7 +87,9 @@ dependencies:
   - amazonka-route53
   - ansi-terminal
   - base
+  - base58string
   - base64-bytestring
+  - binary
   - bcrypt
   - cryptonite
   - bytestring
@@ -128,6 +130,7 @@ dependencies:
   - regex-compat
   - rio
   - rio-orphans
+  - RSA
   - scientific
   - servant
   - servant-auth-server

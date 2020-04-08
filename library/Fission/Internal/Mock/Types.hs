@@ -105,7 +105,7 @@ instance MonadAuth (Entity User) (Mock effs) where
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
     Effect.log RunAWS
-    env <- newEnv <| FromKeys "FAKE_ACCESS_KEY" "FAKE_SECRET_KEY"
+    env <- newEnv $ FromKeys "FAKE_ACCESS_KEY" "FAKE_SECRET_KEY"
 
     awsAction
       |> runAWST env
@@ -195,8 +195,8 @@ instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
     Effect.log <| GetUserByUsername username
     return . Just <| Fixture.entity Fixture.user
 
-  getByDid did = do
-    Effect.log <| GetUserByDid did
+  getByPublicKey pk = do
+    Effect.log <| GetUserByPublicKey pk
     return . Just <| Fixture.entity Fixture.user
 
   getByHerokuAddOnId id = do
@@ -213,7 +213,7 @@ instance
   , IsMember UpdateRoute53     effs
   )
   => User.Creator (Mock effs) where
-  create _ _ _ _ = do
+  create _ _ _ _ _ = do
     Effect.log CreateUser
     Effect.log UpdateRoute53
     return <| Right (Database.toSqlKey 0, Subdomain "new-subdomain")
@@ -233,11 +233,11 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
     Effect.log <| ModifyUser uID
     return <| Right password
 
-  updateDID uID newDID _ = do
+  updatePublicKey uID newPK _ _ = do
     Effect.log <| ModifyUser uID
-    return newDID
+    return newPK
 
-  setData uID _ _ _ = do
+  setData uID _ _ = do
     Effect.log <| ModifyUser uID
     return ok
 

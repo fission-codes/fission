@@ -36,7 +36,7 @@ instance PersistFieldSql Username where
   sqlType _pxy = SqlString
 
 instance ToJSON Username where
-  toJSON (Username username) = toJSON (String username)
+  toJSON (Username username) = String username
 
 instance FromJSON Username where
   parseJSON = withText "Username" \txt -> return (Username txt)

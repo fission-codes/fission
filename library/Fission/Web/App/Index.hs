@@ -3,7 +3,6 @@ module Fission.Web.App.Index
   , index
   ) where
 
-import           Database.Esqueleto (Entity (..))
 import           RIO.Map as Map
 import           Servant
 

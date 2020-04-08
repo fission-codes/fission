@@ -3,7 +3,7 @@ module Fission.App.Domain.Associator.Class
   , Errors
   ) where
 
-import           Database.Esqueleto (Entity (..), insert_, insertUnique)
+import           Database.Esqueleto (insert_, insertUnique)
 
 import           Fission.Prelude
 import           Fission.Error

@@ -49,9 +49,9 @@ ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
 
 quality:
-	$(stack) build --test --fast $(package)
+	make test && make lint
 
-linter:
+lint:
 	$(stack) test :fission-lint --fast
 
 docs:
@@ -83,7 +83,7 @@ bench_http2:
 	h2load -n10000 -c100 -t2 http://localhost:1337/ping/
 
 dev:
-	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --main-is $(package):fission-web"
+	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test"
 
 live:
 	$(stack) exec -- yesod devel

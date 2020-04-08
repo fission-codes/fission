@@ -1,13 +1,14 @@
 -- | Setup command
 module Fission.CLI.Command.Setup (command, setup) where
 
-import           Fission.Prelude
-
 import           Options.Applicative.Simple (addCommand)
+import qualified RIO.Text as Text
+
+import           Network.HTTP.Types.Status
+import           Servant.Client.Core
 import           Servant.API
 
-import Servant.Client.Core
-import           Network.HTTP.Types.Status
+import           Fission.Prelude
 
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
@@ -19,17 +20,12 @@ import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.Web.Client       as Client
 import qualified Fission.Web.Client.User  as User.Client
 
-import qualified Fission.User.Username.Types     as User
-import qualified Fission.User.Email.Types        as User
-import qualified Fission.User.Registration.Types as User
-
-import qualified Fission.User.DID as DID
-import           Fission.User.DID.Types
+import qualified Fission.Key  as Key
+import qualified Fission.User as User
 
 import           Fission.CLI.Config.Types
 import           Fission.CLI.Config.Base
 
-import qualified Fission.Key.Store as Key
 
 -- | The command to attach to the CLI tree
 command :: MonadIO m => BaseConfig -> CommandM (m ())
@@ -52,7 +48,7 @@ setup = do
   if doesExist
     then
       Client.run User.Client.whoami >>= \case
-        Right (User.Username {username}) ->
+        Right User.Username {username} ->
           CLI.Success.loggedInAs username
 
         Left err ->
@@ -114,23 +110,18 @@ upgradeAccount ::
   => BasicAuthData
   -> m ()
 upgradeAccount auth = do
-  shouldUpgrade <- Prompt.reaskYN <| mconcat
-                [ "Upgrade account \""
-                , decodeUtf8Lenient (basicAuthUsername auth)
-                , "\"? (y/n) "
-                ]
+  shouldUpgrade <- Prompt.reaskYN $ mconcat
+    [ "Upgrade account \""
+    , decodeUtf8Lenient (basicAuthUsername auth)
+    , "\"? (y/n) "
+    ]
 
   when shouldUpgrade do
     createKey
     UTF8.putText "📝 Upgrading your account... "
     Key.publicKeyEd >>= \case
-      Left err ->
-        CLI.Error.put err "Could not read key file"
-
-      Right pubkey ->
-        pubkey
-          |> DID.fromPubkey
-          |> updateDID auth
+      Left  err -> CLI.Error.put err "Could not read key file"
+      Right pk  -> updateDID auth . Key.Public . Text.pack $ show pk
 
 createKey :: MonadIO m => m ()
 createKey = do
@@ -144,16 +135,13 @@ updateDID ::
   , MonadWebClient m
   )
   => BasicAuthData
-  -> DID
+  -> Key.Public
   -> m ()
-updateDID auth did =
-  did
-    |> User.Client.updateDID auth
-    |> Client.run
-    |> bind \case
-      Left err ->
-        CLI.Error.put err "Could not upgrade account"
+updateDID auth pk = do
+  Client.run (User.Client.updatePublicKey auth (pk, Key.Ed25519)) >>= \case
+    Left err ->
+      CLI.Error.put err "Could not upgrade account"
 
-      Right _ok -> do
-        _ <- Env.Partial.deleteHomeAuth
-        CLI.Success.putOk "Upgrade successful!"
+    Right _ -> do
+      _ <- Env.Partial.deleteHomeAuth
+      CLI.Success.putOk "Upgrade successful!"

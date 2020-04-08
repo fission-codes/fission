@@ -11,6 +11,8 @@ import           Fission.Prelude
 import           Fission.Error as Error
 import           Fission.Models
 
+import           Fission.Key as Key
+
 import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
@@ -48,7 +50,8 @@ class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry
   create ::
        Username
-    -> DID
+    -> Key.Public
+    -> Key.Algorithm
     -> Email
     -> UTCTime
     -> m (Either Errors (UserId, Subdomain))
@@ -76,9 +79,10 @@ instance
   , App.Content.Initializer m
   )
   => Creator (Transaction m) where
-  create username did email now =
+  create username pk algo email now =
     User
-      { userDid           = Just did
+      { userPublicKey     = Just pk
+      , userAlgorithm     = Just algo
       , userUsername      = username
       , userEmail         = Just email
       , userRole          = Regular
@@ -100,7 +104,7 @@ instance
               return (Error.openLeft User.AlreadyExists)
 
             Just userId ->
-              User.setData userId did App.Content.empty now >>= \case
+              User.setData userId App.Content.empty now >>= \case
                 Left err ->
                   return (Error.openLeft err)
 
@@ -116,7 +120,8 @@ instance
 
       Right secretDigest ->
         User
-          { userDid           = Nothing
+          { userPublicKey     = Nothing
+          , userAlgorithm     = Nothing
           , userUsername      = username
           , userEmail         = Just email
           , userRole          = Regular
@@ -151,7 +156,8 @@ instance
 
           Right secretDigest ->
             User
-              { userDid           = Nothing
+              { userPublicKey     = Nothing
+              , userAlgorithm     = Nothing
               , userUsername      = username
               , userEmail         = Nothing
               , userRole          = Regular

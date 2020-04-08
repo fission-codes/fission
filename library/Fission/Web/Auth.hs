@@ -4,6 +4,9 @@ module Fission.Web.Auth
   , basic
   , mkAuth
   , handler
+
+  -- * Reexports
+ 
   , module Fission.Web.Auth.Class
   , module Fission.Web.Auth.Types
   ) where
@@ -17,8 +20,6 @@ import           Network.Wai
 import           Servant
 import           Servant.Server.Experimental.Auth
 
-import           Database.Esqueleto
-
 import           Fission.Web.Auth.Class             as Auth
 import           Fission.Web.Auth.Types             as Auth
 import           Fission.Web.Auth.Token             as Token
@@ -31,6 +32,7 @@ import qualified Fission.User as User
 import           Fission.User.DID.Types
 
 -- Reexport
+ 
 import           Fission.Web.Auth.Class
 import           Fission.Web.Auth.Types
 
@@ -50,10 +52,10 @@ mkAuth = do
   didAuth    <- Auth.getVerifier
   userAuth   <- Auth.getVerifier
   herokuAuth <- BasicAuth.getVerifier
-  return <| didAuth
-         :. userAuth
-         :. herokuAuth
-         :. EmptyContext
+  return $ didAuth
+        :. userAuth
+        :. herokuAuth
+        :. EmptyContext
 
 authWithContext ::
   HasServer api Checks
@@ -88,6 +90,6 @@ handler ::
   -> m (Entity User)
 handler req =
   case Token.get req of
-    Nothing                   -> throwM Auth.NoToken
     Just (Auth.Bearer bearer) -> JWT.handler bearer
     Just (Auth.Basic  basic') -> Basic.handler basic'
+    Nothing                   -> throwM Auth.NoToken

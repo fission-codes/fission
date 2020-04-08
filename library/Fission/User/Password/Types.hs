@@ -15,7 +15,7 @@ instance Arbitrary Password where
   arbitrary = Password <$> arbitrary
 
 instance ToJSON Password where
-  toJSON (Password password) = toJSON (String password)
+  toJSON (Password password) = String password
 
 instance FromJSON Password where
   parseJSON = withText "Password" \txt -> return (Password txt)

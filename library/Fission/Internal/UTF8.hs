@@ -5,6 +5,14 @@ module Fission.Internal.UTF8
   , putTextLn
   , showLazyBS
   , displayLazyBS
+  , toBase58Text
+  , fromRawBytes
+  , stripOptionalPrefix
+  , stripOptionalPrefixBS
+  , stripOptionalSuffix
+  , stripOptionalSuffixBS
+  , stripPadding
+  , stripQuotes
   , stripN
   , stripNBS
   , stripNewline
@@ -13,20 +21,22 @@ module Fission.Internal.UTF8
   , wrapIn
   ) where
 
+import           Data.Binary hiding (encode)
+import           Data.Base58String.Bitcoin as BS58.BTC
+
 import           Flow
+
 import           RIO
 import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
-
--- Property testing
---
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Test.QuickCheck
 -- >>> import Test.QuickCheck.Instances ()
 -- >>> import qualified Data.Text as Text
+-- >>> import qualified RIO.ByteString      as Strict
 -- >>> import qualified RIO.ByteString.Lazy as Lazy
 
 class Textable a where
@@ -46,6 +56,48 @@ displayLazyBS = Lazy.fromStrict . encodeUtf8 . textDisplay
 
 textToLazyBS :: Text -> Lazy.ByteString
 textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
+ 
+fromRawBytes :: [Word8] -> Text
+fromRawBytes = decodeUtf8Lenient . Strict.pack
+
+-- | Convert any binary object to 'Text'
+--
+-- >>> toBase58Text "hello world"
+-- "StV1DL6CwTryKyV"
+--
+-- >>> toBase58Text $ Strict.pack ([0x0ed, 0x01] :: [Word8] )
+-- "K36"
+--
+-- >>> toBase58Text $ Strict.pack ([0xed, 0x01, 0x01, 0x23, 0x45, 0x67] :: [Word8])
+-- "332DkaEge"
+--
+-- NOTE that base58 text does not concatenate without decoding to some base2 first
+--
+-- >>> toBase58Text "hello world" == toBase58Text "hello " <> toBase58Text "world"
+-- False
+toBase58Text :: Strict.ByteString -> Text
+toBase58Text = BS58.BTC.toText . BS58.BTC.fromBytes
+
+stripOptionalPrefix :: Text -> Text -> Text
+stripOptionalPrefix pfx txt = maybe txt id $ Text.stripPrefix pfx txt
+
+stripOptionalSuffix :: Text -> Text -> Text
+stripOptionalSuffix sfx txt = maybe txt id $ Text.stripSuffix sfx txt
+
+stripOptionalPrefixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
+stripOptionalPrefixBS pfx bs = maybe bs id $ Strict.stripPrefix pfx bs
+ 
+stripOptionalSuffixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
+stripOptionalSuffixBS sfx bs = maybe bs id $ Strict.stripSuffix sfx bs
+
+stripPadding :: ByteString -> ByteString
+stripPadding  =
+    stripOptionalSuffixBS "=" -- per RFC7515
+  . stripOptionalSuffixBS "=" -- incase they trail
+  . stripOptionalSuffixBS "=" -- incase they trail
+
+stripQuotes :: ByteString -> ByteString
+stripQuotes = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 
@@ -84,9 +136,10 @@ textShow = textDisplay . displayShow
 
 -}
 stripNBS :: Natural -> Lazy.ByteString -> Lazy.ByteString
-stripNBS n bs = bs
-             |> Lazy.take ((Lazy.length bs) - i)
-             |> Lazy.drop i
+stripNBS n bs =
+  bs
+    |> Lazy.take ((Lazy.length bs) - i)
+    |> Lazy.drop i
   where
     i :: Int64
     i = fromIntegral n

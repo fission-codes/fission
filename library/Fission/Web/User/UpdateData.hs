@@ -27,11 +27,6 @@ server ::
   )
   => Entity User
   -> ServerT API m
-server (Entity userID User {userDid}) newCID =
-  case userDid of
-    Nothing ->
-      Web.Error.throw err400 { errBody = "Please upgrade your account to one with a key pair" }
-
-    Just did -> do
-      Web.Error.ensure =<< runDBNow (User.setData userID did newCID)
-      return NoContent
+server (Entity userID _) newCID = do
+  Web.Error.ensure =<< runDBNow (User.setData userID newCID)
+  return NoContent

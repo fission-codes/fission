@@ -26,7 +26,7 @@ import           Fission.Web.Client.JWT as JWT
 import           Fission.Web.Auth.Types as Auth
 
 request :: HTTP.Manager -> BaseUrl -> ClientM a -> IO (Either ClientError a)
-request manager url query = runClientM query <| mkClientEnv manager url
+request manager url query = runClientM query $ mkClientEnv manager url
 
 sigClient ::
   ( HasClient ClientM api
@@ -57,7 +57,7 @@ basicClient p auth x = (client p) (Auth.getBasicAuth auth) x
 
 registerClient ::
   ( HasClient ClientM api
-  , Client ClientM api ~ (AuthenticatedRequest Auth.RegisterDid -> a -> ClientM b)
+  , Client ClientM api ~ (AuthenticatedRequest Auth.RegisterDID -> a -> ClientM b)
   )
   => Proxy api
   -> a

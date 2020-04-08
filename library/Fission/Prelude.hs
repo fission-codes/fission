@@ -16,6 +16,7 @@ module Fission.Prelude
   , module RIO.Time
   , module Test.QuickCheck
   , module Web.PathPieces
+  , Entity (..)
   , headMaybe
   , identity
   , intercalate
@@ -24,6 +25,7 @@ module Fission.Prelude
   , textShow
   , displayLazyBS
   , bind
+  , ord
   , ok
   , noop
   ) where
@@ -40,11 +42,14 @@ import Data.Has
 import Data.Maybe
 import Data.WorldPeace
 
+import Database.Persist (Entity (..))
+
 import Flow
 
 import RIO.List (headMaybe, intercalate)
 import RIO.Process
 import RIO.Time
+import RIO.Char (ord)
 
 import RIO.Orphans ()
 
@@ -64,7 +69,6 @@ import RIO hiding ( Handler
                   , id
                   , timeout
                   , const
-                  , ($)
                   , (&)
                   , (^.)
                   , exp
