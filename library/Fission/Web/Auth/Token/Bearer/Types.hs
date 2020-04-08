@@ -24,11 +24,18 @@ instance ToJSON Token where
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->
     case Text.stripPrefix "Bearer " txt of
+      Just rawToken ->
+        parse rawToken
+       
       Nothing ->
-        fail $ show txt <> " is missing the `Bearer ` prefix"
- 
-      Just rawToken -> do
-        ("\"" <> UTF8.stripQuotes rawToken <> "\"") -- Postel's Law
+        case Text.stripPrefix "bearer" txt of -- Postel's Law
+          Nothing ->
+            fail $ show txt <> " is missing the `Bearer ` prefix"
+
+          Just rawToken -> parse rawToken
+    where
+      parse raw =
+        ("\"" <> UTF8.stripQuotes raw <> "\"") -- Postel's Law
           |> encodeUtf8
           |> Lazy.fromStrict
           |> eitherDecode
