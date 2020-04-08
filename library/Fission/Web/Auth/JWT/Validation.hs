@@ -1,5 +1,5 @@
 module Fission.Web.Auth.JWT.Validation
-  ( parse
+  ( check
   , checkTime
   , checkSignature
   , checkEd25519Signature
@@ -28,10 +28,8 @@ import qualified Fission.User as User
 import           Fission.Web.Auth.JWT.Error as JWT
 import           Fission.Web.Auth.JWT.Types as JWT
 
-import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
-
-parse :: MonadTime m => Auth.Bearer.Token -> m (Either JWT.Error JWT)
-parse (Auth.Bearer.Token jwt) = do
+check :: MonadTime m => JWT -> m (Either JWT.Error JWT)
+check jwt = do
   now <- currentTime
   return (checkSignature =<< checkTime now =<< pure jwt)
 

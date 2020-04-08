@@ -1,10 +1,10 @@
 module Test.Fission.Web.Auth.Bearer (tests) where
 
-import qualified System.IO.Unsafe as Unsafe
-
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
 import qualified RIO.ByteString.Lazy        as Lazy
+
+import RIO.Text as Text
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 import           Fission.Web.Auth.JWT
@@ -18,19 +18,36 @@ tests =
       itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
         JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
 
-      describe "serialized" do
-        itsProp' "has no quotes" \(bearer :: Bearer.Token) ->
+      describe "outgoing" do
+        itsProp' "has no internal quotes" \(bearer :: Bearer.Token) ->
           bearer
             |> JSON.encode
             |> Lazy.count (fromIntegral $ ord '"')
-            |> shouldBe 0
+            |> shouldBe 2
 
-        -- itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
-        --   let
-        --     encoded = JSON.encode jwt
-        --   in
-        --     encoded
-        --       |> Lazy.take (Lazy.length encoded - 2)
-        --       |> Lazy.drop 2
-        --       |> Lazy.filter (not . isValidChar)
-        --       |> shouldBe mempty
+        itsProp' "contains only valid base64 URL characters" \(bearer :: Bearer.Token) ->
+          let
+            encoded = JSON.encode bearer
+          in
+            encoded
+              |> Lazy.take (Lazy.length encoded - 2)
+              |> Lazy.drop 2
+              |> Lazy.filter (not . isValidChar)
+              |> shouldBe mempty
+
+      describe "incoming" do
+        itsProp' "can handle quotes (Postel's Law)" \(jwt :: JWT) ->
+          trace (Text.pack $ show $ "\"Bearer " <> JSON.encode jwt <> "\"") $
+                eitherDecode ("\"Bearer " <> JSON.encode jwt <> "\"") `shouldBe` Right (Bearer.Token jwt)
+
+isValidChar :: Word8 -> Bool
+isValidChar w8 = Lazy.elem w8 (" " <> validB64URLChars)
+
+validB64URLChars :: Lazy.ByteString
+validB64URLChars = Lazy.Char8.pack chars
+  where
+    chars :: [Char]
+    chars = ['a'..'z']
+         <> ['A'..'Z']
+         <> ['0'..'9']
+         <> ['_', '-', '.']

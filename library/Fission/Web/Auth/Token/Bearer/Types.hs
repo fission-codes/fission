@@ -19,7 +19,7 @@ instance ToJSON Token where
   toJSON (Token bs) = String $ "Bearer " <> token
     where
       token :: Text
-      token = UTF8.stripQuotes $ decodeUtf8Lenient $ Lazy.toStrict $ encode bs
+      token = UTF8.stripQuotes . decodeUtf8Lenient . Lazy.toStrict $ encode bs
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->
@@ -28,8 +28,7 @@ instance FromJSON Token where
         fail $ show txt <> " is missing the `Bearer ` prefix"
  
       Just rawToken -> do
-        rawToken
-          |> UTF8.stripQuotes
+        ("\"" <> UTF8.stripQuotes rawToken <> "\"") -- Postel's Law
           |> encodeUtf8
           |> Lazy.fromStrict
           |> eitherDecode

@@ -45,8 +45,8 @@ tests = do
   -----------
 
   testSpec "Fission.Web.Auth" $ parallel do
-    Ed.tests
-    JWT.tests
+    -- Ed.tests
+    -- JWT.tests
     Bearer.tests
 
     describe "mkAuth" do
