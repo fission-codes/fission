@@ -17,21 +17,19 @@ instance ToJSON Ed25519.Signature where
     sig
       |> Base64.toB64ByteString
       |> decodeUtf8Lenient
+      -- Initial human readable text
       |> UTF8.stripOptionalPrefix "Signature \""
       |> UTF8.stripOptionalPrefix "\""
+      -- End quotes
       |> UTF8.stripOptionalSuffix "\""
       |> UTF8.stripOptionalSuffix "\""
       |> String
 
 instance FromJSON Ed25519.Signature where
   parseJSON = withText "Ed25519.Signature" \txt ->
-    txt
-      |> Base64.URL.decode
-      |> encodeUtf8
-      |> Crypto.base64ToEd25519Signature
-      |> \case
-          CryptoFailed err ->
-            fail $ "Unable to parse as Ed25519 signature (" <> show err <> ") " <> show txt
+    case Crypto.base64ToEd25519Signature . encodeUtf8 $ Base64.URL.decode txt of
+      CryptoFailed err ->
+        fail $ "Unable to parse as Ed25519 signature (" <> show err <> ") " <> show txt
 
-          CryptoPassed sig ->
-            return sig
+      CryptoPassed sig ->
+        return sig
