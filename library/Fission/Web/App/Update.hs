@@ -3,7 +3,6 @@ module Fission.Web.App.Update
   , update
   ) where
 
-import           Database.Esqueleto (Entity (..))
 import           Network.IPFS.CID.Types
 import           Servant
 

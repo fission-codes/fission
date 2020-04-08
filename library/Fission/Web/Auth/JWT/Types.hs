@@ -1,62 +1,133 @@
 module Fission.Web.Auth.JWT.Types
-  ( Token     (..)
-  , Header    (..)
-  , Payload   (..)
-  , Algorithm (..)
-  , Typ       (..)
+  ( JWT (..)
+
+  -- * reexports
+ 
+  , module Fission.Web.Auth.JWT.Claims.Types
+  , module Fission.Web.Auth.JWT.Header.Types
   ) where
 
+import qualified System.IO.Unsafe as Unsafe
+ 
+import           Crypto.PubKey.Ed25519 (toPublic)
+
+import qualified Data.ByteString.Base64.URL as BS.B64.URL
+import qualified Data.ByteString.Lazy.Char8 as Char8
+import qualified RIO.ByteString.Lazy        as Lazy
+
 import           Fission.Prelude
-
+import qualified Fission.Internal.UTF8 as UTF8
+ 
+import qualified Fission.Key                            as Key
+import qualified Fission.Key.Asymmetric.Algorithm.Types as Alg
 import           Fission.User.DID.Types
-import qualified Crypto.PubKey.Ed25519 as Ed
 
-data Token = Token
-  { header  :: !Header
-  , payload :: !Payload
-  , sig     :: !Ed.Signature
-  } deriving (Show, Generic)
+import           Fission.Web.Auth.JWT.Claims.Types
+import           Fission.Web.Auth.JWT.Header.Types (Header (..))
 
-data Header = Header
-  { typ :: !Typ
-  , alg :: !Algorithm
-  } deriving ( Show
-             , Generic
-             , FromJSON
-             , ToJSON
-             )
+import           Fission.Web.Auth.JWT.Signature         as Signature
+import qualified Fission.Web.Auth.JWT.Signature.RS256   as RS256
+import qualified Fission.Web.Auth.JWT.Signature.Ed25519 as Ed25519
 
-data Payload = Payload
-  { iss        :: !DID
-  , nbf        :: !Int
-  , exp        :: !Int
-  } deriving ( Show
-             , Generic
-             , FromJSON
-             , ToJSON
-             )
+import qualified Fission.Internal.Base64     as B64
+import qualified Fission.Internal.Base64.URL as B64.URL
 
-newtype Typ = Typ { unTyp :: ByteString }
-  -- deriving anyclass (Generic)
-  deriving newtype  ( Show
-                    , Eq
-                    , IsString
-                    )
+import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import           Fission.Internal.RSA2048.Pair.Types
 
-instance FromJSON Typ where
-  parseJSON = withText "JWT.Typ" (pure . Typ . encodeUtf8)
+-- | An RFC 7519 extended with support for Ed25519 keys,
+--     and some specifics (claims, etc) for Fission's use case
+data JWT = JWT
+  { header :: !Header
+  , claims :: !Claims
+  , sig    :: !Signature
+  } deriving (Show, Eq)
 
-instance ToJSON Typ where
-  toJSON (Typ bs) = String <| decodeUtf8Lenient bs
+instance Arbitrary JWT where
+  arbitrary = do
+    header  <- arbitrary
+    claims' <- arbitrary
 
-newtype Algorithm = Algorithm { unAlgorithm :: ByteString }
-  deriving newtype ( IsString
-                   , Show
-                   , Eq
-                   )
+    case alg header of
+      Alg.Ed25519 -> do
+        sk <- arbitrary
 
-instance FromJSON Algorithm where
-  parseJSON = withText "JWT.Algorithm" (pure . Algorithm . encodeUtf8)
+        let
+          pkBS :: ByteString = B64.toB64ByteString $ toPublic sk
 
-instance ToJSON Algorithm where
-  toJSON (Algorithm bs) = String <| decodeUtf8Lenient bs
+          did = DID
+            { publicKey = Key.Public $ decodeUtf8Lenient pkBS
+            , algorithm = Alg.Ed25519
+            , method    = Key
+            }
+
+          claims = claims' { iss = did }
+          sig    = Ed25519.sign header claims sk
+         
+        return JWT {..}
+
+      Alg.RSA2048 ->
+        genRSA header claims'
+  
+genRSA :: Header -> Claims -> Gen JWT
+genRSA header claims' = do
+  Pair _pk sk <- arbitrary
+
+  let
+    pk = Key.Public "FAKE_publickey"
+
+    did = DID
+      { publicKey = pk
+      , algorithm = Alg.RSA2048
+      , method    = Key
+      }
+
+    claims = claims' { iss = did }
+
+  case Unsafe.unsafePerformIO $ RS256.sign header claims sk of
+    Right sig -> return JWT {..}
+    Left  _   -> genRSA header claims
+
+instance ToJSON JWT where
+  toJSON JWT {..} = String . decodeUtf8Lenient $
+    encodeB64 header <> "." <> encodeB64 claims <> "." <> signed
+    where
+      signed :: ByteString
+      signed =
+        case sig of
+          Ed25519 edSig                 -> encodeSig edSig
+          RS256 (RS256.Signature rsSig) -> encodeSig rsSig
+
+      encodeSig raw =
+        raw
+          |> B64.toB64ByteString
+          |> decodeUtf8Lenient
+          |> B64.URL.encode
+          |> encodeUtf8
+          |> UTF8.stripPadding
+
+      encodeB64 jsonable =
+        jsonable
+          |> encode
+          |> Lazy.toStrict
+          |> UTF8.stripQuotes
+          |> BS.B64.URL.encode
+          |> UTF8.stripPadding
+
+instance FromJSON JWT where
+  parseJSON = withText "JWT.Token" \txt ->
+    case Char8.split '.' . Lazy.fromStrict $ UTF8.stripPadding $ B64.toByteString $ encodeUtf8 $ txt of
+      [rawHeader, rawClaims, rawSig] -> do
+        let
+          result = do
+            header <- B64.URL.addPadding rawHeader
+            claims <- B64.URL.addPadding rawClaims
+            sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
+            return JWT {..}
+
+        case result of
+          Left  err   -> fail err
+          Right token -> return token
+
+      _ ->
+        fail $ show txt <> " is not a valid JWT.Token"

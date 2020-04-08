@@ -26,9 +26,9 @@ import           Control.Monad.Logger
 import           Data.UUID as UUID
 
 import           Fission.Prelude
+import qualified Fission.Key as Key
 import           Fission.Models
 
-import           Fission.User.DID.Types
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
@@ -98,7 +98,7 @@ data CreateHerokuAddOn
 
 data RetrieveUser
   = GetUserByUsername      Username
-  | GetUserByDid           DID
+  | GetUserByPublicKey     Key.Public
   | GetUserByHerokuAddOnId HerokuAddOnId
   | GetUserByEmail         Email
   deriving (Eq, Show)

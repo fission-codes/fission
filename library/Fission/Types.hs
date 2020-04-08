@@ -165,34 +165,30 @@ instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
 
 instance MonadLocalIPFS Fission where
-    runLocal opts arg = do
-      IPFS.BinPath ipfs <- asks ipfsPath
-      IPFS.Timeout secs <- asks ipfsTimeout
+  runLocal opts arg = do
+    IPFS.BinPath ipfs <- asks ipfsPath
+    IPFS.Timeout secs <- asks ipfsTimeout
 
-      let opts' = ("--timeout=" <> show secs <> "s") : opts
+    let opts' = ("--timeout=" <> show secs <> "s") : opts
 
-      runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' >>= \case
-        (ExitSuccess, contents, _) ->
-          return <| Right contents
+    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' <&> \case
+      (ExitSuccess, contents, _) ->
+        Right contents
 
-        (ExitFailure _, _, stdErr)
-          | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
-              return . Left <| Process.Timeout secs
-          | otherwise ->
-              return . Left <| Process.UnknownErr stdErr
+      (ExitFailure _, _, stdErr)
+        | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
+            Left $ Process.Timeout secs
+        | otherwise ->
+            Left $ Process.UnknownErr stdErr
 
 instance MonadRemoteIPFS Fission where
-    runRemote query = do
-      peerID       <- asks ipfsRemotePeer
-      IPFS.URL url <- asks ipfsURL
-      manager      <- asks httpManager
+  runRemote query = do
+    peerID       <- asks ipfsRemotePeer
+    IPFS.URL url <- asks ipfsURL
+    manager      <- asks httpManager
+    _            <- Peer.connectRetry peerID 2
 
-      _ <- Peer.connectRetry peerID 2
-
-      url
-        |> mkClientEnv manager
-        |> runClientM query
-        |> liftIO
+    liftIO . runClientM query $ mkClientEnv manager url
 
 instance MonadBasicAuth Heroku.Auth Fission where
   getVerifier = do
@@ -207,14 +203,14 @@ instance MonadBasicAuth Heroku.Auth Fission where
 instance MonadAuth DID Fission where
   getVerifier = do
     cfg <- ask
-    return <| mkAuthHandler \req ->
-      toHandler (runRIO cfg) <| unwrapFission <| Auth.DID.handler req
+    return $ mkAuthHandler \req ->
+      toHandler (runRIO cfg) . unwrapFission $ Auth.DID.handler req
 
 instance MonadAuth (SQL.Entity User) Fission where
   getVerifier = do
     cfg <- ask
-    return <| mkAuthHandler \req ->
-      toHandler (runRIO cfg) <| unwrapFission <| Auth.handler req
+    return $ mkAuthHandler \req ->
+      toHandler (runRIO cfg) . unwrapFission $ Auth.handler req
 
 instance App.Domain.Initializer Fission where
   initial = asks baseAppDomainName

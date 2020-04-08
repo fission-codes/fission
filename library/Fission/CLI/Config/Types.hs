@@ -7,3 +7,4 @@ import           Options.Applicative             as OA
 
 -- | The action to attach to the command interface and description
 type CommandM a = ExceptT a (Writer (Mod CommandFields a)) ()
+-- TODO: newtype & WriterT, rename CommandT

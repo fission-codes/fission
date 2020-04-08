@@ -23,7 +23,8 @@ import           Fission.Security
 
 import           Fission.URL
 
-import           Fission.User.DID.Types
+import qualified Fission.Key as Key
+
 import           Fission.User.Role.Types
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
@@ -54,7 +55,9 @@ HerokuAddOn
 --------------------------------------------------------------------------------
 
 User
-  did           DID           Maybe
+  publicKey     Key.Public    Maybe
+  algorithm     Key.Algorithm Maybe
+
   email         Email         Maybe
   username      Username
 
@@ -69,8 +72,9 @@ User
   insertedAt    UTCTime
   modifiedAt    UTCTime
 
-  UniqueUsername username
-  -- UniqueEmail    email !force
+  UniqueUsername  username
+  UniquePublicKey publicKey !force
+  -- UniqueEmail     email     !force
 
   deriving Show Eq
 
@@ -81,8 +85,6 @@ User
 UpdateUserDataRootEvent
   userId      UserId
   newDataRoot CID
-
-  writer      DID
 
   insertedAt  UTCTime
 

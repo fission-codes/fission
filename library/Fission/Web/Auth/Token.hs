@@ -20,7 +20,7 @@ get req =
     |> bind \token ->
          case BS.stripPrefix "Basic " token of
            Just basic' ->
-             Just . Basic <| Basic.Token basic'
+             Just . Basic $ Basic.Token basic'
 
            Nothing ->
              token
