@@ -3,9 +3,10 @@ module Fission.Internal.Base64
   , toByteString
   ) where
 
-import qualified RIO.ByteString         as BS
 import qualified Data.ByteString.Base64 as BS64
 import qualified Data.ByteArray         as BA
+
+import qualified RIO.ByteString as BS
 
 import           Fission.Prelude
 

@@ -4,9 +4,7 @@ import qualified System.IO.Unsafe as Unsafe
 
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
-
-import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Char (ord)
+import qualified RIO.ByteString.Lazy        as Lazy
 
 import           Fission.Web.Auth.JWT
 
@@ -27,12 +25,14 @@ tests =
             |> shouldBe 2
         
         itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
-          jwt
-            |> JSON.encode
-            |> Lazy.take (Lazy.length encoded - 2)
-            |> Lazy.drop 2
-            |> Lazy.filter (not . isValidChar)
-            |> shouldBe mempty
+          let
+            encoded = JSON.encode jwt
+          in
+            encoded
+              |> Lazy.take (Lazy.length encoded - 2)
+              |> Lazy.drop 2
+              |> Lazy.filter (not . isValidChar)
+              |> shouldBe mempty
 
 isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 validB64URLChars

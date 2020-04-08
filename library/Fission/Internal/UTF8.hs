@@ -11,6 +11,8 @@ module Fission.Internal.UTF8
   , stripOptionalPrefixBS
   , stripOptionalSuffix
   , stripOptionalSuffixBS
+  , stripPadding
+  , stripQuotes
   , stripN
   , stripNBS
   , stripNewline
@@ -87,6 +89,15 @@ stripOptionalPrefixBS pfx bs = maybe bs id $ Strict.stripPrefix pfx bs
  
 stripOptionalSuffixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
 stripOptionalSuffixBS sfx bs = maybe bs id $ Strict.stripSuffix sfx bs
+
+stripPadding :: ByteString -> ByteString
+stripPadding  =
+    stripOptionalSuffixBS "=" -- per RFC7515
+  . stripOptionalSuffixBS "=" -- incase they trail
+  . stripOptionalSuffixBS "=" -- incase they trail
+
+stripQuotes :: ByteString -> ByteString
+stripQuotes = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
 
 {-| Strip one newline character from the end of a lazy `ByteString`.
 

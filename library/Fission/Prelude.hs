@@ -25,6 +25,7 @@ module Fission.Prelude
   , textShow
   , displayLazyBS
   , bind
+  , ord
   , ok
   , noop
   ) where
@@ -48,6 +49,7 @@ import Flow
 import RIO.List (headMaybe, intercalate)
 import RIO.Process
 import RIO.Time
+import RIO.Char (ord)
 
 import RIO.Orphans ()
 

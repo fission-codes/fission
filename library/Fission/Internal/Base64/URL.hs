@@ -1,8 +1,16 @@
 -- | Helpers for working with Base64URL-encoded strings
 
-module Fission.Internal.Base64.URL (decode, encode) where
+module Fission.Internal.Base64.URL
+  ( decode
+  , encode
+  , addPadding
+  ) where
 
+import qualified Data.ByteString.Base64.URL.Lazy as Lazy.BS64
 import qualified RIO.Text.Partial as Text.Partial
+ 
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.List            as List
  
 import           Fission.Prelude hiding (encode, decode)
 
@@ -13,3 +21,12 @@ decode = Text.Partial.replace "-" "+" . Text.Partial.replace "_" "/"
 -- | Go from Base64 to Base64URL
 encode :: Text -> Text
 encode = Text.Partial.replace "+" "-" . Text.Partial.replace "/" "_"
+
+addPadding :: FromJSON x => Lazy.ByteString -> Either String x
+addPadding bs = eitherDecode $ Lazy.BS64.decodeLenient (Lazy.pack padded)
+  where
+    n :: Int
+    n = rem (fromIntegral $ Lazy.length bs) 4
+
+    padded :: [Word8]
+    padded = Lazy.unpack bs <> take n (List.repeat $ fromIntegral $ ord '=')

@@ -8,7 +8,7 @@ import           Fission.User.DID
 
 import qualified Fission.Internal.Base64                as B64
 import           Fission.Key.Asymmetric.Algorithm.Types as Alg
-import qualified Fission.Web.Auth.JWT.Signature.Ed25519 as Ed25519X
+import qualified Fission.Web.Auth.JWT.Signature.Ed25519 as Ed25519
 
 import           Test.Fission.Prelude
 
@@ -16,12 +16,12 @@ tests :: SpecWith ()
 tests =
   describe "Fission.Web.Auth.Signature.Ed25519" do
     describe "signature verification" do
-      itsProp' "foo " \(jwt@JWT {..}, sk) ->
+      itsProp' "verifies" \(jwt@JWT {..}, sk) ->
         let
           pk      = Ed.toPublic sk
           header' = header { alg = Alg.Ed25519 }
           claims' = claims { iss = did }
-          sig'    = Ed25519X.sign header' claims' sk
+          sig'    = Ed25519.sign header' claims' sk
 
           did = DID
             { publicKey = Key.Public . decodeUtf8Lenient $ B64.toB64ByteString pk
@@ -34,6 +34,5 @@ tests =
             , claims = claims'
             , sig    = sig'
             }
- 
         in
           checkEd25519Signature jwt' `shouldBe` Right jwt'

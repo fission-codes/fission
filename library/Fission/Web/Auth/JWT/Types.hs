@@ -7,44 +7,34 @@ module Fission.Web.Auth.JWT.Types
   , module Fission.Web.Auth.JWT.Header.Types
   ) where
 
+import qualified System.IO.Unsafe as Unsafe
+
 import           Crypto.PubKey.Ed25519 (toPublic)
 
-import Data.Aeson as JSON
-
-import qualified Fission.Internal.Base64 as B64
-
-import Fission.Internal.RSA2048.Pair.Types
-
-import qualified System.IO.Unsafe as Unsafe
 import qualified Data.ByteString.Base64.URL as B64URL
- 
-import           Fission.Web.Auth.JWT.Signature.Types       as Signature
-
 import qualified Data.ByteString.Lazy.Char8 as Char8
 
 import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.List            as List
-import RIO.Char (ord)
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
  
-import qualified Fission.Key as Key
- 
+import qualified Fission.Key                            as Key
 import qualified Fission.Key.Asymmetric.Algorithm.Types as Alg
-import qualified Data.ByteString.Base64.URL.Lazy as B64
-import Fission.User.DID.Types
+import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.JWT.Claims.Types
 import           Fission.Web.Auth.JWT.Header.Types (Header (..))
- 
+
 import           Fission.Web.Auth.JWT.Signature         as Signature
 import qualified Fission.Web.Auth.JWT.Signature.RS256   as RS256
 import qualified Fission.Web.Auth.JWT.Signature.Ed25519 as Ed25519
 
-import Fission.Internal.Orphanage.Ed25519.SecretKey ()
- 
-import qualified RIO.Text.Partial as PText
+import qualified Fission.Internal.Base64     as B64
+import qualified Fission.Internal.Base64.URL as BS64.URL
+
+import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import           Fission.Internal.RSA2048.Pair.Types
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --    and some specifics (claims, etc) for Fission's use case
@@ -109,43 +99,28 @@ instance ToJSON JWT where
           Ed25519 edSig                 -> encodeSig edSig
           RS256 (RS256.Signature rsSig) -> encodeSig rsSig
 
-      encodeSig raw = -- FIXME extract
+      encodeSig raw =
         raw
           |> B64.toB64ByteString
-          |> decodeUtf8Lenient
-          |> toURLEncoding
-          |> encodeUtf8
-          |> stripPadding
+          |> B64URL.encode
+          |> UTF8.stripPadding
 
-      encodeB64 :: ToJSON a => a -> ByteString -- FIXME extract
       encodeB64 jsonable =
         jsonable
-          |> JSON.encode
+          |> encode
           |> Lazy.toStrict
-          |> stripQuotes
+          |> UTF8.stripQuotes
           |> B64URL.encode
-          |> stripPadding
-
-      toURLEncoding :: Text -> Text
-      toURLEncoding = PText.replace "+" "-" . PText.replace "/" "_"
-
-      stripQuotes :: ByteString -> ByteString
-      stripQuotes = UTF8.stripOptionalPrefixBS "\"" . UTF8.stripOptionalSuffixBS "\""
-
-      stripPadding :: ByteString -> ByteString -- FIXME extract!
-      stripPadding  =
-          UTF8.stripOptionalSuffixBS "=" -- per RFC7515
-        . UTF8.stripOptionalSuffixBS "=" -- incase they trail
-        . UTF8.stripOptionalSuffixBS "=" -- incase they trail
+          |> UTF8.stripPadding
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
-    case Char8.split '.' . Lazy.fromStrict $ encodeUtf8 $ PText.replace "=" "" txt of
+    case Char8.split '.' . Lazy.fromStrict $ UTF8.stripPadding $ encodeUtf8 $ txt of
       [rawHeader, rawClaims, rawSig] -> do
         let
           result = do
-            header <- addPadding rawHeader
-            claims <- addPadding rawClaims
+            header <- BS64.URL.addPadding rawHeader
+            claims <- BS64.URL.addPadding rawClaims
             sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
             return JWT {..}
 
@@ -155,13 +130,3 @@ instance FromJSON JWT where
 
       _ ->
         fail $ show txt <> " is not a valid JWT.Token"
-
--- FIXME extract... but alos double check it's actually required. I think t's probbaly not
-addPadding :: FromJSON x => Lazy.ByteString -> Either String x
-addPadding bs = eitherDecode $ B64.decodeLenient (Lazy.pack padded)
-  where
-    n :: Int
-    n = rem (fromIntegral $ Lazy.length bs) 4
-
-    padded :: [Word8]
-    padded = Lazy.unpack bs <> take n (List.repeat $ fromIntegral $ ord '=')

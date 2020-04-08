@@ -87,8 +87,5 @@ checkEd25519Signature jwt@JWT {..} =
     
   where
     Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
-    errOrPk  = Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 pk
-    content =
-      UTF8.stripOptionalSuffixBS "=" $ -- FIXME extyract function
-      UTF8.stripOptionalSuffixBS "=" $
-        Lazy.toStrict $ encode header <> "." <> encode claims
+    errOrPk = Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 pk
+    content = UTF8.stripPadding . Lazy.toStrict $ encode header <> "." <> encode claims
