@@ -14,26 +14,26 @@ tests =
   describe "Fission.Web.Auth.JWT" do
     Validation.tests
  
-    -- describe "serialization" do
-    --   itsProp' "serialize+deserialize is the identity function" \(jwt :: JWT) ->
-    --     JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
+    describe "serialization" do
+      itsProp' "serialize+deserialize is the identity function" \(jwt :: JWT) ->
+        JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
 
-    --   describe "format" do
-    --     itsProp' "contains exactly two '.'s" \(jwt :: JWT) ->
-    --       jwt
-    --         |> JSON.encode
-    --         |> Lazy.count (fromIntegral $ ord '.')
-    --         |> shouldBe 2
+      describe "format" do
+        itsProp' "contains exactly two '.'s" \(jwt :: JWT) ->
+          jwt
+            |> JSON.encode
+            |> Lazy.count (fromIntegral $ ord '.')
+            |> shouldBe 2
         
-    --     itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
-    --       let
-    --         encoded = JSON.encode jwt
-    --       in
-    --         encoded
-    --           |> Lazy.take (Lazy.length encoded - 2)
-    --           |> Lazy.drop 2
-    --           |> Lazy.filter (not . isValidChar)
-    --           |> shouldBe mempty
+        itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
+          let
+            encoded = JSON.encode jwt
+          in
+            encoded
+              |> Lazy.take (Lazy.length encoded - 2)
+              |> Lazy.drop 2
+              |> Lazy.filter (not . isValidChar)
+              |> shouldBe mempty
 
 isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 validB64URLChars

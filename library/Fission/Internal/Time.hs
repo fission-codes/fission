@@ -16,4 +16,4 @@ toSeconds :: UTCTime -> Int
 toSeconds = round . utcTimeToPOSIXSeconds
 
 fromSeconds :: Int -> UTCTime
-fromSeconds n = posixSecondsToUTCTime $ secondsToNominalDiffTime $ fromIntegral n
+fromSeconds = posixSecondsToUTCTime . secondsToNominalDiffTime . fromIntegral
