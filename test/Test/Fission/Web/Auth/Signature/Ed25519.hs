@@ -24,7 +24,7 @@ tests =
           sig'    = Ed25519.sign header' claims' sk
 
           did = DID
-            { publicKey = Key.Public . decodeUtf8Lenient $ B64.toB64ByteString pk
+            { publicKey = Key.Public $ B64.toB64ByteString pk
             , algorithm = Alg.Ed25519
             , method    = Key
             }

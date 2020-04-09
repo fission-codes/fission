@@ -57,7 +57,7 @@ mkAuthReq = do
         rawPK   = Ed25519.toPublic sk
  
         did = DID
-          { publicKey = Key.Public . decodeUtf8Lenient $ B64.toB64ByteString rawPK
+          { publicKey = Key.Public $ B64.toB64ByteString rawPK
           , algorithm = Key.Ed25519
           , method    = DID.Key
           }

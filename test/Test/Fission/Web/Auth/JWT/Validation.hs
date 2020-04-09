@@ -17,16 +17,6 @@ tests :: SpecWith ()
 tests =
   describe "JWT Validation" do
     context "RSA 2048" do
-
-      -- itsProp "is testing the Cryptonite library" 1 \(Pair pk sk) ->
-      --   (RSA.sign Nothing (Just SHA256) sk "hello world")
-      --     `shouldBe` Right ""
-
-      --   -- RSA.verify (Just SHA256) pk "hello world" <$> (RSA.sign Nothing (Just SHA256) sk "hello world")
-      --   --   `shouldBe` Right True
-
-
-
       context "real world bearer token" do
         it "is valid" do
           JWT.check' Fixture.jwtRSA2048 Fixture.validTime `shouldBe` Right Fixture.jwtRSA2048

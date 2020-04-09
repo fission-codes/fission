@@ -14,7 +14,9 @@ instance Arbitrary Signature where
 
 instance FromJSON Signature where
   parseJSON = withText "RS256.Siganture" \txt ->
+    -- pure . Signature . encodeUtf8 $ B64.URL.decode txt
     pure . Signature . B64.decodeLenient . encodeUtf8 $ B64.URL.decode txt
+    -- pure . Signature $ encodeUtf8 txt
 
 instance ToJSON Signature where
   toJSON = String . decodeUtf8Lenient . unSignature
