@@ -39,7 +39,7 @@ itsProp description times prop =
 
 -- | Prop test with the default number of tries (5k)
 itsProp' :: (HasCallStack, Testable a) => String -> a -> SpecWith ()
-itsProp' description prop = itsProp description 5_000 prop
+itsProp' description prop = itsProp description 10_000 prop
 
 bodyMatches :: Value -> [HTTP.Header] -> Body -> Maybe String
 bodyMatches expected _ jsonBody =
