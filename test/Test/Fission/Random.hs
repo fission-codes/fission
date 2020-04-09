@@ -9,7 +9,7 @@ import           Test.Fission.Prelude
 import qualified Fission.Random as Random
 
 tests :: IO TestTree
-tests = testSpec "Fission.Random" <| parallel do
+tests = testSpec "Fission.Random" $ parallel do
   alphaNumSpec
   alphaNumSymbolSpec
   bsRandomLengthSpec

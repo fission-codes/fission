@@ -3,8 +3,6 @@ module Fission.Web.Auth.JWT.Claims.Types
   , Attenuation (..)
   ) where
 
-import           Data.Time.Clock.POSIX
-
 import           Fission.Prelude
 import           Fission.User.DID.Types
 
@@ -34,13 +32,6 @@ instance ToJSON Claims where
     , "exp" .= toSeconds exp
     ]
 
--- FIXME move to a time module
-roundUTC :: UTCTime -> UTCTime
-roundUTC = fromSeconds . toSeconds
-
-toSeconds :: UTCTime -> Int
-toSeconds = round . utcTimeToPOSIXSeconds
-
 instance FromJSON Claims where
   parseJSON = withObject "JWT.Payload" \obj -> do
     iss <- obj .: "iss"
@@ -49,9 +40,6 @@ instance FromJSON Claims where
 
     return Claims {..}
  
-fromSeconds :: Int -> UTCTime
-fromSeconds n = posixSecondsToUTCTime $ secondsToNominalDiffTime $ fromIntegral n
-
 newtype Attenuation = Attenuation (Map FFSPath Right)
 
 data Right = Right Permission FFSPath

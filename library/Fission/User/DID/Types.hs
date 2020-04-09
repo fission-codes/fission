@@ -78,7 +78,7 @@ instance ToJSON DID where
       header = "did:" <> textDisplay method <> ":" <> "z"
 
       multicodecW8 :: ByteString
-      multicodecW8 = BS.pack magicBytes <> encodeUtf8 pk
+      multicodecW8 = BS.pack magicBytes <> pk
 
       magicBytes :: [Word8]
       magicBytes =
@@ -101,14 +101,14 @@ instance FromJSON DID where
         case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : 0x01 : edKeyW8s) ->
             return DID
-              { publicKey = Key.Public $ UTF8.fromRawBytes edKeyW8s
+              { publicKey = Key.Public $ BS.pack edKeyW8s
               , algorithm = Ed25519
               , method    = Key
               }
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
             return DID
-              { publicKey = Key.Public $ UTF8.fromRawBytes rsaKeyW8s
+              { publicKey = Key.Public $ BS.pack rsaKeyW8s
               , algorithm = RSA2048
               , method    = Key
               }

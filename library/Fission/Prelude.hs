@@ -9,6 +9,7 @@ module Fission.Prelude
   , module Data.Maybe
   , module Data.WorldPeace
   , module Fission.Internal.Log
+  , module Fission.Internal.Time
   , module Fission.Internal.MonadDB
   , module Flow
   , module RIO
@@ -82,6 +83,7 @@ import Web.PathPieces
 import Fission.Internal.Orphanage.OpenUnion ()
 import Fission.Internal.MonadDB
 import Fission.Internal.Log
+import Fission.Internal.Time
 import Fission.Internal.UTF8       (putText, putTextLn, textShow, displayLazyBS)
 
 identity :: a -> a

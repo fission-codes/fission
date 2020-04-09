@@ -3,26 +3,21 @@ module Fission.Web.Auth.Token
   , module Fission.Web.Auth.Token.Types
   ) where
 
-import           Fission.Prelude
-
-import qualified RIO.ByteString as BS
+import qualified RIO.ByteString      as BS
+import qualified RIO.ByteString.Lazy as Lazy
 import           Network.Wai
+
+import           Fission.Prelude
 import           Fission.Web.Auth.Token.Types
 
-import qualified Fission.Web.Auth.Token.Basic.Types  as Basic
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import qualified Fission.Web.Auth.Token.Basic.Types as Basic
 
 get :: Request -> Maybe Token
-get req =
-  req
-    |> requestHeaders
-    |> lookup "Authorization"
-    |> bind \token ->
-         case BS.stripPrefix "Basic " token of
-           Just basic' ->
-             Just . Basic $ Basic.Token basic'
+get req = do
+  rawToken <- lookup "Authorization" (requestHeaders req)
+  case BS.stripPrefix "Basic " rawToken of
+    Just basic' ->
+      Just . Basic $ Basic.Token basic'
 
-           Nothing ->
-             token
-               |> BS.stripPrefix "Bearer "
-               |> fmap (Bearer . Bearer.Token)
+    Nothing ->
+      Bearer <$> decode' (Lazy.fromStrict rawToken)

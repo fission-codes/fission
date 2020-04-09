@@ -34,10 +34,10 @@ handler ::
   )
   => Auth.Bearer.Token
   -> m (Entity User)
-handler token@(Auth.Bearer.Token rawToken) =
-  parse token >>= \case
+handler token@(Auth.Bearer.Token jwt) =
+  check jwt >>= \case
     Left err -> do
-      logWarn $ "Failed login with token " <> rawToken
+      logWarn $ "Failed login with token " <> encode token
       throwM err
 
     Right JWT {claims = Claims {iss = User.DID {publicKey}}} -> do

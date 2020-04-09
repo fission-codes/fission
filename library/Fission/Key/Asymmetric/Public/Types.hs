@@ -14,32 +14,32 @@ import           Database.Persist.Postgresql
 import           Fission.Prelude hiding (length)
 import           Fission.Key.Asymmetric.Algorithm.Types
 
-newtype Public = Public { publicKey :: Text }
+newtype Public = Public { publicKey :: ByteString }
   deriving (Eq, Show)
 
 instance Arbitrary Public where
   arbitrary = Public <$> arbitrary
 
 instance FromJSON Public where
-  parseJSON = withText "PublicKey" (pure . Public)
+  parseJSON = withText "PublicKey" (pure . Public . encodeUtf8)
 
 instance ToJSON Public where
-  toJSON (Public pk) = String pk
+  toJSON (Public pk) = String $ decodeUtf8Lenient pk
 
 instance PersistField Public where
-  toPersistValue (Public pk) = PersistText pk
+  toPersistValue (Public pk) = PersistText $ decodeUtf8Lenient pk
 
   fromPersistValue = \case
-    PersistText txt -> Right (Public txt)
+    PersistText txt -> Right (Public $ encodeUtf8 txt)
     other           -> Left  ("Invalid Persistent DID: " <> Text.pack (show other))
 
 instance PersistFieldSql Public where
   sqlType _pxy = SqlString
 
 instance Binary Public where
-  get     = Public . decodeUtf8Lenient <$> Binary.get
-  put     = Binary.put . encodeUtf8 . publicKey
-  putList = Binary.putList . fmap (encodeUtf8 . publicKey)
+  get     = Public <$> Binary.get
+  put     = Binary.put . publicKey
+  putList = Binary.putList . fmap publicKey
 
 instance ToSchema Public where
   declareNamedSchema _ =
@@ -50,5 +50,5 @@ instance ToSchema Public where
       |> pure
 
 instance ByteArrayAccess Public where
-  length        (Public txt) = length $ encodeUtf8 txt
-  withByteArray (Public txt) = withByteArray $ encodeUtf8 txt
+  length        (Public bs) = length bs
+  withByteArray (Public bs) = withByteArray bs

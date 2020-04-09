@@ -53,10 +53,8 @@ instance Arbitrary JWT where
         sk <- arbitrary
 
         let
-          pkBS :: ByteString = B64.toB64ByteString $ toPublic sk
-
           did = DID
-            { publicKey = Key.Public $ decodeUtf8Lenient pkBS
+            { publicKey = Key.Public . B64.toB64ByteString $ toPublic sk
             , algorithm = Alg.Ed25519
             , method    = Key
             }
@@ -110,24 +108,30 @@ instance ToJSON JWT where
         jsonable
           |> encode
           |> Lazy.toStrict
-          |> UTF8.stripQuotes
+          |> UTF8.stripQuotesBS
           |> BS.B64.URL.encode
           |> UTF8.stripPadding
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
-    case Char8.split '.' . Lazy.fromStrict $ UTF8.stripPadding $ B64.toByteString $ encodeUtf8 $ txt of
-      [rawHeader, rawClaims, rawSig] -> do
-        let
-          result = do
-            header <- B64.URL.addPadding rawHeader
-            claims <- B64.URL.addPadding rawClaims
-            sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
-            return JWT {..}
+    txt
+      |> encodeUtf8
+      |> B64.toByteString
+      |> UTF8.stripPadding
+      |> Lazy.fromStrict
+      |> Char8.split '.'
+      |> \case
+          [rawHeader, rawClaims, rawSig] -> do
+            let
+              result = do
+                header <- B64.URL.addPadding rawHeader
+                claims <- B64.URL.addPadding rawClaims
+                sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
+                return JWT {..}
 
-        case result of
-          Left  err   -> fail err
-          Right token -> return token
+            case result of
+              Left  err   -> fail err
+              Right token -> return token
 
-      _ ->
-        fail $ show txt <> " is not a valid JWT.Token"
+          _ ->
+            fail $ show txt <> " is not a valid JWT.Token"
