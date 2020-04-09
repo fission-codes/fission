@@ -62,7 +62,7 @@ doctest:
 	$(stack) test :fission-doctest --fast
 
 unit-test:
-	$(stack) test :fission-test --fast
+	$(stack) test :fission-test # --fast
 
 test:
 	make unit-test && make doctest
