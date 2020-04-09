@@ -28,8 +28,7 @@ import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.JWT.Signature.Types       as Signature
 import qualified Fission.Web.Auth.JWT.Signature.RS256.Types as RS256
 
-import qualified Fission.Internal.Crypto as Crypto
-import qualified Fission.Internal.Base64 as B64
+import qualified Fission.Internal.Crypto     as Crypto
 import qualified Fission.Internal.Base64.URL as B64.URL
 
 check :: MonadTime m => JWT -> m (Either JWT.Error JWT)
