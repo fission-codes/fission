@@ -8,8 +8,8 @@ import qualified RIO.ByteString.Lazy as Lazy
 
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Algorithm.Types     as Algorithm
-import           Fission.Web.Auth.JWT.Signature.Types       as Signature
+import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
+import           Fission.Web.Auth.JWT.Signature.Types   as Signature
 
 -- Reexport
 

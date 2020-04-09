@@ -7,10 +7,13 @@ import qualified RIO.ByteString.Lazy        as Lazy
 import           Fission.Web.Auth.JWT
 
 import           Test.Fission.Prelude
+import qualified Test.Fission.Web.Auth.JWT.Validation as Validation
 
 tests :: SpecWith ()
 tests =
   describe "Fission.Web.Auth.JWT" do
+    Validation.tests
+ 
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(jwt :: JWT) ->
         JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt

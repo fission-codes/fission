@@ -7,7 +7,7 @@ import Fission.Prelude
 data Pair = Pair
   { pk :: PublicKey
   , sk :: PrivateKey
-  }
+  } deriving (Eq, Show)
 
 instance Arbitrary Pair where
   arbitrary = elements pregenerated

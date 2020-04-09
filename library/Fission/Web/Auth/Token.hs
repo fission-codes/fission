@@ -10,8 +10,7 @@ import           Network.Wai
 import           Fission.Prelude
 import           Fission.Web.Auth.Token.Types
 
-import qualified Fission.Web.Auth.Token.Basic.Types  as Basic
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import qualified Fission.Web.Auth.Token.Basic.Types as Basic
 
 get :: Request -> Maybe Token
 get req = do
@@ -21,4 +20,4 @@ get req = do
       Just . Basic $ Basic.Token basic'
 
     Nothing ->
-      Bearer <$> (decode' $ Lazy.fromStrict rawToken :: Maybe Bearer.Token)
+      Bearer <$> decode' (Lazy.fromStrict rawToken)

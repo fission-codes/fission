@@ -9,9 +9,15 @@ import qualified Fission.Internal.UTF8               as UTF8
 
 import           Test.Fission.Prelude
 
+import qualified Fission.Internal.Fixture.Bearer as Bearer
+
 tests :: SpecWith ()
 tests =
   describe "Bearer Token" do
+    describe "real world fixture" do
+      it "deserializes" do
+        JSON.decode' Bearer.jsonRSA2048 `shouldBe` Just Bearer.tokenRSA2048
+     
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
         JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
@@ -39,16 +45,12 @@ tests =
       describe "incoming" do
         describe "Postel's Law" do
           itsProp' "lowercase 'bearer'" \jwt ->
-            let
-              encoded = "\"bearer " <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\""
-            in
-              eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
+            let encoded = "\"bearer " <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\""
+            in  eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
 
           itsProp' "escaped internal quotes" \jwt ->
-            let
-              encoded = "\"Bearer \\\"" <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\\\"\""
-            in
-              eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
+            let encoded = "\"Bearer \\\"" <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\\\"\""
+            in  eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
 
 isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 (" " <> validB64URLChars)

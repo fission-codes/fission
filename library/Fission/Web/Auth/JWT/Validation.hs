@@ -1,5 +1,6 @@
 module Fission.Web.Auth.JWT.Validation
   ( check
+  , check'
   , checkTime
   , checkSignature
   , checkEd25519Signature
@@ -28,10 +29,31 @@ import qualified Fission.User as User
 import           Fission.Web.Auth.JWT.Error as JWT
 import           Fission.Web.Auth.JWT.Types as JWT
 
+import           Fission.Web.Auth.JWT.Signature.Types       as Signature
+import qualified Fission.Web.Auth.JWT.Signature.RS256.Types as RS256
+
+
+
+
+
+
+
+import qualified RIO.Text as Text
+
+import qualified Codec.Crypto.RSA.Pure as RSA
+
+import qualified Fission.Internal.Crypto as Crypto
+import qualified Fission.Internal.Base64 as B64
+import qualified Fission.Internal.Base64.URL as B64.URL
+
 check :: MonadTime m => JWT -> m (Either JWT.Error JWT)
-check jwt = do
-  now <- currentTime
-  return (checkSignature =<< checkTime now =<< pure jwt)
+check jwt = check' jwt <$> currentTime
+
+check' :: JWT -> UTCTime -> Either JWT.Error JWT
+check' jwt now =
+  pure jwt
+    >>= checkTime now
+    >>= checkSignature
 
 checkTime :: UTCTime -> JWT -> Either JWT.Error JWT
 checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
@@ -41,25 +63,35 @@ checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
     _ -> Right jwt
 
 checkSignature :: JWT -> Either JWT.Error JWT
-checkSignature jwt@JWT {header = JWT.Header {alg}} =
-  case alg of
-    Ed25519 -> checkEd25519Signature jwt
-    RSA2048 -> checkRSA2048Signature jwt
+checkSignature jwt@JWT {sig} =
+  case sig of
+    Signature.Ed25519 _        -> checkEd25519Signature jwt
+    Signature.RS256   rs256Sig -> checkRSA2048Signature jwt rs256Sig
  
-checkRSA2048Signature :: JWT -> Either JWT.Error JWT
-checkRSA2048Signature jwt@JWT {..} =
-  if Crypto.RSA.PKCS.verify (Just SHA256) pk content sig64
+checkRSA2048Signature :: JWT -> RS256.Signature -> Either JWT.Error JWT
+checkRSA2048Signature (jwt@JWT {..}) (RS256.Signature innerSig) = do
+  if Crypto.RSA.PKCS.verify (Nothing :: Maybe SHA256) pk content generatedSigB64
     then Right jwt
     else Left IncorrectSignature
  
   where
-    pk      = Crypto.RSA.PublicKey {..}
-    sig64   = encodeUtf8 $ textDisplay $ displayShow sig
-    content = Lazy.toStrict $ encode header <> "." <> encode claims
- 
+    content =
+      (encodeUtf8 $ B64.URL.encode $ decodeUtf8Lenient $ B64.toB64ByteString $ Lazy.toStrict (encode header)) <> "."
+        <> (encodeUtf8 $ B64.URL.encode $ decodeUtf8Lenient $ B64.toB64ByteString $ Lazy.toStrict $ encode claims)
+
+    pk = Crypto.decodeToRSA2048Pk innerSig
     Claims {iss = User.DID {publicKey = Key.Public pk'}}  = claims
-    Codec.RSA.PublicKey {public_size, public_n, public_e} =
-      Binary.decode . Lazy.fromStrict $ encodeUtf8 pk'
+
+-- instance Binary PublicKey where
+--   put pk = do sizeBS <- failOnError (i2osp (public_size pk) 8)
+--               nBS <- failOnError (i2osp (public_n pk) (public_size pk))
+--               putLazyByteString sizeBS
+--               putLazyByteString nBS
+--   get    = do len <- (fromIntegral . os2ip) `fmap` getLazyByteString 8
+--               n   <- os2ip `fmap` getLazyByteString len
+--               return (PublicKey (fromIntegral len) n 65537)
+
+-----------------------------
 
 checkEd25519Signature :: JWT -> Either JWT.Error JWT
 checkEd25519Signature jwt@JWT {..} =
