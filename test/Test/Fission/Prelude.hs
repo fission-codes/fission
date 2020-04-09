@@ -23,7 +23,7 @@ import           Servant.QuickCheck
 import           Test.Tasty (TestTree, testGroup, defaultMain)
 import           Test.Tasty.Hspec
 
-import           Test.Hspec.Core.QuickCheck (modifyMaxSize)
+import           Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
 import           Test.Hspec.Wai hiding (pending, pendingWith)
 
 import           Test.QuickCheck hiding (Result (..))
@@ -35,11 +35,11 @@ import           Fission.Prelude hiding (Result (..), log)
 -- | Prop test with description
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()
 itsProp description times prop =
-  modifyMaxSize (\_ -> times) . it description $ property prop
+  modifyMaxSuccess (\_ -> times) . it description $ property prop
 
--- | Prop test with the default number of tries (10k)
+-- | Prop test with the default number of tries (100)
 itsProp' :: (HasCallStack, Testable a) => String -> a -> SpecWith ()
-itsProp' description prop = itsProp description 10_000 prop
+itsProp' description prop = it description $ property prop
 
 bodyMatches :: Value -> [HTTP.Header] -> Body -> Maybe String
 bodyMatches expected _ jsonBody =
