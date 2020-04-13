@@ -22,9 +22,7 @@ instance ToJSON Token where
       token = UTF8.stripQuotes . decodeUtf8Lenient . Lazy.toStrict $ encode bs
 
 instance FromJSON Token where
-  parseJSON = withText "Bearer Token" \txt -> do
-    let normalizedTxt = ("\"" <> UTF8.stripQuotes txt <> "\"")
-   
+  parseJSON = withText "Bearer Token" \txt ->
     case Text.stripPrefix "Bearer " normalizedTxt of
       Just rawToken ->
         parse rawToken
@@ -37,6 +35,9 @@ instance FromJSON Token where
           Just rawToken ->
             parse rawToken
     where
+      normalizedTxt =
+        "\"" <> UTF8.stripQuotes txt <> "\"" -- Postel's Law
+       
       parse raw =
         ("\"" <> UTF8.stripQuotes raw <> "\"") -- Postel's Law
           |> encodeUtf8
