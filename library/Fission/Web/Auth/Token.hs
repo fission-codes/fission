@@ -15,7 +15,12 @@ import qualified Fission.Web.Auth.Token.Basic.Types as Basic
 
 get :: Request -> Maybe Token
 get req = do
-  rawToken <- lookup "Authorization" (requestHeaders req)
+  let headers = requestHeaders req
+ 
+  rawToken <- case lookup "Authorization" headers of
+    Just token -> token
+    Nothing    -> lookup "authorization" headers
+
   case BS.stripPrefix "Basic " rawToken of
     Just basic' ->
       Just . Basic $ Basic.Token basic'
