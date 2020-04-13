@@ -87,7 +87,7 @@ stripOptionalPrefix pfx txt = maybe txt id $ Text.stripPrefix pfx txt
 
 stripOptionalSuffix :: Text -> Text -> Text
 stripOptionalSuffix sfx txt = maybe txt id $ Text.stripSuffix sfx txt
-
+e
 stripOptionalPrefixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
 stripOptionalPrefixBS pfx bs = maybe bs id $ Strict.stripPrefix pfx bs
  

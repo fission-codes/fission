@@ -21,5 +21,5 @@ get req = do
       Just . Basic $ Basic.Token basic'
 
     Nothing -> do
-      let normalizedJSON = "\"" <> UTF8.stripQuotesLazyBS rawToken <> "\""
-      Bearer <$> decode' $ Lazy.fromStrict normalizedJSON
+      let normalizedJSON = "\"" <> UTF8.stripQuotesBS rawToken <> "\""
+      Bearer <$> decode' (Lazy.fromStrict normalizedJSON)
