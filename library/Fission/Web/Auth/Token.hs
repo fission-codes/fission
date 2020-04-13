@@ -8,8 +8,9 @@ import qualified RIO.ByteString.Lazy as Lazy
 import           Network.Wai
 
 import           Fission.Prelude
-import           Fission.Web.Auth.Token.Types
+import qualified Fission.Internal.UTF8 as UTF8
 
+import           Fission.Web.Auth.Token.Types
 import qualified Fission.Web.Auth.Token.Basic.Types as Basic
 
 get :: Request -> Maybe Token
