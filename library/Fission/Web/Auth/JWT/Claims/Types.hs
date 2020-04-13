@@ -35,8 +35,8 @@ instance ToJSON Claims where
 instance FromJSON Claims where
   parseJSON = withObject "JWT.Payload" \obj -> do
     iss <- obj .: "iss"
-    nbf <- fmap fromSeconds <$> obj .: "nbf"
-    exp <-      fromSeconds <$> obj .: "exp"
+    nbf <- fmap fromSeconds <$> obj .:? "nbf"
+    exp <-      fromSeconds <$> obj .:  "exp"
 
     return Claims {..}
  
