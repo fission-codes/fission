@@ -1,9 +1,11 @@
 module Fission.Platform.Heroku.Region.Types (Region (..)) where
 
-import Database.Persist.TH
-import Data.Swagger as Swagger
+import           Database.Persist.Sql
+import           Data.Swagger as Swagger
 
-import Fission.Prelude
+import qualified RIO.Text as Text
+
+import           Fission.Prelude
 
 -- | Location of Heroku server requesting keys
 data Region
@@ -21,7 +23,26 @@ data Region
            , Generic
            )
 
-derivePersistField "Region"
+instance PersistField Region where
+  toPersistValue = PersistText . Text.pack . show
+
+  fromPersistValue (PersistText str) =
+    case str of
+      "California" -> pure California
+      "Dublin"     -> pure Dublin
+      "Frankfurt"  -> pure Frankfurt
+      "Oregon"     -> pure Oregon
+      "Singapore"  -> pure Singapore
+      "Sydney"     -> pure Sydney
+      "Tokyo"      -> pure Tokyo
+      "Virginia"   -> pure Virginia
+      _            -> Left "Not valid Heroku Region value"
+
+  fromPersistValue _ =
+    Left "Not valid Heroku Region type"
+
+instance PersistFieldSql Region where
+  sqlType _ = SqlString
 
 instance Arbitrary Region where
   arbitrary = elements
@@ -56,7 +77,7 @@ instance FromJSON Region where
     "amazon-web-services::ap-southeast-2" -> return Sydney
     "amazon-web-services::ap-northeast-1" -> return Tokyo
     "amazon-web-services::us-east-1"      -> return Virginia
-    bad -> fail <| "Invalid region: " <> show bad
+    bad -> fail $ "Invalid region: " <> show bad
 
 instance ToSchema Region where
     declareNamedSchema _ =
