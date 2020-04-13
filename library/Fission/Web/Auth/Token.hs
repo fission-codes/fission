@@ -18,7 +18,7 @@ get req = do
   let headers = requestHeaders req
  
   rawToken <- case lookup "Authorization" headers of
-    Just token -> token
+    Just token -> Just token
     Nothing    -> lookup "authorization" headers
 
   case BS.stripPrefix "Basic " rawToken of
