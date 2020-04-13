@@ -23,21 +23,18 @@ instance ToJSON Token where
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->
-    case Text.stripPrefix "Bearer " normalizedTxt of
+    case Text.stripPrefix "Bearer " txt of
       Just rawToken ->
         parse rawToken
        
       Nothing ->
-        case Text.stripPrefix "bearer " normalizedTxt of -- Postel's Law
+        case Text.stripPrefix "bearer " txt of -- Postel's Law
           Nothing ->
             fail $ show txt <> " is missing the `Bearer ` prefix"
 
           Just rawToken ->
             parse rawToken
     where
-      normalizedTxt =
-        "\"" <> UTF8.stripQuotes txt <> "\"" -- Postel's Law
-       
       parse raw =
         ("\"" <> UTF8.stripQuotes raw <> "\"") -- Postel's Law
           |> encodeUtf8

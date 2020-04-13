@@ -115,7 +115,6 @@ stripQuotesBS = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
 stripQuotesLazyBS :: Lazy.ByteString -> Lazy.ByteString
 stripQuotesLazyBS = stripOptionalPrefixLazyBS "\"" . stripOptionalSuffixLazyBS "\""
 
-
 {-| Strip one newline character from the end of a lazy `ByteString`.
 
     >>> stripNewline ";)\n"

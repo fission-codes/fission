@@ -20,4 +20,8 @@ get req = do
       Just . Basic $ Basic.Token basic'
 
     Nothing ->
-      Bearer <$> decode' (Lazy.fromStrict rawToken)
+      Bearer <$> decode' $ Lazy.fromStrict normalizedJSON
+ 
+  where
+    normalizedJSON =
+      "\"" <> UTF8.stripQuotesLazyBS rawToken <> "\""
