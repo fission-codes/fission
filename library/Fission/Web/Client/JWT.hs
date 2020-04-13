@@ -19,9 +19,12 @@ import           Fission.Web.Auth.Types                as Auth
 import           Fission.Web.Auth.JWT.Types            as JWT
 import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
 import qualified Fission.Web.Auth.JWT.Signature.Types  as JWT.Signature
+import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 
 import qualified Fission.Internal.Orphanage.ClientM ()
+ 
 import qualified Fission.Internal.Base64 as B64
+import qualified Fission.Internal.UTF8   as UTF8
 
 getSigAuth ::
   ( MonadIO    m
@@ -51,7 +54,13 @@ mkAuthReq = do
     Left err -> Left err
     Right sk -> Right \req -> addHeader "Authorization" encoded req
       where
-        encoded = decodeUtf8Lenient . Lazy.toStrict $ "Bearer " <> encode JWT {..}
+        encoded =
+          Bearer.Token JWT {..}
+            |> encode
+            |> Lazy.toStrict
+            |> decodeUtf8Lenient
+            |> UTF8.stripQuotes
+
         sig     = JWT.Signature.Ed25519 $ Key.signWith sk toSign
         toSign  = Lazy.toStrict $ encode header <> "." <> encode claims
         rawPK   = Ed25519.toPublic sk

@@ -21,7 +21,7 @@ tests =
   describe "Auth.Token" do
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(token :: Token) ->
-        JSON.decode' (JSON.encode token) == Just token
+        JSON.decode' (JSON.encode token) `shouldBe` Just token
 
     context "no token" do
       it "is Nothing" do
