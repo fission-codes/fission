@@ -16,7 +16,11 @@ tests =
   describe "Bearer Token" do
     describe "real world fixture" do
       it "deserializes" do
-        JSON.decode' Bearer.jsonRSA2048 `shouldBe` Just Bearer.tokenRSA2048
+        ("\"" <> Bearer.jsonRSA2048 <> "\"")
+          |> encodeUtf8
+          |> Lazy.fromStrict
+          |> JSON.decode'
+          |> shouldBe (Just Bearer.tokenRSA2048)
      
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
@@ -34,11 +38,12 @@ tests =
 
         itsProp' "contains only valid base64 URL characters" \(bearer :: Bearer.Token) ->
           let
-            encoded = JSON.encode bearer
+            encoded :: Text
+            String encoded = JSON.toJSON bearer
           in
             encoded
-              |> Lazy.take (Lazy.length encoded - 2)
-              |> Lazy.drop 2
+              |> encodeUtf8
+              |> Lazy.fromStrict
               |> Lazy.filter (not . isValidChar)
               |> shouldBe mempty
 
@@ -46,10 +51,6 @@ tests =
         describe "Postel's Law" do
           itsProp' "lowercase 'bearer'" \jwt ->
             let encoded = "\"bearer " <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\""
-            in  eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
-
-          itsProp' "escaped internal quotes" \jwt ->
-            let encoded = "\"Bearer \\\"" <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\\\"\""
             in  eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
 
 isValidChar :: Word8 -> Bool

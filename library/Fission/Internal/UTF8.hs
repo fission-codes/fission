@@ -23,6 +23,7 @@ module Fission.Internal.UTF8
   , textToLazyBS
   , textShow
   , wrapIn
+  , wrapInBS
   ) where
 
 import           Data.Binary hiding (encode)
@@ -115,7 +116,6 @@ stripQuotesBS = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
 stripQuotesLazyBS :: Lazy.ByteString -> Lazy.ByteString
 stripQuotesLazyBS = stripOptionalPrefixLazyBS "\"" . stripOptionalSuffixLazyBS "\""
 
-
 {-| Strip one newline character from the end of a lazy `ByteString`.
 
     >>> stripNewline ";)\n"
@@ -195,3 +195,6 @@ putTextLn txt = putText <| txt <> "\n"
 -}
 wrapIn :: Text -> Text -> Text
 wrapIn wrapper txt = wrapper <> txt <> wrapper
+
+wrapInBS :: ByteString -> ByteString -> ByteString
+wrapInBS wrapper bs = wrapper <> bs <> wrapper

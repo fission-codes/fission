@@ -6,6 +6,8 @@ module Fission.Web.Client.JWT
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 import qualified RIO.ByteString.Lazy   as Lazy
+
+import           Servant.API hiding (addHeader)
 import           Servant.Client.Core
  
 import           Fission.Prelude
@@ -19,6 +21,7 @@ import           Fission.Web.Auth.Types                as Auth
 import           Fission.Web.Auth.JWT.Types            as JWT
 import qualified Fission.Web.Auth.JWT.Header.Typ.Types as JWT.Typ
 import qualified Fission.Web.Auth.JWT.Signature.Types  as JWT.Signature
+import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 
 import qualified Fission.Internal.Orphanage.ClientM ()
 import qualified Fission.Internal.Base64 as B64
@@ -51,7 +54,7 @@ mkAuthReq = do
     Left err -> Left err
     Right sk -> Right \req -> addHeader "Authorization" encoded req
       where
-        encoded = decodeUtf8Lenient . Lazy.toStrict $ "Bearer " <> encode JWT {..}
+        encoded = toUrlPiece $ Bearer.Token JWT {..}
         sig     = JWT.Signature.Ed25519 $ Key.signWith sk toSign
         toSign  = Lazy.toStrict $ encode header <> "." <> encode claims
         rawPK   = Ed25519.toPublic sk

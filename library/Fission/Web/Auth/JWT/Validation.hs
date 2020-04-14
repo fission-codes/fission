@@ -66,12 +66,7 @@ checkRSA2048Signature jwt@JWT {..} (RS256.Signature innerSig) = do
  
   where
     Claims {iss = User.DID {publicKey = Key.Public pk'}} = claims
-    encodePart = UTF8.stripPadding . Lazy.toStrict . encode
-    content =
-      (encodePart header <> "." <> encodePart claims)
-        |> decodeUtf8Lenient
-        |> B64.URL.encode
-        |> encodeUtf8
+    content = encodePart header <> "." <> encodePart claims
 
 checkEd25519Signature :: JWT -> Either JWT.Error JWT
 checkEd25519Signature jwt@JWT {..} =
@@ -90,4 +85,7 @@ checkEd25519Signature jwt@JWT {..} =
   where
     Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
     errOrPk = Crypto.Ed25519.publicKey $ B64.Scrubbed.scrubB64 pk
-    content = UTF8.stripPadding . Lazy.toStrict $ encode header <> "." <> encode claims
+    content = encodePart header <> "." <> encodePart claims
+
+encodePart :: ToJSON a => a -> ByteString
+encodePart = UTF8.stripPadding . B64.URL.encodeBS . Lazy.toStrict . encode

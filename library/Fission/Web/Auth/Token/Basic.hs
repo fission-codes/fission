@@ -66,7 +66,7 @@ checkUser (BasicAuthData username password) = do
         Just secretDigest ->  do
           if validatePassword (encodeUtf8 secretDigest) password
             then
-              return <| Right usr
+              return $ Right usr
 
             else do
               logWarn attemptMsg
@@ -82,5 +82,5 @@ checkUser (BasicAuthData username password) = do
 parseBasic :: Auth.Basic.Token -> Either Auth.Error BasicAuthData
 parseBasic (Auth.Basic.Token token) =
   case Ch.split ':' (Base64.decodeLenient token) of
-    [un,pw] -> Right <| BasicAuthData un pw
+    [un,pw] -> Right $ BasicAuthData un pw
     _ -> Left Auth.BadToken
