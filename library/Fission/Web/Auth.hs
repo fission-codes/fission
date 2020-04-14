@@ -30,6 +30,8 @@ import qualified Fission.Web.Auth.JWT               as JWT
 
 import qualified Fission.User as User
 import           Fission.User.DID.Types
+ 
+import qualified Fission.Web.Auth.JWT.Proof.Resolver as JWT.Proof
 
 -- Reexport
  
@@ -80,6 +82,7 @@ basic unOK pwOK = BasicAuthCheck (return . check)
 -- Uses our custom jwt auth for "Bearer " tokens
 handler ::
   ( MonadLogger      m
+  , JWT.Proof.Resolver m
   , MonadThrow       m
   , MonadTime        m
   , MonadDB        t m

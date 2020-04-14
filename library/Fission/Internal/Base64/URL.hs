@@ -20,7 +20,7 @@ import qualified RIO.List            as List
 import qualified RIO.Text.Partial    as Text.Partial
 
 import           Fission.Prelude hiding (encode, decode)
- 
+
 import qualified Fission.Internal.UTF8   as UTF8
 import qualified Fission.Internal.Base64 as B64
 

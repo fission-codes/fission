@@ -20,7 +20,7 @@ tests =
         ("\"" <> Bearer.jsonRSA2048 <> "\"")
           |> encodeUtf8
           |> Lazy.fromStrict
-          |> JSON.decode'
+          |> JSON.decode
           |> shouldBe (Just Bearer.tokenRSA2048)
      
     describe "serialization" do

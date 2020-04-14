@@ -14,7 +14,7 @@ import           Servant.Server.Experimental.Auth
 import           Network.AWS as AWS hiding (Request)
 import           Network.AWS.Route53
 
-import           Network.IPFS
+import           Network.IPFS               as IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
@@ -43,6 +43,9 @@ import           Fission.User.DID.Types
 import           Fission.Models
 
 import           Fission.Web.Auth.Token.Basic.Class
+
+import           Fission.Web.Auth.JWT.Proof.Resolver as JWT.Proof
+
 
 import           Fission.App.Content as App.Content
 import           Fission.App.Domain  as App.Domain
@@ -217,3 +220,14 @@ instance App.Domain.Initializer Fission where
 
 instance App.Content.Initializer Fission where
   placeholder = asks appPlaceholder
+
+instance JWT.Proof.Resolver Fission where
+  resolve cid@(CID hash) =
+    IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
+      Left errMsg ->
+        Left $ CannotResolve cid errMsg
+
+      Right (Lazy.toStrict -> resolvedBS) ->
+        case eitherDecodeStrict resolvedBS of
+          Left  _   -> Left $ InvalidJWT resolvedBS
+          Right jwt -> Right (resolvedBS, jwt)

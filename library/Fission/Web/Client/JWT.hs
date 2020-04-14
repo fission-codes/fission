@@ -18,7 +18,10 @@ import qualified Fission.Internal.Base64.URL as B64.URL
 
 import qualified Fission.Key      as Key
 import           Fission.User.DID as DID
- 
+
+import Fission.SemVer.Types
+import Fission.Authorization.Potency.Types
+
 import           Fission.Key.Asymmetric.Algorithm.Types as Key
 
 import           Fission.Web.Auth.Types                as Auth
@@ -66,7 +69,11 @@ mkAuthReq = do
           }
 
         claims = JWT.Claims
-          { iss = did
+          { sender = did
+          , receiver = did -- FIXME set to Fission DID
+          , potency  = AuthNOnly -- FIXME
+          , scope = "/"
+          , proof = RootCredential
           , nbf = Nothing
           , exp = addUTCTime (secondsToNominalDiffTime 30) time
           }
@@ -75,5 +82,6 @@ mkAuthReq = do
           { typ = JWT.Typ.JWT
           , alg = Key.Ed25519
           , cty = Nothing
+          , uav = SemVer 0 0 1
           }
 

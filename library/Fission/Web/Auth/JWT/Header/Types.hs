@@ -9,6 +9,7 @@ module Fission.Web.Auth.JWT.Header.Types
   ) where
 
 import           Fission.Prelude
+import           Fission.SemVer.Types
 
 import           Fission.Key.Asymmetric.Algorithm.Types
 
@@ -16,9 +17,10 @@ import           Fission.Web.Auth.JWT.Header.Cty.Types
 import           Fission.Web.Auth.JWT.Header.Typ.Types
 
 data Header = Header
-  { typ :: !Typ
-  , alg :: !Algorithm
-  , cty :: !(Maybe Cty)
+  { typ :: !Typ         -- ^ Standard JWT '"typ"' field
+  , alg :: !Algorithm   -- ^ Standard JWT '"alg"' field
+  , cty :: !(Maybe Cty) -- ^ Standard JWT '"cty"' field. Set to '"JWT"' if there's a recursive JWT in the claims
+  , uav :: !SemVer      -- ^ UCAN Version, mainly to state assumptions
   } deriving (Show, Eq)
 
 instance Arbitrary Header where
@@ -26,6 +28,7 @@ instance Arbitrary Header where
     typ <- arbitrary
     alg <- arbitrary
     cty <- arbitrary
+    uav <- arbitrary
     return Header {..}
 
 instance ToJSON Header where
@@ -33,6 +36,7 @@ instance ToJSON Header where
     [ "typ" .= typ
     , "alg" .= alg
     , "cty" .= cty
+    , "uav" .= uav
     ]
 
 instance FromJSON Header where
@@ -40,4 +44,5 @@ instance FromJSON Header where
     typ <- obj .:  "typ"
     alg <- obj .:  "alg"
     cty <- obj .:? "cty"
+    uav <- obj .:  "uav"
     return Header {..}

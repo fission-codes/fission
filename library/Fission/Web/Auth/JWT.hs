@@ -19,6 +19,8 @@ import qualified Fission.User as User
 import           Fission.Web.Auth.JWT.Types          as JWT
 import           Fission.Web.Auth.JWT.Error          as JWT
 import qualified Fission.Web.Auth.Token.Bearer.Types as Auth.Bearer
+ 
+import qualified Fission.Web.Auth.JWT.Proof.Resolver as JWT.Proof
 
 -- Reexport
 
@@ -27,10 +29,11 @@ import           Fission.Web.Auth.JWT.Error
 import           Fission.Web.Auth.JWT.Validation
 
 handler ::
-  ( MonadTime        m
-  , MonadLogger      m
-  , MonadThrow       m
-  , MonadDB        t m
+  ( MonadTime          m
+  , JWT.Proof.Resolver m
+  , MonadLogger        m
+  , MonadThrow         m
+  , MonadDB        t   m
   , MonadThrow     t
   , User.Retriever t
   )
@@ -42,7 +45,7 @@ handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
       logWarn $ "Failed login with token " <> encode token
       throwM err
 
-    Right JWT {claims = Claims {iss = User.DID {publicKey}}} -> do
+    Right JWT {claims = Claims {sender = User.DID {publicKey}}} -> do
       runDB $ User.getByPublicKey publicKey >>= \case
         Nothing  -> throwM $ toServerError JWT.NoUser
         Just usr -> return usr

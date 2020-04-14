@@ -20,4 +20,3 @@ parse alg lazyBS =
   case alg of
     Algorithm.RSA2048 -> Signature.RS256   <$> eitherDecode lazyBS
     Algorithm.Ed25519 -> Signature.Ed25519 <$> eitherDecode lazyBS
-

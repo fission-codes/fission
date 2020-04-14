@@ -5,6 +5,8 @@ import           Servant.Server
 import           Fission.Prelude
 import           Fission.Web.Error.Class
 
+import qualified Fission.Web.Auth.JWT.Proof.Validation.Error as Proof
+
 data Error
   = ParseError
   | BadHeader
@@ -16,11 +18,13 @@ data Error
   | Expired
   | TooEarly
   | NoUser
+  | InvalidProof Proof.Error -- FIXME instances below
   deriving ( Exception
            , Eq
-           , Generic
-           , ToJSON
            )
+
+instance ToJSON Error where
+  toJSON = String . textDisplay
 
 instance Display Error where
   display = \case
@@ -34,6 +38,7 @@ instance Display Error where
     Expired            -> "JWT is expired"
     TooEarly           -> "JWT used before nbf (not before) time"
     NoUser             -> "DID does not match a Fission user"
+    InvalidProof err   -> "Invalid proof: " <> display err
 
 instance Show Error where
   show = show . textDisplay
@@ -47,6 +52,7 @@ instance ToServerError Error where
     BadSignature       -> err422 { errBody = displayLazyBS BadSignature       }
     IncorrectSignature -> err422 { errBody = displayLazyBS IncorrectSignature }
     DIDNotSupported    -> err422 { errBody = displayLazyBS DIDNotSupported    }
+    InvalidProof err   -> err422 { errBody = displayLazyBS (InvalidProof err) }
     NoUser             -> err404 { errBody = displayLazyBS NoUser             }
     Expired            -> err410 { errBody = displayLazyBS Expired            }
     TooEarly           -> ServerError { errHTTPCode     = 425

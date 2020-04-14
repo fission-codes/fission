@@ -46,7 +46,7 @@ tests =
               `shouldBe` JSON.encode expected
 
       itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
-        JSON.decode' (JSON.encode did) == Just did
+        JSON.decode (JSON.encode did) == Just did
 
       itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
         Lazy.BS.isPrefixOf "\"did:key:z" (JSON.encode did)

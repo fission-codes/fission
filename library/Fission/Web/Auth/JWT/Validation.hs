@@ -1,3 +1,4 @@
+-- FIXME move under Token
 module Fission.Web.Auth.JWT.Validation
   ( check
   , check'
@@ -14,7 +15,10 @@ import qualified Crypto.PubKey.RSA.PKCS15 as Crypto.RSA.PKCS
 
 import           Fission.Prelude
 
-import qualified RIO.Text as Text
+import Fission.SemVer.Types
+
+import Fission.Web.Auth.JWT.Proof.Resolver   as JWT.Proof
+import Fission.Web.Auth.JWT.Proof.Validation as JWT.Proof
 
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 import qualified Fission.Internal.Crypto          as Crypto
@@ -28,13 +32,67 @@ import           Fission.Web.Auth.JWT.Types as JWT
 import           Fission.Web.Auth.JWT.Signature.Types       as Signature
 import qualified Fission.Web.Auth.JWT.Signature.RS256.Types as RS256
 
-check :: MonadTime m => ByteString -> JWT -> m (Either JWT.Error JWT)
-check rawContent jwt = check' rawContent jwt <$> currentTime
+check ::
+  ( JWT.Proof.Resolver m
+  , MonadTime          m
+  )
+  => ByteString
+  -> JWT
+  -> m (Either JWT.Error JWT)
+check rawContent jwt = check' rawContent jwt =<< currentTime
 
-check' :: ByteString -> JWT -> UTCTime -> Either JWT.Error JWT
-check' rawContent jwt now = do
-  _ <- checkTime now jwt
-  checkSignature rawContent jwt
+-- Broken out to not lookup time repeatedly in recursive checks
+check' ::
+  JWT.Proof.Resolver m
+  => ByteString
+  -> JWT
+  -> UTCTime
+  -> m (Either JWT.Error JWT)
+check' raw jwt now = do
+  void $ pure do
+    checkVersion       jwt
+    checkSignature raw jwt
+    checkTime      now jwt
+
+  checkProof now jwt
+
+checkVersion :: JWT -> Either JWT.Error JWT -- FIXME SemVer.Error
+checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
+  if mjr < 1 && mnr <= 1 && pch <= 0
+    then Right jwt
+    else Left NoUser -- FIXME semver error
+
+checkProof :: JWT.Proof.Resolver m => UTCTime -> JWT -> m (Either JWT.Error JWT)
+checkProof now jwt@JWT {claims = Claims {proof}} =
+  case proof of
+    RootCredential ->
+      return $ Right jwt
+
+    Reference cid ->
+      JWT.Proof.resolve cid >>= \case
+        Left err ->
+          return . Left . InvalidProof $ JWT.Proof.ResolverIssue err
+         
+        Right (rawProof, proofJWT) ->
+          check' rawProof proofJWT now <&> \case
+            Left err -> Left err
+            Right _  -> checkDelegate proofJWT
+
+    Nested rawProof ->
+      case decodeStrict' rawProof of
+        Nothing ->
+          return $ Left undefined
+        
+        Just proofJWT ->
+          check' rawProof proofJWT now <&> \case
+            Left err -> Left err
+            Right _  -> checkDelegate proofJWT
+
+    where
+      checkDelegate proofJWT =
+        case JWT.Proof.delegatedInBounds jwt proofJWT of
+          Left err -> Left $ InvalidProof err
+          Right _  -> Right jwt
 
 checkTime :: UTCTime -> JWT -> Either JWT.Error JWT
 checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
@@ -61,7 +119,7 @@ checkRSA2048Signature rawContent jwt@JWT {..} (RS256.Signature innerSig) = do
         else Left IncorrectSignature
  
   where
-    Claims {iss = User.DID {publicKey = Key.Public pk'}} = claims
+    Claims {sender = User.DID {publicKey = Key.Public pk'}} = claims
 
 checkEd25519Signature :: ByteString -> JWT -> Either JWT.Error JWT
 checkEd25519Signature rawContent jwt@JWT {..} =
@@ -79,4 +137,4 @@ checkEd25519Signature rawContent jwt@JWT {..} =
     
   where
     errOrPk = Crypto.Ed25519.publicKey $ B64.Scrubbed.scrubB64 pk
-    Claims {iss = User.DID {publicKey = Key.Public pk}} = claims
+    Claims {sender = User.DID {publicKey = Key.Public pk}} = claims

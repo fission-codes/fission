@@ -29,6 +29,6 @@ instance ToHttpApiData Token where
 
 instance FromHttpApiData Token  where
   parseUrlPiece txt =
-    case eitherDecode . Lazy.fromStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
+    case eitherDecodeStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
       Right token -> Right token
       Left  err   -> Left $ Text.pack err
