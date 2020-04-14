@@ -5,8 +5,7 @@ import qualified Data.Aeson as JSON
 import qualified Network.Wai as Wai
 import           Network.Wai.Internal
 
-import qualified RIO.ByteString      as Strict
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.ByteString as Strict
 
 import qualified Fission.Web.Auth.Token             as Token
 import           Fission.Web.Auth.Token.Types
@@ -40,7 +39,7 @@ tests =
         Token.get authed `shouldBe` Just (Basic $ Basic.Token "12345")
 
     describe "Bearer token" do
-      let jsonJWT = Lazy.toStrict jsonRSA2048
+      let jsonJWT = encodeUtf8 jsonRSA2048
 
       context "titlecase 'Bearer'" do
         let authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWT)]}

@@ -66,7 +66,7 @@ checkUser (BasicAuthData username password) = do
         Just secretDigest ->  do
           if validatePassword (encodeUtf8 secretDigest) password
             then
-              return <| Right usr
+              return $ Right usr
 
             else do
               logWarn attemptMsg

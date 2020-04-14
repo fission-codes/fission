@@ -1,6 +1,9 @@
 module Fission.Web.Auth.Token.Types (Token (..)) where
 
-import qualified RIO.Text as Text
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
+import           Servant.API
 
 import           Fission.Prelude
 
@@ -32,6 +35,17 @@ instance FromJSON Token where
 instance ToJSON Token where
   toJSON (Basic basic)   = toJSON basic
   toJSON (Bearer bearer) = toJSON bearer
+
+instance ToHttpApiData Token where
+  toUrlPiece = \case
+    Basic basic   -> toUrlPiece basic
+    Bearer bearer -> toUrlPiece bearer
+
+instance FromHttpApiData Token  where
+  parseUrlPiece txt =
+    case eitherDecode . Lazy.fromStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
+      Right token -> Right token
+      Left  err   -> Left $ Text.pack err
 
 stripEitherPrefix :: Text -> Text -> Text -> Maybe Text
 stripEitherPrefix pfxA pfxB txt =

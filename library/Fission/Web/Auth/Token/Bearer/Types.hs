@@ -1,9 +1,11 @@
 -- | Authorization types; primarily more semantic aliases
 module Fission.Web.Auth.Token.Bearer.Types (Token (..)) where
 
-import Data.Aeson.Types
+import           Data.Aeson.Types
+import           Servant.API
 
-import qualified RIO.Text as Text
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 import           Fission.Prelude
 import           Fission.Web.Auth.JWT.Types
@@ -33,3 +35,13 @@ instance FromJSON Token where
 
           Nothing ->
             fail $ show txt <> " is missing the `Bearer ` prefix"
+
+instance ToHttpApiData Token where
+  toUrlPiece token =
+    Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode token
+
+instance FromHttpApiData Token  where
+  parseUrlPiece txt =
+    case eitherDecode . Lazy.fromStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
+      Right token -> Right token
+      Left  err   -> Left $ Text.pack err

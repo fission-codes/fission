@@ -16,7 +16,11 @@ tests =
   describe "Bearer Token" do
     describe "real world fixture" do
       it "deserializes" do
-        JSON.decode' ("\"" <> Bearer.jsonRSA2048 <> "\"") `shouldBe` Just Bearer.tokenRSA2048
+        ("\"" <> Bearer.jsonRSA2048 <> "\"")
+          |> encodeUtf8
+          |> Lazy.fromStrict
+          |> JSON.decode'
+          |> shouldBe (Just Bearer.tokenRSA2048)
      
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
@@ -34,6 +38,7 @@ tests =
 
         itsProp' "contains only valid base64 URL characters" \(bearer :: Bearer.Token) ->
           let
+            encoded :: Text
             String encoded = JSON.toJSON bearer
           in
             encoded
