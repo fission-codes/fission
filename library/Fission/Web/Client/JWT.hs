@@ -24,9 +24,7 @@ import qualified Fission.Web.Auth.JWT.Signature.Types  as JWT.Signature
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 
 import qualified Fission.Internal.Orphanage.ClientM ()
- 
 import qualified Fission.Internal.Base64 as B64
-import qualified Fission.Internal.UTF8   as UTF8
 
 getSigAuth ::
   ( MonadIO    m

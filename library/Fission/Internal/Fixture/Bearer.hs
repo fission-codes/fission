@@ -7,8 +7,6 @@ module Fission.Internal.Fixture.Bearer
   , validTime
   ) where
 
-import qualified RIO.ByteString.Lazy as Lazy
-
 import           Servant.API
 
 import           Fission.Prelude

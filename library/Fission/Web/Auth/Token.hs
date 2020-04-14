@@ -3,13 +3,10 @@ module Fission.Web.Auth.Token
   , module Fission.Web.Auth.Token.Types
   ) where
 
-import qualified Data.Aeson as JSON
 import           Network.Wai
 import           Servant.API
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
-
 import           Fission.Web.Auth.Token.Types
 
 get :: Request -> Maybe Token
