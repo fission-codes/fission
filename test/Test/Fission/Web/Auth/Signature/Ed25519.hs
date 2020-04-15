@@ -2,6 +2,9 @@ module Test.Fission.Web.Auth.Signature.Ed25519 (tests) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed
 
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
 import           Fission.Web.Auth.JWT
 import qualified Fission.Key as Key
 import           Fission.User.DID
@@ -34,5 +37,14 @@ tests =
             , claims = claims'
             , sig    = sig'
             }
+
+          rawContent =
+            jwt'
+              |> encode
+              |> Lazy.toStrict
+              |> decodeUtf8Lenient
+              |> Text.drop 1
+              |> Text.dropEnd 1
+              |> encodeUtf8
         in
-          checkEd25519Signature jwt' `shouldBe` Right jwt'
+          checkEd25519Signature rawContent jwt' `shouldBe` Right jwt'

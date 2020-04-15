@@ -25,8 +25,8 @@ handler ::
   -> m DID
 handler req =
   case Token.get req of
-    Just (Bearer token@(Bearer.Token jwt)) ->
-      JWT.check jwt >>= \case
+    Just (Bearer token@(Bearer.Token jwt (Just rawContent))) ->
+      JWT.check rawContent jwt >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> encode token
           throwM err

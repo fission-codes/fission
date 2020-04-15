@@ -54,7 +54,7 @@ mkAuthReq = do
     Left err -> Left err
     Right sk -> Right \req -> addHeader "Authorization" encoded req
       where
-        encoded = toUrlPiece $ Bearer.Token JWT {..}
+        encoded = toUrlPiece $ Bearer.Token JWT {..} Nothing
         sig     = JWT.Signature.Ed25519 $ Key.signWith sk toSign
         toSign  = Lazy.toStrict $ encode header <> "." <> encode claims
         rawPK   = Ed25519.toPublic sk

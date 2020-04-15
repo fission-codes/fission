@@ -10,35 +10,50 @@ import qualified RIO.Text            as Text
 import           Fission.Prelude
 import           Fission.Web.Auth.JWT.Types
 
-newtype Token = Token { unToken :: JWT }
+data Token = Token
+  { jwt        :: !JWT
+  , rawContent :: !(Maybe ByteString) -- To pass in to the verifier
+  }
   deriving (Show, Eq)
 
 instance Arbitrary Token where
-  arbitrary = pure . Token =<< arbitrary
+  arbitrary = do
+    let rawContent = Nothing
+    jwt <- arbitrary
+    return Token {..}
 
 instance ToJSON Token where
-  toJSON (Token bs) =
+  toJSON (Token bs _) =
     case toJSON bs of
       String txt -> String $ "Bearer " <> txt
       _          -> error "impossible"
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->
-    Token <$> case Text.stripPrefix "Bearer " txt of
+    case Text.stripPrefix "Bearer " txt of
       Just rawToken ->
-        parseJSON (String rawToken) :: Parser JWT
-       
+        resolve rawToken
+
       Nothing ->
         case Text.stripPrefix "bearer " txt of -- Postel's Law
           Just rawToken ->
-            parseJSON (String rawToken) :: Parser JWT
-
+            resolve rawToken
+           
           Nothing ->
             fail $ show txt <> " is missing the `Bearer ` prefix"
 
+    where
+      justContent =
+        Just . encodeUtf8 . Text.dropEnd 1 . Text.dropWhileEnd (/= '.')
+       
+      resolve rawToken = do
+        jwt <- parseJSON (String rawToken)
+        let rawContent = justContent rawToken
+        return Token {..}
+
 instance ToHttpApiData Token where
-  toUrlPiece token =
-    Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode token
+  toUrlPiece Token {jwt} =
+    Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt
 
 instance FromHttpApiData Token  where
   parseUrlPiece txt =

@@ -5,11 +5,12 @@ import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
 import qualified RIO.ByteString.Lazy        as Lazy
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import qualified Fission.Internal.UTF8               as UTF8
+import           Fission.Web.Auth.JWT.Types
+
+import qualified Fission.Internal.UTF8           as UTF8
+import qualified Fission.Internal.Fixture.Bearer as Bearer
 
 import           Test.Fission.Prelude
-
-import qualified Fission.Internal.Fixture.Bearer as Bearer
 
 tests :: SpecWith ()
 tests =
@@ -49,9 +50,17 @@ tests =
 
       describe "incoming" do
         describe "Postel's Law" do
-          itsProp' "lowercase 'bearer'" \jwt ->
-            let encoded = "\"bearer " <> UTF8.stripQuotesLazyBS (JSON.encode jwt) <> "\""
-            in  eitherDecode encoded `shouldBe` Right (Bearer.Token jwt)
+          itsProp' "lowercase 'bearer'" \(jwt :: JWT) -> do
+            let
+              jwt' :: Lazy.ByteString
+              jwt' = UTF8.stripQuotesLazyBS (JSON.encode jwt)
+
+              encoded :: Lazy.ByteString
+              encoded = "\"bearer " <> jwt' <> "\""
+
+              Right Bearer.Token {jwt = result} = eitherDecode encoded
+
+            result `shouldBe` jwt
 
 isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 (" " <> validB64URLChars)
