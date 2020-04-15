@@ -21,7 +21,7 @@ tests =
           |> encodeUtf8
           |> Lazy.fromStrict
           |> JSON.decode'
-          |> shouldBe (Just Bearer.tokenRSA2048)
+          |> shouldBe (Just Bearer.tokenRSA2048 { rawContent = Nothing }
      
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
