@@ -12,5 +12,5 @@ tests =
       context "real world bearer token" do
         it "is valid" do
           Fixture.validTime
-           |> JWT.check' (encodeUtf8 Fixture.rawContent) Fixture.jwtRSA2048
-           |> shouldBe (Right Fixture.jwtRSA2048)
+            |> JWT.check' (encodeUtf8 Fixture.rawContent) Fixture.jwtRSA2048
+            |> shouldBe (Right Fixture.jwtRSA2048)
