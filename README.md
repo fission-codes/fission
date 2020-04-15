@@ -50,6 +50,17 @@ Available at https://runfission.com/docs
 
 ## Development
 
+### Setup
+
+Install [Haskell Stack](https://docs.haskellstack.org/en/stable/README/#how-to-install).
+
+Install PostgreSQL database.
+
+On MacOS with Homebrew:
+
+`brew install stack`
+`brew install postgresql`
+
 ### Create Database
 
 ```shell
@@ -58,7 +69,7 @@ $ psql
 
 ```
 
-Migrations will be performaned automatically when running the server
+Migrations will be performed automatically when running the server
 
 ### Commands
 
@@ -75,7 +86,7 @@ make setup
 make dev
 
 # Live code checking
-make dev
+make live
 
 # Run server in debug/verbose mode
 DEBUG=true make serve
