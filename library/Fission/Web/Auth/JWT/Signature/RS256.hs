@@ -9,9 +9,8 @@ import           Crypto.Hash.Algorithms (SHA256 (..))
 import qualified Crypto.PubKey.RSA        as RSA
 import qualified Crypto.PubKey.RSA.PKCS15 as RSA.PKCS15
  
-import qualified RIO.ByteString.Lazy as Lazy
-
 import           Fission.Prelude
+import qualified Fission.Internal.Base64.URL as B64.URL
 
 import           Fission.Web.Auth.JWT.Signature.RS256.Types
 import qualified Fission.Web.Auth.JWT.Signature.RS256.Types as RS256
@@ -27,9 +26,6 @@ sign ::
   -> RSA.PrivateKey
   -> m (Either RSA.Error JWT.Sig.Signature)
 sign header claims sk =
-  (encode header <> "." <> encode claims)
-    |> Lazy.toStrict
-    |> RSA.PKCS15.signSafer (Just SHA256) sk
-    |> fmap \case
-        Left err  -> Left err
-        Right sig -> Right . JWT.Sig.RS256 $ RS256.Signature sig
+  RSA.PKCS15.signSafer (Just SHA256) sk (B64.URL.encodeJWT header claims) <&> \case
+    Left err  -> Left err
+    Right sig -> Right . JWT.Sig.RS256 $ RS256.Signature sig

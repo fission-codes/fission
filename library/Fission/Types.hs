@@ -48,7 +48,7 @@ import           Fission.App.Content as App.Content
 import           Fission.App.Domain  as App.Domain
 
 -- | The top-level app type
-newtype Fission a = Fission { unwrapFission :: RIO Config a }
+newtype Fission a = Fission { unFission :: RIO Config a }
   deriving newtype ( Functor
                    , Applicative
                    , Monad
@@ -204,13 +204,13 @@ instance MonadAuth DID Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
-      toHandler (runRIO cfg) . unwrapFission $ Auth.DID.handler req
+      toHandler (runRIO cfg) . unFission $ Auth.DID.handler req
 
 instance MonadAuth (SQL.Entity User) Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
-      toHandler (runRIO cfg) . unwrapFission $ Auth.handler req
+      toHandler (runRIO cfg) . unFission $ Auth.handler req
 
 instance App.Domain.Initializer Fission where
   initial = asks baseAppDomainName

@@ -8,6 +8,8 @@ module Fission.Web.Auth.JWT
   , module Fission.Web.Auth.JWT.Validation
   ) where
 
+import           Servant.Server
+
 import           Fission.Prelude
 import           Fission.Web.Error.Class
 
@@ -34,8 +36,8 @@ handler ::
   )
   => Auth.Bearer.Token
   -> m (Entity User)
-handler token@(Auth.Bearer.Token jwt) =
-  check jwt >>= \case
+handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
+  check rawContent jwt >>= \case
     Left err -> do
       logWarn $ "Failed login with token " <> encode token
       throwM err
@@ -44,3 +46,6 @@ handler token@(Auth.Bearer.Token jwt) =
       runDB $ User.getByPublicKey publicKey >>= \case
         Nothing  -> throwM $ toServerError JWT.NoUser
         Just usr -> return usr
+ 
+handler _ = -- should be impossible
+  throwM $ err500 { errBody = "Unable to parse JWT" }

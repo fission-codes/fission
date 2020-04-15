@@ -10,7 +10,4 @@ import Fission.Config.Types
 
 -- | Run actions described by a @Fission@ type
 runFission :: MonadIO m => Config -> Fission a -> m a
-runFission cfg actions =
-  actions
-    |> unwrapFission
-    |> runRIO cfg
+runFission cfg actions = runRIO cfg $ unFission actions
