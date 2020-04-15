@@ -54,8 +54,8 @@ instance FromJSON Token where
         return Token {..}
 
 instance ToHttpApiData Token where
-  toUrlPiece Token {jwt} =
-    Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt
+  toUrlPiece token =
+    Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode token
 
 instance FromHttpApiData Token  where
   parseUrlPiece txt =
