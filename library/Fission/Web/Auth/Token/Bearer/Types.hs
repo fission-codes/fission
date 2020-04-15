@@ -8,6 +8,8 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
 import           Fission.Prelude
+import qualified Fission.Internal.Base64.URL as B64.URL
+ 
 import           Fission.Web.Auth.JWT.Types
 
 data Token = Token
@@ -18,8 +20,8 @@ data Token = Token
 
 instance Arbitrary Token where
   arbitrary = do
-    let rawContent = Nothing
-    jwt <- arbitrary
+    jwt@JWT {..} <- arbitrary
+    let rawContent = Just $ B64.URL.encodeJWT header claims
     return Token {..}
 
 instance ToJSON Token where

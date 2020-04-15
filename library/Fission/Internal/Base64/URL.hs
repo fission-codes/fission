@@ -20,7 +20,9 @@ import qualified RIO.List            as List
 import qualified RIO.Text.Partial    as Text.Partial
 
 import           Fission.Prelude hiding (encode, decode)
-import qualified Fission.Internal.UTF8 as UTF8
+ 
+import qualified Fission.Internal.UTF8   as UTF8
+import qualified Fission.Internal.Base64 as B64
 
 -- | Go from Base64URL to Base64
 decode :: Text -> Text
@@ -41,7 +43,7 @@ encodeJWT :: (ToJSON a, ToJSON b) => a -> b -> ByteString
 encodeJWT a b = encodeJWTPart a <> "." <> encodeJWTPart b
 
 encodeJWTPart :: ToJSON a => a -> ByteString
-encodeJWTPart = UTF8.stripPadding . encodeBS . Lazy.toStrict . JSON.encode
+encodeJWTPart = UTF8.stripPadding . encodeBS . B64.toB64ByteString . Lazy.toStrict . JSON.encode
 
 addPadding :: FromJSON x => Lazy.ByteString -> Either String x
 addPadding bs = eitherDecode $ Lazy.BS64.decodeLenient (Lazy.pack padded)
