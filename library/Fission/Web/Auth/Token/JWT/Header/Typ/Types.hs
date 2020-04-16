@@ -1,6 +1,6 @@
 -- | JOSE @"typ"@ (Type) Header Parameter
 
-module Fission.Web.Auth.JWT.Header.Typ.Types (Typ (..)) where
+module Fission.Web.Auth.Token.JWT.Header.Typ.Types (Typ (..)) where
 
 import qualified RIO.Text as Text
 import           Fission.Prelude

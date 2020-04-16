@@ -1,17 +1,17 @@
-module Test.Fission.Web.Auth.JWT (tests) where
+module Test.Fission.Web.Auth.Token.JWT (tests) where
 
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8
 import qualified RIO.ByteString.Lazy        as Lazy
 
-import           Fission.Web.Auth.JWT
+import           Fission.Web.Auth.Token.JWT
 
 import           Test.Fission.Prelude
-import qualified Test.Fission.Web.Auth.JWT.Validation as Validation
+import qualified Test.Fission.Web.Auth.Token.JWT.Validation as Validation
 
 tests :: SpecWith ()
 tests =
-  describe "Fission.Web.Auth.JWT" do
+  describe "Fission.Web.Auth.Token.JWT" do
     Validation.tests
  
     describe "serialization" do

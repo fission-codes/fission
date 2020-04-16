@@ -12,7 +12,7 @@ import           Servant.API
 
 import           Fission.Prelude
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.JWT.Types
+import           Fission.Web.Auth.Token.JWT
 
 validTime :: UTCTime
 validTime = fromSeconds 0 -- i.e. waaaay before the expiry :P

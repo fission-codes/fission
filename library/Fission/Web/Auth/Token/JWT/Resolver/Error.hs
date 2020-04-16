@@ -1,18 +1,13 @@
-module Fission.Web.Auth.JWT.Proof.Resolver.Class
-  ( Resolver (..)
-  , Error    (..)
-  ) where
+module Fission.Web.Auth.Token.JWT.Resolver.Error (Error (..)) where
+
+import           Servant.Server
 
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error as IPFS.Process
 
 import           Fission.Prelude
-import           Fission.Web.Auth.JWT.Types
+import           Fission.Web.Error.Class
 
--- FIXME doesn';t need to live under Proof!
-class Monad m => Resolver m where
-  resolve :: CID -> m (Either Error (ByteString, JWT))
- 
 data Error
   = CannotResolve CID IPFS.Process.Error
   | InvalidJWT ByteString
@@ -25,3 +20,8 @@ instance Display Error where
 
     InvalidJWT jwtBS ->
       "Invalid resolved JWT: " <> displayBytesUtf8 jwtBS
+
+instance ToServerError Error where
+  toServerError = \case
+    err@(CannotResolve _ _) -> err504 { errBody = displayLazyBS err }
+    err@(InvalidJWT _)      -> err422 { errBody = displayLazyBS err }

@@ -1,6 +1,6 @@
 -- | JOSE @"cty"@ (Content Type) Header Parameter
 
-module Fission.Web.Auth.JWT.Header.Cty.Types (Cty (..)) where
+module Fission.Web.Auth.Token.JWT.Header.Cty.Types (Cty (..)) where
 
 import Fission.Prelude
 

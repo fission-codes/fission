@@ -16,8 +16,8 @@ import           Fission.Web.Auth
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
  
 import           Test.Fission.Prelude         as Mock
-import qualified Test.Fission.Web.Auth.JWT    as JWT
-import qualified Test.Fission.Web.Auth.Bearer as Bearer
+import qualified Test.Fission.Web.Auth.Token.JWT    as JWT
+import qualified Test.Fission.Web.Auth.Token.Bearer as Bearer
 import qualified Test.Fission.Web.Auth.Token  as Token
 
 import qualified Test.Fission.Web.Auth.Signature.Ed25519 as Ed

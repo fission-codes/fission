@@ -1,6 +1,5 @@
 module Main (main) where
 
-
 import qualified Data.Aeson as JSON
 import qualified Data.Yaml  as YAML
 
@@ -30,6 +29,8 @@ import qualified Fission.Platform.Heroku.Password.Types       as Hku
 
 import           Fission.Environment.IPFS.Types    as IPFS
 import           Fission.Environment.Types
+
+import qualified Fission.Environment.Auth.Types    as Auth
 import qualified Fission.Environment.AWS.Types     as AWS
 import qualified Fission.Environment.FFS.Types     as FFS
 import qualified Fission.Environment.Storage.Types as Storage
@@ -47,14 +48,15 @@ main = do
   env            <- YAML.decodeFileThrow  "./env.yaml"
 
   let
+    AWS.Environment     {..} = env |> aws
+    Auth.Environment    {..} = env |> auth
+    FFS.Environment     {..} = env |> ffs
     Storage.Environment {..} = env |> storage
     Web.Environment     {..} = env |> web
-    AWS.Environment     {..} = env |> aws
     WebApp.Environment  {..} = env |> webApp
-    FFS.Environment     {..} = env |> ffs
-
-    herokuID       = Hku.ID       <| encodeUtf8 <| Hku.id <| manifest
-    herokuPassword = Hku.Password <| encodeUtf8 <| Hku.password <| Hku.api <| manifest
+   
+    herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
+    herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
 
     ipfsPath       = env |> ipfs |> binPath
     ipfsURL        = env |> ipfs |> url
@@ -93,7 +95,7 @@ main = do
         runDB updateDBToLatest
 
         auth <- Auth.mkAuth
-        logDebugN <| layoutWithContext (Proxy @Web.API) auth
+        logDebugN $ layoutWithContext (Proxy @Web.API) auth
 
         host
           |> Web.app (toHandler (runFission cfg)) auth

@@ -10,7 +10,7 @@ import qualified RIO.Text            as Text
 import           Fission.Prelude
 import qualified Fission.Internal.Base64.URL as B64.URL
  
-import           Fission.Web.Auth.JWT.Types
+import           Fission.Web.Auth.Token.JWT
 
 data Token = Token
   { jwt        :: !JWT

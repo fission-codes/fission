@@ -4,8 +4,6 @@ import qualified RIO.Text as Text
 
 import           Fission.Prelude
 
--- FIXME because of the private side of FFS, shoudl this be append-only?
-
 {-
 Maybe appending to the private side requires update permissions?
 Since we can't validate the actual internal paths, you'd need at least
@@ -17,7 +15,7 @@ data Potency
   = AuthNOnly   -- ^ Read signature only -- just a proof. Cannot delegate further.
   | AppendOnly  -- ^ Append new files
   | Destructive -- ^ Overwrite / destroy. "Ownership is the right to destroy"
-  | SuperUser   -- ^ i.e. SuperUser -- Financial, &c
+  | SuperUser   -- ^ i.e. SuperUser -- Financial, major account settings, &c
   deriving (Show, Eq, Ord)
 
 instance Display Potency where
@@ -37,7 +35,7 @@ instance FromJSON Potency where
   parseJSON Null = pure AuthNOnly
   parseJSON str  = str |> withText "AuthZ.Potency" \txt ->
     case Text.toUpper txt of
-      "APPEND"       -> pure AppendOnly
-      "DESTROY"      -> pure Destructive
-      "SUPER_USER"   -> pure SuperUser
+      "APPEND"     -> pure AppendOnly
+      "DESTROY"    -> pure Destructive
+      "SUPER_USER" -> pure SuperUser
       nope -> fail $ show nope <> " is not a valid authorization potency"

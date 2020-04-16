@@ -1,6 +1,6 @@
 -- | JWT Header as specific in RFC 7519
 
-module Fission.Web.Auth.JWT.Header.Types
+module Fission.Web.Auth.Token.JWT.Header.Types
   ( Header    (..)
 
   -- * Reexports
@@ -13,8 +13,8 @@ import           Fission.SemVer.Types
 
 import           Fission.Key.Asymmetric.Algorithm.Types
 
-import           Fission.Web.Auth.JWT.Header.Cty.Types
-import           Fission.Web.Auth.JWT.Header.Typ.Types
+import           Fission.Web.Auth.Token.JWT.Header.Cty.Types
+import           Fission.Web.Auth.Token.JWT.Header.Typ.Types
 
 data Header = Header
   { typ :: !Typ         -- ^ Standard JWT '"typ"' field

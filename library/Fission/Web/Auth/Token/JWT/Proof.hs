@@ -1,6 +1,4 @@
--- | Validate proofs delegate the correct right to the outer JWT
-
-module Fission.Web.Auth.JWT.Proof.Validation
+module Fission.Web.Auth.Token.JWT.Proof
   ( delegatedInBounds
   , signaturesMatch
   , scopeInSubset
@@ -8,16 +6,19 @@ module Fission.Web.Auth.JWT.Proof.Validation
 
   -- * Reexport
 
-  , module Fission.Web.Auth.JWT.Proof.Validation.Error
+  , module Fission.Web.Auth.Token.JWT.Proof.Validation.Error
+  , module Fission.Web.Auth.Token.JWT.Proof.Error
   ) where
 
-
 import qualified RIO.Text as Text
- 
+
 import           Fission.Prelude
 
-import           Fission.Web.Auth.JWT.Types                  as JWT
-import           Fission.Web.Auth.JWT.Proof.Validation.Error
+import           Fission.Web.Auth.Token.JWT as JWT
+import           Fission.Web.Auth.Token.JWT.Proof.Error
+
+import           Fission.Web.Auth.Token.JWT.Proof.Error
+import           Fission.Web.Auth.Token.JWT.Proof.Types
 
 delegatedInBounds :: JWT -> JWT -> Either Error JWT
 delegatedInBounds jwt prfJWT = do

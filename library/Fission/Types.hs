@@ -3,10 +3,13 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
+import qualified Data.Aeson as JSON
+
 import           Control.Monad.Catch
 import qualified Database.Persist.Sql as SQL
 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 import           Servant.Client
 import           Servant.Server.Experimental.Auth
@@ -26,9 +29,13 @@ import           Fission.Config.Types
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
 
+import           Fission.Web.Types
+import qualified Fission.Web.Error as Web.Error
+
 import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.IPFS.Linked
 
+import           Fission.Authorization.Types
 import qualified Fission.URL as URL
 
 import           Fission.Platform.Heroku.Types as Heroku
@@ -36,16 +43,16 @@ import           Fission.Platform.Heroku.Types as Heroku
 import           Fission.Web.Auth     as Auth
 import qualified Fission.Web.Auth.DID as Auth.DID
 
-import           Fission.Web.Server.Reflective
+import           Fission.Web.Server.Reflective as Reflective
 import           Fission.Web.Handler
 
 import           Fission.User.DID.Types
-import           Fission.Models
 
 import           Fission.Web.Auth.Token.Basic.Class
-
-import           Fission.Web.Auth.JWT.Proof.Resolver as JWT.Proof
-
+import           Fission.Web.Auth.Token.JWT.Resolver as JWT
+ 
+import           Fission.Web.Auth.UCAN as Auth.UCAN
+import           Fission.Authorization.ServerDID.Class
 
 import           Fission.App.Content as App.Content
 import           Fission.App.Domain  as App.Domain
@@ -81,12 +88,9 @@ instance MonadAWS Fission where
   liftAWS awsAction = do
     accessKey <- asks awsAccessKey
     secretKey <- asks awsSecretKey
-
-    env <- newEnv <| FromKeys accessKey secretKey
-
-    awsAction
-      |> runAWS env
-      |> runResourceT
+    env       <- newEnv $ FromKeys accessKey secretKey
+   
+    runResourceT $ runAWS env awsAction
 
 instance MonadRoute53 Fission where
   update recordType (URL.DomainName domain) content = do
@@ -118,13 +122,13 @@ instance MonadRoute53 Fission where
           return (Right mockRecordResponse)
 
       changeRecord' = do
-        logDebug <| "Updating DNS record at: " <> displayShow domain
+        logDebug $ "Updating DNS record at: " <> displayShow domain
 
         req <- createChangeRequest
 
         AWS.within NorthVirginia do
           res <- send req
-          return <| validate res
+          return $ validate res
 
       -- | Create the AWS change request for Route53
       createChangeRequest = do
@@ -181,6 +185,7 @@ instance MonadLocalIPFS Fission where
       (ExitFailure _, _, stdErr)
         | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
             Left $ Process.Timeout secs
+ 
         | otherwise ->
             Left $ Process.UnknownErr stdErr
 
@@ -197,11 +202,7 @@ instance MonadBasicAuth Heroku.Auth Fission where
   getVerifier = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
-
-    hkuPass
-      |> Auth.basic hkuID
-      |> fmap Heroku.Auth
-      |> return
+    return $ Heroku.Auth <$> Auth.basic hkuID hkuPass
 
 instance MonadAuth DID Fission where
   getVerifier = do
@@ -209,11 +210,11 @@ instance MonadAuth DID Fission where
     return $ mkAuthHandler \req ->
       toHandler (runRIO cfg) . unFission $ Auth.DID.handler req
 
-instance MonadAuth (SQL.Entity User) Fission where
+instance MonadAuth Authorization Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
-      toHandler (runRIO cfg) . unFission $ Auth.handler req
+      toHandler (runRIO cfg) . unFission $ Auth.UCAN.handler req
 
 instance App.Domain.Initializer Fission where
   initial = asks baseAppDomainName
@@ -221,7 +222,7 @@ instance App.Domain.Initializer Fission where
 instance App.Content.Initializer Fission where
   placeholder = asks appPlaceholder
 
-instance JWT.Proof.Resolver Fission where
+instance JWT.Resolver Fission where
   resolve cid@(CID hash) =
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
       Left errMsg ->
@@ -231,3 +232,41 @@ instance JWT.Proof.Resolver Fission where
         case eitherDecodeStrict resolvedBS of
           Left  _   -> Left $ InvalidJWT resolvedBS
           Right jwt -> Right (resolvedBS, jwt)
+
+instance ServerDID Fission where
+  getServerDID = asks fissionDID
+   
+  publicize = do
+    AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
+ 
+    Host host <- Reflective.getHost
+    did       <- getServerDID
+
+    let
+      ourDomain      = URL.DomainName . Text.pack $ baseUrlHost host
+      txtRecordURL   = URL.prefix ourDomain $ URL.Subdomain "_did"
+      txtRecordValue = decodeUtf8Lenient . Lazy.toStrict $ JSON.encode did
+
+    if mockRoute53
+      then do
+        logInfo $ mconcat
+          [ "MOCK: Setting DNS setting "
+          , textDisplay txtRecordURL
+          , " to "
+          , txtRecordValue
+          ]
+         
+        return ok
+       
+      else
+        update Txt txtRecordURL txtRecordValue <&> \case
+          Left err ->
+            Left err
+
+          Right resp ->
+            let
+              status = view crrsrsResponseStatus resp
+            in
+              if status < 300
+                then ok
+                else Left $ Web.Error.toServerError status

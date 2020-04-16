@@ -10,7 +10,7 @@ data Environment = Environment
   , binPath    :: !IPFS.BinPath -- ^ Path to local IPFS binary
   , gateway    :: !IPFS.Gateway -- ^ Domain Name of IPFS Gateway
   , remotePeer :: !IPFS.Peer    -- ^ Remote Peer to connect to
-  } deriving Show
+  } deriving (Show, Eq)
 
 instance FromJSON Environment where
   parseJSON = withObject "IPFS.Environment" \obj -> do

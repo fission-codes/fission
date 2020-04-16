@@ -1,7 +1,7 @@
-module Test.Fission.Web.Auth.JWT.Validation (tests) where
+module Test.Fission.Web.Auth.Token.JWT.Validation (tests) where
 
-import qualified Fission.Internal.Fixture.Bearer as Fixture
-import qualified Fission.Web.Auth.JWT.Validation as JWT
+import qualified Fission.Internal.Fixture.Bearer       as Fixture
+import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
 
 import           Test.Fission.Prelude
 

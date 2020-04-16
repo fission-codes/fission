@@ -13,9 +13,9 @@ data Environment = Environment
 
 instance FromJSON Environment where
   parseJSON = withObject "Storage.Environment" \obj -> do
-    pgConnectInfo  <- obj .: "postgresql" >>= parseJSON . Object
+    pgConnectInfo  <- obj .: "postgresql"
     stripeCount    <- obj .: "stripe_count"
     connsPerStripe <- obj .: "conns_per_stripe"
     connTTL        <- obj .: "conn_ttl"
 
-    return <| Environment {..}
+    return Environment {..}

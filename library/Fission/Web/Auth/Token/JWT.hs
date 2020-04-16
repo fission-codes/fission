@@ -1,68 +1,66 @@
-module Fission.Web.Auth.JWT.Types -- FIXME not just types
+module Fission.Web.Auth.Token.JWT
   ( JWT    (..)
   , Claims (..)
   , Proof  (..)
 
   , signEd25519
   , signRS256
-  , parseSig
 
   -- * reexports
  
-  , module Fission.Web.Auth.JWT.Header.Types
+  , module Fission.Web.Auth.Token.JWT.Header.Types
   ) where
 
-import           Crypto.Random          (MonadRandom (..))
+-- FIXME NOTE: should add PKs to DNS as well
+
 import qualified System.IO.Unsafe as Unsafe
 
-import Fission.Key.Asymmetric.Algorithm.Types as Algorithm
-
+import           Crypto.Random          (MonadRandom (..))
 import           Crypto.Hash.Algorithms (SHA256 (..))
-import Network.IPFS.CID.Types
-
-import Fission.Authorization.Potency.Types
-
+ 
 import qualified Crypto.PubKey.RSA        as RSA
 import qualified Crypto.PubKey.RSA.PKCS15 as RSA.PKCS15
 
-import           Fission.Prelude
-import qualified Fission.Internal.Base64.URL as B64.URL
-
-import qualified Fission.Web.Auth.JWT.Signature.RS256.Types as RS256
-
 import qualified Crypto.PubKey.Ed25519 as Ed25519
-
 import           Crypto.PubKey.Ed25519 (toPublic)
-
+ 
 import qualified Data.ByteString.Base64.URL as BS.B64.URL
 import qualified Data.ByteString.Lazy.Char8 as Char8
+ 
+import           Network.IPFS.CID.Types
 
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
-import qualified Fission.Internal.UTF8 as UTF8
+import           Fission.Prelude
+
+import qualified Fission.Internal.Base64     as B64
+import qualified Fission.Internal.Base64.URL as B64.URL
+import qualified Fission.Internal.UTF8       as UTF8
  
+import           Fission.Internal.RSA2048.Pair.Types
+
 import qualified Fission.Key                            as Key
-import qualified Fission.Key.Asymmetric.Algorithm.Types as Alg
+import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
+
+import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
 
-import           Fission.Web.Auth.JWT.Header.Types (Header (..))
+import           Fission.Web.Auth.Token.JWT.Signature             as Signature
+import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
+import           Fission.Web.Auth.Token.JWT.Header.Types (Header (..))
 
-import           Fission.Web.Auth.JWT.Signature         as Signature
-import           Fission.Web.Auth.JWT.Signature         as Sig
-
-import qualified Fission.Internal.Base64 as B64
+-- Orphans
 
 import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
-import           Fission.Internal.Orphanage.CID ()
-import           Fission.Internal.RSA2048.Pair.Types
+import           Fission.Internal.Orphanage.CID               ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
 data JWT = JWT
   { header :: !Header
   , claims :: !Claims
-  , sig    :: !Sig.Signature
+  , sig    :: !Signature.Signature
   } deriving (Show, Eq)
 
 instance Arbitrary JWT where
@@ -71,13 +69,13 @@ instance Arbitrary JWT where
     claims' <- arbitrary
 
     case alg header of
-      Alg.Ed25519 -> do
+      Algorithm.Ed25519 -> do
         sk <- arbitrary
 
         let
           did = DID
             { publicKey = Key.Public . B64.toB64ByteString $ toPublic sk
-            , algorithm = Alg.Ed25519
+            , algorithm = Algorithm.Ed25519
             , method    = Key
             }
 
@@ -86,7 +84,7 @@ instance Arbitrary JWT where
          
         return JWT {..}
 
-      Alg.RSA2048 ->
+      Algorithm.RSA2048 ->
         genRSA header claims'
   
 genRSA :: Header -> Claims -> Gen JWT
@@ -98,7 +96,7 @@ genRSA header claims' = do
 
     did = DID
       { publicKey = pk
-      , algorithm = Alg.RSA2048
+      , algorithm = Algorithm.RSA2048
       , method    = Key
       }
 
@@ -115,8 +113,8 @@ instance ToJSON JWT where
       signed :: ByteString
       signed =
         case sig of
-          Sig.Ed25519 edSig                 -> encodeSig edSig
-          Sig.RS256 (RS256.Signature rsSig) -> encodeSig rsSig
+          Signature.Ed25519 edSig                 -> encodeSig edSig
+          Signature.RS256 (RS256.Signature rsSig) -> encodeSig rsSig
 
       encodeSig raw =
         raw
@@ -143,52 +141,19 @@ instance FromJSON JWT where
       |> Lazy.fromStrict
       |> Char8.split '.'
       |> \case
-          [rawHeader, rawClaims, rawSig] -> do
-            let
-              result = do
-                header <- B64.URL.addPadding rawHeader
-                claims <- B64.URL.addPadding rawClaims
-                sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
-                return JWT {..}
-
-            case result of
-              Left  err   -> fail err
-              Right token -> return token
+          [rawHeader, rawClaims, rawSig] ->
+            either fail pure do
+              header <- B64.URL.addPadding rawHeader
+              claims <- B64.URL.addPadding rawClaims
+              sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
+              return JWT {..}
 
           _ ->
             fail $ show txt <> " is not a valid JWT.Token"
 
--------------------------------------------------------------
- 
--- FIXME NOTE: should add PKs to DNS as well
-
-data Proof
-  = RootCredential
-  | Nested    ByteString -- FIXME
-  | Reference CID
-  deriving (Show, Eq)
-
-instance Arbitrary Proof where
-  arbitrary = oneof
-    [ Reference <$> arbitrary
-    , Nested    <$> arbitrary
-    , pure RootCredential
-    ]
-
-instance ToJSON Proof where
-  toJSON = \case
-    Reference cid  -> toJSON cid
-    Nested    raw  -> String $ decodeUtf8Lenient raw
-    RootCredential -> Null
-
-instance FromJSON Proof where
-  parseJSON Null = return RootCredential
-  parseJSON val  = withText "Credential Proof" resolver val
-    where
-      resolver txt =
-        case Text.stripPrefix "eyJ" txt of -- i.e. starts with Base64 encoded '{'
-          Just _  -> Reference <$> parseJSON (String txt)
-          Nothing -> pure . Nested $ encodeUtf8 txt
+------------
+-- Claims --
+------------
 
 data Claims = Claims
   -- Dramatis Personae
@@ -239,8 +204,8 @@ instance ToJSON Claims where
     , "aud" .= receiver
     --
     , "prf" .= proof
-    , "pot" .= potency
-    , "scp" .= scope -- FIXME change to `pwd`!
+    , "pcy" .= potency
+    , "scp" .= scope
     --
     , "nbf" .= fmap toSeconds nbf
     , "exp" .= toSeconds exp
@@ -252,7 +217,7 @@ instance FromJSON Claims where
     receiver <- obj .: "aud"
     --
     scope   <- obj .:  "scp"
-    potency <- obj .:? "pot" .!= AuthNOnly
+    potency <- obj .:? "pcy" .!= AuthNOnly
     proof   <- obj .:  "prf"
     --
     nbf <- fmap fromSeconds <$> obj .: "nbf"
@@ -260,25 +225,53 @@ instance FromJSON Claims where
 
     return Claims {..}
 
----------------------------------------------------------
+-----------
+-- Proof --
+-----------
 
-signEd25519 :: Header -> Claims -> Ed25519.SecretKey -> Sig.Signature
+data Proof
+  = RootCredential
+  | Nested    ByteString JWT
+  | Reference CID
+  deriving (Show, Eq)
+
+instance Arbitrary Proof where
+  arbitrary = oneof
+    [ Reference <$> arbitrary
+    , Nested    <$> arbitrary <*> arbitrary
+    , pure RootCredential
+    ]
+
+instance ToJSON Proof where
+  toJSON = \case
+    Reference cid   -> toJSON cid
+    Nested    raw _ -> String $ decodeUtf8Lenient raw
+    RootCredential  -> Null
+
+instance FromJSON Proof where
+  parseJSON Null = return RootCredential
+  parseJSON val  = withText "Credential Proof" resolver val
+    where
+      resolver txt =
+        case Text.stripPrefix "eyJ" txt of -- i.e. starts with Base64 encoded '{'
+          Just _  -> Reference <$> parseJSON (String txt)
+          Nothing -> Nested (encodeUtf8 txt) <$> parseJSON (String txt)
+
+-----------------------
+-- Signature Helpers --
+-----------------------
+
+signEd25519 :: Header -> Claims -> Ed25519.SecretKey -> Signature.Signature
 signEd25519 header claims sk =
-  Sig.Ed25519 . Key.signWith sk $ B64.URL.encodeJWT header claims
+  Signature.Ed25519 . Key.signWith sk $ B64.URL.encodeJWT header claims
 
 signRS256 ::
   MonadRandom m
   => Header
   -> Claims
   -> RSA.PrivateKey
-  -> m (Either RSA.Error Sig.Signature)
+  -> m (Either RSA.Error Signature.Signature)
 signRS256 header claims sk =
   RSA.PKCS15.signSafer (Just SHA256) sk (B64.URL.encodeJWT header claims) <&> \case
     Left err  -> Left err
-    Right sig -> Right . Sig.RS256 $ RS256.Signature sig
-
-parseSig :: Algorithm -> Lazy.ByteString -> Either String Sig.Signature
-parseSig alg lazyBS =
-  case alg of
-    Algorithm.RSA2048 -> Sig.RS256   <$> eitherDecode lazyBS
-    Algorithm.Ed25519 -> Sig.Ed25519 <$> eitherDecode lazyBS
+    Right sig -> Right . Signature.RS256 $ RS256.Signature sig

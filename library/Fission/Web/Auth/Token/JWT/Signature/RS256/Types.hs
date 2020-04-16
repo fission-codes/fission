@@ -1,4 +1,4 @@
-module Fission.Web.Auth.JWT.Signature.RS256.Types (Signature (..)) where
+module Fission.Web.Auth.Token.JWT.Signature.RS256.Types (Signature (..)) where
 
 import           Data.ByteArray
 import qualified Data.ByteString.Base64 as B64

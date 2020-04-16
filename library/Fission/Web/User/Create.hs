@@ -16,7 +16,7 @@ import qualified Fission.User as User
 import           Fission.User.DID.Types
 
 type API
-  =  Summary "Create user with DID"
+  =  Summary "Create user with DID and UCAN proof"
   :> Description "Register a new user (must auth with user-controlled DID)"
   :> ReqBody    '[JSON] User.Registration
   :> PutCreated '[JSON] NoContent

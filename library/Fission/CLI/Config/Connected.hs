@@ -79,4 +79,3 @@ liftConfig BaseConfig {..} =
                   logError $ displayShow err
                   Connect.couldNotSwarmConnect
                   return $ Left CannotConnect
-

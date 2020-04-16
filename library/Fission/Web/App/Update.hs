@@ -7,7 +7,8 @@ import           Network.IPFS.CID.Types
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Models (User, AppId)
+import           Fission.Authorization
+import           Fission.Models (AppId)
 
 import qualified Fission.App       as App
 import           Fission.Web.Error as Web.Error
@@ -26,8 +27,8 @@ update ::
   , MonadDB      t m
   , App.Modifier t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-update (Entity userId _) appId newCID = do
+update Authorization {about = Entity userId _} appId newCID = do
   Web.Error.ensure =<< runDBNow (App.updateCID userId appId newCID)
   return NoContent

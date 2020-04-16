@@ -1,19 +1,19 @@
-module Fission.Web.Auth.JWT.Signature
+module Fission.Web.Auth.Token.JWT.Signature
   ( parse
     -- * Reexport
-  , module Fission.Web.Auth.JWT.Signature.Types
+  , module Fission.Web.Auth.Token.JWT.Signature.Types
   ) where
 
 import qualified RIO.ByteString.Lazy as Lazy
 
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
-import           Fission.Web.Auth.JWT.Signature.Types   as Signature
+import           Fission.Key.Asymmetric.Algorithm.Types     as Algorithm
+import           Fission.Web.Auth.Token.JWT.Signature.Types as Signature
 
 -- Reexport
 
-import           Fission.Web.Auth.JWT.Signature.Types
+import           Fission.Web.Auth.Token.JWT.Signature.Types
 
 parse :: Algorithm -> Lazy.ByteString -> Either String Signature
 parse alg lazyBS =

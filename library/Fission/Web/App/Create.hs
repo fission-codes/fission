@@ -7,8 +7,9 @@ import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
+
+import           Fission.Authorization
 import           Fission.Web.Error
-import           Fission.Models
 import           Fission.URL
 
 import qualified Fission.App.Creator as App
@@ -30,9 +31,9 @@ create ::
   , App.Creator             t
   , App.Content.Initializer t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-create (Entity userId _) = do
+create Authorization {about = Entity userId _} = do
   defaultDomain <- App.Domain.initial
 
   userId

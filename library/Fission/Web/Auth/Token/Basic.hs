@@ -12,6 +12,8 @@ import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
+
+import           Fission.Authorization
 import           Fission.Models
 
 import qualified Fission.User as User
@@ -30,7 +32,7 @@ handler ::
   , User.Retriever t
   )
   => Auth.Basic.Token
-  -> m (Entity User)
+  -> m Authorization
 handler token = do
   token
     |> parseBasic
@@ -44,37 +46,37 @@ checkUser ::
   , User.Retriever t
   )
   => BasicAuthData
-  -> m (Either Auth.Error (Entity User))
-checkUser (BasicAuthData username password) = do
-  username
-    |> decodeUtf8Lenient
-    |> Username
-    |> User.getByUsername
-    |> runDB
-    |> bind \case
-      Nothing -> do
-        logWarn attemptMsg
-        return <| Left Auth.NoSuchUser
+  -> m (Either Auth.Error Authorization)
+checkUser (BasicAuthData username password) =
+  runDB (User.getByUsername . Username $ decodeUtf8Lenient username) >>= \case
+    Nothing -> do
+      logWarn attemptMsg
+      return $ Left Auth.NoSuchUser
 
-      Just usr ->
-        validate usr
+    Just usr ->
+      validate usr
 
   where
-    validate :: MonadLogger m => Entity User -> m (Either Auth.Error (Entity User))
-    validate usr@(Entity _ User { userSecretDigest }) =
+    validate :: MonadLogger m => Entity User -> m (Either Auth.Error Authorization)
+    validate user@(Entity _ User { userSecretDigest }) =
       case userSecretDigest of
         Just secretDigest ->  do
           if validatePassword (encodeUtf8 secretDigest) password
             then
-              return $ Right usr
+              return $ Right Authorization
+                { about   = user
+                , sender  = Left Heroku
+                , potency = SuperUser
+                , scope   = "/"
+                }
 
             else do
               logWarn attemptMsg
-              return <| Left Auth.Unauthorized
+              return $ Left Auth.Unauthorized
 
         Nothing -> do
           logWarn attemptMsg
-          return <| Left Auth.Unauthorized
+          return $ Left Auth.Unauthorized
 
     attemptMsg :: ByteString
     attemptMsg = "Unauthorized user! Attempted with username: " <> username

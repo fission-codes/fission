@@ -75,10 +75,10 @@ authed ::
   , LoosePin.Destroyer t
   )
   => ServerT AuthedAPI m
-authed usr = CID.allForUser usr
-        :<|> Upload.add usr
-        :<|> Pin.server usr
-        :<|> DAG.put usr
+authed auth = CID.allForUser auth
+         :<|> Upload.add     auth
+         :<|> Pin.server     auth
+         :<|> DAG.put        auth
 
 public ::
   ( MonadLinkedIPFS m

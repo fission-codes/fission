@@ -7,6 +7,8 @@ import           RIO.Map as Map
 import           Servant
 
 import           Fission.Prelude
+import           Fission.Authorization
+
 import           Fission.Models
 import           Fission.URL.Types
 
@@ -23,9 +25,9 @@ index ::
   , App.Retriever        t
   , App.Domain.Retriever t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-index (Entity userId _) = runDB do
+index Authorization {about = Entity userId _} = runDB do
   apps        <- App.ownedBy userId
   appXDomains <- forM apps findDomains
   return (Map.fromList appXDomains)

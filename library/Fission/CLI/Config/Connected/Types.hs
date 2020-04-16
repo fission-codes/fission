@@ -18,6 +18,7 @@ import           Fission.Web.Client
 import qualified Fission.Web.Client.Types as Client
 
 import           Fission.CLI.Environment.Class
+import           Fission.User.DID.Types
 
 data ConnectedConfig = ConnectedConfig
   { fissionAPI   :: !Client.Runner
@@ -71,7 +72,7 @@ instance MonadLocalIPFS FissionConnected where
       (ExitFailure _, _, stdErr)
         | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
             Left $ Process.Timeout secs
- 
+
         | otherwise ->
             Left $ Process.UnknownErr stdErr
 

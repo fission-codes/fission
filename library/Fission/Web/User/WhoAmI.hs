@@ -6,6 +6,8 @@ module Fission.Web.User.WhoAmI
 import Servant
 
 import Fission.Prelude
+import Fission.Authorization
+
 import Fission.Models
 import Fission.User.Username.Types
 
@@ -14,5 +16,6 @@ type API
   :> Description "Get username registered to currently authenticated user"
   :> Get '[PlainText, JSON] Username
 
-server :: Monad m => Entity User -> ServerT API m
-server (Entity _ User { userUsername }) = return userUsername
+server :: Monad m => Authorization -> ServerT API m
+server Authorization {about = Entity _ User { userUsername }} =
+  return userUsername

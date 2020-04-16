@@ -4,30 +4,30 @@ import           Network.Wai
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Types as Auth
-import           Fission.Web.Auth.Token as Token
+import qualified Fission.Web.Auth.Token as Token
 import qualified Fission.Web.Auth.Error as Auth
-import qualified Fission.Web.Auth.JWT   as JWT
 
-import           Fission.User.DID.Types
+import           Fission.Web.Auth.Token.JWT            as JWT
+import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import qualified Fission.Web.Auth.JWT.Proof.Resolver as JWT.Proof
+import           Fission.Web.Auth.Token.JWT.Resolver as JWT
+
+import           Fission.User.DID.Types
 
 -- | Auth handler for registering DIDs
 -- Ensures properly formatted token but does not check against DB
 handler ::
-  ( MonadIO     m
-  , JWT.Proof.Resolver m
-  , MonadLogger m
-  , MonadThrow  m
-  , MonadTime   m
+  ( JWT.Resolver m
+  , MonadLogger  m
+  , MonadThrow   m
+  , MonadTime    m
   )
   => Request
   -> m DID
 handler req =
   case Token.get req of
-    Just (Bearer token@(Bearer.Token jwt (Just rawContent))) ->
+    Just (Token.Bearer token@(Bearer.Token jwt (Just rawContent))) ->
       JWT.check rawContent jwt >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> encode token

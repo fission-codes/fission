@@ -11,7 +11,7 @@ data Environment = Environment
   , secretKey          :: !AWS.SecretKey  -- ^ Secret Key
   , zoneID             :: !AWS.ZoneID     -- ^ Hosted Zone
   , route53MockEnabled :: !AWS.Route53MockEnabled
-  }
+  } deriving Eq
 
 instance Show Environment where
   show Environment {..} = intercalate "\n"
