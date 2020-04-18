@@ -6,7 +6,6 @@ module Fission.Web.Auth.Token.JWT.Proof
 
   -- * Reexport
 
-  , module Fission.Web.Auth.Token.JWT.Proof.Validation.Error
   , module Fission.Web.Auth.Token.JWT.Proof.Error
   ) where
 
@@ -16,9 +15,6 @@ import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.JWT as JWT
 import           Fission.Web.Auth.Token.JWT.Proof.Error
-
-import           Fission.Web.Auth.Token.JWT.Proof.Error
-import           Fission.Web.Auth.Token.JWT.Proof.Types
 
 delegatedInBounds :: JWT -> JWT -> Either Error JWT
 delegatedInBounds jwt prfJWT = do
