@@ -29,17 +29,12 @@ import qualified Fission.URL.DomainName.Types as URL
  
 import           Fission.CLI.Command.Types
 
-import           Fission.CLI.Config.Base
-import           Fission.CLI.Config.Connected
-
 import           Fission.CLI.Command.Watch.Types as Watch
 import           Fission.CLI.Display.Error       as CLI.Error
 import           Fission.CLI.Environment
 import qualified Fission.CLI.DNS                 as CLI.DNS
 import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
-
-import Fission.CLI.Config.Connected.Types
 
 -- | The command to attach to the CLI tree
 cmd ::

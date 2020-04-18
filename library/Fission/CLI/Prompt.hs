@@ -6,11 +6,11 @@ module Fission.CLI.Prompt
   , reaskWithError
   ) where
 
-import           Fission.Prelude
+import qualified Data.List      as List
 import           RIO.ByteString as BS hiding (map, pack)
+
+import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
-import qualified Data.List as List
-import           Data.Function
 
 reaskWithError ::
   ( MonadIO m, MonadLogger m )

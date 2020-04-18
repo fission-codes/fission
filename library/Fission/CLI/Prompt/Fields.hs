@@ -3,14 +3,13 @@ module Fission.CLI.Prompt.Fields
   , getRequiredSecret
   ) where
 
-import           Fission.Prelude
-
-import qualified Fission.Internal.UTF8 as UTF8
-import qualified Data.ByteString.UTF8 as UTF8
+import qualified Data.ByteString.UTF8  as UTF8
 import qualified Data.ByteString.Char8 as BS
-import           Data.Function
 
 import           System.Console.Haskeline
+
+import           Fission.Prelude
+import qualified Fission.Internal.UTF8 as UTF8
 
 import qualified Fission.CLI.Prompt             as Prompt
 import qualified Fission.CLI.Prompt.Error.Types as Prompt.Error
