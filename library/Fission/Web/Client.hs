@@ -9,6 +9,7 @@ module Fission.Web.Client
   , MonadAuthedEndpoint (..)
   , HasWebAuth          (..)
   , withAuth
+  , toEndpoint'
   -- , module Fission.Web.Client.Types
   -- , module Fission.Web.Client.Class
   ) where
@@ -53,8 +54,9 @@ class Monad m => HasWebAuth m where
   ucanJWT :: m JWT
   rawDID  :: m DID
 
--- toEndpoint' :: MonadAuthedEndpoint api m => Proxy api -> m result
--- toEndpoint' endpointPxy = toEndpoint endpointPxy identity
+toEndpoint' :: MonadAuthedEndpoint api m => Proxy api -> auth -> m a
+toEndpoint' endpointPxy auth = toEndpoint endpointPxy identity auth
+
 withAuth :: HasWebAuth m => m auth -> (auth -> m a) -> m a
 withAuth auth req = req =<< auth
 

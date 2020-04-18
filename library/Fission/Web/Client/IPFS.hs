@@ -1,6 +1,8 @@
 module Fission.Web.Client.IPFS
   ( dagput
+  , Unpin
   , unpin
+  , Pin
   , pin
   , upload
   , cids
@@ -41,13 +43,17 @@ dagput = Proxy
 -- unpin :: MonadAuthedEndpoint m => CID -> m NoContent
 -- unpin = withUCAN (Proxy @(AuthedIPFS Pin.UnpinAPI))
 
-unpin :: Proxy (AuthedIPFS Pin.UnpinAPI)
+type Unpin = AuthedIPFS Pin.UnpinAPI
+
+unpin :: Proxy Unpin
 unpin = Proxy
 
 -- unpin :: CID -> ClientM NoContent
 -- unpin = sigClient $ Proxy @(AuthedIPFS Pin.UnpinAPI)
 
-pin :: Proxy (AuthedIPFS Pin.PinAPI)
+type Pin = AuthedIPFS Pin.PinAPI
+
+pin :: Proxy Pin
 pin = Proxy
 
 -- pin :: CID -> ClientM NoContent

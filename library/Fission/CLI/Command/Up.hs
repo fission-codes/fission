@@ -52,7 +52,7 @@ up Up.Options {..} = do
 
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
   IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-    unless dnsOnly do
+    unless dnsOnly $
       CLI.Pin.add cid >>= putErrOr \_ -> noop
 
     CLI.DNS.update cid >>= putErrOr \_ -> noop
