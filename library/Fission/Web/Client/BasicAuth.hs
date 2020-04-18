@@ -15,7 +15,7 @@ addBasicAuth :: Maybe BasicAuthData -> Request -> Request
 addBasicAuth Nothing     req = req
 addBasicAuth (Just auth) req = addHeader "Authorization" token req
   where
-    token = decodeUtf8Lenient <| encodeBasicAuth auth
+    token = decodeUtf8Lenient $ encodeBasicAuth auth
 
 encodeBasicAuth :: BasicAuthData -> ByteString
 encodeBasicAuth auth = "Basic " <> Base64.encode (basicAuthUsername auth <> ":" <> basicAuthPassword auth)
