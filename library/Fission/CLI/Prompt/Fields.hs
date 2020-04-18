@@ -18,11 +18,12 @@ import qualified Fission.CLI.Display.Error      as CLI.Error
 
 -- | Prompt a user for a value and do not accept an empty value
 getRequired :: (MonadIO m, MonadLogger m) => ByteString -> m ByteString
-getRequired fieldName = do
-  let prompt             = decodeUtf8Lenient (fieldName <> ": ")
-      requiredFieldError = const (showRequiredError fieldName)
-
-  Prompt.reaskWithError prompt hasValueCheck requiredFieldError
+getRequired fieldName =
+  let
+    prompt             = decodeUtf8Lenient (fieldName <> ": ")
+    requiredFieldError = const (showRequiredError fieldName)
+  in
+    Prompt.reaskWithError prompt hasValueCheck requiredFieldError
 
 -- | Prompt a user for a secret and do not accept an empty value
 getRequiredSecret :: (MonadIO m, MonadLogger m) => ByteString -> m ByteString

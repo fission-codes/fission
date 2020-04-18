@@ -57,42 +57,43 @@ init = do
           , maybeIgnored = Just ignoreDefault
           , maybeBuildDir = Nothing
           }
-      liftIO <| Env.Partial.write path env
+
+      liftIO $ Env.Partial.write path env
       CLI.Success.putOk "Logged in"
 
 -- | Gets hierarchical environment by recursing through file system
 get :: MonadIO m => m Environment
 get = do
   partial <- Env.Partial.get
-  return <| Env.Partial.toFull partial
+  return $ Env.Partial.toFull partial
 
 -- | Writes env to path, overwriting if necessary
 write :: MonadIO m => FilePath -> Environment -> m ()
-write path env = Env.Partial.write path <| Env.Partial.fromFull env
+write path env = Env.Partial.write path $ Env.Partial.fromFull env
 
 -- | Get the path to the Environment file, local or global
 getPath :: MonadIO m => Bool -> m FilePath
 getPath ofLocal =
   if ofLocal
-  then  getCurrentDirectory >>= \dir -> return <| dir </> ".fission.yaml"
+  then  getCurrentDirectory >>= \dir -> return $ dir </> ".fission.yaml"
   else globalEnv
 
 -- | Create a could not read message for the terminal
 couldNotRead :: MonadIO m => m ()
 couldNotRead = do
-  liftIO <| ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
   UTF8.putText "🚫 Unable to read credentials. Try logging in with "
 
-  liftIO <| ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
   UTF8.putText "fission-cli login\n"
 
-  liftIO <| ANSI.setSGR [ANSI.Reset]
+  liftIO $ ANSI.setSGR [ANSI.Reset]
 
 -- | Removes the user's global config file
 removeConfigFile :: MonadUnliftIO m => m (Either IOException ())
 removeConfigFile = do
   path <- globalEnv
-  try <| removeFile path
+  try $ removeFile path
 
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
@@ -107,20 +108,20 @@ getOrRetrievePeer config =
   case peers config of
     Just prs -> do
       logDebugN "Retrieved Peer from .fission.yaml"
-      return <| Just <| head prs
+      return . Just $ head prs
 
     Nothing ->
       Peers.getPeers >>= \case
         Left err -> do
-          logError <| displayShow err
+          logError $ displayShow err
           logDebugN "Unable to retrieve peers from the network"
           return Nothing
 
         Right peers -> do
           logDebugN "Retrieved Peer from API"
           path <- globalEnv
-          write path <| config { peers = Just peers }
-          return <| Just <| head peers
+          write path $ config { peers = Just peers }
+          return $ Just $ head peers
 
 ignoreDefault :: IPFS.Ignored
 ignoreDefault =

@@ -15,22 +15,31 @@ import qualified Fission.CLI.Command.Watch         as Watch
 import qualified Fission.CLI.Command.Whoami        as Whoami
 
 -- | Top-level CLI description
-cli :: MonadUnliftIO m => BaseConfig -> m ()
-cli cfg = do
-  (_, runCLI) <- liftIO <| simpleOptions version description detail (pure ()) do
-    Setup.command  cfg
-    Up.command     cfg
-    Down.command   cfg
-    Watch.command  cfg
-    Whoami.command cfg
-  runCLI
-  where
-    description = "CLI to interact with Fission services"
-    detail = mconcat [ "Fission makes developing, deploying, updating "
-                     , "and iterating on web applications quick and easy."
-                     ]
-    version =
-      Meta.package
-        |> bind Meta.version
-        |> maybe "unknown" identity
-        |> Text.unpack
+-- cli :: MonadUnliftIO m => BaseConfig -> m () --
+-- cli cfg = do
+--   (_, runCLI) <- liftIO $ simpleOptions version description detail noop do
+--     Setup.command  cfg
+--     Up.command     cfg
+--     Down.command   cfg
+--     Watch.command  cfg
+--     Whoami.command cfg
+--   runCLI
+--   where
+--     description = "CLI to interact with Fission services"
+--     detail = mconcat [ "Fission makes developing, deploying, updating "
+--                      , "and iterating on web applications quick and easy."
+--                      ]
+--     version =
+--       Meta.package
+--         |> bind Meta.version
+--         |> maybe "unknown" identity
+--         |> Text.unpack
+
+cli :: MonadCommand m => m ()
+cli = run version
+  [ Setup.command
+  , Up.command
+  , Down.command
+  , Watch.command
+  , Whoami.command
+  ]

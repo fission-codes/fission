@@ -38,13 +38,13 @@ import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => BaseConfig -> CommandM (m ())
-command cfg =
-  addCommand
-    "watch"
-    "Keep your working directory in sync with the IPFS network"
-    (\options -> void <| runConnected cfg <| watcher options cfg)
-    parseOptions
+command :: Command m () ()
+command = Command
+  { command     = "watch"
+  , description = "Keep your working directory in sync with the IPFS network"
+  , parseArgs   = parseOptions
+  , handler     = watcher
+  }
 
 -- | Continuously sync the current working directory to the server over IPFS
 watcher ::
@@ -62,21 +62,21 @@ watcher Watch.Options {..} cfg = do
   toAdd        <- Prompt.checkBuildDir path
   absPath      <- makeAbsolute toAdd
 
-  logDebug <| "Starting single IPFS add locally of " <> displayShow absPath
+  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
   IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
-    UTF8.putText <| "👀 Watching " <> Text.pack absPath <> " for changes...\n"
+    UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
 
     when (not dnsOnly) do
       CLI.Pin.add cid >>= putErrOr \_ -> noop
 
     CLI.DNS.update cid >>= putErrOr \_ ->
       liftConfig cfg >>= putErrOr \cfg' ->
-        liftIO <| FS.withManager \watchMgr -> do
+        liftIO $ FS.withManager \watchMgr -> do
           hashCache <- newMVar hash
           timeCache <- newMVar =<< getCurrentTime
-          void <| handleTreeChanges timeCache hashCache watchMgr cfg' absPath
-          forever . liftIO <| threadDelay 1000000 -- Sleep main thread
+          void $ handleTreeChanges timeCache hashCache watchMgr cfg' absPath
+          forever . liftIO $ threadDelay 1000000 -- Sleep main thread
 
 handleTreeChanges ::
      MVar UTCTime
@@ -91,7 +91,7 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
     oldTime <- readMVar timeCache
 
     unless (diffUTCTime now oldTime < Time.doherty) do
-      void <| swapMVar timeCache now
+      void $ swapMVar timeCache now
       threadDelay Time.dohertyMicroSeconds -- Wait for all events to fire in sliding window
 
       IPFS.addDir [] dir >>= \case
@@ -100,11 +100,11 @@ handleTreeChanges timeCache hashCache watchMgr cfg dir =
 
         Right cid@(CID newHash) -> do
           oldHash <- swapMVar hashCache newHash
-          logDebug <| "CID: " <> display oldHash <> " -> " <> display newHash
+          logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            void <| pinAndUpdateDNS cid
+            void $ pinAndUpdateDNS cid
 
 pinAndUpdateDNS ::
   ( MonadUnliftIO  m
@@ -116,20 +116,20 @@ pinAndUpdateDNS ::
 pinAndUpdateDNS cid =
   CLI.Pin.add cid >>= \case
     Left err -> do
-      logError <| displayShow err
-      return <| Left err
+      logError $ displayShow err
+      return $ Left err
 
     Right _ ->
       CLI.DNS.update cid
 
 parseOptions :: Parser Watch.Options
 parseOptions = do
-  dnsOnly <- switch <| mconcat
+  dnsOnly <- switch $ mconcat
     [ long "dns-only"
     , help "Only update DNS (i.e. don't actively sync files to the server)"
     ]
 
-  path <- strArgument <| mconcat
+  path <- strArgument $ mconcat
     [ metavar "PATH"
     , help    "The file path of the assets or directory to watch"
     , value   "./"

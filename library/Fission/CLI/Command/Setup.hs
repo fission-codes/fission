@@ -26,15 +26,15 @@ import qualified Fission.User as User
 import           Fission.CLI.Config.Types
 import           Fission.CLI.Config.Base
 
-
 -- | The command to attach to the CLI tree
-command :: MonadIO m => BaseConfig -> CommandM (m ())
-command cfg =
-  addCommand
-    "setup"
-    "Setup Fission on your machine"
-    (\_ -> runBase cfg setup)
-    (pure ())
+command :: Command m () ()
+command = Command
+  { command     = "setup"
+  , description = "Setup Fission on your machine"
+  , parseArgs   = pure ()
+  , handler     = setup
+  , subCommands = []
+  }
 
 setup ::
   ( MonadIO        m

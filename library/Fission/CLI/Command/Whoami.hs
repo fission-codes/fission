@@ -20,13 +20,14 @@ import qualified Fission.Key.Store as Key
 import qualified Fission.CLI.Config.Connected.Error.Types as Error
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => BaseConfig -> CommandM (m ())
-command cfg =
-  addCommand
-    "whoami"
-    "Check the current user"
-    (\_ -> runBase cfg whoami)
-    (pure ())
+command :: Command m () ()
+command =
+  Command
+    { command     = "whoami"
+    , description = "Check the current user"
+    , parseArgs   = pure ()
+    , handler     = whoami
+    }
 
 whoami ::
   ( MonadIO        m
