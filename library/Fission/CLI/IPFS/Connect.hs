@@ -25,34 +25,37 @@ import qualified Network.IPFS.Types as IPFS
 swarmConnectWithRetry ::
   ( MonadUnliftIO  m
   , MonadLogger    m
-  , MonadWebClient m
   , MonadLocalIPFS m
+  , MonadWebRequest               req m
+  , MonadAuthedEndpoint Peers.API req
   )
   => IPFS.Peer
   -> Int
   -> m (Either SomeException ())
-swarmConnectWithRetry _peer (-1) = return <| Left <| toException UnableToConnect
-swarmConnectWithRetry peer tries = IPFS.Peer.connect peer >>= \case
-  Right _ ->
-    return <| Right ()
+swarmConnectWithRetry _peer (-1) =
+  return . Left $ toException UnableToConnect
 
-  Left _err ->
-    Peers.getPeers >>= \case
-      Left _ ->
-        return <| Left <| toException UnableToConnect
+swarmConnectWithRetry peer tries =
+  IPFS.Peer.connect peer >>= \case
+    Right _ ->
+      return ok
 
-      Right peers -> do
-        UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
-        let peer' = head peers
-        swarmConnectWithRetry peer' (tries - 1)
+    Left _err ->
+      Peers.getPeers >>= \case
+        Left _ ->
+          return . Left $ toException UnableToConnect
+
+        Right peers -> do
+          UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
+          swarmConnectWithRetry (head peers) (tries - 1)
 
 -- | Create a could not connect to Fission peer message for the terminal
 couldNotSwarmConnect :: MonadIO m => m ()
 couldNotSwarmConnect = do
-  liftIO <| ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
   UTF8.putText "😭 We were unable to connect to the Fission IPFS peer!\n"
 
-  liftIO <| ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
   UTF8.putText "Try checking your connection or logging in again\n"
 
-  liftIO <| ANSI.setSGR [ANSI.Reset]
+  liftIO $ ANSI.setSGR [ANSI.Reset]

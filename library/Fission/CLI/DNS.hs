@@ -13,21 +13,24 @@ import           Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Loader  as CLI
 import           Fission.CLI.Display.Success as CLI.Success
 
-import           Fission.URL.DomainName.Types
+import           Fission.URL.DomainName.Types as URL
 
 update ::
   ( MonadUnliftIO  m
-  , MonadWebClient m
   , MonadLogger    m
+  , MonadWebRequest                    req m
+  , MonadAuthedEndpoint URL.DomainName req
+
   )
   => CID
   -> m (Either ClientError DomainName)
 update cid@(CID hash) = do
   logDebug $ "Updating DNS to " <> display hash
 
-  result <- CLI.withLoader 50000 $ run (DNS.update cid)
+  response <- CLI.withLoader 50000 do
+    sendRequest . withAuth ucanJWT $ toEndpoint DNS.update cid
 
-  case result of
+  case response of
     Right domain@(DomainName rawDomain) -> do
       CLI.Success.dnsUpdated rawDomain
       return (Right domain)

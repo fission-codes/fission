@@ -1,3 +1,5 @@
+-- FIXME this entire module can probably get tossed
+
 module Fission.Web.Client.BasicAuth (getBasicAuth) where
 
 import Fission.Prelude

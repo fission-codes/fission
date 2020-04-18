@@ -53,10 +53,10 @@ newtype FissionConnected a = FissionConnected { unwrapFissionConnected :: RIO Co
 instance MonadLogger FissionConnected where
   monadLoggerLog loc src lvl msg = FissionConnected (monadLoggerLog loc src lvl msg)
 
-instance MonadWebClient FissionConnected where
-  run cmd = do
-    Client.Runner runner <- asks fissionAPI
-    liftIO $ runner cmd
+-- instance MonadWebClient FissionConnected where
+--   run cmd = do
+--     Client.Runner runner <- asks fissionAPI
+--     liftIO $ runner cmd
 
 instance MonadLocalIPFS FissionConnected where
   runLocal opts arg = do

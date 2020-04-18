@@ -21,13 +21,13 @@ add ::
   )
   => CID
   -> m (Either ClientError CID)
-add cid@(CID hash)  = do
+add cid@(CID hash) = do
   logDebug $ "Remote pinning " <> display hash
 
-  result <- CLI.withLoader 50000 $
+  response <- CLI.withLoader 50000 $
     sendRequest . withAuth ucanJWT $ toEndpoint' Fission.pin
 
-  case result of 
+  case response of
     Right _ -> do
       CLI.Success.live hash
       return $ Right cid

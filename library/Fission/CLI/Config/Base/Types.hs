@@ -48,10 +48,10 @@ newtype FissionBase a = FissionBase { unwrapFissionBase :: RIO BaseConfig a }
 instance MonadLogger FissionBase where
   monadLoggerLog loc src lvl msg = FissionBase (monadLoggerLog loc src lvl msg)
 
-instance MonadWebClient FissionBase where
-  run cmd = do
-    Client.Runner runner <- asks fissionAPI
-    liftIO $ runner cmd
+-- instance MonadWebClient FissionBase where
+--   run cmd = do
+--     Client.Runner runner <- asks fissionAPI
+--     liftIO $ runner cmd
 
 instance MonadLocalIPFS FissionBase where
   runLocal opts arg = do
