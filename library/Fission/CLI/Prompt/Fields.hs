@@ -21,7 +21,7 @@ getRequired :: (MonadIO m, MonadLogger m) => ByteString -> m ByteString
 getRequired fieldName =
   let
     prompt             = decodeUtf8Lenient (fieldName <> ": ")
-    requiredFieldError = const (showRequiredError fieldName)
+    requiredFieldError = showRequiredError fieldName
   in
     Prompt.reaskWithError prompt hasValueCheck requiredFieldError
 
