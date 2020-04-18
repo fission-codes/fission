@@ -11,7 +11,7 @@ import qualified Fission.User.Username.Types as User
 import           Fission.CLI.Command.Types
 
 import qualified Fission.Key.Store as Key
-import qualified Fission.CLI.Config.Connected.Error.Types as Error -- FIXME try tyo el;imiate
+import qualified Fission.CLI.Config.Connected.Error.Types as Error
 
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
