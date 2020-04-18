@@ -1,7 +1,6 @@
 -- | Setup command
-module Fission.CLI.Command.Setup (command, setup) where
+module Fission.CLI.Command.Setup (cmd, setup) where
 
-import           Options.Applicative.Simple (addCommand)
 import qualified RIO.Text as Text
 
 import           Network.HTTP.Types.Status
@@ -15,26 +14,29 @@ import qualified Fission.CLI.Display.Success     as CLI.Success
 import qualified Fission.CLI.Prompt              as Prompt
 import qualified Fission.CLI.Environment.Partial as Env.Partial
 
+import           Fission.CLI.Command.Types
+
 import qualified Fission.Internal.UTF8 as UTF8
 
-import           Fission.Web.Client       as Client
-import qualified Fission.Web.Client.User  as User.Client
+import           Fission.Web.Client      as Client
+import qualified Fission.Web.Client.User as User.Client
 
 import qualified Fission.Key  as Key
 import qualified Fission.User as User
-
-import           Fission.CLI.Config.Types
-import           Fission.CLI.Config.Base
-
-
+ 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => BaseConfig -> CommandM (m ())
-command cfg =
-  addCommand
-    "setup"
-    "Setup Fission on your machine"
-    (\_ -> runBase cfg setup)
-    (pure ())
+cmd ::
+  ( MonadIO        m
+  , MonadLogger    m
+  , MonadWebClient m
+  )
+  => Command m () ()
+cmd = Command
+  { command     = "setup"
+  , description = "Setup Fission on your machine"
+  , argParser   = pure ()
+  , handler     = \_ -> setup
+  }
 
 setup ::
   ( MonadIO        m

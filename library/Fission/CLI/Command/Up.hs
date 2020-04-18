@@ -1,11 +1,11 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Command.Up (command, up) where
+module Fission.CLI.Command.Up (cmd, up) where
 
-import           Options.Applicative.Simple hiding (command)
+import           Options.Applicative
 import           RIO.Directory
 
 import           Network.IPFS
-import qualified Network.IPFS.Add         as IPFS
+import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
 import           Fission.Web.Client as Client
@@ -16,20 +16,24 @@ import qualified Fission.CLI.IPFS.Pin         as CLI.Pin
 import qualified Fission.CLI.DNS              as CLI.DNS
 import           Fission.CLI.Display.Error
 
-import           Fission.CLI.Config.Types
-import           Fission.CLI.Config.Base
-import           Fission.CLI.Config.Connected
-
 import           Fission.CLI.Environment
+import           Fission.CLI.Command.Types
 
 -- | The command to attach to the CLI tree
-command :: MonadIO m => BaseConfig -> CommandM (m ())
-command cfg =
-  addCommand
-    "up"
-    "Keep your current working directory up"
-    (\options -> void <| runConnected cfg <| up options)
-    parseOptions
+cmd ::
+  ( MonadUnliftIO    m
+  , MonadLogger      m
+  , MonadLocalIPFS   m
+  , MonadEnvironment m
+  , MonadWebClient   m
+  )
+  => Command m Up.Options ()
+cmd = Command
+  { command     = "up"
+  , description = "Keep your current working directory up"
+  , argParser   = parseOptions
+  , handler     = up
+  }
 
 -- | Sync the current working directory to the server over IPFS
 up ::
@@ -46,7 +50,7 @@ up Up.Options {..} = do
   toAdd        <- Prompt.checkBuildDir path
   absPath      <- liftIO (makeAbsolute toAdd)
 
-  logDebug <| "Starting single IPFS add locally of " <> displayShow absPath
+  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
   IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
     unless dnsOnly do
       CLI.Pin.add cid >>= putErrOr \_ -> noop
@@ -55,12 +59,12 @@ up Up.Options {..} = do
 
 parseOptions :: Parser Up.Options
 parseOptions = do
-  dnsOnly <- switch <| mconcat
+  dnsOnly <- switch $ mconcat
     [ long "dns-only"
     , help "Only update DNS (skip file sync)"
     ]
 
-  path <- strArgument <| mconcat
+  path <- strArgument $ mconcat
     [ metavar "PATH"
     , help    "The file path of the assets or directory to sync"
     , value   "./"

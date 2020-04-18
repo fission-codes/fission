@@ -1,6 +1,6 @@
 -- | General configuration required to run any CLI function
 module Fission.CLI.Config.Base.Types
-  ( BaseConfig (..)
+  ( BaseConfig  (..)
   , FissionBase (..)
   ) where
 
@@ -60,12 +60,13 @@ instance MonadLocalIPFS FissionBase where
 
     let opts' = ("--timeout=" <> show secs <> "s") : opts
 
-    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' >>= \case
+    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' <&> \case
       (ExitSuccess, contents, _) ->
-        return <| Right contents
+        Right contents
 
       (ExitFailure _, _, stdErr)
         | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
-            return . Left <| Process.Timeout secs
+            Left $ Process.Timeout secs
+
         | otherwise ->
-            return . Left <| Process.UnknownErr stdErr
+            Left $ Process.UnknownErr stdErr

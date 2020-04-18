@@ -7,30 +7,44 @@ import           Fission.Prelude
 import qualified Fission.Internal.CLI.Meta as Meta
 
 import           Fission.CLI.Config.Base
+import           Fission.CLI.Config.Connected
 
-import qualified Fission.CLI.Command.Setup         as Setup
-import qualified Fission.CLI.Command.Up            as Up
-import qualified Fission.CLI.Command.Down          as Down
-import qualified Fission.CLI.Command.Watch         as Watch
-import qualified Fission.CLI.Command.Whoami        as Whoami
+import           Fission.CLI.Command as Command
+import           Fission.CLI.Display.Error
 
--- | Top-level CLI description
-cli :: MonadUnliftIO m => BaseConfig -> m ()
-cli cfg = do
-  (_, runCLI) <- liftIO <| simpleOptions version description detail (pure ()) do
-    Setup.command  cfg
-    Up.command     cfg
-    Down.command   cfg
-    Watch.command  cfg
-    Whoami.command cfg
+import qualified Fission.CLI.Command.Setup  as Setup
+import qualified Fission.CLI.Command.Up     as Up
+import qualified Fission.CLI.Command.Down   as Down
+import qualified Fission.CLI.Command.Watch  as Watch
+import qualified Fission.CLI.Command.Whoami as Whoami
+
+cli :: MonadIO m => BaseConfig -> m ()
+cli baseCfg = liftIO do
+  (_, runCLI) <- simpleOptions version summary detail noop do
+    runBase_ Setup.cmd
+    runBase_ Whoami.cmd
+   
+    runConnected_ Up.cmd
+    runConnected_ Down.cmd
+    runConnected_ (Watch.cmd (void . runConnected baseCfg))
+
   runCLI
+ 
   where
-    description = "CLI to interact with Fission services"
-    detail = mconcat [ "Fission makes developing, deploying, updating "
-                     , "and iterating on web applications quick and easy."
-                     ]
-    version =
-      Meta.package
-        |> bind Meta.version
-        |> maybe "unknown" identity
-        |> Text.unpack
+    runBase_ :: Command FissionBase input () -> Command.Leaf
+    runBase_ = runWith (runBase baseCfg)
+
+    runConnected_ :: Command FissionConnected input () -> Command.Leaf
+    runConnected_ = runWith \actn ->
+      runConnected baseCfg actn >>= \case
+        Right _  -> return ()
+        Left err -> void . runConnected baseCfg $ put' err
+
+summary :: String
+summary = "CLI to interact with Fission services"
+
+detail :: String
+detail = "Fission makes developing, deploying, updating, and iterating on web apps quick and easy."
+
+version :: String
+version = Text.unpack $ maybe "unknown" identity (Meta.version =<< Meta.package)

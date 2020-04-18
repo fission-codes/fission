@@ -23,10 +23,9 @@ update ::
   => CID
   -> m (Either ClientError DomainName)
 update cid@(CID hash) = do
-  logDebug <| "Updating DNS to " <> display hash
+  logDebug $ "Updating DNS to " <> display hash
 
-  result <- CLI.withLoader 50000 do
-    run (DNS.update cid)
+  result <- CLI.withLoader 50000 $ run (DNS.update cid)
 
   case result of
     Right domain@(DomainName rawDomain) -> do
