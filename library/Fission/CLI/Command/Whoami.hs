@@ -1,32 +1,35 @@
 -- | Whoami command
-module Fission.CLI.Command.Whoami (command, whoami) where
+module Fission.CLI.Command.Whoami (cmd, whoami) where
 
 import           Fission.Prelude
-
-import           Options.Applicative.Simple (addCommand)
 
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
 
 import qualified Fission.User.Username.Types as User
+ 
+import           Fission.CLI.Command.Types
+
+import qualified Fission.Key.Store as Key
+import qualified Fission.CLI.Config.Connected.Error.Types as Error -- FIXME try tyo el;imiate
 
 import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
 
-import           Fission.CLI.Config.Types
-import           Fission.CLI.Config.Base
-
-import qualified Fission.Key.Store as Key
-import qualified Fission.CLI.Config.Connected.Error.Types as Error
 
 -- | The command to attach to the CLI tree
-command :: Command m () ()
-command =
+cmd ::
+  ( MonadIO        m
+  , MonadLogger    m
+  , MonadWebClient m
+  )
+  => Command m () ()
+cmd =
   Command
     { command     = "whoami"
     , description = "Check the current user"
-    , parseArgs   = pure ()
-    , handler     = whoami
+    , argParser   = pure ()
+    , handler     = \_ -> whoami
     }
 
 whoami ::
@@ -39,6 +42,7 @@ whoami =
   Key.exists >>= \case
     False -> do
       CLI.Error.notConnected Error.NoKeyFile
+ 
     True ->
       Client.run User.whoami >>= \case
         Right (User.Username username) ->  CLI.Success.loggedInAs username

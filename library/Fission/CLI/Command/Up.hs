@@ -1,11 +1,11 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Command.Up (command, up) where
+module Fission.CLI.Command.Up (cmd, up) where
 
-import           Options.Applicative.Simple hiding (command)
+import           Options.Applicative
 import           RIO.Directory
 
 import           Network.IPFS
-import qualified Network.IPFS.Add         as IPFS
+import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
 import           Fission.Web.Client as Client
@@ -16,20 +16,23 @@ import qualified Fission.CLI.IPFS.Pin         as CLI.Pin
 import qualified Fission.CLI.DNS              as CLI.DNS
 import           Fission.CLI.Display.Error
 
-import           Fission.CLI.Config.Types
-import           Fission.CLI.Config.Base
-import           Fission.CLI.Config.Connected
-
 import           Fission.CLI.Environment
+import           Fission.CLI.Command.Types
 
 -- | The command to attach to the CLI tree
-command :: Command m () ()
-command = Command
+cmd ::
+  ( MonadUnliftIO    m
+  , MonadLogger      m
+  , MonadLocalIPFS   m
+  , MonadEnvironment m
+  , MonadWebClient   m
+  )
+  => Command m Up.Options ()
+cmd = Command
   { command     = "up"
   , description = "Keep your current working directory up"
-  , parseArgs   = parseOptions
+  , argParser   = parseOptions
   , handler     = up
-  , subCommands = []
   }
 
 -- | Sync the current working directory to the server over IPFS

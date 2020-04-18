@@ -10,10 +10,10 @@ import Fission.CLI.Display.Loader
 
 waitFor :: MonadUnliftIO m => ByteString -> m a -> m a
 waitFor msg action = do
-  liftIO <| ANSI.cursorForward 3
-  liftIO <| ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+  liftIO $ ANSI.cursorForward 3
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
   putStr msg
-  liftIO <| ANSI.setCursorColumn 0
+  liftIO $ ANSI.setCursorColumn 0
   result <- withLoader 5000 action
-  liftIO <| ANSI.setSGR [ANSI.Reset]
+  liftIO $ ANSI.setSGR [ANSI.Reset]
   return result

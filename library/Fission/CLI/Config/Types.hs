@@ -24,5 +24,5 @@ data Command input output = Command
   , handler     :: input -> output
   }
 
-class Monad m => MonadCommand m input where
-  addCommand :: Command input output -> m output
+-- class Monad m => MonadCommand m input where
+--   addCommand :: Command input output -> m output

@@ -1,7 +1,11 @@
 module Fission.CLI.Command.Types
-  ( Command    (..)
-  -- , OptionInfo (..)
+  ( Command (..)
+  , Leaf
   ) where
+
+
+import           Control.Monad.Trans.Except
+import qualified Control.Monad.Trans.Writer.Lazy as Lazy
 
 import           Options.Applicative.Simple hiding (command)
 
@@ -10,8 +14,8 @@ import           Fission.Prelude
 data Command m input output = Command
   { command     :: !Text
   , description :: !Text
-  , parseArgs   :: !(Parser input)
+  , argParser   :: !(Parser input)
   , handler     :: !(input -> m output)
-  -- , subCommands  :: ![forall subInput . Command m subInput output]
   }
 
+type Leaf = ExceptT (IO ()) (Lazy.Writer (Mod CommandFields (IO ()))) ()

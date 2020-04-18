@@ -1,29 +1,17 @@
-module Fission.CLI.Command.Class (MonadCommand (..)) where
+module Fission.CLI.Command.Class (runWith) where
 
-import Fission.Prelude
-import Fission.CLI.Command.Types
+import           Control.Monad.Trans.Except
+import           Control.Monad.Trans.Writer
 
--- import Fission.SemVer.Types
+import           Options.Applicative.Simple
+import qualified RIO.Text as Text
 
-class Monad m => MonadCommand m where
-  add :: Command m input output -> ExceptT output (Writer (Mod CommandFields output)) ()
+import           Fission.Prelude
+import           Fission.CLI.Command.Types
 
--- TODO: Need an HList here, so NOPE! Just going to call `add` on each one separately to get it to `m`, incl. the passed monad I guess.
-
--- -- | Top-level CLI description
--- run :: MonadCommand m
---   -- => SemVer
---   => [forall input . Command m input ()]
---   -> n ()
--- run version runner commands = do
---   (_, runCLI) <- liftIO $
---     simpleOptions version description detail noop (mapM_ runner commands)
---   runCLI
---   where
---     description = "CLI to interact with Fission services"
---     detail      = mconcat [ "Fission makes developing, deploying, updating "
---                           , "and iterating on web applications quick and easy."
---                           ]
-
-runner :: MonadCommand m => Command m input output -> m output
-runner cmd = withRunInIO \runIO -> add (runIO cmd)
+runWith ::
+     (m output -> IO output)
+  -> Command m input output
+  -> ExceptT (IO output) (Writer (Mod CommandFields (IO output))) ()
+runWith nt Command {..} =
+  addCommand (Text.unpack command) (Text.unpack description) (nt . handler) argParser

@@ -1,6 +1,6 @@
 -- | Continuous file sync
 module Fission.CLI.Command.Watch
-  ( command
+  ( cmd
   , handleTreeChanges
   , watcher
   ) where
@@ -20,30 +20,42 @@ import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
 
 import           Fission.Prelude hiding (handle)
+
 import           Fission.Web.Client as Client
 import qualified Fission.Time       as Time
 
 import qualified Fission.Internal.UTF8        as UTF8
 import qualified Fission.URL.DomainName.Types as URL
+ 
+import           Fission.CLI.Command.Types
 
 import           Fission.CLI.Config.Base
 import           Fission.CLI.Config.Connected
 
 import           Fission.CLI.Command.Watch.Types as Watch
-import           Fission.CLI.Config.Types
 import           Fission.CLI.Display.Error       as CLI.Error
 import           Fission.CLI.Environment
 import qualified Fission.CLI.DNS                 as CLI.DNS
 import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
+import Fission.CLI.Config.Connected.Types
+
 -- | The command to attach to the CLI tree
-command :: Command m () ()
-command = Command
+cmd ::
+  ( MonadUnliftIO    m
+  , MonadLogger      m
+  , MonadLocalIPFS   m
+  , MonadEnvironment m
+  , MonadWebClient   m
+  )
+  => (m () -> IO ())
+  -> Command m Watch.Options ()
+cmd runner = Command
   { command     = "watch"
   , description = "Keep your working directory in sync with the IPFS network"
-  , parseArgs   = parseOptions
-  , handler     = watcher
+  , argParser   = parseOptions
+  , handler     = watcher runner
   }
 
 -- | Continuously sync the current working directory to the server over IPFS
@@ -54,10 +66,10 @@ watcher ::
   , MonadEnvironment m
   , MonadWebClient   m
   )
-  => Watch.Options
-  -> BaseConfig
+  => (m () -> IO ())
+  -> Watch.Options
   -> m ()
-watcher Watch.Options {..} cfg = do
+watcher runner Watch.Options {..} = do
   ignoredFiles <- getIgnoredFiles
   toAdd        <- Prompt.checkBuildDir path
   absPath      <- makeAbsolute toAdd
@@ -70,23 +82,27 @@ watcher Watch.Options {..} cfg = do
     when (not dnsOnly) do
       CLI.Pin.add cid >>= putErrOr \_ -> noop
 
-    CLI.DNS.update cid >>= putErrOr \_ ->
-      liftConfig cfg >>= putErrOr \cfg' ->
-        liftIO $ FS.withManager \watchMgr -> do
-          hashCache <- newMVar hash
-          timeCache <- newMVar =<< getCurrentTime
-          void $ handleTreeChanges timeCache hashCache watchMgr cfg' absPath
-          forever . liftIO $ threadDelay 1000000 -- Sleep main thread
+    CLI.DNS.update cid >>= putErrOr \_ -> do
+      liftIO $ FS.withManager \watchMgr -> do
+        hashCache <- newMVar hash
+        timeCache <- newMVar =<< getCurrentTime
+        void $ handleTreeChanges runner timeCache hashCache watchMgr absPath
+        forever . liftIO $ threadDelay 1000000 -- Sleep main thread
 
 handleTreeChanges ::
-     MVar UTCTime
+  ( MonadUnliftIO  m
+  , MonadWebClient m
+  , MonadLogger    m
+  , MonadLocalIPFS m
+  )
+  => (m () -> IO ())
+  -> MVar UTCTime
   -> MVar Text
   -> WatchManager
-  -> ConnectedConfig
   -> FilePath
   -> IO StopListening
-handleTreeChanges timeCache hashCache watchMgr cfg dir =
-  FS.watchTree watchMgr dir (const True) \_ -> runConnected' cfg do
+handleTreeChanges runner timeCache hashCache watchMgr dir =
+  FS.watchTree watchMgr dir (const True) \_ -> runner do
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
 

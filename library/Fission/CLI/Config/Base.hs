@@ -7,7 +7,4 @@ import Fission.Prelude
 import Fission.CLI.Config.Base.Types
 
 runBase :: MonadIO m => BaseConfig -> FissionBase a -> m a
-runBase cfg actions =
-  actions
-    |> unwrapFissionBase
-    |> runRIO cfg
+runBase cfg actions = runRIO cfg $ unwrapFissionBase actions
