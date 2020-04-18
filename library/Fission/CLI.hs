@@ -7,11 +7,12 @@ import           Fission.Prelude
 import qualified Fission.Internal.CLI.Meta as Meta
 
 import           Fission.CLI.Config.Base
+import           Fission.CLI.Config.Connected
 
-import Fission.CLI.Display.Error
-import Fission.CLI.Command.Class
-import  Fission.CLI.Config.Connected
-import  Fission.CLI.Command.Types as Command
+import           Fission.CLI.Command.Class
+import           Fission.CLI.Command.Types as Command
+
+import           Fission.CLI.Display.Error
 
 import qualified Fission.CLI.Command.Setup  as Setup
 import qualified Fission.CLI.Command.Up     as Up
