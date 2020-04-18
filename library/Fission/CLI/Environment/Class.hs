@@ -8,7 +8,6 @@ import           Control.Monad.Except
 -- | A monad representing access to a Fission server
 class Monad m => MonadEnvironment m where
   getIgnoredFiles :: m IPFS.Ignored
-  -- FIXME add more to this to avoid the more generic types
 
 instance MonadEnvironment m => MonadEnvironment (ExceptT SomeException m) where
   getIgnoredFiles = lift getIgnoredFiles
