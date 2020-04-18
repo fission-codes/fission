@@ -18,15 +18,12 @@ import           Fission.CLI.Command.Types
 
 import qualified Fission.Internal.UTF8 as UTF8
 
-import           Fission.Web.Client       as Client
-import qualified Fission.Web.Client.User  as User.Client
+import           Fission.Web.Client      as Client
+import qualified Fission.Web.Client.User as User.Client
 
 import qualified Fission.Key  as Key
 import qualified Fission.User as User
-
--- import           Fission.CLI.Config.Types
--- import           Fission.CLI.Config.Base
-
+ 
 -- | The command to attach to the CLI tree
 cmd ::
   ( MonadIO        m
