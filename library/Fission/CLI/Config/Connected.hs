@@ -37,6 +37,20 @@ import qualified Fission.Key as Key
 
 import qualified Fission.Internal.Base64          as B64
 
+import Servant.Client
+
+import Fission.Web.Auth.Token.JWT
+import Fission.Web.Auth.Token
+
+import qualified Fission.Web.Auth.Token.Bearer as Token
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
+import Servant.Client.Core.Auth
+import Fission.Web.Client.JWT
+
+import Fission.Authorization.ServerDID
+
+
 -- | Ensure we have a local config file with the appropriate data
 --
 -- Takes a @Connected@-dependant action, and lifts it into an environment that
@@ -69,36 +83,39 @@ liftConfig BaseConfig {..} =
       return $ Left NoKeyFile
      
     Right secretKey -> do
-      response <- CLI.withLoader 50000 $ -- FIXME put loader INSIDE the instance
-        undefined -- sendRequest . withAuth ucanJWT $ toEndpoint' User.verify
+      config <- Environment.get
+      Environment.getOrRetrievePeer config >>= \case
+        Nothing -> do
+          logErrorN "Could not locate the Fission IPFS network"
+          return $ Left PeersNotFound
 
-      case response of
-        Left err -> do
-          -- CLI.Error.notConnected err -- FIXME bring back
-          return $ Left NotRegistered
-         
-        Right _ -> do
-          config <- Environment.get
-          Environment.getOrRetrievePeer config >>= \case
-            Nothing -> do
-              logErrorN "Could not locate the Fission IPFS network"
-              return $ Left PeersNotFound
-             
-            Just peer ->
-              Connect.swarmConnectWithRetry peer 1 >>= \case
-                Right _ ->
-                  let
-                    ignoredFiles = Environment.ignored config
-                    ucanLink     = Nothing
-                    did = DID
-                      { publicKey = Key.Public $ B64.toByteString $ Ed25519.toPublic secretKey
-                      , algorithm = Key.Ed25519
-                      , method    = Key
-                      }
-                  in
-                    return $ Right ConnectedConfig {..}
+        Just peer ->
+          Connect.swarmConnectWithRetry peer 1 >>= \case
+            Left err -> do
+              logError $ displayShow err
+              Connect.couldNotSwarmConnect
+              return $ Left CannotConnect
 
-                Left err -> do
-                  logError $ displayShow err
-                  Connect.couldNotSwarmConnect
-                  return $ Left CannotConnect
+            Right _ -> do
+              let
+                ignoredFiles = Environment.ignored config
+                ucanLink     = Nothing
+                did = DID
+                  { publicKey = Key.Public . B64.toByteString $ Ed25519.toPublic secretKey
+                  , algorithm = Key.Ed25519
+                  , method    = Key
+                  }
+
+                connCfg = ConnectedConfig {..}
+
+              runConnected' connCfg do
+                auth    <- getAuth -- FIXME JWT I guess
+                authReq <- mkAuthReq
+                let auth' = mkAuthenticatedRequest auth \_ath -> authReq
+                sendRequest ((client User.verify) auth') >>= \case -- FIXME make the auth a bearer token directly
+                  Left err -> do
+                    CLI.Error.notConnected err
+                    return $ Left NotRegistered
+
+                  Right _ ->
+                    return $ Right connCfg

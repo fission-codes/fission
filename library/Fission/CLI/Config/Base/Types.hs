@@ -10,6 +10,7 @@ import qualified RIO.ByteString.Lazy as Lazy
 -- import           RIO.Orphans () -- FIXME please move this to Prelude!
 
 import Servant.Client.Core.RunClient
+import qualified Fission.CLI.Display.Loader  as CLI
 
 import           Servant.Client
  
@@ -60,11 +61,15 @@ instance MonadLogger FissionBase where
   monadLoggerLog loc src lvl msg = FissionBase (monadLoggerLog loc src lvl msg)
 
 instance MonadWebClient FissionBase where
-  sendRequest req = do
-    manager <- asks httpManager
-    baseUrl <- asks fissionURL
+  sendRequest req =
+    CLI.withLoader 50_000 do
+      manager <- asks httpManager
+      baseUrl <- asks fissionURL
 
-    liftIO . runClientM req $ mkClientEnv manager baseUrl
+      liftIO . runClientM req $ mkClientEnv manager baseUrl
+ 
+instance MonadTime FissionBase where
+  currentTime = liftIO getCurrentTime
 
 -- instance HasClient ClientM api => MonadUnauthedEndpoint api FissionBase where
 --   toUnauthedEndpoint pxy _ = do

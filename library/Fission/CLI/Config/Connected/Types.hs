@@ -23,11 +23,16 @@ import qualified Fission.Web.Client.Types as Client
 
 import           Fission.CLI.Environment.Class
 import           Fission.User.DID.Types
- 
+
+
+import Fission.Web.Auth.Token.JWT
+import Fission.Web.Auth.Token
+import Fission.Authorization.ServerDID
 
 import Network.HTTP.Client as HTTP
 import Fission.Web.Auth.Token.JWT
 
+import qualified Crypto.PubKey.Ed25519    as Ed25519
 import Servant.Client.Core.BaseUrl
 
 data ConnectedConfig = ConnectedConfig
@@ -108,3 +113,15 @@ instance MonadWebAuth FissionConnected DID where
 -- i.e. A UCAN proof
 instance MonadWebAuth FissionConnected (Maybe JWT) where
   getAuth = asks ucanLink
+
+instance MonadTime FissionConnected where
+  currentTime = liftIO getCurrentTime
+
+instance MonadWebAuth FissionConnected Token where
+  getAuth = undefined -- FIXME!
+
+instance MonadWebAuth FissionConnected Ed25519.SecretKey where
+  getAuth = undefined -- FIXME!
+
+instance ServerDID FissionConnected where
+  getServerDID = undefined -- FIXME!
