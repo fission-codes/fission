@@ -35,7 +35,7 @@ add ::
   -> m (Either ClientError CID)
 add cid@(CID hash) = do
   logDebug $ "Remote pinning " <> display hash
-  sendRequestM ((authClient1 Fission.pin) cid) >>= \case
+  sendRequestM (authClient Fission.pin `withPayload` cid) >>= \case
     Right _ -> do
       CLI.Success.live hash
       return $ Right cid
