@@ -24,13 +24,13 @@ type API = "ipfs" :> "peers" :> Peer.API -- FIXME move to own module?
 -- | Retrieves the Fission peer list from the server
 getPeers ::
   ( MonadUnliftIO  m
-  , MonadWebRequest         req m
-  , MonadAuthedEndpoint API req
+  , MonadWebClient m
   )
   => m (Either ClientError (NonEmpty IPFS.Peer))
 getPeers = 
   Cursor.withHidden $ CLI.Wait.waitFor "Retrieving Fission Peer List..." do
-    sendRequest . withAuth ucanJWT $ toEndpoint' (Proxy @API) -- FIXME doens't requier auth
+    undefined
+  -- sendRequest . withAuth ucanJWT $ toEndpoint' (Proxy @API) -- FIXME doens't requier auth
 
 -- -- | Retrieve a list of peers from the fission api
 -- get :: ClientM (NonEmpty IPFS.Peer)

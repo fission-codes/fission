@@ -29,4 +29,4 @@ type instance AuthClientData (AuthProtect "register-did") = ()
 -- | Higher order auth that encompasses Basic & JWT auth
 type HigherOrder = AuthProtect "higher-order"
 type instance AuthServerData (AuthProtect "higher-order") = Authorization
-type instance AuthClientData (AuthProtect "higher-order") = (Maybe BasicAuthData)
+type instance AuthClientData (AuthProtect "higher-order") = Token

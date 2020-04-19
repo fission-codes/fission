@@ -6,5 +6,5 @@ module Fission.Web.Client.Auth
 import           Fission.Prelude
 import           Fission.Web.Client.Auth.Class
 
-withAuth :: HasWebAuth m => m auth -> (auth -> m a) -> m a
-withAuth auth req = req =<< auth
+withAuth :: MonadWebAuth m auth => (auth -> a) -> m a
+withAuth needsAuth = pure . needsAuth =<< getAuth

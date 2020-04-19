@@ -36,6 +36,8 @@ import qualified Fission.CLI.DNS                 as CLI.DNS
 import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
+import qualified Fission.Web.Client.IPFS as IPFS
+
 -- | The command to attach to the CLI tree
 cmd ::
   ( MonadUnliftIO    m
@@ -86,9 +88,9 @@ watcher runner Watch.Options {..} = do
 
 handleTreeChanges ::
   ( MonadUnliftIO  m
-  , MonadWebClient m
   , MonadLogger    m
   , MonadLocalIPFS m
+  , MonadWebClient m
   )
   => (m () -> IO ())
   -> MVar UTCTime
@@ -119,8 +121,8 @@ handleTreeChanges runner timeCache hashCache watchMgr dir =
 
 pinAndUpdateDNS ::
   ( MonadUnliftIO  m
-  , MonadWebClient m
   , MonadLogger    m
+  , MonadWebClient m
   )
   => CID
   -> m (Either ClientError URL.DomainName)

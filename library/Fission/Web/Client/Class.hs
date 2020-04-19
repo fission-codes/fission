@@ -1,11 +1,7 @@
-module Fission.Web.Client.Class where -- (MonadWebClient (..)) where
+module Fission.Web.Client.Class (MonadWebClient (..)) where
 
--- import           Fission.Prelude
--- import           Servant.Client
+import           Servant.Client
+import           Fission.Prelude
 
--- NOTE New version of thius over at Fission.Web.Client
-        -- Will put here eventually
-
--- -- | A monad representing access to a Fission server
--- class Monad m => MonadWebClient m where
---   run :: forall a. ClientM a -> m (Either ClientError a)
+class Monad m => MonadWebClient m where
+  sendRequest :: ClientM a -> m (Either ClientError a)

@@ -10,6 +10,8 @@ import           Network.IPFS
 
 import           Fission.Prelude
 
+import Fission.Key.Store as Key
+
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
 
@@ -22,8 +24,18 @@ import qualified Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
 import qualified Fission.CLI.IPFS.Connect      as Connect
+ 
+import           Fission.Web.Client.Peers as Peers
 
 import qualified Fission.Key.Store as Key
+import qualified Fission.CLI.Display.Loader  as CLI
+
+import qualified Crypto.PubKey.Ed25519    as Ed25519
+
+import Fission.User.DID.Types
+import qualified Fission.Key as Key
+
+import qualified Fission.Internal.Base64          as B64
 
 -- | Ensure we have a local config file with the appropriate data
 --
@@ -43,23 +55,26 @@ runConnected' :: MonadIO m => ConnectedConfig -> FissionConnected a -> m a
 runConnected' cfg actions = runRIO cfg $ unwrapFissionConnected actions
 
 liftConfig ::
-  ( MonadUnliftIO         m
-  , MonadLocalIPFS        m
-  , MonadWebClient        m
-  , MonadLogger           m
+  ( MonadUnliftIO  m
+  , MonadLocalIPFS m
+  , MonadLogger    m
+  , MonadWebClient m
   )
   => BaseConfig
   -> m (Either Error ConnectedConfig)
 liftConfig BaseConfig {..} = 
-  Key.exists >>= \case
-    False -> do
+  Key.readEd >>= \case
+    Left _err -> do -- FIXME add better feedback / there's different errors here!
       CLI.Error.notConnected NoKeyFile
       return $ Left NoKeyFile
      
-    True ->
-      Client.run User.verify >>= \case
+    Right secretKey -> do
+      response <- CLI.withLoader 50000 $ -- FIXME put loader INSIDE the instance
+        undefined -- sendRequest . withAuth ucanJWT $ toEndpoint' User.verify
+
+      case response of
         Left err -> do
-          CLI.Error.notConnected err
+          -- CLI.Error.notConnected err -- FIXME bring back
           return $ Left NotRegistered
          
         Right _ -> do
@@ -71,9 +86,17 @@ liftConfig BaseConfig {..} =
              
             Just peer ->
               Connect.swarmConnectWithRetry peer 1 >>= \case
-                Right _ -> do
-                  let ignoredFiles = Environment.ignored config
-                  return $ Right ConnectedConfig {..}
+                Right _ ->
+                  let
+                    ignoredFiles = Environment.ignored config
+                    ucanLink     = Nothing
+                    did = DID
+                      { publicKey = Key.Public $ B64.toByteString $ Ed25519.toPublic secretKey
+                      , algorithm = Key.Ed25519
+                      , method    = Key
+                      }
+                  in
+                    return $ Right ConnectedConfig {..}
 
                 Left err -> do
                   logError $ displayShow err

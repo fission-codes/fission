@@ -69,6 +69,5 @@ upload = Proxy
 cids :: Proxy (AuthedIPFS ("cids" :> CID.API))
 cids = Proxy
 
-
 -- cids :: ClientM [CID]
 -- cids = sigClient' $ Proxy @(AuthedIPFS ("cids" :> CID.API))

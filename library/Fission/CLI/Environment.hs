@@ -36,10 +36,9 @@ import qualified Network.IPFS.Types as IPFS
 
 -- | Initialize the Environment file
 init ::
-  ( MonadUnliftIO         m
-  , MonadLogger           m
-  , MonadWebRequest               req m
-  , MonadAuthedEndpoint Peers.API req
+  ( MonadUnliftIO  m
+  , MonadLogger    m
+  , MonadWebClient m
   )
   => m ()
 init = do
@@ -101,8 +100,7 @@ removeConfigFile = do
 getOrRetrievePeer ::
   ( MonadUnliftIO  m
   , MonadLogger    m
-  , MonadWebRequest               req m
-  , MonadAuthedEndpoint Peers.API req
+  , MonadWebClient m
   )
   => Environment
   -> m (Maybe IPFS.Peer)

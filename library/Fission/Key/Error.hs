@@ -9,7 +9,7 @@ data Error
   | ParseError CryptoError
   deriving ( Exception
             , Eq
-            , Generic
+            , Generic -- FIXME Need this?
             )
 
 instance Show Error where

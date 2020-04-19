@@ -26,8 +26,7 @@ swarmConnectWithRetry ::
   ( MonadUnliftIO  m
   , MonadLogger    m
   , MonadLocalIPFS m
-  , MonadWebRequest               req m
-  , MonadAuthedEndpoint Peers.API req
+  , MonadWebClient m
   )
   => IPFS.Peer
   -> Int

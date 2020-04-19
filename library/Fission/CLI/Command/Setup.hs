@@ -49,7 +49,8 @@ setup = do
 
   if doesExist
     then
-      Client.run User.Client.whoami >>= \case
+      undefined >>= \case
+    -- Client.run User.Client.whoami >>= \case
         Right User.Username {username} ->
           CLI.Success.loggedInAs username
 
@@ -84,7 +85,8 @@ createAccount = do
 
   let password = Nothing
 
-  Client.run (User.Client.register User.Registration {..}) >>= \case
+  -- Client.run (User.Client.register User.Registration {..}) >>= \case
+  undefined >>= \case
     Right _ok ->
       CLI.Success.putOk "Registration successful!"
 
@@ -140,10 +142,11 @@ updateDID ::
   -> Key.Public
   -> m ()
 updateDID auth pk = do
-  Client.run (User.Client.updatePublicKey auth (pk, Key.Ed25519)) >>= \case
-    Left err ->
-      CLI.Error.put err "Could not upgrade account"
+  undefined
+  -- Client.run (User.Client.updatePublicKey auth (pk, Key.Ed25519)) >>= \case
+  --   Left err ->
+  --     CLI.Error.put err "Could not upgrade account"
 
-    Right _ -> do
-      _ <- Env.Partial.deleteHomeAuth
-      CLI.Success.putOk "Upgrade successful!"
+  --   Right _ -> do
+  --     _ <- Env.Partial.deleteHomeAuth
+  --     CLI.Success.putOk "Upgrade successful!"

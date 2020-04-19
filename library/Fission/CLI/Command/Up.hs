@@ -18,6 +18,10 @@ import           Fission.CLI.Display.Error
 
 import           Fission.CLI.Environment
 import           Fission.CLI.Command.Types
+ 
+import qualified Fission.URL.DomainName.Types as URL
+ 
+import qualified Fission.Web.Client.IPFS as IPFS
 
 -- | The command to attach to the CLI tree
 cmd ::

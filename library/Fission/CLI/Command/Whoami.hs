@@ -39,11 +39,12 @@ whoami ::
   )
   => m ()
 whoami = 
-  Key.exists >>= \case
-    False -> do
-      CLI.Error.notConnected Error.NoKeyFile
+  -- Key.exists >>= \case
+  --   False -> do
+  --     CLI.Error.notConnected Error.NoKeyFile
  
-    True ->
-      Client.run User.whoami >>= \case
-        Right (User.Username username) ->  CLI.Success.loggedInAs username
-        Left err ->  CLI.Error.notConnected err
+  --   True ->
+  -- Client.run User.whoami >>= \case
+  undefined >>= \case
+    Right (User.Username username) ->  CLI.Success.loggedInAs username
+    Left err -> return () -- CLI.Error.notConnected err

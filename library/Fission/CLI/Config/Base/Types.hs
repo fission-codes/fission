@@ -1,13 +1,19 @@
+-- {-# LANGUAGE UndecidableInstances #-}
+
 -- | General configuration required to run any CLI function
 module Fission.CLI.Config.Base.Types
   ( BaseConfig  (..)
   , FissionBase (..)
   ) where
 
-import           Fission.Prelude
-
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Orphans ()
+-- import           RIO.Orphans () -- FIXME please move this to Prelude!
+
+import Servant.Client.Core.RunClient
+
+import           Servant.Client
+ 
+import           Fission.Prelude
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.Types as Client
@@ -17,9 +23,14 @@ import qualified Network.IPFS.Types       as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
+import Network.HTTP.Client as HTTP
+
+import Servant.Client.Core.BaseUrl
+
 -- | The configuration used for the CLI application
 data BaseConfig = BaseConfig
-  { fissionAPI  :: !Client.Runner
+  { httpManager :: !HTTP.Manager
+  , fissionURL  :: !BaseUrl
   , logFunc     :: !LogFunc
   , processCtx  :: !ProcessContext
   , ipfsPath    :: !IPFS.BinPath
@@ -48,10 +59,36 @@ newtype FissionBase a = FissionBase { unwrapFissionBase :: RIO BaseConfig a }
 instance MonadLogger FissionBase where
   monadLoggerLog loc src lvl msg = FissionBase (monadLoggerLog loc src lvl msg)
 
--- instance MonadWebClient FissionBase where
---   run cmd = do
---     Client.Runner runner <- asks fissionAPI
---     liftIO $ runner cmd
+instance MonadWebClient FissionBase where
+  sendRequest req = do
+    manager <- asks httpManager
+    baseUrl <- asks fissionURL
+
+    liftIO . runClientM req $ mkClientEnv manager baseUrl
+
+-- instance HasClient ClientM api => MonadUnauthedEndpoint api FissionBase where
+--   toUnauthedEndpoint pxy _ = do
+--     manager <- asks httpManager
+--     baseUrl <- asks fissionURL
+
+--     let
+--       req = (client pxy)
+--       env = mkClientEnv manager baseUrl
+
+--     liftIO $ runClientM req env
+
+-- instance RunClient FissionBase where
+--   -- runRequest :: Request -> m Response
+--   -- runClientM :: ClientM a -> ClientEnv -> IO (Either ClientError a)
+--   runRequest req = do
+
+-- instance HasClient FissionBase api where
+--   type Client FissionBase api = FissionBase ()
+
+  -- clientWithRoute :: Proxy m -> Proxy api -> Request -> Client m api
+  -- clientWithRoute _ pxyAPI req = do
+  --   -- runClientM :: ClientM a -> ClientEnv -> IO (Either ClientError a)
+  --   runClientM req
 
 instance MonadLocalIPFS FissionBase where
   runLocal opts arg = do
@@ -70,3 +107,4 @@ instance MonadLocalIPFS FissionBase where
 
         | otherwise ->
             Left $ Process.UnknownErr stdErr
+

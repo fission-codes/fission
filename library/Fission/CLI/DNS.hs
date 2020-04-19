@@ -18,8 +18,8 @@ import           Fission.URL.DomainName.Types as URL
 update ::
   ( MonadUnliftIO  m
   , MonadLogger    m
-  , MonadWebRequest                    req m
-  , MonadAuthedEndpoint URL.DomainName req
+  , MonadWebClient m
+  -- , MonadAuthedEndpoint URL.DomainName req -- FIXME I mean, this won't work... right
 
   )
   => CID
@@ -28,7 +28,9 @@ update cid@(CID hash) = do
   logDebug $ "Updating DNS to " <> display hash
 
   response <- CLI.withLoader 50000 do
-    sendRequest . withAuth ucanJWT $ toEndpoint DNS.update cid
+    undefined
+    -- sendRequest . withAuth $ (client DNS.update) cid
+    -- sendRequest . withAuth ucanJWT $ toEndpoint DNS.update cid
 
   case response of
     Right domain@(DomainName rawDomain) -> do
