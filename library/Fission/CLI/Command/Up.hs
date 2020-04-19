@@ -23,6 +23,17 @@ import qualified Fission.URL.DomainName.Types as URL
  
 import qualified Fission.Web.Client.IPFS as IPFS
 
+
+
+
+import Fission.Authorization.ServerDID
+
+import Fission.Web.Auth.Token
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
+
+
 -- | The command to attach to the CLI tree
 cmd ::
   ( MonadUnliftIO    m
@@ -30,6 +41,10 @@ cmd ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => Command m Up.Options ()
 cmd = Command
@@ -46,6 +61,10 @@ up ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => Up.Options
   -> m ()

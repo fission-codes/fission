@@ -10,23 +10,32 @@ import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.IPFS as Fission
 
 import           Fission.CLI.Display.Error   as CLI.Error
-import qualified Fission.CLI.Display.Loader  as CLI
 import           Fission.CLI.Display.Success as CLI.Success
+
+
+ 
+
+import Fission.Authorization.ServerDID
+
+import Fission.Web.Auth.Token
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
 
 add ::
   ( MonadUnliftIO  m
+  , MonadTime      m
   , MonadLogger    m
   , MonadWebClient m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  , ServerDID m
   )
   => CID
   -> m (Either ClientError CID)
 add cid@(CID hash) = do
   logDebug $ "Remote pinning " <> display hash
-
-  response <- CLI.withLoader 50000 $
-    undefined -- sendRequest . withAuth ucanJWT $ toEndpoint' Fission.pin
-
-  case response of
+  sendRequestM ((authClient1 Fission.pin) cid) >>= \case
     Right _ -> do
       CLI.Success.live hash
       return $ Right cid

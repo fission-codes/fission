@@ -38,6 +38,16 @@ import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
 import qualified Fission.Web.Client.IPFS as IPFS
 
+
+
+
+import Fission.Authorization.ServerDID
+
+import Fission.Web.Auth.Token
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
+
 -- | The command to attach to the CLI tree
 cmd ::
   ( MonadUnliftIO    m
@@ -45,6 +55,10 @@ cmd ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => (m () -> IO ())
   -> Command m Watch.Options ()
@@ -62,6 +76,10 @@ watcher ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => (m () -> IO ())
   -> Watch.Options
@@ -89,8 +107,12 @@ watcher runner Watch.Options {..} = do
 handleTreeChanges ::
   ( MonadUnliftIO  m
   , MonadLogger    m
+  , MonadTime      m
   , MonadLocalIPFS m
   , MonadWebClient m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => (m () -> IO ())
   -> MVar UTCTime
@@ -121,8 +143,12 @@ handleTreeChanges runner timeCache hashCache watchMgr dir =
 
 pinAndUpdateDNS ::
   ( MonadUnliftIO  m
+  , MonadTime m
   , MonadLogger    m
   , MonadWebClient m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  , ServerDID m
   )
   => CID
   -> m (Either ClientError URL.DomainName)
