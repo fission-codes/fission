@@ -22,7 +22,7 @@ import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
 
 import qualified Fission.Key  as Key
-import qualified Fission.User as User
+-- import qualified Fission.User as User
 
 import Servant.Client
 import qualified Fission.CLI.Command.Whoami as WhoAmI
@@ -44,9 +44,12 @@ import           Fission.URL.DomainName.Types as URL
 import           Fission.Prelude
 
 import           Fission.Web.Client      as Client
-import qualified Fission.Web.Client.User as User
+--import qualified Fission.Web.Client.User as User
 
-import qualified Fission.User.Username.Types as User
+import Fission.User.Registration.Types
+import Fission.User.Email.Types
+
+import           Fission.User.Username.Types
 
 import           Fission.CLI.Command.Types
 
@@ -99,6 +102,7 @@ setup = do
 
 createAccount ::
   ( MonadIO m
+  , MonadTime m
   , MonadLogger m
   , MonadWebClient m
   , MonadTime m
@@ -107,11 +111,11 @@ createAccount ::
   , MonadWebAuth m Ed25519.SecretKey
   ) => m ()
 createAccount = do
-  username <- User.Username <$> Prompt.reaskNotEmpty' "Username: "
-  email    <- User.Email    <$> Prompt.reaskNotEmpty' "Email: "
+  username <- Username <$> Prompt.reaskNotEmpty' "Username: "
+  email    <- Email    <$> Prompt.reaskNotEmpty' "Email: "
  
   let
-    form = User.Registration
+    form = Registration
       { username = username
       , email    = email
       , password = Nothing
@@ -149,11 +153,14 @@ createAccount = do
          
         createAccount
 
-
 upgradeAccount ::
   ( MonadIO        m
   , MonadLogger    m
   , MonadWebClient m
+  , MonadTime m
+  , ServerDID m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
   )
   => BasicAuthData
   -> m ()
@@ -169,7 +176,7 @@ upgradeAccount auth = do
     UTF8.putText "📝 Upgrading your account... "
     Key.publicKeyEd >>= \case
       Left  err -> CLI.Error.put err "Could not read key file"
-      Right pk  -> updateDID auth . Key.Public . encodeUtf8 . Text.pack $ show pk
+      Right pk  -> updateDID . Key.Public . encodeUtf8 . Text.pack $ show pk
 
 createKey :: MonadIO m => m ()
 createKey = do
@@ -181,16 +188,18 @@ updateDID ::
   ( MonadIO        m
   , MonadLogger    m
   , MonadWebClient m
+  , MonadTime m
+  , ServerDID m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
   )
-  => BasicAuthData
-  -> Key.Public
+  => Key.Public
   -> m ()
-updateDID auth pk = do
-  undefined
-  -- Client.run (User.Client.updatePublicKey auth (pk, Key.Ed25519)) >>= \case
-  --   Left err ->
-  --     CLI.Error.put err "Could not upgrade account"
+updateDID pk = do
+  sendRequestM (authClient User.updatePublicKey `withPayload` (pk, Key.Ed25519)) >>= \case
+    Left err ->
+      CLI.Error.put err "Could not upgrade account"
 
-  --   Right _ -> do
-  --     _ <- Env.Partial.deleteHomeAuth
-  --     CLI.Success.putOk "Upgrade successful!"
+    Right _ -> do
+      _ <- Env.Partial.deleteHomeAuth
+      CLI.Success.putOk "Upgrade successful!"
