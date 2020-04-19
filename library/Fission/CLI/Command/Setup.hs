@@ -19,16 +19,57 @@ import           Fission.CLI.Command.Types
 import qualified Fission.Internal.UTF8 as UTF8
 
 import           Fission.Web.Client      as Client
-import qualified Fission.Web.Client.User as User.Client
+import qualified Fission.Web.Client.User as User
 
 import qualified Fission.Key  as Key
 import qualified Fission.User as User
- 
+
+import Servant.Client
+import qualified Fission.CLI.Command.Whoami as WhoAmI
+
+import           Network.IPFS.CID.Types
+import           Servant.Client
+
+import           Fission.Prelude
+
+import           Fission.Web.Client
+import qualified Fission.Web.Client.DNS  as DNS
+
+import           Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Loader  as CLI
+import           Fission.CLI.Display.Success as CLI.Success
+
+import           Fission.URL.DomainName.Types as URL
+
+import           Fission.Prelude
+
+import           Fission.Web.Client      as Client
+import qualified Fission.Web.Client.User as User
+
+import qualified Fission.User.Username.Types as User
+
+import           Fission.CLI.Command.Types
+
+import qualified Fission.Key.Store as Key
+import qualified Fission.CLI.Config.Connected.Error.Types as Error
+
+import qualified Fission.CLI.Display.Success as CLI.Success
+import qualified Fission.CLI.Display.Error   as CLI.Error
+
+import Fission.Authorization.ServerDID
+import Fission.Web.Auth.Token
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
+
 -- | The command to attach to the CLI tree
 cmd ::
-  ( MonadIO        m
-  , MonadLogger    m
+  ( MonadIO m
+  , MonadLogger m
   , MonadWebClient m
+  , MonadTime m
+  , ServerDID m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
   )
   => Command m () ()
 cmd = Command
@@ -39,54 +80,44 @@ cmd = Command
   }
 
 setup ::
-  ( MonadIO        m
-  , MonadLogger    m
+  ( MonadIO m
+  , MonadLogger m
   , MonadWebClient m
-  )
-  => m ()
+  , MonadTime m
+  , ServerDID m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  ) => m ()
 setup = do
-  doesExist <- Key.exists
+  Key.exists >>= \case
+    True ->
+      CLI.Success.putOk "You are already connected"
 
-  if doesExist
-    then
-      undefined >>= \case
-    -- Client.run User.Client.whoami >>= \case
-        Right User.Username {username} ->
-          CLI.Success.loggedInAs username
-
-        Left err ->
-          let
-            commonErrMsg = "Please contact Fission support or delete `~/.ssh/fission` and try again."
-            specific = case err of
-              FailureResponse _ (responseStatusCode -> status) ->
-                if | status == status404        -> "We don't recognize your key!"
-                   | statusIsClientError status -> "There was a problem with your request."
-                   | otherwise                  -> "There was a server error."
-
-              ConnectionError _ -> "Trouble contacting the server."
-              DecodeFailure _ _ -> "Trouble decoding the registration response."
-              _                 -> "Invalid content type."
-          in
-            CLI.Error.put err (specific <> " " <> commonErrMsg)
-
-    else do
-      createKey
+    False -> do
+      createKey -- FIXME aboiut to be part of an ensure step on startup
       maybe createAccount upgradeAccount =<< Env.Partial.findBasicAuth
 
 createAccount ::
-  ( MonadIO        m
-  , MonadLogger    m
+  ( MonadIO m
+  , MonadLogger m
   , MonadWebClient m
-  )
-  => m ()
+  , MonadTime m
+  , ServerDID m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  ) => m ()
 createAccount = do
   username <- User.Username <$> Prompt.reaskNotEmpty' "Username: "
   email    <- User.Email    <$> Prompt.reaskNotEmpty' "Email: "
+ 
+  let
+    form = User.Registration
+      { username = username
+      , email    = email
+      , password = Nothing
+      }
 
-  let password = Nothing
-
-  -- Client.run (User.Client.register User.Registration {..}) >>= \case
-  undefined >>= \case
+  sendRequestM (authClient User.register `withPayload` form) >>= \case
     Right _ok ->
       CLI.Success.putOk "Registration successful!"
 
@@ -94,17 +125,30 @@ createAccount = do
       let
         errMsg = case err of
           FailureResponse _ (responseStatusCode -> status) ->
-            if | status == status409        -> "It looks like that account already exists. Please pick another username or contact Fission support for account recovery."
-               | statusIsClientError status -> "There was a problem with your request. Please try again or contact Fission support."
-               | otherwise                  -> "There was a server error. Please try again or contact Fission support."
+            if | status == status409 ->
+                   "It looks like that account already exists."
+ 
+               | statusIsClientError status ->
+                   "There was a problem with your request."
 
-          ConnectionError _ -> "Trouble contacting the server. Please try again or contact Fission support."
-          DecodeFailure _ _ -> "Trouble decoding the registration response. Please try again or contact Fission support."
-          _                 -> "Invalid content type. Please try again or contact Fission support."
+               | otherwise ->
+                   "There was a server error."
+
+          ConnectionError _ ->
+            "Trouble contacting the server."
+
+          DecodeFailure _ _ ->
+            "Trouble decoding the registration response."
+
+          _ ->
+            "Invalid content type."
 
       in do
-        CLI.Error.put err errMsg
+        CLI.Error.put err $
+          errMsg <> " Please try again or contact Fission support."
+         
         createAccount
+
 
 upgradeAccount ::
   ( MonadIO        m
@@ -117,7 +161,7 @@ upgradeAccount auth = do
   shouldUpgrade <- Prompt.reaskYN $ mconcat
     [ "Upgrade account \""
     , decodeUtf8Lenient (basicAuthUsername auth)
-    , "\"? (y/n) "
+    , "\"? (Y/n) "
     ]
 
   when shouldUpgrade do

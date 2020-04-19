@@ -1,7 +1,7 @@
 module Fission.Web.Client.DNS (update) where
 
 import           Fission.Prelude
-import qualified Fission.URL.DomainName.Types as URL
+import qualified Fission.Web.Routes as Routes
 
-update :: Proxy URL.DomainName -- FIXME this can't be right
+update :: Proxy Routes.DNSRoute
 update = Proxy

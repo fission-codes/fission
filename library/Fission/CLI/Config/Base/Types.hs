@@ -7,26 +7,58 @@ module Fission.CLI.Config.Base.Types
   ) where
 
 import qualified RIO.ByteString.Lazy as Lazy
--- import           RIO.Orphans () -- FIXME please move this to Prelude!
 
-import Servant.Client.Core.RunClient
-import qualified Fission.CLI.Display.Loader  as CLI
+import qualified Data.ByteString.Char8 as Char8
+
+import           Network.HTTP.Client as HTTP
+
+import           Network.IPFS
+import qualified Network.IPFS.Types         as IPFS
+import qualified Network.IPFS.Process.Error as Process
+import           Network.IPFS.Process
 
 import           Servant.Client
- 
+
+import           Fission.Prelude
+
+import           Fission.Web.Client
+import qualified Fission.CLI.Display.Loader as CLI
+
+import Fission.Authorization.ServerDID
+import qualified Network.DNS as DNS
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+import Servant.Client
+import           Control.Monad.Catch
+
+import qualified RIO.ByteString.Lazy as Lazy
+
+import Servant.Client.Core.RunClient
+
+import           Network.IPFS
+import           Network.IPFS.Types         as IPFS
+import qualified Network.IPFS.Process.Error as Process
+import           Network.IPFS.Process
+
 import           Fission.Prelude
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.Types as Client
 
-import           Network.IPFS
-import qualified Network.IPFS.Types       as IPFS
-import qualified Network.IPFS.Process.Error as Process
-import           Network.IPFS.Process
+import           Fission.CLI.Environment.Class
+import           Fission.User.DID.Types
+
+
+import Fission.Web.Auth.Token.JWT
+import Fission.Web.Auth.Token
+import Fission.Authorization.ServerDID
 
 import Network.HTTP.Client as HTTP
+import Fission.Web.Auth.Token.JWT
 
+import qualified Crypto.PubKey.Ed25519    as Ed25519
 import Servant.Client.Core.BaseUrl
+
 
 -- | The configuration used for the CLI application
 data BaseConfig = BaseConfig
@@ -71,29 +103,26 @@ instance MonadWebClient FissionBase where
 instance MonadTime FissionBase where
   currentTime = liftIO getCurrentTime
 
--- instance HasClient ClientM api => MonadUnauthedEndpoint api FissionBase where
---   toUnauthedEndpoint pxy _ = do
---     manager <- asks httpManager
---     baseUrl <- asks fissionURL
+instance ServerDID FissionBase where
+  getServerDID = do
+    baseURL  <- asks fissionURL
+    let url = Char8.pack $ "_did." <> showBaseUrl baseURL
 
---     let
---       req = (client pxy)
---       env = mkClientEnv manager baseUrl
+    rs <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+    liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
+      Left err ->
+        throwM err
+       
+      Right (didTxt : _) ->
+        case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
+          Left  errMsg -> error $ "Unable to find Fission's ID online: " <> errMsg
+          Right did    -> return did
 
---     liftIO $ runClientM req env
+instance MonadWebAuth FissionBase Token where
+  getAuth = undefined -- FIXME!
 
--- instance RunClient FissionBase where
---   -- runRequest :: Request -> m Response
---   -- runClientM :: ClientM a -> ClientEnv -> IO (Either ClientError a)
---   runRequest req = do
-
--- instance HasClient FissionBase api where
---   type Client FissionBase api = FissionBase ()
-
-  -- clientWithRoute :: Proxy m -> Proxy api -> Request -> Client m api
-  -- clientWithRoute _ pxyAPI req = do
-  --   -- runClientM :: ClientM a -> ClientEnv -> IO (Either ClientError a)
-  --   runClientM req
+instance MonadWebAuth FissionBase Ed25519.SecretKey where
+  getAuth = undefined -- FIXME Creeate or lookup
 
 instance MonadLocalIPFS FissionBase where
   runLocal opts arg = do

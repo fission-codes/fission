@@ -1,7 +1,7 @@
 module Fission.Web.Client.JWT
   ( mkAuthReq
-  , getSigAuth
-  , getRegisterAuth
+  -- , getSigAuth
+  -- , getRegisterAuth
   ) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
@@ -30,35 +30,35 @@ import qualified Fission.Web.Auth.Token.Bearer.Types         as Bearer
 
 import Fission.Web.Client.Auth
 
-getSigAuth ::
-  ( MonadIO    m
-  , MonadTime  m
-  , ServerDID  m
-  , MonadWebAuth m Ed25519.SecretKey
-  )
-  => m (AuthenticatedRequest Auth.HigherOrder)
-getSigAuth = do
-  now        <- currentTime
-  fissionDID <- getServerDID
-  sk         <- getAuth
+-- getSigAuth ::
+--   ( MonadIO    m
+--   , MonadTime  m
+--   , ServerDID  m
+--   , MonadWebAuth m Ed25519.SecretKey
+--   )
+--   => m (AuthenticatedRequest Auth.HigherOrder)
+-- getSigAuth = do
+--   now        <- currentTime
+--   fissionDID <- getServerDID
+--   sk         <- getAuth
 
-  authReq <- mkAuthReq
+--   authReq <- mkAuthReq
 
-  let jwt = ucan now fissionDID sk RootCredential
+--   let jwt = ucan now fissionDID sk RootCredential
 
-  return $ mkAuthenticatedRequest (Bearer $ Bearer.Token jwt Nothing) \_ ->
-    authReq
+--   return $ mkAuthenticatedRequest (Bearer $ Bearer.Token jwt Nothing) \_ ->
+--     authReq
 
-getRegisterAuth ::
-  ( MonadIO    m
-  , MonadTime  m
-  , ServerDID  m
-  , MonadWebAuth m Ed25519.SecretKey
-  )
-  => m (AuthenticatedRequest Auth.RegisterDID)
-getRegisterAuth = do
-  authReq <- mkAuthReq
-  return $ mkAuthenticatedRequest () \_ -> authReq
+-- getregisterauth ::
+--   ( MonadIO    m
+--   , MonadTime  m
+--   , ServerDID  m
+--   , MonadWebAuth m Ed25519.SecretKey
+--   )
+--   => m (AuthenticatedRequest Auth.RegisterDID)
+-- getRegisterAuth = do
+--   authReq <- mkAuthReq
+--   return $ mkAuthenticatedRequest () \_ -> authReq
 
 -- FIXME NOTE Probably can be changed to hoistClientMonad
 mkAuthReq ::

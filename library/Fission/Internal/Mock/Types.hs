@@ -88,8 +88,8 @@ instance MonadLinkedIPFS (Mock effs) where
 instance MonadBasicAuth String (Mock effs) where
   getVerifier = do
     isAuthed <- asks forceAuthed
-    return <| BasicAuthCheck \_ ->
-      return <| if isAuthed
+    return $ BasicAuthCheck \_ ->
+      return if isAuthed
                   then Authorized "YUP"
                   else Unauthorized
 
@@ -106,11 +106,7 @@ instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
     Effect.log RunAWS
     env <- newEnv $ FromKeys "FAKE_ACCESS_KEY" "FAKE_SECRET_KEY"
-
-    awsAction
-      |> runAWST env
-      |> runResourceT
-      |> liftIO
+    liftIO . runResourceT $ runAWST env awsAction
 
 instance IsMember CheckTime effs => MonadTime (Mock effs) where
   currentTime = do
@@ -125,7 +121,7 @@ instance
   update r d t = do
     Effect.log UpdateRoute53
     runner <- asks updateRoute53
-    return <| runner r d t
+    return $ runner r d t
 
 instance
   ( IsMember UpdateRoute53 effs
@@ -136,13 +132,13 @@ instance
   set d s c = do
     Effect.log SetDNSLink
     runner <- asks setDNSLink
-    return <| runner d s c
+    return $ runner d s c
 
   setBase s c = do
     Effect.log SetDNSLink
     baseDomain <- asks getBaseDomain
     runner <- asks setDNSLink
-    return <| runner baseDomain (Just s) c
+    return $ runner baseDomain (Just s) c
 
 instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
   runLocal _ _ = do
@@ -151,20 +147,21 @@ instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
 
 instance IsMember RunRemoteIPFS effs => MonadRemoteIPFS (Mock effs) where
   runRemote = undefined
+
   ipfsAdd bs = do
-    Effect.log <| RemoteIPFSAdd bs
+    Effect.log $ RemoteIPFSAdd bs
     asks remoteIPFSAdd
 
   ipfsCat cid = do
-    Effect.log <| RemoteIPFSCat cid
+    Effect.log $ RemoteIPFSCat cid
     asks remoteIPFSCat
 
   ipfsPin cid = do
-    Effect.log <| RemoteIPFSPin cid
+    Effect.log $ RemoteIPFSPin cid
     asks remoteIPFSPin
 
   ipfsUnpin cid flag = do
-    Effect.log <| RemoteIPFSUnpin cid flag
+    Effect.log $ RemoteIPFSUnpin cid flag
     asks remoteIPFSUnpin
 
 instance MonadReflectiveServer (Mock effs) where
@@ -172,40 +169,40 @@ instance MonadReflectiveServer (Mock effs) where
 
 instance IsMember LogMsg effs => MonadLogger (Mock effs) where
   monadLoggerLog loc src lvl msg = do
-    Effect.log <| LogMsg lvl <| toLogStr msg
+    Effect.log . LogMsg lvl $ toLogStr msg
     monadLoggerLog loc src lvl msg
 
 instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Destroyer (Mock effs) where
   destroyByUUID uuid = do
-    Effect.log <| DestroyHerokuAddOn uuid
+    Effect.log $ DestroyHerokuAddOn uuid
     pure ()
 
 instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Retriever (Mock effs) where
   getByUUID uuid = do
-    Effect.log <| DestroyHerokuAddOn uuid
+    Effect.log $ DestroyHerokuAddOn uuid
     return Nothing
 
 instance IsMember CreateHerokuAddOn effs => Heroku.AddOn.Creator (Mock effs) where
   create uuid _ _ = do
-    Effect.log <| CreateHerokuAddOn uuid
-    return . Right <| Database.toSqlKey 0
+    Effect.log $ CreateHerokuAddOn uuid
+    return . Right $ Database.toSqlKey 0
 
 instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
   getByUsername username = do
-    Effect.log <| GetUserByUsername username
-    return . Just <| Fixture.entity Fixture.user
+    Effect.log $ GetUserByUsername username
+    return . Just $ Fixture.entity Fixture.user
 
   getByPublicKey pk = do
-    Effect.log <| GetUserByPublicKey pk
-    return . Just <| Fixture.entity Fixture.user
+    Effect.log $ GetUserByPublicKey pk
+    return . Just $ Fixture.entity Fixture.user
 
   getByHerokuAddOnId id = do
-    Effect.log <| GetUserByHerokuAddOnId id
-    pure <| Just <| Fixture.entity Fixture.user
+    Effect.log $ GetUserByHerokuAddOnId id
+    pure . Just $ Fixture.entity Fixture.user
 
   getByEmail email = do
-    Effect.log <| GetUserByEmail email
-    pure <| Just <| Fixture.entity Fixture.user
+    Effect.log $ GetUserByEmail email
+    pure . Just $ Fixture.entity Fixture.user
 
 instance
   ( IsMember CreateHerokuAddOn effs
@@ -216,49 +213,45 @@ instance
   create _ _ _ _ _ = do
     Effect.log CreateUser
     Effect.log UpdateRoute53
-    return <| Right (Database.toSqlKey 0, Subdomain "new-subdomain")
+    return $ Right (Database.toSqlKey 0, Subdomain "new-subdomain")
 
   createWithPassword _ _ _ _ = do
     Effect.log CreateUser
     Effect.log UpdateRoute53
-    return <| Right (Database.toSqlKey 0)
+    return $ Right (Database.toSqlKey 0)
 
   createWithHeroku uuid _ _ _ _ = do
     Effect.log CreateUser
-    Effect.log <| CreateHerokuAddOn uuid
-    return . Right <| Database.toSqlKey 0
+    Effect.log $ CreateHerokuAddOn uuid
+    return . Right $ Database.toSqlKey 0
 
 instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
   updatePassword uID password _ = do
-    Effect.log <| ModifyUser uID
-    return <| Right password
+    Effect.log $ ModifyUser uID
+    return $ Right password
 
   updatePublicKey uID newPK _ _ = do
-    Effect.log <| ModifyUser uID
+    Effect.log $ ModifyUser uID
     return newPK
 
   setData uID _ _ = do
-    Effect.log <| ModifyUser uID
+    Effect.log $ ModifyUser uID
     return ok
 
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
-  destroy uid = Effect.log <| DestroyUser uid
+  destroy uid = Effect.log $ DestroyUser uid
 
 instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
   getByUserId uid = do
-    Effect.log <| GetLoosePinByUserId uid
+    Effect.log $ GetLoosePinByUserId uid
 
     let
       userId = Database.toSqlKey 0
       cid    = IPFS.CID "Qm12345"
 
-    return . pure . Fixture.entity <| LoosePin userId cid Fixture.agesAgo
+    return . pure . Fixture.entity $ LoosePin userId cid Fixture.agesAgo
 
-  getByCids cids =
-    cids
-      |> foldr folder (0, [])
-      |> snd
-      |> sequence
+  getByCids cids = sequence . snd $ foldr folder (0, []) cids
     where
       folder cid (counter, acc) =
         (counter + 1, action cid counter : acc)
@@ -266,24 +259,24 @@ instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
       action :: IPFS.CID -> Int64 -> Mock effs (Entity LoosePin)
       action cid rawUserId = do
         let userId = Database.toSqlKey rawUserId
-        Effect.log <| GetLoosePinByCID cid
-        return . Fixture.entity <| LoosePin userId cid Fixture.agesAgo
+        Effect.log $ GetLoosePinByCID cid
+        return . Fixture.entity $ LoosePin userId cid Fixture.agesAgo
 
 instance IsMember CreateLoosePin effs => LoosePin.Creator (Mock effs) where
   create uid cid _ = do
-    Effect.log <| CreateLoosePin uid cid
-    return . Just <| Database.toSqlKey 0
+    Effect.log $ CreateLoosePin uid cid
+    return . Just $ Database.toSqlKey 0
 
   createMany uid cids _ = do
     forM_ cids \cid ->
-      Effect.log <| CreateLoosePin uid cid
+      Effect.log $ CreateLoosePin uid cid
 
     return cids
 
 instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
   destroy userId cid =
-    Effect.log <| DestroyLoosePin userId cid
+    Effect.log $ DestroyLoosePin userId cid
 
   destroyMany userId cidIds =
     forM_ cidIds \id ->
-      Effect.log <| DestroyLoosePinById userId id
+      Effect.log $ DestroyLoosePinById userId id

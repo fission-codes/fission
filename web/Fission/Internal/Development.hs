@@ -27,6 +27,10 @@ import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
 import           Fission.Storage.PostgreSQL
 
 import           Fission.URL.Types
+import           Fission.User.DID.Types
+ 
+import qualified Fission.Key                            as Key
+import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -45,9 +49,7 @@ runOne action = do
 
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
     withDBPool logFunc connectionInfo (PoolSize 4) \dbPool ->
-      action
-        |> run logFunc dbPool processCtx httpManager
-        |> liftIO
+      liftIO $ run logFunc dbPool processCtx httpManager action
 
 {- | Run some action(s) in the app's context,
      but asks for existing portions of the setup that require side effects,
@@ -78,18 +80,24 @@ run ::
   -> IO a
 run logFunc dbPool processCtx httpManager action =
   runFission config do
-    logDebug <| textShow config
+    logDebug $ textShow config
     action
   where
     config = Config {..}
 
-    host = Host <| BaseUrl Https "mycoolapp.io" 443 ""
+    host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
+    fissionDID = DID
+      { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+      , algorithm = Ed25519
+      , method    = Key
+      }
+
     ipfsPath       = "/usr/local/bin/ipfs"
-    ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
     ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
@@ -138,13 +146,19 @@ mkConfig ::
   -> Config
 mkConfig dbPool processCtx httpManager logFunc = Config {..}
   where
-    host = Host <| BaseUrl Https "mycoolapp.io" 443 ""
+    host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
+    fissionDID = DID
+      { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+      , algorithm = Ed25519
+      , method    = Key
+      }
+
     ipfsPath       = "/usr/local/bin/ipfs"
-    ipfsURL        = IPFS.URL <| BaseUrl Http "localhost" 5001 ""
+    ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"

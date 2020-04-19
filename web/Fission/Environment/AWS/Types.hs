@@ -30,4 +30,4 @@ instance FromJSON Environment where
     zoneID             <- obj .:  "zone_id"
     route53MockEnabled <- obj .:? "route53_mock_enabled" .!= AWS.Route53MockEnabled False
 
-    return <| Environment {..}
+    return Environment {..}

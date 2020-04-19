@@ -99,8 +99,16 @@ liftConfig BaseConfig {..} =
             Right _ -> do
               let
                 ignoredFiles = Environment.ignored config
-                ucanLink     = Nothing
-                did = DID
+                ucanLink = Nothing
+
+                -- FIXME actually grab the DID
+                serverDID = DID
+                  { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+                  , algorithm = Key.Ed25519
+                  , method    = Key
+                  }
+
+                cliDID = DID
                   { publicKey = Key.Public . B64.toByteString $ Ed25519.toPublic secretKey
                   , algorithm = Key.Ed25519
                   , method    = Key

@@ -38,7 +38,8 @@ import Servant.Client.Core.BaseUrl
 data ConnectedConfig = ConnectedConfig
   { httpManager  :: !HTTP.Manager
   , secretKey    :: !Ed25519.SecretKey
-  , did          :: !DID
+  , cliDID       :: !DID
+  , serverDID    :: !DID
   , ucanLink     :: !(Maybe JWT)
   , fissionURL   :: !BaseUrl
   , logFunc      :: !LogFunc
@@ -98,7 +99,6 @@ instance MonadLocalIPFS FissionConnected where
 instance MonadEnvironment FissionConnected where
   getIgnoredFiles = asks ignoredFiles
 
-
 -- FIXME paramaterize Fission, maybe?
 instance MonadWebClient FissionConnected where
   sendRequest req = do
@@ -108,7 +108,7 @@ instance MonadWebClient FissionConnected where
     liftIO . runClientM req $ mkClientEnv manager baseUrl
 
 instance MonadWebAuth FissionConnected DID where
-  getAuth = asks did
+  getAuth = asks cliDID
 
 -- i.e. A UCAN proof
 instance MonadWebAuth FissionConnected (Maybe JWT) where
@@ -120,8 +120,9 @@ instance MonadTime FissionConnected where
 instance MonadWebAuth FissionConnected Token where
   getAuth = undefined -- FIXME!
 
-instance MonadWebAuth FissionConnected Ed25519.SecretKey where
-  getAuth = undefined -- FIXME!
+instance MonadWebAuth FissionConnected Ed25519.SecretKey where -- Probably actualluy want a MonadSigningKey or something
+  getAuth = asks secretKey
 
 instance ServerDID FissionConnected where
-  getServerDID = undefined -- FIXME!
+  getServerDID = asks serverDID
+  -- publicize = putStrLn

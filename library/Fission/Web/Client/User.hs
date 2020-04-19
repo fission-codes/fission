@@ -1,5 +1,6 @@
 module Fission.Web.Client.User
-  ( register
+  ( Register
+  , register -- FIXME remove the functions
   , Verify
   , verify
   , updatePublicKey
@@ -20,7 +21,9 @@ import           Servant hiding (addHeader)
 import qualified Fission.Web.User   as User
 import           Fission.Web.Routes (UserPrefix)
 
-register :: Proxy (UserPrefix :> User.RegisterRoute)
+type Register = UserPrefix :> User.RegisterRoute
+
+register :: Proxy Register
 register = Proxy
 
 -- register :: User.Registration -> ClientM NoContent

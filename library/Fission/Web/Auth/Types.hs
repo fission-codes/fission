@@ -24,7 +24,7 @@ type HerokuAddOnAPI = BasicAuth "heroku add-on api" Heroku.Auth
 -- | Authorization check to return encoded DID for registering new users
 type RegisterDID = AuthProtect "register-did"
 type instance AuthServerData (AuthProtect "register-did") = DID
-type instance AuthClientData (AuthProtect "register-did") = ()
+type instance AuthClientData (AuthProtect "register-did") = Token
 
 -- | Higher order auth that encompasses Basic & JWT auth
 type HigherOrder = AuthProtect "higher-order"
