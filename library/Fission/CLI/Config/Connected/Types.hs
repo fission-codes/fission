@@ -9,8 +9,6 @@ import           Control.Monad.Catch
 
 import qualified RIO.ByteString.Lazy as Lazy
 
-import Servant.Client.Core.RunClient
-
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
@@ -19,21 +17,19 @@ import           Network.IPFS.Process
 import           Fission.Prelude
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.Types as Client
 
 import           Fission.CLI.Environment.Class
 import           Fission.User.DID.Types
 
+import qualified Fission.Web.Client.JWT as JWT
 
 import Fission.Web.Auth.Token.JWT
 import Fission.Web.Auth.Token
 import Fission.Authorization.ServerDID
 
 import Network.HTTP.Client as HTTP
-import Fission.Web.Auth.Token.JWT
 
-import qualified Crypto.PubKey.Ed25519    as Ed25519
-import Servant.Client.Core.BaseUrl
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 
 data ConnectedConfig = ConnectedConfig
   { httpManager  :: !HTTP.Manager
@@ -72,11 +68,6 @@ newtype FissionConnected a = FissionConnected { unwrapFissionConnected :: RIO Co
 
 instance MonadLogger FissionConnected where
   monadLoggerLog loc src lvl msg = FissionConnected (monadLoggerLog loc src lvl msg)
-
--- instance MonadWebClient FissionConnected where
---   run cmd = do
---     Client.Runner runner <- asks fissionAPI
---     liftIO $ runner cmd
 
 instance MonadLocalIPFS FissionConnected where
   runLocal opts arg = do
@@ -118,11 +109,22 @@ instance MonadTime FissionConnected where
   currentTime = liftIO getCurrentTime
 
 instance MonadWebAuth FissionConnected Token where
-  getAuth = undefined -- FIXME!
+  getAuth = do
+    now       <- currentTime
+    sk        <- getAuth
+    serverDID <- getServerDID
+
+    return . Bearer $ Bearer.Token
+      { jwt        = JWT.ucan now serverDID sk RootCredential
+      , rawContent = Nothing
+      }
 
 instance MonadWebAuth FissionConnected Ed25519.SecretKey where -- Probably actualluy want a MonadSigningKey or something
   getAuth = asks secretKey
 
 instance ServerDID FissionConnected where
   getServerDID = asks serverDID
-  -- publicize = putStrLn
+
+  publicize = do
+    logDebugN "Attempted to publicize ServerDID"
+    return $ Right ()

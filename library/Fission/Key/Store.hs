@@ -10,6 +10,8 @@ module Fission.Key.Store
   , readEd
   , exists
   , location
+  -- * Reexport
+  , module Fission.Key.Error
   ) where
 
 import           RIO.Directory
@@ -24,9 +26,13 @@ import qualified Data.ByteArray as BA
 
 import           Fission.Prelude
 import           Fission.Key.Error as Key
- 
+
 import qualified Fission.Internal.Base64          as B64
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
+
+-- Reexports
+
+import           Fission.Key.Error
 
 create :: MonadIO m => m (Either Key.Error ())
 create = exists >>= \case

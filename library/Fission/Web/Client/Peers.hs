@@ -29,9 +29,4 @@ getPeers ::
   => m (Either ClientError (NonEmpty IPFS.Peer))
 getPeers = 
   Cursor.withHidden $ CLI.Wait.waitFor "Retrieving Fission Peer List..." do
-    undefined
-  -- sendRequest . withAuth ucanJWT $ toEndpoint' (Proxy @API) -- FIXME doens't requier auth
-
--- -- | Retrieve a list of peers from the fission api
--- get :: ClientM (NonEmpty IPFS.Peer)
--- get = client (Proxy :: Proxy API)
+    sendRequest . client $ Proxy @API

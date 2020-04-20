@@ -1,6 +1,7 @@
 module Main (main) where
 
-import qualified RIO.Partial as Partial
+import qualified Data.ByteString.Char8 as BS8
+import qualified RIO.Partial           as Partial
 
 import           Network.HTTP.Client     as HTTP
 import           Network.HTTP.Client.TLS as HTTP
@@ -32,11 +33,13 @@ main = do
   isTLS <- getFlag "FISSION_TLS" .!~ True
   path  <- withEnv "FISSION_ROOT" "" identity
   host  <- withEnv "FISSION_HOST" "runfission.com" identity
+  did   <- withEnv "FISSION_DID"  "failDIDparser"  BS8.pack
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
   tOut  <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
 
   let
     fissionURL = BaseUrl (if isTLS then Https else Http) host port path
+    cachedServerDID = decode' did
      
     rawHTTPSettings =
       if isTLS

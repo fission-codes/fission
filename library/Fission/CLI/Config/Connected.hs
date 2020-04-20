@@ -10,8 +10,6 @@ import           Network.IPFS
 
 import           Fission.Prelude
 
-import Fission.Key.Store as Key
-
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
 
@@ -73,10 +71,12 @@ liftConfig ::
   , MonadLocalIPFS m
   , MonadLogger    m
   , MonadWebClient m
+  , ServerDID      m
   )
   => BaseConfig
   -> m (Either Error ConnectedConfig)
-liftConfig BaseConfig {..} = 
+liftConfig BaseConfig {..} = do
+  serverDID <- getServerDID
   Key.readEd >>= \case
     Left _err -> do -- FIXME add better feedback / there's different errors here!
       CLI.Error.notConnected NoKeyFile
@@ -101,13 +101,6 @@ liftConfig BaseConfig {..} =
                 ignoredFiles = Environment.ignored config
                 ucanLink = Nothing
 
-                -- FIXME actually grab the DID
-                serverDID = DID
-                  { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
-                  , algorithm = Key.Ed25519
-                  , method    = Key
-                  }
-
                 cliDID = DID
                   { publicKey = Key.Public . B64.toByteString $ Ed25519.toPublic secretKey
                   , algorithm = Key.Ed25519
@@ -117,10 +110,7 @@ liftConfig BaseConfig {..} =
                 connCfg = ConnectedConfig {..}
 
               runConnected' connCfg do
-                auth    <- getAuth -- FIXME JWT I guess
-                authReq <- mkAuthReq
-                let auth' = mkAuthenticatedRequest auth \_ath -> authReq
-                sendRequest ((client User.verify) auth') >>= \case -- FIXME make the auth a bearer token directly
+                sendRequestM (authClient User.verify) >>= \case
                   Left err -> do
                     CLI.Error.notConnected err
                     return $ Left NotRegistered

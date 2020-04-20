@@ -1,7 +1,6 @@
 module Fission.Web.Client.JWT
   ( mkAuthReq
-  -- , getSigAuth
-  -- , getRegisterAuth
+  , ucan
   ) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
@@ -22,7 +21,6 @@ import           Fission.User.DID as DID
 import           Fission.Authorization as Authorization
 import           Fission.Key.Asymmetric.Algorithm.Types as Key
 
-import           Fission.Web.Auth.Types                      as Auth
 import           Fission.Web.Auth.Token.JWT                  as JWT
 import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types as JWT.Typ
 import qualified Fission.Web.Auth.Token.JWT.Signature.Types  as JWT.Signature
@@ -30,37 +28,7 @@ import qualified Fission.Web.Auth.Token.Bearer.Types         as Bearer
 
 import Fission.Web.Client.Auth
 
--- getSigAuth ::
---   ( MonadIO    m
---   , MonadTime  m
---   , ServerDID  m
---   , MonadWebAuth m Ed25519.SecretKey
---   )
---   => m (AuthenticatedRequest Auth.HigherOrder)
--- getSigAuth = do
---   now        <- currentTime
---   fissionDID <- getServerDID
---   sk         <- getAuth
-
---   authReq <- mkAuthReq
-
---   let jwt = ucan now fissionDID sk RootCredential
-
---   return $ mkAuthenticatedRequest (Bearer $ Bearer.Token jwt Nothing) \_ ->
---     authReq
-
--- getregisterauth ::
---   ( MonadIO    m
---   , MonadTime  m
---   , ServerDID  m
---   , MonadWebAuth m Ed25519.SecretKey
---   )
---   => m (AuthenticatedRequest Auth.RegisterDID)
--- getRegisterAuth = do
---   authReq <- mkAuthReq
---   return $ mkAuthenticatedRequest () \_ -> authReq
-
--- FIXME NOTE Probably can be changed to hoistClientMonad
+-- NOTE Probably can be changed to `hoistClientMonad` at call site
 mkAuthReq ::
   ( MonadIO      m
   , MonadTime    m

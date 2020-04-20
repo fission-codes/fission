@@ -17,7 +17,6 @@ import           Fission.Authorization.Potency.Types
 data Heroku = Heroku
   deriving (Show, Eq)
 
--- FIXME change to `Capability`... maybe? I dunno, it's also an authorization
 -- | The final high-level authorization -- internal use only
 data Authorization = Authorization
   { sender  :: !(Either Heroku DID)

@@ -102,7 +102,6 @@ setup = do
 
 createAccount ::
   ( MonadIO m
-  , MonadTime m
   , MonadLogger m
   , MonadWebClient m
   , MonadTime m
