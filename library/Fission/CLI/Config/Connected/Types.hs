@@ -119,7 +119,7 @@ instance MonadWebAuth FissionConnected Token where
       , rawContent = Nothing
       }
 
-instance MonadWebAuth FissionConnected Ed25519.SecretKey where -- Probably actualluy want a MonadSigningKey or something
+instance MonadWebAuth FissionConnected Ed25519.SecretKey where
   getAuth = asks secretKey
 
 instance ServerDID FissionConnected where
