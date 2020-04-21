@@ -1,75 +1,41 @@
--- {-# LANGUAGE UndecidableInstances #-}
-
 -- | General configuration required to run any CLI function
 module Fission.CLI.Config.Base.Types
   ( BaseConfig  (..)
   , FissionBase (..)
   ) where
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 
+import qualified RIO.ByteString.Lazy as Lazy
 import qualified Data.ByteString.Char8 as BS8
 
+import qualified Network.DNS         as DNS
 import           Network.HTTP.Client as HTTP
-
-import           Network.IPFS
-import qualified Network.IPFS.Types         as IPFS
-import qualified Network.IPFS.Process.Error as Process
-import           Network.IPFS.Process
-
-import           Servant.Client
-
-import           Fission.Prelude
-
-import           Fission.Web.Client
-import qualified Fission.CLI.Display.Loader as CLI
-
-import qualified Fission.Key.Store as Key
-
-import Fission.Authorization.ServerDID
-import qualified Network.DNS as DNS
-import qualified Fission.Web.Client.JWT as JWT
-
-import           Fission.Key as Key
-import           Fission.User.DID.Method.Types as Method
-import qualified Fission.CLI.Display.Error       as CLI.Error
-
-
-import Fission.Error.NotFound.Types
-
-import qualified Crypto.PubKey.Ed25519 as Ed25519
-import Servant.Client
-import           Control.Monad.Catch
-
-import qualified RIO.ByteString.Lazy as Lazy
-
-import Servant.Client.Core.RunClient
 
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
+import           Servant.Client
+
 import           Fission.Prelude
+ 
+import           Fission.Authorization.ServerDID
+import           Fission.Error.NotFound.Types
 
-import           Fission.Web.Client
-import qualified Fission.Web.Client.Types as Client
-
-import           Fission.CLI.Environment.Class
+import           Fission.Key as Key
 import           Fission.User.DID.Types
 
-
+import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import Fission.Web.Auth.Token.JWT
-import Fission.Web.Auth.Token
-import Fission.Authorization.ServerDID
+import           Fission.Web.Auth.Token.JWT
 
-import Network.HTTP.Client as HTTP
-import Fission.Web.Auth.Token.JWT
-
-import qualified Crypto.PubKey.Ed25519    as Ed25519
-import Servant.Client.Core.BaseUrl
+import           Fission.Web.Client
+import qualified Fission.Web.Client.JWT as JWT
+ 
+import qualified Fission.CLI.Display.Error  as CLI.Error
+import qualified Fission.CLI.Display.Loader as CLI
 
 -- | The configuration used for the CLI application
 data BaseConfig = BaseConfig
@@ -136,7 +102,7 @@ instance ServerDID FissionBase where
           Right [] -> do
             CLI.Error.put (NotFound @DID) $
               "No TXT record at _did." <> decodeUtf8Lenient url
-
+             
             throwM $ NotFound @DID
 
           Right (didTxt : _) ->
@@ -162,14 +128,19 @@ instance MonadWebAuth FissionBase Token where
 instance MonadWebAuth FissionBase Ed25519.SecretKey where
   getAuth =
     Key.create >>= \case
+
       Left Key.AlreadyExists ->
         Key.readEd >>= \case
-          Left  err -> do
+          Left err -> do
             CLI.Error.put err "Unable to find or create key"
-            throwM (NotFound @Ed25519.SecretKey)
- 
+            throwM $ NotFound @Ed25519.SecretKey
+
           Right key ->
             return key
+
+      Left err -> do
+        CLI.Error.put err "Unable to create key"
+        throwM $ NotFound @Ed25519.SecretKey
 
       Right _ ->
         getAuth
