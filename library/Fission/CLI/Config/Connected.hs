@@ -6,9 +6,16 @@ module Fission.CLI.Config.Connected
   , module Fission.CLI.Config.Connected.Types
   ) where
 
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
 import           Network.IPFS
 
 import           Fission.Prelude
+import qualified Fission.Internal.Base64 as B64
+ 
+import           Fission.Authorization.ServerDID
+import qualified Fission.Key as Key
+import           Fission.User.DID.Types
 
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
@@ -22,32 +29,6 @@ import qualified Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
 import qualified Fission.CLI.IPFS.Connect      as Connect
- 
-import           Fission.Web.Client.Peers as Peers
-
-import qualified Fission.Key.Store as Key
-import qualified Fission.CLI.Display.Loader  as CLI
-
-import qualified Crypto.PubKey.Ed25519    as Ed25519
-
-import Fission.User.DID.Types
-import qualified Fission.Key as Key
-
-import qualified Fission.Internal.Base64          as B64
-
-import Servant.Client
-
-import Fission.Web.Auth.Token.JWT
-import Fission.Web.Auth.Token
-
-import qualified Fission.Web.Auth.Token.Bearer as Token
-import qualified Crypto.PubKey.Ed25519 as Ed25519
-
-import Servant.Client.Core.Auth
-import Fission.Web.Client.JWT
-
-import Fission.Authorization.ServerDID
-
 
 -- | Ensure we have a local config file with the appropriate data
 --
