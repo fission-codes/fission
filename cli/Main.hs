@@ -39,7 +39,7 @@ main = do
 
   let
     fissionURL = BaseUrl (if isTLS then Https else Http) host port path
-    cachedServerDID = decode' did
+    cachedServerDID = decodeStrict' ("\"" <> did <> "\"")
      
     rawHTTPSettings =
       if isTLS

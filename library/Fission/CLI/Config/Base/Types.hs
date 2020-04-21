@@ -101,7 +101,7 @@ instance ServerDID FissionBase where
 
           Right [] -> do
             CLI.Error.put (NotFound @DID) $
-              "No TXT record at _did." <> decodeUtf8Lenient url
+              "No TXT record at " <> decodeUtf8Lenient url
              
             throwM $ NotFound @DID
 
