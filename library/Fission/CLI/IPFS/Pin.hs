@@ -21,9 +21,9 @@ add ::
   , MonadTime      m
   , MonadLogger    m
   , MonadWebClient m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
-  , ServerDID m
+  , ServerDID      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
   )
   => CID
   -> m (Either ClientError CID)
