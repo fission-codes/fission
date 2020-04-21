@@ -3,33 +3,32 @@ module Fission.CLI.Config.Connected.Types
   , FissionConnected (..)
   ) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
-import Servant.Client
 import           Control.Monad.Catch
-
 import qualified RIO.ByteString.Lazy as Lazy
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
+import           Network.HTTP.Client as HTTP
 
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
+import           Servant.Client
+
 import           Fission.Prelude
-
-import           Fission.Web.Client
-
-import           Fission.CLI.Environment.Class
+import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 
+import           Fission.Web.Auth.Token
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import           Fission.Web.Auth.Token.JWT
+
+import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
 
-import Fission.Web.Auth.Token.JWT
-import Fission.Web.Auth.Token
-import Fission.Authorization.ServerDID
-
-import Network.HTTP.Client as HTTP
-
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import           Fission.CLI.Environment.Class
 
 data ConnectedConfig = ConnectedConfig
   { httpManager  :: !HTTP.Manager
