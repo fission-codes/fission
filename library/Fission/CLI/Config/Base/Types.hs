@@ -33,7 +33,10 @@ import qualified Fission.Web.Client.JWT as JWT
 
 import           Fission.Key as Key
 import           Fission.User.DID.Method.Types as Method
+import qualified Fission.CLI.Display.Error       as CLI.Error
 
+
+import Fission.Error.NotFound.Types
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 import Servant.Client
@@ -126,18 +129,21 @@ instance ServerDID FissionBase where
         logDebugN $ "Checking TXT " <> decodeUtf8Lenient url
 
         liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
-          Left err ->
-                -- FIXME make pretty message
+          Left err -> do
+            CLI.Error.put err "Unable to find Fission's ID online"
             throwM err
 
-          Right [] ->
-            error $ "No TXT record at _did." <> BS8.unpack url -- FIXME make pretty message
+          Right [] -> do
+            CLI.Error.put (NotFound @DID) $
+              "No TXT record at _did." <> decodeUtf8Lenient url
+
+            throwM $ NotFound @DID
 
           Right (didTxt : _) ->
             case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
-              Left  errMsg ->
-                -- FIXME make pretty
-                error $ "Unable to find Fission's ID online: " <> errMsg
+              Left  err -> do
+                CLI.Error.put err "Unable to find Fission's ID online"
+                throwM $ NotFound @DID
 
               Right did ->
                 return did
@@ -158,8 +164,12 @@ instance MonadWebAuth FissionBase Ed25519.SecretKey where
     Key.create >>= \case
       Left Key.AlreadyExists ->
         Key.readEd >>= \case
-          Left  err -> error "Unable to create key" -- FIXME make nicely formatted message
-          Right key -> return key
+          Left  err -> do
+            CLI.Error.put err "Unable to find or create key"
+            throwM (NotFound @Ed25519.SecretKey)
+ 
+          Right key ->
+            return key
 
       Right _ ->
         getAuth

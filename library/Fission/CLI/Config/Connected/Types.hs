@@ -55,7 +55,8 @@ instance HasLogFunc ConnectedConfig where
     cfg { logFunc = newLogFunc' }
 
 -- | The top-level app type
-newtype FissionConnected a = FissionConnected { unwrapFissionConnected :: RIO ConnectedConfig a } -- FIXME make the getter shorter!
+newtype FissionConnected a = FissionConnected
+  { unwrapFissionConnected :: RIO ConnectedConfig a }
   deriving newtype ( Functor
                    , Applicative
                    , Monad
@@ -67,7 +68,8 @@ newtype FissionConnected a = FissionConnected { unwrapFissionConnected :: RIO Co
                    )
 
 instance MonadLogger FissionConnected where
-  monadLoggerLog loc src lvl msg = FissionConnected (monadLoggerLog loc src lvl msg)
+  monadLoggerLog loc src lvl msg =
+    FissionConnected (monadLoggerLog loc src lvl msg)
 
 instance MonadLocalIPFS FissionConnected where
   runLocal opts arg = do
@@ -90,7 +92,6 @@ instance MonadLocalIPFS FissionConnected where
 instance MonadEnvironment FissionConnected where
   getIgnoredFiles = asks ignoredFiles
 
--- FIXME paramaterize Fission, maybe?
 instance MonadWebClient FissionConnected where
   sendRequest req = do
     manager <- asks httpManager

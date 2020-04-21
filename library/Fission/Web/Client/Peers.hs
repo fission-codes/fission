@@ -19,7 +19,7 @@ import qualified Fission.CLI.Display.Cursor as Cursor
 import qualified Fission.CLI.Display.Wait as CLI.Wait
 
 -- | API path to the peers endpoints
-type API = "ipfs" :> "peers" :> Peer.API -- FIXME move to own module?
+type API = "ipfs" :> "peers" :> Peer.API
 
 -- | Retrieves the Fission peer list from the server
 getPeers ::

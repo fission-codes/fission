@@ -43,10 +43,12 @@ getRequiredSecret fieldName =
         getRequiredSecret fieldName
 
       Just password ->
-        return <| BS.pack password
+        return $ BS.pack password
 
 showRequiredError :: (MonadIO m, MonadLogger m) => ByteString -> m ()
-showRequiredError fieldName = CLI.Error.put Prompt.Error.RequiredField ((UTF8.textShow fieldName) <> " is required")
+showRequiredError fieldName =
+  CLI.Error.put Prompt.Error.RequiredField $
+    UTF8.textShow fieldName <> " is required"
 
 hasValueCheck :: ByteString -> Bool
 hasValueCheck value = BS.length value > 0

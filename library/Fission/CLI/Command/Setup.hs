@@ -97,7 +97,6 @@ setup = do
       CLI.Success.putOk "You are already connected"
 
     False -> do
-      createKey -- FIXME aboiut to be part of an ensure step on startup
       maybe createAccount upgradeAccount =<< Env.Partial.findBasicAuth
 
 createAccount ::
@@ -120,7 +119,7 @@ createAccount = do
       , password = Nothing
       }
 
-  sendRequestM (authClient User.register `withPayload` form) >>= \case
+  sendRequestM (authClient (Proxy @User.Register) `withPayload` form) >>= \case
     Right _ok ->
       CLI.Success.putOk "Registration successful!"
 
@@ -195,7 +194,7 @@ updateDID ::
   => Key.Public
   -> m ()
 updateDID pk = do
-  sendRequestM (authClient User.updatePublicKey `withPayload` (pk, Key.Ed25519)) >>= \case
+  sendRequestM (authClient (Proxy @User.UpdatePK) `withPayload` (pk, Key.Ed25519)) >>= \case
     Left err ->
       CLI.Error.put err "Could not upgrade account"
 

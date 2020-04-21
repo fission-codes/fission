@@ -26,17 +26,17 @@ instance MonadDNSLink m => Modifier (Transaction m) where
   updateCID userId appId newCID now =
     App.byId userId appId >>= \case
       Left err ->
-        return <| Error.relaxedLeft err
+        return $ Error.relaxedLeft err
 
       Right (Entity _ app) -> do
         if isOwnedBy userId app
           then do
             update appId [AppCid =. newCID]
-            insert <| SetAppCIDEvent appId newCID now
+            insert $ SetAppCIDEvent appId newCID now
             updateAssociatedDNS appId newCID
             return ok
           else
-            return . Error.openLeft <| ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId
 
 -- | Update DNS records for each registered @AppDomain@
 updateAssociatedDNS ::

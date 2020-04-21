@@ -43,7 +43,7 @@ data Config = Config
   , baseUserDataRootDomain :: !URL.DomainName
   , defaultDataCID         :: !CID
   , fissionDID             :: !DID
-  } deriving Generic
+  }
 
 instance Show Config where
   show Config {..} = intercalate "\n"

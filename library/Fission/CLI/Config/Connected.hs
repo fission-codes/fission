@@ -78,7 +78,7 @@ liftConfig ::
 liftConfig BaseConfig {..} = do
   serverDID <- getServerDID
   Key.readEd >>= \case
-    Left _err -> do -- FIXME add better feedback / there's different errors here!
+    Left _err -> do
       CLI.Error.notConnected NoKeyFile
       return $ Left NoKeyFile
      
@@ -110,7 +110,7 @@ liftConfig BaseConfig {..} = do
                 connCfg = ConnectedConfig {..}
 
               runConnected' connCfg do
-                sendRequestM (authClient User.verify) >>= \case
+                sendRequestM (authClient $ Proxy @User.Verify) >>= \case
                   Left err -> do
                     CLI.Error.notConnected err
                     return $ Left NotRegistered

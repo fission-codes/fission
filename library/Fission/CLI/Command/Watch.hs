@@ -36,7 +36,6 @@ import qualified Fission.CLI.DNS                 as CLI.DNS
 import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
-import qualified Fission.Web.Client.IPFS as IPFS
 
 
 

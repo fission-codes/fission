@@ -10,6 +10,8 @@ import qualified Fission.User.Username.Types as User
  
 import           Fission.CLI.Command.Types
 
+import qualified Fission.Web.Client.User as User
+
 import qualified Fission.Key.Store as Key
 import qualified Fission.CLI.Config.Connected.Error.Types as Error
 
@@ -75,7 +77,7 @@ whoami ::
   )
   => m ()
 whoami = 
-  sendRequestM (authClient User.whoami) >>= \case
+  sendRequestM (authClient $ Proxy @User.WhoAmI) >>= \case
     Right User.Username {username} ->
       CLI.Success.loggedInAs username
 
