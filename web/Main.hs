@@ -15,6 +15,7 @@ import qualified RIO
 import           Fission
 import           Fission.Prelude
 import           Fission.Storage.PostgreSQL
+import qualified Fission.Authorization.ServerDID.Class as ServerDID
 import           Fission.Internal.App
 
 import qualified Fission.Web       as Web
@@ -96,6 +97,8 @@ main = do
 
         auth <- Auth.mkAuth
         logDebugN $ layoutWithContext (Proxy @Web.API) auth
+
+        ServerDID.publicize
 
         host
           |> Web.app (toHandler (runFission cfg)) auth

@@ -25,9 +25,9 @@ cmd ::
   , MonadTime      m
   , MonadLogger    m
   , MonadWebClient m
-  , ServerDID m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
+  , ServerDID      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
   )
   => Command m () ()
 cmd =
@@ -43,9 +43,9 @@ whoami ::
   , MonadTime      m
   , MonadLogger    m
   , MonadWebClient m
-  , ServerDID m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
+  , ServerDID      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
   )
   => m ()
 whoami = 

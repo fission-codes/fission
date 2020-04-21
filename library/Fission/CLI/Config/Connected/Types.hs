@@ -124,7 +124,3 @@ instance MonadWebAuth FissionConnected Ed25519.SecretKey where -- Probably actua
 
 instance ServerDID FissionConnected where
   getServerDID = asks serverDID
-
-  publicize = do
-    logDebugN "Attempted to publicize ServerDID"
-    return $ Right ()

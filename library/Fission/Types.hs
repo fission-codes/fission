@@ -235,7 +235,8 @@ instance JWT.Resolver Fission where
 
 instance ServerDID Fission where
   getServerDID = asks fissionDID
-   
+
+instance PublicizeServerDID Fission where
   publicize = do
     AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
  

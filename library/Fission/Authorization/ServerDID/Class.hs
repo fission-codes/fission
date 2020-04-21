@@ -1,4 +1,7 @@
-module Fission.Authorization.ServerDID.Class (ServerDID (..)) where
+module Fission.Authorization.ServerDID.Class
+  ( ServerDID          (..)
+  , PublicizeServerDID (..)
+  ) where
 
 import Servant.Server
 
@@ -8,4 +11,6 @@ import Fission.User.DID.Types
 
 class Monad m => ServerDID m where
   getServerDID :: m DID
-  publicize    :: m (Either ServerError ())
+
+class Monad m => PublicizeServerDID m where
+  publicize :: m (Either ServerError ())
