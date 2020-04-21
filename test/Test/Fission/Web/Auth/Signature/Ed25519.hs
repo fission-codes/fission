@@ -1,6 +1,6 @@
 module Test.Fission.Web.Auth.Signature.Ed25519 (tests) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Key as Key
@@ -10,7 +10,7 @@ import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
  
 import           Fission.Key.Asymmetric.Algorithm.Types as Alg
-import qualified Fission.Web.Auth.Token.JWT.Signature.Ed25519 as Ed25519
+import           Fission.Web.Auth.Token.JWT.Validation
 
 import           Test.Fission.Prelude
 
@@ -20,10 +20,10 @@ tests =
     describe "signature verification" do
       itsProp' "verifies" \(jwt@JWT {..}, sk) ->
         let
-          pk         = Ed.toPublic sk
+          pk         = Ed25519.toPublic sk
           header'    = header { alg = Alg.Ed25519 }
-          claims'    = claims { iss = did }
-          sig'       = Ed25519.sign header' claims' sk
+          claims'    = claims { sender = did }
+          sig'       = signEd25519 header' claims' sk
           rawContent = B64.URL.encodeJWT header' claims'
 
           did = DID

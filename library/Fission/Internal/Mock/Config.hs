@@ -16,6 +16,9 @@ import qualified Fission.Platform.Heroku.Auth.Types as Heroku
  
 import           Fission.Key as Key
 import           Fission.User.DID.Types
+
+import           Fission.Authorization.Types
+import           Fission.Authorization.Potency.Types
  
 import           Fission.URL.Types as URL
 
@@ -38,6 +41,7 @@ defaultConfig = Config
         , method    = Key
         }
   , userVerifier    = mkAuthHandler  \_ -> pure $ Fixture.entity Fixture.user
+  , authVerifier    = mkAuthHandler  \_ -> authZ
   , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized $ Heroku.Auth "FAKE HEROKU"
   , localIPFSCall   = Right "Qm1234567890"
   , forceAuthed     = True
@@ -53,3 +57,17 @@ defaultConfig = Config
         |> changeResourceRecordSetsResponse 200
         |> Right
   }
+
+authZ :: Monad m => m Authorization
+authZ = return Authorization
+    { sender  = Right did
+    , about   = Fixture.entity Fixture.user
+    , potency = AppendOnly
+    , scope   = "/test/"
+    }
+    where
+      did = DID
+        { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+        , algorithm = Ed25519
+        , method    = Key
+        }

@@ -10,7 +10,6 @@ import qualified RIO.ByteString as Strict
 import qualified Fission.Web.Auth.Token              as Token
 import           Fission.Web.Auth.Token.Types
 import qualified Fission.Web.Auth.Token.Basic.Types  as Basic
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 
 import           Fission.Internal.Fixture.Bearer
 

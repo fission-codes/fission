@@ -1,4 +1,4 @@
-module Test.Fission.Web.Auth.Bearer (tests) where
+module Test.Fission.Web.Auth.Token.Bearer (tests) where
 
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as Lazy.Char8

@@ -11,8 +11,6 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.Header.Types
   ) where
 
--- FIXME NOTE: should add PKs to DNS as well
-
 import qualified System.IO.Unsafe as Unsafe
 
 import           Crypto.Random          (MonadRandom (..))

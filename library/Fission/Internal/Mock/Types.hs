@@ -28,6 +28,11 @@ import           Fission.Internal.Mock.Config.Types  as Mock
 import           Fission.Internal.Mock.Session.Types
 
 import           Fission.Prelude
+ 
+import qualified Fission.Key as Key
+
+import           Fission.Authorization.Types
+import           Fission.Authorization.Potency.Types
 
 import           Fission.IPFS.Linked.Class
 import           Fission.IPFS.DNSLink.Class
@@ -37,6 +42,8 @@ import           Fission.User.DID.Types
 import           Fission.URL.Types
 
 import           Fission.Web.Auth.Class
+import           Fission.Web.Client.Auth.Class
+
 import           Fission.Web.Server.Reflective.Class
 import qualified Fission.Web.Types as Web
 
@@ -44,6 +51,7 @@ import           Fission.Web.Auth.Token.Basic.Class
 
 import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
 import           Fission.User                  as User
 import           Fission.LoosePin              as LoosePin
@@ -101,6 +109,9 @@ instance MonadAuth DID (Mock effs) where
 
 instance MonadAuth (Entity User) (Mock effs) where
   getVerifier = asks userVerifier
+
+instance MonadAuth Authorization (Mock effs) where
+  getVerifier = asks authVerifier
 
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where
   liftAWS awsAction = do
@@ -280,3 +291,17 @@ instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
   destroyMany userId cidIds =
     forM_ cidIds \id ->
       Effect.log $ DestroyLoosePinById userId id
+
+instance MonadWebAuth (Mock effs) Authorization where
+  getAuth = return Authorization
+    { sender  = Right did
+    , about   = Fixture.entity Fixture.user
+    , potency = AppendOnly
+    , scope   = "/test/"
+    }
+    where
+      did = DID
+        { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+        , algorithm = Ed25519
+        , method    = Key
+        }

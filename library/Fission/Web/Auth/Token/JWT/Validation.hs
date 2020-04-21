@@ -1,6 +1,7 @@
 module Fission.Web.Auth.Token.JWT.Validation
   ( check
   , check'
+  , pureChecks
   , checkTime
   , checkSignature
   , checkEd25519Signature
@@ -47,16 +48,20 @@ check' ::
   -> JWT
   -> UTCTime
   -> m (Either JWT.Error JWT)
-check' raw jwt now = do
-  let
-    pureChecks = do
-      checkVersion       jwt
-      checkSignature raw jwt
-      checkTime      now jwt
-
-  case pureChecks of
+check' raw jwt now =
+  case pureChecks raw jwt now of
     Left  err -> return $ Left err
     Right _   -> checkProof now jwt
+
+pureChecks ::
+     ByteString
+  -> JWT
+  -> UTCTime
+  -> Either JWT.Error JWT
+pureChecks raw jwt now = do
+  checkVersion       jwt
+  checkSignature raw jwt
+  checkTime      now jwt
 
 checkVersion :: JWT -> Either JWT.Error JWT
 checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =

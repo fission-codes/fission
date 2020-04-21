@@ -9,12 +9,13 @@ module Fission.Internal.Mock
 
 import           Control.Monad.Writer (runWriterT)
 
+import           Fission.Prelude
+
 import           Fission.Internal.Mock.Types as Mock
 import           Fission.Internal.Mock.Types
 
 import           Fission.Internal.Mock.Config
 import           Fission.Internal.Mock.Effect
-import           Fission.Prelude
 
 -- | Run the action described by a @Mock@
 runMock :: MonadIO m => Mock.Config -> Mock effs a -> m (Mock.Session effs a)
