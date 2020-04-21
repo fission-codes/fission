@@ -11,7 +11,7 @@ import           Fission.Authorization.ServerDID
 
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client      as Client
-import qualified Fission.Web.Client.IPFS as Fission
+import           Fission.Web.Client.IPFS
 
 import           Fission.CLI.Display.Error   as CLI.Error
 import           Fission.CLI.Display.Success as CLI.Success
@@ -29,7 +29,7 @@ add ::
   -> m (Either ClientError CID)
 add cid@(CID hash) = do
   logDebug $ "Remote pinning " <> display hash
-  sendRequestM (authClient Fission.pin `withPayload` cid) >>= \case
+  sendRequestM (authClient (Proxy @Pin) `withPayload` cid) >>= \case
     Right _ -> do
       CLI.Success.live hash
       return $ Right cid
