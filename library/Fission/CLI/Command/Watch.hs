@@ -5,6 +5,7 @@ module Fission.CLI.Command.Watch
   , watcher
   ) where
 
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Data.Function
 
 import           RIO.Directory
@@ -20,32 +21,25 @@ import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
 
 import           Fission.Prelude hiding (handle)
+import qualified Fission.Time    as Time
 
+import           Fission.Authorization.ServerDID
+
+import           Fission.Web.Auth.Token
 import           Fission.Web.Client as Client
-import qualified Fission.Time       as Time
 
 import qualified Fission.Internal.UTF8        as UTF8
 import qualified Fission.URL.DomainName.Types as URL
+
+import           Fission.CLI.Display.Error as CLI.Error
+import           Fission.CLI.Environment
  
 import           Fission.CLI.Command.Types
-
 import           Fission.CLI.Command.Watch.Types as Watch
-import           Fission.CLI.Display.Error       as CLI.Error
-import           Fission.CLI.Environment
+
 import qualified Fission.CLI.DNS                 as CLI.DNS
 import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
-
-
-
-
-
-import Fission.Authorization.ServerDID
-
-import Fission.Web.Auth.Token
-
-import qualified Crypto.PubKey.Ed25519 as Ed25519
-
 
 -- | The command to attach to the CLI tree
 cmd ::
