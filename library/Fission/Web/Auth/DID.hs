@@ -14,11 +14,13 @@ import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 import           Fission.Web.Auth.Token.JWT.Resolver as JWT
 
 import           Fission.User.DID.Types
+import           Fission.Authorization.ServerDID
 
 -- | Auth handler for registering DIDs
 -- Ensures properly formatted token but does not check against DB
 handler ::
   ( JWT.Resolver m
+  , ServerDID    m
   , MonadLogger  m
   , MonadThrow   m
   , MonadTime    m

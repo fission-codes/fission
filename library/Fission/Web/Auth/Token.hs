@@ -23,6 +23,7 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver as JWT
 --   Uses our custom jwt auth for "Bearer " tokens
 handler ::
   ( JWT.Resolver     m
+  , ServerDID        m
   , MonadLogger      m
   , MonadThrow       m
   , MonadTime        m

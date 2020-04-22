@@ -6,12 +6,11 @@ module Fission.Web.Auth.Types
   , module Fission.Web.Auth.Token
   ) where
 
-import Servant (BasicAuth, BasicAuthData)
+import Servant (BasicAuth)
 import Servant.API.Experimental.Auth
 import Servant.Server.Experimental.Auth
 import Servant.Client.Core
 
-import Fission.Prelude
 import Fission.Platform.Heroku.Auth.Types as Heroku
 
 import Fission.Web.Auth.Token

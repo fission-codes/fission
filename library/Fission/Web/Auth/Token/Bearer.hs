@@ -36,6 +36,7 @@ import           Fission.Web.Auth.Token.JWT.Validation
 handler ::
   ( MonadTime        m
   , JWT.Resolver     m
+  , ServerDID        m
   , MonadLogger      m
   , MonadThrow       m
   , MonadDB        t m

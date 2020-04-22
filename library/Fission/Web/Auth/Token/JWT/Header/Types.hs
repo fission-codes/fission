@@ -28,7 +28,7 @@ instance Arbitrary Header where
     typ <- arbitrary
     alg <- arbitrary
     cty <- arbitrary
-    uav <- arbitrary
+    uav <- SemVer 0 <$> ((1 +) <$> arbitrary) <*> arbitrary
     return Header {..}
 
 instance ToJSON Header where

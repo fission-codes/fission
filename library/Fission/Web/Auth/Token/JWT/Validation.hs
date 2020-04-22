@@ -13,6 +13,8 @@ import           Crypto.Hash.Algorithms (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15 as Crypto.RSA.PKCS
 
+import           Control.Monad.Trans.Except
+
 import           Fission.Prelude
 import           Fission.SemVer.Types
  
@@ -36,14 +38,24 @@ import qualified Fission.User as User
 import           Fission.Web.Auth.Token.JWT       as JWT
 import           Fission.Web.Auth.Token.JWT.Error as JWT
 
+import           Fission.Authorization.ServerDID.Class
 
-check :: (Proof.Resolver m, MonadTime m) => ByteString -> JWT -> m (Either JWT.Error JWT)
+check ::
+  ( Proof.Resolver m
+  , ServerDID      m
+  , MonadTime      m
+  )
+  => ByteString
+  -> JWT
+  -> m (Either JWT.Error JWT)
 check rawContent jwt = check' rawContent jwt =<< currentTime
 
 -- NOTE: Despite also having an effect, this is broken out
 -- so that we don't need to lookup time repeatedly in recursive checks
 check' ::
-  Proof.Resolver m
+  ( ServerDID      m
+  , Proof.Resolver m
+  )
   => ByteString
   -> JWT
   -> UTCTime
@@ -51,7 +63,9 @@ check' ::
 check' raw jwt now =
   case pureChecks raw jwt now of
     Left  err -> return $ Left err
-    Right _   -> checkProof now jwt
+    Right _   -> runExceptT do
+      void . ExceptT $ checkReceiver jwt
+      ExceptT $ checkProof now       jwt
 
 pureChecks ::
      ByteString
@@ -63,13 +77,26 @@ pureChecks raw jwt now = do
   checkSignature raw jwt
   checkTime      now jwt
 
+checkReceiver :: ServerDID m => JWT -> m (Either JWT.Error JWT)
+checkReceiver jwt@JWT {claims = JWT.Claims {receiver}} = do
+  serverDID <- getServerDID
+  return if receiver == serverDID
+    then Right jwt
+    else Left $ ClaimsError IncorrectReceiver
+
 checkVersion :: JWT -> Either JWT.Error JWT
 checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
   if mjr < 1 && mnr <= 1 && pch <= 0
     then Right jwt
     else Left $ JWT.HeaderError UnsupportedVersion
 
-checkProof :: Proof.Resolver m => UTCTime -> JWT -> m (Either JWT.Error JWT)
+checkProof ::
+  ( ServerDID      m
+  , Proof.Resolver m
+  )
+  => UTCTime
+  -> JWT
+  -> m (Either JWT.Error JWT)
 checkProof now jwt@JWT {claims = Claims {proof}} =
   case proof of
     RootCredential ->

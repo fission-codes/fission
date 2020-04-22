@@ -69,7 +69,7 @@ instance Arbitrary DID where
     method    <- arbitrary
 
     return DID {..}
- 
+
 instance ToJSON DID where
   toJSON (DID (Key.Public pk) algo method) = -- NOTE `pk` here is base2, not base58
     String (header <> UTF8.toBase58Text multicodecW8)

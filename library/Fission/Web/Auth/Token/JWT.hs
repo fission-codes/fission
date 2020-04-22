@@ -184,13 +184,22 @@ instance Eq Claims where
 
 instance Arbitrary Claims where
   arbitrary = do
-    sender   <- arbitrary
-    receiver <- arbitrary
+    sender <- arbitrary
+   
+    let receiver = DID
+          { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+          , algorithm = Algorithm.Ed25519
+          , method    = Key
+          }
+
     --
+
     scope   <- arbitrary
     potency <- arbitrary
-    let proof = RootCredential -- proof   <- arbitrary
+    proof   <- arbitrary
+
     --
+
     exp <- fromSeconds . toSeconds <$> arbitrary
     nbf <- arbitrary
 
@@ -216,10 +225,10 @@ instance FromJSON Claims where
     --
     scope   <- obj .:  "scp"
     potency <- obj .:? "pcy" .!= AuthNOnly
-    proof   <- obj .:  "prf"
+    proof   <- obj .:? "prf" .!= RootCredential
     --
-    nbf <- fmap fromSeconds <$> obj .: "nbf"
-    exp <-      fromSeconds <$> obj .: "exp"
+    nbf <- fmap fromSeconds <$> obj .:? "nbf"
+    exp <-      fromSeconds <$> obj .:  "exp"
 
     return Claims {..}
 
@@ -234,11 +243,13 @@ data Proof
   deriving (Show, Eq)
 
 instance Arbitrary Proof where
-  arbitrary = oneof
-    [ Reference <$> arbitrary
-    , Nested    <$> arbitrary <*> arbitrary
-    , pure RootCredential
-    ]
+  arbitrary =
+    [ (1, Nested <$> arbitrary <*> arbitrary)
+    , (4, pure RootCredential)
+    ] |> frequency
+      |> fmap \case
+        Nested _ jwt -> Nested (Lazy.toStrict $ encode jwt) jwt
+        prf          -> prf
 
 instance ToJSON Proof where
   toJSON = \case

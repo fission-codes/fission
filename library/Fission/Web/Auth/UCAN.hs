@@ -21,12 +21,14 @@ import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 import           Fission.Web.Auth.Token.JWT.Resolver as JWT
 
 import           Fission.Authorization.Types
+import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*
 handler ::
   ( JWT.Resolver     m
+  , ServerDID        m
   , MonadLogger      m
   , MonadThrow       m
   , MonadTime        m
