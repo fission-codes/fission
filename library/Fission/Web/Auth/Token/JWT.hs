@@ -189,7 +189,7 @@ instance Arbitrary Claims where
     --
     scope   <- arbitrary
     potency <- arbitrary
-    proof   <- arbitrary
+    let proof = RootCredential -- proof   <- arbitrary
     --
     exp <- fromSeconds . toSeconds <$> arbitrary
     nbf <- arbitrary
