@@ -192,13 +192,9 @@ instance Arbitrary Claims where
           , method    = Key
           }
 
-    --
-
     scope   <- arbitrary
     potency <- arbitrary
     proof   <- arbitrary
-
-    --
 
     exp <- fromSeconds . toSeconds <$> arbitrary
     nbf <- arbitrary
