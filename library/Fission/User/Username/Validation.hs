@@ -67,7 +67,8 @@ check username =
 -- >>> isValid (Username "name&with#chars")
 -- False
 isValid :: Username -> Bool
-isValid (Username username) = all (== True) preds
+isValid (Username rawUsername) =
+  all (== True) preds
   where
     preds :: [Bool]
     preds = [okChars, not startsWithHyphen, not endsInHyphen, not inBlocklist]
@@ -77,6 +78,8 @@ isValid (Username username) = all (== True) preds
    
     startsWithHyphen = Text.isPrefixOf "-" username
     endsInHyphen     = Text.isSuffixOf "-" username
+
+    username = Text.toLower rawUsername
 
 isUsernameChar :: Char -> Bool
 isUsernameChar c =

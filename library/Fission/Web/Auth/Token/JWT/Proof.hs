@@ -26,13 +26,13 @@ signaturesMatch :: JWT -> JWT -> Either Error JWT
 signaturesMatch jwt prfJWT =
   if (jwt |> claims |> sender) == (prfJWT |> claims |> receiver)
     then Right jwt
-    else Left InvalidSignatureChain -- $ Nested raw
+    else Left InvalidSignatureChain
 
 scopeInSubset :: JWT -> JWT -> Either Error JWT
 scopeInSubset jwt prfJWT =
   case Text.stripPrefix (jwt |> claims |> scope) (prfJWT |> claims |> scope) of
     Just _  -> Right jwt
-    Nothing -> Left ScopeOutOfBounds -- $ Nested raw
+    Nothing -> Left ScopeOutOfBounds
 
 potencyInSubset :: JWT -> JWT -> Either Error JWT
 potencyInSubset jwt prfJWT =
