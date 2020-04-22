@@ -231,7 +231,7 @@ instance JWT.Resolver Fission where
       Right (Lazy.toStrict -> resolvedBS) ->
         case eitherDecodeStrict resolvedBS of
           Left  _   -> Left $ InvalidJWT resolvedBS
-          Right jwt -> Right (resolvedBS, jwt)
+          Right jwt -> Right (decodeUtf8Lenient resolvedBS, jwt)
 
 instance ServerDID Fission where
   getServerDID = asks fissionDID

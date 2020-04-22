@@ -45,7 +45,7 @@ check ::
   , ServerDID      m
   , MonadTime      m
   )
-  => ByteString
+  => Text
   -> JWT
   -> m (Either JWT.Error JWT)
 check rawContent jwt = check' rawContent jwt =<< currentTime
@@ -56,7 +56,7 @@ check' ::
   ( ServerDID      m
   , Proof.Resolver m
   )
-  => ByteString
+  => Text
   -> JWT
   -> UTCTime
   -> m (Either JWT.Error JWT)
@@ -68,7 +68,7 @@ check' raw jwt now =
       ExceptT $ checkProof now       jwt
 
 pureChecks ::
-     ByteString
+     Text
   -> JWT
   -> UTCTime
   -> Either JWT.Error JWT
@@ -137,31 +137,31 @@ checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
     _ ->
       Right jwt
 
-checkSignature :: ByteString -> JWT -> Either JWT.Error JWT
+checkSignature :: Text -> JWT -> Either JWT.Error JWT
 checkSignature rawContent jwt@JWT {sig} =
   case sig of
     Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt
     Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent jwt rs256Sig
 
-checkRSA2048Signature :: ByteString -> JWT -> RS256.Signature -> Either JWT.Error JWT
+checkRSA2048Signature :: Text -> JWT -> RS256.Signature -> Either JWT.Error JWT
 checkRSA2048Signature rawContent jwt@JWT {..} (RS256.Signature innerSig) = do
   case Crypto.decodeToRSA2048PK pk' of
     Left _ ->
       Left $ JWT.SignatureError InvalidPublicKey
 
     Right pk ->
-      if Crypto.RSA.PKCS.verify (Just SHA256) pk rawContent innerSig
+      if Crypto.RSA.PKCS.verify (Just SHA256) pk (encodeUtf8 rawContent) innerSig
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
  
   where
     Claims {sender = User.DID {publicKey = Key.Public pk'}} = claims
 
-checkEd25519Signature :: ByteString -> JWT -> Either JWT.Error JWT
+checkEd25519Signature :: Text -> JWT -> Either JWT.Error JWT
 checkEd25519Signature rawContent jwt@JWT {..} =
   case (errOrPk, Crypto.Ed25519.signature sig) of
     (CryptoPassed pk', CryptoPassed sig') ->
-      if Crypto.Ed25519.verify pk' rawContent sig'
+      if Crypto.Ed25519.verify pk' (encodeUtf8 rawContent) sig'
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
 

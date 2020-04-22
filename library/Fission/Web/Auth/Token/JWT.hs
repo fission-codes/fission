@@ -192,7 +192,9 @@ instance Arbitrary Claims where
           , method    = Key
           }
 
-    scope   <- arbitrary
+    scope' <- arbitrary
+    let scope = "/" <> scope'
+
     potency <- arbitrary
     proof   <- arbitrary
 
@@ -234,7 +236,7 @@ instance FromJSON Claims where
 
 data Proof
   = RootCredential
-  | Nested    ByteString JWT
+  | Nested    Text JWT
   | Reference CID
   deriving (Show, Eq)
 
@@ -244,13 +246,13 @@ instance Arbitrary Proof where
     , (4, pure RootCredential)
     ] |> frequency
       |> fmap \case
-        Nested _ jwt -> Nested (Lazy.toStrict $ encode jwt) jwt
+        Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1. decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
         prf          -> prf
 
 instance ToJSON Proof where
   toJSON = \case
     Reference cid   -> toJSON cid
-    Nested    raw _ -> String $ decodeUtf8Lenient raw
+    Nested    raw _ -> String raw
     RootCredential  -> Null
 
 instance FromJSON Proof where
@@ -259,8 +261,8 @@ instance FromJSON Proof where
     where
       resolver txt =
         case Text.stripPrefix "eyJ" txt of -- i.e. starts with Base64 encoded '{'
-          Just _  -> Reference <$> parseJSON (String txt)
-          Nothing -> Nested (encodeUtf8 txt) <$> parseJSON (String txt)
+          Just _  -> Nested txt <$> parseJSON val
+          Nothing -> Reference <$> parseJSON val
 
 -----------------------
 -- Signature Helpers --
@@ -268,7 +270,7 @@ instance FromJSON Proof where
 
 signEd25519 :: Header -> Claims -> Ed25519.SecretKey -> Signature.Signature
 signEd25519 header claims sk =
-  Signature.Ed25519 . Key.signWith sk $ B64.URL.encodeJWT header claims
+  Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
 
 signRS256 ::
   MonadRandom m
@@ -277,6 +279,6 @@ signRS256 ::
   -> RSA.PrivateKey
   -> m (Either RSA.Error Signature.Signature)
 signRS256 header claims sk =
-  RSA.PKCS15.signSafer (Just SHA256) sk (B64.URL.encodeJWT header claims) <&> \case
+  RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 $ B64.URL.encodeJWT header claims) <&> \case
     Left err  -> Left err
     Right sig -> Right . Signature.RS256 $ RS256.Signature sig

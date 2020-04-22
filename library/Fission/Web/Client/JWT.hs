@@ -51,7 +51,7 @@ ucan :: UTCTime -> DID -> Ed25519.SecretKey -> Proof -> JWT
 ucan now fissionDID sk proof = JWT {..}
   where
     sig =
-      JWT.Signature.Ed25519 . Key.signWith sk $ B64.URL.encodeJWT header claims
+      JWT.Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
 
     senderDID = DID
       { publicKey = Key.Public . B64.toB64ByteString $ Ed25519.toPublic sk

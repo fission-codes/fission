@@ -8,4 +8,4 @@ import           Fission.Web.Auth.Token.JWT
 import           Fission.Web.Auth.Token.JWT.Resolver.Error
 
 class Monad m => Resolver m where
-  resolve :: CID -> m (Either Error (ByteString, JWT))
+  resolve :: CID -> m (Either Error (Text, JWT))

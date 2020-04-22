@@ -9,9 +9,12 @@ import           Fission.Web.Auth.Token.JWT
 import           Test.Fission.Prelude
 import qualified Test.Fission.Web.Auth.Token.JWT.Validation as Validation
 
+import qualified Test.Fission.Web.Auth.Token.JWT.Proof as Proof
+
 tests :: SpecWith ()
 tests =
   describe "Fission.Web.Auth.Token.JWT" do
+    Proof.tests
     Validation.tests
  
     describe "serialization" do

@@ -14,7 +14,7 @@ import           Fission.Web.Auth.Token.JWT
 
 data Token = Token
   { jwt        :: !JWT
-  , rawContent :: !(Maybe ByteString) -- To pass in to the verifier
+  , rawContent :: !(Maybe Text) -- To pass in to the verifier
   }
   deriving (Show, Eq)
 
@@ -46,7 +46,7 @@ instance FromJSON Token where
 
     where
       justContent =
-        Just . encodeUtf8 . Text.dropEnd 1 . Text.dropWhileEnd (/= '.')
+        Just . Text.dropEnd 1 . Text.dropWhileEnd (/= '.')
        
       resolve rawToken = do
         jwt <- parseJSON (String rawToken)
