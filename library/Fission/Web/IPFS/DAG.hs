@@ -6,9 +6,9 @@ where
 
 import           Database.Esqueleto
 import           Servant
-
-import           Fission.Models
+ 
 import           Fission.Prelude
+import           Fission.Authorization.Types
 
 import           Fission.LoosePin.Creator as LoosePin
 import qualified Fission.Web.Error        as Web.Err
@@ -34,9 +34,9 @@ put ::
   , MonadDB          t m
   , LoosePin.Creator t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-put (Entity userId _) (Serialized rawData) =
+put Authorization {about = Entity userId _} (Serialized rawData) =
   IPFS.DAG.put rawData >>= \case
     Left err ->
       Web.Err.throw err

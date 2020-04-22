@@ -31,9 +31,14 @@ check username =
 -- >>> isValid (Username "happy-name")
 -- True
 --
--- Blacklisted words are not allowed
+-- Blocklisted words are not allowed
 --
 -- >>> isValid (Username "recovery")
+-- False
+--
+-- They're not case sensitive
+--
+-- >>> isValid (Username "reCovErY")
 -- False
 --
 -- Nor are various characters
@@ -62,16 +67,19 @@ check username =
 -- >>> isValid (Username "name&with#chars")
 -- False
 isValid :: Username -> Bool
-isValid (Username username) = all (== True) preds
+isValid (Username rawUsername) =
+  all (== True) preds
   where
     preds :: [Bool]
-    preds = [okChars, not startsWithHyphen, not endsInHyphen, not inBlacklist]
+    preds = [okChars, not startsWithHyphen, not endsInHyphen, not inBlocklist]
 
-    inBlacklist      = elem username blacklist
+    inBlocklist      = elem username blocklist
     okChars          = Text.all isUsernameChar username
    
     startsWithHyphen = Text.isPrefixOf "-" username
     endsInHyphen     = Text.isSuffixOf "-" username
+
+    username = Text.toLower rawUsername
 
 isUsernameChar :: Char -> Bool
 isUsernameChar c =
@@ -81,8 +89,8 @@ isUsernameChar c =
   || c == '-'
 
 -- | Dangerous potential usernames
-blacklist :: [Text]
-blacklist =
+blocklist :: [Text]
+blocklist =
   [ "fission"
   , ".htaccess"
   , "htaccess"

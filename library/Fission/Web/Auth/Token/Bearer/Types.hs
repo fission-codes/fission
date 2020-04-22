@@ -10,11 +10,11 @@ import qualified RIO.Text            as Text
 import           Fission.Prelude
 import qualified Fission.Internal.Base64.URL as B64.URL
  
-import           Fission.Web.Auth.JWT.Types
+import           Fission.Web.Auth.Token.JWT
 
 data Token = Token
   { jwt        :: !JWT
-  , rawContent :: !(Maybe ByteString) -- To pass in to the verifier
+  , rawContent :: !(Maybe Text) -- To pass in to the verifier
   }
   deriving (Show, Eq)
 
@@ -46,7 +46,7 @@ instance FromJSON Token where
 
     where
       justContent =
-        Just . encodeUtf8 . Text.dropEnd 1 . Text.dropWhileEnd (/= '.')
+        Just . Text.dropEnd 1 . Text.dropWhileEnd (/= '.')
        
       resolve rawToken = do
         jwt <- parseJSON (String rawToken)
@@ -59,6 +59,6 @@ instance ToHttpApiData Token where
 
 instance FromHttpApiData Token  where
   parseUrlPiece txt =
-    case eitherDecode . Lazy.fromStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
+    case eitherDecodeStrict' $ encodeUtf8 ("\"" <> txt <> "\"") of
       Right token -> Right token
       Left  err   -> Left $ Text.pack err

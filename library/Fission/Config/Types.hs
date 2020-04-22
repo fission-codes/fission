@@ -10,6 +10,8 @@ import qualified Network.IPFS.Types as IPFS
 import           Data.Pool
 import           Database.Persist.Sql (SqlBackend)
 
+import           Fission.User.DID.Types
+
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
@@ -40,7 +42,8 @@ data Config = Config
   , baseAppDomainName      :: !URL.DomainName
   , baseUserDataRootDomain :: !URL.DomainName
   , defaultDataCID         :: !CID
-  } deriving Generic
+  , fissionDID             :: !DID
+  }
 
 instance Show Config where
   show Config {..} = intercalate "\n"

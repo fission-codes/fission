@@ -4,23 +4,39 @@ module Fission.CLI.Config.Connected.Types
   ) where
 
 import           Control.Monad.Catch
-
 import qualified RIO.ByteString.Lazy as Lazy
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
+import           Network.HTTP.Client as HTTP
 
 import           Network.IPFS
 import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
+import           Servant.Client
+
 import           Fission.Prelude
+import           Fission.Authorization.ServerDID
+import           Fission.User.DID.Types
+
+import           Fission.Web.Auth.Token
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import           Fission.Web.Auth.Token.JWT
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.Types as Client
+import qualified Fission.Web.Client.JWT as JWT
 
 import           Fission.CLI.Environment.Class
 
 data ConnectedConfig = ConnectedConfig
-  { fissionAPI   :: !Client.Runner
+  { httpManager  :: !HTTP.Manager
+  , secretKey    :: !Ed25519.SecretKey
+  , cliDID       :: !DID
+  , serverDID    :: !DID
+  , ucanLink     :: !(Maybe JWT)
+  , fissionURL   :: !BaseUrl
   , logFunc      :: !LogFunc
   , processCtx   :: !ProcessContext
   , ipfsPath     :: !IPFS.BinPath
@@ -38,7 +54,8 @@ instance HasLogFunc ConnectedConfig where
     cfg { logFunc = newLogFunc' }
 
 -- | The top-level app type
-newtype FissionConnected a = FissionConnected { unwrapFissionConnected :: RIO ConnectedConfig a }
+newtype FissionConnected a = FissionConnected
+  { unwrapFissionConnected :: RIO ConnectedConfig a }
   deriving newtype ( Functor
                    , Applicative
                    , Monad
@@ -50,12 +67,8 @@ newtype FissionConnected a = FissionConnected { unwrapFissionConnected :: RIO Co
                    )
 
 instance MonadLogger FissionConnected where
-  monadLoggerLog loc src lvl msg = FissionConnected (monadLoggerLog loc src lvl msg)
-
-instance MonadWebClient FissionConnected where
-  run cmd = do
-    Client.Runner runner <- asks fissionAPI
-    liftIO $ runner cmd
+  monadLoggerLog loc src lvl msg =
+    FissionConnected (monadLoggerLog loc src lvl msg)
 
 instance MonadLocalIPFS FissionConnected where
   runLocal opts arg = do
@@ -71,9 +84,43 @@ instance MonadLocalIPFS FissionConnected where
       (ExitFailure _, _, stdErr)
         | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
             Left $ Process.Timeout secs
- 
+
         | otherwise ->
             Left $ Process.UnknownErr stdErr
 
 instance MonadEnvironment FissionConnected where
   getIgnoredFiles = asks ignoredFiles
+
+instance MonadWebClient FissionConnected where
+  sendRequest req = do
+    manager <- asks httpManager
+    baseUrl <- asks fissionURL
+
+    liftIO . runClientM req $ mkClientEnv manager baseUrl
+
+instance MonadWebAuth FissionConnected DID where
+  getAuth = asks cliDID
+
+-- i.e. A UCAN proof
+instance MonadWebAuth FissionConnected (Maybe JWT) where
+  getAuth = asks ucanLink
+
+instance MonadTime FissionConnected where
+  currentTime = liftIO getCurrentTime
+
+instance MonadWebAuth FissionConnected Token where
+  getAuth = do
+    now       <- currentTime
+    sk        <- getAuth
+    serverDID <- getServerDID
+
+    return . Bearer $ Bearer.Token
+      { jwt        = JWT.ucan now serverDID sk RootCredential
+      , rawContent = Nothing
+      }
+
+instance MonadWebAuth FissionConnected Ed25519.SecretKey where
+  getAuth = asks secretKey
+
+instance ServerDID FissionConnected where
+  getServerDID = asks serverDID

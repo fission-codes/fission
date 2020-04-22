@@ -8,6 +8,7 @@ import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
+import           Fission.Authorization
 import           Fission.Models
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
@@ -21,8 +22,6 @@ type API
   :> Capture "cid" CID
   :> PutAccepted '[PlainText, OctetStream] URL.DomainName
 
-server :: MonadDNSLink m => Entity User -> ServerT API m
-server (Entity _id User { userUsername = Username rawUN}) cid =
-  cid
-    |> DNSLink.setBase (URL.Subdomain rawUN)
-    |> bind Web.Err.ensureM
+server :: MonadDNSLink m => Authorization -> ServerT API m
+server Authorization {about = Entity _ User {userUsername = Username rawUN}} cid =
+  Web.Err.ensureM =<< DNSLink.setBase (URL.Subdomain rawUN) cid

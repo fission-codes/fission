@@ -3,7 +3,6 @@ module Fission.Web.Auth
   , authWithContext
   , basic
   , mkAuth
-  , handler
 
   -- * Reexports
  
@@ -11,49 +10,44 @@ module Fission.Web.Auth
   , module Fission.Web.Auth.Types
   ) where
 
-import           Fission.Prelude
-import           Fission.Models
-
-import qualified Fission.Platform.Heroku.Auth.Types as Heroku
-
 import           Network.Wai
 import           Servant
 import           Servant.Server.Experimental.Auth
+ 
+import           Fission.Prelude
+import           Fission.Authorization
+import           Fission.User.DID.Types
+
+import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.Web.Auth.Class             as Auth
 import           Fission.Web.Auth.Types             as Auth
-import           Fission.Web.Auth.Token             as Token
-import qualified Fission.Web.Auth.Error             as Auth
-import qualified Fission.Web.Auth.Token.Basic       as Basic
 import           Fission.Web.Auth.Token.Basic.Class as BasicAuth
-import qualified Fission.Web.Auth.JWT               as JWT
-
-import qualified Fission.User as User
-import           Fission.User.DID.Types
 
 -- Reexport
  
 import           Fission.Web.Auth.Class
 import           Fission.Web.Auth.Types
 
-type Checks = '[ AuthHandler    Request DID
-               , AuthHandler    Request (Entity User)
-               , BasicAuthCheck Heroku.Auth
-               ]
+type Checks
+  = '[ AuthHandler    Request DID
+     , AuthHandler    Request Authorization
+     , BasicAuthCheck Heroku.Auth
+     ]
 
 -- | Construct an authorization context
 mkAuth ::
   ( MonadAuth      DID           m
-  , MonadAuth      (Entity User) m
+  , MonadAuth      Authorization m
   , MonadBasicAuth Heroku.Auth   m
   )
   => m (Context Checks)
 mkAuth = do
   didAuth    <- Auth.getVerifier
-  userAuth   <- Auth.getVerifier
+  ucanAuth   <- Auth.getVerifier
   herokuAuth <- BasicAuth.getVerifier
   return $ didAuth
-        :. userAuth
+        :. ucanAuth
         :. herokuAuth
         :. EmptyContext
 
@@ -75,21 +69,3 @@ basic unOK pwOK = BasicAuthCheck (return . check)
          then Authorized username
          else Unauthorized
 
--- | Higher order auth handler
--- Uses basic auth for "Basic " tokens
--- Uses our custom jwt auth for "Bearer " tokens
-handler ::
-  ( MonadLogger      m
-  , MonadThrow       m
-  , MonadTime        m
-  , MonadDB        t m
-  , MonadThrow     t
-  , User.Retriever t
-  )
-  => Request
-  -> m (Entity User)
-handler req =
-  case Token.get req of
-    Just (Auth.Bearer bearer) -> JWT.handler bearer
-    Just (Auth.Basic  basic') -> Basic.handler basic'
-    Nothing                   -> throwM Auth.NoToken

@@ -6,7 +6,7 @@ module Fission.Web.User.UpdatePublicKey
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Models
+import           Fission.Authorization
 
 import qualified Fission.Key  as Key
 import qualified Fission.User as User
@@ -22,8 +22,8 @@ server ::
   , MonadDB       t m
   , User.Modifier t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-server (Entity userID _) (pk, alg) = do
+server Authorization {about = Entity userID _} (pk, alg) = do
   runDBNow $ User.updatePublicKey userID pk alg
   return NoContent

@@ -3,11 +3,10 @@ module Fission.Web.App
   , server
   ) where
 
-import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Models
+import           Fission.Authorization
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
 
@@ -36,9 +35,9 @@ server ::
   , App.Content.Initializer t
   , App.Domain.Retriever    t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-server user = Index.index    user
-         :<|> Create.create  user
-         :<|> Update.update  user
-         :<|> Destroy.server user
+server auth = Index.index    auth
+         :<|> Create.create  auth
+         :<|> Update.update  auth
+         :<|> Destroy.server auth

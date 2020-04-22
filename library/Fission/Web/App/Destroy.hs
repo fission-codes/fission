@@ -11,6 +11,8 @@ import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
+import           Fission.Authorization
+
 import           Fission.Models
 import           Fission.URL.Types
 
@@ -38,10 +40,10 @@ server ::
   , MonadDB       t m
   , App.Destroyer t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-server user = destroyByURL user
-        :<|> destroyById   user
+server auth = destroyByURL auth
+         :<|> destroyById  auth
 
 destroyByURL ::
   ( MonadTime       m
@@ -49,12 +51,12 @@ destroyByURL ::
   , MonadDB       t m
   , App.Destroyer t
   )
-  => Entity User
+  => Authorization
   -> ServerT ByURLAPI m
-destroyByURL (Entity userId _) URL {..} =
+destroyByURL Authorization {about = Entity userId _} URL {..} =
   runDBNow (App.destroyByURL userId domainName subdomain) >>= \case
     Right () -> return NoContent
-    Left err -> throwM <| toServerError err
+    Left err -> throwM $ toServerError err
 
 destroyById ::
   ( MonadTime       m
@@ -62,9 +64,9 @@ destroyById ::
   , MonadDB       t m
   , App.Destroyer t
   )
-  => Entity User
+  => Authorization
   -> ServerT ByIdAPI m
-destroyById (Entity userId _) appId =
+destroyById Authorization {about = Entity userId _} appId =
   runDBNow (App.destroy userId appId) >>= \case
     Right () -> return NoContent
-    Left err -> throwM <| toServerError err
+    Left err -> throwM $ toServerError err

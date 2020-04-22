@@ -17,6 +17,9 @@ import           Fission.Key.Asymmetric.Algorithm.Types
 newtype Public = Public { publicKey :: ByteString }
   deriving (Eq, Show)
 
+instance IsString Public where
+  fromString = Public . fromString
+
 instance Arbitrary Public where
   arbitrary = Public <$> arbitrary
 

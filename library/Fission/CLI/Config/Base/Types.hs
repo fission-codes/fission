@@ -4,26 +4,48 @@ module Fission.CLI.Config.Base.Types
   , FissionBase (..)
   ) where
 
-import           Fission.Prelude
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Orphans ()
+import qualified Data.ByteString.Char8 as BS8
 
-import           Fission.Web.Client
-import qualified Fission.Web.Client.Types as Client
+import qualified Network.DNS         as DNS
+import           Network.HTTP.Client as HTTP
 
 import           Network.IPFS
-import qualified Network.IPFS.Types       as IPFS
+import           Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
+import           Servant.Client
+
+import           Fission.Prelude
+ 
+import           Fission.Authorization.ServerDID
+import           Fission.Error.NotFound.Types
+
+import           Fission.Key as Key
+import           Fission.User.DID.Types
+
+import           Fission.Web.Auth.Token
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import           Fission.Web.Auth.Token.JWT
+
+import           Fission.Web.Client
+import qualified Fission.Web.Client.JWT as JWT
+ 
+import qualified Fission.CLI.Display.Error  as CLI.Error
+import qualified Fission.CLI.Display.Loader as CLI
+
 -- | The configuration used for the CLI application
 data BaseConfig = BaseConfig
-  { fissionAPI  :: !Client.Runner
-  , logFunc     :: !LogFunc
-  , processCtx  :: !ProcessContext
-  , ipfsPath    :: !IPFS.BinPath
-  , ipfsTimeout :: !IPFS.Timeout
+  { httpManager     :: !HTTP.Manager
+  , fissionURL      :: !BaseUrl
+  , cachedServerDID :: !(Maybe DID) -- ^ Typically from setting with envar
+  , logFunc         :: !LogFunc
+  , processCtx      :: !ProcessContext
+  , ipfsPath        :: !IPFS.BinPath
+  , ipfsTimeout     :: !IPFS.Timeout
   }
 
 instance HasProcessContext BaseConfig where
@@ -49,9 +71,79 @@ instance MonadLogger FissionBase where
   monadLoggerLog loc src lvl msg = FissionBase (monadLoggerLog loc src lvl msg)
 
 instance MonadWebClient FissionBase where
-  run cmd = do
-    Client.Runner runner <- asks fissionAPI
-    liftIO $ runner cmd
+  sendRequest req =
+    CLI.withLoader 50_000 do
+      manager <- asks httpManager
+      baseUrl <- asks fissionURL
+
+      liftIO . runClientM req $ mkClientEnv manager baseUrl
+ 
+instance MonadTime FissionBase where
+  currentTime = liftIO getCurrentTime
+
+instance ServerDID FissionBase where
+  getServerDID = do
+    asks cachedServerDID >>= \case
+      Just did ->
+        return did
+       
+      Nothing -> do
+        rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+        baseURL <- asks fissionURL
+        let url = BS8.pack $ "_did." <> baseUrlHost baseURL
+
+        logDebugN $ "Checking TXT " <> decodeUtf8Lenient url
+
+        liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
+          Left err -> do
+            CLI.Error.put err "Unable to find Fission's ID online"
+            throwM err
+
+          Right [] -> do
+            CLI.Error.put (NotFound @DID) $
+              "No TXT record at " <> decodeUtf8Lenient url
+             
+            throwM $ NotFound @DID
+
+          Right (didTxt : _) ->
+            case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
+              Left  err -> do
+                CLI.Error.put err "Unable to find Fission's ID online"
+                throwM $ NotFound @DID
+
+              Right did ->
+                return did
+
+instance MonadWebAuth FissionBase Token where
+  getAuth = do
+    now       <- currentTime
+    sk        <- getAuth
+    serverDID <- getServerDID
+
+    return . Bearer $ Bearer.Token
+      { jwt        = JWT.ucan now serverDID sk RootCredential
+      , rawContent = Nothing
+      }
+
+instance MonadWebAuth FissionBase Ed25519.SecretKey where
+  getAuth =
+    Key.create >>= \case
+
+      Left Key.AlreadyExists ->
+        Key.readEd >>= \case
+          Left err -> do
+            CLI.Error.put err "Unable to find or create key"
+            throwM $ NotFound @Ed25519.SecretKey
+
+          Right key ->
+            return key
+
+      Left err -> do
+        CLI.Error.put err "Unable to create key"
+        throwM $ NotFound @Ed25519.SecretKey
+
+      Right _ ->
+        getAuth
 
 instance MonadLocalIPFS FissionBase where
   runLocal opts arg = do
@@ -70,3 +162,4 @@ instance MonadLocalIPFS FissionBase where
 
         | otherwise ->
             Left $ Process.UnknownErr stdErr
+

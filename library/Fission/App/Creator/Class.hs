@@ -36,11 +36,9 @@ instance (AppDomain.Initializer m, MonadDNSLink m) => Creator (Transaction m) wh
 
     AppDomain.associateDefault ownerId appId now >>= \case
       Left err ->
-        return <| Error.relaxedLeft err
+        return $ Error.relaxedLeft err
 
       Right subdomain ->
-        cid
-          |> DNSLink.setBase subdomain
-          |> fmap \case
-            Left  err -> Error.openLeft err
-            Right _   -> Right (appId, subdomain)
+        DNSLink.setBase subdomain cid <&> \case
+          Left  err -> Error.openLeft err
+          Right _   -> Right (appId, subdomain)

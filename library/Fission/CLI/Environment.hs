@@ -36,9 +36,9 @@ import qualified Network.IPFS.Types as IPFS
 
 -- | Initialize the Environment file
 init ::
-  ( MonadUnliftIO         m
-  , MonadLogger           m
-  , MonadWebClient        m
+  ( MonadUnliftIO  m
+  , MonadLogger    m
+  , MonadWebClient m
   )
   => m ()
 init = do
@@ -120,8 +120,8 @@ getOrRetrievePeer config =
         Right peers -> do
           logDebugN "Retrieved Peer from API"
           path <- globalEnv
-          write path $ config { peers = Just peers }
-          return $ Just $ head peers
+          write path config { peers = Just peers }
+          return . Just $ head peers
 
 ignoreDefault :: IPFS.Ignored
 ignoreDefault =

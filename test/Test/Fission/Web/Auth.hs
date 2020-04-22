@@ -14,11 +14,12 @@ import           Fission.Internal.Fixture.User   as Fixture
 
 import           Fission.Web.Auth
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
- 
-import           Test.Fission.Prelude         as Mock
-import qualified Test.Fission.Web.Auth.JWT    as JWT
-import qualified Test.Fission.Web.Auth.Bearer as Bearer
-import qualified Test.Fission.Web.Auth.Token  as Token
+import           Fission.Authorization.Types
+
+import           Test.Fission.Prelude               as Mock
+import qualified Test.Fission.Web.Auth.Token.JWT    as JWT
+import qualified Test.Fission.Web.Auth.Token.Bearer as Bearer
+import qualified Test.Fission.Web.Auth.Token        as Token
 
 import qualified Test.Fission.Web.Auth.Signature.Ed25519 as Ed
 
@@ -55,7 +56,7 @@ tests = do
       describe "value" do
         context "user auth" do
           it "uses the encapsulated function" do
-            userResult `shouldBe` Right (Fixture.entity Fixture.user)
+            fmap about userResult `shouldBe` Right (Fixture.entity Fixture.user)
 
         context "DID auth" do
           it "uses the encapsulated function" do

@@ -22,8 +22,8 @@ cli :: MonadIO m => BaseConfig -> m ()
 cli baseCfg = liftIO do
   (_, runCLI) <- simpleOptions version summary detail noop do
     runBase_ Setup.cmd
-    runBase_ Whoami.cmd
-   
+
+    runConnected_ Whoami.cmd
     runConnected_ Up.cmd
     runConnected_ Down.cmd
     runConnected_ (Watch.cmd (void . runConnected baseCfg))

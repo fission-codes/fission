@@ -1,5 +1,5 @@
 name: fission
-version: '2.2.10'
+version: '2.3.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -97,6 +97,7 @@ dependencies:
   - bytestring
   - data-default-class
   - data-has
+  - dns
   - envy
   - esqueleto
   - exceptions

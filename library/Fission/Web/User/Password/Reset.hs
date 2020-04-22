@@ -6,8 +6,8 @@ module Fission.Web.User.Password.Reset
 import           Database.Esqueleto
 import           Servant
 
-import           Fission.Models
 import           Fission.Prelude
+import           Fission.Authorization
 
 import qualified Fission.User          as User
 import qualified Fission.User.Password as User.Password
@@ -28,16 +28,12 @@ server ::
   , MonadDB       t m
   , User.Modifier t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-server (Entity userId _) User.Password.Reset { maybePassword } = do
+server Authorization {about = Entity userId _} User.Password.Reset { maybePassword } = do
   password <- maybe User.Password.random pure maybePassword
-
-  password
-    |> User.updatePassword userId
-    |> runDBNow
-    |> bind \case
-      Left  err         -> Web.Err.throw err
-      Right updatedPass -> return updatedPass
+  runDBNow (User.updatePassword userId password) >>= \case
+    Left  err         -> Web.Err.throw err
+    Right updatedPass -> return updatedPass
 
   return password

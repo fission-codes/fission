@@ -11,7 +11,7 @@ data Environment = Environment
   , secretKey          :: !AWS.SecretKey  -- ^ Secret Key
   , zoneID             :: !AWS.ZoneID     -- ^ Hosted Zone
   , route53MockEnabled :: !AWS.Route53MockEnabled
-  }
+  } deriving Eq
 
 instance Show Environment where
   show Environment {..} = intercalate "\n"
@@ -30,4 +30,4 @@ instance FromJSON Environment where
     zoneID             <- obj .:  "zone_id"
     route53MockEnabled <- obj .:? "route53_mock_enabled" .!= AWS.Route53MockEnabled False
 
-    return <| Environment {..}
+    return Environment {..}

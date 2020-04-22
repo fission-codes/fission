@@ -1,14 +1,6 @@
-module Fission.Web.Client.Auth.Class
-  ( MonadAuthedClient
-  , MonadWebAuth (..)
-  , module Fission.Web.Client
-  ) where
+module Fission.Web.Client.Auth.Class (MonadWebAuth (..)) where
 
 import           Fission.Prelude
-import           Servant
-import           Fission.Web.Client
 
-type MonadAuthedClient m = (MonadWebAuth m, MonadWebClient m)
-
-class Monad m => MonadWebAuth m where
-  getAuth :: m BasicAuthData
+class Monad m => MonadWebAuth m auth where
+  getAuth :: m auth

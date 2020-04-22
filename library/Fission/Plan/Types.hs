@@ -22,7 +22,7 @@ instance Arbitrary Tier where
   arbitrary = elements [Test, Free]
 
 instance ToJSON Tier where
-  toJSON tier = String <| Text.toLower <| textDisplay <| displayShow tier
+  toJSON tier = String . Text.toLower . textDisplay $ displayShow tier
 
 instance FromJSON Tier where
   parseJSON (String str) =
@@ -39,8 +39,8 @@ instance FromJSON Tier where
 
 instance ToSchema Tier where
   declareNamedSchema =
-    genericDeclareNamedSchema <| defaultSchemaOptions
+    genericDeclareNamedSchema $ defaultSchemaOptions
       { Swagger.constructorTagModifier = camelCase }
 
 cantParse :: (MonadFail m, Show a) => a -> m b
-cantParse other = fail <| "Unable to parse " <> show other
+cantParse other = fail $ "Unable to parse " <> show other

@@ -20,4 +20,4 @@ instance FromJSON Environment where
     url        <- obj .:  "url" >>= parseJSON . String
     remotePeer <- obj .:  "remotePeer"
 
-    return <| Environment {..}
+    return Environment {..}

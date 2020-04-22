@@ -1,5 +1,8 @@
 -- | Servant client for retrieving peer data
-module Fission.Web.Client.Peers (getPeers) where
+module Fission.Web.Client.Peers
+  ( API
+  , getPeers
+  ) where
 
 import Fission.Prelude
 
@@ -20,14 +23,10 @@ type API = "ipfs" :> "peers" :> Peer.API
 
 -- | Retrieves the Fission peer list from the server
 getPeers ::
-  ( MonadWebClient m
-  , MonadUnliftIO  m
+  ( MonadUnliftIO  m
+  , MonadWebClient m
   )
   => m (Either ClientError (NonEmpty IPFS.Peer))
 getPeers = 
-  Cursor.withHidden . CLI.Wait.waitFor "Retrieving Fission Peer List..."
-    <| run get
-
--- | Retrieve a list of peers from the fission api
-get :: ClientM (NonEmpty IPFS.Peer)
-get = client (Proxy :: Proxy API)
+  Cursor.withHidden $ CLI.Wait.waitFor "Retrieving Fission Peer List..." do
+    sendRequest . client $ Proxy @API

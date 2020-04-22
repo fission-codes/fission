@@ -6,9 +6,16 @@ module Fission.CLI.Config.Connected
   , module Fission.CLI.Config.Connected.Types
   ) where
 
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
 import           Network.IPFS
 
 import           Fission.Prelude
+import qualified Fission.Internal.Base64 as B64
+ 
+import           Fission.Authorization.ServerDID
+import qualified Fission.Key as Key
+import           Fission.User.DID.Types
 
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
@@ -22,8 +29,6 @@ import qualified Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
 import qualified Fission.CLI.IPFS.Connect      as Connect
-
-import qualified Fission.Key.Store as Key
 
 -- | Ensure we have a local config file with the appropriate data
 --
@@ -43,40 +48,53 @@ runConnected' :: MonadIO m => ConnectedConfig -> FissionConnected a -> m a
 runConnected' cfg actions = runRIO cfg $ unwrapFissionConnected actions
 
 liftConfig ::
-  ( MonadUnliftIO         m
-  , MonadLocalIPFS        m
-  , MonadWebClient        m
-  , MonadLogger           m
+  ( MonadUnliftIO  m
+  , MonadLocalIPFS m
+  , MonadLogger    m
+  , MonadWebClient m
+  , ServerDID      m
   )
   => BaseConfig
   -> m (Either Error ConnectedConfig)
-liftConfig BaseConfig {..} = 
-  Key.exists >>= \case
-    False -> do
+liftConfig BaseConfig {..} = do
+  serverDID <- getServerDID
+  Key.readEd >>= \case
+    Left _err -> do
       CLI.Error.notConnected NoKeyFile
       return $ Left NoKeyFile
      
-    True ->
-      Client.run User.verify >>= \case
-        Left err -> do
-          CLI.Error.notConnected err
-          return $ Left NotRegistered
-         
-        Right _ -> do
-          config <- Environment.get
-          Environment.getOrRetrievePeer config >>= \case
-            Nothing -> do
-              logErrorN "Could not locate the Fission IPFS network"
-              return $ Left PeersNotFound
-             
-            Just peer ->
-              Connect.swarmConnectWithRetry peer 1 >>= \case
-                Right _ -> do
-                  let ignoredFiles = Environment.ignored config
-                  return $ Right ConnectedConfig {..}
+    Right secretKey -> do
+      config <- Environment.get
+      Environment.getOrRetrievePeer config >>= \case
+        Nothing -> do
+          logErrorN "Could not locate the Fission IPFS network"
+          return $ Left PeersNotFound
 
-                Left err -> do
-                  logError $ displayShow err
-                  Connect.couldNotSwarmConnect
-                  return $ Left CannotConnect
+        Just peer ->
+          Connect.swarmConnectWithRetry peer 1 >>= \case
+            Left err -> do
+              logError $ displayShow err
+              Connect.couldNotSwarmConnect
+              return $ Left CannotConnect
 
+            Right _ -> do
+              let
+                ignoredFiles = Environment.ignored config
+                ucanLink = Nothing
+
+                cliDID = DID
+                  { publicKey = Key.Public . B64.toByteString $ Ed25519.toPublic secretKey
+                  , algorithm = Key.Ed25519
+                  , method    = Key
+                  }
+
+                connCfg = ConnectedConfig {..}
+
+              runConnected' connCfg do
+                sendRequestM (authClient $ Proxy @User.Verify) >>= \case
+                  Left err -> do
+                    CLI.Error.notConnected err
+                    return $ Left NotRegistered
+
+                  Right _ ->
+                    return $ Right connCfg

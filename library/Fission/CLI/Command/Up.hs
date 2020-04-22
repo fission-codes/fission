@@ -1,6 +1,8 @@
 -- | File sync, IPFS-style
 module Fission.CLI.Command.Up (cmd, up) where
 
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+
 import           Options.Applicative
 import           RIO.Directory
 
@@ -8,16 +10,21 @@ import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
+import           Fission.Authorization.ServerDID
+ 
+import           Fission.Web.Auth.Token
 import           Fission.Web.Client as Client
 
-import           Fission.CLI.Command.Up.Types as Up
-import qualified Fission.CLI.Prompt.BuildDir  as Prompt
-import qualified Fission.CLI.IPFS.Pin         as CLI.Pin
-import qualified Fission.CLI.DNS              as CLI.DNS
-import           Fission.CLI.Display.Error
-
 import           Fission.CLI.Environment
+
 import           Fission.CLI.Command.Types
+import           Fission.CLI.Command.Up.Types as Up
+
+import           Fission.CLI.Display.Error
+import qualified Fission.CLI.Prompt.BuildDir as Prompt
+ 
+import qualified Fission.CLI.DNS      as CLI.DNS
+import qualified Fission.CLI.IPFS.Pin as CLI.Pin
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -26,6 +33,10 @@ cmd ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => Command m Up.Options ()
 cmd = Command
@@ -42,6 +53,10 @@ up ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   )
   => Up.Options
   -> m ()
@@ -52,7 +67,7 @@ up Up.Options {..} = do
 
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
   IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-    unless dnsOnly do
+    unless dnsOnly $
       CLI.Pin.add cid >>= putErrOr \_ -> noop
 
     CLI.DNS.update cid >>= putErrOr \_ -> noop

@@ -15,9 +15,12 @@ import qualified Network.IPFS.Pin   as IPFS.Pin
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
+
+import           Fission.Authorization.Types
+import           Fission.Models
+
 import qualified Fission.Web.Error as Web.Err
 import qualified Fission.LoosePin  as LoosePin
-import           Fission.Models
 
 type API = PinAPI :<|> UnpinAPI
 
@@ -43,9 +46,9 @@ server ::
   , LoosePin.Retriever t
   , LoosePin.Destroyer t
   )
-  => Entity User
+  => Authorization
   -> ServerT API m
-server (Entity userId _) = pin userId :<|> unpin userId
+server Authorization {about = Entity userId _} = pin userId :<|> unpin userId
 
 pin ::
   ( MonadRemoteIPFS    m
@@ -60,10 +63,7 @@ pin ::
 pin userId cid = IPFS.Pin.add cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> do
-    cid
-      |> LoosePin.create userId
-      |> runDBNow
-
+    runDBNow $ LoosePin.create userId cid
     pure NoContent
 
 unpin ::
@@ -82,6 +82,6 @@ unpin userId cid = do
     LoosePin.getByCids [cid]
 
   when (null remaining) do
-    void <| Web.Err.ensure =<< IPFS.Pin.rm cid
+    void $ Web.Err.ensure =<< IPFS.Pin.rm cid
 
   return NoContent

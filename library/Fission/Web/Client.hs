@@ -1,69 +1,42 @@
 module Fission.Web.Client
-  ( request
-  , sigClient
-  , sigClient'
-  , basicClient
-  , registerClient
-  , is404
-  , module Fission.Web.Client.Types
+  ( sendRequestM
+  , withPayload
+  , authClient
+  , module Fission.Web.Client.Auth
   , module Fission.Web.Client.Class
   ) where
 
-import           Fission.Prelude
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 
-import           Servant
 import           Servant.Client
 import           Servant.Client.Core
 
-import qualified Network.HTTP.Client as HTTP
-import           Network.HTTP.Types.Status
+import           Fission.Prelude
 
-import           Fission.Web.Client.Types
+import           Fission.Authorization.ServerDID
+ 
+import           Fission.Web.Client.Auth
 import           Fission.Web.Client.Class
-import           Fission.Web.Client.BasicAuth as Auth
+import           Fission.Web.Client.JWT
 
-import           Fission.Web.Client.JWT as JWT
-import           Fission.Web.Auth.Types as Auth
+sendRequestM :: MonadWebClient m => m (ClientM a) -> m (Either ClientError a)
+sendRequestM clientAction = sendRequest =<< clientAction
 
-request :: HTTP.Manager -> BaseUrl -> ClientM a -> IO (Either ClientError a)
-request manager url query = runClientM query $ mkClientEnv manager url
-
-sigClient ::
-  ( HasClient ClientM api
-  , Client ClientM api ~ (AuthenticatedRequest Auth.HigherOrder -> a -> ClientM b)
+authClient ::
+  ( MonadIO      m
+  , MonadTime    m
+  , ServerDID    m
+  , MonadWebAuth m (AuthClientData a)
+  , MonadWebAuth m Ed25519.SecretKey
+  , HasClient ClientM api
+  , Client    ClientM api ~ (AuthenticatedRequest a -> f b)
   )
   => Proxy api
-  -> a
-  -> ClientM b
-sigClient p x = JWT.getSigAuth >>= flip (client p) x
+  -> m (f b)
+authClient pxy = do
+  auth    <- getAuth
+  authReq <- mkAuthReq
+  return . (client pxy) $ mkAuthenticatedRequest auth \_ath -> authReq
 
-sigClient' ::
-  ( HasClient ClientM api
-  , Client ClientM api ~ (AuthenticatedRequest Auth.HigherOrder -> ClientM b)
-  )
-  => Proxy api
-  -> ClientM b
-sigClient' p = JWT.getSigAuth >>= client p
-
-basicClient ::
-  ( HasClient ClientM api
-  , Client ClientM api ~ (AuthenticatedRequest Auth.HigherOrder -> a -> ClientM b)
-  )
-  => Proxy api
-  -> BasicAuthData
-  -> a
-  -> ClientM b
-basicClient p auth x = (client p) (Auth.getBasicAuth auth) x
-
-registerClient ::
-  ( HasClient ClientM api
-  , Client ClientM api ~ (AuthenticatedRequest Auth.RegisterDID -> a -> ClientM b)
-  )
-  => Proxy api
-  -> a
-  -> ClientM b
-registerClient p x = JWT.getRegisterAuth >>= flip (client p) x
-
-is404 :: ClientError -> Bool
-is404 (FailureResponse _ resp) = responseStatusCode resp == status404
-is404 _ = False
+withPayload :: Functor f => f (a -> b) -> a -> f b
+clientFun `withPayload` arg = (\f -> f arg) <$> clientFun

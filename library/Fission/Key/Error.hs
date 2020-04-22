@@ -7,10 +7,7 @@ data Error
   = DoesNotExist
   | AlreadyExists
   | ParseError CryptoError
-  deriving ( Exception
-            , Eq
-            , Generic
-            )
+  deriving (Exception, Eq)
 
 instance Show Error where
   show = \case
