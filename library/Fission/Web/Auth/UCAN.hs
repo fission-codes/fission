@@ -47,7 +47,7 @@ handler req =
           toAuthorization jwt
          
         Left err -> do
-          logWarn $ "Failed token validation with: " <> rawContent
+          logWarn $ "Failed auth validation with token : " <> rawContent
           throwM err
 
     _ ->
