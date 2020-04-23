@@ -39,13 +39,15 @@ handler ::
   -> m Authorization
 handler req =
   case Token.get req of
-    Just (Token.Bearer token@(Bearer.Token jwt (Just rawContent))) ->
+    Just (Token.Bearer (Bearer.Token jwt (Just rawContent))) -> do
+      logInfo $ "Incoming request with auth token: " <> rawContent
       JWT.check rawContent jwt >>= \case
-        Right _ ->
+        Right _ -> do
+          logInfo @Text "Auth token validation success"
           toAuthorization jwt
          
         Left err -> do
-          logWarn $ "Failed token validation. Re-encoded token: " <> encode token
+          logWarn $ "Failed token validation with: " <> rawContent
           throwM err
 
     _ ->
