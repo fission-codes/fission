@@ -71,7 +71,7 @@ newtype Fission a = Fission { unFission :: RIO Config a }
                    )
 
 instance MonadLogger Fission where
-  monadLoggerLog loc src lvl msg = Fission (monadLoggerLog loc src lvl msg)
+  monadLoggerLog loc src lvl msg = Fission $ monadLoggerLog loc src lvl msg
 
 instance MonadTime Fission where
   currentTime = liftIO getCurrentTime
