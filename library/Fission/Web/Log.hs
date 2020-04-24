@@ -15,7 +15,7 @@ rioApacheLogger ::
   -> Status
   -> Maybe Integer
   -> m ()
-rioApacheLogger Request {..} Status {statusCode} _mayInt =
+rioApacheLogger Request {..} Status {..} _mayInt =
   if | statusCode >= 500 -> logError formatted
      | statusCode >= 400 -> logInfo  formatted
      | otherwise         -> logDebug formatted
@@ -28,12 +28,16 @@ rioApacheLogger Request {..} Status {statusCode} _mayInt =
       , " "
       , displayShow requestMethod
       , " "
+      , displayShow requestHeaders
+      , " "
       , if rawPathInfo    == "" then "" else displayShow rawPathInfo
       , if rawQueryString == "" then "" else displayShow rawQueryString
       , " "
       , displayShow statusCode
-      , displayShow <| maybe "" (" - " <>) requestHeaderUserAgent
+      , ": "
+      , displayShow statusMessage
+      , displayShow $ maybe "" (" - " <>) requestHeaderUserAgent
       ]
 
 fromLogFunc :: LogFunc -> ApacheLogger
-fromLogFunc logger r s mi = runRIO logger (rioApacheLogger r s mi)
+fromLogFunc logger r s mi = runRIO logger $ rioApacheLogger r s mi
