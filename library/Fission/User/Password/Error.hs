@@ -17,4 +17,4 @@ instance Display FailedDigest where
 
 instance ToServerError FailedDigest where
   toServerError FailedDigest =
-    err500 { errBody = UTF8.showLazyBS <| textDisplay FailedDigest }
+    err500 { errBody = UTF8.showLazyBS $ textDisplay FailedDigest }

@@ -60,4 +60,4 @@ handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
           return Authorization {sender = Right sender, ..}
 
 handler _ = -- should be impossible
-  throwM $ err500 { errBody = "Unable to parse JWT" }
+  throwM $ err401 { errBody = "Unable to parse JWT" }
