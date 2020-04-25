@@ -12,7 +12,7 @@ import           Servant.Server
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Error as Error
+import qualified Fission.Web.Error as Web.Err
 import           Fission.Error.NotFound.Types
 
 import           Fission.Authorization
@@ -39,6 +39,7 @@ handler ::
   , ServerDID        m
   , MonadLogger      m
   , MonadThrow       m
+  , MonadLogger      m
   , MonadDB        t m
   , MonadThrow     t
   , User.Retriever t
@@ -52,9 +53,9 @@ handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
       Web.Err.throw err
 
     Right JWT {claims = Claims {..}} -> do
-      runDB $ User.getByPublicKey (DID.publicKey sender) >>= \case
+      runDB (User.getByPublicKey $ DID.publicKey sender) >>= \case
         Nothing ->
-          Web.Err.throw $ NotFound @User FIXME
+          Web.Err.throw $ NotFound @User
 
         Just about ->
           return Authorization {sender = Right sender, ..}
