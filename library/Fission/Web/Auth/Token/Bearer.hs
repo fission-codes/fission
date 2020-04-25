@@ -39,26 +39,25 @@ handler ::
   , ServerDID        m
   , MonadLogger      m
   , MonadThrow       m
-  , MonadLogger      m
   , MonadDB        t m
-  , MonadThrow     t
   , User.Retriever t
   )
   => Auth.Bearer.Token
   -> m Authorization
-handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
-  check rawContent jwt >>= \case
-    Left err -> do
-      logWarn $ "===> Failed login with token !! " <> encode token
-      Web.Err.throw err
+handler Auth.Bearer.Token {..} =
+  case rawContent of
+    Nothing ->
+      throwM $ err401 { errBody = "Unable to parse JWT" }
 
-    Right JWT {claims = Claims {..}} -> do
-      runDB (User.getByPublicKey $ DID.publicKey sender) >>= \case
-        Nothing ->
-          Web.Err.throw $ NotFound @User
+    Just encoded ->
+      check encoded jwt >>= \case
+        Left err ->
+          Web.Err.throw err
 
-        Just about ->
-          return Authorization {sender = Right sender, ..}
+        Right JWT {claims = Claims {..}} -> do
+          runDB (User.getByPublicKey $ DID.publicKey sender) >>= \case
+            Nothing ->
+              Web.Err.throw $ NotFound @User
 
-handler _ = -- should be impossible
-  throwM $ err401 { errBody = "Unable to parse JWT" }
+            Just about ->
+              return Authorization {sender = Right sender, ..}

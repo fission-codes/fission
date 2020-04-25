@@ -37,7 +37,15 @@ ensureM ::
   => Either err a -> m a
 ensureM = either throw pure
 
-ensureMaybe :: (MonadLogger m, MonadThrow m) => ServerError -> Maybe a -> m a
+ensureMaybe ::
+  ( MonadLogger m
+  , MonadThrow m
+  , Display       err
+  , ToServerError err
+  )
+  => err
+  -> Maybe a
+  -> m a
 ensureMaybe err = maybe (throw err) pure
 
 throw ::
