@@ -25,18 +25,18 @@ rioApacheLogger Request {..} Status {..} _mayInt =
       [ displayShow remoteHost
       , " - - "
       , displayShow httpVersion
-      , " "
-      , displayShow requestMethod
-      , " "
-      , displayShow requestHeaders
-      , " "
-      , if rawPathInfo    == "" then "" else displayShow rawPathInfo
-      , if rawQueryString == "" then "" else displayShow rawQueryString
-      , " "
+      , " - - "
       , displayShow statusCode
       , ": "
       , displayShow statusMessage
-      , displayShow $ maybe "" (" - " <>) requestHeaderUserAgent
+      , " "
+      , displayShow requestMethod
+      , " "
+      , if rawPathInfo    == "" then "" else displayShow rawPathInfo
+      , " "
+      , if rawQueryString == "" then "" else displayShow rawQueryString
+      , " "
+      , displayShow requestHeaders
       ]
 
 fromLogFunc :: LogFunc -> ApacheLogger
