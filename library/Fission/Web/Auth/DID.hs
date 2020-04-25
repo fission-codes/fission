@@ -3,6 +3,8 @@ module Fission.Web.Auth.DID (handler) where
 import           Network.Wai
 
 import           Fission.Prelude
+ 
+import qualified Fission.Web.Error as Web.Error
 
 import qualified Fission.Web.Auth.Token as Token
 import qualified Fission.Web.Auth.Error as Auth
@@ -33,9 +35,7 @@ handler req =
       JWT.check rawContent jwt >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> encode token
-          throwM err
-
-  -- FIXME chekc that this is all right
+          Web.Error.throw err
 
         Right JWT.JWT {claims = JWT.Claims {sender}} ->
           return sender
