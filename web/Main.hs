@@ -96,7 +96,7 @@ main = do
         runDB updateDBToLatest
 
         auth <- Auth.mkAuth
-        logDebugN $ layoutWithContext (Proxy @Web.API) auth
+        logDebug @Text $ layoutWithContext (Proxy @Web.API) auth
 
         ServerDID.publicize
 

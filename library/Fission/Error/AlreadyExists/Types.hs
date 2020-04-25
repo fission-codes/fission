@@ -5,10 +5,8 @@ module Fission.Error.AlreadyExists.Types (AlreadyExists (..)) where
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Web.Error.Class
+import           Fission.Web.Error as Error
 import           Fission.Models
-
-import qualified Fission.Internal.UTF8 as UTF8
 
 data AlreadyExists entity
   = AlreadyExists
@@ -18,7 +16,7 @@ data AlreadyExists entity
            )
 
 instance Display (AlreadyExists entity) => ToServerError (AlreadyExists entity) where
-  toServerError _ = err409 { errBody = UTF8.showLazyBS <| textDisplay (AlreadyExists @entity) }
+  toServerError alreadyExists = Error.withMessage alreadyExists err409
 
 instance Display (AlreadyExists User) where
   display _ = "User already exists"

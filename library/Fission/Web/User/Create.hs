@@ -29,6 +29,7 @@ type PasswordAPI
 
 withDID ::
   ( MonadDNSLink   m
+  , MonadLogger    m
   , MonadTime      m
   , MonadDB      t m
   , User.Creator t

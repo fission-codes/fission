@@ -10,7 +10,6 @@ import qualified Network.IPFS.Get.Error  as Get
 import qualified Network.IPFS.Peer.Error as Peer
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
 
 class ToServerError err where
   toServerError :: err -> ServerError
@@ -65,10 +64,10 @@ instance ToServerError Error where
 
 instance ToServerError Get.Error where
   toServerError = \case
-    Get.InvalidCID       txt          -> err422 { errBody = UTF8.textToLazyBS txt }
+    Get.InvalidCID       txt          -> err422 { errBody = displayLazyBS txt }
     Get.UnexpectedOutput _            -> err502 { errBody = "Unexpected IPFS result" }
     Get.UnknownErr       _            -> err502 { errBody = "Unknown IPFS error" }
-    Get.TimedOut         (CID hash) _ -> err504 { errBody = "IPFS timed out looking for " <> UTF8.textToLazyBS hash }
+    Get.TimedOut         (CID hash) _ -> err504 { errBody = "IPFS timed out looking for " <> displayLazyBS hash }
 
 instance ToServerError Add.Error where
   toServerError = \case
@@ -76,7 +75,7 @@ instance ToServerError Add.Error where
     Add.UnknownAddErr    _ -> err502 { errBody = "Unknown IPFS error" }
     Add.RecursiveAddErr  _ -> err502 { errBody = "Error while adding directory" }
     Add.UnexpectedOutput _ -> err502 { errBody = "Unexpected IPFS result" }
-    Add.IPFSDaemonErr  msg -> err502 { errBody = "IPFS Daemon Error: " <> UTF8.textToLazyBS msg}
+    Add.IPFSDaemonErr  msg -> err502 { errBody = "IPFS Daemon Error: " <> displayLazyBS msg}
 
 instance ToServerError Peer.Error where
   toServerError = \case

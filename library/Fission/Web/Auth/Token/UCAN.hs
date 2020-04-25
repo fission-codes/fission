@@ -1,17 +1,14 @@
-module Fission.Web.Auth.UCAN (handler) where
-
-import           Network.Wai
+module Fission.Web.Auth.Token.UCAN (handler) where
 
 import           Fission.Prelude
 import           Fission.Models
 
-import           Fission.Web.Error.Class
 import           Fission.Error.NotFound.Types
 
 import qualified Fission.User.Retriever as User
-
-import qualified Fission.Web.Auth.Token as Token
+ 
 import qualified Fission.Web.Auth.Error as Auth
+import qualified Fission.Web.Error      as Web.Error
 
 import           Fission.Web.Auth.Token.JWT            as JWT
 import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
@@ -27,31 +24,23 @@ import           Fission.User.DID.Types
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*
 handler ::
-  ( JWT.Resolver     m
-  , ServerDID        m
-  , MonadLogger      m
-  , MonadThrow       m
-  , MonadTime        m
-  , MonadDB        t m
+  ( MonadLogger m
+  , MonadThrow m
+  , Resolver m
+  , ServerDID m
+  , MonadTime m
+  , MonadDB t m
   , User.Retriever t
   )
-  => Request
+  => Bearer.Token
   -> m Authorization
-handler req =
-  case Token.get req of
-    Just (Token.Bearer (Bearer.Token jwt (Just rawContent))) -> do
-      logInfo $ "Incoming request with auth token: " <> rawContent
-      JWT.check rawContent jwt >>= \case
-        Right _ -> do
-          logInfo @Text "Auth token validation success"
-          toAuthorization jwt
-         
-        Left err -> do
-          logWarn $ "Failed auth validation with token : " <> rawContent
-          throwM err
+handler (Bearer.Token jwt (Just rawContent)) = do
+  void . Web.Error.ensureM =<< JWT.check rawContent jwt
+  toAuthorization jwt
 
-    _ ->
-      throwM Auth.NoToken
+handler _ = do -- Practically impossible
+  logError @Text "Have a token without raw content... somehow"
+  Web.Error.throw Auth.NoToken
 
 toAuthorization ::
   ( JWT.Resolver     m
@@ -66,7 +55,7 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
   JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} <- getRoot jwt
   runDB (User.getByPublicKey pk) >>= \case
     Just about -> return Authorization {sender = Right sender, ..}
-    Nothing    -> throwM . toServerError $ NotFound @User
+    Nothing    -> Web.Error.throw $ NotFound @User
  
 getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => JWT -> m JWT
 getRoot jwt@JWT {claims = JWT.Claims {proof}} =

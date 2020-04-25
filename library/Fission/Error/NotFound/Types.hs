@@ -27,3 +27,6 @@ instance Display (NotFound Domain) where
 
 instance Display (NotFound App) where
   display _ = "App not found"
+
+instance Display (NotFound AppDomain) where
+  display _ = "App/Domain relation not found"

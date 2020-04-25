@@ -4,7 +4,6 @@ import           Servant.Server
 
 import           Fission.Prelude
 import           Fission.Web.Error
-import qualified Fission.Internal.UTF8 as UTF8
 
 data AlreadyExists = AlreadyExists
   deriving ( Show
@@ -17,4 +16,4 @@ instance Display AlreadyExists where
 
 instance ToServerError AlreadyExists where
   toServerError AlreadyExists =
-    err409 { errBody = UTF8.showLazyBS <| textDisplay AlreadyExists }
+    err409 { errBody = displayLazyBS AlreadyExists }

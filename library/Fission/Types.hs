@@ -40,8 +40,9 @@ import qualified Fission.URL as URL
 
 import           Fission.Platform.Heroku.Types as Heroku
 
-import           Fission.Web.Auth     as Auth
-import qualified Fission.Web.Auth.DID as Auth.DID
+import           Fission.Web.Auth       as Auth
+import qualified Fission.Web.Auth.DID   as Auth.DID
+import qualified Fission.Web.Auth.Token as Auth.Token
 
 import           Fission.Web.Server.Reflective as Reflective
 import           Fission.Web.Handler
@@ -51,7 +52,6 @@ import           Fission.User.DID.Types
 import           Fission.Web.Auth.Token.Basic.Class
 import           Fission.Web.Auth.Token.JWT.Resolver as JWT
  
-import           Fission.Web.Auth.UCAN as Auth.UCAN
 import           Fission.Authorization.ServerDID.Class
 
 import           Fission.App.Content as App.Content
@@ -214,7 +214,7 @@ instance MonadAuth Authorization Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
-      toHandler (runRIO cfg) . unFission $ Auth.UCAN.handler req
+      toHandler (runRIO cfg) . unFission $ Auth.Token.handler req
 
 instance App.Domain.Initializer Fission where
   initial = asks baseAppDomainName

@@ -10,7 +10,6 @@ import           Fission.Models
 import           Fission.URL
 
 import           Fission.Web.Error.Class
-import qualified Fission.Internal.UTF8 as UTF8
 
 data NotRegisteredToApp
   = NotRegisteredToApp AppId DomainName (Maybe Subdomain)
@@ -28,7 +27,7 @@ data AlreadyAssociated = AlreadyAssociated
 
 instance ToServerError AlreadyAssociated where
   toServerError (AlreadyAssociated _ (DomainName domainName) maySubdomain) =
-    err409 { errBody = "An app already exists at " <> UTF8.textToLazyBS url }
+    err409 { errBody = "An app already exists at " <> displayLazyBS url }
     where
       url = case maySubdomain of
         Nothing              -> domainName

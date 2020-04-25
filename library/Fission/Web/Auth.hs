@@ -43,11 +43,11 @@ mkAuth ::
   )
   => m (Context Checks)
 mkAuth = do
-  didAuth    <- Auth.getVerifier
-  ucanAuth   <- Auth.getVerifier
+  didAuth         <- Auth.getVerifier
+  higherOrderAuth <- Auth.getVerifier
   herokuAuth <- BasicAuth.getVerifier
   return $ didAuth
-        :. ucanAuth
+        :. higherOrderAuth
         :. herokuAuth
         :. EmptyContext
 

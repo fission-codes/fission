@@ -1,6 +1,9 @@
 module Fission.Web.Auth.Error (Error (..)) where
 
-import Fission.Prelude
+import qualified Servant.Server as Server
+
+import           Fission.Prelude
+import           Fission.Web.Error as Error
 
 data Error
   = NoToken
@@ -9,8 +12,6 @@ data Error
   | Unauthorized
   deriving ( Exception
            , Eq
-           , Generic
-           , ToJSON
            , Show
            )
 
@@ -20,3 +21,6 @@ instance Display Error where
     BadToken     -> "Token is improperly formatted"
     NoSuchUser   -> "No such user exists"
     Unauthorized -> "User not authorized"
+
+instance ToServerError Error where
+  toServerError err = Error.withMessage err Server.err401

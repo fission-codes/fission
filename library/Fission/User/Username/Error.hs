@@ -6,7 +6,6 @@ import           Servant.Server
 
 import           Fission.Prelude
 import           Fission.Web.Error
-import qualified Fission.Internal.UTF8 as UTF8
 
 data Invalid = Invalid
   deriving ( Show
@@ -19,4 +18,4 @@ instance Display Invalid where
 
 instance ToServerError Invalid where
   toServerError Invalid =
-    err422 { errBody = UTF8.showLazyBS <| textDisplay Invalid }
+    err422 { errBody = displayLazyBS Invalid }

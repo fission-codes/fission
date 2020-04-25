@@ -53,10 +53,10 @@ instance FromJSON Subdomain where
     Subdomain <$> parseJSON (String txt)
 
 instance MimeRender PlainText Subdomain where
-  mimeRender _ = UTF8.textToLazyBS . get
+  mimeRender _ = displayLazyBS . get
 
 instance MimeRender OctetStream Subdomain where
-  mimeRender _ = UTF8.textToLazyBS . get
+  mimeRender _ = displayLazyBS . get
 
 instance MimeUnrender PlainText Subdomain where
   mimeUnrender _proxy bs =
@@ -76,7 +76,7 @@ instance Arbitrary Subdomain where
       else do
         adjectives <- sequence (elements <$> take 3 generators)
         noun       <- elements nouns
-        return . Subdomain <| Text.intercalate "-" <| adjectives <> [noun]
+        return . Subdomain . Text.intercalate "-" $ adjectives <> [noun]
 
 opinions :: [Text]
 opinions =
