@@ -1,9 +1,9 @@
 module Fission.Web.Auth.Token.Bearer
-  ( handler
+  ( -- handler
 
   -- * Reexport
  
-  , module Fission.Web.Auth.Token.JWT
+   module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.Error
   , module Fission.Web.Auth.Token.JWT.Validation
   ) where
@@ -33,36 +33,35 @@ import           Fission.Web.Auth.Token.JWT
 import           Fission.Web.Auth.Token.JWT.Error
 import           Fission.Web.Auth.Token.JWT.Validation
 
--- | Auth handler for delegated auth
--- Ensures properly formatted token *and does NOT check against DB*
--- e.g. A new user account
--- Existing users should be validated against the 'UCAN' handler
-handler ::
-  ( MonadTime        m
-  , JWT.Resolver     m
-  , ServerDID        m
-  , MonadLogger      m
-  , MonadThrow       m
-  , MonadDB        t m
-  , User.Retriever t
-  )
-  => Auth.Bearer.Token
-  -> m Authorization
-handler Auth.Bearer.Token {..} =
-  case rawContent of
-    Nothing ->
-      throwM $ err401 { errBody = "Unable to parse JWT" }
+-- -- | Auth handler for non-delegated auth.
+-- -- Ensures properly formatted token
+-- -- e.g. A new user account
+-- -- Existing users should be validated against the 'UCAN' handler
+-- handler ::
+--   ( MonadTime        m
+--   , JWT.Resolver     m
+--   , ServerDID        m
+--   , MonadLogger      m
+--   , MonadThrow       m
+--   , MonadDB        t m
+--   , User.Retriever t
+--   )
+--   => Auth.Bearer.Token
+--   -> m Authorization
+-- handler Auth.Bearer.Token {..} =
+--   case rawContent of
+--     Nothing ->
+--       Web.Err.throw err401 { errBody = "Unable to parse JWT" }
 
-    Just encoded ->
-      check encoded jwt >>= \case
-        Left err ->
-          Web.Err.throw err
+--     Just encoded ->
+--       check encoded jwt >>= \case
+--         Left err ->
+--           Web.Err.throw err
 
-        Right JWT {claims = Claims {..}} -> do
-          -- Need to get down to the innermost JWT
-          runDB (User.getByPublicKey $ DID.publicKey sender) >>= \case
-            Nothing ->
-              Web.Err.throw $ NotFound @User
+--         Right JWT {claims = Claims {..}} ->
+--           runDB (User.getByPublicKey $ DID.publicKey sender) >>= \case
+--             Nothing ->
+--               Web.Err.throw $ NotFound @User
 
-            Just about ->
-              return Authorization {sender = Right sender, ..}
+--             Just about ->
+--               return Authorization {sender = Right sender, ..}

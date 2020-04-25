@@ -3,7 +3,6 @@ module Fission.Web.Auth.Token.UCAN (handler) where
 import           Fission.Prelude
 import           Fission.Models
 
-import           Fission.Web.Error.Class
 import           Fission.Error.NotFound.Types
 
 import qualified Fission.User.Retriever as User
@@ -22,8 +21,8 @@ import           Fission.Authorization.Types
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 
--- -- | Auth handler for delegated auth
--- -- Ensures properly formatted token *and does check against DB*
+-- | Auth handler for delegated auth
+-- Ensures properly formatted token *and does check against DB*
 handler ::
   ( MonadLogger m
   , MonadThrow m
@@ -39,7 +38,7 @@ handler (Bearer.Token jwt (Just rawContent)) = do
   void . Web.Error.ensureM =<< JWT.check rawContent jwt
   toAuthorization jwt
 
-handler _ = do -- Should be impossible
+handler _ = do -- Practically impossible
   logError @Text "Have a token without raw content... somehow"
   Web.Error.throw Auth.NoToken
 
@@ -56,7 +55,7 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
   JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} <- getRoot jwt
   runDB (User.getByPublicKey pk) >>= \case
     Just about -> return Authorization {sender = Right sender, ..}
-    Nothing    -> throwM . toServerError $ NotFound @User
+    Nothing    -> Web.Error.throw $ NotFound @User
  
 getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => JWT -> m JWT
 getRoot jwt@JWT {claims = JWT.Claims {proof}} =

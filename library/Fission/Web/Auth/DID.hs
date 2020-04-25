@@ -19,7 +19,7 @@ import           Fission.User.DID.Types
 import           Fission.Authorization.ServerDID
 
 -- | Auth handler for registering DIDs
--- Ensures properly formatted token but does not check against DB
+-- Ensures properly formatted token but *does not check against DB*
 handler ::
   ( JWT.Resolver m
   , ServerDID    m
