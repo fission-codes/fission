@@ -17,7 +17,7 @@ import           Fission.Models
 import           Fission.URL.Types
 
 import qualified Fission.App.Destroyer.Class as App
-import           Fission.Web.Error.Class
+import qualified Fission.Web.Error as Web.Error
 
 type API = ByURLAPI :<|> ByIdAPI
 
@@ -37,6 +37,7 @@ type ByIdAPI
 server ::
   ( MonadTime       m
   , MonadThrow      m
+  , MonadLogger     m
   , MonadDB       t m
   , App.Destroyer t
   )
@@ -48,25 +49,25 @@ server auth = destroyByURL auth
 destroyByURL ::
   ( MonadTime       m
   , MonadThrow      m
+  , MonadLogger     m
   , MonadDB       t m
   , App.Destroyer t
   )
   => Authorization
   -> ServerT ByURLAPI m
-destroyByURL Authorization {about = Entity userId _} URL {..} =
-  runDBNow (App.destroyByURL userId domainName subdomain) >>= \case
-    Right () -> return NoContent
-    Left err -> throwM $ toServerError err
+destroyByURL Authorization {about = Entity userId _} URL {..} = do
+  Web.Error.ensure =<< runDBNow (App.destroyByURL userId domainName subdomain)
+  return NoContent
 
 destroyById ::
   ( MonadTime       m
   , MonadThrow      m
+  , MonadLogger     m
   , MonadDB       t m
   , App.Destroyer t
   )
   => Authorization
   -> ServerT ByIdAPI m
-destroyById Authorization {about = Entity userId _} appId =
-  runDBNow (App.destroy userId appId) >>= \case
-    Right () -> return NoContent
-    Left err -> throwM $ toServerError err
+destroyById Authorization {about = Entity userId _} appId = do
+  Web.Error.ensure =<< runDBNow (App.destroy userId appId)
+  return NoContent

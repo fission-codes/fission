@@ -9,7 +9,7 @@ import           Servant
 import           Fission.Prelude
 
 import           Fission.Authorization
-import           Fission.Web.Error
+import           Fission.Web.Error as Web.Error
 import           Fission.URL
 
 import qualified Fission.App.Creator as App
@@ -26,6 +26,7 @@ type API
 create ::
   ( App.Domain.Initializer    m
   , MonadTime                 m
+  , MonadLogger               m
   , MonadDNSLink              m
   , MonadDB                 t m
   , App.Creator             t
@@ -41,4 +42,4 @@ create Authorization {about = Entity userId _} = do
     |> runDBNow
     |> bind \case
       Right (_, subdomain) -> return (subdomain, defaultDomain)
-      Left err             -> throwM <| toServerError err
+      Left err             -> Web.Error.throw err
