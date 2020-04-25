@@ -12,7 +12,7 @@ import           Servant.Server
 
 import           Fission.Prelude
 
-import           Fission.Web.Error.Class
+import qualified Fission.Web.Error as Error
 import           Fission.Error.NotFound.Types
 
 import           Fission.Authorization
@@ -49,13 +49,12 @@ handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
   check rawContent jwt >>= \case
     Left err -> do
       logWarn $ "===> Failed login with token !! " <> encode token
-      throwM err402 -- FIXME
-      -- throwM err
+      Web.Err.throw err
 
     Right JWT {claims = Claims {..}} -> do
       runDB $ User.getByPublicKey (DID.publicKey sender) >>= \case
         Nothing ->
-          throwM err403 -- . toServerError $ NotFound @User FIXME
+          Web.Err.throw $ NotFound @User FIXME
 
         Just about ->
           return Authorization {sender = Right sender, ..}

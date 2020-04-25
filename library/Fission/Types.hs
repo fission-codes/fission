@@ -70,6 +70,9 @@ newtype Fission a = Fission { unFission :: RIO Config a }
                    , MonadMask
                    )
 
+-- FIXME think about if you just want the ToServerError stuff on an
+-- MonadThrow Fission instance
+
 instance MonadLogger Fission where
   monadLoggerLog loc src lvl msg = Fission $ monadLoggerLog loc src lvl msg
 
