@@ -35,11 +35,6 @@ create ::
   => Authorization
   -> ServerT API m
 create Authorization {about = Entity userId _} = do
-  defaultDomain <- App.Domain.initial
-
-  userId
-    |> App.createWithPlaceholder
-    |> runDBNow
-    |> bind \case
-      Right (_, subdomain) -> return (subdomain, defaultDomain)
-      Left err             -> Web.Error.throw err
+  (_, subdomain) <- Web.Error.ensure =<< runDBNow (App.createWithPlaceholder userId)
+  defaultDomain  <- App.Domain.initial
+  return (subdomain, defaultDomain)
