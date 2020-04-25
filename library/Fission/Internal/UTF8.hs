@@ -19,7 +19,6 @@ module Fission.Internal.UTF8
   , stripN
   , stripNBS
   , stripNewline
-  -- , textToLazyBS
   , textShow
   , wrapIn
   , wrapInBS
