@@ -33,6 +33,10 @@ import           Fission.Web.Auth.Token.JWT
 import           Fission.Web.Auth.Token.JWT.Error
 import           Fission.Web.Auth.Token.JWT.Validation
 
+-- | Auth handler for delegated auth
+-- Ensures properly formatted token *and does NOT check against DB*
+-- e.g. A new user account
+-- Existing users should be validated against the 'UCAN' handler
 handler ::
   ( MonadTime        m
   , JWT.Resolver     m
@@ -55,6 +59,7 @@ handler Auth.Bearer.Token {..} =
           Web.Err.throw err
 
         Right JWT {claims = Claims {..}} -> do
+          -- Need to get down to the innermost JWT
           runDB (User.getByPublicKey $ DID.publicKey sender) >>= \case
             Nothing ->
               Web.Err.throw $ NotFound @User

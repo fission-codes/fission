@@ -1,6 +1,4 @@
-module Fission.Web.Auth.UCAN (handler) where
-
-import           Network.Wai
+module Fission.Web.Auth.Token.UCAN (handler) where
 
 import           Fission.Prelude
 import           Fission.Models
@@ -10,10 +8,8 @@ import           Fission.Error.NotFound.Types
 
 import qualified Fission.User.Retriever as User
  
-import qualified Fission.Web.Error as Web.Error
-
-import qualified Fission.Web.Auth.Token as Token
 import qualified Fission.Web.Auth.Error as Auth
+import qualified Fission.Web.Error      as Web.Error
 
 import           Fission.Web.Auth.Token.JWT            as JWT
 import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
@@ -26,30 +22,26 @@ import           Fission.Authorization.Types
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 
--- | Auth handler for delegated auth
--- Ensures properly formatted token *and does check against DB*
+-- -- | Auth handler for delegated auth
+-- -- Ensures properly formatted token *and does check against DB*
 handler ::
-  ( JWT.Resolver     m
-  , ServerDID        m
-  , MonadLogger      m
-  , MonadThrow       m
-  , MonadTime        m
-  , MonadDB        t m
+  ( MonadLogger m
+  , MonadThrow m
+  , Resolver m
+  , ServerDID m
+  , MonadTime m
+  , MonadDB t m
   , User.Retriever t
   )
-  => Request
+  => Bearer.Token
   -> m Authorization
-handler req =
-  case Token.get req of
-    Just (Token.Bearer (Bearer.Token jwt (Just rawContent))) -> do
-      logInfo $ "Incoming request with auth token: " <> rawContent
-      void . Web.Error.ensureM =<< JWT.check rawContent jwt
- 
-      logInfo @Text "Auth token validation success"
-      toAuthorization jwt
+handler (Bearer.Token jwt (Just rawContent)) = do
+  void . Web.Error.ensureM =<< JWT.check rawContent jwt
+  toAuthorization jwt
 
-    _ ->
-      Web.Error.throw Auth.NoToken
+handler _ = do -- Should be impossible
+  logError @Text "Have a token without raw content... somehow"
+  Web.Error.throw Auth.NoToken
 
 toAuthorization ::
   ( JWT.Resolver     m

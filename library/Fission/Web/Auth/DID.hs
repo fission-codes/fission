@@ -35,6 +35,8 @@ handler req =
           logWarn $ "Failed registration with token " <> encode token
           throwM err
 
+  -- FIXME chekc that this is all right
+
         Right JWT.JWT {claims = JWT.Claims {sender}} ->
           return sender
 
