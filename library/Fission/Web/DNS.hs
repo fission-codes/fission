@@ -22,6 +22,6 @@ type API
   :> Capture "cid" CID
   :> PutAccepted '[PlainText, OctetStream] URL.DomainName
 
-server :: MonadDNSLink m => Authorization -> ServerT API m
+server :: (MonadLogger m, MonadDNSLink m) => Authorization -> ServerT API m
 server Authorization {about = Entity _ User {userUsername = Username rawUN}} cid =
   Web.Err.ensureM =<< DNSLink.setBase (URL.Subdomain rawUN) cid

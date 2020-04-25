@@ -24,10 +24,5 @@ instance Display Error where
 instance ToServerError Error where
   toServerError = \case
     ProofError    err -> toServerError err
-    IncorrectReceiver -> err422 { errBody = displayLazyBS IncorrectReceiver }
-    Expired           -> err410 { errBody = displayLazyBS Expired }
-    TooEarly          -> ServerError { errHTTPCode     = 425
-                                     , errReasonPhrase = show TooEarly
-                                     , errBody         = ""
-                                     , errHeaders      = []
-                                     }
+    IncorrectReceiver -> err401 { errBody = displayLazyBS IncorrectReceiver }
+    Expired           -> err401 { errBody = displayLazyBS Expired }

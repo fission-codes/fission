@@ -24,6 +24,13 @@ import           Fission.Authorization.Types
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 
+
+
+
+
+import Servant.Server
+import qualified Fission.Web.Error as Web.Error
+
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*
 handler ::
@@ -41,17 +48,13 @@ handler req =
   case Token.get req of
     Just (Token.Bearer (Bearer.Token jwt (Just rawContent))) -> do
       logInfo $ "Incoming request with auth token: " <> rawContent
-      JWT.check rawContent jwt >>= \case
-        Right _ -> do
-          logInfo @Text "Auth token validation success"
-          toAuthorization jwt
-         
-        Left err -> do
-          logWarn $ "Failed auth validation with token : " <> rawContent
-          throwM err
+      void . Web.Error.ensureM =<< JWT.check rawContent jwt
+ 
+      logInfo @Text "Auth token validation success"
+      toAuthorization jwt
 
     _ ->
-      throwM Auth.NoToken
+      Web.Error.throw Auth.NoToken
 
 toAuthorization ::
   ( JWT.Resolver     m

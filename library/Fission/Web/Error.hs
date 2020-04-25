@@ -4,6 +4,7 @@ module Fission.Web.Error
   , ensureM
   , ensureMaybe
   , throw
+  , withMessage
   , module Fission.Web.Error.Class
   ) where
 
@@ -13,7 +14,8 @@ import           Servant.Server
 
 import           Fission.Prelude
 import           Fission.Web.Error.Class
-
+ 
+import           Fission.Internal.UTF8 as UTF8
 import           Fission.Internal.Orphanage.ServerError ()
 
 ensure ::
@@ -26,11 +28,17 @@ ensure ::
   -> m a
 ensure = either throw pure
 
-ensureM :: (MonadThrow m, Exception err) => Either err a -> m a
-ensureM = either throwM pure
+ensureM ::
+  ( MonadLogger m
+  , MonadThrow  m
+  , Display       err
+  , ToServerError err
+  )
+  => Either err a -> m a
+ensureM = either throw pure
 
-ensureMaybe :: MonadThrow m => ServerError -> Maybe a -> m a
-ensureMaybe err = maybe (throwM err) pure
+ensureMaybe :: (MonadLogger m, MonadThrow m) => ServerError -> Maybe a -> m a
+ensureMaybe err = maybe (throw err) pure
 
 throw ::
   ( MonadLogger m
@@ -42,10 +50,13 @@ throw ::
   -> m a
 throw err = do
   let
-    serverError@(ServerError {..}) = toServerError err
-    status = Status errHTTPCode <| Lazy.toStrict errBody
+    serverError@ServerError {..} = toServerError err
+    status = Status errHTTPCode $ Lazy.toStrict errBody
 
   when (statusIsServerError status) do
-    logError <| textDisplay err
+    logError $ textDisplay err
 
   throwM serverError
+
+withMessage :: Display err => err -> ServerError -> ServerError
+withMessage err statusErr = statusErr { errBody = displayLazyBS err }

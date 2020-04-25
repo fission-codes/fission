@@ -48,13 +48,14 @@ handler ::
 handler token@(Auth.Bearer.Token jwt (Just rawContent)) =
   check rawContent jwt >>= \case
     Left err -> do
-      logWarn $ "Failed login with token " <> encode token
-      throwM err
+      logWarn $ "===> Failed login with token !! " <> encode token
+      throwM err402 -- FIXME
+      -- throwM err
 
     Right JWT {claims = Claims {..}} -> do
       runDB $ User.getByPublicKey (DID.publicKey sender) >>= \case
         Nothing ->
-          throwM . toServerError $ NotFound @User
+          throwM err403 -- . toServerError $ NotFound @User FIXME
 
         Just about ->
           return Authorization {sender = Right sender, ..}
