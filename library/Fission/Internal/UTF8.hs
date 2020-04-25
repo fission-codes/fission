@@ -3,7 +3,7 @@ module Fission.Internal.UTF8
   ( Textable (..)
   , putText
   , putTextLn
-  , showLazyBS
+  -- , showLazyBS
   , displayLazyBS
   , toBase58Text
   , fromRawBytes
@@ -20,7 +20,7 @@ module Fission.Internal.UTF8
   , stripN
   , stripNBS
   , stripNewline
-  , textToLazyBS
+  -- , textToLazyBS
   , textShow
   , wrapIn
   , wrapInBS
@@ -53,14 +53,14 @@ instance Textable ByteString where
 instance Textable Lazy.ByteString where
   encode = encode . Lazy.toStrict
 
-showLazyBS :: Show a => a -> Lazy.ByteString
-showLazyBS = textToLazyBS . textDisplay . displayShow
+-- showLazyBS :: Show a => a -> Lazy.ByteString
+-- showLazyBS = textToLazyBS . textDisplay . displayShow
 
 displayLazyBS :: Display a => a -> Lazy.ByteString
 displayLazyBS = Lazy.fromStrict . encodeUtf8 . textDisplay
 
-textToLazyBS :: Text -> Lazy.ByteString
-textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
+-- textToLazyBS :: Text -> Lazy.ByteString
+-- textToLazyBS = Lazy.fromStrict . Text.encodeUtf8
  
 fromRawBytes :: [Word8] -> Text
 fromRawBytes = decodeUtf8Lenient . Strict.pack

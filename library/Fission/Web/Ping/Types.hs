@@ -4,7 +4,6 @@ import           Data.Swagger hiding (name)
 import           Servant
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
 
 -- | A dead-simple text wrapper.
 --   Primarily exists for customized instances.
@@ -27,4 +26,4 @@ instance ToSchema Pong where
       |> pure
 
 instance MimeRender PlainText Pong where
-  mimeRender _proxy = UTF8.textToLazyBS . unPong
+  mimeRender _proxy = displayLazyBS . unPong

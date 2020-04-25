@@ -9,7 +9,6 @@ import           Data.Swagger                hiding (get)
 import           Servant
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
 
 -- | Type safety wrapper for domain names
 newtype DomainName = DomainName { get :: Text }
@@ -59,10 +58,10 @@ instance FromJSON DomainName where
     DomainName <$> parseJSON (String txt)
 
 instance MimeRender PlainText DomainName where
-  mimeRender _ = UTF8.textToLazyBS . get
+  mimeRender _ = displayLazyBS . get
 
 instance MimeRender OctetStream DomainName where
-  mimeRender _ = UTF8.textToLazyBS . get
+  mimeRender _ = displayLazyBS . get
 
 instance MimeUnrender PlainText DomainName where
   mimeUnrender _proxy bs =

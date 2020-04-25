@@ -15,7 +15,6 @@ import           Servant.Server
 import           Fission.Prelude
 import           Fission.Web.Error.Class
  
-import           Fission.Internal.UTF8 as UTF8
 import           Fission.Internal.Orphanage.ServerError ()
 
 ensure ::
