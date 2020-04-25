@@ -9,6 +9,8 @@ import           Fission.Web.Error.Class
 import           Fission.Error.NotFound.Types
 
 import qualified Fission.User.Retriever as User
+ 
+import qualified Fission.Web.Error as Web.Error
 
 import qualified Fission.Web.Auth.Token as Token
 import qualified Fission.Web.Auth.Error as Auth
@@ -23,13 +25,6 @@ import           Fission.Web.Auth.Token.JWT.Resolver as JWT
 import           Fission.Authorization.Types
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
-
-
-
-
-
-import Servant.Server
-import qualified Fission.Web.Error as Web.Error
 
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*

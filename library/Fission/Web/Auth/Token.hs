@@ -18,6 +18,8 @@ import qualified Fission.Web.Auth.Token.Bearer as Bearer
 import           Fission.Web.Auth.Token.Types
 import qualified Fission.Web.Auth.Token.JWT.Resolver as JWT
 
+-- FIXME do we actually use this still?
+
 -- | Higher order auth handler
 --   Uses basic auth for "Basic " tokens
 --   Uses our custom jwt auth for "Bearer " tokens

@@ -12,8 +12,6 @@ data Error
   | Unauthorized
   deriving ( Exception
            , Eq
-           -- , Generic
-           -- , ToJSON
            , Show
            )
 
