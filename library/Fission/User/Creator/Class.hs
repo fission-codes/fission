@@ -173,18 +173,25 @@ instance
                 Just userID -> return $ Right userID
                 Nothing     -> determineConflict username Nothing
 
-determineConflict :: Int
-determineConflict username pk = do
+determineConflict ::
+  MonadIO m
+  => Username
+  -> Maybe Key.Public
+  -> Transaction m (Either Errors a)
+determineConflict username Nothing =
+  return . Error.openLeft $ User.ConflictingUsername username
+ 
+determineConflict username (Just pk) = do
   -- NOTE needs to be updated anlong with DB constraints
   --      because Postgres doesn't do this out of the box
 
-  conflUN <- (fmap \_ -> ConflictingUsername username) <$>
-    getBy (UniqueUsername username)
+  conflUN <- getBy (UniqueUsername username) <&> fmap \_ ->
+    User.ConflictingUsername username
 
-  conflPK <- (fmap \_ -> ConflictingPublicKey pk) <$>
-    getBy (UniquePublicKey pk)
+  conflPK <- getBy (UniquePublicKey $ Just pk) <&> fmap \_ ->
+    User.ConflictingPublicKey pk
 
-    -- confEmail TODO
+  -- confEmail TODO
 
   return case conflUN <|> conflPK of
     Just err -> Error.openLeft err
