@@ -7,6 +7,8 @@ import Network.HTTP.Types.Status
 import Network.Wai.Internal (Request (..))
 import Network.Wai.Logger
 
+import Text.Pretty.Simple
+
 import Fission.Prelude
 
 rioApacheLogger ::
@@ -27,7 +29,7 @@ rioApacheLogger Request {..} Status {..} _mayInt =
       , " - - "
       , displayShow httpVersion
       , " - - "
-      , displayShow statusCode
+      , display statusCode
       , ": "
       , displayShow statusMessage
       , " "
@@ -37,7 +39,7 @@ rioApacheLogger Request {..} Status {..} _mayInt =
       , " "
       , if rawQueryString == "" then "" else displayShow rawQueryString
       , " "
-      , displayShow requestHeaders
+      , display $ pShow requestHeaders
       ]
 
 fromLogFunc :: LogFunc -> ApacheLogger
