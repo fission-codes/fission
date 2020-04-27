@@ -12,7 +12,6 @@ data AlreadyExists
   = ConflictingUsername  Username
   | ConflictingPublicKey Key.Public
   -- TODO | ConflictingEmail Email
-  | ConflictingMultiple [AlreadyExists]
   deriving ( Show
            , Eq
            , Exception
@@ -21,13 +20,10 @@ data AlreadyExists
 instance Display AlreadyExists where
   display = \case
     ConflictingUsername un ->
-      "Username " <> un <> "already exists"
+      "Username " <> display un <> " already exists"
      
     ConflictingPublicKey pk ->
-      "PublicKey " <> pk <> "already exists"
-
-    ConflictingMultiple errs ->
-      "Multiple conflicts: " <> fmap display errs
+      "Public key " <> display pk <> " already exists"
 
 instance ToServerError AlreadyExists where
   toServerError err =

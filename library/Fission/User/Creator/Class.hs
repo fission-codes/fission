@@ -100,18 +100,8 @@ instance
 
         Right user ->
           insertUnique user >>= \case
-            Nothing -> do
-              -- NOTE needs to be updated anlong with DB constraints
-              --      because Postgres doesn't do this out of the box
-
-              -- FIXME stringly typed
-              conflUN <- (fmap \_ -> "username")  <$> getBy (UniqueUsername username)
-              conflPK <- (fmap \_ -> "publicKey") <$> getBy (UniquePublicKey $ Just pk)
-                -- confEmail TODO
-               
-              let badField = conflUN <|> conflPK
-
-              return (Error.openLeft $ User.AlreadyExists) -- conflict)
+            Nothing ->
+              determineConflict username (Just pk)
 
             Just userId ->
               User.setData userId App.Content.empty now >>= \case
@@ -145,7 +135,7 @@ instance
           |> insertUnique
           |> bind \case
             Nothing ->
-              return (Error.openLeft User.AlreadyExists)
+              determineConflict username Nothing
 
             Just userId ->
               now
@@ -157,12 +147,12 @@ instance
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
       Left err ->
-        return . Left <| openUnionLift err
+        return $ Error.openLeft err
 
       Right herokuAddOnId ->
         Password.hashPassword password >>= \case
           Left err ->
-            return . Left <| openUnionLift err
+            return $ Error.openLeft err
 
           Right secretDigest ->
             User
@@ -178,10 +168,24 @@ instance
               , userInsertedAt    = now
               , userModifiedAt    = now
               }
-            |> insertUnique
-            |> bind \case
-              Just userID ->
-                return (Right userID)
+              |> insertUnique
+              |> bind \case
+                Just userID -> return $ Right userID
+                Nothing     -> determineConflict username Nothing
 
-              Nothing ->
-                return . Left <| openUnionLift User.AlreadyExists
+determineConflict :: Int
+determineConflict username pk = do
+  -- NOTE needs to be updated anlong with DB constraints
+  --      because Postgres doesn't do this out of the box
+
+  conflUN <- (fmap \_ -> ConflictingUsername username) <$>
+    getBy (UniqueUsername username)
+
+  conflPK <- (fmap \_ -> ConflictingPublicKey pk) <$>
+    getBy (UniquePublicKey pk)
+
+    -- confEmail TODO
+
+  return case conflUN <|> conflPK of
+    Just err -> Error.openLeft err
+    Nothing  -> Error.openLeft err409 { errBody = "User already exists" }
