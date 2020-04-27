@@ -100,8 +100,18 @@ instance
 
         Right user ->
           insertUnique user >>= \case
-            Nothing ->
-              return (Error.openLeft User.AlreadyExists)
+            Nothing -> do
+              -- NOTE needs to be updated anlong with DB constraints
+              --      because Postgres doesn't do this out of the box
+
+              -- FIXME stringly typed
+              conflUN <- (fmap \_ -> "username")  <$> getBy (UniqueUsername username)
+              conflPK <- (fmap \_ -> "publicKey") <$> getBy (UniquePublicKey $ Just pk)
+                -- confEmail TODO
+               
+              let badField = conflUN <|> conflPK
+
+              return (Error.openLeft $ User.AlreadyExists) -- conflict)
 
             Just userId ->
               User.setData userId App.Content.empty now >>= \case

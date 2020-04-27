@@ -19,6 +19,7 @@ newtype Username = Username { username :: Text }
   deriving anyclass ( ToParamSchema )
   deriving newtype  ( Show
                     , Eq
+                    , Display
                     , IsString
                     , ToHttpApiData
                     )

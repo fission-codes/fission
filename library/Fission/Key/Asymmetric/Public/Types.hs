@@ -17,6 +17,9 @@ import           Fission.Key.Asymmetric.Algorithm.Types
 newtype Public = Public { publicKey :: ByteString }
   deriving (Eq, Show)
 
+instance Display Public where
+  textDisplay (Public raw) = decodeUtf8Lenient raw
+
 instance IsString Public where
   fromString = Public . fromString
 
