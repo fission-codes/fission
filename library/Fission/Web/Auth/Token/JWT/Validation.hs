@@ -8,6 +8,8 @@ module Fission.Web.Auth.Token.JWT.Validation
   , checkRSA2048Signature
   ) where
 
+import qualified Data.ByteString.Base64 as BS64
+
 import           Crypto.Error
 import           Crypto.Hash.Algorithms (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
@@ -145,7 +147,7 @@ checkSignature rawContent jwt@JWT {sig} =
 
 checkRSA2048Signature :: Text -> JWT -> RS256.Signature -> Either JWT.Error JWT
 checkRSA2048Signature rawContent jwt@JWT {..} (RS256.Signature innerSig) = do
-  case Crypto.decodeToRSA2048PK pk' of
+  case Crypto.decodeToRSA2048PK $ BS64.decodeLenient pk' of
     Left _ ->
       Left $ JWT.SignatureError InvalidPublicKey
 

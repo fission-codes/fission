@@ -36,7 +36,8 @@ withDID ::
   )
   => DID
   -> ServerT API m
-withDID DID {..} User.Registration {username, email} = do
+withDID did@DID {..} User.Registration {username, email} = do
+  logWarn $ "HERE! " <> textDisplay did
   Web.Err.ensureM =<< runDBNow (User.create username publicKey algorithm email)
   return NoContent
 

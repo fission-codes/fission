@@ -41,7 +41,7 @@ instance ToHttpApiData Token where
     Basic basic   -> toUrlPiece basic
     Bearer bearer -> toUrlPiece bearer
 
-instance FromHttpApiData Token  where
+instance FromHttpApiData Token where
   parseUrlPiece txt =
     case eitherDecode . Lazy.fromStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
       Right token -> Right token

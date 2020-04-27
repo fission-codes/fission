@@ -138,11 +138,9 @@ instance
               determineConflict username Nothing
 
             Just userId ->
-              now
-                |> App.createWithPlaceholder userId
-                |> fmap \case
-                  Left err -> Error.relaxedLeft err
-                  Right _  -> Right userId
+              App.createWithPlaceholder userId now <&> \case
+                Left err -> Error.relaxedLeft err
+                Right _  -> Right userId
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
@@ -178,7 +176,7 @@ determineConflict ::
   => Username
   -> Maybe Key.Public
   -> Transaction m (Either Errors a)
-
+ 
 determineConflict username Nothing =
   return . Error.openLeft $ User.ConflictingUsername username
  

@@ -6,6 +6,7 @@ module Fission.User.DID.Types
 
 import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
+import qualified Data.ByteString.Base64 as BS64
 
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
@@ -70,6 +71,9 @@ instance Arbitrary DID where
 
     return DID {..}
 
+instance Display DID where
+  textDisplay = Text.pack . show
+
 instance ToJSON DID where
   toJSON (DID (Key.Public pk) algo method) = -- NOTE `pk` here is base2, not base58
     String (header <> UTF8.toBase58Text multicodecW8)
@@ -108,7 +112,7 @@ instance FromJSON DID where
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
             return DID
-              { publicKey = Key.Public $ BS.pack rsaKeyW8s
+              { publicKey = Key.Public . BS64.encode $ BS.pack rsaKeyW8s
               , algorithm = RSA2048
               , method    = Key
               }
