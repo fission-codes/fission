@@ -16,9 +16,10 @@ rioApacheLogger ::
   -> Maybe Integer
   -> m ()
 rioApacheLogger Request {..} Status {..} _mayInt =
-  if | statusCode >= 500 -> logError formatted
-     | statusCode >= 400 -> logInfo  formatted
-     | otherwise         -> logDebug formatted
+  unless (statusCode == 404 && requestHeaderUserAgent == Just "ELB-HealthChecker/2.0") do
+    if | statusCode >= 500 -> logError formatted
+       | statusCode >= 400 -> logInfo  formatted
+       | otherwise         -> logDebug formatted
   where
     formatted :: Utf8Builder
     formatted = mconcat

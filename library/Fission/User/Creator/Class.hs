@@ -178,6 +178,7 @@ determineConflict ::
   => Username
   -> Maybe Key.Public
   -> Transaction m (Either Errors a)
+
 determineConflict username Nothing =
   return . Error.openLeft $ User.ConflictingUsername username
  
