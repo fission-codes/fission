@@ -37,7 +37,7 @@ instance PersistField Public where
 
   fromPersistValue = \case
     PersistText txt -> Right (Public $ encodeUtf8 txt)
-    other           -> Left  ("Invalid Persistent DID: " <> Text.pack (show other))
+    other           -> Left  ("Invalid Persistent PK: " <> Text.pack (show other))
 
 instance PersistFieldSql Public where
   sqlType _pxy = SqlString
@@ -50,7 +50,7 @@ instance Binary Public where
 instance ToSchema Public where
   declareNamedSchema _ =
     mempty
-      |> type_ ?~ SwaggerInteger
+      |> type_ ?~ SwaggerString
       |> description ?~ "A public key"
       |> NamedSchema (Just "PublicKey")
       |> pure
