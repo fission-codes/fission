@@ -21,19 +21,17 @@ tests =
       itsProp' "verifies" \(jwt@JWT {..}, sk) ->
         let
           pk         = Ed25519.toPublic sk
-          header'    = header { alg = Alg.Ed25519 }
           claims'    = claims { sender = did }
           sig'       = signEd25519 header' claims' sk
           rawContent = B64.URL.encodeJWT header' claims'
 
           did = DID
             { publicKey = Key.Public $ B64.toB64ByteString pk
-            , algorithm = Alg.Ed25519
             , method    = Key
             }
 
           jwt' = jwt
-            { header = header'
+            { header = header
             , claims = claims'
             , sig    = sig'
             }

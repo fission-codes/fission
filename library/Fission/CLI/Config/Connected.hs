@@ -84,7 +84,6 @@ liftConfig BaseConfig {..} = do
 
                 cliDID = DID
                   { publicKey = Key.Public . B64.toByteString $ Ed25519.toPublic secretKey
-                  , algorithm = Key.Ed25519
                   , method    = Key
                   }
 

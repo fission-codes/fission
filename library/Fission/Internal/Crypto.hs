@@ -23,7 +23,11 @@ base64ToEd25519Signature = Crypto.Ed25519.signature . B64.Scrubbed.scrubB64
 base64ToEd25519PK :: ByteString -> CryptoFailable Crypto.Ed25519.PublicKey
 base64ToEd25519PK = Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64
 
--- Operates on non-base58
+
+
+
+-- FIXME remove -- migrated to Key.Public,.Types
+-- NOTE! Operates on non-base58
 decodeToRSA2048PK :: ByteString -> Either String Crypto.RSA.PublicKey
 decodeToRSA2048PK raw =
   case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER raw of

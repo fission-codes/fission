@@ -56,7 +56,6 @@ HerokuAddOn
 
 User
   publicKey     Key.Public    Maybe
-  algorithm     Key.Algorithm Maybe
 
   email         Email         Maybe
   username      Username

@@ -55,7 +55,6 @@ ucan now fissionDID sk proof = JWT {..}
 
     senderDID = DID
       { publicKey = Key.Public . B64.toB64ByteString $ Ed25519.toPublic sk
-      , algorithm = Key.Ed25519
       , method    = DID.Key
       }
 

@@ -36,8 +36,7 @@ defaultConfig = Config
   , linkedPeers     = pure $ IPFS.Peer "ipv4/fakepeeraddress"
   , didVerifier     = mkAuthHandler \_ ->
       return $ DID
-        { publicKey = Key.Public "thisismydid"
-        , algorithm = RSA2048
+        { publicKey = pk
         , method    = Key
         }
   , userVerifier    = mkAuthHandler  \_ -> pure $ Fixture.entity Fixture.user
@@ -67,7 +66,12 @@ authZ = return Authorization
     }
     where
       did = DID
-        { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
-        , algorithm = Ed25519
+        { publicKey = pk
         , method    = Key
         }
+
+pk :: Key.Public
+Right pk = parseUrlPiece rawPK
+
+rawPK :: Text
+rawPK = "1498b5467a63dffa2dc9d9e069caf075d16fc33fdd4c3b01bfadae6433767d93"

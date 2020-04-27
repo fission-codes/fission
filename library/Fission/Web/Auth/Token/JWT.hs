@@ -38,8 +38,7 @@ import qualified Fission.Internal.UTF8       as UTF8
  
 import           Fission.Internal.RSA2048.Pair.Types
 
-import qualified Fission.Key                            as Key
-import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
+import qualified Fission.Key as Key
 
 import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
@@ -65,45 +64,19 @@ instance Arbitrary JWT where
   arbitrary = do
     header  <- arbitrary
     claims' <- arbitrary
+    pk      <- arbitrary
 
-    case alg header of
-      Algorithm.Ed25519 -> do
-        sk <- arbitrary
+    let
+      did = DID
+        { publicKey = pk
+        , method    = Key
+        }
 
-        let
-          did = DID
-            { publicKey = Key.Public . B64.toB64ByteString $ toPublic sk
-            , algorithm = Algorithm.Ed25519
-            , method    = Key
-            }
+      claims = claims' { sender = did }
+      sig    = signEd25519 header claims sk
 
-          claims = claims' { sender = did }
-          sig    = signEd25519 header claims sk
-         
-        return JWT {..}
-
-      Algorithm.RSA2048 ->
-        genRSA header claims'
-  
-genRSA :: Header -> Claims -> Gen JWT
-genRSA header claims' = do
-  Pair _pk sk <- arbitrary
-
-  let
-    pk = Key.Public "FAKE_publickey"
-
-    did = DID
-      { publicKey = pk
-      , algorithm = Algorithm.RSA2048
-      , method    = Key
-      }
-
-    claims = claims' { sender = did }
-
-  case Unsafe.unsafePerformIO $ signRS256 header claims sk of
-    Right sig -> return JWT {..}
-    Left  _   -> genRSA header claims
-
+    return JWT {..}
+ 
 instance ToJSON JWT where
   toJSON JWT {..} = String . decodeUtf8Lenient $
     encodeB64 header <> "." <> encodeB64 claims <> "." <> signed
@@ -184,22 +157,20 @@ instance Eq Claims where
 
 instance Arbitrary Claims where
   arbitrary = do
-    sender <- arbitrary
-   
-    let receiver = DID
-          { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
-          , algorithm = Algorithm.Ed25519
-          , method    = Key
-          }
-
-    scope' <- arbitrary
-    let scope = "/" <> scope'
-
+    sender  <- arbitrary
+    scope'  <- arbitrary
     potency <- arbitrary
     proof   <- arbitrary
+    exp     <- fromSeconds . toSeconds <$> arbitrary
+    nbf     <- arbitrary
+    pk      <- arbitrary
 
-    exp <- fromSeconds . toSeconds <$> arbitrary
-    nbf <- arbitrary
+    let
+      scope = "/" <> scope'
+      receiver = DID
+        { publicKey = pk
+        , method    = Key
+        }
 
     return Claims {..}
 
@@ -246,7 +217,7 @@ instance Arbitrary Proof where
     , (4, pure RootCredential)
     ] |> frequency
       |> fmap \case
-        Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1. decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
+        Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
         prf          -> prf
 
 instance ToJSON Proof where

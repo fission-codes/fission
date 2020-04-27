@@ -14,7 +14,7 @@ import qualified Fission.User as User
 type API
   =  Summary "Update Public Key"
   :> Description "Set currently authenticated user's root public key to another one"
-  :> ReqBody '[JSON] (Key.Public, Key.Algorithm)
+  :> ReqBody '[JSON] Key.Public
   :> Patch   '[PlainText, OctetStream, JSON] NoContent
 
 server ::
@@ -24,6 +24,6 @@ server ::
   )
   => Authorization
   -> ServerT API m
-server Authorization {about = Entity userID _} (pk, alg) = do
-  runDBNow $ User.updatePublicKey userID pk alg
+server Authorization {about = Entity userID _} pk = do
+  runDBNow $ User.updatePublicKey userID pk
   return NoContent

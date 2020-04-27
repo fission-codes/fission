@@ -51,7 +51,6 @@ class Heroku.AddOn.Creator m => Creator m where
   create ::
        Username
     -> Key.Public
-    -> Key.Algorithm
     -> Email
     -> UTCTime
     -> m (Either Errors (UserId, Subdomain))
@@ -79,10 +78,9 @@ instance
   , App.Content.Initializer m
   )
   => Creator (Transaction m) where
-  create username pk algo email now =
+  create username pk email now =
     User
       { userPublicKey     = Just pk
-      , userAlgorithm     = Just algo
       , userUsername      = username
       , userEmail         = Just email
       , userRole          = Regular
@@ -121,7 +119,6 @@ instance
       Right secretDigest ->
         User
           { userPublicKey     = Nothing
-          , userAlgorithm     = Nothing
           , userUsername      = username
           , userEmail         = Just email
           , userRole          = Regular
@@ -155,7 +152,6 @@ instance
           Right secretDigest ->
             User
               { userPublicKey     = Nothing
-              , userAlgorithm     = Nothing
               , userUsername      = username
               , userEmail         = Nothing
               , userRole          = Regular

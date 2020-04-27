@@ -15,7 +15,6 @@ tests =
       it "serializes RSA2048 and Ed25519 differently"
         let
           rsa = DID (Key.Public "12345") RSA2048 Key
-          ed  = rsa { algorithm = Ed25519 }
         in
           encode rsa `shouldNotBe` encode ed
 

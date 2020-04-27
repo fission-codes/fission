@@ -51,7 +51,6 @@ import           Fission.Web.Auth.Token.Basic.Class
 
 import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
-import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
 import           Fission.User                  as User
 import           Fission.LoosePin              as LoosePin
@@ -302,6 +301,5 @@ instance MonadWebAuth (Mock effs) Authorization where
     where
       did = DID
         { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
-        , algorithm = Ed25519
         , method    = Key
         }

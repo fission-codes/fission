@@ -8,8 +8,11 @@ import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
 import qualified Data.ByteString.Base64 as BS64
 
-import qualified RIO.ByteString as BS
-import qualified RIO.Text       as Text
+import qualified RIO.ByteString      as BS
+import qualified RIO.ByteString.Lazy as BS.Lazy
+import qualified RIO.Text            as Text
+
+import           Servant.API
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
@@ -59,14 +62,12 @@ Just (DID {publicKey = Public {publicKey = "AAAAB3NzaC1yc2EAAAADAQABAAABAQDkrRwc
 -}
 data DID = DID
   { publicKey :: !Key.Public
-  , algorithm :: !Key.Algorithm
   , method    :: !Method
   } deriving (Show, Eq)
 
 instance Arbitrary DID where
   arbitrary = do
     publicKey <- arbitrary
-    algorithm <- arbitrary
     method    <- arbitrary
 
     return DID {..}
@@ -75,25 +76,25 @@ instance Display DID where
   textDisplay = Text.pack . show
 
 instance ToJSON DID where
-  toJSON (DID (Key.Public pk) algo method) = -- NOTE `pk` here is base2, not base58
+  toJSON (DID pk method) = -- NOTE `pk` here is base2, not base58
     String (header <> UTF8.toBase58Text multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"
 
       multicodecW8 :: ByteString
-      multicodecW8 = BS.pack magicBytes <> pk
+      multicodecW8 = BS.pack magicBytes <> BS.Lazy.toStrict (encode pk)
 
       magicBytes :: [Word8]
       magicBytes =
-        case algo of
-          Ed25519 -> [0xed, 0x01]
-          RSA2048 -> [0x00, 0xF5, 0x02]
-                  {-   ^     ^     ^
-                       |     |     |
-                       |    "expect 373 Bytes", encoded in the mixed-endian format
-                     "raw"
-                  -}
+        case pk of
+          Ed25519PublicKey _ _ -> [0xed, 0x01]
+          RSAPublicKey     _ _ -> [0x00, 0xF5, 0x02]
+                               {-   ^     ^     ^
+                                    |     |     |
+                                    |    "expect 373 Bytes", encoded in the mixed-endian format
+                                  "raw"
+                               -}
 
 instance FromJSON DID where
   parseJSON = withText "DID" \txt ->
@@ -104,18 +105,14 @@ instance FromJSON DID where
       Just fragment ->
         case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : 0x01 : edKeyW8s) ->
-            return DID
-              { publicKey = Key.Public $ BS.pack edKeyW8s
-              , algorithm = Ed25519
-              , method    = Key
-              }
+            case parseUrlPiece . decodeUtf8Lenient $ BS.pack edKeyW8s of
+              Right pk -> return $ DID pk Key
+              Left err -> fail $ "Unable to parse public key: " <> Text.unpack err
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-            return DID
-              { publicKey = Key.Public . BS64.encode $ BS.pack rsaKeyW8s
-              , algorithm = RSA2048
-              , method    = Key
-              }
+            case parseUrlPiece . decodeUtf8Lenient . BS64.encode $ BS.pack rsaKeyW8s of
+              Right pk -> return $ DID pk Key
+              Left err -> fail $ "Unable to parse public key: " <> Text.unpack err
 
           nope ->
             fail $ show nope <> " is not an acceptable did:key"
