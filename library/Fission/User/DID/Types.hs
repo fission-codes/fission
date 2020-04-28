@@ -88,13 +88,13 @@ instance ToJSON DID where
       magicBytes :: [Word8]
       magicBytes =
         case pk of
-          Ed25519PublicKey _ _ -> [0xed, 0x01]
-          RSAPublicKey     _ _ -> [0x00, 0xF5, 0x02]
-                               {-   ^     ^     ^
-                                    |     |     |
-                                    |    "expect 373 Bytes", encoded in the mixed-endian format
-                                  "raw"
-                               -}
+          Ed25519PublicKey _ -> [0xed, 0x01]
+          RSAPublicKey     _ -> [0x00, 0xF5, 0x02]
+                             {-   ^     ^     ^
+                                  |     |     |
+                                  |    "expect 373 Bytes", encoded in the mixed-endian format
+                                "raw"
+                             -}
 
 instance FromJSON DID where
   parseJSON = withText "DID" \txt ->

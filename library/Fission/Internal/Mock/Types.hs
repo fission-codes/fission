@@ -26,11 +26,10 @@ import           Fission.Internal.Fixture            as Fixture
 import           Fission.Internal.Mock.Effect        as Effect
 import           Fission.Internal.Mock.Config.Types  as Mock
 import           Fission.Internal.Mock.Session.Types
+import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 
 import           Fission.Prelude
  
-import qualified Fission.Key as Key
-
 import           Fission.Authorization.Types
 import           Fission.Authorization.Potency.Types
 
@@ -220,7 +219,7 @@ instance
   , IsMember UpdateRoute53     effs
   )
   => User.Creator (Mock effs) where
-  create _ _ _ _ _ = do
+  create _ _ _ _ = do
     Effect.log CreateUser
     Effect.log UpdateRoute53
     return $ Right (Database.toSqlKey 0, Subdomain "new-subdomain")
@@ -240,7 +239,7 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
     Effect.log $ ModifyUser uID
     return $ Right password
 
-  updatePublicKey uID newPK _ _ = do
+  updatePublicKey uID newPK _ = do
     Effect.log $ ModifyUser uID
     return newPK
 
@@ -300,6 +299,6 @@ instance MonadWebAuth (Mock effs) Authorization where
     }
     where
       did = DID
-        { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+        { publicKey = Ed25519.pk
         , method    = Key
         }

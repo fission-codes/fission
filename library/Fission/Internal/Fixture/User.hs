@@ -1,15 +1,14 @@
 module Fission.Internal.Fixture.User (user) where
 
 import           Network.IPFS.CID.Types
-import           Servant.API
 
 import           Fission.Prelude
-import qualified Fission.Key as Key
 import           Fission.Models
 
 import qualified Fission.User.Role.Types as User.Roles
 
 import           Fission.Internal.Fixture.Time
+import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 
 user :: User
 user = User
@@ -23,7 +22,7 @@ user = User
 
   --
 
-  , userPublicKey = Just pk
+  , userPublicKey = Just Ed25519.pk
   , userDataRoot  = CID "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
 
   --
@@ -37,8 +36,3 @@ user = User
   , userModifiedAt = agesAgo
   }
 
-pk :: Key.Public
-Right pk = parseUrlPiece rawPK
-
-rawPK :: Text
-rawPK = "1498b5467a63dffa2dc9d9e069caf075d16fc33fdd4c3b01bfadae6433767d93"

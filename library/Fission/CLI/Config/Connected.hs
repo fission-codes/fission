@@ -11,8 +11,6 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Network.IPFS
 
 import           Fission.Prelude
-import qualified Fission.Internal.Base64 as B64
- 
 import           Fission.Authorization.ServerDID
 import qualified Fission.Key as Key
 import           Fission.User.DID.Types
@@ -81,9 +79,9 @@ liftConfig BaseConfig {..} = do
               let
                 ignoredFiles = Environment.ignored config
                 ucanLink = Nothing
-
+             
                 cliDID = DID
-                  { publicKey = Key.Public . B64.toByteString $ Ed25519.toPublic secretKey
+                  { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
                   , method    = Key
                   }
 

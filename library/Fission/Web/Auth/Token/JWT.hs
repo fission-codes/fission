@@ -38,7 +38,7 @@ import qualified Fission.Internal.UTF8       as UTF8
  
 import           Fission.Internal.RSA2048.Pair.Types
 
-import qualified Fission.Key as Key
+import           Fission.Key as Key
 
 import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
@@ -64,11 +64,11 @@ instance Arbitrary JWT where
   arbitrary = do
     header  <- arbitrary
     claims' <- arbitrary
-    pk      <- arbitrary
+    sk      <- arbitrary
 
     let
       did = DID
-        { publicKey = pk
+        { publicKey = Ed25519PublicKey $ toPublic sk
         , method    = Key
         }
 

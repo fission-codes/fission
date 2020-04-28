@@ -1,8 +1,6 @@
 -- | Setup command
 module Fission.CLI.Command.Setup (cmd, setup) where
 
-import qualified RIO.Text as Text
-
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import           Network.HTTP.Types.Status
@@ -141,7 +139,7 @@ upgradeAccount auth = do
     UTF8.putText "📝 Upgrading your account... "
     Key.publicKeyEd >>= \case
       Left  err -> CLI.Error.put err "Could not read key file"
-      Right pk  -> updateDID . Key.Public . encodeUtf8 . Text.pack $ show pk
+      Right pk  -> updateDID $ Key.Ed25519PublicKey pk
 
 createKey :: MonadIO m => m ()
 createKey = do
@@ -161,7 +159,7 @@ updateDID ::
   => Key.Public
   -> m ()
 updateDID pk = do
-  sendRequestM (authClient (Proxy @User.UpdatePK) `withPayload` (pk, Key.Ed25519)) >>= \case
+  sendRequestM (authClient (Proxy @User.UpdatePK) `withPayload` pk) >>= \case
     Left err ->
       CLI.Error.put err "Could not upgrade account"
 

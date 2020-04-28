@@ -11,6 +11,7 @@ import qualified Data.ASN1.Types          as ASN1
 
 import qualified Data.X509 as X509
 
+import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 import           Crypto.Error
@@ -30,42 +31,42 @@ import Fission.Internal.Orphanage.RSA2048.Public ()
 import Fission.Internal.Orphanage.Ed25519.PublicKey ()
 
 data Public
-  = Ed25519PublicKey Crypto.Ed25519.PublicKey Text -- BS64 encoded
-  | RSAPublicKey     Crypto.RSA.PublicKey     Text -- BS64 encoded
+  = Ed25519PublicKey Crypto.Ed25519.PublicKey -- Text REMONDER ensure that raw is-- BS64 encoded
+  | RSAPublicKey     Crypto.RSA.PublicKey     -- Text -- BS64 encoded
   deriving Eq
 
 instance Show Public where
   show = Text.unpack . textDisplay
 
 instance Display Public where
-  textDisplay = \case
-    RSAPublicKey     _ raw -> raw
-    Ed25519PublicKey _ raw -> raw
+  textDisplay (RSAPublicKey pk) =
+    undefined -- FIXME
+    -- X50-9 stuffraw
+
+  textDisplay (Ed25519PublicKey pk) =
+    decodeUtf8Lenient $ B64.toB64ByteString pk
 
 instance Arbitrary Public where
   arbitrary = oneof
-    [ Ed25519PublicKey <$> arbitrary <*> arbitrary
-    , RSAPublicKey     <$> arbitrary <*> arbitrary
+    [ Ed25519PublicKey <$> arbitrary
+    , RSAPublicKey     <$> arbitrary
     ]
+
+instance ToHttpApiData Public where
+  toUrlPiece = textDisplay
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
     if Text.length txt < 50 -- NOTE Ed25519 is 44. 50 for some buffer space.
       then
         case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
-          CryptoPassed pk ->
-            Right $ Ed25519PublicKey pk txt
-
-          _ ->
-            Left $ "Unable to decode Ed25519 PK: " <> txt
+          CryptoPassed pk -> Right $ Ed25519PublicKey pk
+          _ -> Left $ "Unable to decode Ed25519 PK: " <> txt
 
       else
         case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (encodeUtf8 txt) of
-          Right (Right (X509.PubKeyRSA pk, _)) ->
-            Right $ RSAPublicKey pk txt
-
-          _ ->
-            Left $ "Unable to decode as RSA 2048 key: " <> txt
+          Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
+          _ -> Left $ "Unable to decode as RSA 2048 key: " <> txt
 
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
@@ -77,13 +78,10 @@ instance FromJSON Public where
       Left msg -> fail $ Text.unpack msg
 
 instance ToJSON Public where
-  toJSON (RSAPublicKey     _ raw) = String raw
-  toJSON (Ed25519PublicKey _ raw) = String raw
+  toJSON = String . textDisplay
 
 instance PersistField Public where
-  toPersistValue = \case
-    Ed25519PublicKey _ raw -> PersistText raw
-    RSAPublicKey     _ raw -> PersistText raw
+  toPersistValue = PersistText . textDisplay
 
   fromPersistValue (PersistText txt) = parseUrlPiece txt
   fromPersistValue other = Left $ "Invalid Persistent PK: " <> Text.pack (show other)

@@ -147,32 +147,32 @@ checkSignature rawContent jwt@JWT {sig} =
 
 checkRSA2048Signature :: Text -> JWT -> RS256.Signature -> Either JWT.Error JWT
 checkRSA2048Signature rawContent jwt@JWT {..} (RS256.Signature innerSig) = do
-  case Crypto.decodeToRSA2048PK $ BS64.decodeLenient pk' of
-    Left _ ->
-      Left $ JWT.SignatureError InvalidPublicKey
-
-    Right pk ->
-      if Crypto.RSA.PKCS.verify (Just SHA256) pk (encodeUtf8 rawContent) innerSig
+  case publicKey of
+    RSAPublicKey pk ->
+      if Crypto.RSA.PKCS.verify (Just SHA256) pk content innerSig
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
+
+    _ ->
+      Left $ JWT.SignatureError InvalidPublicKey
  
   where
-    Claims {sender = User.DID {publicKey = Key.Public pk'}} = claims
+    content = encodeUtf8 rawContent
+    Claims {sender = User.DID {publicKey}} = claims
 
 checkEd25519Signature :: Text -> JWT -> Either JWT.Error JWT
 checkEd25519Signature rawContent jwt@JWT {..} =
-  case (errOrPk, Crypto.Ed25519.signature sig) of
-    (CryptoPassed pk', CryptoPassed sig') ->
-      if Crypto.Ed25519.verify pk' (encodeUtf8 rawContent) sig'
+  case (publicKey, Crypto.Ed25519.signature sig) of
+    (Ed25519PublicKey pk, CryptoPassed sig') ->
+      if Crypto.Ed25519.verify pk (encodeUtf8 rawContent) sig'
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
 
-    (CryptoFailed _, _) ->
-      Left $ JWT.SignatureError InvalidPublicKey
-
     (_, CryptoFailed _) ->
       Left $ JWT.SignatureError InvalidSignature
+ 
+    (_, _) ->
+      Left $ JWT.SignatureError InvalidPublicKey
     
   where
-    errOrPk = Crypto.Ed25519.publicKey $ B64.Scrubbed.scrubB64 pk
-    Claims {sender = User.DID {publicKey = Key.Public pk}} = claims
+    Claims {sender = User.DID {publicKey}} = claims
