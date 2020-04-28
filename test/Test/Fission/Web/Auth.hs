@@ -6,15 +6,15 @@ import           Servant.Server.Experimental.Auth
 
 import           Test.Tasty.Hspec
 
-import           Fission.Key as Key
-import           Fission.User.DID.Types
+import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 
 import           Fission.Internal.Fixture.Entity as Fixture
 import           Fission.Internal.Fixture.User   as Fixture
 
-import           Fission.Web.Auth
-import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.Authorization.Types
+import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import           Fission.User.DID.Types
+import           Fission.Web.Auth
 
 import           Test.Fission.Prelude               as Mock
 import qualified Test.Fission.Web.Auth.Token.JWT    as JWT
@@ -60,7 +60,7 @@ tests = do
 
         context "DID auth" do
           it "uses the encapsulated function" do
-            didResult `shouldBe` Right (DID  Key) -- FIXME <<<< WORKING ON THIS
+            didResult `shouldBe` Right (DID Ed25519.pk Key)
 
         context "heroku auth" do
           it "uses the encapsulated function" do

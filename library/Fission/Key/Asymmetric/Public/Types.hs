@@ -67,18 +67,6 @@ instance FromHttpApiData Public where
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
           err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err) <> txt
 
--- FIXME remove
-    -- if Text.length txt < 60 -- NOTE: Ed25519 is typically 44 / added some buffer for padding &c
-    --   then
-    --     case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
-    --       CryptoPassed pk -> Right $ Ed25519PublicKey pk
-    --       err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err) <> txt
-
-    --   else
-    --     case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
-    --       Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
-    --       err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
-
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
 
