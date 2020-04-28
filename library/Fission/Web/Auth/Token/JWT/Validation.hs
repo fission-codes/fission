@@ -8,8 +8,6 @@ module Fission.Web.Auth.Token.JWT.Validation
   , checkRSA2048Signature
   ) where
 
-import qualified Data.ByteString.Base64 as BS64
-
 import           Crypto.Error
 import           Crypto.Hash.Algorithms (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
@@ -19,6 +17,11 @@ import           Control.Monad.Trans.Except
 
 import           Fission.Prelude
 import           Fission.SemVer.Types
+
+import           Fission.Key  as Key
+import qualified Fission.User as User
+
+import           Fission.Authorization.ServerDID.Class
  
 import           Fission.Web.Auth.Token.JWT.Resolver as Proof
 
@@ -30,17 +33,9 @@ import           Fission.Web.Auth.Token.JWT.Proof as JWT.Proof
  
 import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-
-import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
-import qualified Fission.Internal.Crypto          as Crypto
-
-import           Fission.Key  as Key
-import qualified Fission.User as User
-
+ 
 import           Fission.Web.Auth.Token.JWT       as JWT
 import           Fission.Web.Auth.Token.JWT.Error as JWT
-
-import           Fission.Authorization.ServerDID.Class
 
 check ::
   ( Proof.Resolver m

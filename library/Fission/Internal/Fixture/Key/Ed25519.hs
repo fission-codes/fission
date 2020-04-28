@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Fission.Internal.Fixture.Key.Ed25519
   ( pk
   , rawPK

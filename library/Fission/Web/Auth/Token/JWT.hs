@@ -11,6 +11,8 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.Header.Types
   ) where
 
+import qualified System.IO.Unsafe as Unsafe
+
 import           Crypto.Random          (MonadRandom (..))
 import           Crypto.Hash.Algorithms (SHA256 (..))
  
@@ -29,6 +31,8 @@ import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
 import           Fission.Prelude
+
+import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
 import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
@@ -60,18 +64,28 @@ instance Arbitrary JWT where
   arbitrary = do
     header  <- arbitrary
     claims' <- arbitrary
-    sk      <- arbitrary
+
+    (pk, sk) <- case alg header of
+      Algorithm.RSA2048 -> do
+        exp <- elements [3, 5, 17, 257, 65537]
+        let (pk', sk') = Unsafe.unsafePerformIO $ RSA.generate 2048 exp
+        return (RSAPublicKey pk', Left sk')
+
+      Algorithm.Ed25519 -> do
+        sk' <- arbitrary
+        return (Ed25519PublicKey (toPublic sk'), Right sk')
 
     let
-      did = DID
-        { publicKey = Ed25519PublicKey $ toPublic sk
-        , method    = Key
-        }
+      sender = DID pk Key
+      claims = claims' {sender}
+   
+      sig' = case sk of
+        Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
+        Right edSK -> Right $ signEd25519 header claims edSK
 
-      claims = claims' { sender = did }
-      sig    = signEd25519 header claims sk
-
-    return JWT {..}
+    case sig' of
+      Left _    -> arbitrary -- Something went wrong, so retry
+      Right sig -> return JWT {..}
  
 instance ToJSON JWT where
   toJSON JWT {..} = String . decodeUtf8Lenient $
