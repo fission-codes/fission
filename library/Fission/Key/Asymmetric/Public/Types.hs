@@ -1,42 +1,35 @@
-module Fission.Key.Asymmetric.Public.Types
-  ( Public (..)
-  -- , Algorithm (..)
-  ) where
+module Fission.Key.Asymmetric.Public.Types (Public (..)) where
 
--- import           Data.ByteArray
+import qualified Codec.Crypto.RSA.Pure as RSA
 
 import qualified Data.ASN1.BinaryEncoding as ASN1
 import qualified Data.ASN1.Encoding       as ASN1
 import qualified Data.ASN1.Types          as ASN1
 
-import qualified Data.X509 as X509
- 
-import qualified Data.ByteString.Base64 as BS64
+import qualified Data.Binary as Binary
+import           Data.Swagger
+import           Database.Persist.Postgresql
 
-import qualified Fission.Internal.Base64     as B64
+import qualified Data.ByteString.Base64 as BS64
+import qualified Data.X509 as X509
+
+import qualified Fission.Internal.Base64         as B64
 import qualified Fission.Internal.Base64.URL     as B64.URL
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA        as Crypto.RSA
+import qualified Crypto.PubKey.Ed25519 as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA     as Crypto.RSA
 
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
-import Servant.API
-
-import           Data.Swagger
-import           Database.Persist.Postgresql
+import           Servant.API
 
 import           Fission.Prelude hiding (length)
 
-import Fission.Internal.Orphanage.RSA2048.Public    ()
-import Fission.Internal.Orphanage.Ed25519.PublicKey ()
-
-import qualified Data.Binary as Binary
-
-import qualified Codec.Crypto.RSA.Pure as RSA
+import           Fission.Internal.Orphanage.RSA2048.Public    ()
+import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey

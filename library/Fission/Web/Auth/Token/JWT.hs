@@ -24,7 +24,6 @@ import qualified Data.ByteString.Base64.URL as BS.B64.URL
 import qualified Data.ByteString.Lazy.Char8 as Char8
  
 import           Network.IPFS.CID.Types
--- import           Servant.API
 
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
