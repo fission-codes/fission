@@ -37,7 +37,7 @@ import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
 import qualified Fission.Internal.UTF8       as UTF8
- 
+
 import           Fission.Key as Key
 
 import           Fission.Authorization.Potency.Types
