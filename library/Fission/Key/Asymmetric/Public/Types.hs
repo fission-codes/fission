@@ -10,8 +10,11 @@ import qualified Data.ASN1.Encoding       as ASN1
 import qualified Data.ASN1.Types          as ASN1
 
 import qualified Data.X509 as X509
+ 
+import qualified Data.ByteString.Base64 as BS64
 
 import qualified Fission.Internal.Base64     as B64
+import qualified Fission.Internal.Base64.URL     as B64.URL
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 import           Crypto.Error
@@ -28,7 +31,7 @@ import           Database.Persist.Postgresql
 
 import           Fission.Prelude hiding (length)
 
-import Fission.Internal.Orphanage.RSA2048.Public ()
+import Fission.Internal.Orphanage.RSA2048.Public    ()
 import Fission.Internal.Orphanage.Ed25519.PublicKey ()
 
 import qualified Data.Binary as Binary
@@ -61,16 +64,16 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if Text.length txt < 60 -- NOTE: Ed25519 is typically 44. 88 for some buffer space.
+    if Text.length txt < 60 -- NOTE: Ed25519 is typically 44 / added some buffer for padding &c
       then
         case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
-          _ -> Left $ "Unable to decode Ed25519 PK: " <> txt
+          err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err) <> txt
 
       else
-        case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (encodeUtf8 txt) of
+        case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
           Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
-          _ -> Left $ "Unable to decode as RSA 2048 key: " <> txt
+          err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
 
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack

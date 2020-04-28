@@ -58,9 +58,9 @@ tests = do
           it "uses the encapsulated function" do
             fmap about userResult `shouldBe` Right (Fixture.entity Fixture.user)
 
-        context "DID auth" do
-          it "uses the encapsulated function" do
-            didResult `shouldBe` Right (DID (Key.Public "thisismydid") RSA2048 Key)
+        -- context "DID auth" do
+        --   it "uses the encapsulated function" do
+        --     didResult `shouldBe` Right (DID (Key.Public "thisismydid") RSA2048 Key)
 
         context "heroku auth" do
           it "uses the encapsulated function" do

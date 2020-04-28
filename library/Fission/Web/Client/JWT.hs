@@ -12,7 +12,6 @@ import           Fission.Prelude
  
 import qualified Fission.Internal.Orphanage.ClientM ()
  
-import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
 
 import qualified Fission.Key      as Key

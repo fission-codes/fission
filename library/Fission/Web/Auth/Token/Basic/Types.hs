@@ -14,6 +14,9 @@ newtype Token = Token { unToken :: ByteString }
 instance Arbitrary Token where
   arbitrary = Token . encodeUtf8 <$> arbitrary
 
+instance Display Token where
+  textDisplay = Text.pack . show
+
 instance ToJSON Token where
   toJSON (Token bs) = String $ "Basic " <> decodeUtf8Lenient bs
 

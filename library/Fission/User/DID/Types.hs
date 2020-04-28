@@ -105,12 +105,12 @@ instance FromJSON DID where
       Just fragment ->
         case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : 0x01 : edKeyW8s) ->
-            case parseUrlPiece . decodeUtf8Lenient $ BS.pack edKeyW8s of
+            case parseHeader $ BS.pack edKeyW8s of
               Right pk -> return $ DID pk Key
               Left err -> fail $ "Unable to parse public key: " <> Text.unpack err
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-            case parseUrlPiece . decodeUtf8Lenient . BS64.encode $ BS.pack rsaKeyW8s of
+            case parseHeader . BS64.encode $ BS.pack rsaKeyW8s of
               Right pk -> return $ DID pk Key
               Left err -> fail $ "Unable to parse public key: " <> Text.unpack err
 

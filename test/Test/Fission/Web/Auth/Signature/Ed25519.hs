@@ -22,11 +22,11 @@ tests =
         let
           pk         = Ed25519.toPublic sk
           claims'    = claims { sender = did }
-          sig'       = signEd25519 header' claims' sk
-          rawContent = B64.URL.encodeJWT header' claims'
+          sig'       = signEd25519 header claims' sk
+          rawContent = B64.URL.encodeJWT header claims'
 
           did = DID
-            { publicKey = Key.Public $ B64.toB64ByteString pk
+            { publicKey = Key.Ed25519PublicKey pk
             , method    = Key
             }
 

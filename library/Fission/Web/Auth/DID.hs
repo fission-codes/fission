@@ -1,6 +1,7 @@
 module Fission.Web.Auth.DID (handler) where
 
 import           Network.Wai
+import qualified RIO.Text as Text
 
 import           Fission.Prelude
  
@@ -40,5 +41,8 @@ handler req =
         Right JWT.JWT {claims = JWT.Claims {sender}} ->
           return sender
 
+    Nothing ->
+      Web.Error.throw Auth.NoToken
+
     _ ->
-      throwM Auth.NoToken
+      Web.Error.throw Auth.BadToken

@@ -11,8 +11,6 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.Header.Types
   ) where
 
-import qualified System.IO.Unsafe as Unsafe
-
 import           Crypto.Random          (MonadRandom (..))
 import           Crypto.Hash.Algorithms (SHA256 (..))
  
@@ -26,6 +24,7 @@ import qualified Data.ByteString.Base64.URL as BS.B64.URL
 import qualified Data.ByteString.Lazy.Char8 as Char8
  
 import           Network.IPFS.CID.Types
+-- import           Servant.API
 
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
@@ -36,8 +35,6 @@ import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
 import qualified Fission.Internal.UTF8       as UTF8
  
-import           Fission.Internal.RSA2048.Pair.Types
-
 import           Fission.Key as Key
 
 import           Fission.Authorization.Potency.Types
@@ -116,7 +113,7 @@ instance FromJSON JWT where
             either fail pure do
               header <- B64.URL.addPadding rawHeader
               claims <- B64.URL.addPadding rawClaims
-              sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
+              sig    <- Signature.parse (alg header) $ "\"" <> rawSig <> "\""
               return JWT {..}
 
           _ ->

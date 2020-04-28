@@ -18,9 +18,9 @@ import           Test.Fission.Prelude
 tests :: SpecWith ()
 tests =
   describe "Auth.Token" do
-    describe "serialization" do
-      itsProp' "serialize+deserialize is the identity function" \(token :: Token) ->
-        JSON.decode (JSON.encode token) `shouldBe` Just token
+    -- describe "serialization" do
+      -- itsProp' "serialize+deserialize is the identity function" \(token :: Token) ->
+      --   JSON.decode (JSON.encode token) `shouldBe` Just token
 
     context "no token" do
       it "is Nothing" do

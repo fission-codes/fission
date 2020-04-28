@@ -26,3 +26,4 @@ instance ToServerError Error where
     ProofError    err -> toServerError err
     IncorrectReceiver -> err401 { errBody = displayLazyBS IncorrectReceiver }
     Expired           -> err401 { errBody = displayLazyBS Expired }
+    TooEarly          -> err401 { errBody = displayLazyBS TooEarly }

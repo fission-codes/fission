@@ -1,8 +1,6 @@
 module Fission.Web.Auth.Token.Types (Token (..)) where
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
-
+import qualified RIO.Text as Text
 import           Servant.API
 
 import           Fission.Prelude
@@ -18,19 +16,15 @@ data Token
 instance Arbitrary Token where
   arbitrary = oneof [Basic <$> arbitrary, Bearer <$> arbitrary]
 
+instance Display Token where
+  textDisplay (Basic  token) = textDisplay token
+  textDisplay (Bearer token) = textDisplay token
+
 instance FromJSON Token where
   parseJSON = withText "Auth.Token" \txt ->
-    case stripEitherPrefix "Basic " "basic " txt of
-      Just _ ->
-        Basic <$> parseJSON (String txt)
-
-      Nothing ->
-        case stripEitherPrefix "Bearer " "bearer " txt of
-          Just _ ->
-            Bearer <$> parseJSON (String txt)
-
-          Nothing ->
-            fail $ show txt <> " is not a valid auth header"
+    case parseUrlPiece txt of
+      Right token -> return token
+      Left  err   -> fail $ Text.unpack err
 
 instance ToJSON Token where
   toJSON (Basic basic)   = toJSON basic
@@ -43,12 +37,18 @@ instance ToHttpApiData Token where
 
 instance FromHttpApiData Token where
   parseUrlPiece txt =
-    case eitherDecode . Lazy.fromStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
-      Right token -> Right token
-      Left  err   -> Left $ Text.pack err
+    case stripEitherPrefix "Bearer " "bearer " txt of
+      Just _ ->
+        Bearer <$> parseUrlPiece txt
+
+      Nothing ->
+        case stripEitherPrefix "Basic " "basic " txt of
+          Just _ ->
+            Basic <$> parseUrlPiece txt
+
+          Nothing ->
+            Left $ txt <> " is not a valid auth header"
 
 stripEitherPrefix :: Text -> Text -> Text -> Maybe Text
 stripEitherPrefix pfxA pfxB txt =
-  case Text.stripPrefix pfxA txt of
-    Just txts -> Just txts
-    Nothing   -> Text.stripPrefix pfxB txt
+  Text.stripPrefix pfxA txt <|> Text.stripPrefix pfxB txt
