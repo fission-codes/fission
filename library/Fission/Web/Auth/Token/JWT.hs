@@ -85,7 +85,7 @@ instance Arbitrary JWT where
         Right edSK -> Right $ signEd25519 header claims edSK
 
     case sig' of
-      Left _    -> arbitrary -- Something went wrong, so retry
+      Left _    -> undefined -- arbitrary -- Something went wrong, so retry
       Right sig -> return JWT {..}
  
 instance ToJSON JWT where
