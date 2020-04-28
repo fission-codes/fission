@@ -18,7 +18,8 @@ import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA        as Crypto.RSA
 
-import qualified RIO.Text as Text
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 import Servant.API
 
@@ -30,6 +31,10 @@ import           Fission.Prelude hiding (length)
 import Fission.Internal.Orphanage.RSA2048.Public ()
 import Fission.Internal.Orphanage.Ed25519.PublicKey ()
 
+import qualified Data.Binary as Binary
+
+import qualified Codec.Crypto.RSA.Pure as RSA
+
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey -- Text REMONDER ensure that raw is-- BS64 encoded
   | RSAPublicKey     Crypto.RSA.PublicKey     -- Text -- BS64 encoded
@@ -39,9 +44,8 @@ instance Show Public where
   show = Text.unpack . textDisplay
 
 instance Display Public where
-  textDisplay (RSAPublicKey pk) =
-    undefined -- FIXME
-    -- X50-9 stuffraw
+  textDisplay (RSAPublicKey Crypto.RSA.PublicKey {..}) =
+    decodeUtf8Lenient . Lazy.toStrict . Binary.encode $ RSA.PublicKey {..}
 
   textDisplay (Ed25519PublicKey pk) =
     decodeUtf8Lenient $ B64.toB64ByteString pk
@@ -57,7 +61,7 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if Text.length txt < 50 -- NOTE Ed25519 is 44. 50 for some buffer space.
+    if Text.length txt < 88 -- NOTE Ed25519 is 44. 88 for some buffer space.
       then
         case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
@@ -97,4 +101,3 @@ instance ToSchema Public where
       |> NamedSchema (Just "PublicKey")
       |> pure
 
--- FIXME completely cut the algorithm type

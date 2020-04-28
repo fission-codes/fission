@@ -14,7 +14,6 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
  
-import           Fission.Key as Key
 import           Fission.User.DID.Types
 
 import           Fission.Authorization.Types
@@ -22,9 +21,11 @@ import           Fission.Authorization.Potency.Types
  
 import           Fission.URL.Types as URL
 
-import           Fission.Internal.Fixture.Time   as Fixture
-import           Fission.Internal.Fixture.Entity as Fixture
-import           Fission.Internal.Fixture.User   as Fixture
+import           Fission.Internal.Fixture.Time        as Fixture
+import           Fission.Internal.Fixture.Entity      as Fixture
+import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
+import           Fission.Internal.Fixture.User        as Fixture
+
 import           Fission.Internal.Mock.Config.Types
 
 import           Fission.Internal.Orphanage.CID        ()
@@ -66,12 +67,6 @@ authZ = return Authorization
     }
     where
       did = DID
-        { publicKey = pk
+        { publicKey = Fixture.Ed25519.pk
         , method    = Key
         }
-
-pk :: Key.Public
-Right pk = parseUrlPiece rawPK
-
-rawPK :: Text
-rawPK = "1498b5467a63dffa2dc9d9e069caf075d16fc33fdd4c3b01bfadae6433767d93"
