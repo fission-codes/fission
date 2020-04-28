@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Test.Fission.User.DID (tests) where
 
 import qualified Data.Aeson        as JSON
@@ -14,11 +16,8 @@ tests :: IO TestTree
 tests =
   testSpec "Fission.User.DID" do
     describe "Serialization" do
-      it "serializes RSA2048 and Ed25519 differently"
-        let
-          rsa = DID (Key.RSAPublicKey "12345") Key
-        in
-          encode rsa `shouldNotBe` encode edKey
+      it "serializes RSA2048 and Ed25519 differently" $
+          encode (DID rsaKey Key) `shouldNotBe` encode (DID edKey Key)
 
       context "RSA2048" do
         it "serializes to a well-known value"

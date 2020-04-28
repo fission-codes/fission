@@ -60,7 +60,7 @@ tests = do
 
         context "DID auth" do
           it "uses the encapsulated function" do
-            didResult `shouldBe` Right (DID (Key.Public "thisismydid") RSA2048 Key)
+            didResult `shouldBe` Right (DID  Key) -- FIXME <<<< WORKING ON THIS
 
         context "heroku auth" do
           it "uses the encapsulated function" do
