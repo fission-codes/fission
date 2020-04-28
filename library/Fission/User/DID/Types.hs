@@ -6,7 +6,7 @@ module Fission.User.DID.Types
 
 import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
-import qualified Data.ByteString.Base64 as BS64
+import qualified Data.ByteString.Base64    as BS64
 
 import qualified RIO.ByteString      as BS
 import qualified RIO.ByteString.Lazy as BS.Lazy
