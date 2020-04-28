@@ -14,11 +14,11 @@ tests :: IO TestTree
 tests =
   testSpec "Fission.User.DID" do
     describe "Serialization" do
-      -- it "serializes RSA2048 and Ed25519 differently"
-      --   let
-      --     rsa = DID (Key.RSAPublicKey "12345") Key
-      --   in
-      --     encode rsa `shouldNotBe` encode edKey
+      it "serializes RSA2048 and Ed25519 differently"
+        let
+          rsa = DID (Key.RSAPublicKey "12345") Key
+        in
+          encode rsa `shouldNotBe` encode edKey
 
       context "RSA2048" do
         it "serializes to a well-known value"
@@ -28,13 +28,13 @@ tests =
           in
             encode (DID rsaKey Key) `shouldBe` "\"" <> expected <> "\""
 
-      -- context "ED25519" do
-      --   it "serializes to a well-known value"
-      --     let
-      --       expected :: Text
-      --       expected = "did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy"
-      --     in
-      --       encode (DID edKey Key) `shouldBe` JSON.encode expected
+      context "ED25519" do
+        it "serializes to a well-known value"
+          let
+            expected :: Text
+            expected = "did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy"
+          in
+            encode (DID edKey Key) `shouldBe` JSON.encode expected
 
       itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
         JSON.decode (JSON.encode did) == Just did
