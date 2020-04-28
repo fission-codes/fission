@@ -21,8 +21,10 @@ data Token = Token
 instance Arbitrary Token where
   arbitrary = do
     jwt@JWT {..} <- arbitrary
-    let rawContent = Just $ B64.URL.encodeJWT header claims
-    return Token {..}
+    return Token
+      { jwt
+      , rawContent = Just $ B64.URL.encodeJWT header claims
+      }
 
 instance Display Token where
   textDisplay = Text.pack . show

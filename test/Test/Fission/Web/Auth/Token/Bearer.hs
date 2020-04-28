@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Test.Fission.Web.Auth.Token.Bearer (tests) where
 
 import qualified Data.Aeson                 as JSON
@@ -23,9 +25,9 @@ tests =
           |> JSON.decode
           |> shouldBe (Just Bearer.tokenRSA2048)
      
-    -- describe "serialization" do
-    --   itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
-    --     JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
+    describe "serialization" do
+      itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
+        JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
 
       describe "outgoing" do
         itsProp' "has no internal quotes" \(bearer :: Bearer.Token) ->
