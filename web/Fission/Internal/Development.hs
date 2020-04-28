@@ -29,7 +29,7 @@ import           Fission.Storage.PostgreSQL
 import           Fission.URL.Types
 import           Fission.User.DID.Types
  
-import qualified Fission.Key                            as Key
+import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -90,7 +90,7 @@ run logFunc dbPool processCtx httpManager action =
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
     fissionDID = DID
-      { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+      { publicKey = Fixture.Ed25519.pk
       , method    = Key
       }
 
@@ -150,7 +150,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
     fissionDID = DID
-      { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
+      { publicKey = Fixture.Ed25519.pk
       , method    = Key
       }
 
