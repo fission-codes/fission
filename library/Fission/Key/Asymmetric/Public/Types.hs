@@ -36,8 +36,8 @@ import qualified Data.Binary as Binary
 import qualified Codec.Crypto.RSA.Pure as RSA
 
 data Public
-  = Ed25519PublicKey Crypto.Ed25519.PublicKey -- Text REMONDER ensure that raw is-- BS64 encoded
-  | RSAPublicKey     Crypto.RSA.PublicKey     -- Text -- BS64 encoded
+  = Ed25519PublicKey Crypto.Ed25519.PublicKey
+  | RSAPublicKey     Crypto.RSA.PublicKey
   deriving Eq
 
 instance Show Public where
@@ -61,7 +61,7 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if Text.length txt < 88 -- NOTE Ed25519 is 44. 88 for some buffer space.
+    if Text.length txt < 60 -- NOTE: Ed25519 is typically 44. 88 for some buffer space.
       then
         case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
