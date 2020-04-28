@@ -68,6 +68,7 @@ instance Arbitrary JWT where
     (pk, sk) <- case alg header of
       Algorithm.RSA2048 -> do
         exp <- elements [3, 5, 17, 257, 65537]
+        -- May want to move to SmallCheck to avoid the unsafePerformIO
         let (pk', sk') = Unsafe.unsafePerformIO $ RSA.generate 2048 exp
         return (RSAPublicKey pk', Left sk')
 
