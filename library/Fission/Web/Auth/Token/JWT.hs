@@ -37,6 +37,7 @@ import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
 import qualified Fission.Internal.UTF8       as UTF8
+import qualified Fission.Internal.RSA2048.Pair.Types as RSA2048
 
 import           Fission.Key as Key
 
@@ -65,9 +66,7 @@ instance Arbitrary JWT where
     header   <- arbitrary
     (pk, sk) <- case alg header of
       Algorithm.RSA2048 -> do
-        exp <- elements [3, 5, 17, 257, 65537]
-        -- May want to move to SmallCheck to avoid the unsafePerformIO
-        let (pk', sk') = Unsafe.unsafePerformIO $ RSA.generate 2048 exp
+        RSA2048.Pair pk' sk' <- arbitrary
         return (RSAPublicKey pk', Left sk')
 
       Algorithm.Ed25519 -> do
@@ -224,7 +223,7 @@ data Proof
 instance Arbitrary Proof where
   arbitrary =
     [ (1, Nested <$> arbitrary <*> arbitrary)
-    , (9, pure RootCredential)
+    , (3, pure RootCredential)
     ] |> frequency
       |> fmap \case
         Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
