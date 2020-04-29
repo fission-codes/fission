@@ -15,7 +15,7 @@ tests =
 
         it "contains the text 'pong'" do
           get "/" `shouldRespondWith` 200
-            { matchBody = MatchBody <| bodyMatches <| String "pong" }
+            { matchBody = MatchBody . bodyMatches $ String "pong" }
 
 pingServer :: IO Application
 pingServer =

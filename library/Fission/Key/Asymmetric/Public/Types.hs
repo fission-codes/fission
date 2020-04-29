@@ -30,6 +30,11 @@ import qualified Fission.Internal.Base64 as B64
 import           Fission.Internal.Orphanage.RSA2048.Public    ()
 import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
 
+
+import  qualified Data.ASN1.Types  as ASN1
+import qualified Crypto.Store.X509 as X509
+import Data.PEM as PEM
+
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey
   | RSAPublicKey     Crypto.RSA.PublicKey
@@ -39,8 +44,16 @@ instance Show Public where
   show = Text.unpack . textDisplay
 
 instance Display Public where
-  textDisplay (RSAPublicKey Crypto.RSA.PublicKey {..}) =
-    decodeUtf8Lenient . Lazy.toStrict . Binary.encode $ RSA.PublicKey {..}
+  textDisplay (RSAPublicKey pk) =
+    -- decodeUtf8Lenient . Lazy.toStrict . Binary.encode $ RSA.PublicKey {..}
+    X509.PubKeyRSA pk
+      |> X509.pubKeyToPEM
+      |> PEM.pemWriteBS
+      |> decodeUtf8Lenient
+      |> Text.strip
+      |> Text.dropPrefix "-----BEGIN PUBLIC KEY-----"
+      |> Text.dropSuffix "-----END PUBLIC KEY-----"
+      |> Text.filter (\c -> c /= '\n')
 
   textDisplay (Ed25519PublicKey pk) =
     decodeUtf8Lenient $ B64.toB64ByteString pk
@@ -56,7 +69,7 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if Text.isPrefixOf "MII" txt
+    if Text.isPrefixOf "MII" txt || Text.isPrefixOf "AAAA" txt
       then
         case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
           Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk

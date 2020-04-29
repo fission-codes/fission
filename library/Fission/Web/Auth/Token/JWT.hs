@@ -62,9 +62,7 @@ data JWT = JWT
 
 instance Arbitrary JWT where
   arbitrary = do
-    header  <- arbitrary
-    claims' <- arbitrary
-
+    header   <- arbitrary
     (pk, sk) <- case alg header of
       Algorithm.RSA2048 -> do
         exp <- elements [3, 5, 17, 257, 65537]
@@ -76,16 +74,17 @@ instance Arbitrary JWT where
         sk' <- arbitrary
         return (Ed25519PublicKey (toPublic sk'), Right sk')
 
+    claims' <- arbitrary
+
     let
-      sender = DID pk Key
-      claims = claims' {sender}
+      claims = claims' {sender = DID pk Key }
    
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
         Right edSK -> Right $ signEd25519 header claims edSK
 
     case sig' of
-      Left _    -> undefined -- arbitrary -- Something went wrong, so retry
+      Left _    -> error "Unable to sign JWT"
       Right sig -> return JWT {..}
  
 instance ToJSON JWT where
@@ -225,7 +224,7 @@ data Proof
 instance Arbitrary Proof where
   arbitrary =
     [ (1, Nested <$> arbitrary <*> arbitrary)
-    , (4, pure RootCredential)
+    , (9, pure RootCredential)
     ] |> frequency
       |> fmap \case
         Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt

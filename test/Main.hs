@@ -14,8 +14,8 @@ main = defaultMain =<< tests
 tests :: IO TestTree
 tests =
   testGroup "Fission Specs" <$> sequence
-    [ Web.Auth.tests
-    , Web.Ping.tests
-    , DID.tests
+    [ -- Web.Auth.tests
+    -- , Web.Ping.tests
+     DID.tests
     , Test.Fission.Random.tests
     ]

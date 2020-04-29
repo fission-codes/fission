@@ -93,8 +93,9 @@ dependencies:
   - base64-bytestring
   - binary
   - bcrypt
-  - cryptonite
   - bytestring
+  - cryptonite
+  - cryptostore
   - data-default-class
   - data-has
   - dns
@@ -123,6 +124,7 @@ dependencies:
   - optparse-applicative
   - optparse-simple
   - path-pieces
+  - pem
   - persistent
   - persistent-postgresql
   - persistent-template

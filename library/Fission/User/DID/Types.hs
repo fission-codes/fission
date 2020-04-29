@@ -83,7 +83,7 @@ instance ToJSON DID where
       header = "did:" <> textDisplay method <> ":" <> "z"
 
       multicodecW8 :: ByteString
-      multicodecW8 = BS.pack magicBytes <> BS.Lazy.toStrict (encode pk)
+      multicodecW8 = BS.pack magicBytes <> encodeUtf8 (textDisplay pk)
 
       magicBytes :: [Word8]
       magicBytes =
