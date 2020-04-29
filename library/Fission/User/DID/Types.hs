@@ -6,11 +6,9 @@ module Fission.User.DID.Types
 
 import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
-import qualified Data.ByteString.Base64    as BS64
 
-import qualified RIO.ByteString      as BS
-import qualified RIO.ByteString.Lazy as BS.Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString as BS
+import qualified RIO.Text       as Text
 
 import           Servant.API
 
@@ -53,11 +51,11 @@ More here: https://github.com/multiformats/unsigned-varint
 
 ==== __Examples__
 
->>> decode' "\"did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy\"" :: Maybe DID
-Just (DID {publicKey = Public {publicKey = "AAAAC3NzaC1lZDI1NTE5AAAAIIPnL+R9+OrIm26I1MSOnu4ofAtJ5PjmfiO9ukShjoST"}, algorithm = Ed25519, method = Key})
+>>> eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\"" :: Either String DID
+Right (DID {publicKey = Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4=, method = Key})
 
->>> decode' "\"did:key:z1MdJPaWBebKxtE33AszRWYTF67wCLeFdcsqc3R87hyLKzBKiz49Nyah7i9hzSqMKbQ42UgbfdVFBTRckZECVjkaHTv3QPDKWn1sGRm5GEyzarr4EAT1gUUfXVrwe7satzr3WxZrcpvLzZrviEtV1GhYCr49nyJTn2uamYvozqALP4KKqnR1mgkpo3c8QyZ9DF9HufhXkucFpv8oD5KQWHP8iGhbmqUAWLvTh9CKVx2c2dZWC7cN8VYGWrJYnREUb9t1VptPH15bgVJVVvp1Ho2pervHe37nxoTEM2Ti9cZRKJyUVHdgCjXrpJD4ytSCCSDvTVHXKQitrQTixJoQzBC6dFVKozNUV7eULx5MJq372LQUkz6XJuHK8GgDw8EVNrcmZRDmLVdJGLZDXz3QVJFFQBxDwH7xpd19zciGSoMNnetcAsASMYTx6xCg8u16KE9X8dey38tcSLwREWjaYP8PmmPvVqzBkSsuKw1tSCb7md9axmTP3sKgfyADAcBgk\"" :: Maybe DID
-Just (DID {publicKey = Public {publicKey = "AAAAB3NzaC1yc2EAAAADAQABAAABAQDkrRwcO9XZOWdwcK9CUQbzD3NMGlmkoRWu/BS5b/C9lm7PIyjBIhshnd6Y29upBKra7dJ7b1qOJDRQS5uvu93OZi/6pGXcqlYHS9WWJtpEQM+VXeJ2PcnKl5ok2mWgeOEqjHRorT+2dVlISjvOk4dRTJR2sB3el8ynQ1W7LuiEio22352O0DYV89DMhMPVVoSvXVBbsvuJv4VJ4e2XYlilsYyF/6zba4rvEP37MJBExNUqlWUbmIAzFbSoJSdickzHJtLCaBu8Eapu/bu90ecNiFIEaXDSvjD+wVqNwqaarWDor248BULN0u3mVTxHh185k8kBAK6ITBnDMJzjsk11"}, algorithm = RSA2048, method = Key})
+>>> eitherDecode "\"did:key:z1Ri7RydCzs1T3UrFNsVrzpR1xH8b5MoYE2BJSwDDLCdhCwZdjNSnA38J3x6CZ3kDpzmg5eKrayuSBFv3CuQC4DJWeV3bbbTPaQq8xZNzsVuUitVepHXWkbJHz2DrAsQ2xzVq1CSfNA4MUSJise1txRADFRbeQSjdEX1Xj6zzuBcryUZchXnV7e3HZBbhW9GSxLQkHg58HdifFYQvAkChjGzbWrCCKXQJ3eaKoqKaYQNDmLA8CdtBckLwoNUjWuxiwNXoqz4gpAkWhgLDgF9mxkpdJJEFFW5Yn5dypHScnog7LdZnw5YQhQDThc1kGuZVAXnQC9vVtNzXPjz7ohGHj6n1qFk8s93s9TwzHfE2kzFPtaSPfioELocBMiBGfgfpSdJks5nZSG83xdPz4WE8b5KFBWZtHnTsWCywpvNzAMNemmvYm2eM6CfPaa6EU11uUniY9o5GbnUgCm1kbmjdpJn1Yj3KHpiFPhqmQ2yRxBECkVZU8PG7Pf6Y5n2Zt1MwaA7AGaYWR4Nt3WBCfu3GorHGjm9sQ5\"" :: Either String DID
+Right (DID {publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB, method = Key})
 
 -}
 data DID = DID
