@@ -7,14 +7,12 @@ import           Fission.Prelude
  
 import qualified Fission.Web.Error as Web.Error
 
-import qualified Fission.Web.Auth.Token as Token
-import qualified Fission.Web.Auth.Error as Auth
+import qualified Fission.Web.Auth.Token             as Token
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 
 import           Fission.Web.Auth.Token.JWT            as JWT
 import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
-
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT.Resolver as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
 
 import           Fission.User.DID.Types
 import           Fission.Authorization.ServerDID
@@ -41,9 +39,9 @@ handler req =
         Right JWT.JWT {claims = JWT.Claims {sender}} ->
           return sender
 
-
-    Left errMsg ->
-      Web.Error.throw $ Auth.BadToken errMsg
-     
-    _ -> -- FIXME make impossible
+    Right _ -> -- FIXME make impossible
       Web.Error.throw err500 {errBody = "Internal logic problem parsing token"}
+
+    Left err ->
+      Web.Error.throw err
+     

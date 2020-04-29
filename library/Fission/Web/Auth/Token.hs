@@ -37,13 +37,18 @@ handler req =
   case get req of
     Right (Bearer bearer) -> UCAN.handler bearer
     Right (Basic  basic') -> Basic.handler basic'
-    Left  errMsg          -> Web.Error.throw $ Auth.BadToken errMsg
+    Left  err             -> Web.Error.throw err
 
-get :: Request -> Either Text Token
-get req = do
+get :: Request -> Either Auth.Error Token
+get req =
   case lookup "Authorization" headers <|> lookup "authorization" headers of
-    Nothing   -> Left "Missing authorization header"
-    Just auth -> parseHeader auth
+    Nothing ->
+      Left Auth.NoToken
 
+    Just auth ->
+      case parseHeader auth of
+        Left errMsg -> Left $ Auth.CannotParse errMsg
+        Right token -> Right token
+   
   where
     headers = requestHeaders req

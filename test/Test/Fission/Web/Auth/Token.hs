@@ -23,20 +23,20 @@ tests =
       JSON.eitherDecode (JSON.encode token) `shouldBe` Right token
 
     context "no token" do
-      it "is Nothing" do
-        Token.get Wai.defaultRequest `shouldBe` Nothing
+      it "returns error message" do
+        Token.get Wai.defaultRequest `shouldBe` Left "Missing authorization header"
 
     context "unknown auth type" do
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "12345")]}
      
-      it "is Nothing" do
-        Token.get authed `shouldBe` Nothing
+      it "returns error message" do
+        Token.get authed `shouldBe` Left "Missing authorization header"
 
     describe "Basic token" do
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "Basic 12345")]}
 
       it "parses the token" do
-        Token.get authed `shouldBe` Just (Basic $ Basic.Token "12345")
+        Token.get authed `shouldBe` Right (Basic $ Basic.Token "12345")
 
     describe "Bearer token" do
       let jsonJWT = encodeUtf8 jsonRSA2048
@@ -45,7 +45,7 @@ tests =
         let authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWT)]}
 
         it "parses the token" do
-          Token.get authed `shouldBe` Just (Bearer tokenRSA2048)
+          Token.get authed `shouldBe` Right (Bearer tokenRSA2048)
 
       context "lowerecase 'bearer'" do
         let
@@ -53,4 +53,4 @@ tests =
           authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWTLowercase)]}
 
         it "parses the token" do
-          Token.get authed `shouldBe` Just (Bearer tokenRSA2048)
+          Token.get authed `shouldBe` Right (Bearer tokenRSA2048)

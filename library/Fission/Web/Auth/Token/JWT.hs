@@ -192,7 +192,7 @@ instance ToJSON Claims where
     , "ptc" .= potency
     , "scp" .= scope
     --
-    , "nbf" .= nbf
+    , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
     ]
 
