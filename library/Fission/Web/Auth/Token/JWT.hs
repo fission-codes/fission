@@ -145,7 +145,7 @@ data Claims = Claims
   , proof     :: !Proof
   -- Temporal Bounds
   , exp       :: !UTCTime
-  , nbf       :: !(Maybe UTCTime)
+  , nbf       :: !UTCTime
   } deriving Show
 
 instance Display Claims where
@@ -154,15 +154,15 @@ instance Display Claims where
 instance Eq Claims where
   jwtA == jwtB = eqWho && eqAuth && eqTime
     where
-      eqWho = (sender jwtA == sender   jwtB)
-         && (receiver jwtA == receiver jwtB)
+      eqWho = sender jwtA == sender   jwtB
+         && receiver jwtA == receiver jwtB
  
-      eqAuth = (scope jwtA == scope   jwtB)
-          &&   (proof jwtA == proof   jwtB)
-          && (potency jwtA == potency jwtB)
+      eqAuth = scope jwtA == scope   jwtB
+          &&   proof jwtA == proof   jwtB
+          && potency jwtA == potency jwtB
 
-      eqTime = (roundUTC    (exp jwtA) ==  roundUTC    (exp jwtB))
-            && (roundUTC <$> nbf jwtA) == (roundUTC <$> nbf jwtB)
+      eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
+            && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
 
 instance Arbitrary Claims where
   arbitrary = do
@@ -170,7 +170,7 @@ instance Arbitrary Claims where
     scope'  <- arbitrary
     potency <- arbitrary
     proof   <- arbitrary
-    exp     <- fromSeconds . toSeconds <$> arbitrary
+    exp     <- arbitrary
     nbf     <- arbitrary
     pk      <- arbitrary
 
@@ -189,10 +189,10 @@ instance ToJSON Claims where
     , "aud" .= receiver
     --
     , "prf" .= proof
-    , "pcy" .= potency
+    , "ptc" .= potency
     , "scp" .= scope
     --
-    , "nbf" .= fmap toSeconds nbf
+    , "nbf" .= nbf
     , "exp" .= toSeconds exp
     ]
 
@@ -202,11 +202,11 @@ instance FromJSON Claims where
     receiver <- obj .: "aud"
     --
     scope   <- obj .:  "scp"
-    potency <- obj .:? "pcy" .!= AuthNOnly
+    potency <- obj .:? "ptc" .!= AuthNOnly
     proof   <- obj .:? "prf" .!= RootCredential
     --
-    nbf <- fmap fromSeconds <$> obj .:? "nbf"
-    exp <-      fromSeconds <$> obj .:  "exp"
+    nbf <- fromSeconds <$> obj .: "nbf"
+    exp <- fromSeconds <$> obj .: "exp"
 
     return Claims {..}
 

@@ -59,11 +59,14 @@ ucan now fissionDID sk proof = JWT {..}
     claims = JWT.Claims
       { sender   = senderDID
       , receiver = fissionDID
+
       , potency  = AppendOnly
       , scope    = "/"
       , proof    = proof
-      , nbf      = Nothing
-      , exp      = addUTCTime (secondsToNominalDiffTime 30) now
+     
+      -- Accounting for clock drift
+      , nbf      = addUTCTime (secondsToNominalDiffTime (-30)) now
+      , exp      = addUTCTime (secondsToNominalDiffTime   30)  now
       }
 
     header = JWT.Header

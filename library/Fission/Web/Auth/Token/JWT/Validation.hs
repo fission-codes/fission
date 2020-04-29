@@ -122,17 +122,9 @@ checkProof now jwt@JWT {claims = Claims {proof}} =
 
 checkTime :: UTCTime -> JWT -> Either JWT.Error JWT
 checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
-  case (now > exp, nbf) of
-    (True, _) ->
-      Left $ JWT.ClaimsError Expired
-
-    (_, Just nbf') ->
-      if now < nbf'
-        then Left $ JWT.ClaimsError TooEarly
-        else Right jwt
-     
-    _ ->
-      Right jwt
+  if | now > exp -> Left $ JWT.ClaimsError Expired
+     | now < nbf -> Left $ JWT.ClaimsError TooEarly
+     | otherwise -> Right jwt
 
 checkSignature :: Text -> JWT -> Either JWT.Error JWT
 checkSignature rawContent jwt@JWT {sig} =

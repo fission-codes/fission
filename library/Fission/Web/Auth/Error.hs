@@ -7,7 +7,7 @@ import           Fission.Web.Error as Error
 
 data Error
   = NoToken
-  | BadToken
+  | BadToken Text
   | NoSuchUser
   | Unauthorized
   deriving ( Exception
@@ -16,9 +16,9 @@ data Error
            )
 
 instance Display Error where
-  display = \case
+  textDisplay = \case
     NoToken      -> "No token included on request"
-    BadToken     -> "Token is improperly formatted"
+    BadToken msg -> "Token is improperly formatted: " <> msg
     NoSuchUser   -> "No such user exists"
     Unauthorized -> "User not authorized"
 

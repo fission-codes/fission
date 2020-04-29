@@ -85,4 +85,4 @@ parseBasic :: Auth.Basic.Token -> Either Auth.Error BasicAuthData
 parseBasic (Auth.Basic.Token token) =
   case Ch.split ':' (Base64.decodeLenient token) of
     [un,pw] -> Right $ BasicAuthData un pw
-    _ -> Left Auth.BadToken
+    _       -> Left Auth.NoToken
