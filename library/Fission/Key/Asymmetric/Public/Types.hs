@@ -34,7 +34,7 @@ import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
 import  qualified Data.ASN1.Types  as ASN1
 import qualified Crypto.Store.X509 as X509
 import Data.PEM as PEM
-import Fission.Internal.RSA2048.Pair.Types as RSA2048
+import Fission.Internal.RSA2048.Pair.Types as Pair
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey
@@ -60,13 +60,9 @@ instance Display Public where
 
 instance Arbitrary Public where
   arbitrary = oneof
-    [ Ed25519PublicKey <$> arbitrary
-    , pregenRSA
+    [ Ed25519PublicKey       <$> arbitrary
+    , RSAPublicKey . Pair.pk <$> arbitrary
     ]
-    where
-      pregenRSA = do
-        Pair pk _ <- arbitrary
-        return $ RSAPublicKey pk
 
 instance ToHttpApiData Public where
   toUrlPiece = textDisplay
