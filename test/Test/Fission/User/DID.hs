@@ -1,7 +1,11 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Test.Fission.User.DID (tests) where
 
-import qualified Data.Aeson          as JSON
-import qualified RIO.ByteString.Lazy as Lazy.BS
+import qualified Data.Aeson        as JSON
+
+import qualified RIO.ByteString.Lazy as Lazy
+import           Servant.API
 
 import           Fission.User.DID
 import           Fission.Key as Key
@@ -12,42 +16,30 @@ tests :: IO TestTree
 tests =
   testSpec "Fission.User.DID" do
     describe "Serialization" do
-      it "serializes RSA2048 and Ed25519 differently"
-        let
-          rsa = DID (Key.Public "12345") RSA2048 Key
-          ed  = rsa { algorithm = Ed25519 }
-        in
-          encode rsa `shouldNotBe` encode ed
-
       context "RSA2048" do
         it "serializes to a well-known value"
           let
-            rsaKey :: ByteString
-            rsaKey = "AAAAB3NzaC1yc2EAAAADAQABAAABAQDkrRwcO9XZOWdwcK9CUQbzD3NMGlmkoRWu/BS5b/C9lm7PIyjBIhshnd6Y29upBKra7dJ7b1qOJDRQS5uvu93OZi/6pGXcqlYHS9WWJtpEQM+VXeJ2PcnKl5ok2mWgeOEqjHRorT+2dVlISjvOk4dRTJR2sB3el8ynQ1W7LuiEio22352O0DYV89DMhMPVVoSvXVBbsvuJv4VJ4e2XYlilsYyF/6zba4rvEP37MJBExNUqlWUbmIAzFbSoJSdickzHJtLCaBu8Eapu/bu90ecNiFIEaXDSvjD+wVqNwqaarWDor248BULN0u3mVTxHh185k8kBAK6ITBnDMJzjsk11"
-
-            expected :: Text
-            expected =
-              "did:key:z1MdJPaWBebKxtE33AszRWYTF67wCLeFdcsqc3R87hyLKzBKiz49Nyah7i9hzSqMKbQ42UgbfdVFBTRckZECVjkaHTv3QPDKWn1sGRm5GEyzarr4EAT1gUUfXVrwe7satzr3WxZrcpvLzZrviEtV1GhYCr49nyJTn2uamYvozqALP4KKqnR1mgkpo3c8QyZ9DF9HufhXkucFpv8oD5KQWHP8iGhbmqUAWLvTh9CKVx2c2dZWC7cN8VYGWrJYnREUb9t1VptPH15bgVJVVvp1Ho2pervHe37nxoTEM2Ti9cZRKJyUVHdgCjXrpJD4ytSCCSDvTVHXKQitrQTixJoQzBC6dFVKozNUV7eULx5MJq372LQUkz6XJuHK8GgDw8EVNrcmZRDmLVdJGLZDXz3QVJFFQBxDwH7xpd19zciGSoMNnetcAsASMYTx6xCg8u16KE9X8dey38tcSLwREWjaYP8PmmPvVqzBkSsuKw1tSCb7md9axmTP3sKgfyADAcBgk"
+            expected :: Lazy.ByteString
+            expected = "did:key:z12GZctbAybHN746QxWgfwjyJhaJrefTxVNpd52TovWKpi8Fwhm9yT28FrzWq8Fr5jWuhax7J9Njhf961YQk4BeXHiiDJ8epPJbkLszPExjJd1NvmQBDUYrkg6vKmNYvh63xcYCrAiq3p6WX2QCsbK7H6956NTwQVMEdNopEgShkZ5rBiXQBMTnLd5btH2uFF8RtR9oF8bWRxzWywmy6R4VsoVei5wBh1jmJUcvnaUe7paWWpFx5NJzAkwg44ccAdgc7qUvrtS6JsZeGs9Z2YEFGw4r3qSU4gJSm5AdhL9ahiJAxKSVwrqziVDEQEonGGriYrccnwE3TCCDoBWC91bHvt46FSsbS8W1BWjp84VhJvRQ4Ay9Rw1C1X6T7cbpJ8NnP6yp7SDtxAm8DP8ELrWKCqjW8tJHeXEVvwe94hMkbpccr86wsNHPzofx9s1VGvmyfvBjVojGnnMmWK1RuiRZL2yzjo4fYotz7BfLtYCRCC4osozE3YJdBLNYeMjNZq3xBoN5dmYHE8nofQjefP7m1mhVL5"
           in
-            encode (DID (Key.Public rsaKey) RSA2048 Key)
-              `shouldBe` JSON.encode expected
+            encode (DID rsaKey Key) `shouldBe` "\"" <> expected <> "\""
 
       context "ED25519" do
         it "serializes to a well-known value"
           let
-            edKey :: ByteString
-            edKey = "AAAAC3NzaC1lZDI1NTE5AAAAIIPnL+R9+OrIm26I1MSOnu4ofAtJ5PjmfiO9ukShjoST"
- 
             expected :: Text
-            expected =
-              "did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy"
+            expected = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"
           in
-            encode (DID (Key.Public edKey) Ed25519 Key)
-              `shouldBe` JSON.encode expected
+            encode (DID edKey Key) `shouldBe` JSON.encode expected
 
       itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
         JSON.decode (JSON.encode did) == Just did
 
       itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
-        Lazy.BS.isPrefixOf "\"did:key:z" (JSON.encode did)
+        Lazy.isPrefixOf "\"did:key:z" (JSON.encode did)
 
+rsaKey :: Key.Public
+Right rsaKey = parseUrlPiece "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB"
+
+edKey :: Key.Public
+Right edKey = parseUrlPiece "Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4="

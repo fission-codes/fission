@@ -12,6 +12,13 @@ packages:
   original:
     hackage: alex-3.2.5
 - completed:
+    hackage: cryptostore-0.2.1.0@sha256:9896e2984f36a1c8790f057fd5ce3da4cbcaf8aa73eb2d9277916886978c5b19,3881
+    pantry-tree:
+      size: 8596
+      sha256: e392f8dded050690140636b81433fb350bd87dd21643dde9a2f0aa344cf038e5
+  original:
+    hackage: cryptostore-0.2.1.0
+- completed:
     hackage: happy-1.19.12@sha256:acc67bfbf3af87892766781dd064c9447181ea81269a7a1e5fc9ace4a8fa4768,5691
     pantry-tree:
       size: 8693
@@ -69,7 +76,7 @@ packages:
     hackage: text-time-0.2.0
 snapshots:
 - completed:
-    size: 492015
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/8.yaml
-    sha256: 926bc3d70249dd0ba05277ff00943c0addb35b627cb641752669e7cf771310d0
-  original: lts-15.8
+    size: 493124
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/10.yaml
+    sha256: 48bc6d1d59224a5166265ef6cdda6a512f29ecc8ef7331826312b82377e89507
+  original: lts-15.10

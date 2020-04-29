@@ -12,7 +12,6 @@ import           Fission.Prelude
  
 import qualified Fission.Internal.Orphanage.ClientM ()
  
-import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
 
 import qualified Fission.Key      as Key
@@ -50,12 +49,10 @@ mkAuthReq = do
 ucan :: UTCTime -> DID -> Ed25519.SecretKey -> Proof -> JWT
 ucan now fissionDID sk proof = JWT {..}
   where
-    sig =
-      JWT.Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
+    sig = JWT.Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
 
     senderDID = DID
-      { publicKey = Key.Public . B64.toB64ByteString $ Ed25519.toPublic sk
-      , algorithm = Key.Ed25519
+      { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic sk
       , method    = DID.Key
       }
 

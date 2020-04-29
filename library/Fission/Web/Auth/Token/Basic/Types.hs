@@ -1,9 +1,7 @@
 -- | Authorization types; primarily more semantic aliases
 module Fission.Web.Auth.Token.Basic.Types (Token (..)) where
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
-
+import qualified RIO.Text as Text
 import           Servant.API
 
 import           Fission.Prelude
@@ -14,21 +12,21 @@ newtype Token = Token { unToken :: ByteString }
 instance Arbitrary Token where
   arbitrary = Token . encodeUtf8 <$> arbitrary
 
+instance Display Token where
+  textDisplay (Token raw) = "Basic " <> decodeUtf8Lenient raw
+
 instance ToJSON Token where
-  toJSON (Token bs) = String $ "Basic " <> decodeUtf8Lenient bs
+  toJSON = String . textDisplay
 
 instance FromJSON Token where
   parseJSON = withText "Basic Token" \txt ->
-    case Text.stripPrefix "Basic " txt of
-      Just basic -> pure . Token $ encodeUtf8 basic
-      Nothing    -> fail $ show txt <> " is missing the 'Basic' prefix"
+    either (fail . Text.unpack) pure $ parseUrlPiece txt
 
 instance ToHttpApiData Token where
-  toUrlPiece token =
-    Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode token
+  toUrlPiece = textDisplay
 
 instance FromHttpApiData Token  where
   parseUrlPiece txt =
-    case eitherDecodeStrict $ encodeUtf8 ("\"" <> txt <> "\"") of
-      Right token -> Right token
-      Left  err   -> Left $ Text.pack err
+    case Text.stripPrefix "Basic " txt <|> Text.stripPrefix "basic " txt of
+      Just basic -> Right . Token $ encodeUtf8 basic
+      Nothing    -> Left $ txt <> " is missing the 'Basic' prefix"

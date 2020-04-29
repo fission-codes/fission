@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Test.Fission.Web.Auth.Token.Bearer (tests) where
 
 import qualified Data.Aeson                 as JSON

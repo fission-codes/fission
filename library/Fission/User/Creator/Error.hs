@@ -5,15 +5,26 @@ import           Servant.Server
 import           Fission.Prelude
 import           Fission.Web.Error
 
-data AlreadyExists = AlreadyExists
+import           Fission.User.Username.Types
+import           Fission.Key.Asymmetric.Public.Types as Key
+
+data AlreadyExists
+  = ConflictingUsername  Username
+  | ConflictingPublicKey Key.Public
+  -- TODO | ConflictingEmail Email
   deriving ( Show
            , Eq
            , Exception
            )
 
 instance Display AlreadyExists where
-  display AlreadyExists = "The username or email already exists in our system"
+  display = \case
+    ConflictingUsername un ->
+      "Username " <> display un <> " already exists"
+     
+    ConflictingPublicKey pk ->
+      "Public key " <> display pk <> " already exists"
 
 instance ToServerError AlreadyExists where
-  toServerError AlreadyExists =
-    err409 { errBody = displayLazyBS AlreadyExists }
+  toServerError err =
+    err409 { errBody = displayLazyBS err }

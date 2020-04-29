@@ -14,7 +14,6 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Prelude
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
  
-import           Fission.Key as Key
 import           Fission.User.DID.Types
 
 import           Fission.Authorization.Types
@@ -22,9 +21,11 @@ import           Fission.Authorization.Potency.Types
  
 import           Fission.URL.Types as URL
 
-import           Fission.Internal.Fixture.Time   as Fixture
-import           Fission.Internal.Fixture.Entity as Fixture
-import           Fission.Internal.Fixture.User   as Fixture
+import           Fission.Internal.Fixture.Time        as Fixture
+import           Fission.Internal.Fixture.Entity      as Fixture
+import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
+import           Fission.Internal.Fixture.User        as Fixture
+
 import           Fission.Internal.Mock.Config.Types
 
 import           Fission.Internal.Orphanage.CID        ()
@@ -36,8 +37,7 @@ defaultConfig = Config
   , linkedPeers     = pure $ IPFS.Peer "ipv4/fakepeeraddress"
   , didVerifier     = mkAuthHandler \_ ->
       return $ DID
-        { publicKey = Key.Public "thisismydid"
-        , algorithm = RSA2048
+        { publicKey = pk
         , method    = Key
         }
   , userVerifier    = mkAuthHandler  \_ -> pure $ Fixture.entity Fixture.user
@@ -67,7 +67,6 @@ authZ = return Authorization
     }
     where
       did = DID
-        { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
-        , algorithm = Ed25519
+        { publicKey = Fixture.Ed25519.pk
         , method    = Key
         }

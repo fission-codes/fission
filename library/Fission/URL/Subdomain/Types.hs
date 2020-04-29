@@ -9,7 +9,6 @@ import           Data.Swagger                hiding (get)
 import           Servant
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
 
 -- | Type safety wrapper for subdomains
 newtype Subdomain = Subdomain { get :: Text }

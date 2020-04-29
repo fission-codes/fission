@@ -10,6 +10,8 @@ import           Data.Base58String.Bitcoin as BS58.BTC
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
 
+import           Servant.API
+
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
 
@@ -49,47 +51,48 @@ More here: https://github.com/multiformats/unsigned-varint
 
 ==== __Examples__
 
->>> decode' "\"did:key:zBR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy\"" :: Maybe DID
-Just (DID {publicKey = Public {publicKey = "AAAAC3NzaC1lZDI1NTE5AAAAIIPnL+R9+OrIm26I1MSOnu4ofAtJ5PjmfiO9ukShjoST"}, algorithm = Ed25519, method = Key})
+>>> eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\"" :: Either String DID
+Right (DID {publicKey = Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4=, method = Key})
 
->>> decode' "\"did:key:z1MdJPaWBebKxtE33AszRWYTF67wCLeFdcsqc3R87hyLKzBKiz49Nyah7i9hzSqMKbQ42UgbfdVFBTRckZECVjkaHTv3QPDKWn1sGRm5GEyzarr4EAT1gUUfXVrwe7satzr3WxZrcpvLzZrviEtV1GhYCr49nyJTn2uamYvozqALP4KKqnR1mgkpo3c8QyZ9DF9HufhXkucFpv8oD5KQWHP8iGhbmqUAWLvTh9CKVx2c2dZWC7cN8VYGWrJYnREUb9t1VptPH15bgVJVVvp1Ho2pervHe37nxoTEM2Ti9cZRKJyUVHdgCjXrpJD4ytSCCSDvTVHXKQitrQTixJoQzBC6dFVKozNUV7eULx5MJq372LQUkz6XJuHK8GgDw8EVNrcmZRDmLVdJGLZDXz3QVJFFQBxDwH7xpd19zciGSoMNnetcAsASMYTx6xCg8u16KE9X8dey38tcSLwREWjaYP8PmmPvVqzBkSsuKw1tSCb7md9axmTP3sKgfyADAcBgk\"" :: Maybe DID
-Just (DID {publicKey = Public {publicKey = "AAAAB3NzaC1yc2EAAAADAQABAAABAQDkrRwcO9XZOWdwcK9CUQbzD3NMGlmkoRWu/BS5b/C9lm7PIyjBIhshnd6Y29upBKra7dJ7b1qOJDRQS5uvu93OZi/6pGXcqlYHS9WWJtpEQM+VXeJ2PcnKl5ok2mWgeOEqjHRorT+2dVlISjvOk4dRTJR2sB3el8ynQ1W7LuiEio22352O0DYV89DMhMPVVoSvXVBbsvuJv4VJ4e2XYlilsYyF/6zba4rvEP37MJBExNUqlWUbmIAzFbSoJSdickzHJtLCaBu8Eapu/bu90ecNiFIEaXDSvjD+wVqNwqaarWDor248BULN0u3mVTxHh185k8kBAK6ITBnDMJzjsk11"}, algorithm = RSA2048, method = Key})
+>>> eitherDecode "\"did:key:z1Ri7RydCzs1T3UrFNsVrzpR1xH8b5MoYE2BJSwDDLCdhCwZdjNSnA38J3x6CZ3kDpzmg5eKrayuSBFv3CuQC4DJWeV3bbbTPaQq8xZNzsVuUitVepHXWkbJHz2DrAsQ2xzVq1CSfNA4MUSJise1txRADFRbeQSjdEX1Xj6zzuBcryUZchXnV7e3HZBbhW9GSxLQkHg58HdifFYQvAkChjGzbWrCCKXQJ3eaKoqKaYQNDmLA8CdtBckLwoNUjWuxiwNXoqz4gpAkWhgLDgF9mxkpdJJEFFW5Yn5dypHScnog7LdZnw5YQhQDThc1kGuZVAXnQC9vVtNzXPjz7ohGHj6n1qFk8s93s9TwzHfE2kzFPtaSPfioELocBMiBGfgfpSdJks5nZSG83xdPz4WE8b5KFBWZtHnTsWCywpvNzAMNemmvYm2eM6CfPaa6EU11uUniY9o5GbnUgCm1kbmjdpJn1Yj3KHpiFPhqmQ2yRxBECkVZU8PG7Pf6Y5n2Zt1MwaA7AGaYWR4Nt3WBCfu3GorHGjm9sQ5\"" :: Either String DID
+Right (DID {publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB, method = Key})
 
 -}
 data DID = DID
   { publicKey :: !Key.Public
-  , algorithm :: !Key.Algorithm
   , method    :: !Method
   } deriving (Show, Eq)
 
 instance Arbitrary DID where
   arbitrary = do
     publicKey <- arbitrary
-    algorithm <- arbitrary
     method    <- arbitrary
 
     return DID {..}
 
+instance Display DID where
+  textDisplay = Text.pack . show
+
 instance ToJSON DID where
-  toJSON (DID (Key.Public pk) algo method) = -- NOTE `pk` here is base2, not base58
+  toJSON (DID pk method) = -- NOTE `pk` here is base2, not base58
     String (header <> UTF8.toBase58Text multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"
 
       multicodecW8 :: ByteString
-      multicodecW8 = BS.pack magicBytes <> pk
+      multicodecW8 = BS.pack magicBytes <> encodeUtf8 (textDisplay pk)
 
       magicBytes :: [Word8]
       magicBytes =
-        case algo of
-          Ed25519 -> [0xed, 0x01]
-          RSA2048 -> [0x00, 0xF5, 0x02]
-                  {-   ^     ^     ^
-                       |     |     |
-                       |    "expect 373 Bytes", encoded in the mixed-endian format
-                     "raw"
-                  -}
+        case pk of
+          Ed25519PublicKey _ -> [0xed, 0x01]
+          RSAPublicKey     _ -> [0x00, 0xF5, 0x02]
+                             {-   ^     ^     ^
+                                  |     |     |
+                                  |    "expect 373 Bytes", encoded in the mixed-endian format
+                                "raw"
+                             -}
 
 instance FromJSON DID where
   parseJSON = withText "DID" \txt ->
@@ -97,21 +100,12 @@ instance FromJSON DID where
       Nothing ->
         fail $ show txt <> " does not have a valid did:key header"
 
-      Just fragment ->
-        case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
-          (0xed : 0x01 : edKeyW8s) ->
-            return DID
-              { publicKey = Key.Public $ BS.pack edKeyW8s
-              , algorithm = Ed25519
-              , method    = Key
-              }
+      Just fragment -> do
+        rawPK <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
+          (0xed : 0x01 : edKeyW8s)         -> return $ BS.pack edKeyW8s
+          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) -> return $ BS.pack rsaKeyW8s
+          nope -> fail . show $ BS.pack nope <> " is not an acceptable did:key"
 
-          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-            return DID
-              { publicKey = Key.Public $ BS.pack rsaKeyW8s
-              , algorithm = RSA2048
-              , method    = Key
-              }
-
-          nope ->
-            fail $ show nope <> " is not an acceptable did:key"
+        case parseHeader rawPK of
+          Right pk -> return $ DID pk Key
+          Left err -> fail $ "Unable to parse because: " <> Text.unpack err

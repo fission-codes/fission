@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-15.8
+resolver: lts-15.10
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -39,6 +39,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - alex-3.2.5
+- cryptostore-0.2.1.0
 - happy-1.19.12
 - hspec-wai-json-0.10.1
 - ipfs-1.0.2

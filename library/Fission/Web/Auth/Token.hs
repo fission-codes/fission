@@ -40,11 +40,9 @@ handler req =
 
 get :: Request -> Maybe Token
 get req = do
-  auth <- case lookup "Authorization" headers of
-    Just token -> Just token
-    Nothing    -> lookup "authorization" headers
+  auth <- lookup "Authorization" headers <|> lookup "authorization" headers
 
-  case parseUrlPiece $ decodeUtf8Lenient auth of
+  case parseHeader auth of
     Right token -> Just token
     Left  _     -> Nothing
 

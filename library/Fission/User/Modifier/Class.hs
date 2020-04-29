@@ -24,7 +24,6 @@ class Monad m => Modifier m where
   updatePublicKey ::
        UserId
     -> Key.Public
-    -> Key.Algorithm
     -> UTCTime
     -> m Key.Public
    
@@ -48,10 +47,9 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
 
         return (Right password)
 
-  updatePublicKey userID pk algo now = do
+  updatePublicKey userID pk now = do
     update userID
       [ UserPublicKey  =. Just pk
-      , UserAlgorithm  =. Just algo
       , UserModifiedAt =. now
       ]
 

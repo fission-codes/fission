@@ -21,8 +21,13 @@ data Token = Token
 instance Arbitrary Token where
   arbitrary = do
     jwt@JWT {..} <- arbitrary
-    let rawContent = Just $ B64.URL.encodeJWT header claims
-    return Token {..}
+    return Token
+      { jwt
+      , rawContent = Just $ B64.URL.encodeJWT header claims
+      }
+
+instance Display Token where
+  textDisplay = Text.pack . show
 
 instance ToJSON Token where
   toJSON (Token bs _) =
@@ -32,33 +37,27 @@ instance ToJSON Token where
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->
-    case Text.stripPrefix "Bearer " txt of
-      Just rawToken ->
-        resolve rawToken
-
-      Nothing ->
-        case Text.stripPrefix "bearer " txt of -- Postel's Law
-          Just rawToken ->
-            resolve rawToken
-           
-          Nothing ->
-            fail $ show txt <> " is missing the `Bearer ` prefix"
-
-    where
-      justContent =
-        Just . Text.dropEnd 1 . Text.dropWhileEnd (/= '.')
-       
-      resolve rawToken = do
-        jwt <- parseJSON (String rawToken)
-        let rawContent = justContent rawToken
-        return Token {..}
+    case parseUrlPiece txt of
+      Right token -> return token
+      Left  err   -> fail $ Text.unpack err
 
 instance ToHttpApiData Token where
   toUrlPiece token =
     Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode token
 
-instance FromHttpApiData Token  where
+instance FromHttpApiData Token where
   parseUrlPiece txt =
-    case eitherDecodeStrict' $ encodeUtf8 ("\"" <> txt <> "\"") of
-      Right token -> Right token
-      Left  err   -> Left $ Text.pack err
+    case Text.stripPrefix "Bearer " txt <|> Text.stripPrefix "bearer " txt of
+      Just rawToken ->
+        case eitherDecodeStrict . encodeUtf8 $ "\"" <> rawToken <> "\"" of
+          Left str ->
+            Left $ Text.pack str
+
+          Right jwt ->
+            Right Token
+              { jwt
+              , rawContent = Just . Text.dropEnd 1 $ Text.dropWhileEnd (/= '.') rawToken
+              }
+ 
+      Nothing ->
+        Left $ txt <> " is missing the `Bearer ` prefix"

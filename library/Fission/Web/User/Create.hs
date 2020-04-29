@@ -37,7 +37,7 @@ withDID ::
   => DID
   -> ServerT API m
 withDID DID {..} User.Registration {username, email} = do
-  Web.Err.ensureM =<< runDBNow (User.create username publicKey algorithm email)
+  Web.Err.ensureM =<< runDBNow (User.create username publicKey email)
   return NoContent
 
 withPassword ::

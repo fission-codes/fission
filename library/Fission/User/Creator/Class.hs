@@ -51,7 +51,6 @@ class Heroku.AddOn.Creator m => Creator m where
   create ::
        Username
     -> Key.Public
-    -> Key.Algorithm
     -> Email
     -> UTCTime
     -> m (Either Errors (UserId, Subdomain))
@@ -79,10 +78,9 @@ instance
   , App.Content.Initializer m
   )
   => Creator (Transaction m) where
-  create username pk algo email now =
+  create username pk email now =
     User
       { userPublicKey     = Just pk
-      , userAlgorithm     = Just algo
       , userUsername      = username
       , userEmail         = Just email
       , userRole          = Regular
@@ -101,7 +99,7 @@ instance
         Right user ->
           insertUnique user >>= \case
             Nothing ->
-              return (Error.openLeft User.AlreadyExists)
+              determineConflict username (Just pk)
 
             Just userId ->
               User.setData userId App.Content.empty now >>= \case
@@ -121,7 +119,6 @@ instance
       Right secretDigest ->
         User
           { userPublicKey     = Nothing
-          , userAlgorithm     = Nothing
           , userUsername      = username
           , userEmail         = Just email
           , userRole          = Regular
@@ -135,29 +132,26 @@ instance
           |> insertUnique
           |> bind \case
             Nothing ->
-              return (Error.openLeft User.AlreadyExists)
+              determineConflict username Nothing
 
             Just userId ->
-              now
-                |> App.createWithPlaceholder userId
-                |> fmap \case
-                  Left err -> Error.relaxedLeft err
-                  Right _  -> Right userId
+              App.createWithPlaceholder userId now <&> \case
+                Left err -> Error.relaxedLeft err
+                Right _  -> Right userId
 
   createWithHeroku herokuUUID herokuRegion username password now =
     Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
       Left err ->
-        return . Left <| openUnionLift err
+        return $ Error.openLeft err
 
       Right herokuAddOnId ->
         Password.hashPassword password >>= \case
           Left err ->
-            return . Left <| openUnionLift err
+            return $ Error.openLeft err
 
           Right secretDigest ->
             User
               { userPublicKey     = Nothing
-              , userAlgorithm     = Nothing
               , userUsername      = username
               , userEmail         = Nothing
               , userRole          = Regular
@@ -168,10 +162,32 @@ instance
               , userInsertedAt    = now
               , userModifiedAt    = now
               }
-            |> insertUnique
-            |> bind \case
-              Just userID ->
-                return (Right userID)
+              |> insertUnique
+              |> bind \case
+                Just userID -> return $ Right userID
+                Nothing     -> determineConflict username Nothing
 
-              Nothing ->
-                return . Left <| openUnionLift User.AlreadyExists
+determineConflict ::
+  MonadIO m
+  => Username
+  -> Maybe Key.Public
+  -> Transaction m (Either Errors a)
+ 
+determineConflict username Nothing =
+  return . Error.openLeft $ User.ConflictingUsername username
+ 
+determineConflict username (Just pk) = do
+  -- NOTE needs to be updated anlong with DB constraints
+  --      because Postgres doesn't do this out of the box
+
+  conflUN <- getBy (UniqueUsername username) <&> fmap \_ ->
+    User.ConflictingUsername username
+
+  conflPK <- getBy (UniquePublicKey $ Just pk) <&> fmap \_ ->
+    User.ConflictingPublicKey pk
+
+  -- confEmail TODO
+
+  return case conflUN <|> conflPK of
+    Just err -> Error.openLeft err
+    Nothing  -> Error.openLeft err409 { errBody = "User already exists" }

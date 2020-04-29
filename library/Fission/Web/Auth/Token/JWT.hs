@@ -32,14 +32,14 @@ import qualified RIO.Text            as Text
 
 import           Fission.Prelude
 
+import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
+
 import qualified Fission.Internal.Base64     as B64
 import qualified Fission.Internal.Base64.URL as B64.URL
 import qualified Fission.Internal.UTF8       as UTF8
- 
-import           Fission.Internal.RSA2048.Pair.Types
+import qualified Fission.Internal.RSA2048.Pair.Types as RSA2048
 
-import qualified Fission.Key                            as Key
-import           Fission.Key.Asymmetric.Algorithm.Types as Algorithm
+import           Fission.Key as Key
 
 import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
@@ -63,47 +63,29 @@ data JWT = JWT
 
 instance Arbitrary JWT where
   arbitrary = do
-    header  <- arbitrary
+    header   <- arbitrary
+    (pk, sk) <- case alg header of
+      Algorithm.RSA2048 -> do
+        RSA2048.Pair pk' sk' <- arbitrary
+        return (RSAPublicKey pk', Left sk')
+
+      Algorithm.Ed25519 -> do
+        sk' <- arbitrary
+        return (Ed25519PublicKey (toPublic sk'), Right sk')
+
     claims' <- arbitrary
 
-    case alg header of
-      Algorithm.Ed25519 -> do
-        sk <- arbitrary
+    let
+      claims = claims' {sender = DID pk Key }
+   
+      sig' = case sk of
+        Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
+        Right edSK -> Right $ signEd25519 header claims edSK
 
-        let
-          did = DID
-            { publicKey = Key.Public . B64.toB64ByteString $ toPublic sk
-            , algorithm = Algorithm.Ed25519
-            , method    = Key
-            }
-
-          claims = claims' { sender = did }
-          sig    = signEd25519 header claims sk
-         
-        return JWT {..}
-
-      Algorithm.RSA2048 ->
-        genRSA header claims'
-  
-genRSA :: Header -> Claims -> Gen JWT
-genRSA header claims' = do
-  Pair _pk sk <- arbitrary
-
-  let
-    pk = Key.Public "FAKE_publickey"
-
-    did = DID
-      { publicKey = pk
-      , algorithm = Algorithm.RSA2048
-      , method    = Key
-      }
-
-    claims = claims' { sender = did }
-
-  case Unsafe.unsafePerformIO $ signRS256 header claims sk of
-    Right sig -> return JWT {..}
-    Left  _   -> genRSA header claims
-
+    case sig' of
+      Left _    -> error "Unable to sign JWT"
+      Right sig -> return JWT {..}
+ 
 instance ToJSON JWT where
   toJSON JWT {..} = String . decodeUtf8Lenient $
     encodeB64 header <> "." <> encodeB64 claims <> "." <> signed
@@ -143,7 +125,7 @@ instance FromJSON JWT where
             either fail pure do
               header <- B64.URL.addPadding rawHeader
               claims <- B64.URL.addPadding rawClaims
-              sig    <- Signature.parse (alg header) $  "\"" <> rawSig <> "\""
+              sig    <- Signature.parse (alg header) $ "\"" <> rawSig <> "\""
               return JWT {..}
 
           _ ->
@@ -184,22 +166,20 @@ instance Eq Claims where
 
 instance Arbitrary Claims where
   arbitrary = do
-    sender <- arbitrary
-   
-    let receiver = DID
-          { publicKey = Key.Public "AAAAC3NzaC1lZDI1NTE5AAAAIB7/gFUQ9llI1BTrEjW7Jq6fX6JLsK1J4wXK/dn9JMcO"
-          , algorithm = Algorithm.Ed25519
-          , method    = Key
-          }
-
-    scope' <- arbitrary
-    let scope = "/" <> scope'
-
+    sender  <- arbitrary
+    scope'  <- arbitrary
     potency <- arbitrary
     proof   <- arbitrary
+    exp     <- fromSeconds . toSeconds <$> arbitrary
+    nbf     <- arbitrary
+    pk      <- arbitrary
 
-    exp <- fromSeconds . toSeconds <$> arbitrary
-    nbf <- arbitrary
+    let
+      scope = "/" <> scope'
+      receiver = DID
+        { publicKey = pk
+        , method    = Key
+        }
 
     return Claims {..}
 
@@ -243,10 +223,10 @@ data Proof
 instance Arbitrary Proof where
   arbitrary =
     [ (1, Nested <$> arbitrary <*> arbitrary)
-    , (4, pure RootCredential)
+    , (3, pure RootCredential)
     ] |> frequency
       |> fmap \case
-        Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1. decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
+        Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
         prf          -> prf
 
 instance ToJSON Proof where

@@ -15,16 +15,20 @@ import qualified Network.IPFS.Internal.UTF8 as UTF8
 import           Fission.Prelude
 
 newtype Username = Username { username :: Text }
-  deriving          ( Generic )
-  deriving anyclass ( ToParamSchema )
-  deriving newtype  ( Show
-                    , Eq
-                    , IsString
-                    , ToHttpApiData
-                    )
+  deriving newtype ( Show
+                   , Eq
+                   , Display
+                   , IsString
+                   )
 
 instance Arbitrary Username where
   arbitrary = Username <$> arbitrary
+
+instance ToParamSchema Username where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+
+instance ToHttpApiData Username where
+  toUrlPiece (Username raw) = raw
 
 instance PersistField Username where
   toPersistValue (Username un) = PersistText un

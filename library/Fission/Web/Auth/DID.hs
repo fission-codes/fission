@@ -40,5 +40,8 @@ handler req =
         Right JWT.JWT {claims = JWT.Claims {sender}} ->
           return sender
 
+    Nothing ->
+      Web.Error.throw Auth.NoToken
+
     _ ->
-      throwM Auth.NoToken
+      Web.Error.throw Auth.BadToken
