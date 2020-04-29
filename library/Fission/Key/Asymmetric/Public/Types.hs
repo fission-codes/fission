@@ -34,6 +34,7 @@ import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
 import  qualified Data.ASN1.Types  as ASN1
 import qualified Crypto.Store.X509 as X509
 import Data.PEM as PEM
+import Fission.Internal.RSA2048.Pair.Types as RSA2048
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey
@@ -44,8 +45,10 @@ instance Show Public where
   show = Text.unpack . textDisplay
 
 instance Display Public where
+  textDisplay (Ed25519PublicKey pk) =
+    decodeUtf8Lenient $ B64.toB64ByteString pk
+
   textDisplay (RSAPublicKey pk) =
-    -- decodeUtf8Lenient . Lazy.toStrict . Binary.encode $ RSA.PublicKey {..}
     X509.PubKeyRSA pk
       |> X509.pubKeyToPEM
       |> PEM.pemWriteBS
@@ -53,23 +56,24 @@ instance Display Public where
       |> Text.strip
       |> Text.dropPrefix "-----BEGIN PUBLIC KEY-----"
       |> Text.dropSuffix "-----END PUBLIC KEY-----"
-      |> Text.filter (\c -> c /= '\n')
-
-  textDisplay (Ed25519PublicKey pk) =
-    decodeUtf8Lenient $ B64.toB64ByteString pk
+      |> Text.filter (/= '\n')
 
 instance Arbitrary Public where
   arbitrary = oneof
     [ Ed25519PublicKey <$> arbitrary
-    , RSAPublicKey     <$> arbitrary
+    , pregenRSA
     ]
+    where
+      pregenRSA = do
+        Pair pk _ <- arbitrary
+        return $ RSAPublicKey pk
 
 instance ToHttpApiData Public where
   toUrlPiece = textDisplay
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if Text.isPrefixOf "MII" txt || Text.isPrefixOf "AAAA" txt
+    if "MII" `Text.isPrefixOf` txt
       then
         case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
           Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
@@ -93,10 +97,14 @@ instance ToJSON Public where
   toJSON = String . textDisplay
 
 instance PersistField Public where
-  toPersistValue = PersistText . textDisplay
+  toPersistValue =
+    PersistText . textDisplay
 
-  fromPersistValue (PersistText txt) = parseUrlPiece txt
-  fromPersistValue other = Left $ "Invalid Persistent PK: " <> Text.pack (show other)
+  fromPersistValue (PersistText txt) =
+    parseUrlPiece txt
+   
+  fromPersistValue other =
+    Left $ "Invalid Persistent PK: " <> Text.pack (show other)
 
 instance PersistFieldSql Public where
   sqlType _pxy = SqlString

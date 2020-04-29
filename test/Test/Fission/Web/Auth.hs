@@ -46,7 +46,7 @@ tests = do
   -- SPECS --
   -----------
 
-  testSpec "Fission.Web.Auth" $ parallel do
+  testSpec "Fission.Web.Auth" do -- $ parallel do
     -- Token.tests
     -- Bearer.tests
     -- JWT.tests

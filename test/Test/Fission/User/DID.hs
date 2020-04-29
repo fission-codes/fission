@@ -32,11 +32,11 @@ tests =
           in
             encode (DID edKey Key) `shouldBe` JSON.encode expected
 
-      itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
-        JSON.decode (JSON.encode did) == Just did
+      -- itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
+      --   JSON.decode (JSON.encode did) == Just did
 
-      -- itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
-      --   Lazy.isPrefixOf "\"did:key:z" (JSON.encode did)
+      itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
+        Lazy.isPrefixOf "\"did:key:z" (JSON.encode did)
 
 rsaKey :: Key.Public
 Right rsaKey = parseUrlPiece "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB"
