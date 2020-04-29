@@ -7,7 +7,6 @@ import           Fission.Web.Error as Error
 
 data Error
   = NoToken
-  | BadToken    Text
   | CannotParse Text
   | NoSuchUser
   | Unauthorized
@@ -19,8 +18,7 @@ data Error
 instance Display Error where
   textDisplay = \case
     NoToken         -> "No token included on request"
-    BadToken    msg -> "Token is improperly formatted: " <> msg
-    CannotParse msg -> "Unable to parse token because "  <> msg
+    CannotParse msg -> "Unable to parse token: " <> msg
     NoSuchUser      -> "No such user exists"
     Unauthorized    -> "User not authorized"
 

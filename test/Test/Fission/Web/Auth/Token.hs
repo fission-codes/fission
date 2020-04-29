@@ -23,14 +23,14 @@ tests =
       JSON.eitherDecode (JSON.encode token) `shouldBe` Right token
 
     context "no token" do
-      it "returns error message" do
-        Token.get Wai.defaultRequest `shouldBe` Left "Missing authorization header"
+      it "reports the lack of a token" do
+        Token.get Wai.defaultRequest `shouldBe` Left NoToken
 
     context "unknown auth type" do
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "12345")]}
      
       it "returns error message" do
-        Token.get authed `shouldBe` Left "Missing authorization header"
+        Token.get authed `shouldBe` Left CannotParse
 
     describe "Basic token" do
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "Basic 12345")]}
