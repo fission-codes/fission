@@ -28,12 +28,12 @@ tests =
         it "serializes to a well-known value"
           let
             expected :: Text
-            expected = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4" -- BR4m3DNZHT1G8Nb2RHzgKK7TrWxEmJjZskgvFeJwYJ6kpzy1PVDvn3jR2vaAWExNdtKT7KzBoAdy8GHeGd8jpiAUDgbRRnMy"
+            expected = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"
           in
             encode (DID edKey Key) `shouldBe` JSON.encode expected
 
-      -- itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
-      --   JSON.decode (JSON.encode did) == Just did
+      itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
+        JSON.decode (JSON.encode did) == Just did
 
       itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
         Lazy.isPrefixOf "\"did:key:z" (JSON.encode did)
