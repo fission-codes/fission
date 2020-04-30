@@ -62,7 +62,7 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if "MII" `Text.isPrefixOf` txt
+    if "TUlJ" `Text.isPrefixOf` txt -- B64 "MII"
       then
         case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
           Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
