@@ -23,10 +23,11 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Crypto.PubKey.Ed25519 (toPublic)
  
 import qualified Data.ByteString.Base64.URL as BS.B64.URL
-import qualified Data.ByteString.Lazy.Char8 as Char8
- 
+import qualified Data.ByteString.Base64     as BS.B64
+
 import           Network.IPFS.CID.Types
 
+import qualified RIO.ByteString      as BS
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
@@ -34,9 +35,9 @@ import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
-import qualified Fission.Internal.Base64     as B64
-import qualified Fission.Internal.Base64.URL as B64.URL
-import qualified Fission.Internal.UTF8       as UTF8
+import qualified Fission.Internal.Base64             as B64
+import qualified Fission.Internal.Base64.URL         as B64.URL
+import qualified Fission.Internal.UTF8               as UTF8
 import qualified Fission.Internal.RSA2048.Pair.Types as RSA2048
 
 import           Fission.Key as Key
@@ -47,6 +48,9 @@ import           Fission.User.DID.Types
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.JWT.Header.Types (Header (..))
+
+
+
 
 -- Orphans
 
@@ -87,22 +91,9 @@ instance Arbitrary JWT where
       Right sig -> return JWT {..}
  
 instance ToJSON JWT where
-  toJSON JWT {..} = String . decodeUtf8Lenient $
-    encodeB64 header <> "." <> encodeB64 claims <> "." <> signed
+  toJSON JWT {..} = String $ content <> "." <> textDisplay sig
     where
-      signed :: ByteString
-      signed =
-        case sig of
-          Signature.Ed25519 edSig                 -> encodeSig edSig
-          Signature.RS256 (RS256.Signature rsSig) -> encodeSig rsSig
-
-      encodeSig raw =
-        raw
-          |> B64.toB64ByteString
-          |> decodeUtf8Lenient
-          |> B64.URL.encode
-          |> encodeUtf8
-          |> UTF8.stripPadding
+      content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
 
       encodeB64 jsonable =
         jsonable
@@ -114,22 +105,17 @@ instance ToJSON JWT where
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
-    txt
-      |> encodeUtf8
-      |> B64.toByteString
-      |> UTF8.stripPadding
-      |> Lazy.fromStrict
-      |> Char8.split '.'
-      |> \case
-          [rawHeader, rawClaims, rawSig] ->
-            either fail pure do
-              header <- B64.URL.addPadding rawHeader
-              claims <- B64.URL.addPadding rawClaims
-              sig    <- Signature.parse (alg header) $ "\"" <> rawSig <> "\""
-              return JWT {..}
+    case Text.split (== '.') txt of
+      [rawHeader, rawClaims, rawSig] -> do
+        header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
+        claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
+        sig    <- Signature.parse (alg header) (toJSON rawSig)
+        return JWT {..}
 
-          _ ->
-            fail $ show txt <> " is not a valid JWT.Token"
+      _ ->
+        fail $ "Wrong number of JWT segments in:  " <> show txt
+    where
+      jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
 
 ------------
 -- Claims --

@@ -6,6 +6,8 @@ import qualified Network.Wai as Wai
 import           Network.Wai.Internal
 
 import qualified RIO.ByteString as Strict
+ 
+import           Fission.Web.Auth.Error
 
 import qualified Fission.Web.Auth.Token              as Token
 import           Fission.Web.Auth.Token.Types
@@ -30,7 +32,7 @@ tests =
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "12345")]}
      
       it "returns error message" do
-        Token.get authed `shouldBe` Left CannotParse
+        Token.get authed `shouldBe` Left (CannotParse "12345 is not a valid auth header")
 
     describe "Basic token" do
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "Basic 12345")]}

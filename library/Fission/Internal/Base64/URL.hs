@@ -9,12 +9,12 @@ module Fission.Internal.Base64.URL
   , addPadding
   ) where
 
-import qualified Data.Aeson                      as JSON
-import qualified Data.ByteString.Base64.URL.Lazy as Lazy.BS64
+import qualified Data.Aeson as JSON
 import           Data.Word8
 
 import qualified RIO.ByteString      as Strict
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.ByteString      as BS
 
 import qualified RIO.List            as List
 import qualified RIO.Text.Partial    as Text.Partial
@@ -45,11 +45,11 @@ encodeJWT a b = decodeUtf8Lenient $ encodeJWTPart a <> "." <> encodeJWTPart b
 encodeJWTPart :: ToJSON a => a -> ByteString
 encodeJWTPart = UTF8.stripPadding . encodeBS . B64.toB64ByteString . Lazy.toStrict . JSON.encode
 
-addPadding :: FromJSON x => Lazy.ByteString -> Either String x
-addPadding bs = eitherDecode $ Lazy.BS64.decodeLenient (Lazy.pack padded)
+addPadding :: ByteString -> ByteString
+addPadding bs = BS.pack padded
   where
     n :: Int
-    n = rem (fromIntegral $ Lazy.length bs) 4
+    n = rem (BS.length bs) 4
 
     padded :: [Word8]
-    padded = Lazy.unpack bs <> take n (List.repeat $ fromIntegral $ ord '=')
+    padded = BS.unpack bs <> take n (List.repeat . fromIntegral $ ord '=')
