@@ -37,8 +37,10 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
+allow-newer: true # REMOVE ONCE base64-bytestring GETS UPDATED IN STACKAGE
 extra-deps:
 - alex-3.2.5
+- base64-bytestring-1.1.0.0
 - cryptostore-0.2.1.0
 - happy-1.19.12
 - hspec-wai-json-0.10.1

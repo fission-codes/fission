@@ -23,8 +23,7 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Crypto.PubKey.Ed25519 (toPublic)
  
 import qualified Data.ByteString.Base64.URL as BS.B64.URL
-import qualified Data.ByteString.Lazy.Char8 as Char8
- 
+
 import           Network.IPFS.CID.Types
 
 import qualified RIO.ByteString.Lazy as Lazy
@@ -34,9 +33,8 @@ import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
-import qualified Fission.Internal.Base64     as B64
-import qualified Fission.Internal.Base64.URL as B64.URL
-import qualified Fission.Internal.UTF8       as UTF8
+import qualified Fission.Internal.Base64.URL         as B64.URL
+import qualified Fission.Internal.UTF8               as UTF8
 import qualified Fission.Internal.RSA2048.Pair.Types as RSA2048
 
 import           Fission.Key as Key
@@ -87,22 +85,9 @@ instance Arbitrary JWT where
       Right sig -> return JWT {..}
  
 instance ToJSON JWT where
-  toJSON JWT {..} = String . decodeUtf8Lenient $
-    encodeB64 header <> "." <> encodeB64 claims <> "." <> signed
+  toJSON JWT {..} = String $ content <> "." <> textDisplay sig
     where
-      signed :: ByteString
-      signed =
-        case sig of
-          Signature.Ed25519 edSig                 -> encodeSig edSig
-          Signature.RS256 (RS256.Signature rsSig) -> encodeSig rsSig
-
-      encodeSig raw =
-        raw
-          |> B64.toB64ByteString
-          |> decodeUtf8Lenient
-          |> B64.URL.encode
-          |> encodeUtf8
-          |> UTF8.stripPadding
+      content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
 
       encodeB64 jsonable =
         jsonable
@@ -114,22 +99,17 @@ instance ToJSON JWT where
 
 instance FromJSON JWT where
   parseJSON = withText "JWT.Token" \txt ->
-    txt
-      |> encodeUtf8
-      |> B64.toByteString
-      |> UTF8.stripPadding
-      |> Lazy.fromStrict
-      |> Char8.split '.'
-      |> \case
-          [rawHeader, rawClaims, rawSig] ->
-            either fail pure do
-              header <- B64.URL.addPadding rawHeader
-              claims <- B64.URL.addPadding rawClaims
-              sig    <- Signature.parse (alg header) $ "\"" <> rawSig <> "\""
-              return JWT {..}
+    case Text.split (== '.') txt of
+      [rawHeader, rawClaims, rawSig] -> do
+        header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
+        claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
+        sig    <- Signature.parse (alg header) (toJSON rawSig)
+        return JWT {..}
 
-          _ ->
-            fail $ show txt <> " is not a valid JWT.Token"
+      _ ->
+        fail $ "Wrong number of JWT segments in:  " <> show txt
+    where
+      jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
 
 ------------
 -- Claims --
@@ -145,7 +125,7 @@ data Claims = Claims
   , proof     :: !Proof
   -- Temporal Bounds
   , exp       :: !UTCTime
-  , nbf       :: !(Maybe UTCTime)
+  , nbf       :: !UTCTime
   } deriving Show
 
 instance Display Claims where
@@ -154,15 +134,15 @@ instance Display Claims where
 instance Eq Claims where
   jwtA == jwtB = eqWho && eqAuth && eqTime
     where
-      eqWho = (sender jwtA == sender   jwtB)
-         && (receiver jwtA == receiver jwtB)
+      eqWho = sender jwtA == sender   jwtB
+         && receiver jwtA == receiver jwtB
  
-      eqAuth = (scope jwtA == scope   jwtB)
-          &&   (proof jwtA == proof   jwtB)
-          && (potency jwtA == potency jwtB)
+      eqAuth = scope jwtA == scope   jwtB
+          &&   proof jwtA == proof   jwtB
+          && potency jwtA == potency jwtB
 
-      eqTime = (roundUTC    (exp jwtA) ==  roundUTC    (exp jwtB))
-            && (roundUTC <$> nbf jwtA) == (roundUTC <$> nbf jwtB)
+      eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
+            && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
 
 instance Arbitrary Claims where
   arbitrary = do
@@ -170,7 +150,7 @@ instance Arbitrary Claims where
     scope'  <- arbitrary
     potency <- arbitrary
     proof   <- arbitrary
-    exp     <- fromSeconds . toSeconds <$> arbitrary
+    exp     <- arbitrary
     nbf     <- arbitrary
     pk      <- arbitrary
 
@@ -189,10 +169,10 @@ instance ToJSON Claims where
     , "aud" .= receiver
     --
     , "prf" .= proof
-    , "pcy" .= potency
+    , "ptc" .= potency
     , "scp" .= scope
     --
-    , "nbf" .= fmap toSeconds nbf
+    , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
     ]
 
@@ -202,11 +182,11 @@ instance FromJSON Claims where
     receiver <- obj .: "aud"
     --
     scope   <- obj .:  "scp"
-    potency <- obj .:? "pcy" .!= AuthNOnly
+    potency <- obj .:? "ptc" .!= AuthNOnly
     proof   <- obj .:? "prf" .!= RootCredential
     --
-    nbf <- fmap fromSeconds <$> obj .:? "nbf"
-    exp <-      fromSeconds <$> obj .:  "exp"
+    nbf <- fromSeconds <$> obj .: "nbf"
+    exp <- fromSeconds <$> obj .: "exp"
 
     return Claims {..}
 

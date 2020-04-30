@@ -14,6 +14,10 @@ data Signature
   | RS256   RS256.Signature
   deriving (Eq, Show)
 
+instance Display Signature where
+  textDisplay (Ed25519 sig) = textDisplay sig
+  textDisplay (RS256   sig) = textDisplay sig
+
 instance ToJSON Signature where
   toJSON = \case
     Ed25519 sig -> toJSON sig

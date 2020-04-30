@@ -11,6 +11,7 @@ import           Fission.Prelude
 import           Fission.Authorization
 import qualified Fission.User as User
 
+import qualified Fission.Web.Error            as Web.Error
 import qualified Fission.Web.Auth.Error       as Auth
 import qualified Fission.Web.Auth.Token.Basic as Basic
 import qualified Fission.Web.Auth.Token.UCAN  as UCAN
@@ -34,17 +35,20 @@ handler ::
   -> m Authorization
 handler req =
   case get req of
-    Just (Bearer bearer) -> UCAN.handler bearer
-    Just (Basic  basic') -> Basic.handler basic'
-    Nothing              -> throwM Auth.NoToken
+    Right (Bearer bearer) -> UCAN.handler bearer
+    Right (Basic  basic') -> Basic.handler basic'
+    Left  err             -> Web.Error.throw err
 
-get :: Request -> Maybe Token
-get req = do
-  auth <- lookup "Authorization" headers <|> lookup "authorization" headers
+get :: Request -> Either Auth.Error Token
+get req =
+  case lookup "Authorization" headers <|> lookup "authorization" headers of
+    Nothing ->
+      Left Auth.NoToken
 
-  case parseHeader auth of
-    Right token -> Just token
-    Left  _     -> Nothing
-
+    Just auth ->
+      case parseHeader auth of
+        Left errMsg -> Left $ Auth.CannotParse errMsg
+        Right token -> Right token
+   
   where
     headers = requestHeaders req

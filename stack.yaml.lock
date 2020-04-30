@@ -12,6 +12,13 @@ packages:
   original:
     hackage: alex-3.2.5
 - completed:
+    hackage: base64-bytestring-1.1.0.0@sha256:190264fef9e65d9085f00ccda419137096d1dc94777c58272bc96821dc7f37c3,2334
+    pantry-tree:
+      size: 850
+      sha256: 9ade5b5911df97c37b249b84f123297049f19578cae171c647bf47683633427c
+  original:
+    hackage: base64-bytestring-1.1.0.0
+- completed:
     hackage: cryptostore-0.2.1.0@sha256:9896e2984f36a1c8790f057fd5ce3da4cbcaf8aa73eb2d9277916886978c5b19,3881
     pantry-tree:
       size: 8596
@@ -61,10 +68,10 @@ packages:
   original:
     hackage: servant-quickcheck-0.0.7.4
 - completed:
-    hackage: tasty-rerun-1.1.17@sha256:5ee1675e13b27d2450ad6290df4f80403b331b15cf503c9618bcb541d1c7bf40,1314
+    hackage: tasty-rerun-1.1.17@sha256:0cfa3f0e4addedf5992a335557381405c5c0cb2710cab2f890933a7d054008c8,1373
     pantry-tree:
       size: 334
-      sha256: 25a3eeb82ba138ef12fcab0a11bddc8a64442ef9fdd4e3b19667bc599db232ba
+      sha256: 0fbc600f59f79ab1b71abf398eb5870749419373707d8c8338615ba110eb2efd
   original:
     hackage: tasty-rerun-1.1.17
 - completed:

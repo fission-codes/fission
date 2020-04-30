@@ -37,9 +37,16 @@ instance ToJSON Token where
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->
-    case parseUrlPiece txt of
-      Right token -> return token
-      Left  err   -> fail $ Text.unpack err
+    case Text.stripPrefix "Bearer " txt <|> Text.stripPrefix "bearer " txt of
+      Just rawToken -> do
+        jwt <- parseJSON $ toJSON rawToken
+        return Token
+          { jwt
+          , rawContent = Just . Text.dropEnd 1 $ Text.dropWhileEnd (/= '.') rawToken
+          }
+
+      Nothing ->
+        fail $ Text.unpack txt <> " is missing the `Bearer ` prefix"
 
 instance ToHttpApiData Token where
   toUrlPiece token =
