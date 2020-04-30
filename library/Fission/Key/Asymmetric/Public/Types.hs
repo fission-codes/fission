@@ -17,7 +17,7 @@ import           Database.Persist.Postgresql
 import qualified Data.ByteString.Base64 as BS64
 import qualified Data.X509              as X509
 
-import qualified RIO.Text as Text
+import qualified RIO.Text as Text 
 import           Servant.API
 
 import           Fission.Prelude hiding (length)
@@ -47,8 +47,8 @@ instance Display Public where
       |> PEM.pemWriteBS
       |> decodeUtf8Lenient
       |> Text.strip
-      |> Text.dropPrefix "-----BEGIN PUBLIC KEY-----"
-      |> Text.dropSuffix "-----END PUBLIC KEY-----"
+      |> Text.dropPrefix pemHeader
+      |> Text.dropSuffix pemFooter
       |> Text.filter (/= '\n')
 
 instance Arbitrary Public where
@@ -61,18 +61,19 @@ instance ToHttpApiData Public where
   toUrlPiece = textDisplay
 
 instance FromHttpApiData Public where
-  parseUrlPiece txt =
+  parseUrlPiece txt = do
     if "MII" `Text.isPrefixOf` txt
       then
-        case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
-          Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
-          err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
+        case X509.readPubKeyFileFromMemory $ encodeUtf8 (pemHeader <> "\n" <> txt <> "\n" <> pemFooter) of
+          [X509.PubKeyRSA pk] -> Right $ RSAPublicKey pk
+          [] -> Left $ "Cannot parse RSA key"
+          _  -> Left $ "Multiple keys present, but there may only be one"
 
       else
         case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
-          err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err) <> txt
-
+          err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err)
+           
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
 
@@ -106,3 +107,9 @@ instance ToSchema Public where
       |> NamedSchema (Just "PublicKey")
       |> pure
 
+
+pemHeader :: Text
+pemHeader = "-----BEGIN PUBLIC KEY-----"
+
+pemFooter :: Text
+pemFooter = "-----END PUBLIC KEY-----"

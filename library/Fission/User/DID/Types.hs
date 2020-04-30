@@ -4,8 +4,9 @@ module Fission.User.DID.Types
   , module Fission.User.DID.Method.Types
   ) where
 
-import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
+import           Data.Binary hiding (encode)
+import qualified Data.ByteString.Base64 as BS64
 
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
@@ -103,9 +104,9 @@ instance FromJSON DID where
       Just fragment -> do
         rawPK <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : 0x01 : edKeyW8s)         -> return $ BS.pack edKeyW8s
-          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) -> return $ BS.pack rsaKeyW8s
-          nope -> fail . show $ BS.pack nope <> " is not an acceptable did:key"
+          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) -> return . BS64.encode $ BS.pack rsaKeyW8s
+          nope -> fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
         case parseHeader rawPK of
           Right pk -> return $ DID pk Key
-          Left err -> fail $ "Unable to parse because: " <> Text.unpack err
+          Left err -> fail $ "Unable to parse DID because: " <> Text.unpack err
