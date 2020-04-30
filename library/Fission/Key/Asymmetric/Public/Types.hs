@@ -9,7 +9,7 @@ import qualified Data.ASN1.BinaryEncoding as ASN1
 import qualified Data.ASN1.Encoding       as ASN1
 import qualified Data.ASN1.Types          as ASN1
  
-import Data.PEM as PEM
+import qualified Data.PEM as PEM
 
 import           Data.Swagger
 import           Database.Persist.Postgresql

@@ -33,7 +33,6 @@ instance ToJSON Ed25519.Signature where
 instance FromJSON Ed25519.Signature where
   parseJSON = withText "Ed25519.Signature" \txt ->
     case Crypto.base64ToEd25519Signature . encodeUtf8 $ Base64.URL.decode txt of
-    -- case Crypto.base64ToEd25519Signature $ B64.toB64ByteString $ encodeUtf8 txt of
       CryptoFailed err ->
         fail $ "Unable to parse as Ed25519 signature (" <> show err <> ") " <> show txt
 

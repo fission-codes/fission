@@ -46,9 +46,6 @@ import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.JWT.Header.Types (Header (..))
 
-
-
-
 -- Orphans
 
 import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
