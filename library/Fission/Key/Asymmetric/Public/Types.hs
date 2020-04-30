@@ -61,17 +61,20 @@ instance ToHttpApiData Public where
   toUrlPiece = textDisplay
 
 instance FromHttpApiData Public where
-  parseUrlPiece txt = do
+  parseUrlPiece txt =
     if "MII" `Text.isPrefixOf` txt
       then
-        case X509.readPubKeyFileFromMemory $ encodeUtf8 (pemHeader <> "\n" <> txt <> "\n" <> pemFooter) of
-          [X509.PubKeyRSA pk] -> Right $ RSAPublicKey pk
-          [] -> Left $ "Cannot parse RSA key"
-          _  -> Left $ "Multiple keys present, but there may only be one"
+        case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
+          Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
+          err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
+          -- case X509.readPubKeyFileFromMemory $ encodeUtf8 (pemHeader <> "\n" <> txt <> "\n" <> pemFooter) of
+        --   [X509.PubKeyRSA pk] -> Right $ RSAPublicKey pk
+        --   [] -> Left $ "Cannot parse RSA key from " <> txt
+        --   _  -> Left $ "Multiple keys present, but there may only be one"
 
       else
-        -- case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
-        case Crypto.Ed25519.publicKey $ B64.toB64ByteString $ encodeUtf8 txt of
+        case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
+        -- case Crypto.Ed25519.publicKey $ encodeUtf8 txt of
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
           err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err)
            
@@ -107,7 +110,6 @@ instance ToSchema Public where
       |> description ?~ "A public key"
       |> NamedSchema (Just "PublicKey")
       |> pure
-
 
 pemHeader :: Text
 pemHeader = "-----BEGIN PUBLIC KEY-----"
