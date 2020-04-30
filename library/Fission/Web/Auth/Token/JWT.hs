@@ -23,11 +23,9 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Crypto.PubKey.Ed25519 (toPublic)
  
 import qualified Data.ByteString.Base64.URL as BS.B64.URL
-import qualified Data.ByteString.Base64     as BS.B64
 
 import           Network.IPFS.CID.Types
 
-import qualified RIO.ByteString      as BS
 import qualified RIO.ByteString.Lazy as Lazy
 import qualified RIO.Text            as Text
 
@@ -35,7 +33,6 @@ import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
 
-import qualified Fission.Internal.Base64             as B64
 import qualified Fission.Internal.Base64.URL         as B64.URL
 import qualified Fission.Internal.UTF8               as UTF8
 import qualified Fission.Internal.RSA2048.Pair.Types as RSA2048

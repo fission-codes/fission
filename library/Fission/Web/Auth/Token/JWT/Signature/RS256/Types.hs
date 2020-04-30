@@ -2,7 +2,6 @@ module Fission.Web.Auth.Token.JWT.Signature.RS256.Types (Signature (..)) where
 
 import qualified Data.ByteString.Base64.URL as B64.URL
 import           Data.ByteArray
-import           Servant.API
 
 import           Fission.Prelude hiding (length)
 
