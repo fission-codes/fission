@@ -70,7 +70,8 @@ instance FromHttpApiData Public where
           _  -> Left $ "Multiple keys present, but there may only be one"
 
       else
-        case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
+        -- case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
+        case Crypto.Ed25519.publicKey $ B64.toB64ByteString $ encodeUtf8 txt of
           CryptoPassed pk -> Right $ Ed25519PublicKey pk
           err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err)
            
