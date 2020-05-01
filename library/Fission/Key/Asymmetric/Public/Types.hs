@@ -53,7 +53,7 @@ instance ToHttpApiData Public where
 instance FromHttpApiData Public where
   parseUrlPiece txt =
     if | "MII" `Text.isPrefixOf` txt -> RSAPublicKey     <$> parseUrlPiece txt
-       | Text.length txt == 61       -> Ed25519PublicKey <$> parseUrlPiece txt
+       | Text.length txt == 44       -> Ed25519PublicKey <$> parseUrlPiece txt
        | otherwise -> Left $ "Unable to determine public key algorithm: " <> txt
 
 instance IsString (Either Text Public) where

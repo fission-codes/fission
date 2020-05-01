@@ -20,7 +20,7 @@ tests =
         it "serializes to a well-known value"
           let
             expected :: Lazy.ByteString
-            expected = "did:key:z12GZctbAybHN746QxWgfwjyJhaJrefTxVNpd52TovWKpi8Fwhm9yT28FrzWq8Fr5jWuhax7J9Njhf961YQk4BeXHiiDJ8epPJbkLszPExjJd1NvmQBDUYrkg6vKmNYvh63xcYCrAiq3p6WX2QCsbK7H6956NTwQVMEdNopEgShkZ5rBiXQBMTnLd5btH2uFF8RtR9oF8bWRxzWywmy6R4VsoVei5wBh1jmJUcvnaUe7paWWpFx5NJzAkwg44ccAdgc7qUvrtS6JsZeGs9Z2YEFGw4r3qSU4gJSm5AdhL9ahiJAxKSVwrqziVDEQEonGGriYrccnwE3TCCDoBWC91bHvt46FSsbS8W1BWjp84VhJvRQ4Ay9Rw1C1X6T7cbpJ8NnP6yp7SDtxAm8DP8ELrWKCqjW8tJHeXEVvwe94hMkbpccr86wsNHPzofx9s1VGvmyfvBjVojGnnMmWK1RuiRZL2yzjo4fYotz7BfLtYCRCC4osozE3YJdBLNYeMjNZq3xBoN5dmYHE8nofQjefP7m1mhVL5"
+            expected = "did:key:z13V3Sog2YaUKhdGCmgx9UZuW1o1ShFJYc6DvGYe7NTt689NoL2RtpVs65Zw899YrTN9WuxdEEDm54YxWuQHQvcKfkZwa8HTgokHxGDPEmNLhvh69zUMEP4zjuARQ3T8bMUumkSLGpxNe1bfQX624ef45GhWb3S9HM3gvAJ7Qftm8iqnDQVcxwKHjmkV4hveKMTix4bTRhieVHi1oqU4QCVy4QPWpAAympuCP9dAoJFxSP6TNBLY9vPKLazsg7XcFov6UuLWsEaxJ5SomCpDx181mEgW2qTug5oQbrJwExbD9CMgXHLVDE2QgLoQMmgsrPevX57dH715NXC2uY6vo2mYCzRY4KuDRUsrkuYCkewL8q2oK1BEDVvi3Sg8pbC9QYQ5mMiHf8uxiHxTAmPedv8"
           in
             encode (DID rsaKey Key) `shouldBe` "\"" <> expected <> "\""
 
