@@ -1,29 +1,29 @@
 module Fission.Key.Asymmetric.Public.Types (Public (..)) where
 
-import           Crypto.Error
+-- import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519 as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA     as Crypto.RSA
-import qualified Crypto.Store.X509     as X509
+-- import qualified Crypto.Store.X509     as X509
 
-import qualified Data.ASN1.BinaryEncoding as ASN1
-import qualified Data.ASN1.Encoding       as ASN1
-import qualified Data.ASN1.Types          as ASN1
+-- import qualified Data.ASN1.BinaryEncoding as ASN1
+-- import qualified Data.ASN1.Encoding       as ASN1
+-- import qualified Data.ASN1.Types          as ASN1
  
-import qualified Data.PEM as PEM
+-- import qualified Data.PEM as PEM
 
 import           Data.Swagger
 import           Database.Persist.Postgresql
 
-import qualified Data.ByteString.Base64 as BS64
-import qualified Data.X509              as X509
+-- import qualified Data.ByteString.Base64 as BS64
+-- import qualified Data.X509              as X509
 
 import qualified RIO.Text as Text 
 import           Servant.API
 
 import           Fission.Prelude hiding (length)
 
-import           Fission.Internal.Base64.Scrubbed    as B64.Scrubbed
-import qualified Fission.Internal.Base64             as B64
+-- import           Fission.Internal.Base64.Scrubbed    as B64.Scrubbed
+-- import qualified Fission.Internal.Base64             as B64
 import           Fission.Internal.RSA2048.Pair.Types as Pair
 
 import           Fission.Internal.Orphanage.RSA2048.Public    ()
@@ -38,18 +38,8 @@ instance Show Public where
   show = Text.unpack . textDisplay
 
 instance Display Public where
-  textDisplay (Ed25519PublicKey pk) =
-    decodeUtf8Lenient $ B64.toB64ByteString pk
-
-  textDisplay (RSAPublicKey pk) =
-    X509.PubKeyRSA pk
-      |> X509.pubKeyToPEM
-      |> PEM.pemWriteBS
-      |> decodeUtf8Lenient
-      |> Text.strip
-      |> Text.dropPrefix pemHeader
-      |> Text.dropSuffix pemFooter
-      |> Text.filter (/= '\n')
+  textDisplay (Ed25519PublicKey pk) = textDisplay pk
+  textDisplay (RSAPublicKey     pk) = textDisplay pk
 
 instance Arbitrary Public where
   arbitrary = oneof
@@ -62,22 +52,10 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if "TUlJ" `Text.isPrefixOf` txt -- B64 "MII"
-      then
-        case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
-          Right (Right (X509.PubKeyRSA pk, _)) -> Right $ RSAPublicKey pk
-          err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
-          -- case X509.readPubKeyFileFromMemory $ encodeUtf8 (pemHeader <> "\n" <> txt <> "\n" <> pemFooter) of
-        --   [X509.PubKeyRSA pk] -> Right $ RSAPublicKey pk
-        --   [] -> Left $ "Cannot parse RSA key from " <> txt
-        --   _  -> Left $ "Multiple keys present, but there may only be one"
+    if | "MII" `Text.isPrefixOf` txt -> RSAPublicKey     <$> parseUrlPiece txt
+       | Text.length txt == 61       -> Ed25519PublicKey <$> parseUrlPiece txt
+       | otherwise -> Left $ "Unable to determine public key algorithm: " <> txt
 
-      else
-        case Crypto.Ed25519.publicKey . B64.Scrubbed.scrubB64 $ encodeUtf8 txt of
-        -- case Crypto.Ed25519.publicKey $ encodeUtf8 txt of
-          CryptoPassed pk -> Right $ Ed25519PublicKey pk
-          err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err)
-           
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
 
@@ -110,9 +88,3 @@ instance ToSchema Public where
       |> description ?~ "A public key"
       |> NamedSchema (Just "PublicKey")
       |> pure
-
-pemHeader :: Text
-pemHeader = "-----BEGIN PUBLIC KEY-----"
-
-pemFooter :: Text
-pemFooter = "-----END PUBLIC KEY-----"

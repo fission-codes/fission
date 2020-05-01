@@ -17,7 +17,7 @@ type Errors = OpenUnion
 
 class Monad m => Retriever m where
   allForOwner         :: UserId -> m [Entity AppDomain]
-  allForApp           :: AppId -> m [Entity AppDomain]
+  allForApp           :: AppId  -> m [Entity AppDomain]
   allSiblingsByDomain :: DomainName -> Maybe Subdomain -> m (Either Errors [Entity AppDomain])
 
 instance MonadIO m => Retriever (Transaction m) where

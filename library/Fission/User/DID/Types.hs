@@ -4,14 +4,16 @@ module Fission.User.DID.Types
   , module Fission.User.DID.Method.Types
   ) where
 
-import           Data.Base58String.Bitcoin as BS58.BTC
+import qualified Data.Aeson.Types as JSON
+
 import           Data.Binary hiding (encode)
-import qualified Data.ByteString.Base64 as BS64
+import           Data.Base58String.Bitcoin as BS58.BTC
+import qualified Data.ByteString.Base64    as BS64
 
 import qualified RIO.ByteString as BS
 import qualified RIO.Text       as Text
 
-import           Servant.API
+-- import           Servant.API
 
 import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
@@ -102,11 +104,17 @@ instance FromJSON DID where
         fail $ show txt <> " does not have a valid did:key header"
 
       Just fragment -> do
-        rawPK <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
-          (0xed : 0x01 : edKeyW8s)         -> return $ BS.pack edKeyW8s
-          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) -> return . BS64.encode $ BS.pack rsaKeyW8s
-          nope -> fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
+        pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
+          (0xed : 0x01 : edKeyW8s) ->
+            Ed25519PublicKey <$> parseKeyW8s (BS.pack edKeyW8s)
+          
+          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
+            RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
+           
+          nope ->
+            fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
-        case parseHeader rawPK of
-          Right pk -> return $ DID pk Key
-          Left err -> fail $ "Unable to parse DID because: " <> Text.unpack err
+        return $ DID pk Key
+
+parseKeyW8s :: FromJSON a => ByteString -> JSON.Parser a
+parseKeyW8s = parseJSON . toJSON . decodeUtf8Lenient
