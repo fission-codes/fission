@@ -97,7 +97,8 @@ data CreateHerokuAddOn
   deriving (Eq, Show)
 
 data RetrieveUser
-  = GetUserByUsername      Username
+  = GetUserById            UserId
+  | GetUserByUsername      Username
   | GetUserByPublicKey     Key.Public
   | GetUserByHerokuAddOnId HerokuAddOnId
   | GetUserByEmail         Email

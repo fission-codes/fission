@@ -36,12 +36,12 @@ instance MonadIO m => Associator (Transaction m) where
   associate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
-        return <| relaxedLeft err
+        return $ relaxedLeft err
 
       Right (Entity _ app) ->
         case isOwnedBy userId app of
           False ->
-            return . Error.openLeft <| ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId
 
           True -> do
             insert_ AssociateAppDomainEvent
@@ -60,5 +60,5 @@ instance MonadIO m => Associator (Transaction m) where
               }
               |> insertUnique
               |> fmap \case
-                Nothing -> Error.openLeft <| AppDomain.AlreadyAssociated appId domainName maySubdomain
+                Nothing -> Error.openLeft $ AppDomain.AlreadyAssociated appId domainName maySubdomain
                 Just _  -> ok

@@ -197,6 +197,10 @@ instance IsMember CreateHerokuAddOn effs => Heroku.AddOn.Creator (Mock effs) whe
     return . Right $ Database.toSqlKey 0
 
 instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
+  getById userId = do
+    Effect.log $ GetUserById userId
+    return . Just $ Fixture.entity Fixture.user
+
   getByUsername username = do
     Effect.log $ GetUserByUsername username
     return . Just $ Fixture.entity Fixture.user

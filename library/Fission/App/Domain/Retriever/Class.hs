@@ -32,14 +32,14 @@ instance MonadIO m => Retriever (Transaction m) where
 
     case mayAppDomain of
       Nothing ->
-        return . openLeft <| NotFound @AppDomain
+        return . openLeft $ NotFound @AppDomain
 
       Just (Entity _ AppDomain {appDomainAppId}) ->
         Right <$> P.selectList [AppDomainAppId P.==. appDomainAppId] []
 
   allForOwner ownerId = do
-    select <| from \(app `InnerJoin` appDomain) -> do
-      on <| app       ^. AppOwnerId ==. val ownerId
+    select $ from \(app `InnerJoin` appDomain) -> do
+      on  $ app       ^. AppOwnerId     ==. val ownerId
         &&. appDomain ^. AppDomainAppId ==. app ^. AppId
 
       return appDomain

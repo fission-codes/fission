@@ -25,6 +25,7 @@ import qualified Network.IPFS.Peer          as Peer
 
 import           Fission.Prelude
 import           Fission.Config.Types
+import           Fission.Error as Error
 
 import           Fission.AWS
 import           Fission.AWS.Types as AWS
@@ -56,6 +57,14 @@ import           Fission.Authorization.ServerDID.Class
 
 import           Fission.App.Content as App.Content
 import           Fission.App.Domain  as App.Domain
+
+import qualified Fission.App  as App
+import qualified Fission.User as User
+
+import           Fission.Models
+
+import Fission.User.Username.Types
+import Fission.URL.Subdomain.Types
 
 -- | The top-level app type
 newtype Fission a = Fission { unFission :: RIO Config a }
@@ -233,6 +242,30 @@ instance JWT.Resolver Fission where
           Left  _   -> Left $ InvalidJWT resolvedBS
           Right jwt -> Right (decodeUtf8Lenient resolvedBS, jwt)
 
+instance App.Creator Fission where
+  create ownerID cid now = do
+    runDB (App.create ownerID cid now) >>= \case
+      Left err ->
+        return $ Left err
+
+      Right val@(_, subdomain) ->
+        DNSLink.setBase subdomain cid <&> \case
+          Left  err -> Error.openLeft err
+          Right _   -> Right val
+
+instance App.Modifier Fission where
+  updateCID userId appId newCID now = runDB $
+    App.updateCID userId appId newCID now >>= \case
+      Left err ->
+        return $ Left err
+       
+      Right () -> do
+        appDomains <- App.Domain.allForApp appId
+        forM_ appDomains \(Entity _ AppDomain {..}) ->
+          lift $ DNSLink.set appDomainDomainName appDomainSubdomain newCID
+         
+        return ok
+
 instance ServerDID Fission where
   getServerDID = asks fissionDID
 
@@ -271,3 +304,25 @@ instance PublicizeServerDID Fission where
               if status < 300
                 then ok
                 else Left $ Web.Error.toServerError status
+
+instance User.Modifier Fission where
+  updatePassword userID password now =
+    runDB $ User.updatePassword userID password now
+
+  updatePublicKey userID pk now =
+    runDB $ User.updatePublicKey userID pk now
+
+  setData userID newCID now = runDB do
+    User.getById userID >>= \case
+      Nothing ->
+        return . Error.openLeft $ NotFound @User
+       
+      Just (Entity _ User {userUsername = Username username}) -> do
+        User.setData userID newCID now >>= \case
+          Left err ->
+            return $ Left err
+
+          Right () ->
+            lift (DNSLink.setBase (Subdomain username) newCID) <&> \case
+              Left err -> Error.openLeft err
+              Right _  -> ok

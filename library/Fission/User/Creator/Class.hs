@@ -17,7 +17,7 @@ import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
-import           Fission.User.Modifier      as User
+import           Fission.User.Modifier      as User hiding (Errors)
 import           Fission.User.Password      as Password
 import           Fission.User.Types
 import qualified Fission.User.Username      as Username
@@ -38,8 +38,10 @@ type Errors = OpenUnion
 
    , AlreadyExists HerokuAddOn
    , AppDomain.AlreadyAssociated
+
    , User.AlreadyExists
-  
+   , NotFound User
+
    , Username.Invalid
    , Password.FailedDigest
 
@@ -104,7 +106,7 @@ instance
             Just userId ->
               User.setData userId App.Content.empty now >>= \case
                 Left err ->
-                  return (Error.openLeft err)
+                  return (Error.relaxedLeft err)
 
                 Right () ->
                   App.createWithPlaceholder userId now <&> \case

@@ -1,18 +1,25 @@
-module Fission.User.Modifier.Class (Modifier (..)) where
+module Fission.User.Modifier.Class
+  ( Modifier (..)
+  , Errors
+  ) where
 
 import           Database.Persist
 import           Network.IPFS.CID.Types
 import           Servant
 
-import           Fission.Models
 import           Fission.Prelude
+import           Fission.Error as Error
+import           Fission.Models
 
 import           Fission.IPFS.DNSLink as DNSLink
-import           Fission.URL.Subdomain.Types
-import           Fission.User.Username.Types
 
 import           Fission.Key           as Key
 import           Fission.User.Password as Password
+
+type Errors = OpenUnion
+  '[ ServerError
+   , NotFound User
+   ]
 
 class Monad m => Modifier m where
   updatePassword ::
@@ -31,7 +38,7 @@ class Monad m => Modifier m where
        UserId
     -> CID
     -> UTCTime
-    -> m (Either ServerError ())
+    -> m (Either Errors ())
 
 instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
   updatePassword userId password now =
@@ -56,7 +63,7 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
     return pk
 
   setData userId newCID now = do
-    User {userUsername = Username username} <- updateGet userId
+    update userId
       [ UserDataRoot   =. newCID
       , UserModifiedAt =. now
       ]
@@ -67,6 +74,4 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
       , updateUserDataRootEventInsertedAt  = now
       }
 
-    DNSLink.setBase (Subdomain username) newCID <&> \case
-      Left err -> Left err
-      Right _  -> ok
+    return ok
