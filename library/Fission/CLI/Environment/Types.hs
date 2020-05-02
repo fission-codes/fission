@@ -6,9 +6,9 @@ import qualified Network.IPFS.Types as IPFS
 import           Fission.Internal.Orphanage.Glob.Pattern ()
 
 data Environment = Environment
-  { peers    :: Maybe (NonEmpty IPFS.Peer)
+  { peers    :: NonEmpty IPFS.Peer
   , ignored  :: IPFS.Ignored
-  , buildDir :: Maybe (FilePath)
+  , buildDir :: FilePath
   }
 
 instance ToJSON Environment where
@@ -19,7 +19,7 @@ instance ToJSON Environment where
     ]
 
 instance FromJSON Environment where
-  parseJSON = withObject "Environment" <| \obj ->
+  parseJSON = withObject "Environment" $ \obj ->
     Environment <$> obj .: "peers"
                 <*> obj .: "ignore"
                 <*> obj .: "build_dir"

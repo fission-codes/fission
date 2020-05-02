@@ -26,9 +26,9 @@ import qualified Fission.CLI.Display.Error   as CLI.Error
 
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Types
-import           Fission.CLI.Environment.Partial.Types as Env
-import qualified Fission.CLI.Environment.Partial as Env.Partial
-import           Fission.CLI.Environment.Partial (globalEnv)
+import           Fission.CLI.Environment.Override.Types as Env
+import qualified Fission.CLI.Environment.Override as Env.Override
+import           Fission.CLI.Environment.Override (globalEnv)
 
 import qualified Fission.Internal.UTF8 as UTF8
 
@@ -42,7 +42,7 @@ init ::
   )
   => m ()
 init = do
-  logDebugN "Initializing config file"
+  logDebug @Text "Initializing config file"
   path <- globalEnv
 
   Peers.getPeers >>= \case
@@ -51,32 +51,32 @@ init = do
 
     Right peers -> do
       let
-        env = Env.Partial
-          { maybeUserAuth = Nothing
-          , maybePeers = Just peers
-          , maybeIgnored = Just ignoreDefault
+        env = Env.Override
+          { peers         = []
+          , maybeUserAuth = Nothing
+          , maybeIgnored  = Just ignoreDefault
           , maybeBuildDir = Nothing
           }
 
-      liftIO $ Env.Partial.write path env
+      liftIO $ Env.Override.write path env
       CLI.Success.putOk "Logged in"
 
 -- | Gets hierarchical environment by recursing through file system
 get :: MonadIO m => m Environment
 get = do
-  partial <- Env.Partial.get
-  return $ Env.Partial.toFull partial
+  partial <- Env.Override.get
+  return $ Env.Override.toFull partial
 
 -- | Writes env to path, overwriting if necessary
 write :: MonadIO m => FilePath -> Environment -> m ()
-write path env = Env.Partial.write path $ Env.Partial.fromFull env
+write path env = Env.Override.write path $ Env.Override.fromFull env
 
 -- | Get the path to the Environment file, local or global
 getPath :: MonadIO m => Bool -> m FilePath
 getPath ofLocal =
   if ofLocal
-  then  getCurrentDirectory >>= \dir -> return $ dir </> ".fission.yaml"
-  else globalEnv
+    then getCurrentDirectory >>= \dir -> return $ dir </> ".fission.yaml"
+    else globalEnv
 
 -- | Create a could not read message for the terminal
 couldNotRead :: MonadIO m => m ()
@@ -97,31 +97,32 @@ removeConfigFile = do
 
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
-getOrRetrievePeer ::
+getOrRetrievePeer :: -- FIXME this looks like a job for the startup section!
   ( MonadUnliftIO  m
   , MonadLogger    m
   , MonadWebClient m
   )
   => Environment
   -> m (Maybe IPFS.Peer)
-getOrRetrievePeer config =
-  case peers config of
-    Just prs -> do
-      logDebugN "Retrieved Peer from .fission.yaml"
+getOrRetrievePeer config@Environment {..} =
+  case peers of
+    -- [] ->
+    --   Peers.getPeers >>= \case
+    --     Left err -> do
+    --       logError $ displayShow err
+    --       logDebug @Text "Unable to retrieve peers from the network"
+    --       return Nothing
+
+    --     Right newPeers -> do
+    --       logDebug @Text "Retrieved Peer from API"
+    --       path <- globalEnv
+    --       write path config { peers = newPeers <> peers }
+    --       return . Just $ head peers
+ 
+    prs -> do
+      logDebug @Text "Retrieved Peer from .fission.yaml"
       return . Just $ head prs
 
-    Nothing ->
-      Peers.getPeers >>= \case
-        Left err -> do
-          logError $ displayShow err
-          logDebugN "Unable to retrieve peers from the network"
-          return Nothing
-
-        Right peers -> do
-          logDebugN "Retrieved Peer from API"
-          path <- globalEnv
-          write path config { peers = Just peers }
-          return . Just $ head peers
 
 ignoreDefault :: IPFS.Ignored
 ignoreDefault =
