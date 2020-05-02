@@ -71,13 +71,21 @@ isValid (Username rawUsername) =
   all (== True) preds
   where
     preds :: [Bool]
-    preds = [okChars, not startsWithHyphen, not endsInHyphen, not inBlocklist]
+    preds =
+      [ okChars
+      , not startsWithHyphen
+      , not endsInHyphen
+      , not startsWithUnderscore
+      , not inBlocklist
+      ]
 
     inBlocklist      = elem username blocklist
     okChars          = Text.all isUsernameChar username
    
     startsWithHyphen = Text.isPrefixOf "-" username
     endsInHyphen     = Text.isSuffixOf "-" username
+
+    startsWithUnderscore = Text.isPrefixOf "_" username
 
     username = Text.toLower rawUsername
 

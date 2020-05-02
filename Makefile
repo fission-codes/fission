@@ -3,8 +3,15 @@ package = fission
 stack_yaml = STACK_YAML="stack.yaml"
 stack = $(stack_yaml) stack
 
+##########################################################################################
+
 init:
 	cp addon-manifest.json.example addon-manifest.json && cp env.yaml.example env.yaml
+
+setup:
+	stack install ghcid && stack install yesod-bin
+
+##########################################################################################
 
 serve:
 	$(stack) run fission-web
@@ -18,6 +25,8 @@ build-cli:
 build-web:
 	$(stack) build --fast $(package):fission-web
 
+##########################################################################################
+
 release:
 	$(stack) build
 
@@ -30,17 +39,22 @@ release-cli-ubuntu:
 release-web:
 	$(stack) build fission:fission-web
 
-dirty:
-	$(stack) build --ghc-options=-fforce-recomp $(package)
-
-profile:
-	$(stack) --work-dir .stack-work-profiling --profile build --fast
+##########################################################################################
 
 install-dev:
 	$(stack) install --fast
 
 install:
 	$(stack) install
+##########################################################################################
+
+dirty:
+	$(stack) build --ghc-options=-fforce-recomp $(package)
+
+profile:
+	$(stack) --work-dir .stack-work-profiling --profile build --fast
+
+##########################################################################################
 
 ghci:
 	$(stack) repl $(package):lib --no-build --no-load --ghci-options='-j6 +RTS -A128m'
@@ -70,6 +84,8 @@ test:
 test-ghci:
 	$(stack) ghci $(package):test:$(package)-tests --ghci-options='-j6 +RTS -A128m'
 
+##########################################################################################
+
 bench:
 	$(stack) build --bench $(package)
 
@@ -79,13 +95,19 @@ bench_http1:
 bench_http2:
 	h2load -n10000 -c100 -t2 http://localhost:1337/ping/
 
+##########################################################################################
+
 dev:
 	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test"
 
 live:
 	$(stack) exec -- yesod devel
 
-setup:
-	stack install ghcid && stack install yesod-bin
+##########################################################################################
+
+hash-cli:
+	openssl dgst -sha256 ~/.local/bin/fission-cli
+
+##########################################################################################
 
 .PHONY : build dirty run install ghci test test-ghci watch doctest lint
