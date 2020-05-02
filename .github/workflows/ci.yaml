@@ -1,0 +1,58 @@
+name: Continuous Integration
+
+on:
+  push: { "branches": [ "master" ] }
+  pull_request: { "branches": [ "master" ] }
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: 💽 Install OS Packages
+      uses: mstksg/get-package@v1
+      with:
+        apt-get: libgmp-dev 
+
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v1
+
+    - name: 🧰 Setup Stack
+      uses: mstksg/setup-stack@v1
+
+    - name: 🔑 Cache Key
+      id: cache_key
+      run: echo ::set-output name=key::$(md5sum stack.yaml | awk '{print $1}')
+
+    - name: 💾 Cache Dependencies
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.stack
+        key: ${{ matrix.os }}-${{ steps.cache_key.outputs.key }}
+
+    - name: 📸 Build Snapshot
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        stack --no-terminal test --bench --only-snapshot
+
+    - name: 🔨 Build & Test
+      run: |
+        # stack --no-terminal test --fast --bench --no-run-benchmarks --haddock --no-haddock-deps --coverage
+        stack --no-terminal test --fast --bench --no-run-benchmarks --haddock --no-haddock-deps --coverage
+        PKG_NAME=$(cat *.cabal | grep "name:" | sed "s/name:\s*\(.*\)/\1/")
+        mkdir -p dist/haddock  && mv $(stack path --local-install-root)/doc/$PKG_NAME-*/* dist/haddock
+        wget -O Makefile https://gist.githubusercontent.com/KtorZ/0c7411f9bda2db1b3e0ded2ef0c40381/raw/cc2f8a66cd3cd3a08a7374d699c63cf2980e9886/Makefile
+        mkdir -p .coverage && touch .coverage/template.overlay
+        DESTDIR=dist/coverage make report  && DESTDIR=dist/coverage make badge
+
+    - name: 📘 Publish Artifacts
+      if: matrix.os == 'ubuntu-latest' && github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: dist
+        enable_jekyll: true

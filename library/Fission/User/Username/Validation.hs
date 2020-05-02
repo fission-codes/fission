@@ -100,6 +100,11 @@ isUsernameChar c =
 blocklist :: [Text]
 blocklist =
   [ "fission"
+  , "ipfs"
+  , "ipns"
+  , "did"
+  , "id"
+  , "identity"
   , ".htaccess"
   , "htaccess"
   , ".htpasswd"
