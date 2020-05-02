@@ -1,11 +1,5 @@
-module Fission.Web.Auth.Token.Bearer
-  ( module Fission.Web.Auth.Token.JWT
-  , module Fission.Web.Auth.Token.JWT.Error
-  , module Fission.Web.Auth.Token.JWT.Validation
-  ) where
+module Fission.Web.Auth.Token.Bearer (module Fission.Web.Auth.Token.Bearer.Types) where
 
 -- Reexport
 
-import           Fission.Web.Auth.Token.JWT
-import           Fission.Web.Auth.Token.JWT.Error
-import           Fission.Web.Auth.Token.JWT.Validation
+import Fission.Web.Auth.Token.Bearer.Types

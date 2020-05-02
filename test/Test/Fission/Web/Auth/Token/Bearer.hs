@@ -24,7 +24,7 @@ tests =
           |> Lazy.fromStrict
           |> JSON.decode
           |> shouldBe (Just Bearer.tokenRSA2048)
-     
+
     describe "serialization" do
       itsProp' "serialize+deserialize is the identity function" \(bearer :: Bearer.Token) ->
         JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
