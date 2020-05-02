@@ -7,8 +7,9 @@ import Language.Haskell.HLint (hlint)
 arguments :: [String]
 arguments =
     [ "benchmark"
-    , "app"
     , "library"
+    , "web"
+    , "cli"
     , "test"
     ]
 
