@@ -5,7 +5,7 @@
 [![Discord](https://img.shields.io/discord/478735028319158273.svg)](https://fission.codes/discord)
 [![Discourse](https://img.shields.io/discourse/https/talk.fission.codes/topics)](https://talk.fission.codes)
 
-Seamlessly deploy websites, files, and directories to the decentralized web. 
+Seamlessly deploy websites and store secure user data
 
 ## QuickStart
 
