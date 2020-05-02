@@ -258,7 +258,7 @@ instance App.Modifier Fission where
     App.updateCID userId appId newCID now >>= \case
       Left err ->
         return $ Left err
-       
+
       Right () -> do
         appDomains <- App.Domain.allForApp appId
         forM_ appDomains \(Entity _ AppDomain {..}) ->
@@ -312,6 +312,7 @@ instance User.Modifier Fission where
   updatePublicKey userID pk now =
     runDB $ User.updatePublicKey userID pk now
 
+  -- FIXME!! Pin data
   setData userID newCID now = runDB do
     User.getById userID >>= \case
       Nothing ->

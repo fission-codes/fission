@@ -31,3 +31,12 @@ server ::
 server Authorization {about = Entity userID _} newCID = do
   Web.Error.ensure =<< runDBNow (User.setData userID newCID)
   return NoContent
+  -- FIXME pin the file!!
+
+-- type StreamingAPI
+--   = Summary ""
+--   :> Description ""
+--   :> Capture "newCID" CID
+--   :> (Stream 'PATCH 204)  '[PlainText, OctetStream, JSON] NoContent
+
+-- streaming ::
