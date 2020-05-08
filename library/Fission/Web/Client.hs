@@ -38,5 +38,7 @@ authClient pxy = do
   authReq <- mkAuthReq
   return . (client pxy) $ mkAuthenticatedRequest auth \_ath -> authReq
 
+infixl 1 `withPayload`
 withPayload :: Functor f => f (a -> b) -> a -> f b
 clientFun `withPayload` arg = (\f -> f arg) <$> clientFun
+

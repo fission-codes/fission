@@ -29,7 +29,6 @@ import           Fission.Web.Auth.Token
 import           Fission.Web.Client as Client
 
 import qualified Fission.Internal.UTF8        as UTF8
-import qualified Fission.URL.DomainName.Types as URL
 
 import           Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Environment
@@ -37,9 +36,17 @@ import           Fission.CLI.Environment
 import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Watch.Types as Watch
 
-import qualified Fission.CLI.DNS                 as CLI.DNS
-import qualified Fission.CLI.IPFS.Pin            as CLI.Pin
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
+
+
+
+
+ 
+import           Fission.Web.Client.App as App
+import Servant.API.ContentTypes
+import Fission.URL
+
+import Fission.App.URL.Class
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -48,10 +55,11 @@ cmd ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , ServerDID        m
+  , HasAppURL        m
   )
   => (m () -> IO ())
   -> Command m Watch.Options ()
@@ -69,10 +77,11 @@ watcher ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , ServerDID        m
+  , HasAppURL        m
   )
   => (m () -> IO ())
   -> Watch.Options
@@ -80,22 +89,39 @@ watcher ::
 watcher runner Watch.Options {..} = do
   ignoredFiles <- getIgnoredFiles
   toAdd        <- Prompt.checkBuildDir path
-  absPath      <- makeAbsolute toAdd
+  absPath      <- liftIO $ makeAbsolute toAdd
+  appURL       <- getAppURL
+ 
+  let copyFiles = not dnsOnly
 
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
   IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
     UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
 
-    when (not dnsOnly) do
-      CLI.Pin.add cid >>= putErrOr \_ -> noop
-
-    CLI.DNS.update cid >>= putErrOr \_ -> do
+    sendRequestM (updateApp appURL cid copyFiles) >>= putErrOr \_ -> do
       liftIO $ FS.withManager \watchMgr -> do
         hashCache <- newMVar hash
         timeCache <- newMVar =<< getCurrentTime
-        void $ handleTreeChanges runner timeCache hashCache watchMgr absPath
+        void $ handleTreeChanges runner appURL copyFiles timeCache hashCache watchMgr absPath
         forever . liftIO $ threadDelay 1000000 -- Sleep main thread
+
+updateApp ::
+  ( MonadIO      m
+  , MonadTime    m
+  , ServerDID    m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  )
+  => URL
+  -> CID
+  -> Bool
+  -> m (ClientM NoContent)
+updateApp url cid copyFiles =
+  authClient (Proxy @App.Update)
+    `withPayload` url
+    `withPayload` cid
+    `withPayload` (Just copyFiles)
 
 handleTreeChanges ::
   ( MonadUnliftIO  m
@@ -108,12 +134,14 @@ handleTreeChanges ::
   , ServerDID      m
   )
   => (m () -> IO ())
+  -> URL
+  -> Bool
   -> MVar UTCTime
   -> MVar Text
   -> WatchManager
   -> FilePath
   -> IO StopListening
-handleTreeChanges runner timeCache hashCache watchMgr dir =
+handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
   FS.watchTree watchMgr dir (const True) \_ -> runner do
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
@@ -132,27 +160,7 @@ handleTreeChanges runner timeCache hashCache watchMgr dir =
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            void $ pinAndUpdateDNS cid
-
-pinAndUpdateDNS ::
-  ( MonadUnliftIO  m
-  , MonadTime m
-  , MonadLogger    m
-  , MonadWebClient m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
-  , ServerDID m
-  )
-  => CID
-  -> m (Either ClientError URL.DomainName)
-pinAndUpdateDNS cid =
-  CLI.Pin.add cid >>= \case
-    Left err -> do
-      logError $ displayShow err
-      return $ Left err
-
-    Right _ ->
-      CLI.DNS.update cid
+            void $ sendRequestM (updateApp appURL cid copyFilesFlag)
 
 parseOptions :: Parser Watch.Options
 parseOptions = do

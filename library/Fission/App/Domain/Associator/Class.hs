@@ -3,7 +3,7 @@ module Fission.App.Domain.Associator.Class
   , Errors
   ) where
 
-import           Database.Esqueleto (insert_, insertUnique)
+import           Database.Esqueleto (insert_, insertUnique, Checkmark (..))
 
 import           Fission.Prelude
 import           Fission.Error
@@ -13,7 +13,6 @@ import           Fission.URL
 
 import qualified Fission.App.Retriever    as App
 import qualified Fission.App.Domain.Error as AppDomain
-import qualified Fission.App.Domain.Types as AppDomain
 
 import qualified Fission.Error as Error
 
@@ -36,12 +35,12 @@ instance MonadIO m => Associator (Transaction m) where
   associate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
-        return <| relaxedLeft err
+        return $ relaxedLeft err
 
       Right (Entity _ app) ->
         case isOwnedBy userId app of
           False ->
-            return . Error.openLeft <| ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId
 
           True -> do
             insert_ AssociateAppDomainEvent
@@ -55,10 +54,10 @@ instance MonadIO m => Associator (Transaction m) where
               { appDomainAppId        = appId
               , appDomainDomainName   = domainName
               , appDomainSubdomain    = maySubdomain
-              , appDomainIsBareDomain = maybe (Just AppDomain.IsBare) (\_ -> Nothing) maySubdomain
+              , appDomainIsPrimary    = Inactive
               , appDomainInsertedAt   = now
               }
               |> insertUnique
               |> fmap \case
-                Nothing -> Error.openLeft <| AppDomain.AlreadyAssociated appId domainName maySubdomain
+                Nothing -> Error.openLeft $ AppDomain.AlreadyAssociated appId domainName maySubdomain
                 Just _  -> ok

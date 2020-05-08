@@ -16,15 +16,21 @@ import           Servant.Server.Experimental.Auth
 
 import           Fission.Models
 import           Fission.Prelude
+
+import qualified Fission.IPFS.DNSLink.Class as DNSLink
+
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 import           Fission.URL.Types as URL
 import           Fission.User.DID.Types
 import           Fission.Authorization.Types
+import qualified Fission.AWS.Types as AWS
 
 data Config = Config
-  { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> (Either ServerError URL.DomainName)
+  { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> Either DNSLink.Errors URL
+  , followDNSLink   :: URL -> URL -> Either DNSLink.Errors ()
   , getBaseDomain   :: URL.DomainName
-  , updateRoute53   :: RecordType -> URL.DomainName -> Text -> (Either ServerError ChangeResourceRecordSetsResponse)
+  , updateRoute53   :: RecordType -> URL -> AWS.ZoneID -> NonEmpty Text -> Either ServerError ChangeResourceRecordSetsResponse
+  , clearRoute53    :: RecordType -> URL -> Either ServerError ChangeResourceRecordSetsResponse
   , now             :: UTCTime
   , linkedPeers     :: NonEmpty IPFS.Peer
   , userVerifier    :: AuthHandler Wai.Request (Entity User)

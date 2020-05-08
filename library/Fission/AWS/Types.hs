@@ -1,15 +1,16 @@
 -- | Fission-specific AWS types
 module Fission.AWS.Types
   ( ZoneID (..)
-  , Route53MockEnabled (..)
+  , MockRoute53 (..)
   ) where
 
 import Fission.AWS.Zone.Types
 import Fission.Prelude
 
-newtype Route53MockEnabled = Route53MockEnabled Bool
+newtype MockRoute53
+  = MockRoute53 Bool
   deriving (Show, Eq)
 
-instance FromJSON Route53MockEnabled where
-  parseJSON = withBool "AWS.Route53MockEnabled" \val ->
-    Route53MockEnabled <$> parseJSON (Bool val)
+instance FromJSON MockRoute53 where
+  parseJSON = withBool "AWS.MockRoute53" \val ->
+    MockRoute53 <$> parseJSON (Bool val)

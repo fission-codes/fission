@@ -17,57 +17,78 @@ import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
 
 import qualified Fission.AWS.Types as AWS
-import qualified Fission.URL.Types as URL
+import           Fission.URL.Types as URL
 import           Fission.Web.Types
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { processCtx             :: !ProcessContext
-  , logFunc                :: !LogFunc
-  , httpManager            :: !HTTP.Manager
-  , ipfsPath               :: !IPFS.BinPath
-  , ipfsURL                :: !IPFS.URL
-  , ipfsRemotePeer         :: !IPFS.Peer
-  , ipfsTimeout            :: !IPFS.Timeout
-  , ipfsGateway            :: !IPFS.Gateway
-  , host                   :: !Host
-  , dbPool                 :: !(Pool SqlBackend)
-  , herokuID               :: !Heroku.ID
-  , herokuPassword         :: !Heroku.Password
-  , awsAccessKey           :: !AWS.AccessKey
-  , awsSecretKey           :: !AWS.SecretKey
-  , awsZoneID              :: !AWS.ZoneID
-  , awsRoute53MockEnabled  :: !AWS.Route53MockEnabled
-  , appPlaceholder         :: !CID
-  , baseAppDomainName      :: !URL.DomainName
-  , baseUserDataRootDomain :: !URL.DomainName
-  , defaultDataCID         :: !CID
-  , fissionDID             :: !DID
+  { processCtx        :: !ProcessContext
+  , logFunc           :: !LogFunc
+  --
+  , httpManager       :: !HTTP.Manager
+  , dbPool            :: !(Pool SqlBackend)
+  --
+  , ipfsPath          :: !IPFS.BinPath
+  , ipfsURL           :: !IPFS.URL
+  , ipfsRemotePeer    :: !IPFS.Peer
+  , ipfsTimeout       :: !IPFS.Timeout
+  , ipfsGateway       :: !IPFS.Gateway
+  --
+  , herokuID          :: !Heroku.ID
+  , herokuPassword    :: !Heroku.Password
+  --
+  , awsAccessKey      :: !AWS.AccessKey
+  , awsSecretKey      :: !AWS.SecretKey
+  , awsMockRoute53    :: !AWS.MockRoute53
+  --
+  , baseAppZoneID     :: !AWS.ZoneID
+  , appPlaceholder    :: !CID
+  , baseAppDomainName :: !URL.DomainName
+  --
+  , userRootDomain    :: !URL.DomainName
+  , userZoneID        :: !AWS.ZoneID
+  , defaultDataCID    :: !CID
+  --
+  , host              :: !Host
+  , fissionDID        :: !DID
+  , serverZoneID      :: !AWS.ZoneID
+  , liveDriveURL      :: !URL
   }
 
 instance Show Config where
   show Config {..} = intercalate "\n"
     [ "Config {"
-    , "  processCtx             = **SOME PROC CONTEXT**"
-    , "  logFunc                = **SOME LOG FUNCTION**"
-    , "  httpManager            = **SOME HTTP MANAGER**"
-    , "  ipfsPath               = " <> show ipfsPath
-    , "  ipfsURL                = " <> show ipfsURL
-    , "  ipfsRemotePeer         = " <> show ipfsRemotePeer
-    , "  ipfsTimeout            = " <> show ipfsTimeout
-    , "  ipfsGateway            = " <> show ipfsGateway
-    , "  host                   = " <> show host
-    , "  dbPool                 = " <> show dbPool
-    , "  herokuID               = " <> show herokuID
-    , "  herokuPassword         = " <> show herokuPassword
-    , "  awsAccessKey           = " <> show awsAccessKey
-    , "  awsSecretKey           = HIDDEN"
-    , "  awsZoneID              = " <> show awsZoneID
-    , "  awsRoute53MockEnabled  = " <> show awsRoute53MockEnabled
-    , "  appPlaceholder         = " <> show appPlaceholder
-    , "  baseAppDomainName      = " <> show baseAppDomainName
-    , "  baseUserDataRootDomain = " <> show baseUserDataRootDomain
-    , "  defaultDataCID         = " <> show defaultDataCID
+    , "  processCtx        = **SOME PROC CONTEXT**"
+    , "  logFunc           = **SOME LOG FUNCTION**"
+    --
+    , "  httpManager       = **SOME HTTP MANAGER**"
+    , "  dbPool            = " <> show dbPool
+    --
+    , "  ipfsPath          = " <> show ipfsPath
+    , "  ipfsURL           = " <> show ipfsURL
+    , "  ipfsRemotePeer    = " <> show ipfsRemotePeer
+    , "  ipfsTimeout       = " <> show ipfsTimeout
+    , "  ipfsGateway       = " <> show ipfsGateway
+    --
+    , "  herokuID          = " <> show herokuID
+    , "  herokuPassword    = " <> show herokuPassword
+    --
+    , "  awsAccessKey      = " <> show awsAccessKey
+    , "  awsSecretKey      = HIDDEN"
+    , "  awsMockRoute53    = " <> show awsMockRoute53
+    --
+    , "  baseAppZoneID     = " <> show baseAppZoneID
+    , "  appPlaceholder    = " <> show appPlaceholder
+    , "  baseAppDomainName = " <> show baseAppDomainName
+    --
+    , "  userRootDomain    = " <> show userRootDomain
+    , "  userZoneID        = " <> show userZoneID
+    , "  defaultDataCID    = " <> show defaultDataCID
+    --
+    , "  host              = " <> show host
+    , "  fissionDID        = " <> show fissionDID
+    , "  serverZoneID      = " <> show serverZoneID
+    , "  liveDriveURL      = " <> show liveDriveURL
     , "}"
     ]
 

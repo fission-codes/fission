@@ -12,8 +12,12 @@ import qualified Network.IPFS.Add as IPFS
 import           Fission.Prelude
 import           Fission.Authorization.ServerDID
  
+import          Fission.App.URL.Class
+ 
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client as Client
+
+import           Fission.Web.Client.App as App
 
 import           Fission.CLI.Environment
 
@@ -22,9 +26,7 @@ import           Fission.CLI.Command.Up.Types as Up
 
 import           Fission.CLI.Display.Error
 import qualified Fission.CLI.Prompt.BuildDir as Prompt
- 
-import qualified Fission.CLI.DNS      as CLI.DNS
-import qualified Fission.CLI.IPFS.Pin as CLI.Pin
+import qualified Fission.CLI.Display.Error   as CLI.Error
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -33,10 +35,11 @@ cmd ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , HasAppURL        m
+  , ServerDID        m
   )
   => Command m Up.Options ()
 cmd = Command
@@ -53,24 +56,34 @@ up ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , HasAppURL        m
+  , ServerDID        m
   )
   => Up.Options
   -> m ()
 up Up.Options {..} = do
   ignoredFiles <- getIgnoredFiles
   toAdd        <- Prompt.checkBuildDir path
-  absPath      <- liftIO (makeAbsolute toAdd)
+  absPath      <- liftIO $ makeAbsolute toAdd
+  appURL       <- getAppURL
+
+  let copyFiles = not dnsOnly
 
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
   IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-    unless dnsOnly $
-      CLI.Pin.add cid >>= putErrOr \_ -> noop
-
-    CLI.DNS.update cid >>= putErrOr \_ -> noop
+    sendRequestM (updateApp appURL cid copyFiles) >>= \case
+      Left err -> CLI.Error.put err "Server unable to sync data"
+      Right _  -> return ()
+ 
+  where
+    updateApp url cid copyFiles =
+      authClient (Proxy @App.Update)
+        `withPayload` url
+        `withPayload` cid
+        `withPayload` (Just copyFiles)
 
 parseOptions :: Parser Up.Options
 parseOptions = do

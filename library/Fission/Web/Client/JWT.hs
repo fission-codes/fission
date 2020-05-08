@@ -3,11 +3,14 @@ module Fission.Web.Client.JWT
   , ucan
   ) where
 
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import           Servant.API hiding (addHeader)
 import           Servant.Client.Core
- 
+
 import           Fission.Prelude
  
 import qualified Fission.Internal.Orphanage.ClientM ()
@@ -25,7 +28,7 @@ import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types as JWT.Typ
 import qualified Fission.Web.Auth.Token.JWT.Signature.Types  as JWT.Signature
 import qualified Fission.Web.Auth.Token.Bearer.Types         as Bearer
 
-import Fission.Web.Client.Auth
+import           Fission.Web.Client.Auth
 
 -- NOTE Probably can be changed to `hoistClientMonad` at call site
 mkAuthReq ::
@@ -41,8 +44,19 @@ mkAuthReq = do
   sk         <- getAuth
 
   let
-    jwt     = ucan now fissionDID sk RootCredential
-    encoded = toUrlPiece $ Bearer.Token jwt Nothing
+    jwt =
+      ucan now fissionDID sk RootCredential
+
+    raw =
+      jwt
+        |> encode
+        |> Lazy.toStrict
+        |> decodeUtf8Lenient
+        |> Text.dropPrefix "\""
+        |> Text.dropSuffix "\""
+ 
+    encoded =
+      toUrlPiece $ Bearer.Token jwt raw
  
   return \req -> addHeader "Authorization" encoded req
 

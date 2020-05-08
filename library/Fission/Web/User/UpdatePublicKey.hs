@@ -7,6 +7,8 @@ import           Servant
 
 import           Fission.Prelude
 import           Fission.Authorization
+ 
+import qualified Fission.Web.Error as Web.Error
 
 import qualified Fission.Key  as Key
 import qualified Fission.User as User
@@ -18,12 +20,14 @@ type API
   :> Patch   '[PlainText, OctetStream, JSON] NoContent
 
 server ::
-  ( MonadTime       m
-  , MonadDB       t m
-  , User.Modifier t
+  ( MonadTime     m
+  , MonadLogger   m
+  , MonadThrow    m
+  , User.Modifier m
   )
   => Authorization
   -> ServerT API m
 server Authorization {about = Entity userID _} pk = do
-  runDBNow $ User.updatePublicKey userID pk
+  now <- currentTime
+  Web.Error.ensureM $ User.updatePublicKey userID pk now
   return NoContent

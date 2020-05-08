@@ -46,7 +46,7 @@ main = do
         then tlsManagerSettings
         else defaultManagerSettings
 
-  httpManager <- HTTP.newManager $ rawHTTPSettings
+  httpManager <- HTTP.newManager rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro tOut }
 
   withLogFunc logOptions \logFunc -> cli CLI.BaseConfig {..}

@@ -5,11 +5,22 @@ import           Network.AWS.Route53
 
 import           Servant
 
-import           Fission.URL.Types as URL
 import           Fission.Prelude
 
-class MonadAWS m => MonadRoute53 m where
-  update :: RecordType -> URL.DomainName -> Text -> m (Either ServerError ChangeResourceRecordSetsResponse)
+import qualified Fission.AWS.Zone.Types as AWS
+import           Fission.URL
 
-instance MonadRoute53 m => MonadRoute53 (Transaction m) where
-  update r url txt = lift <| update r url txt
+-- | Low-level Route53 interface / no auth checks do not use directly
+class MonadAWS m => MonadRoute53 m where
+  set ::
+       RecordType
+    -> URL
+    -> AWS.ZoneID
+    -> NonEmpty Text
+    -> m (Either ServerError ChangeResourceRecordSetsResponse)
+
+  clear ::
+       RecordType
+    -> URL
+    -> AWS.ZoneID
+    -> m (Either ServerError ChangeResourceRecordSetsResponse)

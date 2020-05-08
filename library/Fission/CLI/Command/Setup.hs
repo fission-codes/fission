@@ -24,8 +24,8 @@ import           Fission.User.Email.Types
 import           Fission.CLI.Display.Error   as CLI.Error
 import           Fission.CLI.Display.Success as CLI.Success
 
-import qualified Fission.CLI.Prompt              as Prompt
-import qualified Fission.CLI.Environment.Partial as Env.Partial
+import qualified Fission.CLI.Prompt               as Prompt
+import qualified Fission.CLI.Environment.Override as Env.Override
 
 import           Fission.CLI.Command.Types
 
@@ -62,7 +62,7 @@ setup = do
       CLI.Success.putOk "You are already connected"
 
     False -> do
-      maybe createAccount upgradeAccount =<< Env.Partial.findBasicAuth
+      maybe createAccount upgradeAccount =<< Env.Override.findBasicAuth -- NOTE Deprecated
 
 createAccount ::
   ( MonadIO m
@@ -151,10 +151,10 @@ updateDID ::
   ( MonadIO        m
   , MonadLogger    m
   , MonadWebClient m
-  , MonadTime m
-  , ServerDID m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
+  , MonadTime      m
+  , ServerDID      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
   )
   => Key.Public
   -> m ()
@@ -164,5 +164,5 @@ updateDID pk = do
       CLI.Error.put err "Could not upgrade account"
 
     Right _ -> do
-      _ <- Env.Partial.deleteHomeAuth
+      _ <- Env.Override.deleteHomeAuth
       CLI.Success.putOk "Upgrade successful!"

@@ -11,9 +11,11 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Network.IPFS
 
 import           Fission.Prelude
+ 
 import           Fission.Authorization.ServerDID
 import qualified Fission.Key as Key
 import           Fission.User.DID.Types
+import           Fission.App.URL.Class
 
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
@@ -51,6 +53,7 @@ liftConfig ::
   , MonadLogger    m
   , MonadWebClient m
   , ServerDID      m
+  , HasAppURL      m
   )
   => BaseConfig
   -> m (Either Error ConnectedConfig)
@@ -63,6 +66,7 @@ liftConfig BaseConfig {..} = do
      
     Right secretKey -> do
       config <- Environment.get
+ 
       Environment.getOrRetrievePeer config >>= \case
         Nothing -> do
           logErrorN "Could not locate the Fission IPFS network"
@@ -76,10 +80,11 @@ liftConfig BaseConfig {..} = do
               return $ Left CannotConnect
 
             Right _ -> do
+              appURL <- getAppURL
+ 
               let
                 ignoredFiles = Environment.ignored config
-                ucanLink = Nothing
-             
+
                 cliDID = DID
                   { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
                   , method    = Key

@@ -3,8 +3,8 @@ module Fission.Ownership
   , isOwnedBy
   ) where
 
-import           Prelude
 import           Fission.Models
+import           Prelude
 
 import           Fission.Ownership.Class
 

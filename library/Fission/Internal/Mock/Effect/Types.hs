@@ -3,7 +3,9 @@ module Fission.Internal.Mock.Effect.Types
   , CheckTime          (..)
   , RunAWS             (..)
   , UpdateRoute53      (..)
+  , ClearRoute53       (..)
   , SetDNSLink         (..)
+  , FollowDNSLink      (..)
   , RunLocalIPFS       (..)
   , RunRemoteIPFS      (..)
   , LogMsg             (..)
@@ -29,6 +31,8 @@ import           Fission.Prelude
 import qualified Fission.Key as Key
 import           Fission.Models
 
+import           Fission.URL.Types
+
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
@@ -37,7 +41,9 @@ type FissionEffs =
    , RunAWS
    , RunDB
    , SetDNSLink
+   , FollowDNSLink
    , UpdateRoute53
+   , ClearRoute53
    , RunLocalIPFS
    , RunRemoteIPFS
    , LogMsg
@@ -68,8 +74,16 @@ data UpdateRoute53
   = UpdateRoute53
   deriving (Eq, Show)
 
+data ClearRoute53
+  = ClearRoute53
+  deriving (Eq, Show)
+
 data SetDNSLink
   = SetDNSLink
+  deriving (Eq, Show)
+
+data FollowDNSLink
+  = FollowDNSLink URL URL
   deriving (Eq, Show)
 
 data RunLocalIPFS
@@ -101,6 +115,7 @@ data RetrieveUser
   | GetUserByPublicKey     Key.Public
   | GetUserByHerokuAddOnId HerokuAddOnId
   | GetUserByEmail         Email
+  | GetUserById            UserId
   deriving (Eq, Show)
 
 data CreateUser

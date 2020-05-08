@@ -4,10 +4,7 @@ import           Fission.Prelude
 import           Fission.Models
 
 import           Fission.Error.NotFound.Types
-
 import qualified Fission.User.Retriever as User
- 
-import qualified Fission.Web.Auth.Error as Auth
 import qualified Fission.Web.Error      as Web.Error
 
 import           Fission.Web.Auth.Token.JWT            as JWT
@@ -34,13 +31,9 @@ handler ::
   )
   => Bearer.Token
   -> m Authorization
-handler (Bearer.Token jwt (Just rawContent)) = do
-  void . Web.Error.ensureM =<< JWT.check rawContent jwt
+handler (Bearer.Token jwt rawContent) = do
+  void . Web.Error.ensureM $ JWT.check rawContent jwt
   toAuthorization jwt
-
-handler _ = do -- Practically impossible
-  logError @Text "Have a token without raw content... somehow"
-  Web.Error.throw Auth.NoToken
 
 toAuthorization ::
   ( JWT.Resolver     m

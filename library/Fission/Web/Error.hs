@@ -33,8 +33,9 @@ ensureM ::
   , Display       err
   , ToServerError err
   )
-  => Either err a -> m a
-ensureM = either throw pure
+  => m (Either err a)
+  -> m a
+ensureM action = either throw pure =<< action
 
 ensureMaybe ::
   ( MonadLogger m

@@ -113,4 +113,4 @@ subOps
   -> (Operation -> f Operation)
   ->   Swagger
   -> f Swagger
-subOps routeProxy = subOperations routeProxy <| Proxy @Web.API
+subOps routeProxy = subOperations routeProxy $ Proxy @Web.API

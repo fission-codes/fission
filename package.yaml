@@ -1,5 +1,5 @@
 name: fission
-version: '2.3.10'
+version: '2.4.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -174,9 +174,9 @@ library:
   source-dirs: library
 
 executables:
-  fission-web:
+  fission-server:
     main: Main.hs
-    source-dirs: web
+    source-dirs: server
     dependencies:
       - fission
       - raven-haskell

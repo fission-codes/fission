@@ -8,4 +8,4 @@ import           Network.IPFS.CID.Types
 import           Fission.App.Content.Initializer
 
 empty :: CID
-empty = CID "Qmc5m94Gu7z62RC8waSKkZUrCCBJPyHbkpmGzEePxy2oXJ"
+empty = CID "Qmc5m94Gu7z62RC8waSKkZUrCCBJPyHbkpmGzEePxy2oXJ" -- Totally blank

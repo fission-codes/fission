@@ -1,21 +1,21 @@
 -- | Grab files directly from IPFS
 module Fission.CLI.Command.Down (cmd, handler) where
 
-import qualified Data.Text as Text
+import qualified RIO.Text                    as Text
 
-import           Network.URI as URI
+import           Network.URI                 as URI
 import           Options.Applicative
 
 import           Network.IPFS
-import qualified Network.IPFS.Get   as IPFS
-import qualified Network.IPFS.Types as IPFS
 import           Network.IPFS.CID.Types
+import qualified Network.IPFS.Get            as IPFS
+import qualified Network.IPFS.Types          as IPFS
 
-import           Fission.Prelude
 import           Fission.CLI.Command.Types
+import           Fission.Prelude
 
-import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Success as CLI.Success
 import qualified Fission.CLI.Display.Wait    as CLI.Wait
 
 -- | The command to attach to the CLI tree

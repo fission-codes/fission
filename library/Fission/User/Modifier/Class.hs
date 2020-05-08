@@ -1,18 +1,28 @@
-module Fission.User.Modifier.Class (Modifier (..)) where
+module Fission.User.Modifier.Class
+  ( Modifier (..)
+  , Errors
+  ) where
 
-import           Database.Persist
+import           Database.Persist as Persist
 import           Network.IPFS.CID.Types
-import           Servant
+import           Servant.Server
 
+import           Fission.Error
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.IPFS.DNSLink as DNSLink
-import           Fission.URL.Subdomain.Types
-import           Fission.User.Username.Types
-
 import           Fission.Key           as Key
+import           Fission.URL
 import           Fission.User.Password as Password
+
+type Errors = OpenUnion
+  '[ NotFound User
+  
+   , NotFound            URL
+   , ActionNotAuthorized URL
+  
+   , ServerError
+   ]
 
 class Monad m => Modifier m where
   updatePassword ::
@@ -25,15 +35,15 @@ class Monad m => Modifier m where
        UserId
     -> Key.Public
     -> UTCTime
-    -> m Key.Public
+    -> m (Either Errors Key.Public)
    
   setData ::
        UserId
     -> CID
     -> UTCTime
-    -> m (Either ServerError ())
+    -> m (Either Errors ())
 
-instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
+instance MonadIO m => Modifier (Transaction m) where
   updatePassword userId password now =
     Password.hashPassword password >>= \case
       Left err ->
@@ -53,10 +63,10 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
       , UserModifiedAt =. now
       ]
 
-    return pk
+    return $ Right pk
 
   setData userId newCID now = do
-    User {userUsername = Username username} <- updateGet userId
+    update userId
       [ UserDataRoot   =. newCID
       , UserModifiedAt =. now
       ]
@@ -67,6 +77,5 @@ instance (MonadDNSLink m, MonadIO m) => Modifier (Transaction m) where
       , updateUserDataRootEventInsertedAt  = now
       }
 
-    DNSLink.setBase (Subdomain username) newCID <&> \case
-      Left err -> Left err
-      Right _  -> ok
+    return ok
+

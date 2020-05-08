@@ -1,16 +1,38 @@
-module Fission.IPFS.DNSLink.Class (MonadDNSLink (..)) where
+module Fission.IPFS.DNSLink.Class
+  ( MonadDNSLink (..)
+  , Errors     
+  ) where
 
 import           Network.IPFS.CID.Types
 import           Servant
 
-import           Fission.AWS.Route53.Class
-import           Fission.URL.Types as URL
 import           Fission.Prelude hiding (set)
 
-class MonadRoute53 m => MonadDNSLink m where
-  set :: DomainName -> Maybe URL.Subdomain -> CID -> m (Either ServerError URL.DomainName)
-  setBase :: URL.Subdomain -> CID -> m (Either ServerError URL.DomainName)
+import           Fission.Error.Types
+import           Fission.Models
+import           Fission.URL.Types
 
-instance MonadDNSLink m => MonadDNSLink (Transaction m) where
-  set domainName maySubdomain cid = lift $ set domainName maySubdomain cid
-  setBase subdomain cid = lift $ setBase subdomain cid
+import           Fission.AWS.Route53.Class
+import           Fission.AWS.Types as AWS
+
+type Errors = OpenUnion
+  '[ ServerError
+   , NotFound            URL
+   , ActionNotAuthorized URL
+   ]
+
+-- | Low-level 'DNSLink' interface
+class MonadRoute53 m => MonadDNSLink m where
+  set ::
+       UserId     -- ^ Who is performing this action (for auth)
+    -> URL        -- ^ The @URL@ target
+    -> AWS.ZoneID -- ^ The @ZoneID@ for the associated @URL@
+    -> CID        -- ^ The @CID@ to set at that DNSLink
+    -> m (Either Errors URL)
+
+  follow ::
+       UserId
+    -> URL        -- ^ Follower
+    -> AWS.ZoneID -- ^ Follower Zone
+    -> URL        -- ^ Followee
+    -> m (Either Errors ())

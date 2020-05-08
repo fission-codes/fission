@@ -7,25 +7,32 @@ module Fission.CLI.Config.Base.Types
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import qualified RIO.ByteString.Lazy as Lazy
+import           RIO.Directory
+import qualified RIO.Text            as Text
+
 import qualified Data.ByteString.Char8 as BS8
 
 import qualified Network.DNS         as DNS
-import           Network.HTTP.Client as HTTP
+import qualified Network.HTTP.Client as HTTP
 
 import           Network.IPFS
-import           Network.IPFS.Types         as IPFS
+import qualified Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
 import           Servant.Client
 
 import           Fission.Prelude
+
+import           Fission.URL
  
+import           Fission.App.URL.Class
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
 import           Fission.Key as Key
 import           Fission.User.DID.Types
+import           Fission.CLI.Environment.Override as Override
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
@@ -33,6 +40,7 @@ import           Fission.Web.Auth.Token.JWT
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
+import qualified Fission.Web.Client.App as App
  
 import qualified Fission.CLI.Display.Error  as CLI.Error
 import qualified Fission.CLI.Display.Loader as CLI
@@ -42,6 +50,7 @@ data BaseConfig = BaseConfig
   { httpManager     :: !HTTP.Manager
   , fissionURL      :: !BaseUrl
   , cachedServerDID :: !(Maybe DID) -- ^ Typically from setting with envar
+  , cachedAppURL    :: !(Maybe URL)
   , logFunc         :: !LogFunc
   , processCtx      :: !ProcessContext
   , ipfsPath        :: !IPFS.BinPath
@@ -120,10 +129,19 @@ instance MonadWebAuth FissionBase Token where
     sk        <- getAuth
     serverDID <- getServerDID
 
-    return . Bearer $ Bearer.Token
-      { jwt        = JWT.ucan now serverDID sk RootCredential
-      , rawContent = Nothing
-      }
+    let
+      jwt =
+        JWT.ucan now serverDID sk RootCredential
+
+      rawContent =
+        jwt
+          |> encode
+          |> Lazy.toStrict
+          |> decodeUtf8Lenient
+          |> Text.dropPrefix "\""
+          |> Text.dropSuffix "\""
+
+    return . Bearer $ Bearer.Token {..}
 
 instance MonadWebAuth FissionBase Ed25519.SecretKey where
   getAuth =
@@ -163,3 +181,18 @@ instance MonadLocalIPFS FissionBase where
         | otherwise ->
             Left $ Process.UnknownErr stdErr
 
+instance HasAppURL FissionBase where
+  getAppURL =
+    asks cachedAppURL >>= \case
+      Just appURL ->
+        return appURL
+
+      Nothing ->
+        sendRequestM (authClient $ Proxy @App.Create) >>= \case
+          Left _err ->
+            error "unable to connect to server to create app" -- FIXME rescue shoudl fix this straightforwardly
+           
+          Right appURL -> do
+            path <- liftIO getCurrentDirectory
+            Override.writeMerge path $ mempty { maybeAppURL = Just appURL }
+            return appURL

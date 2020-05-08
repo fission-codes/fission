@@ -35,11 +35,10 @@ type ByIdAPI
   :> DeleteNoContent '[JSON] NoContent
 
 server ::
-  ( MonadTime       m
-  , MonadThrow      m
-  , MonadLogger     m
-  , MonadDB       t m
-  , App.Destroyer t
+  ( MonadTime     m
+  , MonadThrow    m
+  , MonadLogger   m
+  , App.Destroyer m
   )
   => Authorization
   -> ServerT API m
@@ -47,27 +46,27 @@ server auth = destroyByURL auth
          :<|> destroyById  auth
 
 destroyByURL ::
-  ( MonadTime       m
-  , MonadThrow      m
-  , MonadLogger     m
-  , MonadDB       t m
-  , App.Destroyer t
+  ( MonadTime     m
+  , MonadThrow    m
+  , MonadLogger   m
+  , App.Destroyer m
   )
   => Authorization
   -> ServerT ByURLAPI m
 destroyByURL Authorization {about = Entity userId _} URL {..} = do
-  Web.Error.ensure =<< runDBNow (App.destroyByURL userId domainName subdomain)
+  now <- currentTime
+  Web.Error.ensureM $ App.destroyByURL userId domainName subdomain now
   return NoContent
 
 destroyById ::
-  ( MonadTime       m
-  , MonadThrow      m
-  , MonadLogger     m
-  , MonadDB       t m
-  , App.Destroyer t
+  ( MonadTime     m
+  , MonadThrow    m
+  , MonadLogger   m
+  , App.Destroyer m
   )
   => Authorization
   -> ServerT ByIdAPI m
 destroyById Authorization {about = Entity userId _} appId = do
-  Web.Error.ensure =<< runDBNow (App.destroy userId appId)
+  now <- currentTime
+  Web.Error.ensureM $ App.destroy userId appId now
   return NoContent

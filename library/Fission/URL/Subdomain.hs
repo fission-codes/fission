@@ -1,28 +1,4 @@
--- | URL helpers
-module Fission.URL.Subdomain
-  ( normalizePrefix
-  , prefix
-  , module Fission.URL.Subdomain.Types
-  ) where
+-- | Subdomain helpers
+module Fission.URL.Subdomain (module Fission.URL.Subdomain.Types) where
 
-import Fission.Prelude
 import Fission.URL.Subdomain.Types
-import Fission.URL.DomainName.Types
-
-{-| Prefix a domain named with an optional subdomain.
--}
-normalizePrefix :: DomainName -> Maybe Subdomain -> DomainName
-normalizePrefix domain (Just subdomain) = prefix domain subdomain
-normalizePrefix domain Nothing          = domain
-
-{-| Prefix a domain with a subdomain.
-
-    $setup
-    >>> :set -XOverloadedStrings
-
-    >>> prefix (DomainName "domain") (Subdomain "sub")
-    DomainName {get = "sub.domain"}
-
--}
-prefix :: DomainName -> Subdomain -> DomainName
-prefix (DomainName domain) (Subdomain subdomain) = DomainName (subdomain <> "." <> domain)

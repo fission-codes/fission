@@ -8,7 +8,7 @@ arguments :: [String]
 arguments =
     [ "benchmark"
     , "library"
-    , "web"
+    , "server"
     , "cli"
     , "test"
     ]

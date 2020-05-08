@@ -9,8 +9,8 @@ module Fission.CLI.Display.Error
 import qualified System.Console.ANSI as ANSI
 
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8           as UTF8
-import qualified Fission.CLI.Environment.Partial as Env.Partial
+import qualified Fission.Internal.UTF8            as UTF8
+import qualified Fission.CLI.Environment.Override as Env.Override
 
 -- | Display a given error to the user and log an error to the debug log.
 put :: (MonadIO m, MonadLogger m, Show err) => err -> Text -> m ()
@@ -36,7 +36,7 @@ putErrOr cont = \case
 --   Error depends on if they have basic auth saved somewhere (ie if they are an existing user)
 notConnected :: (MonadIO m, MonadLogger m, Exception err) => err ->  m ()
 notConnected err =
-  Env.Partial.findBasicAuth >>= \case
+  Env.Override.findBasicAuth >>= \case
     Nothing ->
       put err "Not logged in yet! Try running `fission setup`"
      

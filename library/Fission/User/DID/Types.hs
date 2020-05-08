@@ -75,12 +75,8 @@ instance Arbitrary DID where
 
     return DID {..}
 
-instance Display DID where
-  textDisplay = Text.pack . show
-
-instance ToJSON DID where
-  toJSON (DID pk method) = -- NOTE `pk` here is base2, not base58
-    String (header <> UTF8.toBase58Text (BS.pack multicodecW8))
+instance Display DID where -- NOTE `pk` here is base2, not base58
+  textDisplay (DID pk method) = header <> UTF8.toBase58Text (BS.pack multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"
@@ -95,6 +91,9 @@ instance ToJSON DID where
                                     |    "expect 373 Bytes", encoded in the mixed-endian format
                                   "raw"
                               -}
+
+instance ToJSON DID where
+  toJSON = String . textDisplay
 
 instance FromJSON DID where
   parseJSON = withText "DID" \txt ->

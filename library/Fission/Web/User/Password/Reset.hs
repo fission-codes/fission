@@ -22,17 +22,19 @@ type API
   :> Put     '[JSON] User.Password
 
 server ::
-  ( MonadThrow      m
-  , MonadLogger     m
-  , MonadTime       m
-  , MonadDB       t m
-  , User.Modifier t
+  ( MonadThrow    m
+  , MonadLogger   m
+  , MonadTime     m
+  , MonadIO       m
+  , User.Modifier m
   )
   => Authorization
   -> ServerT API m
 server Authorization {about = Entity userId _} User.Password.Reset { maybePassword } = do
+  now      <- currentTime
   password <- maybe User.Password.random pure maybePassword
-  runDBNow (User.updatePassword userId password) >>= \case
+ 
+  User.updatePassword userId password now >>= \case
     Left  err         -> Web.Err.throw err
     Right updatedPass -> return updatedPass
 

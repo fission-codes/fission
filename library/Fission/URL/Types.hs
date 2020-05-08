@@ -19,9 +19,17 @@ data URL = URL
   { domainName :: DomainName
   , subdomain  :: Maybe Subdomain
   }
-  deriving ( Show
-           , Eq
-           )
+  deriving Eq
+
+instance Display URL where
+  display (URL domain Nothing)    = display domain
+  display (URL domain (Just sub)) = display sub <> "." <> display domain
+
+instance Show URL where
+  show = Text.unpack . textDisplay
+
+instance ToHttpApiData URL where
+  toUrlPiece = textDisplay
 
 instance FromHttpApiData URL where
   parseUrlPiece txt =
@@ -36,7 +44,7 @@ instance FromHttpApiData URL where
       parse :: Maybe Text -> [Text] -> Either Text URL
       parse _       []           = err
       parse _       [_]          = err
-      parse acc     [dom, tld]   = Right <| URL (DomainName (dom <> "." <> tld)) (Subdomain <$> acc)
+      parse acc     [dom, tld]   = Right $ URL (DomainName (dom <> "." <> tld)) (Subdomain <$> acc)
       parse Nothing (sub : more) = parse (Just sub)        more
       parse acc     (sub : more) = parse (acc <> Just ("." <> sub)) more
 

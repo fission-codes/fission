@@ -3,26 +3,19 @@
 
 module Fission.Internal.Orphanage.UUID () where
 
-import           Data.UUID   as UUID
+import           Data.UUID             as UUID
 import qualified Data.ByteString.Char8 as BS8
 import           Database.Persist.Sql
 
 import           Fission.Prelude
 
 instance PersistField UUID where
-  toPersistValue uuid =
-    uuid
-      |> UUID.toString
-      |> BS8.pack
-      |> PersistDbSpecific
+  toPersistValue uuid = PersistDbSpecific . BS8.pack $ UUID.toString uuid
 
   fromPersistValue (PersistDbSpecific txt) =
-    txt
-      |> BS8.unpack
-      |> UUID.fromString
-      |> \case
-            Just x  -> Right x
-            Nothing -> Left "Invalid UUID"
+    case UUID.fromString $ BS8.unpack txt of
+      Just x  -> Right x
+      Nothing -> Left "Invalid UUID"
 
   fromPersistValue _ =
     Left "Not PersistDBSpecific"

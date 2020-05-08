@@ -14,8 +14,8 @@ import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 
 data Token = Token
-  { jwt        :: !JWT
-  , rawContent :: !(Maybe JWT.RawContent) -- To pass in to the verifier
+  { jwt        :: !JWT  -- ^ The actual token
+  , rawContent :: !Text -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
 
@@ -24,7 +24,7 @@ instance Arbitrary Token where
     jwt@JWT {..} <- arbitrary
     return Token
       { jwt
-      , rawContent = Just . JWT.RawContent $ B64.URL.encodeJWT header claims
+      , rawContent = B64.URL.encodeJWT header claims
       }
 
 instance Display Token where
@@ -43,7 +43,7 @@ instance FromJSON Token where
         jwt <- parseJSON $ toJSON rawToken
         return Token
           { jwt
-          , rawContent = Just $ JWT.contentOf rawToken
+          , rawContent = Text.dropEnd 1 $ Text.dropWhileEnd (/= '.') rawToken
           }
 
       Nothing ->
@@ -64,7 +64,7 @@ instance FromHttpApiData Token where
           Right jwt ->
             Right Token
               { jwt
-              , rawContent = Just $ JWT.contentOf rawToken
+              , rawContent = Text.dropEnd 1 $ Text.dropWhileEnd (/= '.') rawToken
               }
 
       Nothing ->

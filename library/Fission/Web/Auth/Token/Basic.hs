@@ -33,12 +33,7 @@ handler ::
   )
   => Auth.Basic.Token
   -> m Authorization
-handler token = do
-  token
-    |> parseBasic
-    |> ensureM
-    |> bind checkUser
-    |> bind ensureM
+handler token = ensureM . checkUser =<< ensure (parseBasic token)
 
 checkUser ::
   ( MonadLogger      m
