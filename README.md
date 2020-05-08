@@ -16,8 +16,7 @@ Seamlessly deploy websites and store secure user data
 brew install ipfs
 brew services start ipfs
 
-brew tap fission-suite/fission
-brew install fission-cli
+brew install fission-suite/fission/fission-cli
 ```
 
 ### Binary Releases

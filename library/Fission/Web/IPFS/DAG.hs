@@ -20,8 +20,8 @@ import qualified Network.IPFS.DAG        as IPFS.DAG
 import qualified Network.IPFS.Pin        as IPFS.Pin
 
 type API
-  =  Summary "Upload file"
-  :> Description "Upload some data not associated to a user app or file system"
+  =  Summary "Pin an IPFS DAG structure"
+  :> Description "Pin some data not associated to a user app or file system. We call these loose pins, likely to be deprecated."
   :> ReqBody '[PlainText, OctetStream] File.Serialized
   :> Post    '[PlainText, OctetStream] IPFS.CID
 
