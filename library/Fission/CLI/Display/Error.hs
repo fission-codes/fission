@@ -23,8 +23,8 @@ put err msg = do
 -- | Display a generic error message to the user and log an error to the debug log.
 put' :: (MonadIO m, MonadLogger m, Show err) => err -> m ()
 put' err = put err $ mconcat
-  [ "Something went wrong. Please try again or file a bug report with "
-  , "Fission support at https://github.com/fission-suite/fission/issues/new"
+  [ "Something went wrong. Please try again or contact "
+  , "Fission live chat support at https://fission.codes/support"
   ]
 
 putErrOr :: (MonadIO m, MonadLogger m, Show err) => (t -> m ()) -> Either err t -> m ()
