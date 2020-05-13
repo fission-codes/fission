@@ -21,7 +21,7 @@ brew install fission-suite/fission/fission-cli
 
 ### Binary Releases
 
-Grab the latest binary for your operating system from our [release page](https://github.com/fission/fission/releases).
+Grab the latest binary for your operating system from our [release page](https://github.com/fission-suite/fission/releases).
 
 You'll find the most up to date instructions for [installation](https://guide.fission.codes/installation) and [getting started](https://guide.fission.codes/getting-started) in our [Guide](https://guide.fission.codes/).
 
