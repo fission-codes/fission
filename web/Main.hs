@@ -1,9 +1,9 @@
 module Main (main) where
 
-import qualified Data.Aeson                                   as JSON
-import qualified Data.Yaml                                    as YAML
+import qualified Data.Aeson as JSON
+import qualified Data.Yaml  as YAML
 
-import qualified Network.HTTP.Client                          as HTTP
+import qualified Network.HTTP.Client as HTTP
 import           Servant
 
 import           Network.Wai.Handler.Warp
@@ -13,35 +13,35 @@ import           Network.Wai.Middleware.RequestLogger
 import qualified RIO
 
 import           Fission
-import qualified Fission.Authorization.ServerDID.Class        as ServerDID
-import           Fission.Internal.App
 import           Fission.Prelude
 import           Fission.Storage.PostgreSQL
+import qualified Fission.Authorization.ServerDID.Class as ServerDID
+import           Fission.Internal.App
 
-import qualified Fission.Web                                  as Web
-import qualified Fission.Web.Log                              as Web.Log
-import qualified Fission.Web.Types                            as Web
+import qualified Fission.Web       as Web
+import qualified Fission.Web.Log   as Web.Log
+import qualified Fission.Web.Types as Web
 
-import qualified Fission.Web.Middleware.CORS                  as CORS
+import qualified Fission.Web.Middleware.CORS as CORS
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest.Types as Hku
 import qualified Fission.Platform.Heroku.ID.Types             as Hku
 import qualified Fission.Platform.Heroku.Password.Types       as Hku
 
-import           Fission.Environment.IPFS.Types               as IPFS
+import           Fission.Environment.IPFS.Types    as IPFS
 import           Fission.Environment.Types
 
-import qualified Fission.Environment.Auth.Types               as Auth
-import qualified Fission.Environment.AWS.Types                as AWS
-import qualified Fission.Environment.FFS.Types                as FFS
-import qualified Fission.Environment.Storage.Types            as Storage
-import qualified Fission.Environment.Web.Types                as Web
-import qualified Fission.Environment.WebApp.Types             as WebApp
+import qualified Fission.Environment.Auth.Types    as Auth
+import qualified Fission.Environment.AWS.Types     as AWS
+import qualified Fission.Environment.FFS.Types     as FFS
+import qualified Fission.Environment.Storage.Types as Storage
+import qualified Fission.Environment.Web.Types     as Web
+import qualified Fission.Environment.WebApp.Types  as WebApp
 
-import qualified Fission.Web.Log.Sentry                       as Sentry
+import qualified Fission.Web.Log.Sentry as Sentry
 
-import           Fission.Web.Auth                             as Auth
 import           Fission.Web.Handler
+import           Fission.Web.Auth as Auth
 
 main :: IO ()
 main = do
@@ -55,7 +55,7 @@ main = do
     Storage.Environment {..} = env |> storage
     Web.Environment     {..} = env |> web
     WebApp.Environment  {..} = env |> webApp
-
+   
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
 
@@ -98,7 +98,7 @@ main = do
         auth <- Auth.mkAuth
         logDebug @Text $ layoutWithContext (Proxy @Web.API) auth
 
-        -- ServerDID.publicize
+        ServerDID.publicize
 
         host
           |> Web.app (toHandler (runFission cfg)) auth
