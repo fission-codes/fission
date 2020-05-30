@@ -37,8 +37,6 @@ import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
 import           Fission.Web.Auth.Token.JWT                       as JWT
 import           Fission.Web.Auth.Token.JWT.Error                 as JWT
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
-
 check ::
   ( Proof.Resolver m
   , ServerDID      m
