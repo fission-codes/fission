@@ -5,7 +5,7 @@ import qualified Crypto.PubKey.Ed25519                 as Ed25519
 import           Fission.Web.Auth.Token.JWT
 import           Fission.Web.Auth.Token.JWT.Validation
 
-import           Fission.Web.Auth.Token.JWT.RawContent
+import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 
 import qualified Fission.Key                           as Key
 import           Fission.User.DID
