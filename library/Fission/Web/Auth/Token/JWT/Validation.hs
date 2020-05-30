@@ -9,40 +9,42 @@ module Fission.Web.Auth.Token.JWT.Validation
   ) where
 
 import           Crypto.Error
-import           Crypto.Hash.Algorithms (SHA256 (..))
-import qualified Crypto.PubKey.Ed25519    as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA.PKCS15 as Crypto.RSA.PKCS
+import           Crypto.Hash.Algorithms                           (SHA256 (..))
+import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
 
 import           Control.Monad.Trans.Except
 
 import           Fission.Prelude
 import           Fission.SemVer.Types
 
-import           Fission.Key  as Key
-import qualified Fission.User as User
+import           Fission.Key                                      as Key
+import qualified Fission.User                                     as User
 
 import           Fission.Authorization.ServerDID.Class
- 
-import           Fission.Web.Auth.Token.JWT.Resolver as Proof
 
-import           Fission.Web.Auth.Token.JWT.Header.Error
+import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
+
 import           Fission.Web.Auth.Token.JWT.Claims.Error
+import           Fission.Web.Auth.Token.JWT.Header.Error
 import           Fission.Web.Auth.Token.JWT.Signature.Error
 
-import           Fission.Web.Auth.Token.JWT.Proof as JWT.Proof
- 
-import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
+import           Fission.Web.Auth.Token.JWT.Proof                 as JWT.Proof
+
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
- 
-import           Fission.Web.Auth.Token.JWT       as JWT
-import           Fission.Web.Auth.Token.JWT.Error as JWT
+import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
+
+import           Fission.Web.Auth.Token.JWT                       as JWT
+import           Fission.Web.Auth.Token.JWT.Error                 as JWT
+
+import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 
 check ::
   ( Proof.Resolver m
   , ServerDID      m
   , MonadTime      m
   )
-  => Text
+  => JWT.RawContent
   -> JWT
   -> m (Either JWT.Error JWT)
 check rawContent jwt = check' rawContent jwt =<< currentTime
@@ -53,7 +55,7 @@ check' ::
   ( ServerDID      m
   , Proof.Resolver m
   )
-  => Text
+  => JWT.RawContent
   -> JWT
   -> UTCTime
   -> m (Either JWT.Error JWT)
@@ -65,7 +67,7 @@ check' raw jwt now =
       ExceptT $ checkProof now       jwt
 
 pureChecks ::
-     Text
+     JWT.RawContent
   -> JWT
   -> UTCTime
   -> Either JWT.Error JWT
@@ -103,7 +105,7 @@ checkProof now jwt@JWT {claims = Claims {proof}} =
       Proof.resolve cid >>= \case
         Left err ->
           return . Left . JWT.ClaimsError . ProofError . JWT.Proof.ResolverError $ err
-         
+
         Right (rawProof, proofJWT) ->
           check' rawProof proofJWT now <&> \case
             Left err -> Left err
@@ -126,14 +128,18 @@ checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
      | now < nbf -> Left $ JWT.ClaimsError TooEarly
      | otherwise -> Right jwt
 
-checkSignature :: Text -> JWT -> Either JWT.Error JWT
+checkSignature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
 checkSignature rawContent jwt@JWT {sig} =
   case sig of
     Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt
     Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent jwt rs256Sig
 
-checkRSA2048Signature :: Text -> JWT -> RS256.Signature -> Either JWT.Error JWT
-checkRSA2048Signature rawContent jwt@JWT {..} (RS256.Signature innerSig) = do
+checkRSA2048Signature ::
+     JWT.RawContent
+  -> JWT
+  -> RS256.Signature
+  -> Either JWT.Error JWT
+checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSig) = do
   case publicKey of
     RSAPublicKey pk ->
       if Crypto.RSA.PKCS.verify (Just SHA256) pk content innerSig
@@ -142,24 +148,24 @@ checkRSA2048Signature rawContent jwt@JWT {..} (RS256.Signature innerSig) = do
 
     _ ->
       Left $ JWT.SignatureError InvalidPublicKey
- 
+
   where
-    content = encodeUtf8 rawContent
+    content = encodeUtf8 raw
     Claims {sender = User.DID {publicKey}} = claims
 
-checkEd25519Signature :: Text -> JWT -> Either JWT.Error JWT
-checkEd25519Signature rawContent jwt@JWT {..} =
+checkEd25519Signature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
+checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
   case (publicKey, Crypto.Ed25519.signature sig) of
     (Ed25519PublicKey pk, CryptoPassed sig') ->
-      if Crypto.Ed25519.verify pk (encodeUtf8 rawContent) sig'
+      if Crypto.Ed25519.verify pk (encodeUtf8 raw) sig'
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
 
     (_, CryptoFailed _) ->
       Left $ JWT.SignatureError InvalidSignature
- 
+
     (_, _) ->
       Left $ JWT.SignatureError InvalidPublicKey
-    
+
   where
     Claims {sender = User.DID {publicKey}} = claims

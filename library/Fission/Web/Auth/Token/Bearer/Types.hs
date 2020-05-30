@@ -4,17 +4,18 @@ module Fission.Web.Auth.Token.Bearer.Types (Token (..)) where
 import           Data.Aeson.Types
 import           Servant.API
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy                   as Lazy
+import qualified RIO.Text                              as Text
 
+import qualified Fission.Internal.Base64.URL           as B64.URL
 import           Fission.Prelude
-import qualified Fission.Internal.Base64.URL as B64.URL
- 
+
 import           Fission.Web.Auth.Token.JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 
 data Token = Token
   { jwt        :: !JWT
-  , rawContent :: !(Maybe Text) -- To pass in to the verifier
+  , rawContent :: !(Maybe JWT.RawContent) -- To pass in to the verifier
   }
   deriving (Show, Eq)
 
@@ -23,7 +24,7 @@ instance Arbitrary Token where
     jwt@JWT {..} <- arbitrary
     return Token
       { jwt
-      , rawContent = Just $ B64.URL.encodeJWT header claims
+      , rawContent = Just . JWT.RawContent $ B64.URL.encodeJWT header claims
       }
 
 instance Display Token where
@@ -42,7 +43,7 @@ instance FromJSON Token where
         jwt <- parseJSON $ toJSON rawToken
         return Token
           { jwt
-          , rawContent = Just . Text.dropEnd 1 $ Text.dropWhileEnd (/= '.') rawToken
+          , rawContent = Just $ JWT.contentOf rawToken
           }
 
       Nothing ->
@@ -63,8 +64,8 @@ instance FromHttpApiData Token where
           Right jwt ->
             Right Token
               { jwt
-              , rawContent = Just . Text.dropEnd 1 $ Text.dropWhileEnd (/= '.') rawToken
+              , rawContent = Just $ JWT.contentOf rawToken
               }
- 
+
       Nothing ->
         Left $ txt <> " is missing the `Bearer ` prefix"
