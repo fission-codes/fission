@@ -8,3 +8,6 @@ newtype RawContent = RawContent { unRawContent :: Text }
 
 instance Display RawContent where
   textDisplay = unRawContent
+
+instance Arbitrary RawContent where
+  arbitrary = RawContent <$> arbitrary
