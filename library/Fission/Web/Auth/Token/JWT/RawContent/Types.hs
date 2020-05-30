@@ -1,6 +1,6 @@
 module Fission.Web.Auth.Token.JWT.RawContent.Types (RawContent (..)) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 -- | Newtype wrapper for raw content (i.e. the part that gets signed & verified)
 newtype RawContent = RawContent { unRawContent :: Text }
@@ -8,6 +8,3 @@ newtype RawContent = RawContent { unRawContent :: Text }
 
 instance Display RawContent where
   textDisplay = unRawContent
-
-instance Arbitrary RawContent where
-  arbitrary = RawContent <$> arbitrary
