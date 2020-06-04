@@ -25,7 +25,7 @@ tests =
           header'    = header { alg = Ed25519 }
           claims'    = claims { sender = did }
           sig'       = signEd25519 header' claims' sk
-          rawContent = JWT.contentOf $ B64.URL.encodeJWT header claims'
+          rawContent = JWT.RawContent $ B64.URL.encodeJWT header' claims'
 
           did = DID
             { publicKey = Key.Ed25519PublicKey pk

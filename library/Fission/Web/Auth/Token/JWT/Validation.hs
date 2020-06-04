@@ -8,6 +8,12 @@ module Fission.Web.Auth.Token.JWT.Validation
   , checkRSA2048Signature
   ) where
 
+
+
+import qualified RIO.Text                                         as Text
+
+
+
 import           Crypto.Error
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25519
@@ -153,14 +159,11 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
 
 checkEd25519Signature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
 checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
-  case (publicKey, Crypto.Ed25519.signature sig) of
-    (Ed25519PublicKey pk, CryptoPassed sig') ->
-      if Crypto.Ed25519.verify pk (encodeUtf8 raw) sig'
+  case (publicKey, sig) of
+    (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->
+      if Crypto.Ed25519.verify pk (encodeUtf8 raw) edSig
         then Right jwt
-        else Left $ JWT.SignatureError SignatureDoesNotMatch
-
-    (_, CryptoFailed _) ->
-      Left $ JWT.SignatureError InvalidSignature
+        else error $ Text.unpack raw -- Left $ JWT.SignatureError SignatureDoesNotMatch
 
     (_, _) ->
       Left $ JWT.SignatureError InvalidPublicKey

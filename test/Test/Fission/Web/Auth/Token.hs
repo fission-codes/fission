@@ -1,17 +1,17 @@
 module Test.Fission.Web.Auth.Token (tests) where
 
-import qualified Data.Aeson as JSON
+import qualified Data.Aeson                         as JSON
 
-import qualified Network.Wai as Wai
+import qualified Network.Wai                        as Wai
 import           Network.Wai.Internal
 
-import qualified RIO.ByteString as Strict
- 
+import qualified RIO.ByteString                     as Strict
+
 import           Fission.Web.Auth.Error
 
-import qualified Fission.Web.Auth.Token              as Token
+import qualified Fission.Web.Auth.Token             as Token
+import qualified Fission.Web.Auth.Token.Basic.Types as Basic
 import           Fission.Web.Auth.Token.Types
-import qualified Fission.Web.Auth.Token.Basic.Types  as Basic
 
 import           Fission.Internal.Fixture.Bearer
 
@@ -21,7 +21,7 @@ tests :: SpecWith ()
 tests =
   describe "Auth.Token" do
   describe "serialization" do
-    itsProp' "serialize+deserialize is the identity function" \(token :: Token) ->
+    itsProp' "serialized is isomorphic to ADT" \(token :: Token) ->
       JSON.eitherDecode (JSON.encode token) `shouldBe` Right token
 
     context "no token" do
@@ -30,7 +30,7 @@ tests =
 
     context "unknown auth type" do
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "12345")]}
-     
+
       it "returns error message" do
         Token.get authed `shouldBe` Left (CannotParse "12345 is not a valid auth header")
 

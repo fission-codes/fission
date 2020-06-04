@@ -14,6 +14,8 @@ module Fission.Web.Auth.Token.JWT
 
 import qualified System.IO.Unsafe                                 as Unsafe
 
+import qualified Data.Aeson.Text                                  as JSON
+
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import           Crypto.Random                                    (MonadRandom (..))
 
@@ -29,7 +31,9 @@ import           Network.IPFS.CID.Types
 
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
+import qualified RIO.Text.Lazy                                    as Text.Lazy
 
+import qualified Fission.Internal.Base64.URL                      as B64.URL
 import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
@@ -114,7 +118,7 @@ instance FromJSON JWT where
         return JWT {..}
 
       _ ->
-        fail $ "Wrong number of JWT segments in:  " <> show txt
+        fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
     where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
 
@@ -214,15 +218,20 @@ instance Arbitrary Proof where
     ]
     where
       nested = do
-        innerJWT <- arbitrary
-        let rawContent = JWT.contentOf . decodeUtf8Lenient . Lazy.toStrict $ encode innerJWT
+        innerJWT@(JWT {..}) <- arbitrary
+        let rawContent = RawContent $ B64.URL.encodeJWT header claims
         return $ Nested rawContent innerJWT
 
 instance ToJSON Proof where
   toJSON = \case
-    Reference cid                    -> toJSON cid
-    Nested    (JWT.RawContent raw) _ -> String raw
-    RootCredential                   -> Null
+    RootCredential ->
+      Null
+
+    Reference cid ->
+      toJSON cid
+
+    Nested (JWT.RawContent raw) JWT {sig} ->
+      String (raw <> "." <> textDisplay sig)
 
 instance FromJSON Proof where
   parseJSON Null = return RootCredential
