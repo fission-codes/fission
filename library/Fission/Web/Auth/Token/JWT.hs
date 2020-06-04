@@ -7,49 +7,60 @@ module Fission.Web.Auth.Token.JWT
   , signRS256
 
   -- * reexports
- 
+
   , module Fission.Web.Auth.Token.JWT.Header.Types
+  , module Fission.Web.Auth.Token.JWT.RawContent
   ) where
 
-import qualified System.IO.Unsafe as Unsafe
+import qualified System.IO.Unsafe                                 as Unsafe
 
-import           Crypto.Random          (MonadRandom (..))
-import           Crypto.Hash.Algorithms (SHA256 (..))
- 
-import qualified Crypto.PubKey.RSA        as RSA
-import qualified Crypto.PubKey.RSA.PKCS15 as RSA.PKCS15
+import qualified Data.Aeson.Text                                  as JSON
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
-import           Crypto.PubKey.Ed25519 (toPublic)
- 
-import qualified Data.ByteString.Base64.URL as BS.B64.URL
+import           Crypto.Hash.Algorithms                           (SHA256 (..))
+import           Crypto.Random                                    (MonadRandom (..))
+
+import qualified Crypto.PubKey.RSA                                as RSA
+import qualified Crypto.PubKey.RSA.PKCS15                         as RSA.PKCS15
+
+import           Crypto.PubKey.Ed25519                            (toPublic)
+import qualified Crypto.PubKey.Ed25519                            as Ed25519
+
+import qualified Data.ByteString.Base64.URL                       as BS.B64.URL
 
 import           Network.IPFS.CID.Types
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy                              as Lazy
+import qualified RIO.Text                                         as Text
+import qualified RIO.Text.Lazy                                    as Text.Lazy
 
+import qualified Fission.Internal.Base64.URL                      as B64.URL
 import           Fission.Prelude
 
-import qualified Fission.Key.Asymmetric.Algorithm.Types as Algorithm
+import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
 
-import qualified Fission.Internal.Base64.URL         as B64.URL
-import qualified Fission.Internal.UTF8               as UTF8
-import qualified Fission.Internal.RSA2048.Pair.Types as RSA2048
+import qualified Fission.Internal.Base64.URL                      as B64.URL
+import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
+import qualified Fission.Internal.UTF8                            as UTF8
 
-import           Fission.Key as Key
+import           Fission.Key                                      as Key
 
 import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
 
+import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-import           Fission.Web.Auth.Token.JWT.Header.Types (Header (..))
+
+import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
+
+-- Reexports
+
+import           Fission.Web.Auth.Token.JWT.RawContent
 
 -- Orphans
 
+import           Fission.Internal.Orphanage.CID ()
 import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
-import           Fission.Internal.Orphanage.CID               ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
@@ -75,7 +86,7 @@ instance Arbitrary JWT where
 
     let
       claims = claims' {sender = DID pk Key }
-   
+
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
         Right edSK -> Right $ signEd25519 header claims edSK
@@ -83,7 +94,7 @@ instance Arbitrary JWT where
     case sig' of
       Left _    -> error "Unable to sign JWT"
       Right sig -> return JWT {..}
- 
+
 instance ToJSON JWT where
   toJSON JWT {..} = String $ content <> "." <> textDisplay sig
     where
@@ -107,7 +118,7 @@ instance FromJSON JWT where
         return JWT {..}
 
       _ ->
-        fail $ "Wrong number of JWT segments in:  " <> show txt
+        fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
     where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
 
@@ -117,15 +128,15 @@ instance FromJSON JWT where
 
 data Claims = Claims
   -- Dramatis Personae
-  { sender    :: !DID
-  , receiver  :: !DID
+  { sender   :: !DID
+  , receiver :: !DID
   -- Authorization Scope
-  , scope     :: !Text
-  , potency   :: !Potency
-  , proof     :: !Proof
+  , scope    :: !Text
+  , potency  :: !Potency
+  , proof    :: !Proof
   -- Temporal Bounds
-  , exp       :: !UTCTime
-  , nbf       :: !UTCTime
+  , exp      :: !UTCTime
+  , nbf      :: !UTCTime
   } deriving Show
 
 instance Display Claims where
@@ -136,7 +147,7 @@ instance Eq Claims where
     where
       eqWho = sender jwtA == sender   jwtB
          && receiver jwtA == receiver jwtB
- 
+
       eqAuth = scope jwtA == scope   jwtB
           &&   proof jwtA == proof   jwtB
           && potency jwtA == potency jwtB
@@ -196,33 +207,40 @@ instance FromJSON Claims where
 
 data Proof
   = RootCredential
-  | Nested    Text JWT
+  | Nested    JWT.RawContent JWT
   | Reference CID
   deriving (Show, Eq)
 
 instance Arbitrary Proof where
-  arbitrary =
-    [ (1, Nested <$> arbitrary <*> arbitrary)
-    , (3, pure RootCredential)
-    ] |> frequency
-      |> fmap \case
-        Nested _ jwt -> Nested (Text.dropEnd 1 . Text.drop 1 . decodeUtf8Lenient . Lazy.toStrict $ encode jwt) jwt
-        prf          -> prf
+  arbitrary = frequency
+    [ (1, nested)
+    , (5, pure RootCredential)
+    ]
+    where
+      nested = do
+        innerJWT@(JWT {..}) <- arbitrary
+        let rawContent = RawContent $ B64.URL.encodeJWT header claims
+        return $ Nested rawContent innerJWT
 
 instance ToJSON Proof where
   toJSON = \case
-    Reference cid   -> toJSON cid
-    Nested    raw _ -> String raw
-    RootCredential  -> Null
+    RootCredential ->
+      Null
+
+    Reference cid ->
+      toJSON cid
+
+    Nested (JWT.RawContent raw) JWT {sig} ->
+      String (raw <> "." <> textDisplay sig)
 
 instance FromJSON Proof where
   parseJSON Null = return RootCredential
   parseJSON val  = withText "Credential Proof" resolver val
     where
       resolver txt =
-        case Text.stripPrefix "eyJ" txt of -- i.e. starts with Base64 encoded '{'
-          Just _  -> Nested txt <$> parseJSON val
-          Nothing -> Reference <$> parseJSON val
+        if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
+          then Nested (JWT.contentOf txt) <$> parseJSON val
+          else Reference <$> parseJSON val
 
 -----------------------
 -- Signature Helpers --

@@ -2,13 +2,13 @@
 
 module Test.Fission.User.DID (tests) where
 
-import qualified Data.Aeson        as JSON
+import qualified Data.Aeson           as JSON
 
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.ByteString.Lazy  as Lazy
 import           Servant.API
 
+import           Fission.Key          as Key
 import           Fission.User.DID
-import           Fission.Key as Key
 
 import           Test.Fission.Prelude
 
@@ -32,7 +32,7 @@ tests =
           in
             encode (DID edKey Key) `shouldBe` JSON.encode expected
 
-      itsProp' "serialize+deserialize is the identity function" \(did :: DID) ->
+      itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
         JSON.decode (JSON.encode did) == Just did
 
       itsProp' "is a base58 encoded Key DID" \(did :: DID) ->

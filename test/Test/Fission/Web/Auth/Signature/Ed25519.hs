@@ -1,16 +1,19 @@
 module Test.Fission.Web.Auth.Signature.Ed25519 (tests) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519                  as Ed25519
+
+import           Test.Fission.Prelude
 
 import           Fission.Web.Auth.Token.JWT
 import           Fission.Web.Auth.Token.JWT.Validation
 
-import qualified Fission.Key as Key
+import           Fission.Key.Asymmetric.Algorithm.Types
+import qualified Fission.Web.Auth.Token.JWT.RawContent  as JWT
+
+import qualified Fission.Key                            as Key
 import           Fission.User.DID
 
-import qualified Fission.Internal.Base64.URL as B64.URL
-
-import           Test.Fission.Prelude
+import qualified Fission.Internal.Base64.URL            as B64.URL
 
 tests :: SpecWith ()
 tests =
@@ -19,9 +22,10 @@ tests =
       itsProp' "verifies" \(jwt@JWT {..}, sk) ->
         let
           pk         = Ed25519.toPublic sk
+          header'    = header { alg = Ed25519 }
           claims'    = claims { sender = did }
-          sig'       = signEd25519 header claims' sk
-          rawContent = B64.URL.encodeJWT header claims'
+          sig'       = signEd25519 header' claims' sk
+          rawContent = JWT.RawContent $ B64.URL.encodeJWT header' claims'
 
           did = DID
             { publicKey = Key.Ed25519PublicKey pk
@@ -29,7 +33,7 @@ tests =
             }
 
           jwt' = jwt
-            { header = header
+            { header = header'
             , claims = claims'
             , sig    = sig'
             }

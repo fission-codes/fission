@@ -3,59 +3,60 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
-import qualified Data.Aeson as JSON
+import qualified Data.Aeson                            as JSON
 
 import           Control.Monad.Catch
-import qualified Database.Persist.Sql as SQL
+import qualified Database.Persist.Sql                  as SQL
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy                   as Lazy
+import qualified RIO.Text                              as Text
 
 import           Servant.Client
 import           Servant.Server.Experimental.Auth
 
-import           Network.AWS as AWS hiding (Request)
+import           Network.AWS                           as AWS hiding (Request)
 import           Network.AWS.Route53
 
-import           Network.IPFS               as IPFS
-import           Network.IPFS.Types         as IPFS
-import qualified Network.IPFS.Process.Error as Process
+import           Network.IPFS                          as IPFS
+import qualified Network.IPFS.Peer                     as Peer
 import           Network.IPFS.Process
-import qualified Network.IPFS.Peer          as Peer
+import qualified Network.IPFS.Process.Error            as Process
+import           Network.IPFS.Types                    as IPFS
 
-import           Fission.Prelude
 import           Fission.Config.Types
+import           Fission.Prelude
 
 import           Fission.AWS
-import           Fission.AWS.Types as AWS
+import           Fission.AWS.Types                     as AWS
 
+import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
-import qualified Fission.Web.Error as Web.Error
 
-import           Fission.IPFS.DNSLink as DNSLink
+import           Fission.IPFS.DNSLink                  as DNSLink
 import           Fission.IPFS.Linked
 
 import           Fission.Authorization.Types
-import qualified Fission.URL as URL
+import qualified Fission.URL                           as URL
 
-import           Fission.Platform.Heroku.Types as Heroku
+import           Fission.Platform.Heroku.Types         as Heroku
 
-import           Fission.Web.Auth       as Auth
-import qualified Fission.Web.Auth.DID   as Auth.DID
-import qualified Fission.Web.Auth.Token as Auth.Token
+import           Fission.Web.Auth                      as Auth
+import qualified Fission.Web.Auth.DID                  as Auth.DID
+import qualified Fission.Web.Auth.Token                as Auth.Token
 
-import           Fission.Web.Server.Reflective as Reflective
 import           Fission.Web.Handler
+import           Fission.Web.Server.Reflective         as Reflective
 
 import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Token.Basic.Class
-import           Fission.Web.Auth.Token.JWT.Resolver as JWT
- 
+import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+
 import           Fission.Authorization.ServerDID.Class
 
-import           Fission.App.Content as App.Content
-import           Fission.App.Domain  as App.Domain
+import           Fission.App.Content                   as App.Content
+import           Fission.App.Domain                    as App.Domain
 
 -- | The top-level app type
 newtype Fission a = Fission { unFission :: RIO Config a }
@@ -89,7 +90,7 @@ instance MonadAWS Fission where
     accessKey <- asks awsAccessKey
     secretKey <- asks awsSecretKey
     env       <- newEnv $ FromKeys accessKey secretKey
-   
+
     runResourceT $ runAWS env awsAction
 
 instance MonadRoute53 Fission where
@@ -185,7 +186,7 @@ instance MonadLocalIPFS Fission where
       (ExitFailure _, _, stdErr)
         | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
             Left $ Process.Timeout secs
- 
+
         | otherwise ->
             Left $ Process.UnknownErr stdErr
 
@@ -231,7 +232,7 @@ instance JWT.Resolver Fission where
       Right (Lazy.toStrict -> resolvedBS) ->
         case eitherDecodeStrict resolvedBS of
           Left  _   -> Left $ InvalidJWT resolvedBS
-          Right jwt -> Right (decodeUtf8Lenient resolvedBS, jwt)
+          Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
 
 instance ServerDID Fission where
   getServerDID = asks fissionDID
@@ -239,7 +240,7 @@ instance ServerDID Fission where
 instance PublicizeServerDID Fission where
   publicize = do
     AWS.Route53MockEnabled mockRoute53 <- asks awsRoute53MockEnabled
- 
+
     Host host <- Reflective.getHost
     did       <- getServerDID
 
@@ -256,9 +257,9 @@ instance PublicizeServerDID Fission where
           , " to "
           , txtRecordValue
           ]
-         
+
         return ok
-       
+
       else
         update Txt txtRecordURL txtRecordValue <&> \case
           Left err ->
