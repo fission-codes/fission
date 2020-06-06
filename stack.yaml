@@ -44,7 +44,7 @@ extra-deps:
 - cryptostore-0.2.1.0
 - happy-1.19.12
 - hspec-wai-json-0.10.1
-- ipfs-1.0.2
+- ipfs-1.0.3
 - lzma-clib-5.2.2
 - raven-haskell-0.1.4.0
 - servant-quickcheck-0.0.7.4

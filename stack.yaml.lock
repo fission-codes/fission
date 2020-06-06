@@ -40,12 +40,16 @@ packages:
   original:
     hackage: hspec-wai-json-0.10.1
 - completed:
-    hackage: ipfs-1.0.2@sha256:3acd5170b32288676ec8cfcc59e6c7a5bf6895949732978db8810f1f6cd7629d,5207
+    name: ipfs
+    version: 1.0.3
+    git: https://github.com/fission-suite/ipfs-haskell.git
     pantry-tree:
-      size: 3558
-      sha256: 8165c93ea00b74ee2326b54bd836bbc656d6ab93f97de800cfd1c6310cac7229
+      size: 4737
+      sha256: a559e655826e47a7e23687e1f4438a459faf2887ee10fb2f39c7d45d2ce450db
+    commit: 1aa39878b174d37ea629c3046634657425c39e96
   original:
-    hackage: ipfs-1.0.2
+    git: https://github.com/fission-suite/ipfs-haskell.git
+    commit: 1aa39878b174d37ea629c3046634657425c39e96
 - completed:
     hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
     pantry-tree:
