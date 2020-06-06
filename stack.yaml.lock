@@ -40,12 +40,12 @@ packages:
   original:
     hackage: hspec-wai-json-0.10.1
 - completed:
-    hackage: ipfs-1.0.2@sha256:3acd5170b32288676ec8cfcc59e6c7a5bf6895949732978db8810f1f6cd7629d,5207
+    hackage: ipfs-1.0.3@sha256:bd7661ff8308fe8f974bd3197891eb6c6ddb03318920e7cf7ffc741518ef928e,5207
     pantry-tree:
       size: 3558
-      sha256: 8165c93ea00b74ee2326b54bd836bbc656d6ab93f97de800cfd1c6310cac7229
+      sha256: ca89800adb0b66c4f38900db3cc42d43b5c068e7d3d722c36b9e79f6baa8fc0c
   original:
-    hackage: ipfs-1.0.2
+    hackage: ipfs-1.0.3
 - completed:
     hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
     pantry-tree:
