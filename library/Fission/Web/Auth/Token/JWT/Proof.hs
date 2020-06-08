@@ -21,7 +21,7 @@ delegatedInBounds jwt prfJWT = do
   signaturesMatch jwt prfJWT
   scopeInSubset   jwt prfJWT
   potencyInSubset jwt prfJWT
--- FIXME need to check time bounds
+  timeInSubset    jwt prfJWT
 
 signaturesMatch :: JWT -> JWT -> Either Error JWT
 signaturesMatch jwt prfJWT =
@@ -40,3 +40,13 @@ potencyInSubset jwt prfJWT =
   if (jwt |> claims |> potency) <= (prfJWT |> claims |> potency)
     then Right jwt
     else Left PotencyEscelation
+
+timeInSubset :: JWT -> JWT -> Either Error JWT
+timeInSubset jwt prfJWT =
+  if starts && expires
+    then Right jwt
+    else Left TimeNotSubset
+
+  where
+    starts  = (jwt |> claims |> nbf) <= (prfJWT |> claims |> nbf)
+    expires = (jwt |> claims |> exp) >= (prfJWT |> claims |> exp)
