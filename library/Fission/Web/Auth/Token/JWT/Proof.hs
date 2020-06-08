@@ -43,10 +43,10 @@ potencyInSubset jwt prfJWT =
 
 timeInSubset :: JWT -> JWT -> Either Error JWT
 timeInSubset jwt prfJWT =
-  if starts && expires
+  if startBoundry && expiryBoundry
     then Right jwt
     else Left TimeNotSubset
 
   where
-    starts  = (jwt |> claims |> nbf) <= (prfJWT |> claims |> nbf)
-    expires = (jwt |> claims |> exp) >= (prfJWT |> claims |> exp)
+    startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
+    expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)
