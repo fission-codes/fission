@@ -9,11 +9,11 @@ module Fission.Web.Auth.Token.JWT.Proof
   , module Fission.Web.Auth.Token.JWT.Proof.Error
   ) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text                               as Text
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT as JWT
+import           Fission.Web.Auth.Token.JWT             as JWT
 import           Fission.Web.Auth.Token.JWT.Proof.Error
 
 delegatedInBounds :: JWT -> JWT -> Either Error JWT
@@ -21,6 +21,7 @@ delegatedInBounds jwt prfJWT = do
   signaturesMatch jwt prfJWT
   scopeInSubset   jwt prfJWT
   potencyInSubset jwt prfJWT
+-- FIXME need to check time bounds
 
 signaturesMatch :: JWT -> JWT -> Either Error JWT
 signaturesMatch jwt prfJWT =

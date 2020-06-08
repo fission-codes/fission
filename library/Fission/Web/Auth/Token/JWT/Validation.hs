@@ -44,7 +44,10 @@ check ::
   => JWT.RawContent
   -> JWT
   -> m (Either JWT.Error JWT)
-check rawContent jwt = check' rawContent jwt =<< currentTime
+check rawContent jwt = do
+  checkReceiver jwt >>= \case
+    Left  err -> return $ Left err
+    Right _   -> check' rawContent jwt =<< currentTime
 
 -- NOTE: Despite also having an effect, this is broken out
 -- so that we don't need to lookup time repeatedly in recursive checks
@@ -59,9 +62,7 @@ check' ::
 check' raw jwt now =
   case pureChecks raw jwt now of
     Left  err -> return $ Left err
-    Right _   -> runExceptT do
-      void . ExceptT $ checkReceiver jwt
-      ExceptT $ checkProof now       jwt
+    Right _   -> checkProof now jwt
 
 pureChecks ::
      JWT.RawContent
