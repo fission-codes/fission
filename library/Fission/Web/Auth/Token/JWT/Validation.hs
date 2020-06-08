@@ -12,8 +12,6 @@ import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
 
-import           Control.Monad.Trans.Except
-
 import           Fission.Prelude
 import           Fission.SemVer.Types
 
@@ -45,12 +43,16 @@ check ::
   -> JWT
   -> m (Either JWT.Error JWT)
 check rawContent jwt = do
-  checkReceiver jwt >>= \case
-    Left  err -> return $ Left err
-    Right _   -> check' rawContent jwt =<< currentTime
+  now <- currentTime
+  case checkTime now jwt of
+    Left err ->
+      return $ Left err
 
--- NOTE: Despite also having an effect, this is broken out
--- so that we don't need to lookup time repeatedly in recursive checks
+    Right _  ->
+      checkReceiver jwt >>= \case
+        Left  err -> return $ Left err
+        Right _   -> check' rawContent jwt now
+
 check' ::
   ( ServerDID      m
   , Proof.Resolver m
@@ -60,19 +62,17 @@ check' ::
   -> UTCTime
   -> m (Either JWT.Error JWT)
 check' raw jwt now =
-  case pureChecks raw jwt now of
+  case pureChecks raw jwt of
     Left  err -> return $ Left err
     Right _   -> checkProof now jwt
 
 pureChecks ::
      JWT.RawContent
   -> JWT
-  -> UTCTime
   -> Either JWT.Error JWT
-pureChecks raw jwt now = do
-  checkVersion       jwt
+pureChecks raw jwt = do
+  _ <- checkVersion  jwt
   checkSignature raw jwt
-  checkTime      now jwt
 
 checkReceiver :: ServerDID m => JWT -> m (Either JWT.Error JWT)
 checkReceiver jwt@JWT {claims = JWT.Claims {receiver}} = do
