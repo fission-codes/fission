@@ -166,9 +166,9 @@ instance MonadRoute53 Fission where
             logWarn @Text "Route53.set failed"
             return $ Left err
 
-          Right val -> do
+          Right good -> do
             logInfo @Text "Route53.set succeeded"
-            return $ Right val
+            return $ Right good
 
     where
       -- | Create the AWS change request for Route53
@@ -212,7 +212,7 @@ instance MonadDNSLink Fission where
              
     where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
-      dnsLink    = "\"dnslink=/ipfs/" <> hash <> "\""
+      dnsLink    = "dnslink=/ipfs/" <> hash
 
   follow userId url@URL {..} zoneID followeeURL = do
     whenAuthedForURL userId url do
@@ -229,7 +229,7 @@ instance MonadDNSLink Fission where
 
     where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
-      dnsLink    = "\"dnslink=/ipns/" <> textDisplay followeeURL <> "\""
+      dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
 
 whenAuthedForURL ::
      UserId
@@ -242,6 +242,7 @@ whenAuthedForURL userId url action =
       action
 
     Left _err -> do
+      logWarn $  "Unauthorized user " <> textDisplay userId <> " attempting to access " <> textDisplay url
       User.getById userId >>= \case
         Nothing -> do
           logError @Text "Unable to find user, but have their ID"
@@ -383,9 +384,16 @@ instance User.Creator Fission where
 
             let subdomain = Just $ Subdomain rawUN
 
-            DNSLink.follow userId URL {..} zoneID driveURL <&> \case
-              Left  err -> Error.relaxedLeft err
-              Right _   -> Right userId
+            DNSLink.follow userId URL {..} zoneID driveURL >>= \case
+              Left  err ->
+                return $ Error.relaxedLeft err
+
+              Right _ -> do
+                defaultCID <- asks defaultDataCID
+               
+                User.setData userId defaultCID now <&> \case
+                  Left err -> Error.relaxedLeft err
+                  Right () -> Right userId
 
   createWithHeroku herokuUUID herokuRegion username password now =
     runDB $ User.createWithHeroku herokuUUID herokuRegion username password now
