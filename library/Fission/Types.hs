@@ -325,7 +325,7 @@ instance PublicizeServerDID Fission where
     let
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
-      txtRecordValue = decodeUtf8Lenient . Lazy.toStrict $ JSON.encode did
+      txtRecordValue = textDisplay did
 
     if mockRoute53
       then do
