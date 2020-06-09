@@ -20,7 +20,7 @@ type Errors = OpenUnion
   
    , NotFound            URL
    , ActionNotAuthorized URL
-  
+
    , ServerError
    , InvalidURL
    ]

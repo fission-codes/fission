@@ -242,11 +242,11 @@ whenAuthedForURL userId url action =
 
     Right ownedURL ->
       App.byURL userId ownedURL >>= \case
-        Right _app ->
-          action
+        Left _ -> do
+          logWarn @Text $ "Unable to find user by ID: " <> textDisplay userId
+          return . openLeft $ NotFound @URL
 
-        Left _err -> do
-          logWarn $ "Unauthorized user " <> textDisplay userId <> " attempting to access " <> textDisplay url
+        Right _app ->
           User.getById userId >>= \case
             Nothing -> do
               logError @Text "Unable to find user, but have their ID"

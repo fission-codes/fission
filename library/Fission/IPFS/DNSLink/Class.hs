@@ -18,6 +18,7 @@ import           Fission.AWS.Types as AWS
 type Errors = OpenUnion
   '[ ServerError
    , InvalidURL
+
    , NotFound            URL
    , ActionNotAuthorized URL
    ]
