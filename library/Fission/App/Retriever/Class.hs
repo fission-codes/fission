@@ -36,20 +36,27 @@ instance MonadIO m => Retriever (Transaction m) where
       return app
 
   byURL userId URL {..} = do
-    apps <- select $ from \(app `LeftOuterJoin` appDomain) -> do
-      on $ app ^. AppId ==. appDomain ^. AppDomainAppId
-     
+    mayAppDomain <- select $ from \appDomain -> do
       where_ $ appDomain ^. AppDomainDomainName ==. val domainName
            &&. appDomain ^. AppDomainSubdomain  ==. val subdomain
-
       limit 1
-      return app
+      return appDomain
 
-    return case apps of
+    case mayAppDomain of
       [] ->
-        Error.openLeft $ NotFound @App
+        return . Error.openLeft $ NotFound @App
+
+      (Entity _ AppDomain {appDomainAppId} : _) -> do
+        mayApp <- select $ from \app -> do
+          where_ $ app ^. AppId ==. val appDomainAppId
+          limit 1
+          return app
+
+        return case mayApp of
+          [] ->
+            Error.openLeft $ NotFound @App
        
-      (app : _) ->
-        if isOwnedBy userId app
-          then Right app
-          else Error.openLeft $ ActionNotAuthorized @App userId
+          (app : _) ->
+            if isOwnedBy userId app
+              then Right app
+              else Error.openLeft $ ActionNotAuthorized @App userId

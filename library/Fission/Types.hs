@@ -186,77 +186,47 @@ instance MonadRoute53 Fission where
           |> rrsResourceRecords ?~ (resourceRecord . UTF8.wrapIn "\"" <$> values)
 
       changeRecordMock = do
-          mockTime <- currentTime
+        mockTime <- currentTime
 
-          let
-            mockId             = "test123"
-            mockChangeInfo     = changeInfo mockId Pending mockTime
-            mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
+        let
+          mockId             = "test123"
+          mockChangeInfo     = changeInfo mockId Pending mockTime
+          mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
 
-          return (Right mockRecordResponse)
+        return (Right mockRecordResponse)
 
 instance MonadDNSLink Fission where
-  set userId url@URL {..} zoneID (IPFS.CID hash) =
-    whenAuthedForURL userId url do
-      IPFS.Gateway gateway <- asks ipfsGateway
+  set userId url@URL {..} zoneID (IPFS.CID hash) = do
+    IPFS.Gateway gateway <- asks ipfsGateway
      
-      Route53.set Cname url zoneID (pure gateway) >>= \case
-        Left err ->
-          return $ Error.openLeft err
+    Route53.set Cname url zoneID (pure gateway) >>= \case
+      Left err ->
+        return $ Error.openLeft err
 
-        Right _ ->
-          Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
-            Left err -> Error.openLeft err
-            Right _  -> Right url
+      Right _ ->
+        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
+          Left err -> Error.openLeft err
+          Right _  -> Right url
              
     where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipfs/" <> hash
 
   follow userId url@URL {..} zoneID followeeURL = do
-    whenAuthedForURL userId url do
-      IPFS.Gateway gateway <- asks ipfsGateway
+    IPFS.Gateway gateway <- asks ipfsGateway
 
-      Route53.set Cname url zoneID (pure gateway) >>= \case
-        Left err ->
-          return $ Error.openLeft err
+    Route53.set Cname url zoneID (pure gateway) >>= \case
+      Left err ->
+        return $ Error.openLeft err
 
-        Right _ ->
-          Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
-            Left err -> Error.openLeft err
-            Right _  -> Right ()
+      Right _ ->
+        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
+          Left err -> Error.openLeft err
+          Right _  -> Right ()
 
     where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
-
-whenAuthedForURL ::
-     UserId
-  -> URL
-  -> Fission (Either DNSLink.Errors a)
-  -> Fission (Either DNSLink.Errors a)
-whenAuthedForURL userId url action =
-  case zeroOrOneSubdomain url of
-    Left err ->
-      return $ openLeft err
-
-    Right ownedURL ->
-      App.byURL userId ownedURL >>= \case
-        Left _ -> do
-          logWarn @Text $ "Unable to find URL " <> textDisplay ownedURL <> " for user ID " <> textDisplay userId
-          return . openLeft $ NotFound @URL
-
-        Right _app ->
-          User.getById userId >>= \case
-            Nothing -> do
-              logError @Text "Unable to find user, but have their ID"
-              return . Error.openLeft $ ActionNotAuthorized @URL userId
-
-            Just (Entity _ User {userUsername = Username rawUN}) -> do
-              usersDomain <- asks userRootDomain
-              if url == URL usersDomain (Just $ Subdomain rawUN)
-                then action
-                else return $ Error.openLeft $ ActionNotAuthorized @URL userId
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
