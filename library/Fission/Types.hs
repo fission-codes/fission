@@ -379,8 +379,8 @@ instance User.Creator Fission where
 
           Right _ -> do
             domainName <- asks userRootDomain
+            zoneID     <- asks userZoneID
             driveURL   <- asks liveDriveURL
-            zoneID     <- asks baseAppZoneID
 
             let subdomain = Just $ Subdomain rawUN
 
