@@ -24,6 +24,8 @@ type Errors = OpenUnion
 
    , ActionNotAuthorized URL
    , NotFound            URL
+
+   , InvalidURL
    ]
 
 class Monad m => Creator m where

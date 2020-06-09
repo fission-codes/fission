@@ -45,6 +45,8 @@ type Errors = OpenUnion
    , Username.Invalid
    , Password.FailedDigest
 
+   , InvalidURL
+
    , ServerError
    ]
 

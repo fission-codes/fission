@@ -3,7 +3,6 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
-import qualified Data.Aeson                            as JSON
 import           Control.Monad.Catch
 
 import qualified RIO.ByteString.Lazy                   as Lazy
@@ -202,13 +201,13 @@ instance MonadDNSLink Fission where
       IPFS.Gateway gateway <- asks ipfsGateway
      
       Route53.set Cname url zoneID (pure gateway) >>= \case
-          Left err ->
-            return $ Error.openLeft err
+        Left err ->
+          return $ Error.openLeft err
 
-          Right _ ->
-            Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
-              Left err -> Error.openLeft err
-              Right _  -> Right url
+        Right _ ->
+          Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
+            Left err -> Error.openLeft err
+            Right _  -> Right url
              
     where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
@@ -237,22 +236,27 @@ whenAuthedForURL ::
   -> Fission (Either DNSLink.Errors a)
   -> Fission (Either DNSLink.Errors a)
 whenAuthedForURL userId url action =
-  App.byURL userId url >>= \case
-    Right _app ->
-      action
+  case zeroOrOneSubdomain url of
+    Left err ->
+      return $ openLeft err
 
-    Left _err -> do
-      logWarn $  "Unauthorized user " <> textDisplay userId <> " attempting to access " <> textDisplay url
-      User.getById userId >>= \case
-        Nothing -> do
-          logError @Text "Unable to find user, but have their ID"
-          return . Error.openLeft $ ActionNotAuthorized @URL userId
+    Right ownedURL ->
+      App.byURL userId ownedURL >>= \case
+        Right _app ->
+          action
 
-        Just (Entity _ User {userUsername = Username rawUN}) -> do
-          usersDomain <- asks userRootDomain
-          if url == URL usersDomain (Just $ Subdomain rawUN)
-            then action
-            else return $ Error.openLeft $ ActionNotAuthorized @URL userId
+        Left _err -> do
+          logWarn $ "Unauthorized user " <> textDisplay userId <> " attempting to access " <> textDisplay url
+          User.getById userId >>= \case
+            Nothing -> do
+              logError @Text "Unable to find user, but have their ID"
+              return . Error.openLeft $ ActionNotAuthorized @URL userId
+
+            Just (Entity _ User {userUsername = Username rawUN}) -> do
+              usersDomain <- asks userRootDomain
+              if url == URL usersDomain (Just $ Subdomain rawUN)
+                then action
+                else return $ Error.openLeft $ ActionNotAuthorized @URL userId
 
 instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer

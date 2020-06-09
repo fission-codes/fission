@@ -10,13 +10,14 @@ import           Fission.Prelude hiding (set)
 
 import           Fission.Error.Types
 import           Fission.Models
-import           Fission.URL.Types
+import           Fission.URL
 
 import           Fission.AWS.Route53.Class
 import           Fission.AWS.Types as AWS
 
 type Errors = OpenUnion
   '[ ServerError
+   , InvalidURL
    , NotFound            URL
    , ActionNotAuthorized URL
    ]

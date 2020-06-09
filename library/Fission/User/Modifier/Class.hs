@@ -22,6 +22,7 @@ type Errors = OpenUnion
    , ActionNotAuthorized URL
   
    , ServerError
+   , InvalidURL
    ]
 
 class Monad m => Modifier m where

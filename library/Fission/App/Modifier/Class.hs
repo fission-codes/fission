@@ -13,7 +13,7 @@ import           Servant.Server
 import           Fission.Models
 import           Fission.Ownership
 import           Fission.Prelude        hiding (on)
-import           Fission.URL.Types
+import           Fission.URL
 
 import           Fission.Error          as Error
 
@@ -29,6 +29,8 @@ type Errors = OpenUnion
 
    , IPFS.Pin.Error
    , ServerError
+
+   , InvalidURL
    ]
 
 class Monad m => Modifier m where
