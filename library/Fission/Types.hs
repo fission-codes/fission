@@ -175,7 +175,7 @@ instance MonadRoute53 Fission where
       addValues recordSet values =
         recordSet
           |> rrsTTL ?~ 10
-          |> rrsResourceRecords ?~ (resourceRecord . UTF8.wrapIn "\"" <$> values)
+          |> rrsResourceRecords ?~ (resourceRecord <$> values)
 
       changeRecordMock = do
           mockTime <- currentTime
