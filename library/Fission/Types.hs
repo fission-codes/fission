@@ -4,19 +4,12 @@ module Fission.Types
   ) where
 
 import qualified Data.Aeson                            as JSON
-
 import           Control.Monad.Catch
-import qualified Database.Persist.Sql                  as SQL
 
 import qualified RIO.ByteString.Lazy                   as Lazy
+import           RIO.NonEmpty
 import qualified RIO.Text                              as Text
-import           Control.Monad.Catch
 
-import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.NonEmpty        as NonEmpty
-import qualified RIO.Text            as Text
-
-import qualified Data.Aeson as JSON
 import           Database.Esqueleto as SQL hiding ((<&>))
 
 import           Servant.Client
@@ -24,12 +17,6 @@ import           Servant.Server.Experimental.Auth
 
 import           Network.AWS                           as AWS hiding (Request)
 import           Network.AWS.Route53
-
-import           Network.IPFS                          as IPFS
-import qualified Network.IPFS.Peer                     as Peer
-import           Network.IPFS.Process
-import qualified Network.IPFS.Process.Error            as Process
-import           Network.IPFS.Types                    as IPFS
 
 import qualified Network.IPFS               as IPFS
 import qualified Network.IPFS.Types         as IPFS
@@ -55,15 +42,12 @@ import qualified Fission.App.Destroyer as App.Destroyer
 import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
 
-import           Fission.IPFS.DNSLink                  as DNSLink
-import qualified Fission.Web.Error as Web.Error
 import qualified Fission.App.Creator as App
 
 import           Fission.IPFS.Linked
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import           Fission.Authorization.Types
-import qualified Fission.URL                           as URL
 import           Fission.AWS as AWS
 import           Fission.AWS.Route53 as Route53
 

@@ -1,32 +1,32 @@
 module Fission.Web.Auth.Token.UCAN (handler) where
 
-import           Fission.Prelude
 import           Fission.Models
+import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import qualified Fission.User.Retriever as User
-import qualified Fission.Web.Error      as Web.Error
+import qualified Fission.User.Retriever                as User
+import qualified Fission.Web.Error                     as Web.Error
 
 import           Fission.Web.Auth.Token.JWT            as JWT
-import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
+import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
 
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT.Resolver as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
+import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
 
-import           Fission.Authorization.Types
 import           Fission.Authorization.ServerDID
+import           Fission.Authorization.Types
 import           Fission.User.DID.Types
 
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*
 handler ::
-  ( MonadLogger m
-  , MonadThrow m
-  , Resolver m
-  , ServerDID m
-  , MonadTime m
-  , MonadDB t m
+  ( MonadLogger      m
+  , MonadThrow       m
+  , Resolver         m
+  , ServerDID        m
+  , MonadTime        m
+  , MonadDB        t m
   , User.Retriever t
   )
   => Bearer.Token
@@ -49,7 +49,7 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
   runDB (User.getByPublicKey pk) >>= \case
     Just about -> return Authorization {sender = Right sender, ..}
     Nothing    -> Web.Error.throw $ NotFound @User
- 
+
 getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => JWT -> m JWT
 getRoot jwt@JWT {claims = JWT.Claims {proof}} =
   case proof of

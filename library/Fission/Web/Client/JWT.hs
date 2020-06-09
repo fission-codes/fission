@@ -56,7 +56,7 @@ mkAuthReq = do
         |> Text.dropSuffix "\""
  
     encoded =
-      toUrlPiece $ Bearer.Token jwt raw
+      toUrlPiece $ Bearer.Token jwt (JWT.contentOf raw)
  
   return \req -> addHeader "Authorization" encoded req
 

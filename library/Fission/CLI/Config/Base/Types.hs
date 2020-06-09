@@ -36,7 +36,7 @@ import           Fission.CLI.Environment.Override as Override
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT
+import           Fission.Web.Auth.Token.JWT          as JWT
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
@@ -140,8 +140,9 @@ instance MonadWebAuth FissionBase Token where
           |> decodeUtf8Lenient
           |> Text.dropPrefix "\""
           |> Text.dropSuffix "\""
+          |> JWT.contentOf
 
-    return . Bearer $ Bearer.Token {..}
+    return $ Bearer Bearer.Token {..}
 
 instance MonadWebAuth FissionBase Ed25519.SecretKey where
   getAuth =
