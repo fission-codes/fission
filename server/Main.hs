@@ -11,6 +11,7 @@ import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
 import qualified RIO
+import qualified RIO.Text as Text
 
 import           Fission
 import           Fission.Prelude
@@ -96,11 +97,14 @@ main = do
       runFission cfg do
         logDebug . displayShow =<< ask
 
-        logInfo ("Ensuring live DB matches latest schema" :: Text)
+        logInfo @Text ">>>>>>>>>> Ensuring live DB matches latest schema"
         runDB updateDBToLatest
 
         auth <- Auth.mkAuth
         logDebug @Text $ layoutWithContext (Proxy @Web.API) auth
+
+        now <- currentTime
+        logInfo $ ">>>>>>>>>> Staring server at " <> Text.pack (show now)
 
         Web.Error.ensureM ServerDID.publicize
 

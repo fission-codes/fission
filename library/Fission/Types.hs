@@ -157,9 +157,18 @@ instance MonadRoute53 Fission where
       else do
         req <- createChangeRequest zoneTxt
 
-        AWS.within NorthVirginia do
+        awsResp <- AWS.within NorthVirginia do
           resp <- send req
           return $ validate resp
+
+        case awsResp of
+          Left err -> do
+            logWarn @Text "Route53.set failed"
+            return $ Left err
+
+          Right val -> do
+            logInfo @Text "Route53.set succeeded"
+            return $ Right val
 
     where
       -- | Create the AWS change request for Route53
@@ -175,7 +184,7 @@ instance MonadRoute53 Fission where
       addValues recordSet values =
         recordSet
           |> rrsTTL ?~ 10
-          |> rrsResourceRecords ?~ (resourceRecord <$> values)
+          |> rrsResourceRecords ?~ (resourceRecord . UTF8.wrapIn "\"" <$> values)
 
       changeRecordMock = do
           mockTime <- currentTime

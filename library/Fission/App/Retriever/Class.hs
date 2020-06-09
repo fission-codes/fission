@@ -36,7 +36,7 @@ instance MonadIO m => Retriever (Transaction m) where
       return app
 
   byURL userId URL {..} = do
-    apps <- select $ from \(app, appDomain) -> do
+    apps <- select $ from \(app `InnerJoin` appDomain) -> do
       on $ app ^. AppId ==. appDomain ^. AppDomainAppId
      
       where_ $ appDomain ^. AppDomainDomainName ==. val domainName
