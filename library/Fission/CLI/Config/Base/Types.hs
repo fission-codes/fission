@@ -7,7 +7,6 @@ module Fission.CLI.Config.Base.Types
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import qualified RIO.ByteString.Lazy as Lazy
-import           RIO.Directory
 import qualified RIO.Text            as Text
 
 import qualified Data.ByteString.Char8 as BS8
@@ -24,15 +23,11 @@ import           Servant.Client
 
 import           Fission.Prelude
 
-import           Fission.URL
- 
-import           Fission.App.URL.Class
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
 import           Fission.Key as Key
 import           Fission.User.DID.Types
-import           Fission.CLI.Environment.Override as Override
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
@@ -40,8 +35,7 @@ import           Fission.Web.Auth.Token.JWT          as JWT
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
-import qualified Fission.Web.Client.App as App
- 
+
 import qualified Fission.CLI.Display.Error  as CLI.Error
 import qualified Fission.CLI.Display.Loader as CLI
 
@@ -50,7 +44,7 @@ data BaseConfig = BaseConfig
   { httpManager     :: !HTTP.Manager
   , fissionURL      :: !BaseUrl
   , cachedServerDID :: !(Maybe DID) -- ^ Typically from setting with envar
-  , cachedAppURL    :: !(Maybe URL)
+  -- , cachedAppURL    :: !(Maybe URL)
   , logFunc         :: !LogFunc
   , processCtx      :: !ProcessContext
   , ipfsPath        :: !IPFS.BinPath
@@ -181,19 +175,3 @@ instance MonadLocalIPFS FissionBase where
 
         | otherwise ->
             Left $ Process.UnknownErr stdErr
-
-instance HasAppURL FissionBase where
-  getAppURL =
-    asks cachedAppURL >>= \case
-      Just appURL ->
-        return appURL
-
-      Nothing ->
-        sendRequestM (authClient $ Proxy @App.Create) >>= \case
-          Left _err ->
-            error "unable to connect to server to create app" -- FIXME rescue shoudl fix this straightforwardly
-           
-          Right appURL -> do
-            path <- liftIO getCurrentDirectory
-            Override.writeMerge path $ mempty { maybeAppURL = Just appURL }
-            return appURL

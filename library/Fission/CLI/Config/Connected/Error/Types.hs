@@ -7,4 +7,5 @@ data Error
   | NotRegistered
   | CannotConnect
   | PeersNotFound
+  | NoApp
   deriving (Eq, Show, Exception)
