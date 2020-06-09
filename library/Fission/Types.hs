@@ -27,6 +27,7 @@ import qualified Network.IPFS.Peer          as Peer
 
 import           Fission.Config.Types
 import           Fission.Prelude
+import qualified Fission.Internal.UTF8 as UTF8
 
 import           Fission.AWS
 import           Fission.AWS.Types                     as AWS
@@ -128,14 +129,14 @@ instance MonadRoute53 Fission where
      
     where
       changeRecordMock = do
-          mockTime <- currentTime
+        mockTime <- currentTime
 
-          let
-            mockChangeInfo     = changeInfo "mockId" Pending mockTime
-            mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
+        let
+          mockChangeInfo     = changeInfo "mockId" Pending mockTime
+          mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
 
-          return $ Right mockRecordResponse
- 
+        return $ Right mockRecordResponse
+
       -- | Create the AWS change request for Route53
       createChangeRequest zoneID = do
         let
@@ -174,7 +175,7 @@ instance MonadRoute53 Fission where
       addValues recordSet values =
         recordSet
           |> rrsTTL ?~ 10
-          |> rrsResourceRecords ?~ (resourceRecord <$> values)
+          |> rrsResourceRecords ?~ (resourceRecord . UTF8.wrapIn "\"" <$> values)
 
       changeRecordMock = do
           mockTime <- currentTime
@@ -221,7 +222,6 @@ instance MonadDNSLink Fission where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "\"dnslink=/ipns/" <> textDisplay followeeURL <> "\""
 
- -- TODO this is pretty imperative; make declaraitive
 whenAuthedForURL ::
      UserId
   -> URL

@@ -61,6 +61,8 @@ appInit App.Init.Options {appDir, buildDir} = do
       CLI.Error.put err $ textDisplay err
 
     Right appURL -> do
+      logDebug $ "Created app " <> textDisplay appURL
+
       guess <- guessBuildDir appDir
 
       Env.Override.writeMerge appDir mempty

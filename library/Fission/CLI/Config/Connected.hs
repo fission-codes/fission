@@ -76,19 +76,21 @@ liftConfig BaseConfig {..} = do
  
       Environment.getOrRetrievePeer config >>= \case
         Nothing -> do
-          logErrorN "Could not locate the Fission IPFS network"
+          -- logError @Text "Could not locate the Fission IPFS network"
+          CLI.Error.notConnected PeersNotFound
           return $ Left PeersNotFound
 
         Just peer ->
           Connect.swarmConnectWithRetry peer 1 >>= \case
             Left err -> do
-              logError $ displayShow err
+              logDebug $ displayShow err
               Connect.couldNotSwarmConnect
               return $ Left CannotConnect
 
             Right _ -> do
               getOrCreateApp config >>= \case
-                Left err ->
+                Left err -> do
+                  CLI.Error.notConnected err
                   return $ Left err
 
                 Right appURL -> do
@@ -103,6 +105,7 @@ liftConfig BaseConfig {..} = do
                     connCfg = ConnectedConfig {..}
 
                   runConnected' connCfg do
+                    logDebug @Text "Connected and attempting user verififcation"
                     sendRequestM (authClient $ Proxy @User.Verify) >>= \case
                       Left err -> do
                         CLI.Error.notConnected err
