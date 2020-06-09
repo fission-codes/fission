@@ -243,7 +243,7 @@ whenAuthedForURL userId url action =
     Right ownedURL ->
       App.byURL userId ownedURL >>= \case
         Left _ -> do
-          logWarn @Text $ "Unable to find URL " <> textDisplay ownedURL <> "for user ID " <> textDisplay userId
+          logWarn @Text $ "Unable to find URL " <> textDisplay ownedURL <> " for user ID " <> textDisplay userId
           return . openLeft $ NotFound @URL
 
         Right _app ->

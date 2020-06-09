@@ -23,7 +23,7 @@ prefix' moreSub url@URL {..} = url { subdomain = Just moreSub <> subdomain }
 
 zeroOrOneSubdomain :: URL -> Either InvalidURL URL
 zeroOrOneSubdomain url =
-  case reverse . take 3 . Text.split (== '.') $ textDisplay url of
+  case take 3 . Text.split (== '.') $ textDisplay url of
     [sub, domain, tld] -> Right $ URL (DomainName $ domain <> "." <> tld) (Just $ Subdomain sub)
     [domain, tld]      -> Right $ URL (DomainName $ domain <> "." <> tld) Nothing
     _ -> Left InvalidURL
