@@ -7,29 +7,22 @@ module Fission.CLI.Config.Connected
   ) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
-
 import           Network.IPFS
-import           RIO.Directory
 
 import           Fission.Prelude
  
 import           Fission.Authorization.ServerDID
 import qualified Fission.Key as Key
 import           Fission.User.DID.Types
-import           Fission.URL.Types
-
-import qualified Fission.Web.Auth.Token.Types as Auth
 
 import           Fission.Web.Client      as Client
-import qualified Fission.Web.Client.App  as App
 import qualified Fission.Web.Client.User as User
 
 import           Fission.CLI.Config.Base
 import           Fission.CLI.Config.Connected.Types
 import           Fission.CLI.Config.Connected.Error.Types
 
-import           Fission.CLI.Environment.Override as Override
-import qualified Fission.CLI.Display.Error        as CLI.Error
+import qualified Fission.CLI.Display.Error as CLI.Error
 
 import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
@@ -56,10 +49,7 @@ liftConfig ::
   ( MonadUnliftIO  m
   , MonadLocalIPFS m
   , MonadLogger    m
-  , MonadTime      m
   , MonadWebClient m
-  , MonadWebAuth   m Auth.Token
-  , MonadWebAuth   m Ed25519.SecretKey
   , ServerDID      m
   )
   => BaseConfig
@@ -86,55 +76,24 @@ liftConfig BaseConfig {..} = do
               Connect.couldNotSwarmConnect
               return $ Left CannotConnect
 
-            Right _ -> do
-              getOrCreateApp config >>= \case
-                Left err -> do
-                  CLI.Error.notConnected err
-                  return $ Left err
+            Right _ ->
+              let
+                ignoredFiles = Environment.ignored config
 
-                Right appURL -> do
-                  let
-                    ignoredFiles = Environment.ignored config
+                cliDID = DID
+                  { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
+                  , method    = Key
+                  }
 
-                    cliDID = DID
-                      { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
-                      , method    = Key
-                      }
+                connCfg = ConnectedConfig {..}
 
-                    connCfg = ConnectedConfig {..}
+              in
+                runConnected' connCfg do
+                  logDebug @Text "Connected and attempting user verififcation"
+                  sendRequestM (authClient $ Proxy @User.Verify) >>= \case
+                    Left err -> do
+                      CLI.Error.notConnected err
+                      return $ Left NotRegistered
 
-                  runConnected' connCfg do
-                    logDebug @Text "Connected and attempting user verififcation"
-                    sendRequestM (authClient $ Proxy @User.Verify) >>= \case
-                      Left err -> do
-                        CLI.Error.notConnected err
-                        return $ Left NotRegistered
-
-                      Right _ ->
-                        return $ Right connCfg
-
-getOrCreateApp ::
-  ( MonadWebClient m
-  , MonadIO        m
-  , MonadTime      m
-  , MonadLogger    m
-  , ServerDID      m
-  , MonadWebAuth   m Auth.Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  )
-  => Environment
-  -> m (Either Error URL)
-getOrCreateApp config =
-  case (config |> Environment.appURL) of
-    Just val ->
-      return $ Right val
-
-    Nothing ->
-      sendRequestM (authClient $ Proxy @App.Create) >>= \case
-        Left _ ->
-          return $ Left NoApp
-
-        Right appURL -> do
-          path <- liftIO getCurrentDirectory
-          Override.writeMerge path $ mempty { maybeAppURL = Just appURL }
-          return $ Right appURL
+                    Right _ ->
+                      return $ Right connCfg

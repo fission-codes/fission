@@ -31,9 +31,6 @@ import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
 
 import           Fission.CLI.Environment.Class
-import           Fission.App.URL.Class
-
-import           Fission.URL.Types as App
 
 data ConnectedConfig = ConnectedConfig
   { httpManager  :: !HTTP.Manager
@@ -41,7 +38,6 @@ data ConnectedConfig = ConnectedConfig
   , cliDID       :: !DID
   , serverDID    :: !DID
   -- TODO link systems, ucanLink     :: !JWT
-  , appURL       :: !App.URL
   , fissionURL   :: !BaseUrl
   , logFunc      :: !LogFunc
   , processCtx   :: !ProcessContext
@@ -141,6 +137,3 @@ instance MonadWebAuth FissionConnected Ed25519.SecretKey where
 
 instance ServerDID FissionConnected where
   getServerDID = asks serverDID
-
-instance HasAppURL FissionConnected where
-  getAppURL = asks appURL

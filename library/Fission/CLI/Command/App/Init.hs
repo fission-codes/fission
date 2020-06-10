@@ -2,6 +2,7 @@
 
 module Fission.CLI.Command.App.Init
   ( cmd
+  , cmdTxt
   , appInit
   ) where
 
@@ -38,11 +39,14 @@ cmd ::
   )
   => Command m App.Init.Options ()
 cmd = Command
-  { command     = "app-init"
+  { command     = cmdTxt
   , description = "Initialize a new Fission app in an existing directory"
   , argParser   = parseOptions
   , handler     = appInit
   }
+
+cmdTxt :: Text
+cmdTxt = "app-init"
 
 -- | Sync the current working directory to the server over IPFS
 appInit ::
@@ -57,8 +61,6 @@ appInit ::
   => App.Init.Options
   -> m ()
 appInit App.Init.Options {appDir, buildDir} = do
-  CLI.Success.putOk $ Text.pack appDir <> " / " <> (Text.pack $ show buildDir)
-
   sendRequestM (authClient $ Proxy @App.Create) >>= \case
     Left err ->
       CLI.Error.put err $ textDisplay err

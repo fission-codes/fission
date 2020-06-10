@@ -6,12 +6,14 @@ module Fission.CLI.Environment
   , couldNotRead
   , removeConfigFile
   , getOrRetrievePeer
+ 
+  -- * Reexport
+
   , module Fission.CLI.Environment.Class
+  , module Fission.CLI.Environment.Types
   ) where
 
-import           Data.List.NonEmpty               as NonEmpty hiding (init,
-                                                               (<|))
-
+import           Data.List.NonEmpty               as NonEmpty hiding (init, (<|))
 import           RIO.Directory
 import           RIO.FilePath
 

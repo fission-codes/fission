@@ -22,25 +22,29 @@ import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
 
 import           Fission.Prelude hiding (handle)
- 
+
+import           Fission.Error.NotFound.Types
 import           Fission.URL
+import           Fission.Models
 import qualified Fission.Time                 as Time
 import qualified Fission.Internal.UTF8        as UTF8
 
 import           Fission.Authorization.ServerDID
-import           Fission.App.URL.Class
- 
+
 import           Fission.Web.Client.App as App
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client as Client
 
 import           Fission.CLI.Display.Error as CLI.Error
-import           Fission.CLI.Environment
+import           Fission.CLI.Environment   as Environment
+
+import qualified Fission.CLI.Command.App.Init as App.Init
  
 import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Watch.Types as Watch
 
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
+
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -53,7 +57,6 @@ cmd ::
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
   , ServerDID        m
-  , HasAppURL        m
   )
   => (m () -> IO ())
   -> Command m Watch.Options ()
@@ -75,7 +78,6 @@ watcher ::
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
   , ServerDID        m
-  , HasAppURL        m
   )
   => (m () -> IO ())
   -> Watch.Options
@@ -84,21 +86,28 @@ watcher runner Watch.Options {..} = do
   ignoredFiles <- getIgnoredFiles
   toAdd        <- Prompt.checkBuildDir path
   absPath      <- liftIO $ makeAbsolute toAdd
-  appURL       <- getAppURL
- 
+
   let copyFiles = not dnsOnly
+ 
+  Environment {appURL} <- Environment.get
 
-  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
+  case appURL of
+    Nothing ->
+      CLI.Error.put (NotFound @App) $
+        "You have not set up an app. Please run " <> App.Init.cmdTxt
 
-  IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
-    UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
+    Just url -> do
+      logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
-    sendRequestM (updateApp appURL cid copyFiles) >>= putErrOr \_ -> do
-      liftIO $ FS.withManager \watchMgr -> do
-        hashCache <- newMVar hash
-        timeCache <- newMVar =<< getCurrentTime
-        void $ handleTreeChanges runner appURL copyFiles timeCache hashCache watchMgr absPath
-        forever . liftIO $ threadDelay 1000000 -- Sleep main thread
+      IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
+        UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
+
+        sendRequestM (updateApp url cid copyFiles) >>= putErrOr \_ -> do
+          liftIO $ FS.withManager \watchMgr -> do
+            hashCache <- newMVar hash
+            timeCache <- newMVar =<< getCurrentTime
+            void $ handleTreeChanges runner url copyFiles timeCache hashCache watchMgr absPath
+            forever . liftIO $ threadDelay 1000000 -- Sleep main thread
 
 updateApp ::
   ( MonadIO      m

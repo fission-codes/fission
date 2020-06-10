@@ -48,7 +48,7 @@ whoami ::
   , MonadWebAuth   m Ed25519.SecretKey
   )
   => m ()
-whoami =
+whoami = do
   sendRequestM (authClient $ Proxy @User.WhoAmI) >>= \case
     Right User.Username {username} ->
       CLI.Success.loggedInAs username

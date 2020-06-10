@@ -42,7 +42,7 @@ cli baseCfg = liftIO do
         result <- runConnected baseCfg do
           logDebug @Text "Setting up connected"
           actn
- 
+
         case result of
           Right _  -> return ()
           Left err -> void . runConnected baseCfg $ put' err

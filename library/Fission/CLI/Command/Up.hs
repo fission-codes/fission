@@ -10,23 +10,25 @@ import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
+import           Fission.Models
 import           Fission.Authorization.ServerDID
- 
-import          Fission.App.URL.Class
+import           Fission.Error.NotFound.Types
  
 import           Fission.Web.Auth.Token
-import           Fission.Web.Client as Client
-
+ 
+import           Fission.Web.Client     as Client
 import           Fission.Web.Client.App as App
 
-import           Fission.CLI.Environment
+import           Fission.CLI.Environment as Environment
 
 import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Up.Types as Up
+import qualified Fission.CLI.Command.App.Init as App.Init
 
 import           Fission.CLI.Display.Error
-import qualified Fission.CLI.Prompt.BuildDir as Prompt
 import qualified Fission.CLI.Display.Error   as CLI.Error
+ 
+import qualified Fission.CLI.Prompt.BuildDir as Prompt
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -38,7 +40,6 @@ cmd ::
   , MonadTime        m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
-  , HasAppURL        m
   , ServerDID        m
   )
   => Command m Up.Options ()
@@ -59,25 +60,31 @@ up ::
   , MonadTime        m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
-  , HasAppURL        m
   , ServerDID        m
   )
   => Up.Options
   -> m ()
 up Up.Options {..} = do
-  ignoredFiles <- getIgnoredFiles
-  toAdd        <- Prompt.checkBuildDir path
-  absPath      <- liftIO $ makeAbsolute toAdd
-  appURL       <- getAppURL
+  ignoredFiles         <- getIgnoredFiles
+  toAdd                <- Prompt.checkBuildDir path
+  absPath              <- liftIO $ makeAbsolute toAdd
+  Environment {appURL} <- Environment.get
 
   let copyFiles = not dnsOnly
 
-  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
-  IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-    sendRequestM (updateApp appURL cid copyFiles) >>= \case
-      Left err -> CLI.Error.put err "Server unable to sync data"
-      Right _  -> return ()
- 
+  case appURL of
+    Nothing ->
+      CLI.Error.put (NotFound @App) $
+        "You have not set up an app. Please run " <> App.Init.cmdTxt
+
+    Just url -> do
+      logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
+     
+      IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
+        sendRequestM (updateApp url cid copyFiles) >>= \case
+          Left err -> CLI.Error.put err "Server unable to sync data"
+          Right _  -> return ()
+
   where
     updateApp url cid copyFiles =
       authClient (Proxy @App.Update)

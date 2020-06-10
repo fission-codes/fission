@@ -84,7 +84,7 @@ instance MonadTime FissionBase where
   currentTime = liftIO getCurrentTime
 
 instance ServerDID FissionBase where
-  getServerDID = do
+  getServerDID =
     asks cachedServerDID >>= \case
       Just did ->
         return did
@@ -109,11 +109,12 @@ instance ServerDID FissionBase where
 
           Right (didTxt : _) ->
             case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
-              Left  err -> do
+              Left err -> do
                 CLI.Error.put err "Unable to find Fission's ID online"
                 throwM $ NotFound @DID
 
-              Right did ->
+              Right did -> do
+                -- FIXME write the value to disk / root dir
                 return did
 
 instance MonadWebAuth FissionBase Token where
