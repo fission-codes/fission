@@ -76,7 +76,6 @@ liftConfig BaseConfig {..} = do
  
       Environment.getOrRetrievePeer config >>= \case
         Nothing -> do
-          -- logError @Text "Could not locate the Fission IPFS network"
           CLI.Error.notConnected PeersNotFound
           return $ Left PeersNotFound
 
@@ -116,11 +115,12 @@ liftConfig BaseConfig {..} = do
 
 getOrCreateApp ::
   ( MonadWebClient m
-  , MonadIO m
-  , MonadTime m
-  , ServerDID m
-  , MonadWebAuth m Auth.Token
-  , MonadWebAuth m Ed25519.SecretKey
+  , MonadIO        m
+  , MonadTime      m
+  , MonadLogger    m
+  , ServerDID      m
+  , MonadWebAuth   m Auth.Token
+  , MonadWebAuth   m Ed25519.SecretKey
   )
   => Environment
   -> m (Either Error URL)

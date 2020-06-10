@@ -37,10 +37,15 @@ cli baseCfg = liftIO do
     runBase_ = runWith (runBase baseCfg)
 
     runConnected_ :: Command FissionConnected input () -> Command.Leaf
-    runConnected_ = runWith \actn ->
-      runConnected baseCfg actn >>= \case
-        Right _  -> return ()
-        Left err -> void . runConnected baseCfg $ put' err
+    runConnected_ =
+      runWith \actn -> do
+        result <- runConnected baseCfg do
+          logDebug @Text "Setting up connected"
+          actn
+ 
+        case result of
+          Right _  -> return ()
+          Left err -> void . runConnected baseCfg $ put' err
 
 summary :: String
 summary = "CLI to interact with Fission services"

@@ -92,21 +92,23 @@ globalEnv = do
   return $ home </> ".fission.yaml"
 
 toFull :: Override -> Environment
-toFull Override {..} =
+toFull Override {..} = do
   Environment
-    { peers    = peers
-    , appURL   = maybeAppURL
-    , ignored  = fromMaybe [] $ maybeIgnored
-    , buildDir = maybeBuildDir
+    { peers     = peers
+    , appURL    = maybeAppURL
+    , ignored   = fromMaybe [] $ maybeIgnored
+    , buildDir  = maybeBuildDir
+    , serverDID = maybeServerDID
     }
 
 fromFull :: Environment -> Override
 fromFull Environment {..} = Override
-  { maybeUserAuth = Nothing
-  , maybeAppURL   = appURL
-  , peers         = peers
-  , maybeIgnored  = Just ignored
-  , maybeBuildDir = buildDir
+  { maybeUserAuth  = Nothing
+  , maybeAppURL    = appURL
+  , peers          = peers
+  , maybeBuildDir  = buildDir
+  , maybeServerDID = serverDID
+  , maybeIgnored   = Just ignored
   }
 
 -- | Deletes user_auth from env at ~/.fission.yaml

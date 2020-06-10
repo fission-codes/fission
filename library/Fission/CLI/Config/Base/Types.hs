@@ -44,7 +44,6 @@ data BaseConfig = BaseConfig
   { httpManager     :: !HTTP.Manager
   , fissionURL      :: !BaseUrl
   , cachedServerDID :: !(Maybe DID) -- ^ Typically from setting with envar
-  -- , cachedAppURL    :: !(Maybe URL)
   , logFunc         :: !LogFunc
   , processCtx      :: !ProcessContext
   , ipfsPath        :: !IPFS.BinPath
@@ -95,7 +94,7 @@ instance ServerDID FissionBase where
         baseURL <- asks fissionURL
         let url = BS8.pack $ "_did." <> baseUrlHost baseURL
 
-        logDebugN $ "Checking TXT " <> decodeUtf8Lenient url
+        logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url
 
         liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
           Left err -> do

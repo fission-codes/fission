@@ -83,7 +83,7 @@ up Up.Options {..} = do
       authClient (Proxy @App.Update)
         `withPayload` url
         `withPayload` cid
-        `withPayload` (Just copyFiles)
+        `withPayload` Just copyFiles
 
 parseOptions :: Parser Up.Options
 parseOptions = do

@@ -7,6 +7,7 @@ module Fission.CLI.Command.App.Init
 
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
 import           Options.Applicative
+import qualified RIO.Text as Text
 
 import           Fission.Authorization.ServerDID
 import           Fission.Prelude
@@ -48,21 +49,23 @@ appInit ::
   ( MonadWebClient m
   , MonadIO        m
   , MonadTime      m
+  , MonadLogger    m
   , ServerDID      m
   , MonadWebAuth   m Token
   , MonadWebAuth   m Ed25519.SecretKey
-  , MonadLogger    m
   )
   => App.Init.Options
   -> m ()
 appInit App.Init.Options {appDir, buildDir} = do
+  CLI.Success.putOk $ Text.pack appDir <> " / " <> (Text.pack $ show buildDir)
+
   sendRequestM (authClient $ Proxy @App.Create) >>= \case
     Left err ->
       CLI.Error.put err $ textDisplay err
 
     Right appURL -> do
       logDebug $ "Created app " <> textDisplay appURL
-
+     
       guess <- guessBuildDir appDir
 
       Env.Override.writeMerge appDir mempty

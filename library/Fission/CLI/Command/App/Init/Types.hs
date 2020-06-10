@@ -7,8 +7,8 @@ import           Fission.Prelude hiding (Options)
 
 -- | Arguments, flags & switches for the `app init` command
 data Options = Options
-  { appDir   :: FilePath
-  , buildDir :: Maybe FilePath
+  { appDir   :: !FilePath
+  , buildDir :: !(Maybe FilePath)
   }
 
 newtype OptionalFilePath = OptionalFilePath (Maybe FilePath)

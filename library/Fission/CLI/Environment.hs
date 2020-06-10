@@ -51,12 +51,9 @@ init = do
 
     Right nonEmptyPeers -> do
       let
-        env = Override
-          { maybeUserAuth = Nothing
-          , maybeAppURL   = Nothing
-          , peers         = NonEmpty.toList nonEmptyPeers
+        env = mempty
+          { peers         = NonEmpty.toList nonEmptyPeers
           , maybeIgnored  = Just ignoreDefault
-          , maybeBuildDir = Nothing
           }
 
       path <- globalEnv
