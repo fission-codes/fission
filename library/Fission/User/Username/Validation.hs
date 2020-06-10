@@ -88,8 +88,7 @@ isUsernameChar c =
 -- | Dangerous potential usernames
 blocklist :: [Text]
 blocklist =
-  [ "fission"
-  , "ipfs"
+  [ "ipfs"
   , "ipns"
   , "did"
   , "id"
