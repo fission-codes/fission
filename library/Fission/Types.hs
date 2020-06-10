@@ -145,7 +145,7 @@ instance MonadRoute53 Fission where
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
-  set recordType url@URL {..} (ZoneID zoneTxt) contents = do
+  set recType url@URL {..} (ZoneID zoneTxt) contents = do
     logDebug $ "Updating DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -174,16 +174,24 @@ instance MonadRoute53 Fission where
       createChangeRequest zoneID = do
         let
           urlTxt = textDisplay url
-          toSet  = addValues (resourceRecordSet urlTxt recordType) contents
+          toSet  = addValues recType (resourceRecordSet urlTxt recType) contents
           batch  = changeBatch . pure $ change Upsert toSet
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
-      addValues :: ResourceRecordSet -> NonEmpty Text -> ResourceRecordSet
-      addValues recordSet values =
+      addValues ::
+           RecordType
+        -> ResourceRecordSet
+        -> NonEmpty Text
+        -> ResourceRecordSet
+      addValues recType recordSet values =
         recordSet
           |> rrsTTL ?~ 10
-          |> rrsResourceRecords ?~ (resourceRecord . UTF8.wrapIn "\"" <$> values)
+          |> rrsResourceRecords ?~ (resourceRecord . format recType <$> values)
+
+      format :: RecordType -> Text -> Text
+      format Txt = UTF8.wrapIn "\""
+      format _   = identity
 
       changeRecordMock = do
         mockTime <- currentTime
@@ -196,7 +204,7 @@ instance MonadRoute53 Fission where
         return (Right mockRecordResponse)
 
 instance MonadDNSLink Fission where
-  set userId url@URL {..} zoneID (IPFS.CID hash) = do
+  set _userId url@URL {..} zoneID (IPFS.CID hash) = do
     IPFS.Gateway gateway <- asks ipfsGateway
      
     Route53.set Cname url zoneID (pure gateway) >>= \case
@@ -212,7 +220,7 @@ instance MonadDNSLink Fission where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipfs/" <> hash
 
-  follow userId url@URL {..} zoneID followeeURL = do
+  follow _userId url@URL {..} zoneID followeeURL = do
     IPFS.Gateway gateway <- asks ipfsGateway
 
     Route53.set Cname url zoneID (pure gateway) >>= \case

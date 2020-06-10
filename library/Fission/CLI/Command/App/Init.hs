@@ -8,10 +8,13 @@ module Fission.CLI.Command.App.Init
 
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
 import           Options.Applicative
-import qualified RIO.Text as Text
+import           RIO.FilePath ((</>))
+
+import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
-import           Fission.Prelude
+import           Fission.URL
+import           Fission.Error.AlreadyExists.Types
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
@@ -20,6 +23,7 @@ import           Fission.Web.Client.App                 as App
 import qualified Fission.CLI.Display.Error              as CLI.Error
 import qualified Fission.CLI.Display.Success            as CLI.Success
 
+import           Fission.CLI.Environment                as Environment
 import           Fission.CLI.Environment.Override       as Env.Override
 import           Fission.CLI.Prompt.BuildDir
 
@@ -61,21 +65,28 @@ appInit ::
   => App.Init.Options
   -> m ()
 appInit App.Init.Options {appDir, buildDir} = do
-  sendRequestM (authClient $ Proxy @App.Create) >>= \case
-    Left err ->
-      CLI.Error.put err $ textDisplay err
+  Environment {appURL} <- Environment.get
 
-    Right appURL -> do
-      logDebug $ "Created app " <> textDisplay appURL
+  case appURL of
+    Just url ->
+      CLI.Error.put (AlreadyExists @URL) $ "App already exists as " <> textDisplay url
      
-      guess <- guessBuildDir appDir
+    Nothing ->
+      sendRequestM (authClient $ Proxy @App.Create) >>= \case
+        Left err ->
+          CLI.Error.put err $ textDisplay err
 
-      Env.Override.writeMerge appDir mempty
-        { maybeAppURL   = Just appURL
-        , maybeBuildDir = buildDir <|> guess
-        }
+        Right appURL' -> do
+          logDebug $ "Created app " <> textDisplay appURL'
 
-      CLI.Success.putOk $ "App initialized as " <> textDisplay appURL
+          guess <- guessBuildDir appDir
+
+          Env.Override.writeMerge (appDir </> ".fission.yaml") mempty
+            { maybeAppURL   = Just appURL'
+            , maybeBuildDir = buildDir <|> guess
+            }
+
+          CLI.Success.putOk $ "App initialized as " <> textDisplay appURL'
 
 parseOptions :: Parser App.Init.Options
 parseOptions = do
@@ -83,7 +94,7 @@ parseOptions = do
     [ metavar "PATH"
     , help    "The file path to initialize the app in (app config, etc)"
 
-    , value   "./"
+    , value   "."
 
     , long    "app-dir"
     , short   'a'

@@ -19,7 +19,7 @@ type API
   :> Description "Update the content (CID) for an app"
   :> Capture     "App URL" URL
   :> Capture     "New CID" CID
-  :> QueryParam  "Flag: Copy data" Bool
+  :> QueryParam  "copy-data" Bool
   :> PatchAccepted '[JSON] NoContent
 
 update ::

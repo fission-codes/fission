@@ -26,13 +26,14 @@ class Monad m => Associator m where
   associate ::
        UserId
     -> AppId
+    -> Checkmark
     -> DomainName
     -> Maybe Subdomain
     -> UTCTime
     -> m (Either Errors ())
 
 instance MonadIO m => Associator (Transaction m) where
-  associate userId appId domainName maySubdomain now =
+  associate userId appId isPrimary domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
         return $ relaxedLeft err
@@ -51,11 +52,11 @@ instance MonadIO m => Associator (Transaction m) where
               }
 
             AppDomain
-              { appDomainAppId        = appId
-              , appDomainDomainName   = domainName
-              , appDomainSubdomain    = maySubdomain
-              , appDomainIsPrimary    = Inactive
-              , appDomainInsertedAt   = now
+              { appDomainAppId      = appId
+              , appDomainDomainName = domainName
+              , appDomainSubdomain  = maySubdomain
+              , appDomainIsPrimary  = isPrimary
+              , appDomainInsertedAt = now
               }
               |> insertUnique
               |> fmap \case

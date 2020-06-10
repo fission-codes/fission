@@ -64,7 +64,7 @@ instance ToSchema URL where
       |> pure
 
 instance ToJSON URL where
-  toJSON URL {..} = String ("https://" <> normalizedSubdomain <> domain)
+  toJSON URL {..} = String $ normalizedSubdomain <> domain
     where
       DomainName domain = domainName
 
@@ -75,12 +75,13 @@ instance ToJSON URL where
 instance FromJSON URL where
   parseJSON = withText "URL" \txt -> do
     let
-      sections                    = Text.split (== '.') txt
+      noProtocol = Text.dropPrefix "https://" $ Text.dropPrefix "http://" txt
+      sections   = Text.split (== '.') noProtocol
       (subdomainSecs, domainSecs) = List.splitAt (length sections - 2) sections
 
       maySubdomain = case subdomainSecs of
         [] -> Nothing
-        _  -> Just . Subdomain <| Text.intercalate "." subdomainSecs
+        _  -> Just . Subdomain $ Text.intercalate "." subdomainSecs
 
     case domainSecs of
       [domain, tld] ->

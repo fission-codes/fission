@@ -1,13 +1,15 @@
 module Fission.CLI.Environment.Override.Types (Override (..)) where
 
+import           RIO.List
 import           RIO.Prelude.Types
+
 import           Servant.API
 
 import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Prelude
  
-import           Fission.URL.Types
+import           Fission.URL
 import           Fission.User.DID
 
 import           Fission.Internal.Orphanage.BasicAuthData ()
@@ -45,15 +47,15 @@ instance Monoid Override where
     }
 
 instance ToJSON Override where
-  toJSON Override {..} = object
-    [ "peers"      .= peers
-    , "app_url"    .= maybeAppURL
-    , "user_auth"  .= maybeUserAuth
-    , "ignore"     .= maybeIgnored
-    , "build_dir"  .= maybeBuildDir
-    , "server_did" .= maybeServerDID
+  toJSON Override {..} = object $ catMaybes
+    [ ("peers"      .=) <$> tailMaybe peers
+    , ("app_url"    .=) <$> maybeAppURL
+    , ("user_auth"  .=) <$> maybeUserAuth
+    , ("ignore"     .=) <$> maybeIgnored
+    , ("build_dir"  .=) <$> maybeBuildDir
+    , ("server_did" .=) <$> maybeServerDID
     ]
-
+   
 instance FromJSON Override where
   parseJSON = withObject "Override" \obj -> do
     peers          <- obj .:? "peers" .!= []
@@ -62,5 +64,5 @@ instance FromJSON Override where
     maybeIgnored   <- obj .:? "ignore"
     maybeBuildDir  <- obj .:? "build_dir"
     maybeServerDID <- obj .:? "server_did"
-
+ 
     return Override {..}
