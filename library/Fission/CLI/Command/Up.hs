@@ -27,6 +27,7 @@ import qualified Fission.CLI.Command.App.Init as App.Init
 
 import           Fission.CLI.Display.Error
 import qualified Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Success as CLI.Success
  
 import qualified Fission.CLI.Prompt.BuildDir as Prompt
 
@@ -82,8 +83,12 @@ up Up.Options {..} = do
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
         sendRequestM (updateApp url cid copyFiles) >>= \case
-          Left err -> CLI.Error.put err "Server unable to sync data"
-          Right _  -> return ()
+          Left err ->
+            CLI.Error.put err "Server unable to sync data"
+           
+          Right _  -> do
+            CLI.Success.live cid
+            CLI.Success.dnsUpdated url
 
   where
     updateApp url cid copyFiles =

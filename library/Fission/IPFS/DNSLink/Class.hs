@@ -36,5 +36,5 @@ class MonadRoute53 m => MonadDNSLink m where
        UserId
     -> URL        -- ^ Follower
     -> AWS.ZoneID -- ^ Follower Zone
-    -> URL        -- ^ Followee
+    -> Path URL   -- ^ Followee
     -> m (Either Errors ())

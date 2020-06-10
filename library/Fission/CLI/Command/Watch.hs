@@ -43,7 +43,8 @@ import qualified Fission.CLI.Command.App.Init as App.Init
 import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Watch.Types as Watch
 
-import qualified Fission.CLI.Prompt.BuildDir     as Prompt
+import qualified Fission.CLI.Display.Success as CLI.Success
+import qualified Fission.CLI.Prompt.BuildDir as Prompt
 
 
 -- | The command to attach to the CLI tree
@@ -164,7 +165,13 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            void $ sendRequestM (updateApp appURL cid copyFilesFlag)
+            sendRequestM (updateApp appURL cid copyFilesFlag) >>= \case
+              Left err ->
+                CLI.Error.put err "Server unable to sync data"
+
+              Right _  -> do
+                CLI.Success.live cid
+                CLI.Success.dnsUpdated appURL
 
 parseOptions :: Parser Watch.Options
 parseOptions = do

@@ -83,7 +83,7 @@ data SetDNSLink
   deriving (Eq, Show)
 
 data FollowDNSLink
-  = FollowDNSLink URL URL
+  = FollowDNSLink URL (Path URL)
   deriving (Eq, Show)
 
 data RunLocalIPFS

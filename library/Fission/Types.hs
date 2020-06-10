@@ -361,11 +361,18 @@ instance User.Creator Fission where
           Right _ -> do
             domainName <- asks userRootDomain
             zoneID     <- asks userZoneID
-            driveURL   <- asks liveDriveURL
 
-            let subdomain = Just $ Subdomain rawUN
+            let
+              subdomain  = Just $ Subdomain rawUN
+              url        = URL {..}
+           
+              userPublic = dataURL `WithPath` ["public"]
+              dataURL    = URL
+                { domainName
+                , subdomain  = Just $ Subdomain ("files." <> rawUN)
+                }
 
-            DNSLink.follow userId URL {..} zoneID driveURL >>= \case
+            DNSLink.follow userId url zoneID userPublic >>= \case
               Left  err ->
                 return $ Error.relaxedLeft err
 

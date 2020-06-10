@@ -2,6 +2,7 @@ module Fission.URL.Types
   ( URL (..)
   , module Fission.URL.DomainName.Types
   , module Fission.URL.Subdomain.Types
+  , module Fission.URL.Path.Types
   ) where
 
 import           Data.Swagger hiding (URL)
@@ -14,6 +15,7 @@ import           Fission.Prelude
 
 import           Fission.URL.DomainName.Types
 import           Fission.URL.Subdomain.Types
+import           Fission.URL.Path.Types
 
 data URL = URL
   { domainName :: DomainName

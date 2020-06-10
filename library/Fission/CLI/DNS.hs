@@ -8,7 +8,7 @@ import           Servant.Client
 import           Fission.Prelude
  
 import           Fission.Authorization.ServerDID
-import           Fission.URL.DomainName.Types as URL
+import           Fission.URL as URL
 
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client
@@ -32,9 +32,9 @@ update cid@(CID hash) = do
   logDebug $ "Updating DNS to " <> display hash
 
   sendRequestM (authClient (Proxy @DNSRoute) `withPayload` cid) >>= \case
-    Right domain@(DomainName rawDomain) -> do
-      CLI.Success.dnsUpdated rawDomain
-      return $ Right domain
+    Right domainName -> do
+      CLI.Success.dnsUpdated $ URL domainName Nothing
+      return $ Right domainName
 
     Left err -> do
       CLI.Error.put' err
