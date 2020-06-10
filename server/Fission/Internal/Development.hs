@@ -111,7 +111,7 @@ run logFunc dbPool processCtx httpManager action =
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
     awsMockRoute53 = AWS.MockRoute53 True
 
-    baseAppDomainName      = DomainName "appdomain.com"
+    baseAppDomain  = DomainName "appdomain.com"
 
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"
@@ -176,7 +176,7 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
     awsMockRoute53 = AWS.MockRoute53 True
 
-    baseAppDomainName = DomainName "appdomain.com"
+    baseAppDomain  = DomainName "appdomain.com"
 
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"

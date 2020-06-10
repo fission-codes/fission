@@ -55,7 +55,7 @@ instance MonadIO m => Modifier (Transaction m) where
 
       Just (Entity _ AppDomain {appDomainAppId = appId}) ->
         Persist.get appId >>= \case
-          Nothing ->
+          Nothing -> do
             return . Error.openLeft $ NotFound @App
 
           Just app ->

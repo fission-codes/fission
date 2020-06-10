@@ -174,17 +174,16 @@ instance MonadRoute53 Fission where
       createChangeRequest zoneID = do
         let
           urlTxt = textDisplay url
-          toSet  = addValues recType (resourceRecordSet urlTxt recType) contents
+          toSet  = addValues (resourceRecordSet urlTxt recType) contents
           batch  = changeBatch . pure $ change Upsert toSet
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
       addValues ::
-           RecordType
-        -> ResourceRecordSet
+           ResourceRecordSet
         -> NonEmpty Text
         -> ResourceRecordSet
-      addValues recType recordSet values =
+      addValues recordSet values =
         recordSet
           |> rrsTTL ?~ 10
           |> rrsResourceRecords ?~ (resourceRecord . format recType <$> values)
@@ -287,7 +286,7 @@ instance MonadAuth Authorization Fission where
       toHandler (runRIO cfg) . unFission $ Auth.Token.handler req
 
 instance App.Domain.Initializer Fission where
-  initial = asks baseAppDomainName
+  initial = asks baseAppDomain
 
 instance App.Content.Initializer Fission where
   placeholder = asks appPlaceholder

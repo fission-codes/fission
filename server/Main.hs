@@ -15,9 +15,15 @@ import qualified RIO.Text as Text
 
 import           Fission
 import           Fission.Prelude
+ 
 import           Fission.Storage.PostgreSQL
 import qualified Fission.Authorization.ServerDID.Class as ServerDID
 import           Fission.Internal.App
+
+import           Fission.Domain as Domain
+
+import           Fission.User.DID
+import           Fission.User as User
 
 import qualified Fission.Web       as Web
 import qualified Fission.Web.Error as Web.Error
@@ -93,19 +99,37 @@ main = do
       condDebug      = if pretty then identity else logStdoutDev
 
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
-      let cfg = Config {..}
+      let
+        DID serverPK _ = fissionDID
+        cfg = Config {..}
+       
       runFission cfg do
         logDebug . displayShow =<< ask
+        now <- currentTime
 
-        logInfo @Text ">>>>>>>>>> Ensuring live DB matches latest schema"
-        runDB updateDBToLatest
+        runDB do
+          logInfo @Text ">>>>>>>>>> Ensuring live DB matches latest schema"
+          updateDBToLatest
+
+          logInfo @Text ">>>>>>>>>> Ensuring default user is in DB"
+          userId <- User.getByPublicKey serverPK >>= \case
+            Just (Entity userId _) -> return userId
+            Nothing -> Web.Error.ensureM $ User.create "fission" serverPK "hello@fission.codes" now
+
+          logInfo @Text ">>>>>>>>>> Ensuring default data domain domains is in DB"
+          Domain.getByDomainName userRootDomain >>= \case
+            Right _ -> return ()
+            Left  _ -> Domain.create userRootDomain userId userZoneID now
+
+          logInfo @Text ">>>>>>>>>> Ensuring default app domain domains is in DB"
+          Domain.getByDomainName baseAppDomain >>= \case
+            Right _ -> return ()
+            Left  _ -> Domain.create baseAppDomain userId baseAppZoneID now
 
         auth <- Auth.mkAuth
         logDebug @Text $ layoutWithContext (Proxy @Web.API) auth
 
-        now <- currentTime
         logInfo $ ">>>>>>>>>> Staring server at " <> Text.pack (show now)
-
         Web.Error.ensureM ServerDID.publicize
 
         host

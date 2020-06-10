@@ -8,17 +8,17 @@ import qualified Fission.AWS.Types as AWS
 import           Fission.URL.Types as URL
 
 data Environment = Environment
-  { baseAppDomainName :: !URL.DomainName -- ^ Default domain name
-  , baseAppZoneID     :: !AWS.ZoneID
-  , appPlaceholder    :: !CID            -- ^ Initial CID
-  , liveDriveURL      :: !URL
+  { baseAppDomain  :: !URL.DomainName -- ^ Default domain name
+  , baseAppZoneID  :: !AWS.ZoneID
+  , appPlaceholder :: !CID            -- ^ Initial CID
+  , liveDriveURL   :: !URL
   } deriving Show
 
 instance FromJSON Environment where
   parseJSON = withObject "WebApp.Environment" \obj -> do
-    baseAppDomainName <- obj .: "base_domain_name"
-    baseAppZoneID     <- obj .: "base_aws_zone_id"
-    appPlaceholder    <- obj .: "placeholder_cid"
-    liveDriveURL      <- obj .: "live_drive_url"
+    baseAppDomain  <- obj .: "base_domain_name"
+    baseAppZoneID  <- obj .: "base_aws_zone_id"
+    appPlaceholder <- obj .: "placeholder_cid"
+    liveDriveURL   <- obj .: "live_drive_url"
 
     return Environment {..}

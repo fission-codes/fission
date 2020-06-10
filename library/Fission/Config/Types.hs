@@ -22,37 +22,37 @@ import           Fission.Web.Types
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { processCtx        :: !ProcessContext
-  , logFunc           :: !LogFunc
+  { processCtx     :: !ProcessContext
+  , logFunc        :: !LogFunc
   --
-  , httpManager       :: !HTTP.Manager
-  , dbPool            :: !(Pool SqlBackend)
+  , httpManager    :: !HTTP.Manager
+  , dbPool         :: !(Pool SqlBackend)
   --
-  , ipfsPath          :: !IPFS.BinPath
-  , ipfsURL           :: !IPFS.URL
-  , ipfsRemotePeer    :: !IPFS.Peer
-  , ipfsTimeout       :: !IPFS.Timeout
-  , ipfsGateway       :: !IPFS.Gateway
+  , ipfsPath       :: !IPFS.BinPath
+  , ipfsURL        :: !IPFS.URL
+  , ipfsRemotePeer :: !IPFS.Peer
+  , ipfsTimeout    :: !IPFS.Timeout
+  , ipfsGateway    :: !IPFS.Gateway
   --
-  , herokuID          :: !Heroku.ID
-  , herokuPassword    :: !Heroku.Password
+  , herokuID       :: !Heroku.ID
+  , herokuPassword :: !Heroku.Password
   --
-  , awsAccessKey      :: !AWS.AccessKey
-  , awsSecretKey      :: !AWS.SecretKey
-  , awsMockRoute53    :: !AWS.MockRoute53
+  , awsAccessKey   :: !AWS.AccessKey
+  , awsSecretKey   :: !AWS.SecretKey
+  , awsMockRoute53 :: !AWS.MockRoute53
   --
-  , baseAppZoneID     :: !AWS.ZoneID
-  , appPlaceholder    :: !CID
-  , baseAppDomainName :: !URL.DomainName
+  , baseAppDomain  :: !URL.DomainName
+  , baseAppZoneID  :: !AWS.ZoneID
+  , appPlaceholder :: !CID
   --
-  , userRootDomain    :: !URL.DomainName
-  , userZoneID        :: !AWS.ZoneID
-  , defaultDataCID    :: !CID
+  , userRootDomain :: !URL.DomainName
+  , userZoneID     :: !AWS.ZoneID
+  , defaultDataCID :: !CID
   --
-  , host              :: !Host
-  , fissionDID        :: !DID
-  , serverZoneID      :: !AWS.ZoneID
-  , liveDriveURL      :: !URL
+  , host           :: !Host
+  , fissionDID     :: !DID
+  , serverZoneID   :: !AWS.ZoneID
+  , liveDriveURL   :: !URL
   }
 
 instance Show Config where
@@ -78,8 +78,8 @@ instance Show Config where
     , "  awsMockRoute53    = " <> show awsMockRoute53
     --
     , "  baseAppZoneID     = " <> show baseAppZoneID
+    , "  baseAppDomainName = " <> show baseAppDomain
     , "  appPlaceholder    = " <> show appPlaceholder
-    , "  baseAppDomainName = " <> show baseAppDomainName
     --
     , "  userRootDomain    = " <> show userRootDomain
     , "  userZoneID        = " <> show userZoneID
