@@ -14,7 +14,7 @@ setup:
 ##########################################################################################
 
 serve:
-	$(stack) run fission-web
+	$(stack) run fission-server
 
 build:
 	$(stack) build --fast $(package):lib
@@ -23,7 +23,7 @@ build-cli:
 	$(stack) build --fast $(package):fission-cli
 
 build-web:
-	$(stack) build --fast $(package):fission-web
+	$(stack) build --fast $(package):fission-server
 
 ##########################################################################################
 
@@ -36,8 +36,8 @@ release-cli:
 release-cli-ubuntu:
 	 $(stack) build fission:fission-cli --docker --docker-image=fpco/stack-build:lts-15
 
-release-web:
-	$(stack) build fission:fission-web
+release-server:
+	$(stack) build fission:fission-server
 
 ##########################################################################################
 

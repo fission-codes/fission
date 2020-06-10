@@ -28,7 +28,7 @@ import           Fission.Storage.PostgreSQL
 
 import           Fission.URL.Types
 import           Fission.User.DID.Types
- 
+
 import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
 
 {- | Setup a config, run an action in it, and tear down the config.
@@ -84,7 +84,8 @@ run logFunc dbPool processCtx httpManager action =
   where
     config = Config {..}
 
-    host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
+    host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
+    liveDriveURL = URL "fission.codes" (Just "drive")
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
@@ -94,19 +95,23 @@ run logFunc dbPool processCtx httpManager action =
       , method    = Key
       }
 
+    baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
+    userZoneID     = AWS.ZoneID "USER_ZONE_ID"
+    serverZoneID   = AWS.ZoneID "SERVER_ZONE_ID"
+
+    userRootDomain = "userootdomain.net"
+
     ipfsPath       = "/usr/local/bin/ipfs"
     ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
     ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
 
-    awsAccessKey          = "SOME_AWS_ACCESS_KEY"
-    awsSecretKey          = "SOME_AWS_SECRET_KEY"
-    awsZoneID             = "SOME_AWS_ZONE_ID"
-    awsRoute53MockEnabled = AWS.Route53MockEnabled True
+    awsAccessKey   = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey   = "SOME_AWS_SECRET_KEY"
+    awsMockRoute53 = AWS.MockRoute53 True
 
-    baseAppDomainName      = DomainName "appdomain.com"
-    baseUserDataRootDomain = DomainName "userdata.com"
+    baseAppDomain  = DomainName "appdomain.com"
 
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"
@@ -145,6 +150,7 @@ mkConfig ::
 mkConfig dbPool processCtx httpManager logFunc = Config {..}
   where
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
+    liveDriveURL = URL "fission.codes" (Just "drive")
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
@@ -160,13 +166,17 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     ipfsTimeout    = IPFS.Timeout 3600
     ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
-    awsAccessKey          = "SOME_AWS_ACCESS_KEY"
-    awsSecretKey          = "SOME_AWS_SECRET_KEY"
-    awsZoneID             = "SOME_AWS_ZONE_ID"
-    awsRoute53MockEnabled = AWS.Route53MockEnabled True
+    baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
+    userZoneID     = AWS.ZoneID "USER_ZONE_ID"
+    serverZoneID   = AWS.ZoneID "SERVER_ZONE_ID"
 
-    baseAppDomainName      = DomainName "appdomain.com"
-    baseUserDataRootDomain = DomainName "userdata.com"
+    userRootDomain = "userootdomain.net"
+
+    awsAccessKey   = "SOME_AWS_ACCESS_KEY"
+    awsSecretKey   = "SOME_AWS_SECRET_KEY"
+    awsMockRoute53 = AWS.MockRoute53 True
+
+    baseAppDomain  = DomainName "appdomain.com"
 
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"

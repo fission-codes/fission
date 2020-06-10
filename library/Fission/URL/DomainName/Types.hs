@@ -20,8 +20,10 @@ newtype DomainName = DomainName { get :: Text }
                     )
   deriving newtype  ( IsString
                     , PathPiece
-                    , Display
                     )
+
+instance Display DomainName where
+  textDisplay (DomainName txt) = txt
 
 instance PersistField DomainName where
   toPersistValue (DomainName name') = PersistText name'

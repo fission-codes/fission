@@ -14,8 +14,8 @@ import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 
 data Token = Token
-  { jwt        :: !JWT
-  , rawContent :: !(Maybe JWT.RawContent) -- To pass in to the verifier
+  { jwt        :: !JWT            -- ^ The actual token
+  , rawContent :: !JWT.RawContent -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
 
@@ -24,7 +24,7 @@ instance Arbitrary Token where
     jwt@JWT {..} <- arbitrary
     return Token
       { jwt
-      , rawContent = Just . JWT.RawContent $ B64.URL.encodeJWT header claims
+      , rawContent = RawContent $ B64.URL.encodeJWT header claims
       }
 
 instance Display Token where
@@ -41,10 +41,7 @@ instance FromJSON Token where
     case Text.stripPrefix "Bearer " txt <|> Text.stripPrefix "bearer " txt of
       Just rawToken -> do
         jwt <- parseJSON $ toJSON rawToken
-        return Token
-          { jwt
-          , rawContent = Just $ JWT.contentOf rawToken
-          }
+        return Token { jwt, rawContent = JWT.contentOf rawToken }
 
       Nothing ->
         fail $ Text.unpack txt <> " is missing the `Bearer ` prefix"
@@ -58,14 +55,8 @@ instance FromHttpApiData Token where
     case Text.stripPrefix "Bearer " txt <|> Text.stripPrefix "bearer " txt of
       Just rawToken ->
         case eitherDecodeStrict . encodeUtf8 $ "\"" <> rawToken <> "\"" of
-          Left str ->
-            Left $ Text.pack str
-
-          Right jwt ->
-            Right Token
-              { jwt
-              , rawContent = Just $ JWT.contentOf rawToken
-              }
+          Left  str -> Left $ Text.pack str
+          Right jwt -> Right Token { jwt, rawContent = JWT.contentOf rawToken }
 
       Nothing ->
         Left $ txt <> " is missing the `Bearer ` prefix"

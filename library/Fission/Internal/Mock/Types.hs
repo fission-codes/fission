@@ -30,6 +30,8 @@ import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 
 import           Fission.Prelude
  
+import           Fission.URL
+
 import           Fission.Authorization.Types
 import           Fission.Authorization.Potency.Types
 
@@ -38,7 +40,6 @@ import           Fission.IPFS.DNSLink.Class
 
 import           Fission.Models
 import           Fission.User.DID.Types
-import           Fission.URL.Types
 
 import           Fission.Web.Auth.Class
 import           Fission.Web.Client.Auth.Class
@@ -125,29 +126,36 @@ instance IsMember CheckTime effs => MonadTime (Mock effs) where
 instance
   ( IsMember RunAWS        effs
   , IsMember UpdateRoute53 effs
+  , IsMember ClearRoute53  effs
   )
   => MonadRoute53 (Mock effs) where
-  update r d t = do
+  set r url zone nonEmptyTxts = do
     Effect.log UpdateRoute53
     runner <- asks updateRoute53
-    return $ runner r d t
+    return $ runner r url zone nonEmptyTxts
+
+  clear r url _ = do
+    Effect.log ClearRoute53
+    runner <- asks clearRoute53
+    return $ runner r url
 
 instance
   ( IsMember UpdateRoute53 effs
+  , IsMember ClearRoute53  effs
   , IsMember SetDNSLink    effs
+  , IsMember FollowDNSLink effs
   , IsMember RunAWS        effs
   )
   => MonadDNSLink (Mock effs) where
-  set d s c = do
+  set _userID URL {..} _ cid = do
     Effect.log SetDNSLink
     runner <- asks setDNSLink
-    return $ runner d s c
+    return $ runner domainName subdomain cid
 
-  setBase s c = do
-    Effect.log SetDNSLink
-    baseDomain <- asks getBaseDomain
-    runner <- asks setDNSLink
-    return $ runner baseDomain (Just s) c
+  follow _userID toSet _ toFollow = do
+    Effect.log $ FollowDNSLink toSet toFollow
+    runner <- asks followDNSLink
+    return $ runner toSet toFollow
 
 instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
   runLocal _ _ = do
@@ -155,7 +163,9 @@ instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
     asks localIPFSCall
 
 instance IsMember RunRemoteIPFS effs => MonadRemoteIPFS (Mock effs) where
-  runRemote = undefined
+  runRemote _ = do
+    Effect.log RemoteIPFSGeneric
+    error "Directly called runRemote"
 
   ipfsAdd bs = do
     Effect.log $ RemoteIPFSAdd bs
@@ -197,6 +207,10 @@ instance IsMember CreateHerokuAddOn effs => Heroku.AddOn.Creator (Mock effs) whe
     return . Right $ Database.toSqlKey 0
 
 instance IsMember RetrieveUser effs => User.Retriever (Mock effs) where
+  getById userId = do
+    Effect.log $ GetUserById userId
+    return . Just $ Fixture.entity Fixture.user
+
   getByUsername username = do
     Effect.log $ GetUserByUsername username
     return . Just $ Fixture.entity Fixture.user
@@ -222,7 +236,7 @@ instance
   create _ _ _ _ = do
     Effect.log CreateUser
     Effect.log UpdateRoute53
-    return $ Right (Database.toSqlKey 0, Subdomain "new-subdomain")
+    return . Right $ Database.toSqlKey 0
 
   createWithPassword _ _ _ _ = do
     Effect.log CreateUser
@@ -241,14 +255,16 @@ instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
 
   updatePublicKey uID newPK _ = do
     Effect.log $ ModifyUser uID
-    return newPK
+    return $ Right newPK
 
   setData uID _ _ = do
     Effect.log $ ModifyUser uID
     return ok
 
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where
-  destroy uid = Effect.log $ DestroyUser uid
+  deactivate _ uid = do
+    Effect.log $ DestroyUser uid
+    return ok
 
 instance IsMember RetrieveLoosePin effs => LoosePin.Retriever (Mock effs) where
   getByUserId uid = do

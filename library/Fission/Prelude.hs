@@ -4,6 +4,7 @@ module Fission.Prelude
   , module Control.Monad.Logger
   , module Control.Monad.Time
   , module Data.Aeson
+  , module Data.Bool
   , module Data.Bifunctor
   , module Data.Has
   , module Data.Maybe
@@ -38,6 +39,7 @@ import Control.Monad.Time
 import Network.IPFS.Internal.Orphanage.Utf8Builder ()
 
 import Data.Aeson
+import Data.Bool
 import Data.Bifunctor (bimap)
 import Data.Has
 import Data.Maybe

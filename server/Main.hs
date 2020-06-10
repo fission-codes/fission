@@ -11,14 +11,22 @@ import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
 import qualified RIO
+import qualified RIO.Text as Text
 
 import           Fission
 import           Fission.Prelude
+ 
 import           Fission.Storage.PostgreSQL
 import qualified Fission.Authorization.ServerDID.Class as ServerDID
 import           Fission.Internal.App
 
+import           Fission.Domain as Domain
+
+import           Fission.User.DID
+import           Fission.User as User
+
 import qualified Fission.Web       as Web
+import qualified Fission.Web.Error as Web.Error
 import qualified Fission.Web.Log   as Web.Log
 import qualified Fission.Web.Types as Web
 
@@ -34,8 +42,8 @@ import           Fission.Environment.Types
 import qualified Fission.Environment.Auth.Types    as Auth
 import qualified Fission.Environment.AWS.Types     as AWS
 import qualified Fission.Environment.FFS.Types     as FFS
+import qualified Fission.Environment.Server.Types  as Server
 import qualified Fission.Environment.Storage.Types as Storage
-import qualified Fission.Environment.Web.Types     as Web
 import qualified Fission.Environment.WebApp.Types  as WebApp
 
 import qualified Fission.Web.Log.Sentry as Sentry
@@ -52,8 +60,8 @@ main = do
     AWS.Environment     {..} = env |> aws
     Auth.Environment    {..} = env |> auth
     FFS.Environment     {..} = env |> ffs
+    Server.Environment  {..} = env |> server
     Storage.Environment {..} = env |> storage
-    Web.Environment     {..} = env |> web
     WebApp.Environment  {..} = env |> webApp
    
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
@@ -65,10 +73,12 @@ main = do
     ipfsTimeout    = env |> ipfs |> IPFS.timeout
     ipfsGateway    = env |> ipfs |> gateway
 
-    awsAccessKey          = accessKey
-    awsSecretKey          = secretKey
-    awsZoneID             = zoneID
-    awsRoute53MockEnabled = route53MockEnabled
+    awsAccessKey   = accessKey
+    awsSecretKey   = secretKey
+    awsMockRoute53 = mockRoute53
+
+    userZoneID     = baseUserDataZoneID
+    userRootDomain = baseUserDataRootDomain
 
   isVerbose  <- isDebugEnabled
   logOptions <- logOptionsHandle stdout isVerbose
@@ -84,21 +94,43 @@ main = do
       logFunc        = baseLogger <> condSentryLogger
       Web.Port port' = port
       settings       = mkSettings logFunc port'
-      runner         = if env |> web |> Web.isTLS then runTLS tlsSettings' else runSettings
-      condDebug      = if env |> web |> Web.pretty then identity else logStdoutDev
+
+      runner         = if isTLS then runTLS tlsSettings' else runSettings
+      condDebug      = if pretty then identity else logStdoutDev
 
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
-      let cfg = Config {..}
+      let
+        DID serverPK _ = fissionDID
+        cfg = Config {..}
+       
       runFission cfg do
         logDebug . displayShow =<< ask
+        now <- currentTime
 
-        logInfo ("Ensuring live DB matches latest schema" :: Text)
-        runDB updateDBToLatest
+        runDB do
+          logInfo @Text ">>>>>>>>>> Ensuring live DB matches latest schema"
+          updateDBToLatest
+
+          logInfo @Text ">>>>>>>>>> Ensuring default user is in DB"
+          userId <- User.getByPublicKey serverPK >>= \case
+            Just (Entity userId _) -> return userId
+            Nothing -> Web.Error.ensureM $ User.create "fission" serverPK "hello@fission.codes" now
+
+          logInfo @Text ">>>>>>>>>> Ensuring default data domain domains is in DB"
+          Domain.getByDomainName userRootDomain >>= \case
+            Right _ -> return ()
+            Left  _ -> Domain.create userRootDomain userId userZoneID now
+
+          logInfo @Text ">>>>>>>>>> Ensuring default app domain domains is in DB"
+          Domain.getByDomainName baseAppDomain >>= \case
+            Right _ -> return ()
+            Left  _ -> Domain.create baseAppDomain userId baseAppZoneID now
 
         auth <- Auth.mkAuth
         logDebug @Text $ layoutWithContext (Proxy @Web.API) auth
 
-        ServerDID.publicize
+        logInfo $ ">>>>>>>>>> Staring server at " <> Text.pack (show now)
+        Web.Error.ensureM ServerDID.publicize
 
         host
           |> Web.app (toHandler (runFission cfg)) auth

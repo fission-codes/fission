@@ -11,6 +11,7 @@ import           Servant.Swagger.UI.ReDoc
 import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 
 import           Fission.Prelude
+
 import           Fission.Internal.Orphanage.BasicAuth     ()
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import           Fission.Internal.Orphanage.HigherOrder   ()
@@ -113,4 +114,4 @@ subOps
   -> (Operation -> f Operation)
   ->   Swagger
   -> f Swagger
-subOps routeProxy = subOperations routeProxy <| Proxy @Web.API
+subOps routeProxy = subOperations routeProxy $ Proxy @Web.API

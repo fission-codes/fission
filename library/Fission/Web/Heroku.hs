@@ -8,12 +8,12 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.User                  as User
-import qualified Fission.LoosePin              as LoosePin
-import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+import qualified Fission.LoosePin               as LoosePin
+import qualified Fission.Platform.Heroku.AddOn  as Heroku.AddOn
+import qualified Fission.User                   as User
 
-import qualified Fission.Web.Heroku.Provision   as Provision
 import qualified Fission.Web.Heroku.Deprovision as Deprovision
+import qualified Fission.Web.Heroku.Provision   as Provision
 import           Fission.Web.Server.Reflective
 
 type API = Provision.API :<|> Deprovision.API
@@ -24,11 +24,10 @@ server ::
   , MonadLocalIPFS           m
   , MonadLogger              m
   , MonadThrow               m
-  , MonadTime                m
+  , User.Creator             m
   , MonadDB                t m
   , MonadLogger            t
   , MonadThrow             t
-  , User.Creator           t
   , User.Retriever         t
   , User.Destroyer         t
   , LoosePin.Retriever     t

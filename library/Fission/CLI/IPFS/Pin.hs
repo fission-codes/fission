@@ -31,7 +31,7 @@ add cid@(CID hash) = do
   logDebug $ "Remote pinning " <> display hash
   sendRequestM (authClient (Proxy @Pin) `withPayload` cid) >>= \case
     Right _ -> do
-      CLI.Success.live hash
+      CLI.Success.live cid
       return $ Right cid
 
     Left err -> do

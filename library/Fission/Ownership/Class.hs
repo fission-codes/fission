@@ -1,8 +1,8 @@
 module Fission.Ownership.Class (Owned (..)) where
 
-import Database.Esqueleto
+import           Database.Esqueleto
 
-import Fission.Models
+import           Fission.Models
 
 class Owned item where
   ownerId :: item -> UserId

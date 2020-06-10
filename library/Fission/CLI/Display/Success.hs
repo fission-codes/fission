@@ -6,16 +6,18 @@ module Fission.CLI.Display.Success
   , loggedInAs
   ) where
 
-import Fission.Prelude
-
 import qualified System.Console.ANSI as ANSI
 
+import           Network.IPFS.CID.Types
+
+import           Fission.Prelude
+import           Fission.URL
 import qualified Fission.Internal.UTF8 as UTF8
 
-live :: MonadIO m => Text -> m ()
-live hash = do
+live :: MonadIO m => CID -> m ()
+live cid = do
   UTF8.putText $ "🚀 Now live on the network\n"
-  UTF8.putText $ "👌 " <> hash  <> "\n"
+  UTF8.putText $ "👌 " <> textDisplay cid  <> "\n"
 
 putOk :: MonadIO m => Text -> m ()
 putOk msg = liftIO do
@@ -23,10 +25,10 @@ putOk msg = liftIO do
   UTF8.putText $ "✅ " <> msg <> "\n"
   ANSI.setSGR [ANSI.Reset]
 
-dnsUpdated :: MonadIO m => Text -> m ()
+dnsUpdated :: MonadIO m => URL -> m ()
 dnsUpdated domain = do
   UTF8.putText "📝 DNS updated! Check out your site at: \n"
-  UTF8.putText $ "🔗 " <> domain  <> "\n"
+  UTF8.putText $ "🔗 " <> textDisplay domain  <> "\n"
 
 loggedInAs :: MonadIO m => Text -> m ()
 loggedInAs username = liftIO do

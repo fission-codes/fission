@@ -7,10 +7,10 @@ module Fission.CLI.Config.Connected
   ) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
-
 import           Network.IPFS
 
 import           Fission.Prelude
+ 
 import           Fission.Authorization.ServerDID
 import qualified Fission.Key as Key
 import           Fission.User.DID.Types
@@ -63,23 +63,23 @@ liftConfig BaseConfig {..} = do
      
     Right secretKey -> do
       config <- Environment.get
+ 
       Environment.getOrRetrievePeer config >>= \case
         Nothing -> do
-          logErrorN "Could not locate the Fission IPFS network"
+          CLI.Error.notConnected PeersNotFound
           return $ Left PeersNotFound
 
         Just peer ->
           Connect.swarmConnectWithRetry peer 1 >>= \case
             Left err -> do
-              logError $ displayShow err
+              logDebug $ displayShow err
               Connect.couldNotSwarmConnect
               return $ Left CannotConnect
 
-            Right _ -> do
+            Right _ ->
               let
                 ignoredFiles = Environment.ignored config
-                ucanLink = Nothing
-             
+
                 cliDID = DID
                   { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
                   , method    = Key
@@ -87,11 +87,13 @@ liftConfig BaseConfig {..} = do
 
                 connCfg = ConnectedConfig {..}
 
-              runConnected' connCfg do
-                sendRequestM (authClient $ Proxy @User.Verify) >>= \case
-                  Left err -> do
-                    CLI.Error.notConnected err
-                    return $ Left NotRegistered
+              in
+                runConnected' connCfg do
+                  logDebug @Text "Connected and attempting user verififcation"
+                  sendRequestM (authClient $ Proxy @User.Verify) >>= \case
+                    Left err -> do
+                      CLI.Error.notConnected err
+                      return $ Left NotRegistered
 
-                  Right _ ->
-                    return $ Right connCfg
+                    Right _ ->
+                      return $ Right connCfg

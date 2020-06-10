@@ -33,7 +33,7 @@ main = do
   isTLS <- getFlag "FISSION_TLS" .!~ True
   path  <- withEnv "FISSION_ROOT" "" identity
   host  <- withEnv "FISSION_HOST" "runfission.com" identity
-  did   <- withEnv "FISSION_DID"  "failDIDparser"  BS8.pack
+  did   <- withEnv "FISSION_DID"  ""  BS8.pack
   port  <- withEnv "FISSION_PORT" (if isTLS then 443 else 80) Partial.read
   tOut  <- withEnv "FISSION_TIMEOUT" 1800000000 Partial.read
 
@@ -46,7 +46,7 @@ main = do
         then tlsManagerSettings
         else defaultManagerSettings
 
-  httpManager <- HTTP.newManager $ rawHTTPSettings
+  httpManager <- HTTP.newManager rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro tOut }
 
   withLogFunc logOptions \logFunc -> cli CLI.BaseConfig {..}

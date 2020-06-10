@@ -25,6 +25,7 @@ sendRequestM clientAction = sendRequest =<< clientAction
 authClient ::
   ( MonadIO      m
   , MonadTime    m
+  , MonadLogger  m
   , ServerDID    m
   , MonadWebAuth m (AuthClientData a)
   , MonadWebAuth m Ed25519.SecretKey
@@ -33,10 +34,15 @@ authClient ::
   )
   => Proxy api
   -> m (f b)
-authClient pxy = do
+authClient api = do
   auth    <- getAuth
   authReq <- mkAuthReq
-  return . (client pxy) $ mkAuthenticatedRequest auth \_ath -> authReq
 
+  logDebug @Text "Sending web request"
+
+  return . (client api) $ mkAuthenticatedRequest auth \_ath -> authReq
+
+infixl 1 `withPayload`
 withPayload :: Functor f => f (a -> b) -> a -> f b
 clientFun `withPayload` arg = (\f -> f arg) <$> clientFun
+

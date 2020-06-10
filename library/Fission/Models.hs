@@ -11,30 +11,28 @@ import           Database.Persist.Postgresql
 import           Database.Persist.TH
 
 import           Data.Aeson.Types
-import           Data.UUID
 import           Data.Swagger
+import           Data.UUID
 
 import           Network.IPFS.CID.Types
 
+import qualified Fission.Internal.UTF8                as UTF8
 import           Fission.Prelude
 
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
+import qualified Fission.Key                          as Key
 import           Fission.URL
 
-import qualified Fission.Key as Key
-
-import           Fission.User.Role.Types
 import           Fission.User.Email.Types
+import           Fission.User.Role.Types
 import           Fission.User.Username.Types
 
-import qualified Fission.App.Domain.Types as App.Domain
+import qualified Fission.AWS.Zone.Types               as AWS
 
-import           Fission.Internal.Orphanage.CID  ()
-import           Fission.Internal.Orphanage.UUID ()
-
-import qualified Fission.Internal.UTF8 as UTF8
+import           Fission.Internal.Orphanage.CID       ()
+import           Fission.Internal.Orphanage.UUID      ()
 
 share
   [ mkPersist       sqlSettings
@@ -73,7 +71,7 @@ User
 
   UniqueUsername  username
   UniquePublicKey publicKey !force
-  -- UniqueEmail     email     !force
+  -- UniqueEmail     email     !force -- FIXME
 
   deriving Show Eq
 
@@ -104,13 +102,16 @@ LoosePin
 --------------------------------------------------------------------------------
 
 Domain
-  ownerId    UserId
   domainName DomainName
+
+  ownerId    UserId
+  zoneId     AWS.ZoneID
 
   insertedAt UTCTime
   modifiedAt UTCTime
 
-  Primary domainName
+  Primary      domainName
+  UniqueZoneId zoneId
 
   deriving Show Eq
 
@@ -157,14 +158,14 @@ AppDomain
   appId         AppId
 
   domainName    DomainName
-
   subdomain     Subdomain Maybe
-  isBareDomain  App.Domain.IsBare Maybe -- Hack around nullable constraint
+
+  isPrimary     Checkmark nullable
 
   insertedAt    UTCTime
 
-  UniqueSubdomainPerDomain domainName subdomain    !force
-  UniqueBareDomain         domainName isBareDomain !force -- Hack around nullable constraint
+  UniquePrimaryForApp      appId      isPrimary !force
+  UniqueSubdomainPerDomain domainName subdomain !force
 
   deriving Show Eq
 

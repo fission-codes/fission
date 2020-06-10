@@ -3,25 +3,36 @@ module Fission.Web.DNS
   , server
   ) where
 
-import           Network.IPFS.CID.Types
 import           Database.Esqueleto
+import           Network.IPFS.CID.Types
 import           Servant
 
-import           Fission.Prelude
 import           Fission.Authorization
 import           Fission.Models
+import           Fission.Prelude
 
-import           Fission.IPFS.DNSLink.Class as DNSLink
-import qualified Fission.URL.Types          as URL
-import           Fission.Web.Error          as Web.Err
+import           Fission.URL                 as URL
 import           Fission.User.Username.Types
+import           Fission.Web.Error           as Web.Err
+
+import qualified Fission.User.Modifier       as User
 
 type API
-  =  Summary "Set default app's DNSLink"
-  :> Description "DEPRECATED ⛔ Set default app's DNSLink to a CID"
+  =  Summary "Set account's DNSLink"
+  :> Description "DEPRECATED ⛔ Set account's DNSLink to a CID"
   :> Capture "cid" CID
-  :> PutAccepted '[PlainText, OctetStream] URL.DomainName
+  :> PutAccepted '[PlainText, OctetStream] DomainName
 
-server :: (MonadLogger m, MonadDNSLink m) => Authorization -> ServerT API m
-server Authorization {about = Entity _ User {userUsername = Username rawUN}} cid =
-  Web.Err.ensureM =<< DNSLink.setBase (URL.Subdomain rawUN) cid
+-- Deprecated! Works the "old" way with direct access to username.fission.name,
+-- WITHOUT the `files` prefix
+server ::
+  ( MonadTime     m
+  , MonadThrow    m
+  , MonadLogger   m
+  , User.Modifier m
+  )
+  => Authorization -> ServerT API m
+server Authorization {about = Entity userID User {userUsername = Username rawUN}} cid = do
+  now <- currentTime
+  ensureM $ User.setData userID cid now
+  return . DomainName $ rawUN <> ".fission.name"

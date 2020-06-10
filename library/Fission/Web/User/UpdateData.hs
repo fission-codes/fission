@@ -20,14 +20,14 @@ type API
   :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
 
 server ::
-  ( MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , MonadDB       t m
-  , User.Modifier t
+  ( MonadLogger   m
+  , MonadThrow    m
+  , MonadTime     m
+  , User.Modifier m
   )
   => Authorization
   -> ServerT API m
 server Authorization {about = Entity userID _} newCID = do
-  Web.Error.ensure =<< runDBNow (User.setData userID newCID)
+  now <- currentTime
+  Web.Error.ensureM $ User.setData userID newCID now
   return NoContent

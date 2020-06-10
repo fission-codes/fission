@@ -3,17 +3,19 @@ module Fission.App.Creator
   , createWithPlaceholder
   ) where
 
-import           Fission.Prelude
 import           Fission.Models
+import           Fission.Prelude
+
+import           Fission.App.Content         as AppCID
+import           Fission.App.Creator.Class   as App
 
 import           Fission.App.Creator.Class
-import           Fission.App.Content as AppCID
 
 import           Fission.URL.Subdomain.Types
 
 createWithPlaceholder ::
-  ( AppCID.Initializer m
-  , Creator            m
+  ( App.Creator        m
+  , AppCID.Initializer m
   )
   => UserId
   -> UTCTime

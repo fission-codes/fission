@@ -3,7 +3,8 @@ module Fission.App.Creator.Class
   , Errors
   ) where
 
-import           Database.Esqueleto (insert)
+import           Database.Esqueleto hiding ((<&>))
+
 import           Network.IPFS.CID.Types
 import           Servant
 
@@ -12,20 +13,25 @@ import           Fission.Error as Error
 import           Fission.Models
 import           Fission.URL
 
-import qualified Fission.App.Domain   as AppDomain
-import           Fission.IPFS.DNSLink as DNSLink
+import qualified Fission.App.Domain as App.Domain
 
 type Errors = OpenUnion
   '[ ServerError
-   , AppDomain.AlreadyAssociated
+   , App.Domain.AlreadyAssociated
+
    , ActionNotAuthorized App
    , NotFound            App
+
+   , ActionNotAuthorized URL
+   , NotFound            URL
+
+   , InvalidURL
    ]
 
 class Monad m => Creator m where
   create :: UserId -> CID -> UTCTime -> m (Either Errors (AppId, Subdomain))
 
-instance (AppDomain.Initializer m, MonadDNSLink m) => Creator (Transaction m) where
+instance (MonadIO m, App.Domain.Initializer m) => Creator (Transaction m) where
   create ownerId cid now = do
     appId <- insert App
       { appOwnerId    = ownerId
@@ -34,11 +40,6 @@ instance (AppDomain.Initializer m, MonadDNSLink m) => Creator (Transaction m) wh
       , appModifiedAt = now
       }
 
-    AppDomain.associateDefault ownerId appId now >>= \case
-      Left err ->
-        return $ Error.relaxedLeft err
-
-      Right subdomain ->
-        DNSLink.setBase subdomain cid <&> \case
-          Left  err -> Error.openLeft err
-          Right _   -> Right (appId, subdomain)
+    App.Domain.associateDefault ownerId appId now <&> \case
+      Left  err       -> Error.relaxedLeft err
+      Right subdomain -> Right (appId, subdomain)

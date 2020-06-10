@@ -1,10 +1,12 @@
 module Fission.CLI.Config.Connected.Types
-  ( ConnectedConfig (..)
+  ( ConnectedConfig  (..)
   , FissionConnected (..)
   ) where
 
 import           Control.Monad.Catch
+ 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
@@ -23,7 +25,7 @@ import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT
+import           Fission.Web.Auth.Token.JWT as JWT
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
@@ -35,7 +37,7 @@ data ConnectedConfig = ConnectedConfig
   , secretKey    :: !Ed25519.SecretKey
   , cliDID       :: !DID
   , serverDID    :: !DID
-  , ucanLink     :: !(Maybe JWT)
+  -- TODO link systems, ucanLink     :: !JWT
   , fissionURL   :: !BaseUrl
   , logFunc      :: !LogFunc
   , processCtx   :: !ProcessContext
@@ -101,9 +103,10 @@ instance MonadWebClient FissionConnected where
 instance MonadWebAuth FissionConnected DID where
   getAuth = asks cliDID
 
+-- TODO future PR
 -- i.e. A UCAN proof
-instance MonadWebAuth FissionConnected (Maybe JWT) where
-  getAuth = asks ucanLink
+-- instance MonadWebAuth FissionConnected JWT where
+--   getAuth = asks ucanLink
 
 instance MonadTime FissionConnected where
   currentTime = liftIO getCurrentTime
@@ -114,10 +117,20 @@ instance MonadWebAuth FissionConnected Token where
     sk        <- getAuth
     serverDID <- getServerDID
 
-    return . Bearer $ Bearer.Token
-      { jwt        = JWT.ucan now serverDID sk RootCredential
-      , rawContent = Nothing
-      }
+    let
+      jwt =
+        JWT.ucan now serverDID sk RootCredential
+
+      rawContent =
+        jwt
+          |> encode
+          |> Lazy.toStrict
+          |> decodeUtf8Lenient
+          |> Text.dropPrefix "\""
+          |> Text.dropSuffix "\""
+          |> JWT.contentOf
+
+    return $ Bearer Bearer.Token {..}
 
 instance MonadWebAuth FissionConnected Ed25519.SecretKey where
   getAuth = asks secretKey

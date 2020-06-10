@@ -3,6 +3,8 @@ module Fission.App.Domain.Associator
   , associateDefault
   ) where
 
+import           Database.Persist.Types
+
 import           Fission.Prelude
 import           Fission.Models
 import           Fission.URL.Types
@@ -26,5 +28,5 @@ associateDefault userId appId now = do
   defaultDomainName <- AppDomain.initial
   subdomain         <- liftIO (generate arbitrary)
 
-  associate userId appId defaultDomainName (Just subdomain) now
+  associate userId appId Active defaultDomainName (Just subdomain) now
     <&> fmap \_ -> subdomain

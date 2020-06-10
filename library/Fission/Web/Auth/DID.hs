@@ -1,11 +1,11 @@
 module Fission.Web.Auth.DID (handler) where
 
 import           Network.Wai
-import           Servant.Server
 
 import           Fission.Prelude
  
-import qualified Fission.Web.Error as Web.Error
+import qualified Fission.Web.Error      as Web.Error
+import qualified Fission.Web.Auth.Error as Auth
 
 import qualified Fission.Web.Auth.Token              as Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
@@ -30,17 +30,18 @@ handler ::
   -> m DID
 handler req =
   case Token.get req of
-    Right (Token.Bearer token@(Bearer.Token jwt (Just rawContent))) ->
+    Right (Token.Bearer token@(Bearer.Token jwt rawContent)) ->
       JWT.check rawContent jwt >>= \case
         Left err -> do
-          logWarn $ "Failed registration with token " <> encode token
+          logWarn $ "Failed registration with token " <> textDisplay token
           Web.Error.throw err
 
         Right JWT.JWT {claims = JWT.Claims {sender}} ->
           return sender
 
-    Right _ -> -- FIXME make impossible
-      Web.Error.throw err500 {errBody = "Internal logic problem parsing token"}
+    Right token@(Token.Basic _) -> do
+      logWarn $ "Attempted registration with basic auth" <> textDisplay token
+      Web.Error.throw Auth.Unauthorized
 
     Left err ->
       Web.Error.throw err

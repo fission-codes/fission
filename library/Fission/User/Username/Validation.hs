@@ -6,8 +6,8 @@ module Fission.User.Username.Validation
   , isUsernameChar
   ) where
 
-import qualified Data.Char as Char
-import qualified RIO.Text  as Text
+import qualified Data.Char                   as Char
+import qualified RIO.Text                    as Text
 
 import           Fission.Prelude
 
@@ -71,21 +71,17 @@ isValid (Username rawUsername) =
   all (== True) preds
   where
     preds :: [Bool]
-    preds =
-      [ okChars
-      , not startsWithHyphen
-      , not endsInHyphen
-      , not startsWithUnderscore
-      , not inBlocklist
-      ]
+    preds = [ okChars
+            , not startsWithHyphen
+            , not endsWithHyphen
+            , not inBlocklist
+            ]
 
-    inBlocklist      = elem username blocklist
-    okChars          = Text.all isUsernameChar username
-   
+    inBlocklist = elem username blocklist
+    okChars     = Text.all isUsernameChar username
+
     startsWithHyphen = Text.isPrefixOf "-" username
-    endsInHyphen     = Text.isSuffixOf "-" username
-
-    startsWithUnderscore = Text.isPrefixOf "_" username
+    endsWithHyphen   = Text.isSuffixOf "-" username
 
     username = Text.toLower rawUsername
 
@@ -99,12 +95,12 @@ isUsernameChar c =
 -- | Dangerous potential usernames
 blocklist :: [Text]
 blocklist =
-  [ "fission"
-  , "ipfs"
+  [ "ipfs"
   , "ipns"
   , "did"
   , "id"
   , "identity"
+  , "drive"
   , ".htaccess"
   , "htaccess"
   , ".htpasswd"

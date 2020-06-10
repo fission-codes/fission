@@ -49,13 +49,14 @@ defaultConfig = Config
   , remoteIPFSCat   = Right $ File.Serialized "hello world"
   , remoteIPFSPin   = Right $ IPFS.Client.Response [IPFS.CID "Qmfhajhfjka"]
   , remoteIPFSUnpin = Right $ IPFS.Client.Response [IPFS.CID "Qmhjsdahjhkjas"]
-  , setDNSLink      = \_ _ _ -> Right $ DomainName "example.com"
+  , setDNSLink      = \_ _ _ -> Right $ URL (DomainName "example.com") Nothing
+  , followDNSLink   = \_ _   -> Right ()
   , getBaseDomain   = DomainName "example.com"
-  , updateRoute53   = \_ _ _ ->
-      agesAgo
-        |> changeInfo "ciId" Insync
-        |> changeResourceRecordSetsResponse 200
-        |> Right
+  , clearRoute53    = \_ _ ->
+      Right . changeResourceRecordSetsResponse 200 $ changeInfo "ciId" Insync agesAgo
+
+  , updateRoute53   = \_ _ _ _ ->
+      Right . changeResourceRecordSetsResponse 200 $ changeInfo "ciId" Insync agesAgo
   }
 
 authZ :: Monad m => m Authorization

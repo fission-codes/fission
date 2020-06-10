@@ -4,6 +4,7 @@ module Fission.Environment.FFS.Types (Environment (..)) where
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
+ 
 import qualified Fission.URL.Types as URL
 
 data Environment = Environment

@@ -9,6 +9,7 @@ module Fission.Web.Routes
   , PingRoute
   , DNSRoute
   , AppRoute
+  , AppPrefix
   ) where
 
 import           Servant
@@ -30,9 +31,12 @@ type API
   :<|> DNSRoute
 
 type AppRoute
-  =  "app"
+  =  AppPrefix
   :> Auth.HigherOrder
   :> App.API
+
+type AppPrefix
+  = "app"
 
 type PingRoute
   =  "ping"

@@ -2,6 +2,8 @@
 # Created by https://www.gitignore.io/api/linux,macos,haskell,windows
 # Edit at https://www.gitignore.io/?templates=linux,macos,haskell,windows
 
+nohup.out
+
 *.pem
 *.csr
 *.sqlite
@@ -153,9 +155,6 @@ dist/
 
 # Flycheck
 flycheck_*.el
-
-# server auth directory
-/server/
 
 # projectiles files
 .projectile

@@ -7,20 +7,22 @@ module Fission.CLI.Config.Base.Types
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
 import qualified Data.ByteString.Char8 as BS8
 
 import qualified Network.DNS         as DNS
-import           Network.HTTP.Client as HTTP
+import qualified Network.HTTP.Client as HTTP
 
 import           Network.IPFS
-import           Network.IPFS.Types         as IPFS
+import qualified Network.IPFS.Types         as IPFS
 import qualified Network.IPFS.Process.Error as Process
 import           Network.IPFS.Process
 
 import           Servant.Client
 
 import           Fission.Prelude
- 
+
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
@@ -29,11 +31,11 @@ import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT
+import           Fission.Web.Auth.Token.JWT          as JWT
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT as JWT
- 
+
 import qualified Fission.CLI.Display.Error  as CLI.Error
 import qualified Fission.CLI.Display.Loader as CLI
 
@@ -82,7 +84,7 @@ instance MonadTime FissionBase where
   currentTime = liftIO getCurrentTime
 
 instance ServerDID FissionBase where
-  getServerDID = do
+  getServerDID =
     asks cachedServerDID >>= \case
       Just did ->
         return did
@@ -92,7 +94,7 @@ instance ServerDID FissionBase where
         baseURL <- asks fissionURL
         let url = BS8.pack $ "_did." <> baseUrlHost baseURL
 
-        logDebugN $ "Checking TXT " <> decodeUtf8Lenient url
+        logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url
 
         liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
           Left err -> do
@@ -107,11 +109,12 @@ instance ServerDID FissionBase where
 
           Right (didTxt : _) ->
             case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
-              Left  err -> do
+              Left err -> do
                 CLI.Error.put err "Unable to find Fission's ID online"
                 throwM $ NotFound @DID
 
-              Right did ->
+              Right did -> do
+                -- FIXME write the value to disk / root dir
                 return did
 
 instance MonadWebAuth FissionBase Token where
@@ -120,10 +123,20 @@ instance MonadWebAuth FissionBase Token where
     sk        <- getAuth
     serverDID <- getServerDID
 
-    return . Bearer $ Bearer.Token
-      { jwt        = JWT.ucan now serverDID sk RootCredential
-      , rawContent = Nothing
-      }
+    let
+      jwt =
+        JWT.ucan now serverDID sk RootCredential
+
+      rawContent =
+        jwt
+          |> encode
+          |> Lazy.toStrict
+          |> decodeUtf8Lenient
+          |> Text.dropPrefix "\""
+          |> Text.dropSuffix "\""
+          |> JWT.contentOf
+
+    return $ Bearer Bearer.Token {..}
 
 instance MonadWebAuth FissionBase Ed25519.SecretKey where
   getAuth =
@@ -162,4 +175,3 @@ instance MonadLocalIPFS FissionBase where
 
         | otherwise ->
             Left $ Process.UnknownErr stdErr
-

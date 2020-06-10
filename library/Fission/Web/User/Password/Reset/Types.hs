@@ -18,15 +18,14 @@ instance ToJSON Reset where
 instance FromJSON Reset where
   parseJSON = withObject "User.Password.Reset" \obj -> do
     mayPassword <- obj .:? "password"
-    return <| Reset mayPassword
+    return $ Reset mayPassword
 
 instance ToSchema Reset where
   declareNamedSchema _ = do
-    password <- declareSchemaRef <| Proxy @Text
+    password <- declareSchemaRef $ Proxy @Text
     mempty
       |> type_       ?~ SwaggerObject
       |> description ?~ "Password Reset Request"
-      |> properties  .~ [("password", password)]
       |> properties  .~ [("password", password)]
       |> NamedSchema (Just "PasswordResetRequest")
       |> pure

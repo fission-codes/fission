@@ -3,11 +3,10 @@ module Fission.CLI.Command.Types
   , Leaf
   ) where
 
-
 import           Control.Monad.Trans.Except
 import qualified Control.Monad.Trans.Writer.Lazy as Lazy
 
-import           Options.Applicative.Simple hiding (command)
+import           Options.Applicative.Simple      hiding (command)
 
 import           Fission.Prelude
 

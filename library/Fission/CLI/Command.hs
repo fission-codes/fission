@@ -4,12 +4,12 @@ module Fission.CLI.Command
   ) where
 
 import           Options.Applicative.Simple hiding (command)
-import qualified RIO.Text as Text
+import qualified RIO.Text                   as Text
 
 import           Fission.Prelude
 
 import           Fission.CLI.Command.Types
-import           Fission.CLI.Command.Types as Command
+import           Fission.CLI.Command.Types  as Command
 
 runWith :: (m () -> IO ()) -> Command m input () -> Command.Leaf
 runWith nt Command {..} =

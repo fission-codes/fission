@@ -67,8 +67,8 @@ deleteAssociatedWith ::
   => UUID
   -> t [CID]
 deleteAssociatedWith uuid' = do
-  Entity addOnId _ <- ensureEntityM err410 (Heroku.AddOn.getByUUID uuid')
-  Entity userId  _ <- ensureEntityM err410 (User.getByHerokuAddOnId addOnId)
+  Entity addOnId _ <- ensureEntityM err410 $ Heroku.AddOn.getByUUID uuid'
+  Entity userId  _ <- ensureEntityM err410 $ User.getByHerokuAddOnId addOnId
   loosePins        <- LoosePin.getByUserId userId
 
   deleteAssociatedRecords userId uuid' loosePins
@@ -91,5 +91,5 @@ deleteAssociatedRecords ::
   -> t ()
 deleteAssociatedRecords userId uuid loosePins = do
   LoosePin.destroyMany userId (entityKey <$> loosePins)
-  User.destroy userId
+  User.deactivate userId userId
   Heroku.AddOn.destroyByUUID uuid

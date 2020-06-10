@@ -1,7 +1,7 @@
 -- | Whoami command
 module Fission.CLI.Command.Whoami (cmd, whoami) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519           as Ed25519
 
 import           Network.HTTP.Types.Status
 import           Servant.Client.Core
@@ -9,15 +9,15 @@ import           Servant.Client.Core
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
-import qualified Fission.User.Username.Types as User
+import qualified Fission.User.Username.Types     as User
 
 import           Fission.Web.Auth.Token
-import           Fission.Web.Client      as Client
-import qualified Fission.Web.Client.User as User
+import           Fission.Web.Client              as Client
+import qualified Fission.Web.Client.User         as User
 
 import           Fission.CLI.Command.Types
-import qualified Fission.CLI.Display.Success as CLI.Success
-import qualified Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Error       as CLI.Error
+import qualified Fission.CLI.Display.Success     as CLI.Success
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -48,7 +48,7 @@ whoami ::
   , MonadWebAuth   m Ed25519.SecretKey
   )
   => m ()
-whoami = 
+whoami = do
   sendRequestM (authClient $ Proxy @User.WhoAmI) >>= \case
     Right User.Username {username} ->
       CLI.Success.loggedInAs username

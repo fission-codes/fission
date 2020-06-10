@@ -3,50 +3,67 @@ module Fission.App.Modifier.Class
   , Errors
   ) where
 
-import           Database.Persist
+import           Database.Persist       as Persist
+
+import           Network.IPFS.Add.Error as IPFS.Pin
 import           Network.IPFS.CID.Types
 
-import           Fission.Prelude
+import           Servant.Server
+
 import           Fission.Models
 import           Fission.Ownership
+import           Fission.Prelude        hiding (on)
+import           Fission.URL
 
-import qualified Fission.App.Retriever as App
-import           Fission.Error         as Error
-import           Fission.IPFS.DNSLink  as DNSLink
+import           Fission.Error          as Error
 
 type Errors = OpenUnion
-  '[ NotFound            App
+  '[ NotFound App
+   , NotFound AppDomain
+   , NotFound Domain
+   , NotFound URL
+
    , ActionNotAuthorized App
+   , ActionNotAuthorized AppDomain
+   , ActionNotAuthorized URL
+
+   , IPFS.Pin.Error
+   , ServerError
+
+   , InvalidURL
    ]
 
 class Monad m => Modifier m where
-  updateCID :: UserId -> AppId -> CID -> UTCTime -> m (Either Errors ())
+  setCID ::
+       UserId  -- ^ User for auth
+    -> URL     -- ^ URL associated with target app
+    -> CID     -- ^ New CID
+    -> Bool    -- ^ Flag: copy data (default yes)
+    -> UTCTime -- ^ Now
+    -> m (Either Errors AppId)
 
-instance MonadDNSLink m => Modifier (Transaction m) where
-  updateCID userId appId newCID now =
-    App.byId userId appId >>= \case
-      Left err ->
-        return $ Error.relaxedLeft err
+instance MonadIO m => Modifier (Transaction m) where
+  setCID userId URL {..} newCID _copyFlag now = do
+    mayAppDomain <- Persist.selectFirst
+      [ AppDomainDomainName ==. domainName
+      , AppDomainSubdomain  ==. subdomain
+      ] []
 
-      Right (Entity _ app) -> do
-        if isOwnedBy userId app
-          then do
-            update appId [AppCid =. newCID]
-            insert $ SetAppCIDEvent appId newCID now
-            updateAssociatedDNS appId newCID
-            return ok
-          else
-            return . Error.openLeft $ ActionNotAuthorized @App userId
+    case mayAppDomain of
+      Nothing ->
+        return . Error.openLeft $ NotFound @AppDomain
 
--- | Update DNS records for each registered @AppDomain@
-updateAssociatedDNS ::
-  ( MonadIO                   m
-  , MonadDNSLink (Transaction m)
-  )
-  => AppId
-  -> CID
-  -> Transaction m ()
-updateAssociatedDNS appId newCID = do
-  appDomains <- selectList [AppDomainAppId ==. appId] []
-  forM_ appDomains \(Entity _ AppDomain {..}) ->
-    DNSLink.set appDomainDomainName appDomainSubdomain newCID
+      Just (Entity _ AppDomain {appDomainAppId = appId}) ->
+        Persist.get appId >>= \case
+          Nothing -> do
+            return . Error.openLeft $ NotFound @App
+
+          Just app ->
+            if isOwnedBy userId app
+              then do
+                update appId [AppCid =. newCID]
+                insert $ SetAppCIDEvent appId newCID now
+                return $ Right appId
+
+              else
+                return . Error.openLeft $ ActionNotAuthorized @App userId

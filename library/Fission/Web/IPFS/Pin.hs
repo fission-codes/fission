@@ -82,6 +82,6 @@ unpin userId cid = do
     LoosePin.getByCids [cid]
 
   when (null remaining) do
-    void $ Web.Err.ensure =<< IPFS.Pin.rm cid
+    void . Web.Err.ensureM $ IPFS.Pin.rm cid
 
   return NoContent

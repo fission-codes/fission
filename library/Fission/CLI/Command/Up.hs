@@ -10,21 +10,26 @@ import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
+import           Fission.Models
 import           Fission.Authorization.ServerDID
+import           Fission.Error.NotFound.Types
  
 import           Fission.Web.Auth.Token
-import           Fission.Web.Client as Client
+ 
+import           Fission.Web.Client     as Client
+import           Fission.Web.Client.App as App
 
-import           Fission.CLI.Environment
+import           Fission.CLI.Environment as Environment
 
 import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Up.Types as Up
+import qualified Fission.CLI.Command.App.Init as App.Init
 
 import           Fission.CLI.Display.Error
-import qualified Fission.CLI.Prompt.BuildDir as Prompt
+import qualified Fission.CLI.Display.Error   as CLI.Error
+import qualified Fission.CLI.Display.Success as CLI.Success
  
-import qualified Fission.CLI.DNS      as CLI.DNS
-import qualified Fission.CLI.IPFS.Pin as CLI.Pin
+import qualified Fission.CLI.Prompt.BuildDir as Prompt
 
 -- | The command to attach to the CLI tree
 cmd ::
@@ -33,10 +38,10 @@ cmd ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , ServerDID        m
   )
   => Command m Up.Options ()
 cmd = Command
@@ -53,24 +58,44 @@ up ::
   , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadWebClient   m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , ServerDID        m
   )
   => Up.Options
   -> m ()
 up Up.Options {..} = do
-  ignoredFiles <- getIgnoredFiles
-  toAdd        <- Prompt.checkBuildDir path
-  absPath      <- liftIO (makeAbsolute toAdd)
+  ignoredFiles         <- getIgnoredFiles
+  toAdd                <- Prompt.checkBuildDir path
+  absPath              <- liftIO $ makeAbsolute toAdd
+  Environment {appURL} <- Environment.get
 
-  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
-  IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-    unless dnsOnly $
-      CLI.Pin.add cid >>= putErrOr \_ -> noop
+  let copyFiles = not dnsOnly
 
-    CLI.DNS.update cid >>= putErrOr \_ -> noop
+  case appURL of
+    Nothing ->
+      CLI.Error.put (NotFound @App) $
+        "You have not set up an app. Please run " <> App.Init.cmdTxt
+
+    Just url -> do
+      logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
+     
+      IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
+        sendRequestM (updateApp url cid copyFiles) >>= \case
+          Left err ->
+            CLI.Error.put err "Server unable to sync data"
+           
+          Right _  -> do
+            CLI.Success.live cid
+            CLI.Success.dnsUpdated url
+
+  where
+    updateApp url cid copyFiles =
+      authClient (Proxy @App.Update)
+        `withPayload` url
+        `withPayload` cid
+        `withPayload` Just copyFiles
 
 parseOptions :: Parser Up.Options
 parseOptions = do

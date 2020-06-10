@@ -12,36 +12,40 @@ import           Fission.Error as Error
 import           Fission.Models
 
 import           Fission.Key as Key
+import           Fission.URL
 
 import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import qualified Fission.User.Creator.Error as User
-import           Fission.User.Modifier      as User
 import           Fission.User.Password      as Password
 import           Fission.User.Types
 import qualified Fission.User.Username      as Username
 import qualified Fission.User.Validation    as User
 
-import qualified Fission.App.Domain  as AppDomain
-import qualified Fission.App.Creator as App
-
-import           Fission.IPFS.DNSLink
-import           Fission.URL.Subdomain.Types
-
-import qualified Fission.App.Content as App.Content
 import qualified Fission.App.Domain  as App.Domain
+import qualified Fission.App.Content as App.Content
+
+import qualified Fission.User.Modifier as User
+import qualified Fission.App.Creator   as App
 
 type Errors = OpenUnion
   '[ ActionNotAuthorized App
    , NotFound            App
 
+   , ActionNotAuthorized URL
+   , NotFound            URL
+
    , AlreadyExists HerokuAddOn
-   , AppDomain.AlreadyAssociated
+   , App.Domain.AlreadyAssociated
+  
    , User.AlreadyExists
+   , NotFound User
   
    , Username.Invalid
    , Password.FailedDigest
+
+   , InvalidURL
 
    , ServerError
    ]
@@ -53,7 +57,7 @@ class Heroku.AddOn.Creator m => Creator m where
     -> Key.Public
     -> Email
     -> UTCTime
-    -> m (Either Errors (UserId, Subdomain))
+    -> m (Either Errors UserId)
 
   createWithPassword ::
        Username
@@ -73,7 +77,6 @@ class Heroku.AddOn.Creator m => Creator m where
 
 instance
   ( MonadIO                 m
-  , MonadDNSLink            m
   , App.Domain.Initializer  m
   , App.Content.Initializer m
   )
@@ -94,7 +97,7 @@ instance
       |> User.check
       |> \case
         Left err ->
-          return (Error.openLeft err)
+          return $ Error.openLeft err
 
         Right user ->
           insertUnique user >>= \case
@@ -104,17 +107,17 @@ instance
             Just userId ->
               User.setData userId App.Content.empty now >>= \case
                 Left err ->
-                  return (Error.openLeft err)
+                  return $ Error.relaxedLeft err
 
                 Right () ->
                   App.createWithPlaceholder userId now <&> \case
-                    Left err             -> Error.relaxedLeft err
-                    Right (_, subdomain) -> Right (userId, subdomain)
+                    Left err -> Error.relaxedLeft err
+                    Right _  -> Right userId
 
   createWithPassword username password email now =
     Password.hashPassword password >>= \case
       Left err ->
-        return (Error.openLeft err)
+        return $ Error.openLeft err
 
       Right secretDigest ->
         User
@@ -186,7 +189,7 @@ determineConflict username (Just pk) = do
   conflPK <- getBy (UniquePublicKey $ Just pk) <&> fmap \_ ->
     User.ConflictingPublicKey pk
 
-  -- confEmail TODO
+  -- conflEmail TODO
 
   return case conflUN <|> conflPK of
     Just err -> Error.openLeft err
