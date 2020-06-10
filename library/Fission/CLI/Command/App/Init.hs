@@ -6,11 +6,13 @@ module Fission.CLI.Command.App.Init
   , appInit
   ) where
 
+import qualified System.Console.ANSI as ANSI
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
 import           Options.Applicative
 import           RIO.FilePath ((</>))
 
 import           Fission.Prelude
+import qualified Fission.Internal.UTF8 as UTF8
 
 import           Fission.Authorization.ServerDID
 import           Fission.URL
@@ -87,6 +89,27 @@ appInit App.Init.Options {appDir, buildDir} = do
             }
 
           CLI.Success.putOk $ "App initialized as " <> textDisplay appURL'
+
+          liftIO do
+            UTF8.putText "⏯️  Next run "
+
+            ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+            UTF8.putText "fission up"
+            ANSI.setSGR [ANSI.Reset]
+
+            UTF8.putText " or "
+
+            ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+            UTF8.putText "fission watch"
+            ANSI.setSGR [ANSI.Reset]
+
+            UTF8.putText " to sync data\n"
+
+            UTF8.putText "💁 It may take DNS time to propogate this initial setup globally. In this case, you can always view your app at "
+
+            ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+            UTF8.putText $ "https://ipfs.runfission.com/ipns/" <> textDisplay appURL' <> "\n"
+            ANSI.setSGR [ANSI.Reset]
 
 parseOptions :: Parser App.Init.Options
 parseOptions = do
