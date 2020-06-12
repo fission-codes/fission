@@ -50,8 +50,9 @@ import           Fission.User.DID.Types
 import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-
 import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
+
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 -- Reexports
 
@@ -131,7 +132,7 @@ data Claims = Claims
   { sender   :: !DID
   , receiver :: !DID
   -- Authorization Target
-  , resource :: !Resource
+  , resource :: !Resource -- FIXME delagate everything case
   , potency  :: !Potency
   , proof    :: !Proof
   -- Temporal Bounds
@@ -149,7 +150,6 @@ instance Eq Claims where
          && receiver jwtA == receiver jwtB
 
       eqAuth = resource jwtA == resource jwtB
-             &&   scope jwtA == scope    jwtB
              &&   proof jwtA == proof    jwtB
              && potency jwtA == potency  jwtB
 
@@ -158,16 +158,15 @@ instance Eq Claims where
 
 instance Arbitrary Claims where
   arbitrary = do
-    sender  <- arbitrary
-    scope'  <- arbitrary
-    potency <- arbitrary
-    proof   <- arbitrary
-    exp     <- arbitrary
-    nbf     <- arbitrary
-    pk      <- arbitrary
+    sender   <- arbitrary
+    resource <- arbitrary
+    potency  <- arbitrary
+    proof    <- arbitrary
+    exp      <- arbitrary
+    nbf      <- arbitrary
+    pk       <- arbitrary
 
     let
-      scope = "/" <> scope'
       receiver = DID
         { publicKey = pk
         , method    = Key
@@ -182,7 +181,7 @@ instance ToJSON Claims where
     --
     , "prf" .= proof
     , "ptc" .= potency
-    , "scp" .= scope
+    , "rsc" .= resource
     --
     , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
@@ -193,9 +192,9 @@ instance FromJSON Claims where
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
     --
-    scope   <- obj .:  "scp"
-    potency <- obj .:? "ptc" .!= AuthNOnly
-    proof   <- obj .:? "prf" .!= RootCredential
+    resource <- obj .:  "rsc"
+    potency  <- obj .:? "ptc" .!= AuthNOnly
+    proof    <- obj .:? "prf" .!= RootCredential
     --
     nbf <- fromSeconds <$> obj .: "nbf"
     exp <- fromSeconds <$> obj .: "exp"

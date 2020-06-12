@@ -23,6 +23,9 @@ data URL = URL
   }
   deriving Eq
 
+instance Arbitrary URL where
+  arbitrary = URL <$> arbitrary <*> arbitrary
+
 instance Display URL where
   display (URL domain Nothing)    = display domain
   display (URL domain (Just sub)) = display sub <> "." <> display domain
