@@ -130,8 +130,8 @@ data Claims = Claims
   -- Dramatis Personae
   { sender   :: !DID
   , receiver :: !DID
-  -- Authorization Scope
-  , scope    :: !Text
+  -- Authorization Target
+  , resource :: !Resource
   , potency  :: !Potency
   , proof    :: !Proof
   -- Temporal Bounds
@@ -148,9 +148,10 @@ instance Eq Claims where
       eqWho = sender jwtA == sender   jwtB
          && receiver jwtA == receiver jwtB
 
-      eqAuth = scope jwtA == scope   jwtB
-          &&   proof jwtA == proof   jwtB
-          && potency jwtA == potency jwtB
+      eqAuth = resource jwtA == resource jwtB
+             &&   scope jwtA == scope    jwtB
+             &&   proof jwtA == proof    jwtB
+             && potency jwtA == potency  jwtB
 
       eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
             && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)

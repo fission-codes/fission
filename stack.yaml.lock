@@ -68,10 +68,10 @@ packages:
   original:
     hackage: servant-quickcheck-0.0.7.4
 - completed:
-    hackage: tasty-rerun-1.1.17@sha256:0cfa3f0e4addedf5992a335557381405c5c0cb2710cab2f890933a7d054008c8,1373
+    hackage: tasty-rerun-1.1.17@sha256:d4a3ccb0f63f499f36edc71b33c0f91c850eddb22dd92b928aa33b8459f3734a,1373
     pantry-tree:
       size: 334
-      sha256: 0fbc600f59f79ab1b71abf398eb5870749419373707d8c8338615ba110eb2efd
+      sha256: 15fafaade325ff4d3d8b63e004c0646c495684aa7a53c5d4c4245204a7970fde
   original:
     hackage: tasty-rerun-1.1.17
 - completed:
