@@ -29,6 +29,7 @@ import           Fission.Web.Auth.Token.JWT                  as JWT
 import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types as JWT.Typ
 import qualified Fission.Web.Auth.Token.JWT.Signature.Types  as JWT.Signature
 import qualified Fission.Web.Auth.Token.Bearer.Types         as Bearer
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import           Fission.Web.Client.Auth
 
@@ -77,7 +78,7 @@ ucan now fissionDID sk proof = JWT {..}
       , receiver = fissionDID
 
       , potency  = AppendOnly
-      , resource = FissionFileSystem "/"
+      , resource = Subset (FissionFileSystem "/")
       , proof    = proof
      
       -- Accounting for clock drift

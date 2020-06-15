@@ -19,6 +19,9 @@ import           Fission.User.DID.Types
 import           Fission.Authorization.Types
 import           Fission.Authorization.Potency.Types
  
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+ 
 import           Fission.URL.Types as URL
 
 import           Fission.Internal.Fixture.Time        as Fixture
@@ -61,10 +64,10 @@ defaultConfig = Config
 
 authZ :: Monad m => m Authorization
 authZ = return Authorization
-    { sender  = Right did
-    , about   = Fixture.entity Fixture.user
-    , potency = AppendOnly
-    , scope   = "/test/"
+    { sender   = Right did
+    , about    = Fixture.entity Fixture.user
+    , potency  = AppendOnly
+    , resource = Subset $ FissionFileSystem "/test/"
     }
     where
       did = DID

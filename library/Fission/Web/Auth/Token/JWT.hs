@@ -14,7 +14,7 @@ module Fission.Web.Auth.Token.JWT
 
 import qualified System.IO.Unsafe                                 as Unsafe
 
-import qualified Data.Aeson.Text                                  as JSON
+-- import qualified Data.Aeson.Text                                  as JSON
 
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import           Crypto.Random                                    (MonadRandom (..))
@@ -31,14 +31,14 @@ import           Network.IPFS.CID.Types
 
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
-import qualified RIO.Text.Lazy                                    as Text.Lazy
+-- import qualified RIO.Text.Lazy                                    as Text.Lazy
 
 import qualified Fission.Internal.Base64.URL                      as B64.URL
 import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
 
-import qualified Fission.Internal.Base64.URL                      as B64.URL
+-- import qualified Fission.Internal.Base64.URL                      as B64.URL
 import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
 import qualified Fission.Internal.UTF8                            as UTF8
 
@@ -53,6 +53,7 @@ import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 -- Reexports
 
@@ -132,7 +133,7 @@ data Claims = Claims
   { sender   :: !DID
   , receiver :: !DID
   -- Authorization Target
-  , resource :: !Resource -- FIXME delagate everything case
+  , resource :: !(Scope Resource)
   , potency  :: !Potency
   , proof    :: !Proof
   -- Temporal Bounds

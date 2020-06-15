@@ -14,15 +14,18 @@ import           Fission.Models
 
 import           Fission.Authorization.Potency.Types
 
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+
 data Heroku = Heroku
   deriving (Show, Eq)
 
 -- | The final high-level authorization -- internal use only
 data Authorization = Authorization
-  { sender  :: !(Either Heroku DID)
-  , about   :: !(Entity User)
-  , potency :: !Potency
-  , scope   :: !Text -- May later be a POSIX-style path
+  { sender   :: !(Either Heroku DID)
+  , about    :: !(Entity User)
+  , potency  :: !Potency
+  , resource :: !(Scope Resource) -- May later be a POSIX-style path
   } deriving (Show, Eq)
 
 instance Display Authorization where

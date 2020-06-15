@@ -27,8 +27,8 @@ instance Arbitrary Resource where
 
 instance FromJSON Resource where
   parseJSON = withObject "Resource" \obj -> do
-    fs  <- fmap FissionFileSystem <$> obj .:? "fs"
-    app <- fmap FissionApp        <$> obj .:? "app_url"
+    fs  <- fmap FissionFileSystem <$> obj .:? "floofs"
+    app <- fmap FissionApp        <$> obj .:? "app"
     url <- fmap RegisteredDomain  <$> obj .:? "domain"
 
     case fs <|> app <|> url of
@@ -37,6 +37,6 @@ instance FromJSON Resource where
 
 instance ToJSON Resource where
   toJSON = \case
-    FissionFileSystem path   -> object [ "fs"      .= path   ]
-    FissionApp        url    -> object [ "app_url" .= url    ]
-    RegisteredDomain  domain -> object [ "domain"  .= domain ]
+    FissionFileSystem path   -> object [ "floofs" .= path   ]
+    FissionApp        url    -> object [ "app"    .= url    ]
+    RegisteredDomain  domain -> object [ "domain" .= domain ]

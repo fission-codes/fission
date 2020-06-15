@@ -49,6 +49,9 @@ import qualified Fission.Web.Types as Web
 
 import           Fission.Web.Auth.Token.Basic.Class
 
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+
 import           Fission.AWS
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
@@ -308,10 +311,10 @@ instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
 
 instance MonadWebAuth (Mock effs) Authorization where
   getAuth = return Authorization
-    { sender  = Right did
-    , about   = Fixture.entity Fixture.user
-    , potency = AppendOnly
-    , scope   = "/test/"
+    { sender   = Right did
+    , about    = Fixture.entity Fixture.user
+    , potency  = AppendOnly
+    , resource = Subset (FissionFileSystem "/test/")
     }
     where
       did = DID

@@ -17,6 +17,7 @@ import           Fission.Web.Auth.Token.JWT             as JWT
 import           Fission.Web.Auth.Token.JWT.Proof.Error
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 delegatedInBounds :: JWT -> JWT -> Either Error JWT
 delegatedInBounds  jwt prfJWT = do
@@ -34,7 +35,7 @@ signaturesMatch jwt prfJWT =
 resourceInSubset :: JWT -> JWT -> Either Error JWT
 resourceInSubset jwt prfJWT =
   case ((jwt |> claims |> resource), (prfJWT |> claims |> resource)) of
-    (FissionFileSystem path, FissionFileSystem proofPath) ->
+    (Subset (FissionFileSystem path), Subset (FissionFileSystem proofPath)) ->
       if path `List.isPrefixOf` proofPath -- NOTE `List` because FilePath ~ String
         then Right jwt
         else Left ScopeOutOfBounds
