@@ -14,8 +14,6 @@ module Fission.Web.Auth.Token.JWT
 
 import qualified System.IO.Unsafe                                 as Unsafe
 
--- import qualified Data.Aeson.Text                                  as JSON
-
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import           Crypto.Random                                    (MonadRandom (..))
 
@@ -31,14 +29,12 @@ import           Network.IPFS.CID.Types
 
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
--- import qualified RIO.Text.Lazy                                    as Text.Lazy
 
 import qualified Fission.Internal.Base64.URL                      as B64.URL
 import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
 
--- import qualified Fission.Internal.Base64.URL                      as B64.URL
 import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
 import qualified Fission.Internal.UTF8                            as UTF8
 
