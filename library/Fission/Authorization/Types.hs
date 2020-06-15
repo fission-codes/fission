@@ -25,7 +25,7 @@ data Authorization = Authorization
   { sender   :: !(Either Heroku DID)
   , about    :: !(Entity User)
   , potency  :: !Potency
-  , resource :: !(Scope Resource) -- May later be a POSIX-style path
+  , resource :: !(Scope Resource)
   } deriving (Show, Eq)
 
 instance Display Authorization where
