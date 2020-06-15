@@ -5,11 +5,8 @@ import           Fission.Prelude
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
--- FIXME write docs about why not a list of these
-
 data Resource
-  = -- FIXME add ANY, though probaly at the JWT layer
-  FissionFileSystem FilePath
+  = FissionFileSystem FilePath
   -- ^ Fission FileSystem path
   | FissionApp        (Scope URL)
   -- ^ Primary URL for an App

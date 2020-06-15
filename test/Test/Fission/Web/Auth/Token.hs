@@ -40,19 +40,19 @@ tests =
       it "parses the token" do
         Token.get authed `shouldBe` Right (Basic $ Basic.Token "12345")
 
-    describe "Bearer token" do
-      let jsonJWT = encodeUtf8 jsonRSA2048
+    -- describe "Bearer token" do
+    --   let jsonJWT = encodeUtf8 jsonRSA2048
 
-      context "titlecase 'Bearer'" do
-        let authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWT)]}
+    --   context "titlecase 'Bearer'" do
+    --     let authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWT)]}
 
-        it "parses the token" do
-          Token.get authed `shouldBe` Right (Bearer tokenRSA2048)
+    --     it "parses the token" do
+    --       Token.get authed `shouldBe` Right (Bearer tokenRSA2048)
 
-      context "lowerecase 'bearer'" do
-        let
-          jsonJWTLowercase = "b" <> Strict.drop 1 jsonJWT
-          authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWTLowercase)]}
+    --   context "lowerecase 'bearer'" do
+    --     let
+    --       jsonJWTLowercase = "b" <> Strict.drop 1 jsonJWT
+    --       authed = Wai.defaultRequest {requestHeaders = [("authorization", jsonJWTLowercase)]}
 
-        it "parses the token" do
-          Token.get authed `shouldBe` Right (Bearer tokenRSA2048)
+    --     it "parses the token" do
+    --       Token.get authed `shouldBe` Right (Bearer tokenRSA2048)
