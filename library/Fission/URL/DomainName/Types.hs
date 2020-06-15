@@ -1,6 +1,7 @@
 module Fission.URL.DomainName.Types (DomainName (..)) where
 
 import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Char            as Char
 import qualified RIO.Text            as Text
 
 import           Database.Persist.Postgresql hiding (get)
@@ -21,6 +22,13 @@ newtype DomainName = DomainName { get :: Text }
   deriving newtype  ( IsString
                     , PathPiece
                     )
+
+instance Arbitrary DomainName where
+  arbitrary = do
+    host <- Text.filter Char.isAlpha <$> arbitrary
+    tld  <- elements ["com", "net", "co.uk", "dev", "codes"]
+
+    return . DomainName $ host <> "." <> tld
 
 instance Display DomainName where
   textDisplay (DomainName txt) = txt

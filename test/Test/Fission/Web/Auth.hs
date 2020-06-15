@@ -21,6 +21,9 @@ import qualified Test.Fission.Web.Auth.Token.JWT    as JWT
 import qualified Test.Fission.Web.Auth.Token.Bearer as Bearer
 import qualified Test.Fission.Web.Auth.Token        as Token
 
+import qualified Test.Fission.Web.Auth.Token.UCAN.Resource       as Resource
+import qualified Test.Fission.Web.Auth.Token.UCAN.Resource.Scope as Scope
+
 import qualified Test.Fission.Web.Auth.Signature.Ed25519 as Ed
 
 tests :: IO TestTree
@@ -51,6 +54,8 @@ tests = do
     Bearer.tests
     JWT.tests
     Ed.tests
+    Resource.tests
+    Scope.tests
 
     describe "mkAuth" do
       describe "value" do

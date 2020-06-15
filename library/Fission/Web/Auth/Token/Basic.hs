@@ -24,6 +24,8 @@ import           Fission.Web.Error
 import qualified Fission.Web.Auth.Error as Auth
 import qualified Fission.Web.Auth.Token.Basic.Types as Auth.Basic
 
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+
 handler ::
   ( MonadIO          m
   , MonadLogger      m
@@ -59,10 +61,10 @@ checkUser (BasicAuthData username password) =
           if validatePassword (encodeUtf8 secretDigest) password
             then
               return $ Right Authorization
-                { about   = user
-                , sender  = Left Heroku
-                , potency = SuperUser
-                , scope   = "/"
+                { about    = user
+                , sender   = Left Heroku
+                , potency  = SuperUser
+                , resource = Complete
                 }
 
             else do

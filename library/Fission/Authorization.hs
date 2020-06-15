@@ -13,4 +13,4 @@ import Fission.Authorization.ServerDID
 import Fission.SemVer.Types
 
 latestVersion :: SemVer
-latestVersion = SemVer 0 1 0
+latestVersion = SemVer 0 2 0

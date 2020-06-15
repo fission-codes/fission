@@ -21,7 +21,12 @@ data URL = URL
   { domainName :: DomainName
   , subdomain  :: Maybe Subdomain
   }
-  deriving Eq
+
+instance Eq URL where
+  urlA == urlB = textDisplay urlA == textDisplay urlB
+
+instance Arbitrary URL where
+  arbitrary = URL <$> arbitrary <*> arbitrary
 
 instance Display URL where
   display (URL domain Nothing)    = display domain

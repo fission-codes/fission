@@ -14,8 +14,6 @@ module Fission.Web.Auth.Token.JWT
 
 import qualified System.IO.Unsafe                                 as Unsafe
 
-import qualified Data.Aeson.Text                                  as JSON
-
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import           Crypto.Random                                    (MonadRandom (..))
 
@@ -31,14 +29,12 @@ import           Network.IPFS.CID.Types
 
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
-import qualified RIO.Text.Lazy                                    as Text.Lazy
 
 import qualified Fission.Internal.Base64.URL                      as B64.URL
 import           Fission.Prelude
 
 import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
 
-import qualified Fission.Internal.Base64.URL                      as B64.URL
 import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
 import qualified Fission.Internal.UTF8                            as UTF8
 
@@ -50,8 +46,10 @@ import           Fission.User.DID.Types
 import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-
 import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
+
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 -- Reexports
 
@@ -130,8 +128,8 @@ data Claims = Claims
   -- Dramatis Personae
   { sender   :: !DID
   , receiver :: !DID
-  -- Authorization Scope
-  , scope    :: !Text
+  -- Authorization Target
+  , resource :: !(Scope Resource)
   , potency  :: !Potency
   , proof    :: !Proof
   -- Temporal Bounds
@@ -148,25 +146,24 @@ instance Eq Claims where
       eqWho = sender jwtA == sender   jwtB
          && receiver jwtA == receiver jwtB
 
-      eqAuth = scope jwtA == scope   jwtB
-          &&   proof jwtA == proof   jwtB
-          && potency jwtA == potency jwtB
+      eqAuth = resource jwtA == resource jwtB
+             &&   proof jwtA == proof    jwtB
+             && potency jwtA == potency  jwtB
 
       eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
             && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
 
 instance Arbitrary Claims where
   arbitrary = do
-    sender  <- arbitrary
-    scope'  <- arbitrary
-    potency <- arbitrary
-    proof   <- arbitrary
-    exp     <- arbitrary
-    nbf     <- arbitrary
-    pk      <- arbitrary
+    sender   <- arbitrary
+    resource <- arbitrary
+    potency  <- arbitrary
+    proof    <- arbitrary
+    exp      <- arbitrary
+    nbf      <- arbitrary
+    pk       <- arbitrary
 
     let
-      scope = "/" <> scope'
       receiver = DID
         { publicKey = pk
         , method    = Key
@@ -181,7 +178,7 @@ instance ToJSON Claims where
     --
     , "prf" .= proof
     , "ptc" .= potency
-    , "scp" .= scope
+    , "rsc" .= resource
     --
     , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
@@ -192,9 +189,9 @@ instance FromJSON Claims where
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
     --
-    scope   <- obj .:  "scp"
-    potency <- obj .:? "ptc" .!= AuthNOnly
-    proof   <- obj .:? "prf" .!= RootCredential
+    resource <- obj .:  "rsc"
+    potency  <- obj .:? "ptc" .!= AuthNOnly
+    proof    <- obj .:? "prf" .!= RootCredential
     --
     nbf <- fromSeconds <$> obj .: "nbf"
     exp <- fromSeconds <$> obj .: "exp"
