@@ -22,8 +22,8 @@ import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
 
 import           Fission.Prelude hiding (handle)
+import           Fission.Error
 
-import           Fission.Error.NotFound.Types
 import           Fission.URL
 import           Fission.Models
 import qualified Fission.Time                 as Time
@@ -103,7 +103,7 @@ watcher runner Watch.Options {..} = do
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
         UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
 
-        sendRequestM (updateApp url cid copyFiles) >>= putErrOr \_ -> do
+        withRetryM 100 (sendRequestM (updateApp url cid copyFiles)) >>= putErrOr \_ -> do
           liftIO $ FS.withManager \watchMgr -> do
             hashCache <- newMVar hash
             timeCache <- newMVar =<< getCurrentTime

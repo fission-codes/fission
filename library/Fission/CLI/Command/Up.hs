@@ -11,9 +11,11 @@ import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
 import           Fission.Models
+
+import           Fission.Error
+
 import           Fission.Authorization.ServerDID
-import           Fission.Error.NotFound.Types
- 
+
 import           Fission.Web.Auth.Token
  
 import           Fission.Web.Client     as Client
@@ -82,7 +84,7 @@ up Up.Options {..} = do
       logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-        sendRequestM (updateApp url cid copyFiles) >>= \case
+        withRetryM 100 (sendRequestM (updateApp url cid copyFiles)) >>= \case
           Left err ->
             CLI.Error.put err "Server unable to sync data"
            
@@ -111,3 +113,4 @@ parseOptions = do
     ]
 
   return Up.Options {..}
+

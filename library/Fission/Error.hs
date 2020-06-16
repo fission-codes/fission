@@ -3,6 +3,7 @@ module Fission.Error
   , relaxedLeft
   , fromMaybe
   , fromMaybe'
+  , withRetryM
   , module Fission.Error.Types
   ) where
 
@@ -25,3 +26,9 @@ fromMaybe err okHandler = maybe (openLeft err) (Right . okHandler)
 
 fromMaybe' :: IsMember err errs => err -> Maybe a -> Either (OpenUnion errs) a
 fromMaybe' err = fromMaybe err identity
+
+withRetryM :: Monad m => Natural -> m (Either err a) -> m (Either err a)
+withRetryM 0 action = action
+withRetryM n action = action >>= \case
+  Left  _err -> withRetryM (n - 1) action
+  Right val  -> return (Right val)
