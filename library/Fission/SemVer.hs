@@ -7,4 +7,4 @@ module Fission.SemVer
 import Fission.SemVer.Types
 
 current :: SemVer
-current = SemVer 0 1 0
+current = SemVer 1 0 0

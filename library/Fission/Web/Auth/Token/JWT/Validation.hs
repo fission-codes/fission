@@ -83,7 +83,7 @@ checkReceiver jwt@JWT {claims = JWT.Claims {receiver}} = do
 
 checkVersion :: JWT -> Either JWT.Error JWT
 checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
-  if mjr < 1 && mnr <= 1 && pch <= 0
+  if mjr == 1 && mnr >= 0 && pch <= 0
     then Right jwt
     else Left $ JWT.HeaderError UnsupportedVersion
 

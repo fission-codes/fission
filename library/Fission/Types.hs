@@ -369,7 +369,7 @@ instance User.Creator Fission where
               userPublic = dataURL `WithPath` ["public"]
               dataURL    = URL
                 { domainName
-                , subdomain  = Just $ Subdomain ("files." <> rawUN)
+                , subdomain  = Just $ Subdomain (rawUN <> ".files")
                 }
 
             DNSLink.follow userId url zoneID userPublic >>= \case
