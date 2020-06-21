@@ -219,9 +219,7 @@ instance MonadDNSLink Fission where
       dnsLink    = "dnslink=/ipfs/" <> hash
 
   follow _userId url@URL {..} zoneID followeeURL = do
-    IPFS.Gateway gateway <- asks ipfsGateway
-
-    Route53.set Cname url zoneID (pure gateway) >>= \case
+    Route53.set Cname url zoneID (pure $ textDisplay gateway) >>= \case
       Left err ->
         return $ Error.openLeft err
 
@@ -231,6 +229,7 @@ instance MonadDNSLink Fission where
           Right _  -> Right ()
 
     where
+      gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
 
