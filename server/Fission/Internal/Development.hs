@@ -104,7 +104,6 @@ run logFunc dbPool processCtx httpManager action =
     ipfsPath       = "/usr/local/bin/ipfs"
     ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsTimeout    = IPFS.Timeout 3600
-    ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
     ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
 
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
@@ -164,7 +163,6 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     ipfsURL        = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsRemotePeer = IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout    = IPFS.Timeout 3600
-    ipfsGateway    = IPFS.Gateway "ipfs.runfission.com"
 
     baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
     userZoneID     = AWS.ZoneID "USER_ZONE_ID"

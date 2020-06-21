@@ -32,7 +32,6 @@ data Config = Config
   , ipfsURL        :: !IPFS.URL
   , ipfsRemotePeer :: !IPFS.Peer
   , ipfsTimeout    :: !IPFS.Timeout
-  , ipfsGateway    :: !IPFS.Gateway
   --
   , herokuID       :: !Heroku.ID
   , herokuPassword :: !Heroku.Password
@@ -68,7 +67,6 @@ instance Show Config where
     , "  ipfsURL           = " <> show ipfsURL
     , "  ipfsRemotePeer    = " <> show ipfsRemotePeer
     , "  ipfsTimeout       = " <> show ipfsTimeout
-    , "  ipfsGateway       = " <> show ipfsGateway
     --
     , "  herokuID          = " <> show herokuID
     , "  herokuPassword    = " <> show herokuPassword

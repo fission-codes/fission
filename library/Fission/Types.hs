@@ -204,9 +204,7 @@ instance MonadRoute53 Fission where
 
 instance MonadDNSLink Fission where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
-    IPFS.Gateway gateway <- asks ipfsGateway
-     
-    Route53.set Cname url zoneID (pure gateway) >>= \case
+    Route53.set Cname url zoneID (pure $ textDisplay gateway) >>= \case
       Left err ->
         return $ Error.openLeft err
 
@@ -216,13 +214,12 @@ instance MonadDNSLink Fission where
           Right _  -> Right url
              
     where
+      gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipfs/" <> hash
 
   follow _userId url@URL {..} zoneID followeeURL = do
-    IPFS.Gateway gateway <- asks ipfsGateway
-
-    Route53.set Cname url zoneID (pure gateway) >>= \case
+    Route53.set Cname url zoneID (pure $ textDisplay gateway) >>= \case
       Left err ->
         return $ Error.openLeft err
 
@@ -232,6 +229,7 @@ instance MonadDNSLink Fission where
           Right _  -> Right ()
 
     where
+      gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
 
@@ -369,7 +367,7 @@ instance User.Creator Fission where
               userPublic = dataURL `WithPath` ["public"]
               dataURL    = URL
                 { domainName
-                , subdomain  = Just $ Subdomain ("files." <> rawUN)
+                , subdomain  = Just $ Subdomain (rawUN <> ".files")
                 }
 
             DNSLink.follow userId url zoneID userPublic >>= \case
@@ -445,7 +443,7 @@ instance User.Modifier Fission where
             let
               url = URL
                 { domainName = userDataDomain
-                , subdomain  = Just $ Subdomain ("files." <> username)
+                , subdomain  = Just $ Subdomain (username <> ".files")
                 }
 
             DNSLink.set userId url zoneID newCID <&> \case
