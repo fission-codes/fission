@@ -4,6 +4,7 @@ module Fission.Error
   , fromMaybe
   , fromMaybe'
   , withRetryM
+  , retryForever
   , module Fission.Error.Types
   ) where
 
@@ -32,3 +33,14 @@ withRetryM 0 action = action
 withRetryM n action = action >>= \case
   Left  _err -> withRetryM (n - 1) action
   Right val  -> return (Right val)
+
+retryForever :: Monad m => (err -> m _ignored) -> m (Either err a) -> m a
+retryForever onErr action = go
+  where
+    go = action >>= \case
+      Right val ->
+        return val
+
+      Left err -> do
+        _ <- onErr err
+        go

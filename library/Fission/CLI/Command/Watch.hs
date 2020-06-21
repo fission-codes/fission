@@ -43,7 +43,9 @@ import qualified Fission.CLI.Command.App.Init as App.Init
 import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Watch.Types as Watch
 
+import qualified Fission.CLI.Display.Error   as CLI.Error
 import qualified Fission.CLI.Display.Success as CLI.Success
+
 import qualified Fission.CLI.Prompt.BuildDir as Prompt
 
 
@@ -103,12 +105,37 @@ watcher runner Watch.Options {..} = do
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
         UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
 
-        withRetryM 100 (sendRequestM (updateApp url cid copyFiles)) >>= putErrOr \_ -> do
+        retrier (updateApp url cid copyFiles) >>= putErrOr \_ -> do
           liftIO $ FS.withManager \watchMgr -> do
             hashCache <- newMVar hash
             timeCache <- newMVar =<< getCurrentTime
             void $ handleTreeChanges runner url copyFiles timeCache hashCache watchMgr absPath
             forever . liftIO $ threadDelay 1000000 -- Sleep main thread
+
+retrier ::
+  ( MonadWebClient m
+  , MonadLogger m
+  )
+  => m (ClientM a)
+  -> m (Either ClientError a)
+retrier req =
+  sendRequestM req >>= \case
+    Right val ->
+      return $ Right val
+
+    Left err@(FailureResponse _req res) -> do
+      let code = statusCode $ responseStatusCode res
+ 
+      if code >= 502 && code <= 504
+        then do
+          logWarn $ "Got a " <> textDisplay code <> "; retrying..."
+          retrier req
+
+        else
+          return $ Left err
+
+    Left err ->
+      return $ Left err
 
 updateApp ::
   ( MonadIO      m

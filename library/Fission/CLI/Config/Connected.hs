@@ -70,7 +70,7 @@ liftConfig BaseConfig {..} = do
           return $ Left PeersNotFound
 
         Just peer ->
-          Connect.swarmConnectWithRetry peer 100 >>= \case
+          Connect.swarmConnectWithRetry peer 1 >>= \case
             Left err -> do
               logDebug $ displayShow err
               Connect.couldNotSwarmConnect
