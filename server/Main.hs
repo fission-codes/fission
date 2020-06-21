@@ -71,7 +71,6 @@ main = do
     ipfsURL        = env |> ipfs |> url
     ipfsRemotePeer = env |> ipfs |> remotePeer
     ipfsTimeout    = env |> ipfs |> IPFS.timeout
-    ipfsGateway    = env |> ipfs |> gateway
 
     awsAccessKey   = accessKey
     awsSecretKey   = secretKey
