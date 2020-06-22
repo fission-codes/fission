@@ -92,13 +92,15 @@ up Up.Options {..} = do
       logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-        retrier (updateApp url cid copyFiles) >>= \case
-          Left err ->
-            CLI.Error.put err "Server unable to sync data"
-           
-          Right _  -> do
-            CLI.Success.live cid
-            CLI.Success.dnsUpdated url
+          updateApp url cid copyFiles
+            |> retryOnErr [status502, status504] 100 
+          >>= \case
+            Left err ->
+              CLI.Error.put err "Server unable to sync data"
+            
+            Right _  -> do
+              CLI.Success.live cid
+              CLI.Success.dnsUpdated url
 
   where
     updateApp url cid copyFiles =
@@ -139,7 +141,8 @@ requestWithRetry req =
       if code >= 502 && code <= 504
         then do
           logWarn $ "Got a " <> textDisplay code <> "; retrying..."
-          retrier req
+          req |> 
+            retryOnErr [status502, status504] 100
 
         else
           return $ Left err

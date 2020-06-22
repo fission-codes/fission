@@ -3,13 +3,17 @@ module Fission.Error
   , relaxedLeft
   , fromMaybe
   , fromMaybe'
-  , withRetryM
-  , retryForever
+  , retryOnErr
   , module Fission.Error.Types
   ) where
 
 import Fission.Prelude hiding (fromMaybe)
 import Fission.Error.Types
+
+import Fission.Web.Client
+import Servant.Client
+import Network.HTTP.Types.Status
+
 
 openLeft :: IsMember err errs => err -> Either (OpenUnion errs) a
 openLeft err = Left (openUnionLift err)
@@ -28,19 +32,31 @@ fromMaybe err okHandler = maybe (openLeft err) (Right . okHandler)
 fromMaybe' :: IsMember err errs => err -> Maybe a -> Either (OpenUnion errs) a
 fromMaybe' err = fromMaybe err identity
 
-withRetryM :: Monad m => Natural -> m (Either err a) -> m (Either err a)
-withRetryM 0 action = action
-withRetryM n action = action >>= \case
-  Left  _err -> withRetryM (n - 1) action
-  Right val  -> return (Right val)
+retryOnErr ::
+  ( MonadWebClient m
+  , MonadLogger m
+  )
+  => [Status]
+  -> Integer
+  -> m (ClientM a)
+  -> m (Either ClientError a)
+retryOnErr retryOn times req =
+  sendRequestM req >>= \case
+    Right val ->
+      return $ Right val
 
-retryForever :: Monad m => (err -> m _ignored) -> m (Either err a) -> m a
-retryForever onErr action = go
-  where
-    go = action >>= \case
-      Right val ->
-        return val
+    Left err@(FailureResponse _req res) -> do
+      let code = responseStatusCode res
+ 
+      if elem (responseStatusCode res) retryOn
+        then do
+          logWarn $ "Got a " <> textShow code <> "; retrying..."
+          retryOnErr retryOn (times - 1) req
 
-      Left err -> do
-        _ <- onErr err
-        go
+        else
+          return $ Left err
+
+    Left err ->
+      return $ Left err
+
+
