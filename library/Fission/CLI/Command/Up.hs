@@ -28,6 +28,7 @@ import           Fission.Web.Auth.Token
  
 import           Fission.Web.Client     as Client
 import           Fission.Web.Client.App as App
+import           Fission.Web.Client.Error
 
 import           Fission.CLI.Environment as Environment
 
