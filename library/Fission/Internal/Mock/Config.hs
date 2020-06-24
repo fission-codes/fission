@@ -58,7 +58,7 @@ defaultConfig = Config
   , clearRoute53    = \_ _ ->
       Right . changeResourceRecordSetsResponse 200 $ changeInfo "ciId" Insync agesAgo
 
-  , updateRoute53   = \_ _ _ _ ->
+  , updateRoute53   = \_ _ _ _ _ ->
       Right . changeResourceRecordSetsResponse 200 $ changeInfo "ciId" Insync agesAgo
   }
 

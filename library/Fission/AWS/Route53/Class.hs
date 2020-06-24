@@ -17,6 +17,7 @@ class MonadAWS m => MonadRoute53 m where
     -> URL
     -> AWS.ZoneID
     -> NonEmpty Text
+    -> Natural
     -> m (Either ServerError ChangeResourceRecordSetsResponse)
 
   clear ::

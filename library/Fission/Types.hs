@@ -145,7 +145,7 @@ instance MonadRoute53 Fission where
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
-  set recType url@URL {..} (ZoneID zoneTxt) contents = do
+  set recType url@URL {..} (ZoneID zoneTxt) contents ttl = do
     logDebug $ "Updating DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -185,7 +185,7 @@ instance MonadRoute53 Fission where
         -> ResourceRecordSet
       addValues recordSet values =
         recordSet
-          |> rrsTTL ?~ 10
+          |> rrsTTL ?~ ttl
           |> rrsResourceRecords ?~ (resourceRecord . format recType <$> values)
 
       format :: RecordType -> Text -> Text
@@ -204,12 +204,12 @@ instance MonadRoute53 Fission where
 
 instance MonadDNSLink Fission where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
-    Route53.set Cname url zoneID (pure $ textDisplay gateway) >>= \case
+    Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
       Left err ->
         return $ Error.openLeft err
 
       Right _ ->
-        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
+        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right url
              
@@ -219,12 +219,12 @@ instance MonadDNSLink Fission where
       dnsLink    = "dnslink=/ipfs/" <> hash
 
   follow _userId url@URL {..} zoneID followeeURL = do
-    Route53.set Cname url zoneID (pure $ textDisplay gateway) >>= \case
+    Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
       Left err ->
         return $ Error.openLeft err
 
       Right _ ->
-        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) <&> \case
+        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right ()
 
@@ -328,7 +328,7 @@ instance PublicizeServerDID Fission where
         return ok
 
       else
-        Route53.set Txt txtRecordURL zoneID (pure txtRecordValue) <&> \case
+        Route53.set Txt txtRecordURL zoneID (pure txtRecordValue) 10 <&> \case
           Left err ->
             Left err
 
@@ -418,7 +418,7 @@ instance User.Modifier Fission where
               did       = textDisplay (DID pk Key)
               (_, didSegments) = Text.foldr splitter (0, ("" :| [])) did
 
-            Route53.set Txt url zoneID didSegments <&> \case
+            Route53.set Txt url zoneID didSegments 10 <&> \case
               Left serverErr -> Error.openLeft serverErr
               Right _        -> Right pk
     where
