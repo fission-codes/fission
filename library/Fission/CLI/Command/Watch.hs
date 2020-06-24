@@ -107,7 +107,7 @@ watcher runner Watch.Options {..} = do
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
         UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
         updateApp url cid copyFiles
-          >>= retryOnErr [status502, status504] 100
+          >>= retryOnStatus [status502, status504] 100
         >>= putErrOr \_ -> do
           liftIO $ FS.withManager \watchMgr -> do
             hashCache <- newMVar hash

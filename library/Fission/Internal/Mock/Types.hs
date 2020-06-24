@@ -328,4 +328,5 @@ instance IsMember APICall effs => MonadWebClient (Mock effs) where
     shouldFail <- asks failAPICall
     case shouldFail of
       True -> return $ Left Fixture.failure502
-      False -> return $ Right "success"
+      False -> return $ Left Fixture.failure502
+      -- False -> return $ Right ("success" :: Text)

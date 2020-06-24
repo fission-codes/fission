@@ -91,7 +91,7 @@ up Up.Options {..} = do
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
           updateApp url cid copyFiles
-            >>= retryOnErr [status502, status504] 100 
+            >>= retryOnStatus [status502, status504] 100 
           >>= \case
             Left err ->
               CLI.Error.put err "Server unable to sync data"
