@@ -66,7 +66,7 @@ fission proxy appHost =
         |> email ?~ "support@fission.codes"
 
     projectLicense =
-      "Apache 2.0" |> url ?~ URL "http://www.apache.org/licenses/LICENSE-2.0"
+      "AGPL 2.0" |> url ?~ URL "https://www.gnu.org/licenses/agpl-3.0.en.html"
 
     blurb =
       "Bootstrapped & distributed backend-as-a-service with user-controlled data"
