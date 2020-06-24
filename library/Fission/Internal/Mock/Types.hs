@@ -324,5 +324,8 @@ instance MonadWebAuth (Mock effs) Authorization where
 
 instance IsMember APICall effs => MonadWebClient (Mock effs) where
   sendRequest req = do
-    return $ Left $ 
-      Fixture.failure502
+    Effect.log APICall
+    shouldFail <- asks failAPICall
+    case shouldFail of
+      True -> return $ Left Fixture.failure502
+      False -> return $ Right "success"

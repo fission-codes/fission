@@ -146,4 +146,6 @@ data DestroyLoosePin
   | DestroyLoosePinById UserId LoosePinId
   deriving (Eq, Show)
 
-data APICall = APICall
+data APICall 
+  = APICall
+  deriving (Eq, Show)

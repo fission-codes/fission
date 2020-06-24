@@ -60,6 +60,7 @@ defaultConfig = Config
 
   , updateRoute53   = \_ _ _ _ _ ->
       Right . changeResourceRecordSetsResponse 200 $ changeInfo "ciId" Insync agesAgo
+  , failAPICall     = False
   }
 
 authZ :: Monad m => m Authorization

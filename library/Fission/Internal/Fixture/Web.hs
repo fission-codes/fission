@@ -16,7 +16,7 @@ import Network.HTTP.Types.Version
 import Data.Sequence as Seq
 
 fissionURL :: BaseUrl
-fissionURL = BaseUrl (Https) "fakefission.com" 443 "/"
+fissionURL = BaseUrl (Https) "example.com" 443 "/"
 
 failureResp :: Status -> ClientError
 failureResp status = mkFailureResponse fissionURL defaultRequest $
