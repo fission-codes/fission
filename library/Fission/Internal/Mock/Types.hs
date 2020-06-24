@@ -42,6 +42,7 @@ import           Fission.Models
 import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Class
+import           Fission.Web.Client.Class
 import           Fission.Web.Client.Auth.Class
 
 import           Fission.Web.Server.Reflective.Class
@@ -190,9 +191,8 @@ instance MonadReflectiveServer (Mock effs) where
   getHost = Web.Host <$> parseBaseUrl "example.com"
 
 instance IsMember LogMsg effs => MonadLogger (Mock effs) where
-  monadLoggerLog loc src lvl msg = do
+  monadLoggerLog _loc _src lvl msg = do
     Effect.log . LogMsg lvl $ toLogStr msg
-    monadLoggerLog loc src lvl msg
 
 instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Destroyer (Mock effs) where
   destroyByUUID uuid = do
@@ -321,3 +321,8 @@ instance MonadWebAuth (Mock effs) Authorization where
         { publicKey = Ed25519.pk
         , method    = Key
         }
+
+instance IsMember APICall effs => MonadWebClient (Mock effs) where
+  sendRequest req = do
+    return $ Left $ 
+      Fixture.failure502

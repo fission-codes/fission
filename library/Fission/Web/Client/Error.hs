@@ -12,21 +12,21 @@ retryOnErr ::
   )
   => [Status]
   -> Integer
-  -> m (ClientM a)
+  -> ClientM a
   -> m (Either ClientError a)
 retryOnErr retryOn times req =
-  sendRequestM req >>= \case
+  sendRequest req >>= \case
     Right val ->
       return $ Right val
 
     Left err@(FailureResponse _req res) -> do
       let code = responseStatusCode res
- 
-      if elem (responseStatusCode res) retryOn
+
+      if (elem (responseStatusCode res) retryOn) && times > 0
         then do
           logWarn $ "Got a " <> textShow code <> "; retrying..."
           retryOnErr retryOn (times - 1) req
-
+        
         else
           return $ Left err
 

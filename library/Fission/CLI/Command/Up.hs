@@ -2,7 +2,6 @@
 module Fission.CLI.Command.Up
   ( cmd
   , up
-  , requestWithRetry
   ) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
@@ -14,8 +13,6 @@ import           Network.HTTP.Types.Status
 
 import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
-
-import           Servant.Client
 
 import           Fission.Prelude
 import           Fission.Models
@@ -94,7 +91,7 @@ up Up.Options {..} = do
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
           updateApp url cid copyFiles
-            |> retryOnErr [status502, status504] 100 
+            >>= retryOnErr [status502, status504] 100 
           >>= \case
             Left err ->
               CLI.Error.put err "Server unable to sync data"
@@ -124,29 +121,3 @@ parseOptions = do
     ]
 
   return Up.Options {..}
-
-requestWithRetry ::
-  ( MonadWebClient m
-  , MonadLogger m
-  )
-  => m (ClientM a)
-  -> m (Either ClientError a)
-requestWithRetry req =
-  sendRequestM req >>= \case
-    Right val ->
-      return $ Right val
-
-    Left err@(FailureResponse _req res) -> do
-      let code = statusCode $ responseStatusCode res
-
-      if code >= 502 && code <= 504
-        then do
-          logWarn $ "Got a " <> textDisplay code <> "; retrying..."
-          req |> 
-            retryOnErr [status502, status504] 100
-
-        else
-          return $ Left err
-
-    Left err ->
-      return $ Left err
