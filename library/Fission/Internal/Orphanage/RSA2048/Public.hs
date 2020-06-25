@@ -14,6 +14,9 @@ import qualified Data.PEM as PEM
 import qualified Data.ByteString.Base64 as BS64
 import qualified Data.X509              as X509
 
+import           Data.Swagger
+import           Database.Persist.Postgresql
+
 import qualified RIO.Text as Text
  
 import           Servant.API
@@ -48,6 +51,27 @@ instance FromJSON RSA.PublicKey where
 
 instance ToJSON RSA.PublicKey where
   toJSON = String . textDisplay
+
+instance PersistField RSA.PublicKey where
+  toPersistValue =
+    PersistText . textDisplay
+
+  fromPersistValue (PersistText txt) =
+    parseUrlPiece txt
+   
+  fromPersistValue other =
+    Left $ "Invalid Persistent RSA PK: " <> Text.pack (show other)
+
+instance ToParamSchema RSA.PublicKey where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+
+instance ToSchema RSA.PublicKey where
+  declareNamedSchema _ =
+    mempty
+      |> type_ ?~ SwaggerString
+      |> description ?~ "An RSA public key"
+      |> NamedSchema (Just "RSA.PublicKey")
+      |> pure
 
 pemHeader :: Text
 pemHeader = "-----BEGIN PUBLIC KEY-----"

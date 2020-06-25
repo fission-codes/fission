@@ -1,6 +1,3 @@
-module Fission.User.DID
-  ( -- * Reexports
-    module Fission.User.DID.Types
-  ) where
+module Fission.User.DID (module Fission.User.DID.Types) where
 
 import Fission.User.DID.Types

@@ -21,13 +21,14 @@ import           Fission.Email
 import qualified Fission.Challenge.Creator.Class  as Challenge
 import qualified Fission.Challenge.Verifier.Class as Challenge
 
-import qualified Fission.Web.User.Create          as Create
-import qualified Fission.Web.User.Verify          as Verify
-import qualified Fission.Web.User.VerifyEmail     as VerifyEmail
-import qualified Fission.Web.User.Password.Reset  as Reset
-import qualified Fission.Web.User.UpdatePublicKey as UpdatePublicKey
-import qualified Fission.Web.User.UpdateData      as UpdateData
-import qualified Fission.Web.User.WhoAmI          as WhoAmI
+import qualified Fission.Web.User.Create             as Create
+import qualified Fission.Web.User.Verify             as Verify
+import qualified Fission.Web.User.VerifyEmail        as VerifyEmail
+import qualified Fission.Web.User.Password.Reset     as Reset
+import qualified Fission.Web.User.UpdatePublicKey    as UpdatePublicKey
+import qualified Fission.Web.User.UpdateExchangeKeys as UpdateExchangeKeys
+import qualified Fission.Web.User.UpdateData         as UpdateData
+import qualified Fission.Web.User.WhoAmI             as WhoAmI
 
 import qualified Fission.Web.Auth.Types as Auth
 
@@ -39,6 +40,7 @@ type API
  :<|> VerifyRoute
  :<|> VerifyEmailRoute
  :<|> UpdatePublicKeyRoute
+ :<|> UpdateExchangeKeysRoute
  :<|> UpdateDataRoute
  :<|> ResetRoute
 
@@ -69,6 +71,12 @@ type UpdatePublicKeyRoute
     :> Auth
     :> UpdatePublicKey.API
 
+type UpdateExchangeKeysRoute
+  = "exchange"
+    :> "keys"
+    :> Auth
+    :> UpdateExchangeKeys.API
+
 type UpdateDataRoute
   = "data"
     :> Auth
@@ -96,5 +104,6 @@ server = Create.withDID
     :<|> (\_ -> Verify.server)
     :<|> VerifyEmail.server
     :<|> UpdatePublicKey.server
+    :<|> UpdateExchangeKeys.server
     :<|> UpdateData.server
     :<|> Reset.server

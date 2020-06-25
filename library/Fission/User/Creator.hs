@@ -42,6 +42,7 @@ createDB ::
 createDB username pk email now =
   User
     { userPublicKey     = Just pk
+    , userExchangeKeys  = []
     , userUsername      = username
     , userEmail         = Just email
     , userRole          = Regular
@@ -80,6 +81,7 @@ createWithPasswordDB username password email now =
     Right secretDigest ->
       User
         { userPublicKey     = Nothing
+        , userExchangeKeys  = []
         , userUsername      = username
         , userEmail         = Just email
         , userRole          = Regular
@@ -119,6 +121,7 @@ createWithHerokuDB herokuUUID herokuRegion username password now =
         Right secretDigest ->
           User
             { userPublicKey     = Nothing
+            , userExchangeKeys  = []
             , userUsername      = username
             , userEmail         = Nothing
             , userRole          = Regular

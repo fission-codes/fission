@@ -13,7 +13,9 @@ import           Fission.Error
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.Key           as Key
+import qualified Fission.Key           as Key
+import qualified Crypto.PubKey.RSA     as RSA
+
 import           Fission.URL
 import           Fission.User.Password as Password
 
@@ -43,6 +45,18 @@ class Monad m => Modifier m where
     -> Key.Public
     -> UTCTime
     -> m (Either Errors Key.Public)
+
+  addExchangeKey ::
+       UserId
+    -> RSA.PublicKey
+    -> UTCTime
+    -> m (Either Errors [RSA.PublicKey])
+
+  removeExchangeKey ::
+       UserId
+    -> RSA.PublicKey
+    -> UTCTime
+    -> m (Either Errors [RSA.PublicKey])
    
   setData ::
        UserId

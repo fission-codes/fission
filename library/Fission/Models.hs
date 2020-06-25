@@ -24,6 +24,7 @@ import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
 import qualified Fission.Key                          as Key
+import qualified Crypto.PubKey.RSA                    as RSA
 import           Fission.URL
 
 import           Fission.User.Email.Types
@@ -34,8 +35,9 @@ import           Fission.Challenge.Types
 import qualified Fission.AWS.Zone.Types               as AWS
 
 import           Fission.Internal.Orphanage.Bytes     ()
-import           Fission.Internal.Orphanage.CID       ()
-import           Fission.Internal.Orphanage.UUID      ()
+import           Fission.Internal.Orphanage.CID            ()
+import           Fission.Internal.Orphanage.UUID           ()
+import           Fission.Internal.Orphanage.RSA2048.Public ()
 
 share
   [ mkPersist       sqlSettings
@@ -57,6 +59,7 @@ HerokuAddOn
 
 User
   publicKey     Key.Public    Maybe
+  exchangeKeys  [RSA.PublicKey]        default=[]
 
   email         Email         Maybe
   username      Username
