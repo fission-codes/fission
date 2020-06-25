@@ -94,7 +94,6 @@ dependencies:
   - binary
   - bcrypt
   - bytestring
-  - containers
   - cryptonite
   - cryptostore
   - data-default-class

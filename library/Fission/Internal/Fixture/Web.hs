@@ -13,7 +13,7 @@ import Servant.Client.Internal.HttpClient
 
 import Network.HTTP.Types.Status
 import Network.HTTP.Types.Version
-import Data.Sequence as Seq
+import RIO.Seq as Seq
 
 fissionURL :: BaseUrl
 fissionURL = BaseUrl (Https) "example.com" 443 "/"
