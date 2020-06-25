@@ -1,4 +1,7 @@
-module Fission.Web.Client.Error (retryOnStatus) where 
+module Fission.Web.Client.Error 
+  ( retryOnStatus
+  , checkStatus
+  ) where 
 
 import Fission.Prelude hiding (fromMaybe)
 import Fission.Error

@@ -3,23 +3,9 @@ module Test.Fission.Web.Client.Error (tests) where
 import           Test.Fission.Prelude as Mock
 
 
-import Servant.Client
 import Fission.Web.Client.Error
 import Network.HTTP.Types.Status
-import Fission.Web.Ping as Ping
-import Data.List as L
-
-
 import           Fission.Internal.Fixture            as Fixture
-
-isLogMsg :: OpenUnion '[LogMsg, APICall] -> Bool
-isLogMsg effect = 
-  case effect of
-    This _ -> True
-    _ -> False
-
-isAPICall :: OpenUnion '[LogMsg, APICall] -> Bool
-isAPICall = not . isLogMsg 
 
 tests :: IO TestTree
 tests = do
@@ -29,10 +15,22 @@ tests = do
   -----------------------
 
   Mock.Session 
-    { effectLog = failEffectLog :: [OpenUnion '[LogMsg, APICall]]
-    , result = failResult :: (Either ClientError a) 
+    { effectLog = _effectLog :: [OpenUnion '[LogMsg]]
+    , result = validResult 
     } <- runMock defaultConfig do
-          retryOnErr [status502, status504] 100 <| client (Proxy @Ping.API)
+        checkStatus [status502, status504] (Right (0 :: Integer))
+
+  Mock.Session 
+    { effectLog = _effectLog :: [OpenUnion '[LogMsg]]
+    , result = errResult 
+    } <- runMock defaultConfig do
+        checkStatus [status502, status504] (Left Fixture.failure502)
+
+  Mock.Session 
+    { effectLog = _effectLog :: [OpenUnion '[LogMsg]]
+    , result = allowedErrResult 
+    } <- runMock defaultConfig do
+        checkStatus [status504] (Left Fixture.failure502)
 
   -----------
   -- SPECS --
@@ -40,14 +38,15 @@ tests = do
 
   testSpec "Fission.Web.Client.Error" $ parallel do
     describe "retryOnErr" do
-      it "fails if only gets failures" do
-        failResult `shouldBe` Left (Fixture.failure502)
+      it "is true when a valid result is returned" do
+        validResult `shouldBe` True
 
-      it "retries 100 times" do
-        L.length (L.filter isAPICall failEffectLog) `shouldBe` 101 -- (100 retries == 101 tries)
+      it "is false when a disallowed error status code is returned" do
+        errResult `shouldBe` False
 
-      it "logs for every failure" do
-        L.length (L.filter isLogMsg failEffectLog) `shouldBe` 100
+      it "is true when an allowed error status code is returned" do
+        allowedErrResult `shouldBe` True
+
 
 
 

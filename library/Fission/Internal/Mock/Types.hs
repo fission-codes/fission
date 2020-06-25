@@ -42,7 +42,6 @@ import           Fission.Models
 import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Class
-import           Fission.Web.Client.Class
 import           Fission.Web.Client.Auth.Class
 
 import           Fission.Web.Server.Reflective.Class
@@ -321,12 +320,3 @@ instance MonadWebAuth (Mock effs) Authorization where
         { publicKey = Ed25519.pk
         , method    = Key
         }
-
-instance IsMember APICall effs => MonadWebClient (Mock effs) where
-  sendRequest req = do
-    Effect.log APICall
-    shouldFail <- asks failAPICall
-    case shouldFail of
-      True -> return $ Left Fixture.failure502
-      False -> return $ Left Fixture.failure502
-      -- False -> return $ Right ("success" :: Text)

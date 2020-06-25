@@ -27,6 +27,7 @@ failureResp status = mkFailureResponse fissionURL defaultRequest $
     , responseBody = ""
     }
 
+
 failure502 :: ClientError
 failure502 = failureResp status502
 
