@@ -1,15 +1,28 @@
 module Fission.Web.Client.App
   ( Create
   , Update
+  , update
   ) where
 
+import Fission.Prelude
+
+import           Servant
+import           Servant.Client
+
+
+import           Fission.Web.Client     as Client
+import           Fission.Web.Routes     (AppPrefix)
 import qualified Fission.Web.App.Create as App.Create
 import qualified Fission.Web.App.Update as App.Update
-
-import           Fission.Web.Routes     (AppPrefix)
-import           Servant
-
 import qualified Fission.Web.Auth.Types as Auth
+import           Fission.Web.Auth.Token
+
+import qualified Crypto.PubKey.Ed25519 as Ed25519
+import           Network.IPFS.CID.Types
+
+import           Fission.URL
+import           Fission.Authorization.ServerDID
+
 
 type Create
   = AppPrefix
@@ -20,3 +33,21 @@ type Update
   = AppPrefix
   :> Auth.HigherOrder
   :> App.Update.API
+
+update ::
+  ( MonadIO      m
+  , MonadTime    m
+  , MonadLogger  m
+  , ServerDID    m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  )
+  => URL
+  -> CID
+  -> Bool
+  -> m (ClientM NoContent)
+update url cid copyFiles =
+  authClient (Proxy @Update)
+    `withPayload` url
+    `withPayload` cid
+    `withPayload` (Just copyFiles)

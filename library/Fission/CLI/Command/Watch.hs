@@ -11,14 +11,11 @@ import           Data.Function
 import           RIO.Directory
 import qualified RIO.Text as Text
 
-import           Servant.API.ContentTypes
-import           Servant.Client
-
 import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
 import           Network.IPFS.CID.Types
 
-import Network.HTTP.Types.Status
+import           Network.HTTP.Types.Status
 
 import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
@@ -106,32 +103,13 @@ watcher runner Watch.Options {..} = do
 
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
         UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
-        updateApp url cid copyFiles
-          >>= retryOnStatus [status502, status504] 100
-        >>= putErrOr \_ -> do
+        req <- App.update url cid copyFiles
+        retryOnStatus [status502, status504] 100 req >>= putErrOr \_ -> do
           liftIO $ FS.withManager \watchMgr -> do
             hashCache <- newMVar hash
             timeCache <- newMVar =<< getCurrentTime
             void $ handleTreeChanges runner url copyFiles timeCache hashCache watchMgr absPath
             forever . liftIO $ threadDelay 1000000 -- Sleep main thread
-
-updateApp ::
-  ( MonadIO      m
-  , MonadTime    m
-  , MonadLogger  m
-  , ServerDID    m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
-  )
-  => URL
-  -> CID
-  -> Bool
-  -> m (ClientM NoContent)
-updateApp url cid copyFiles =
-  authClient (Proxy @App.Update)
-    `withPayload` url
-    `withPayload` cid
-    `withPayload` (Just copyFiles)
 
 handleTreeChanges ::
   ( MonadUnliftIO  m
@@ -170,7 +148,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            sendRequestM (updateApp appURL cid copyFilesFlag) >>= \case
+            sendRequestM (App.update appURL cid copyFilesFlag) >>= \case
               Left err ->
                 CLI.Error.put err "Server unable to sync data"
 

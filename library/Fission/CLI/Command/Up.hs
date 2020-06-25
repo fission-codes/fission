@@ -90,22 +90,14 @@ up Up.Options {..} = do
       logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-          updateApp url cid copyFiles
-            >>= retryOnStatus [status502, status504] 100 
-          >>= \case
+          req <- App.update url cid copyFiles
+          retryOnStatus [status502, status504] 100 req >>= \case
             Left err ->
               CLI.Error.put err "Server unable to sync data"
             
             Right _  -> do
               CLI.Success.live cid
               CLI.Success.dnsUpdated url
-
-  where
-    updateApp url cid copyFiles =
-      authClient (Proxy @App.Update)
-        `withPayload` url
-        `withPayload` cid
-        `withPayload` Just copyFiles
 
 parseOptions :: Parser Up.Options
 parseOptions = do
