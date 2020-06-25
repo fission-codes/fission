@@ -2,7 +2,6 @@ module Test.Fission.Error (tests) where
 
 import Test.Fission.Prelude as Mock
 import Fission.Error
-import Data.List as L
 
 
 tests :: IO TestTree
@@ -25,7 +24,7 @@ tests = do
     describe "retryOnErr" do
       describe "handles a valid result" do 
         it "only runs once" do
-          L.length successEffectLog `shouldBe` 1
+          length successEffectLog `shouldBe` 1
 
         it "should return the valid result" do
           successResult `shouldBe` 5
@@ -33,7 +32,7 @@ tests = do
 
       describe "retries on an invalid result" do 
         it "retries 100 times" do
-          L.length failEffectLog `shouldBe` 101
+          length failEffectLog `shouldBe` 101
 
         it "should return the invalid result after retrying" do
           failResult `shouldBe` 6
