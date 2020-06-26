@@ -23,7 +23,7 @@ brew install fission-suite/fission/fission-cli
 
 Grab the latest binary for your operating system from our [release page](https://github.com/fission-suite/fission/releases).
 
-You'll find the most up to date instructions for [installation](https://guide.fission.codes/installation) and [getting started](https://guide.fission.codes/getting-started) in our [Guide](https://guide.fission.codes/).
+You'll find the most up to date instructions for [installation](https://guide.fission.codes/hosting/installation) and [getting started](https://guide.fission.codes/hosting/getting-started) in our [Guide](https://guide.fission.codes).
 
 If using Linux, install `libpq-dev`
 
