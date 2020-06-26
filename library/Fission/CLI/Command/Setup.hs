@@ -86,7 +86,7 @@ createAccount = do
 
   sendRequestM (authClient (Proxy @User.Register) `withPayload` form) >>= \case
     Right _ok ->
-      CLI.Success.putOk "Registration successful!"
+      CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
 
     Left err ->
       let

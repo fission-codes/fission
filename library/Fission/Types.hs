@@ -75,6 +75,10 @@ import           Fission.Authorization.ServerDID.Class
 import           Fission.App.Content                   as App.Content
 import           Fission.App.Domain                    as App.Domain
 
+import           Fission.Challenge as Challenge
+import qualified Fission.Email     as Email
+import           Fission.Email.Class
+
 import qualified Fission.Domain as Domain
 
 -- | The top-level app type
@@ -561,3 +565,30 @@ instance Domain.Creator Fission where
   create domainName userId zoneId now =
     runDB $ Domain.create domainName userId zoneId now
 
+instance Challenge.Creator Fission where
+  create email = 
+    runDB $ Challenge.create email
+
+instance Challenge.Verifier Fission where
+  verify challenge = 
+    runDB $ Challenge.verify challenge
+
+instance MonadEmail Fission where
+  sendVerificationEmail recipient@Email.Recipient { name } challenge = do
+    httpManager      <- asks tlsManager
+    Host baseHostUrl <- asks host
+    Host sibUrl      <- asks sibUrl
+    apiKey           <- asks sibApiKey
+    templateId       <- asks sibTemplateId
+
+    let
+      env = mkClientEnv httpManager sibUrl
+      path = Text.unpack $ Challenge.verificationLink challenge
+      verifyUrl = baseHostUrl { baseUrlPath = path }
+      emailData = Email.Request
+        { templateId = templateId
+        , to = [recipient]
+        , params = Email.TemplateOptions verifyUrl name
+        }
+
+    liftIO $ runClientM (Email.sendEmail apiKey emailData) env

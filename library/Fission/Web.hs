@@ -28,6 +28,9 @@ import qualified Fission.User                  as User
 import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
+import           Fission.Email
+import qualified Fission.Challenge as Challenge
+
 import qualified Fission.Web.Auth    as Auth
 import qualified Fission.Web.DNS     as DNS
 import qualified Fission.Web.Heroku  as Heroku
@@ -53,7 +56,10 @@ app ::
   , MonadDNSLink              m
   , MonadLogger               m
   , MonadTime                 m
+  , MonadEmail                m
   , User.CRUD                 m
+  , Challenge.Creator         m
+  , Challenge.Verifier        m
   , MonadDB                 t m
   , MonadLogger             t
   , MonadThrow              t
@@ -87,7 +93,10 @@ server ::
   , MonadDNSLink              m
   , MonadLogger               m
   , MonadTime                 m
+  , MonadEmail                m
   , User.CRUD                 m
+  , Challenge.Creator         m
+  , Challenge.Verifier        m
   , MonadDB                 t m
   , MonadLogger             t
   , MonadThrow              t
@@ -114,7 +123,10 @@ bizServer ::
   , MonadDNSLink              m
   , MonadLogger               m
   , MonadTime                 m
+  , MonadEmail                m
   , User.CRUD                 m
+  , Challenge.Creator         m
+  , Challenge.Verifier        m
   , MonadDB                 t m
   , MonadLogger             t
   , MonadThrow              t

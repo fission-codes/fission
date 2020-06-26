@@ -21,6 +21,9 @@ instance ToServerError (NotFound entity) where
 instance Display (NotFound User) where
   display _ = "User not found"
 
+instance Display (NotFound UserChallenge) where
+  display _ = "Challenge not found"
+
 instance Display (NotFound LoosePin) where
   display _ = "Loose pin not found"
 

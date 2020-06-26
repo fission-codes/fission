@@ -88,6 +88,7 @@ instance
       , userEmail         = Just email
       , userRole          = Regular
       , userActive        = True
+      , userVerified      = False
       , userHerokuAddOnId = Nothing
       , userSecretDigest  = Nothing
       , userDataRoot      = App.Content.empty
@@ -126,6 +127,7 @@ instance
           , userEmail         = Just email
           , userRole          = Regular
           , userActive        = True
+          , userVerified      = False
           , userHerokuAddOnId = Nothing
           , userSecretDigest  = Just secretDigest
           , userDataRoot      = App.Content.empty
@@ -159,6 +161,7 @@ instance
               , userEmail         = Nothing
               , userRole          = Regular
               , userActive        = True
+              , userVerified      = True
               , userHerokuAddOnId = Just herokuAddOnId
               , userSecretDigest  = Just secretDigest
               , userDataRoot      = App.Content.empty

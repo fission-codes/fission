@@ -28,6 +28,7 @@ import           Fission.URL
 import           Fission.User.Email.Types
 import           Fission.User.Role.Types
 import           Fission.User.Username.Types
+import           Fission.Challenge.Types
 
 import qualified Fission.AWS.Zone.Types               as AWS
 
@@ -60,6 +61,7 @@ User
 
   role          Role
   active        Bool
+  verified      Bool
 
   dataRoot      CID
 
@@ -72,6 +74,17 @@ User
   UniqueUsername  username
   UniquePublicKey publicKey !force
   -- UniqueEmail     email     !force -- FIXME
+
+  deriving Show Eq
+
+--------------------------------------------------------------------------------
+
+UserChallenge
+  userId    UserId
+  hash      Challenge
+
+  UniqueUserId    userId
+  UniqueChallenge hash
 
   deriving Show Eq
 
