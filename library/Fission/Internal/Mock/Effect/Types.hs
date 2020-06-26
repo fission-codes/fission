@@ -18,7 +18,6 @@ module Fission.Internal.Mock.Effect.Types
   , RetrieveLoosePin   (..)
   , CreateLoosePin     (..)
   , DestroyLoosePin    (..)
-  , APICall    (..)
   , FissionEffs
   ) where
 
@@ -57,7 +56,6 @@ type FissionEffs =
    , CreateUser
    , CreateLoosePin
    , CreateHerokuAddOn
-   , APICall
    ]
 
 data RunDB
@@ -144,8 +142,4 @@ data CreateLoosePin
 data DestroyLoosePin
   = DestroyLoosePin     UserId IPFS.CID
   | DestroyLoosePinById UserId LoosePinId
-  deriving (Eq, Show)
-
-data APICall 
-  = APICall
   deriving (Eq, Show)

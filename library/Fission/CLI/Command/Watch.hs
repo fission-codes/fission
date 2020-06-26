@@ -103,7 +103,7 @@ watcher runner Watch.Options {..} = do
 
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
         UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
-        req <- App.update url cid copyFiles
+        req <- App.mkUpdateReq url cid copyFiles
         retryOnStatus [status502, status504] 100 req >>= putErrOr \_ -> do
           liftIO $ FS.withManager \watchMgr -> do
             hashCache <- newMVar hash
@@ -148,7 +148,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            sendRequestM (App.update appURL cid copyFilesFlag) >>= \case
+            sendRequestM (App.mkUpdateReq appURL cid copyFilesFlag) >>= \case
               Left err ->
                 CLI.Error.put err "Server unable to sync data"
 

@@ -28,12 +28,19 @@ checkStatus ::
   -> Either ClientError a 
   -> m Bool
 checkStatus retryOn = \case
-  Right _ -> return True
-  Left _err@(FailureResponse _req res) -> do
+  Right _ -> 
+    return True
+
+  Left (FailureResponse _req res) -> do
     let code = responseStatusCode res
+
     if elem code retryOn 
       then do
         logWarn $ "Got a " <> textShow code <> "; retrying..."
         return False
-      else return True
-  Left _ -> return True
+
+      else 
+        return True
+
+  Left _ -> 
+    return True

@@ -90,7 +90,7 @@ up Up.Options {..} = do
       logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-          req <- App.update url cid copyFiles
+          req <- App.mkUpdateReq url cid copyFiles
           retryOnStatus [status502, status504] 100 req >>= \case
             Left err ->
               CLI.Error.put err "Server unable to sync data"

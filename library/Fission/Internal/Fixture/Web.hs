@@ -5,15 +5,15 @@ module Fission.Internal.Fixture.Web
   , failure504
   ) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
-import Servant.Client
-import Servant.Client.Core.Request
-import Servant.Client.Internal.HttpClient
+import           Servant.Client
+import           Servant.Client.Core.Request
+import           Servant.Client.Internal.HttpClient
 
-import Network.HTTP.Types.Status
-import Network.HTTP.Types.Version
-import RIO.Seq as Seq
+import           Network.HTTP.Types.Status
+import           Network.HTTP.Types.Version
+import qualified RIO.Seq as Seq
 
 fissionURL :: BaseUrl
 fissionURL = BaseUrl (Https) "example.com" 443 "/"

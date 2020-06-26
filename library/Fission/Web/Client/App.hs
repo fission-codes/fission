@@ -1,7 +1,7 @@
 module Fission.Web.Client.App
   ( Create
   , Update
-  , update
+  , mkUpdateReq
   ) where
 
 import Fission.Prelude
@@ -34,7 +34,7 @@ type Update
   :> Auth.HigherOrder
   :> App.Update.API
 
-update ::
+mkUpdateReq ::
   ( MonadIO      m
   , MonadTime    m
   , MonadLogger  m
@@ -46,7 +46,7 @@ update ::
   -> CID
   -> Bool
   -> m (ClientM NoContent)
-update url cid copyFiles =
+mkUpdateReq url cid copyFiles =
   authClient (Proxy @Update)
     `withPayload` url
     `withPayload` cid

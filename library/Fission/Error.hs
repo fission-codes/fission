@@ -7,7 +7,7 @@ module Fission.Error
   , module Fission.Error.Types
   ) where
 
-import Fission.Prelude hiding (fromMaybe)
+import Fission.Prelude hiding (fromMaybe, ok)
 import Fission.Error.Types
 
 
@@ -34,11 +34,10 @@ retryOnErr ::
   -> Natural
   -> m a
   -> m a
+retryOnErr _ 0 action = action
 retryOnErr check times action = do
   result <- action
-  check result >>= \case
-    True -> return result
-    False -> 
-      if times > 0
-        then retryOnErr check (times - 1) action
-        else return result
+  ok <- check result
+  if ok
+    then return result
+    else retryOnErr check (times - 1) action

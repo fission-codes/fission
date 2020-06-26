@@ -43,5 +43,4 @@ data Config = Config
   , remoteIPFSCat   :: Either ClientError File.Serialized
   , remoteIPFSPin   :: Either ClientError Network.Pin.Response
   , remoteIPFSUnpin :: Either ClientError Network.Pin.Response
-  , failAPICall     :: Bool
   }

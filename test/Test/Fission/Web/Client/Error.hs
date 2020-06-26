@@ -3,9 +3,9 @@ module Test.Fission.Web.Client.Error (tests) where
 import           Test.Fission.Prelude as Mock
 
 
-import Fission.Web.Client.Error
-import Network.HTTP.Types.Status
-import           Fission.Internal.Fixture            as Fixture
+import           Fission.Web.Client.Error
+import           Network.HTTP.Types.Status
+import qualified Fission.Internal.Fixture as Fixture
 
 tests :: IO TestTree
 tests = do
@@ -46,8 +46,3 @@ tests = do
 
       it "is true when an allowed error status code is returned" do
         allowedErrResult `shouldBe` True
-
-
-
-
-

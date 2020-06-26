@@ -9,13 +9,13 @@ tests = do
 
   Mock.Session 
     { effectLog = successEffectLog :: [OpenUnion '[LogMsg]]
-    , result = successResult :: (Natural) 
+    , result = successResult :: Natural
     } <- runMock defaultConfig do
         retryOnErr equal5 100 $ pure 5
 
   Mock.Session 
     { effectLog = failEffectLog :: [OpenUnion '[LogMsg]]
-    , result = failResult :: (Natural) 
+    , result = failResult :: Natural
     } <- runMock defaultConfig do
         retryOnErr equal5 100 $ pure 6
 
@@ -32,7 +32,7 @@ tests = do
 
       describe "retries on an invalid result" do 
         it "retries 100 times" do
-          length failEffectLog `shouldBe` 101
+          length failEffectLog `shouldBe` 100
 
         it "should return the invalid result after retrying" do
           failResult `shouldBe` 6
@@ -43,6 +43,6 @@ equal5 ::
   => Natural 
   -> m Bool
 equal5 num = do
-  logWarn ("log" :: Text)
+  logWarn @Text "log"
   return $ num == 5
 
