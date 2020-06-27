@@ -29,7 +29,7 @@ data Config = Config
   { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> Either DNSLink.Errors URL
   , followDNSLink   :: URL -> Path URL -> Either DNSLink.Errors ()
   , getBaseDomain   :: URL.DomainName
-  , updateRoute53   :: RecordType -> URL -> AWS.ZoneID -> NonEmpty Text -> Either ServerError ChangeResourceRecordSetsResponse
+  , updateRoute53   :: RecordType -> URL -> AWS.ZoneID -> NonEmpty Text -> Natural -> Either ServerError ChangeResourceRecordSetsResponse
   , clearRoute53    :: RecordType -> URL -> Either ServerError ChangeResourceRecordSetsResponse
   , now             :: UTCTime
   , linkedPeers     :: NonEmpty IPFS.Peer

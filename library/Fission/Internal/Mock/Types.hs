@@ -132,10 +132,10 @@ instance
   , IsMember ClearRoute53  effs
   )
   => MonadRoute53 (Mock effs) where
-  set r url zone nonEmptyTxts = do
+  set r url zone nonEmptyTxts ttl = do
     Effect.log UpdateRoute53
     runner <- asks updateRoute53
-    return $ runner r url zone nonEmptyTxts
+    return $ runner r url zone nonEmptyTxts ttl
 
   clear r url _ = do
     Effect.log ClearRoute53
