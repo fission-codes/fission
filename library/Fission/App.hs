@@ -7,10 +7,10 @@ module Fission.App
   , CRUD
   ) where
 
-import Fission.App.Retriever (Retriever (..))
-import Fission.App.Creator   (Creator   (..))
-import Fission.App.Modifier  (Modifier  (..))
-import Fission.App.Destroyer (Destroyer (..))
+import Fission.App.Retriever
+import Fission.App.Creator   hiding (Errors)
+import Fission.App.Modifier  hiding (Errors)
+import Fission.App.Destroyer hiding (Errors)
 
 type CRUD m
   = ( Retriever m

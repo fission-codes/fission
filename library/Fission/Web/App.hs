@@ -33,7 +33,7 @@ server ::
   , MonadLogger             m
   , MonadDNSLink            m
   , MonadDB               t m
-  , App.CRUD              t
+  , App.Retriever         t
   , App.Domain.Retriever  t
   )
   => Authorization
