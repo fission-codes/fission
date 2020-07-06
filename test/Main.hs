@@ -4,6 +4,7 @@ import           Test.Fission.Prelude
 import qualified Test.Fission.Random
 
 import qualified Test.Fission.Error as Error
+import qualified Test.Fission.DNS as DNS
 
 import qualified Test.Fission.User.DID as DID
 
@@ -22,5 +23,6 @@ tests =
     , Web.Ping.tests
     , Error.tests
     , DID.tests
+    , DNS.tests
     , Test.Fission.Random.tests
     ]
