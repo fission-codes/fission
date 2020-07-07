@@ -50,4 +50,4 @@ mkUpdateReq url cid copyFiles =
   authClient (Proxy @Update)
     `withPayload` url
     `withPayload` cid
-    `withPayload` (Just copyFiles)
+    `withPayload` Just copyFiles
