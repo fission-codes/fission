@@ -11,19 +11,18 @@ import           Data.Function
 import           RIO.Directory
 import qualified RIO.Text as Text
 
-import           Servant.API.ContentTypes
-import           Servant.Client
-
 import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
 import           Network.IPFS.CID.Types
+
+import           Network.HTTP.Types.Status
 
 import           Options.Applicative.Simple hiding (command)
 import           System.FSNotify as FS
 
 import           Fission.Prelude hiding (handle)
+import           Fission.Error
 
-import           Fission.Error.NotFound.Types
 import           Fission.URL
 import           Fission.Models
 import qualified Fission.Time                 as Time
@@ -34,6 +33,7 @@ import           Fission.Authorization.ServerDID
 import           Fission.Web.Client.App as App
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client as Client
+import           Fission.Web.Client.Error
 
 import           Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Environment   as Environment
@@ -44,6 +44,7 @@ import           Fission.CLI.Command.Types
 import           Fission.CLI.Command.Watch.Types as Watch
 
 import qualified Fission.CLI.Display.Success as CLI.Success
+
 import qualified Fission.CLI.Prompt.BuildDir as Prompt
 
 
@@ -102,31 +103,13 @@ watcher runner Watch.Options {..} = do
 
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
         UTF8.putText $ "👀 Watching " <> Text.pack absPath <> " for changes...\n"
-
-        sendRequestM (updateApp url cid copyFiles) >>= putErrOr \_ -> do
+        req <- App.mkUpdateReq url cid copyFiles
+        retryOnStatus [status502, status504] 100 req >>= putErrOr \_ -> do
           liftIO $ FS.withManager \watchMgr -> do
             hashCache <- newMVar hash
             timeCache <- newMVar =<< getCurrentTime
             void $ handleTreeChanges runner url copyFiles timeCache hashCache watchMgr absPath
             forever . liftIO $ threadDelay 1000000 -- Sleep main thread
-
-updateApp ::
-  ( MonadIO      m
-  , MonadTime    m
-  , MonadLogger  m
-  , ServerDID    m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
-  )
-  => URL
-  -> CID
-  -> Bool
-  -> m (ClientM NoContent)
-updateApp url cid copyFiles =
-  authClient (Proxy @App.Update)
-    `withPayload` url
-    `withPayload` cid
-    `withPayload` (Just copyFiles)
 
 handleTreeChanges ::
   ( MonadUnliftIO  m
@@ -165,7 +148,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            sendRequestM (updateApp appURL cid copyFilesFlag) >>= \case
+            sendRequestM (App.mkUpdateReq appURL cid copyFilesFlag) >>= \case
               Left err ->
                 CLI.Error.put err "Server unable to sync data"
 

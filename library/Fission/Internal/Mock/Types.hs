@@ -190,9 +190,8 @@ instance MonadReflectiveServer (Mock effs) where
   getHost = Web.Host <$> parseBaseUrl "example.com"
 
 instance IsMember LogMsg effs => MonadLogger (Mock effs) where
-  monadLoggerLog loc src lvl msg = do
+  monadLoggerLog _loc _src lvl msg = do
     Effect.log . LogMsg lvl $ toLogStr msg
-    monadLoggerLog loc src lvl msg
 
 instance IsMember DestroyHerokuAddOn effs => Heroku.AddOn.Destroyer (Mock effs) where
   destroyByUUID uuid = do

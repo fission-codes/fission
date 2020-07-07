@@ -5,7 +5,7 @@ import qualified RIO.Char            as Char
 import qualified RIO.Text            as Text
 
 import           Database.Persist.Postgresql hiding (get)
-import           Data.Swagger                hiding (get)
+import           Data.Swagger                hiding (get, host)
 
 import           Servant
 

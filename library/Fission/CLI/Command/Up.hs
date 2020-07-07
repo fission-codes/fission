@@ -1,23 +1,31 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Command.Up (cmd, up) where
+module Fission.CLI.Command.Up
+  ( cmd
+  , up
+  ) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 
 import           Options.Applicative
 import           RIO.Directory
 
+import           Network.HTTP.Types.Status
+
 import           Network.IPFS
 import qualified Network.IPFS.Add as IPFS
 
 import           Fission.Prelude
 import           Fission.Models
+
+import           Fission.Error
+
 import           Fission.Authorization.ServerDID
-import           Fission.Error.NotFound.Types
- 
+
 import           Fission.Web.Auth.Token
  
 import           Fission.Web.Client     as Client
 import           Fission.Web.Client.App as App
+import           Fission.Web.Client.Error
 
 import           Fission.CLI.Environment as Environment
 
@@ -82,20 +90,14 @@ up Up.Options {..} = do
       logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
      
       IPFS.addDir ignoredFiles absPath >>= putErrOr \cid -> do
-        sendRequestM (updateApp url cid copyFiles) >>= \case
-          Left err ->
-            CLI.Error.put err "Server unable to sync data"
-           
-          Right _  -> do
-            CLI.Success.live cid
-            CLI.Success.dnsUpdated url
-
-  where
-    updateApp url cid copyFiles =
-      authClient (Proxy @App.Update)
-        `withPayload` url
-        `withPayload` cid
-        `withPayload` Just copyFiles
+          req <- App.mkUpdateReq url cid copyFiles
+          retryOnStatus [status502, status504] 100 req >>= \case
+            Left err ->
+              CLI.Error.put err "Server unable to sync data"
+            
+            Right _  -> do
+              CLI.Success.live cid
+              CLI.Success.dnsUpdated url
 
 parseOptions :: Parser Up.Options
 parseOptions = do
