@@ -34,6 +34,8 @@ import           Fission.Models
 import           Fission.Error as Error
  
 import           Fission.URL as URL
+import           Fission.DNS as DNS
+
 import           Fission.IPFS.DNSLink as DNSLink
 import           Fission.User.Username.Types
 import qualified Fission.App as App
@@ -416,15 +418,11 @@ instance User.Modifier Fission where
               subdomain = Just $ Subdomain rawUN
               url       = URL {domainName, subdomain = Just (Subdomain "_did") <> subdomain}
               did       = textDisplay (DID pk Key)
-              (_, didSegments) = Text.foldr splitter (0, ("" :| [])) did
+              didSegments = DNS.splitRecord did
 
             Route53.set Txt url zoneID didSegments 10 <&> \case
               Left serverErr -> Error.openLeft serverErr
               Right _        -> Right pk
-    where
-      splitter :: Char -> (Natural, NonEmpty Text) -> (Natural, NonEmpty Text)
-      splitter chr (255, txtList)       = splitter chr (0, "" `cons` txtList)
-      splitter chr (len, (txt :| more)) = (len + 1, (Text.cons chr txt) :| more)
 
   setData userId newCID now = do
     runDB (User.setData userId newCID now) >>= \case
