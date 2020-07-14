@@ -16,8 +16,6 @@ tests =
         itsProp' "length does not change" \(SmallText txt) -> 
           DNS.splitRecord txt `shouldBe` pure txt
 
-      -- @@TODO: Add this test back in once the LargeText Arbitrary instance works
-
       context "over 256 characters" do
         itsProp' "length does not change" \(LargeText txt) -> 
           splitCount txt `shouldBe` expectedCount txt
