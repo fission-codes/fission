@@ -2,8 +2,11 @@ module Test.Fission.DNS (tests) where
 
 import           Test.Fission.Prelude
 
-import qualified Fission.DNS          as DNS
-import qualified RIO.Text as Text
+import qualified Fission.DNS as DNS
+
+import qualified RIO.NonEmpty as NonEmpty
+import qualified RIO.Text     as Text
+
 
 tests :: IO TestTree
 tests =
@@ -15,13 +18,13 @@ tests =
 
       -- @@TODO: Add this test back in once the LargeText Arbitrary instance works
 
-      -- context "over 256 characters" do
-      --   itsProp "length does not change" 1 \(LargeText txt) -> 
-      --     splitCount txt `shouldBe` expectedCount txt
+      context "over 256 characters" do
+        itsProp' "length does not change" \(LargeText txt) -> 
+          splitCount txt `shouldBe` expectedCount txt
 
-      --     where
-      --       splitCount = NonEmpty.length . DNS.splitRecord
-      --       expectedCount txt = (Text.length txt `div` 252) + 1
+          where
+            splitCount = NonEmpty.length . DNS.splitRecord
+            expectedCount txt = (Text.length txt `div` 252) + 1
 
 newtype SmallText = SmallText Text
   deriving newtype (Show, Eq)
@@ -33,17 +36,4 @@ newtype LargeText = LargeText Text
   deriving newtype (Show, Eq)
 
 instance Arbitrary LargeText where
-  arbitrary = do
-    len <- arbitrary
-    txt <- txtMinLen "" $ 257 + abs len
-    return $ LargeText txt
-
-    where
-      txtMinLen acc len =
-        case Text.compareLength acc len of
-          LT -> do
-            newTxt <- arbitrary
-            txtMinLen (acc <> newTxt) len
-
-          _ -> 
-            return acc
+  arbitrary = LargeText . Text.replicate 257 <$> arbitrary
