@@ -23,6 +23,8 @@ tests =
           where
             splitCount = NonEmpty.length . DNS.splitRecord
             expectedCount txt = (Text.length txt `div` 252) + 1
+      
+      -- add a serialize/deserialize test once we add `DNS.combineRecords`
 
 newtype SmallText = SmallText Text
   deriving newtype (Show, Eq)
