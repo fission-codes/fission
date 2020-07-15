@@ -79,4 +79,3 @@ instance MonadIO m => Modifier (Transaction m) where
       }
 
     return ok
-

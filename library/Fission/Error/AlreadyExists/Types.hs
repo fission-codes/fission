@@ -21,6 +21,9 @@ instance Display (AlreadyExists entity) => ToServerError (AlreadyExists entity) 
 instance Display (AlreadyExists User) where
   display _ = "User already exists"
 
+instance Display (AlreadyExists UserChallenge) where
+  display _ = "Challenge already exists"
+
 instance Display (AlreadyExists LoosePin) where
   display _ = "Loose pin already exists"
 

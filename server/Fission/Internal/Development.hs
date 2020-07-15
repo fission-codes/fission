@@ -10,9 +10,12 @@ module Fission.Internal.Development
 import           Data.Pool
 import           Database.Persist.Sql (SqlBackend)
 
-import qualified Network.IPFS.Types  as IPFS
-import qualified Network.HTTP.Client as HTTP
 import           Servant.Client
+
+import qualified Network.HTTP.Client     as HTTP
+import qualified Network.HTTP.Client.TLS as HTTP
+
+import qualified Network.IPFS.Types as IPFS
 
 import           Fission
 import           Fission.Prelude
@@ -28,6 +31,8 @@ import           Fission.Storage.PostgreSQL
 
 import           Fission.URL.Types
 import           Fission.User.DID.Types
+
+import qualified Fission.Email.SendInBlue.Types as SIB
 
 import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
 
@@ -45,10 +50,11 @@ runOne action = do
   logOptions <- logOptionsHandle stdout True
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+  tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
 
   withLogFunc (setLogUseTime True logOptions) \logFunc -> do
     withDBPool logFunc connectionInfo (PoolSize 4) \dbPool ->
-      liftIO $ run logFunc dbPool processCtx httpManager action
+      liftIO $ run logFunc dbPool processCtx httpManager tlsManager action
 
 {- | Run some action(s) in the app's context,
      but asks for existing portions of the setup that require side effects,
@@ -75,9 +81,10 @@ run ::
   -> Pool SqlBackend
   -> ProcessContext
   -> HTTP.Manager
+  -> HTTP.Manager
   -> Fission a
   -> IO a
-run logFunc dbPool processCtx httpManager action =
+run logFunc dbPool processCtx httpManager tlsManager action =
   runFission config do
     logDebug $ textShow config
     action
@@ -115,6 +122,10 @@ run logFunc dbPool processCtx httpManager action =
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"
 
+    sibApiKey     = SIB.ApiKey "SEND_IN_BLUE_API_KEY"
+    sibUrl        = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
+    sibTemplateId = SIB.TemplateId 1
+
 {- | Setup a complete development configuration with all pure defaults set
 
      == Example Use
@@ -144,9 +155,10 @@ mkConfig ::
      Pool SqlBackend
   -> ProcessContext
   -> HTTP.Manager
+  -> HTTP.Manager
   -> LogFunc
   -> Config
-mkConfig dbPool processCtx httpManager logFunc = Config {..}
+mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
   where
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
@@ -179,6 +191,10 @@ mkConfig dbPool processCtx httpManager logFunc = Config {..}
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"
 
+    sibApiKey     = SIB.ApiKey "SEND_IN_BLUE_API_KEY"
+    sibUrl        = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
+    sibTemplateId = SIB.TemplateId 1
+
 {- | Setup a complete development configuration.
 
      Note that this does not clean up the log function,
@@ -205,12 +221,13 @@ mkConfig' :: IO (Config, IO ())
 mkConfig' = do
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
+  tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
 
   -- A bit dirty; doesn't directly handle teardown
   (logFunc, close) <- newLogFunc . setLogUseTime True =<< logOptionsHandle stdout True
 
   withDBPool logFunc connectionInfo (PoolSize 4) \dbPool -> do
-    let cfg = mkConfig dbPool processCtx httpManager logFunc
+    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc
     return (cfg, close)
 
 connectionInfo :: ConnectionInfo

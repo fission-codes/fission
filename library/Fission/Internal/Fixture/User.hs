@@ -19,6 +19,7 @@ user = User
 
   , userRole   = User.Roles.Regular
   , userActive = True
+  , userVerified  = False
 
   --
 

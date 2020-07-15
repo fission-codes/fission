@@ -3,8 +3,10 @@ module Main (main) where
 import qualified Data.Aeson as JSON
 import qualified Data.Yaml  as YAML
 
-import qualified Network.HTTP.Client as HTTP
 import           Servant
+
+import qualified Network.HTTP.Client     as HTTP
+import qualified Network.HTTP.Client.TLS as HTTP
 
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
@@ -45,6 +47,7 @@ import qualified Fission.Environment.FFS.Types     as FFS
 import qualified Fission.Environment.Server.Types  as Server
 import qualified Fission.Environment.Storage.Types as Storage
 import qualified Fission.Environment.WebApp.Types  as WebApp
+import qualified Fission.Environment.SendInBlue.Types  as SendInBlue
 
 import qualified Fission.Web.Log.Sentry as Sentry
 
@@ -57,12 +60,13 @@ main = do
   env            <- YAML.decodeFileThrow  "./env.yaml"
 
   let
-    AWS.Environment     {..} = env |> aws
-    Auth.Environment    {..} = env |> auth
-    FFS.Environment     {..} = env |> ffs
-    Server.Environment  {..} = env |> server
-    Storage.Environment {..} = env |> storage
-    WebApp.Environment  {..} = env |> webApp
+    AWS.Environment        {..} = env |> aws
+    Auth.Environment       {..} = env |> auth
+    FFS.Environment        {..} = env |> ffs
+    Server.Environment     {..} = env |> server
+    Storage.Environment    {..} = env |> storage
+    WebApp.Environment     {..} = env |> webApp
+    SendInBlue.Environment {..} = env |> sendInBlue
    
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
@@ -85,6 +89,7 @@ main = do
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
+  tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
 
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger RIO.LevelWarn) sentryDSN
 

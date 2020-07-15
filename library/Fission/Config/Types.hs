@@ -20,12 +20,15 @@ import qualified Fission.AWS.Types as AWS
 import           Fission.URL.Types as URL
 import           Fission.Web.Types
 
+import qualified Fission.Email.SendInBlue.Types as SIB
+
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
   { processCtx     :: !ProcessContext
   , logFunc        :: !LogFunc
   --
   , httpManager    :: !HTTP.Manager
+  , tlsManager     :: !HTTP.Manager
   , dbPool         :: !(Pool SqlBackend)
   --
   , ipfsPath       :: !IPFS.BinPath
@@ -48,6 +51,10 @@ data Config = Config
   , userZoneID     :: !AWS.ZoneID
   , defaultDataCID :: !CID
   --
+  , sibApiKey      :: !SIB.ApiKey
+  , sibUrl         :: !Host
+  , sibTemplateId  :: !SIB.TemplateId
+  --
   , host           :: !Host
   , fissionDID     :: !DID
   , serverZoneID   :: !AWS.ZoneID
@@ -61,6 +68,7 @@ instance Show Config where
     , "  logFunc           = **SOME LOG FUNCTION**"
     --
     , "  httpManager       = **SOME HTTP MANAGER**"
+    , "  tlsManager        = **SOME HTTP/TLS MANAGER**"
     , "  dbPool            = " <> show dbPool
     --
     , "  ipfsPath          = " <> show ipfsPath
@@ -82,6 +90,10 @@ instance Show Config where
     , "  userRootDomain    = " <> show userRootDomain
     , "  userZoneID        = " <> show userZoneID
     , "  defaultDataCID    = " <> show defaultDataCID
+    --
+    , "  sibApiKey         = " <> show sibApiKey
+    , "  sibUrl            = " <> show sibUrl
+    , "  sibTemplateId     = " <> show sibTemplateId
     --
     , "  host              = " <> show host
     , "  fissionDID        = " <> show fissionDID
