@@ -61,7 +61,7 @@ User
 
   role          Role
   active        Bool
-  verified      Bool
+  verified      Bool                 default=false
 
   dataRoot      CID
 
