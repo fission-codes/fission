@@ -22,7 +22,7 @@ tests =
 
           where
             splitCount = NonEmpty.length . DNS.splitRecord
-            expectedCount txt = (Text.length txt `div` 252) + 1
+            expectedCount txt = (Text.length txt `div` 251) + 1
       
       -- add a serialize/deserialize test once we add `DNS.combineRecords`
 
@@ -30,10 +30,10 @@ newtype SmallText = SmallText Text
   deriving newtype (Show, Eq)
 
 instance Arbitrary SmallText where
-  arbitrary = SmallText . Text.take 256 <$> arbitrary
+  arbitrary = SmallText . Text.take 255 <$> arbitrary
 
 newtype LargeText = LargeText Text
   deriving newtype (Show, Eq)
 
 instance Arbitrary LargeText where
-  arbitrary = LargeText . Text.replicate 257 <$> arbitrary
+  arbitrary = LargeText . Text.replicate 256 <$> arbitrary
