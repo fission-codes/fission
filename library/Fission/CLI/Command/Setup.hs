@@ -18,6 +18,7 @@ import           Fission.Web.Auth.Token
 import           Fission.Web.Client      as Client
 import qualified Fission.Web.Client.User as User
 
+import qualified Fission.User.Username.Types     as User
 import           Fission.User.Registration.Types
 import           Fission.User.Email.Types
  
@@ -56,13 +57,13 @@ setup ::
   , MonadWebAuth m Token
   , MonadWebAuth m Ed25519.SecretKey
   ) => m ()
-setup = do
-  Key.exists >>= \case
-    True ->
-      CLI.Success.putOk "You are already connected"
+setup =
+  sendRequestM (authClient $ Proxy @User.WhoAmI) >>= \case
+    Right User.Username {username} ->
+      CLI.Success.alreadyLoggedInAs username
 
-    False -> do
-      maybe createAccount upgradeAccount =<< Env.Override.findBasicAuth -- NOTE Deprecated
+    Left _ ->
+      maybe createAccount upgradeAccount =<< Env.Override.findBasicAuth
 
 createAccount ::
   ( MonadIO m

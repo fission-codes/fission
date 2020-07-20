@@ -105,7 +105,7 @@ appInit App.Init.Options {appDir, buildDir} = do
 
             UTF8.putText " to sync data\n"
 
-            UTF8.putText "💁 It may take DNS time to propogate this initial setup globally. In this case, you can always view your app at "
+            UTF8.putText "💁 It may take DNS time to propagate this initial setup globally. In this case, you can always view your app at "
 
             ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
             UTF8.putText $ "https://ipfs.runfission.com/ipns/" <> textDisplay appURL' <> "\n"

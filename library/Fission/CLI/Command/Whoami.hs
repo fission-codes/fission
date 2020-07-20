@@ -51,7 +51,7 @@ whoami ::
 whoami = do
   sendRequestM (authClient $ Proxy @User.WhoAmI) >>= \case
     Right User.Username {username} ->
-      CLI.Success.loggedInAs username
+      CLI.Success.currentlyLoggedInAs username
 
     Left err ->
       let

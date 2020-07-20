@@ -3,7 +3,8 @@ module Fission.CLI.Display.Success
   ( live
   , putOk
   , dnsUpdated
-  , loggedInAs
+  , currentlyLoggedInAs
+  , alreadyLoggedInAs
   ) where
 
 import qualified System.Console.ANSI as ANSI
@@ -30,10 +31,15 @@ dnsUpdated domain = do
   UTF8.putText "📝 DNS updated! Check out your site at: \n"
   UTF8.putText $ "🔗 " <> textDisplay domain  <> "\n"
 
-loggedInAs :: MonadIO m => Text -> m ()
-loggedInAs username = liftIO do
-  UTF8.putText "💻 Currently logged in as: "
+currentlyLoggedInAs :: MonadIO m => Text -> m ()
+currentlyLoggedInAs = loggedInAs "Currently logged in as: "
+
+alreadyLoggedInAs :: MonadIO m => Text -> m ()
+alreadyLoggedInAs = loggedInAs "Already logged in as: "
+
+loggedInAs :: MonadIO m => Text -> Text -> m ()
+loggedInAs msg username = liftIO do
+  UTF8.putText $ "💻 " <> msg
   ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
   UTF8.putTextLn username 
   ANSI.setSGR [ANSI.Reset]
-
