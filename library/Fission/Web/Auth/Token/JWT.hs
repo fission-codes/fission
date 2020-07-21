@@ -83,7 +83,7 @@ instance Arbitrary JWT where
     claims' <- arbitrary
 
     let
-      claims = claims' {sender = DID pk Key}
+      claims = claims' {sender = DID Key pk}
    
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK

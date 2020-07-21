@@ -65,7 +65,7 @@ tests = do
 
         context "DID auth" do
           it "uses the encapsulated function" do
-            didResult `shouldBe` Right (DID Ed25519.pk Key)
+            didResult `shouldBe` Right (DID Key Ed25519.pk)
 
         context "heroku auth" do
           it "uses the encapsulated function" do

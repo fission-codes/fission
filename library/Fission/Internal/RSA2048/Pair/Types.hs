@@ -1,4 +1,13 @@
-module Fission.Internal.RSA2048.Pair.Types (Pair (..)) where
+module Fission.Internal.RSA2048.Pair.Types 
+  ( Pair (..)
+  , pregenerated
+  , pk1
+  , sk1
+  , pk2
+  , sk2
+  , pk3
+  , sk3
+  ) where
 
 import Crypto.PubKey.RSA
 

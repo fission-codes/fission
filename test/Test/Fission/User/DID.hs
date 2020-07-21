@@ -22,7 +22,7 @@ tests =
             expected :: Lazy.ByteString
             expected = "did:key:z13V3Sog2YaUKhdGCmgx9UZuW1o1ShFJYc6DvGYe7NTt689NoL2RtpVs65Zw899YrTN9WuxdEEDm54YxWuQHQvcKfkZwa8HTgokHxGDPEmNLhvh69zUMEP4zjuARQ3T8bMUumkSLGpxNe1bfQX624ef45GhWb3S9HM3gvAJ7Qftm8iqnDQVcxwKHjmkV4hveKMTix4bTRhieVHi1oqU4QCVy4QPWpAAympuCP9dAoJFxSP6TNBLY9vPKLazsg7XcFov6UuLWsEaxJ5SomCpDx181mEgW2qTug5oQbrJwExbD9CMgXHLVDE2QgLoQMmgsrPevX57dH715NXC2uY6vo2mYCzRY4KuDRUsrkuYCkewL8q2oK1BEDVvi3Sg8pbC9QYQ5mMiHf8uxiHxTAmPedv8"
           in
-            encode (DID rsaKey Key) `shouldBe` "\"" <> expected <> "\""
+            encode (DID Key rsaKey) `shouldBe` "\"" <> expected <> "\""
 
       context "ED25519" do
         it "serializes to a well-known value"
@@ -30,7 +30,7 @@ tests =
             expected :: Text
             expected = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"
           in
-            encode (DID edKey Key) `shouldBe` JSON.encode expected
+            encode (DID Key edKey) `shouldBe` JSON.encode expected
 
       itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
         JSON.decode (JSON.encode did) == Just did
