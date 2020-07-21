@@ -4,18 +4,20 @@ module Fission.Web.DNS
   ) where
 
 import           Database.Esqueleto
-import           Network.IPFS.CID.Types
 import           Servant
+
+import           Network.IPFS.CID.Types
 
 import           Fission.Authorization
 import           Fission.Models
 import           Fission.Prelude
 
 import           Fission.URL                 as URL
-import           Fission.User.Username.Types
 import           Fission.Web.Error           as Web.Err
 
+import           Fission.User.Username.Types
 import qualified Fission.User.Modifier       as User
+
 
 type API
   =  Summary "Set account's DNSLink"

@@ -4,7 +4,6 @@ module Fission.Web.User.UpdateData
   ) where
 
 import           Database.Esqueleto
-import           Network.IPFS.CID.Types
 import           Servant
 
 import           Fission.Prelude
@@ -13,6 +12,9 @@ import           Fission.Authorization
 import           Fission.Web.Error as Web.Error
 import qualified Fission.User as User
 
+import           Network.IPFS.CID.Types
+
+
 type API
   =  Summary "Update data root"
   :> Description "Set/update currently authenticated user's file system content"
@@ -20,10 +22,10 @@ type API
   :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
 
 server ::
-  ( MonadLogger   m
-  , MonadThrow    m
-  , MonadTime     m
-  , User.Modifier m
+  ( MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , User.Modifier   m
   )
   => Authorization
   -> ServerT API m

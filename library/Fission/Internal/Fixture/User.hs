@@ -1,6 +1,7 @@
 module Fission.Internal.Fixture.User (user) where
 
 import           Network.IPFS.CID.Types
+import           Network.IPFS.Bytes.Types
 
 import           Fission.Prelude
 import           Fission.Models
@@ -12,8 +13,12 @@ import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 
 user :: User
 user = User
-  { userUsername = "testUser"
+  { userPublicKey = Just Ed25519.pk
+
+  --
+
   , userEmail    = Just "test@fission.codes"
+  , userUsername = "testUser"
 
   --
 
@@ -23,8 +28,8 @@ user = User
 
   --
 
-  , userPublicKey = Just Ed25519.pk
-  , userDataRoot  = CID "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
+  , userDataRoot     = CID "QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ"
+  , userDataRootSize = Bytes 0
 
   --
 

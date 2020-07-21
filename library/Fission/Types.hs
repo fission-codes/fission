@@ -23,6 +23,7 @@ import qualified Network.IPFS.Process.Error as IPFS.Process
 import qualified Network.IPFS.Pin           as IPFS.Pin
 import qualified Network.IPFS.Process       as IPFS
 import qualified Network.IPFS.Peer          as Peer
+import qualified Network.IPFS.Stat          as IPFS.Stat
 
 import           Fission.Config.Types
 import           Fission.Prelude
@@ -44,7 +45,6 @@ import qualified Fission.App.Destroyer as App.Destroyer
 import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
 
-import qualified Fission.App.Creator as App
 
 import           Fission.IPFS.Linked
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
@@ -65,6 +65,7 @@ import           Fission.Web.Server.Reflective         as Reflective
 import           Fission.User.DID.Types
 import qualified Fission.User          as User
 import           Fission.User.Creator.Class
+import qualified Fission.User.Password as Password
 
 import           Fission.Web.Auth.Token.Basic.Class
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
@@ -353,7 +354,7 @@ instance User.Retriever Fission where
 
 instance User.Creator Fission where
   create username@(Username rawUN) pk email now =
-    runDB (User.create username pk email now) >>= \case
+    runDB (User.createDB username pk email now) >>= \case
       Left err ->
         return $ Left err
 
@@ -362,36 +363,41 @@ instance User.Creator Fission where
           Left err ->
             return $ Error.relaxedLeft err
 
-          Right _ -> do
-            domainName <- asks userRootDomain
-            zoneID     <- asks userZoneID
-
-            let
-              subdomain  = Just $ Subdomain rawUN
-              url        = URL {..}
-           
-              userPublic = dataURL `WithPath` ["public"]
-              dataURL    = URL
-                { domainName
-                , subdomain  = Just $ Subdomain (rawUN <> ".files")
-                }
-
-            DNSLink.follow userId url zoneID userPublic >>= \case
-              Left  err ->
+          Right _ ->
+            App.createWithPlaceholder userId now >>= \case
+              Left err ->
                 return $ Error.relaxedLeft err
 
               Right _ -> do
-                defaultCID <- asks defaultDataCID
-               
-                User.setData userId defaultCID now <&> \case
-                  Left err -> Error.relaxedLeft err
-                  Right () -> Right userId
+                domainName <- asks userRootDomain
+                zoneID     <- asks userZoneID
+
+                let
+                  subdomain  = Just $ Subdomain rawUN
+                  url        = URL {..}
+              
+                  userPublic = dataURL `WithPath` ["public"]
+                  dataURL    = URL
+                    { domainName
+                    , subdomain  = Just $ Subdomain (rawUN <> ".files")
+                    }
+                    
+                DNSLink.follow userId url zoneID userPublic >>= \case
+                  Left  err ->
+                    return $ Error.relaxedLeft err
+
+                  Right _ -> do
+                    defaultCID <- asks defaultDataCID
+                  
+                    User.setData userId defaultCID now <&> \case
+                      Left err -> Error.relaxedLeft err
+                      Right () -> Right userId
 
   createWithHeroku herokuUUID herokuRegion username password now =
-    runDB $ User.createWithHeroku herokuUUID herokuRegion username password now
+    runDB $ User.createWithHerokuDB herokuUUID herokuRegion username password now
 
   createWithPassword username password email now =
-    runDB (User.createWithPassword username password email now) >>= \case
+    runDB (User.createWithPasswordDB username password email now) >>= \case
       Left err ->
         return $ Left err
 
@@ -401,44 +407,49 @@ instance User.Creator Fission where
           Right _  -> Right userId
 
 instance User.Modifier Fission where
-  updatePassword uID pass now =
-    runDB $ User.updatePassword uID pass now
-
-  updatePublicKey uID pk now =
-    runDB (User.updatePublicKey uID pk now) >>= \case
+  updatePassword userId pass now =
+    Password.hashPassword pass >>= \case
       Left err ->
         return $ Left err
 
-      Right _ -> do
-        runDB (User.getById uID) >>= \case
-          Nothing -> 
-            return . Error.openLeft $ NotFound @User
+      Right secretDigest -> do
+        _ <- runDB $ User.updatePasswordDB userId secretDigest now
+        return $ Right pass
 
-          Just (Entity _ User { userUsername = Username rawUN }) -> do
-            domainName <- asks userRootDomain
-            zoneID     <- asks userZoneID
+  updatePublicKey userId pk now =
+    runDB (User.getById userId) >>= \case
+      Nothing -> 
+        return . Error.openLeft $ NotFound @User
 
-            let
-              subdomain = Just $ Subdomain rawUN
-              url       = URL {domainName, subdomain = Just (Subdomain "_did") <> subdomain}
-              did       = textDisplay (DID pk Key)
-              didSegments = DNS.splitRecord did
+      Just (Entity _ User { userUsername = Username rawUN }) -> do
+        _ <- runDB $ User.updatePublicKeyDB userId pk now
 
-            Route53.set Txt url zoneID didSegments 10 <&> \case
-              Left serverErr -> Error.openLeft serverErr
-              Right _        -> Right pk
+        domainName <- asks userRootDomain
+        zoneID     <- asks userZoneID
 
-  setData userId newCID now = do
-    runDB (User.setData userId newCID now) >>= \case
-      Left err ->
-        return $ Left err
-       
-      Right _ -> do
-        runDB (User.getById userId) >>= \case
-          Nothing ->
-            return . Error.openLeft $ NotFound @User
-           
-          Just (Entity _ User { userUsername = Username username }) -> do
+        let
+          subdomain = Just $ Subdomain rawUN
+          url       = URL {domainName, subdomain = Just (Subdomain "_did") <> subdomain}
+          did       = textDisplay (DID pk Key)
+          didSegments = DNS.splitRecord did
+
+        Route53.set Txt url zoneID didSegments 10 <&> \case
+          Left serverErr -> Error.openLeft serverErr
+          Right _        -> Right pk
+
+  setData userId newCID now = 
+    runDB (User.getById userId) >>= \case
+      Nothing ->
+        return . Error.openLeft $ NotFound @User
+        
+      Just (Entity _ User { userUsername = Username username }) ->
+        IPFS.Stat.getSizeRemote newCID >>= \case
+          Left err ->
+            return $ Error.openLeft err
+
+          Right size -> do
+            _ <- runDB $ User.setDataDB userId newCID size now
+
             userDataDomain <- asks userRootDomain
             zoneID         <- asks userZoneID
 
@@ -448,9 +459,14 @@ instance User.Modifier Fission where
                 , subdomain  = Just $ Subdomain (username <> ".files")
                 }
 
-            DNSLink.set userId url zoneID newCID <&> \case
-              Left err -> Error.relaxedLeft err
-              Right _  -> ok
+            DNSLink.set userId url zoneID newCID >>= \case
+              Left err -> 
+                return $ Error.relaxedLeft err
+
+              Right _  -> 
+                IPFS.Pin.add newCID >>= \case
+                  Right _  -> return ok
+                  Left err -> return $ Error.openLeft err
 
 instance User.Destroyer Fission where
   deactivate requestorId userId = runDB $ User.deactivate requestorId userId
@@ -461,54 +477,65 @@ instance App.Retriever Fission where
   ownedBy uId       = runDB $ App.ownedBy uId
 
 instance App.Creator Fission where
-  create ownerID cid now =
-    runDB (App.create ownerID cid now) >>= \case
+  create ownerId cid now =
+    IPFS.Stat.getSizeRemote cid >>= \case
       Left err ->
-        return $ Left err
+        return $ Error.openLeft err
 
-      Right (appId, subdomain) -> do
-        appCID     <- App.Content.placeholder
-        domainName <- App.Domain.initial
-        zoneID     <- asks baseAppZoneID
+      Right size -> do
+        appId <- runDB (App.createDB ownerId cid size now)
+        runDB (App.Domain.associateDefault ownerId appId now) >>= \case
+          Left err -> 
+            return $ Error.relaxedLeft err
 
-        let
-          url :: URL
-          url = URL { domainName, subdomain = Just subdomain }
+          Right subdomain -> do
+            appCID     <- App.Content.placeholder
+            domainName <- App.Domain.initial
+            zoneID     <- asks baseAppZoneID
 
-        DNSLink.set ownerID url zoneID appCID <&> \case
-          Left  err -> Error.relaxedLeft err
-          Right _   -> Right (appId, subdomain)
+            let
+              url :: URL
+              url = URL { domainName, subdomain = Just subdomain }
+
+            DNSLink.set ownerId url zoneID appCID >>= \case
+              Left  err -> return $ Error.relaxedLeft err
+              Right _   -> return $ Right (appId, subdomain)
 
 instance App.Modifier Fission where
-  setCID userId url newCID copyFiles now = do
-    runDB (App.setCID userId url newCID copyFiles now) >>= \case
+  setCID userId url newCID copyFiles now = 
+    IPFS.Stat.getSizeRemote newCID >>= \case
       Left err ->
-        return $ Left err
+        return $ Error.openLeft err
 
-      Right appId -> do
-        runDB (App.Domain.primarySibling userId url) >>= \case
+      Right size ->
+        runDB (App.setCidDB userId url newCID size copyFiles now) >>= \case
           Left err ->
-            return $ relaxedLeft err
+            return $ Left err
 
-          Right (Entity _ AppDomain {..}) ->
-            Domain.getByDomainName appDomainDomainName >>= \case
+          Right appId -> do
+            runDB (App.Domain.primarySibling userId url) >>= \case
               Left err ->
-                return $ openLeft err
+                return $ relaxedLeft err
 
-              Right Domain {domainZoneId} ->
-                DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
+              Right (Entity _ AppDomain {..}) ->
+                Domain.getByDomainName appDomainDomainName >>= \case
                   Left err ->
-                    return $ relaxedLeft err
+                    return $ openLeft err
 
-                  Right _ ->
-                    if copyFiles
-                      then
-                        IPFS.Pin.add newCID <&> \case
-                          Right _  -> Right appId
-                          Left err -> Error.openLeft err
+                  Right Domain {domainZoneId} ->
+                    DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
+                      Left err ->
+                        return $ relaxedLeft err
 
-                      else
-                        return $ Right appId
+                      Right _ ->
+                        if copyFiles
+                          then
+                            IPFS.Pin.add newCID <&> \case
+                              Right _  -> Right appId
+                              Left err -> Error.openLeft err
+
+                          else
+                            return $ Right appId
 
 instance App.Destroyer Fission where
   destroy uId appId now =

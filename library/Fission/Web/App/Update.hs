@@ -3,8 +3,9 @@ module Fission.Web.App.Update
   , update
   ) where
 
-import           Network.IPFS.CID.Types
 import           Servant
+
+import           Network.IPFS.CID.Types
 
 import           Fission.Authorization
 import           Fission.Prelude
@@ -13,6 +14,7 @@ import qualified Fission.App            as App
 import           Fission.Web.Error      as Web.Error
 
 import           Fission.URL.Types
+
 
 type API
   =  Summary     "Set app content"
@@ -23,10 +25,10 @@ type API
   :> PatchAccepted '[JSON] NoContent
 
 update ::
-  ( MonadLogger  m
-  , MonadThrow   m
-  , MonadTime    m
-  , App.Modifier m
+  ( MonadLogger     m
+  , MonadThrow      m
+  , MonadTime       m
+  , App.Modifier    m
   )
   => Authorization
   -> ServerT API m

@@ -65,8 +65,9 @@ app ::
   , MonadThrow              t
   , Heroku.AddOn.CRUD       t
   , LoosePin.CRUD           t
-  , User.CRUD               t
-  , App.CRUD                t
+  , User.Retriever          t
+  , User.Destroyer          t
+  , App.Retriever           t
   , App.Domain.Retriever    t
   )
   => (forall a . m a -> Handler a)
@@ -104,7 +105,7 @@ server ::
   , LoosePin.CRUD           t
   , User.Retriever          t
   , User.Destroyer          t
-  , App.CRUD                t
+  , App.Retriever           t
   , App.Domain.Retriever    t
   )
   => Web.Host
@@ -134,7 +135,7 @@ bizServer ::
   , LoosePin.CRUD           t
   , User.Retriever          t
   , User.Destroyer          t
-  , App.CRUD                t
+  , App.Retriever           t
   , App.Domain.Retriever    t
   )
   => ServerT Web.API m
