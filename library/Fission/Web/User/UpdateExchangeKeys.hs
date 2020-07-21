@@ -23,13 +23,13 @@ type API = AddAPI :<|> RemoveAPI
 type AddAPI
   =  Summary "Add Public Exchange Key"
   :> Description "Add a key to the currently authenticated user's root list of public exchange keys"
-  :> Capture "public-did-key" RSA.PublicKey
+  :> Capture "did" RSA.PublicKey
   :> Put     '[JSON] [RSA.PublicKey]
 
 type RemoveAPI
   =  Summary "Remove Public Exchange Key"
   :> Description "Remove a key from the currently authenticated user's root list of public exchange keys"
-  :> Capture "public-did-key" RSA.PublicKey
+  :> Capture "did" RSA.PublicKey
   :> Delete  '[JSON] [RSA.PublicKey]
 
 server ::

@@ -63,13 +63,14 @@ addExchangeKeyDB userID key now =
       return . openLeft $ NotFound @User
 
     Just user -> do
-      let keys = userExchangeKeys user
+      let 
+        keys = userExchangeKeys user
+        updated = [key] ++ keys
       if List.elem key keys
         then 
           return $ Right keys
 
         else do
-          let updated = keys ++ [key]
           update userID
             [ UserExchangeKeys =. updated
             , UserModifiedAt   =. now
@@ -88,10 +89,11 @@ removeExchangeKeyDB userID key now =
       return . openLeft $ NotFound @User
 
     Just user -> do
-      let keys = userExchangeKeys user
+      let 
+        keys = userExchangeKeys user
+        updated = List.delete key keys
       if List.elem key keys
         then do
-          let updated = List.delete key keys
           update userID
             [ UserExchangeKeys =. updated
             , UserModifiedAt   =. now
