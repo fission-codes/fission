@@ -65,7 +65,7 @@ addExchangeKeyDB userID key now =
     Just user -> do
       let 
         keys = userExchangeKeys user
-        updated = [key] ++ keys
+        updated = key : keys
       if List.elem key keys
         then 
           return $ Right keys
