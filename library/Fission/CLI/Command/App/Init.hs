@@ -66,7 +66,7 @@ appInit ::
   )
   => App.Init.Options
   -> m ()
-appInit App.Init.Options {appDir, buildDir} = do
+appInit App.Init.Options {appDir, buildDir, subdomain} = do
   Environment {appURL} <- Environment.get
 
   case appURL of
@@ -74,7 +74,7 @@ appInit App.Init.Options {appDir, buildDir} = do
       CLI.Error.put (AlreadyExists @URL) $ "App already exists as " <> textDisplay url
      
     Nothing ->
-      sendRequestM (authClient (Proxy @App.Create) `withPayload` (Just $ Subdomain "hi")) >>= \case
+      sendRequestM (authClient (Proxy @App.Create) `withPayload` subdomain) >>= \case
         Left err ->
           CLI.Error.put err $ textDisplay err
 
@@ -145,6 +145,6 @@ parseOptions = do
 
   return App.Init.Options
     { appDir
-    , buildDir = mayFilePath optFilePath
+    , buildDir  = mayFilePath optFilePath
     , subdomain = maySubdomain optSubdomain
     }
