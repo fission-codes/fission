@@ -123,7 +123,7 @@ parseOptions = do
     , short   'a'
     ]
 
-  OptionalFilePath buildDir <- strOption $ mconcat
+  optFilePath <- strOption $ mconcat
     [ metavar "PATH"
     , help    "The file path of the assets or directory to sync"
 
@@ -133,4 +133,18 @@ parseOptions = do
     , short   'b'
     ]
 
-  return App.Init.Options {..}
+  optSubdomain <- strOption $ mconcat
+    [ metavar "SUBDOMAIN"
+    , help    "Optional subdomain -- autogeneratd if omitted"
+
+    , value   ""
+
+    , long    "subdomain"
+    , short   's'
+    ]
+
+  return App.Init.Options
+    { appDir
+    , buildDir = mayFilePath optFilePath
+    , subdomain = maySubdomain optSubdomain
+    }
