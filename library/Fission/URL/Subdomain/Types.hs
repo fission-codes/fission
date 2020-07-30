@@ -50,6 +50,9 @@ instance ToParamSchema Subdomain where
 instance FromHttpApiData Subdomain where
   parseUrlPiece = Right . Subdomain
 
+instance ToHttpApiData Subdomain where
+  toUrlPiece = textDisplay
+
 instance FromJSON Subdomain where
   parseJSON = withText "AWS.Subdomain" \txt ->
     Subdomain <$> parseJSON (String txt)

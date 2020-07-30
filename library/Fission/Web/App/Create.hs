@@ -9,18 +9,19 @@ import           Servant
 import           Fission.Prelude
 
 import           Fission.Authorization
-import           Fission.Web.Error as Web.Error
 import           Fission.URL
+import           Fission.Web.Error          as Web.Error
 
-import qualified Fission.App.Creator as App
-import           Fission.App.Domain  as App.Domain
-import           Fission.App.Content as AppCID
+import           Fission.App.Content        as AppCID
+import qualified Fission.App.Creator        as App
+import           Fission.App.Domain         as App.Domain
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
 
 type API
   =  Summary "Create app"
   :> Description "Creates a new app, assigns an initial subdomain, and sets an asset placeholder"
+  :> QueryParam "subdomain" Subdomain
   :> PostAccepted '[JSON] URL
 
 create ::
@@ -33,11 +34,11 @@ create ::
   )
   => Authorization
   -> ServerT API m
-create Authorization {about = Entity userId _} = do
+create Authorization {about = Entity userId _} maySubdomain = do
   now            <- currentTime
-  (_, subdomain) <- Web.Error.ensureM $ App.createWithPlaceholder userId now
+  (_, subdomain) <- Web.Error.ensureM $ App.createWithPlaceholder userId maySubdomain now
   defaultDomain  <- App.Domain.initial
- 
+
   return URL
     { domainName = defaultDomain
     , subdomain  = Just subdomain

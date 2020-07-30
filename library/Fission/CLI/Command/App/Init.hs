@@ -74,7 +74,7 @@ appInit App.Init.Options {appDir, buildDir} = do
       CLI.Error.put (AlreadyExists @URL) $ "App already exists as " <> textDisplay url
      
     Nothing ->
-      sendRequestM (authClient $ Proxy @App.Create) >>= \case
+      sendRequestM (authClient (Proxy @App.Create) `withPayload` (Just $ Subdomain "hi")) >>= \case
         Left err ->
           CLI.Error.put err $ textDisplay err
 

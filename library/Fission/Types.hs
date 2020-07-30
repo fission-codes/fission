@@ -367,7 +367,7 @@ instance User.Creator Fission where
             return $ Error.relaxedLeft err
 
           Right _ ->
-            App.createWithPlaceholder userId now >>= \case
+            App.createWithPlaceholder userId Nothing now >>= \case
               Left err ->
                 return $ Error.relaxedLeft err
 
@@ -405,7 +405,7 @@ instance User.Creator Fission where
         return $ Left err
 
       Right userId ->
-        App.createWithPlaceholder userId now <&> \case
+        App.createWithPlaceholder userId Nothing now <&> \case
           Left err -> Error.relaxedLeft err
           Right _  -> Right userId
 
@@ -477,14 +477,15 @@ instance App.Retriever Fission where
   ownedBy uId       = runDB $ App.ownedBy uId
 
 instance App.Creator Fission where
-  create ownerId cid now =
+  create ownerId cid maySubdomain now =
     IPFS.Stat.getSizeRemote cid >>= \case
       Left err ->
         return $ Error.openLeft err
 
       Right size -> do
         appId <- runDB (App.createDB ownerId cid size now)
-        runDB (App.Domain.associateDefault ownerId appId now) >>= \case
+
+        runDB (App.Domain.associateWithFallback ownerId appId maySubdomain now) >>= \case
           Left err -> 
             return $ Error.relaxedLeft err
 
