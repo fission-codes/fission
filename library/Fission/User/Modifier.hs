@@ -9,20 +9,20 @@ module Fission.User.Modifier
 
 import           Fission.User.Modifier.Class
 
-import           Fission.Prelude
-import           Fission.Models
 import           Fission.Error
+import           Fission.Models
+import           Fission.Prelude
 
+import qualified Crypto.PubKey.RSA           as RSA
+import qualified Fission.Key                 as Key
 import           Fission.Security.Types
-import qualified Fission.Key       as Key
-import qualified Crypto.PubKey.RSA as RSA
 
-import           Database.Persist as Persist
+import           Database.Persist            as Persist
 
-import           Network.IPFS.CID.Types
 import           Network.IPFS.Bytes.Types
+import           Network.IPFS.CID.Types
 
-import qualified RIO.List as List
+import qualified RIO.List                    as List
 
 
 updatePasswordDB ::
@@ -59,22 +59,31 @@ addExchangeKeyDB ::
   -> Transaction m (Either Errors [RSA.PublicKey])
 addExchangeKeyDB userID key now =
   Persist.get userID >>= \case
-    Nothing -> 
+    Nothing ->
       return . openLeft $ NotFound @User
 
-    Just user -> do
-      let 
-        keys = userExchangeKeys user
+    Just User {userExchangeKeys = Nothing} -> do
+      update userID
+        [ UserExchangeKeys =. Just [key]
+        , UserModifiedAt   =. now
+        ]
+
+      return $ Right [key]
+
+    Just User {userExchangeKeys = Just keys} -> do
+      let
         updated = key : keys
+
       if List.elem key keys
-        then 
+        then
           return $ Right keys
 
         else do
           update userID
-            [ UserExchangeKeys =. updated
+            [ UserExchangeKeys =. Just updated
             , UserModifiedAt   =. now
             ]
+
           return $ Right updated
 
 removeExchangeKeyDB ::
@@ -85,23 +94,27 @@ removeExchangeKeyDB ::
   -> Transaction m (Either Errors [RSA.PublicKey])
 removeExchangeKeyDB userID key now =
   Persist.get userID >>= \case
-    Nothing -> 
+    Nothing ->
       return . openLeft $ NotFound @User
 
-    Just user -> do
-      let 
-        keys = userExchangeKeys user
-        updated = List.delete key keys
-      if List.elem key keys
-        then do
-          update userID
-            [ UserExchangeKeys =. updated
-            , UserModifiedAt   =. now
-            ]
-          return $ Right updated
+    Just User {userExchangeKeys = Nothing} ->
+      return $ Right []
 
-        else 
-          return $ Right keys
+    Just User {userExchangeKeys = Just keys} ->
+      let
+        updated = List.delete key keys
+
+      in
+        if List.elem key keys
+          then do
+            update userID
+              [ UserExchangeKeys =. Just updated
+              , UserModifiedAt   =. now
+              ]
+            return $ Right updated
+
+          else
+            return $ Right keys
 
 setDataDB ::
      MonadIO m

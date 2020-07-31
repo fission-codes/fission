@@ -14,30 +14,30 @@ import           Data.Aeson.Types
 import           Data.Swagger
 import           Data.UUID
 
-import           Network.IPFS.CID.Types
 import           Network.IPFS.Bytes.Types
+import           Network.IPFS.CID.Types
 
-import qualified Fission.Internal.UTF8                as UTF8
+import qualified Fission.Internal.UTF8                     as UTF8
 import           Fission.Prelude
 
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
-import qualified Fission.Key                          as Key
-import qualified Crypto.PubKey.RSA                    as RSA
+import qualified Crypto.PubKey.RSA                         as RSA
+import qualified Fission.Key                               as Key
 import           Fission.URL
 
+import           Fission.Challenge.Types
 import           Fission.User.Email.Types
 import           Fission.User.Role.Types
 import           Fission.User.Username.Types
-import           Fission.Challenge.Types
 
-import qualified Fission.AWS.Zone.Types               as AWS
+import qualified Fission.AWS.Zone.Types                    as AWS
 
-import           Fission.Internal.Orphanage.Bytes     ()
+import           Fission.Internal.Orphanage.Bytes          ()
 import           Fission.Internal.Orphanage.CID            ()
-import           Fission.Internal.Orphanage.UUID           ()
 import           Fission.Internal.Orphanage.RSA2048.Public ()
+import           Fission.Internal.Orphanage.UUID           ()
 
 share
   [ mkPersist       sqlSettings
@@ -58,21 +58,21 @@ HerokuAddOn
 --------------------------------------------------------------------------------
 
 User
-  publicKey     Key.Public    Maybe
-  exchangeKeys  [RSA.PublicKey]        default=[]
+  publicKey     Key.Public      Maybe
+  exchangeKeys  [RSA.PublicKey] Maybe -- Because Postgresql is being a pain
 
-  email         Email         Maybe
+  email         Email           Maybe
   username      Username
 
   role          Role
   active        Bool
-  verified      Bool                 default=false
+  verified      Bool                  default=false
 
   dataRoot      CID
-  dataRootSize  Bytes
+  dataRootSize  Bytes                 default=0
 
-  herokuAddOnId HerokuAddOnId Maybe
-  secretDigest  SecretDigest  Maybe
+  herokuAddOnId HerokuAddOnId   Maybe
+  secretDigest  SecretDigest    Maybe
 
   insertedAt    UTCTime
   modifiedAt    UTCTime
@@ -102,7 +102,7 @@ UpdateUserDataRootEvent
   userId          UserId
 
   newDataRoot     CID
-  newDataRootSize Bytes
+  newDataRootSize Bytes default=0
 
   insertedAt      UTCTime
 
@@ -142,7 +142,7 @@ App
   ownerId     UserId
   cid         CID
 
-  size        Bytes
+  size        Bytes default=0
 
   insertedAt  UTCTime
   modifiedAt  UTCTime
@@ -158,7 +158,7 @@ CreateAppEvent
   ownerId     UserId
 
   cid         CID
-  size        Bytes
+  size        Bytes default=0
 
   insertedAt  UTCTime
 
@@ -174,7 +174,7 @@ SetAppCIDEvent
   appId      AppId
 
   newCID     CID
-  newCIDSize Bytes
+  newCIDSize Bytes default=0
 
   insertedAt UTCTime
 
