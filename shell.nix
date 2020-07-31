@@ -10,7 +10,7 @@ pkgs.mkShell {
     pkgs.zlib
 
     # Data
-    pkgs.ipfs
+    # pkgs.ipfs
     pkgs.libpqxx
     pkgs.postgresql
 
