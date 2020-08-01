@@ -20,4 +20,4 @@ extra-deps:
 
 nix:
   enable: true
-  packages: [libpqxx, ipfs, postgresql, zlib, lzma]
+  packages: [libpqxx, ipfs, postgresql, lzma]
