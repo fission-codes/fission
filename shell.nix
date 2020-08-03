@@ -21,14 +21,5 @@ pkgs.mkShell {
     pkgs.ghcid
     pkgs.stack
     pkgs.stylish-haskell
-
-    # Fun
-    pkgs.figlet
-    pkgs.lolcat
   ];
-
-  shellHook = ''
-    echo "Welcome to the"
-    ${pkgs.figlet}/bin/figlet "Fission Server Shell" | lolcat -a -s 50
-  '';
 }
