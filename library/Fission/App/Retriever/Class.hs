@@ -2,21 +2,21 @@ module Fission.App.Retriever.Class (Retriever (..)) where
 
 import           Database.Esqueleto hiding ((<&>))
 
-import           Fission.Prelude hiding (on)
 import           Fission.Models
 import           Fission.Ownership
+import           Fission.Prelude    hiding (on)
 
-import           Fission.Error as Error
+import           Fission.Error      as Error
 import           Fission.URL
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ ActionNotAuthorized App
    , NotFound            App
    ]
 
 class Monad m => Retriever m where
-  byId    :: UserId -> AppId -> m (Either Errors (Entity App))
-  byURL   :: UserId -> URL -> m (Either Errors (Entity App))
+  byId    :: UserId -> AppId -> m (Either Errors' (Entity App))
+  byURL   :: UserId -> URL -> m (Either Errors' (Entity App))
   ownedBy :: UserId -> m [Entity App]
 
 instance MonadIO m => Retriever (Transaction m) where
@@ -55,7 +55,7 @@ instance MonadIO m => Retriever (Transaction m) where
         return case mayApp of
           [] ->
             Error.openLeft $ NotFound @App
-       
+
           (app : _) ->
             if isOwnedBy userId app
               then Right app

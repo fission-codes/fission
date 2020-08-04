@@ -1,10 +1,10 @@
 module Fission.App.Modifier.Class
   ( Modifier (..)
-  , Errors
+  , Errors'
   ) where
 
-import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Add.Error as IPFS.Pin
+import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Get.Error as IPFS.Stat
 
 import           Servant.Server
@@ -15,7 +15,7 @@ import           Fission.URL
 
 import           Fission.Error          as Error
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ NotFound App
    , NotFound AppDomain
    , NotFound Domain
@@ -39,4 +39,4 @@ class Monad m => Modifier m where
     -> CID     -- ^ New CID
     -> Bool    -- ^ Flag: copy data (default yes)
     -> UTCTime -- ^ Now
-    -> m (Either Errors AppId)
+    -> m (Either Errors' AppId)

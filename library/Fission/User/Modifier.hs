@@ -42,7 +42,7 @@ updatePublicKeyDB ::
   => UserId
   -> Key.Public
   -> UTCTime
-  -> Transaction m (Either Errors Key.Public)
+  -> Transaction m (Either Errors' Key.Public)
 updatePublicKeyDB userID pk now = do
   update userID
     [ UserPublicKey  =. Just pk
@@ -56,7 +56,7 @@ addExchangeKeyDB ::
   => UserId
   -> RSA.PublicKey
   -> UTCTime
-  -> Transaction m (Either Errors [RSA.PublicKey])
+  -> Transaction m (Either Errors' [RSA.PublicKey])
 addExchangeKeyDB userID key now =
   Persist.get userID >>= \case
     Nothing ->
@@ -91,7 +91,7 @@ removeExchangeKeyDB ::
   => UserId
   -> RSA.PublicKey
   -> UTCTime
-  -> Transaction m (Either Errors [RSA.PublicKey])
+    -> Transaction m (Either Errors' [RSA.PublicKey])
 removeExchangeKeyDB userID key now =
   Persist.get userID >>= \case
     Nothing ->

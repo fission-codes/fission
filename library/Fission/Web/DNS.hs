@@ -13,10 +13,10 @@ import           Fission.Models
 import           Fission.Prelude
 
 import           Fission.URL                 as URL
-import           Fission.Web.Error           as Web.Err
+import qualified Fission.Web.Error           as Web.Err
 
-import           Fission.User.Username.Types
 import qualified Fission.User.Modifier       as User
+import           Fission.User.Username.Types
 
 
 type API
@@ -36,5 +36,5 @@ server ::
   => Authorization -> ServerT API m
 server Authorization {about = Entity userID User {userUsername = Username rawUN}} cid = do
   now <- currentTime
-  ensureM $ User.setData userID cid now
+  Web.Err.ensureM $ User.setData userID cid now
   return . DomainName $ rawUN <> ".fission.name"

@@ -1,31 +1,31 @@
-module Fission.App.Modifier 
+module Fission.App.Modifier
   ( module Fission.App.Modifier.Class
   , setCidDB
   ) where
 
 import           Fission.App.Modifier.Class
 
-import           Database.Persist       as Persist
+import           Database.Persist           as Persist
 
-import           Network.IPFS.CID.Types
 import           Network.IPFS.Bytes.Types
+import           Network.IPFS.CID.Types
 
 import           Fission.Models
 import           Fission.Ownership
-import           Fission.Prelude        hiding (on)
+import           Fission.Prelude            hiding (on)
 import           Fission.URL
 
-import           Fission.Error          as Error
+import           Fission.Error              as Error
 
 setCidDB ::
      MonadIO m
-  => UserId 
+  => UserId
   -> URL
   -> CID
   -> Bytes
   -> Bool
   -> UTCTime
-  -> Transaction m (Either Errors AppId)
+  -> Transaction m (Either Errors' AppId)
 setCidDB userId URL {..} newCID size _copyFlag now = do
   mayAppDomain <- Persist.selectFirst
     [ AppDomainDomainName ==. domainName
@@ -44,7 +44,7 @@ setCidDB userId URL {..} newCID size _copyFlag now = do
         Just app ->
           if isOwnedBy userId app
             then do
-              update appId 
+              update appId
                 [ AppCid  =. newCID
                 , AppSize =. size
                 ]

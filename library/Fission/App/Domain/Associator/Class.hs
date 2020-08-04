@@ -1,22 +1,23 @@
 module Fission.App.Domain.Associator.Class
   ( Associator (..)
-  , Errors
+  , Errors'
   ) where
 
-import           Database.Esqueleto (insert_, insertUnique, Checkmark (..))
+import           Database.Esqueleto       (Checkmark (..), insertUnique,
+                                           insert_)
 
-import           Fission.Prelude
 import           Fission.Error
 import           Fission.Models
 import           Fission.Ownership
+import           Fission.Prelude
 import           Fission.URL
 
-import qualified Fission.App.Retriever    as App
 import qualified Fission.App.Domain.Error as AppDomain
+import qualified Fission.App.Retriever    as App
 
-import qualified Fission.Error as Error
+import qualified Fission.Error            as Error
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ AppDomain.AlreadyAssociated
    , ActionNotAuthorized App
    , NotFound            App
@@ -30,7 +31,7 @@ class Monad m => Associator m where
     -> DomainName
     -> Maybe Subdomain
     -> UTCTime
-    -> m (Either Errors ())
+    -> m (Either Errors' ())
 
 instance MonadIO m => Associator (Transaction m) where
   associate userId appId isPrimary domainName maySubdomain now =

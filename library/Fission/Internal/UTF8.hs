@@ -24,15 +24,15 @@ module Fission.Internal.UTF8
   , wrapInBS
   ) where
 
-import           Data.Binary hiding (encode)
 import           Data.Base58String.Bitcoin as BS58.BTC
+import           Data.Binary               hiding (encode)
 
 import           Flow
 
 import           RIO
-import qualified RIO.ByteString      as Strict
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString            as Strict
+import qualified RIO.ByteString.Lazy       as Lazy
+import qualified RIO.Text                  as Text
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -83,7 +83,7 @@ stripOptionalSuffix sfx txt = maybe txt id $ Text.stripSuffix sfx txt
 
 stripOptionalPrefixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
 stripOptionalPrefixBS pfx bs = maybe bs id $ Strict.stripPrefix pfx bs
- 
+
 stripOptionalSuffixBS :: Strict.ByteString -> Strict.ByteString -> Strict.ByteString
 stripOptionalSuffixBS sfx bs = maybe bs id $ Strict.stripSuffix sfx bs
 
@@ -174,9 +174,9 @@ stripN n = Text.dropEnd i . Text.drop i
 putText :: MonadIO m => Text -> m ()
 putText = Strict.putStr . encodeUtf8
 
--- | Helper for printing 'Text' to a console with a newline at the end
+-- | Helper for printing Text' to a console with a newline at the end
 putTextLn :: MonadIO m => Text -> m ()
-putTextLn txt = putText <| txt <> "\n"
+putTextLn txt = putText $ txt <> "\n"
 
 {-| Wrap text with some other piece of text.
 

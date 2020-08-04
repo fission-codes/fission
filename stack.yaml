@@ -13,9 +13,10 @@ extra-deps:
 - happy-1.19.12
 - hfsevents-0.1.6
 - hspec-wai-json-0.10.1
-- ipfs-1.1.2
+- ipfs-1.1.3
 - lzma-clib-5.2.2
 - raven-haskell-0.1.4.0
+- rescue-0.2.1
 - servant-quickcheck-0.0.7.4
 - tasty-rerun-1.1.17
 - text-time-0.2.0
@@ -23,6 +24,9 @@ extra-deps:
 nix:
   enable: true
   packages:
+  - ghcid
+  - ipfs
+  - libpqxx
   - lzma
   - postgresql
   - zlib

@@ -1,3 +1,3 @@
-module Fission.IPFS.Linked (module Fission.IPFS.Linked.Class) where
+ module Fission.IPFS.Linked (module Fission.IPFS.Linked.Class) where
 
-import Fission.IPFS.Linked.Class
+import           Fission.IPFS.Linked.Class

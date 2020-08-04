@@ -1,14 +1,14 @@
-module Fission.Web.Client.Error 
+module Fission.Web.Client.Error
   ( retryOnStatus
   , checkStatus
-  ) where 
+  ) where
 
-import Fission.Prelude hiding (fromMaybe)
-import Fission.Error
+import           Fission.Error
+import           Fission.Prelude           hiding (fromMaybe)
 
-import Fission.Web.Client
-import Servant.Client
-import Network.HTTP.Types.Status
+import           Fission.Web.Client
+import           Network.HTTP.Types.Status
+import           Servant.Client
 
 
 retryOnStatus ::
@@ -22,25 +22,26 @@ retryOnStatus ::
 retryOnStatus retryOn times req =
   retryOnErr (checkStatus retryOn) times (sendRequest req)
 
-checkStatus :: 
+checkStatus ::
   MonadLogger m
-  => [Status] 
-  -> Either ClientError a 
+  => [Status]
+  -> Either ClientError a
   -> m Bool
 checkStatus retryOn = \case
-  Right _ -> 
+  Right _ ->
     return True
 
-  Left (FailureResponse _req res) -> do
-    let code = responseStatusCode res
+  Left (FailureResponse _req res) ->
+    let
+      code = responseStatusCode res
+    in
+      if elem code retryOn
+        then do
+          logWarn $ "Got a " <> textShow code <> "; retrying..."
+          return False
 
-    if elem code retryOn 
-      then do
-        logWarn $ "Got a " <> textShow code <> "; retrying..."
-        return False
+        else
+          return True
 
-      else 
-        return True
-
-  Left _ -> 
+  Left _ ->
     return True

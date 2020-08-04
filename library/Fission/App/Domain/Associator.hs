@@ -5,11 +5,11 @@ module Fission.App.Domain.Associator
 
 import           Database.Persist.Types
 
-import           Fission.Prelude
 import           Fission.Models
+import           Fission.Prelude
 import           Fission.URL.Types
 
-import qualified Fission.App.Domain.Initializer as AppDomain
+import qualified Fission.App.Domain.Initializer      as AppDomain
 
 -- Re-export
 

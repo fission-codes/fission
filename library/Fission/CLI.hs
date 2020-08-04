@@ -1,54 +1,72 @@
-module Fission.CLI (cli) where
+module Fission.CLI (cli, interpret) where
 
 import           Options.Applicative
+import qualified RIO.Text                              as Text
 
-import qualified RIO.Text                     as Text
+import           Network.HTTP.Client                   as HTTP
+import           Network.HTTP.Client.TLS               as HTTP
+import           Servant.Client.Core
 
-import qualified Fission.Internal.CLI.Meta    as Meta
 import           Fission.Prelude
 
-import           Fission.CLI.Config.Base
-import           Fission.CLI.Config.Connected
+import qualified Fission.Internal.CLI.Meta             as Meta
 
--- import           Fission.CLI.Command          as Command
-import           Fission.CLI.Display.Error
+import qualified Fission.CLI.Base.Types                as Base
+import qualified Fission.CLI.Handler                   as Handler
 
-import qualified Fission.CLI.Command.App.Init as App.Init
-import qualified Fission.CLI.Command.Down     as Down
-import qualified Fission.CLI.Command.Setup    as Setup
-import qualified Fission.CLI.Command.Up       as Up
-import qualified Fission.CLI.Command.Watch    as Watch
-import qualified Fission.CLI.Command.Whoami   as Whoami
+import           Fission.CLI.Parser                    as CLI
+import           Fission.CLI.Parser.Command.Types
+import           Fission.CLI.Parser.Command.User.Types
+import           Fission.CLI.Parser.Types              as Parser
+import           Fission.CLI.Parser.Verbose.Types
 
-cli :: MonadIO m => BaseConfig -> m ()
-cli baseCfg = liftIO do
-  (_, runCLI) <- simpleOptions version summary detail noop do
-    runBase_ Setup.cmd
+import qualified Fission.CLI.App                       as App
+import           Fission.CLI.Types
 
-    runConnected_ Whoami.cmd
-    runConnected_ Up.cmd
-    runConnected_ Down.cmd
-    runConnected_ App.Init.cmd
-    runConnected_ (Watch.cmd (void . runConnected baseCfg))
+type Errs = App.Errs
 
-  runCLI
+cli :: IO (Either (OpenUnion Errs) ())
+cli = do
+  Parser.Options
+    { fissionDID = cachedServerDID
+    , fissionURL
+    , cmd
+    } <- execParser CLI.parserWithInfo
 
-  where
-    runBase_ :: Command FissionBase input () -> Command.Leaf
-    runBase_ = runWith (runBase baseCfg)
+  let
+    VerboseFlag isVerbose = getter cmd
 
-    runConnected_ :: Command FissionConnected input () -> Command.Leaf
-    runConnected_ =
-      runWith \actn ->
-        void $ runConnected baseCfg do
-          logDebug @Text "Setting up connected"
-          actn
+    rawHTTPSettings =
+      case baseUrlScheme fissionURL of
+        Http  -> defaultManagerSettings
+        Https -> tlsManagerSettings
 
-summary :: String
-summary = "CLI to interact with Fission services"
+  httpManager <- HTTP.newManager rawHTTPSettings
+    { managerResponseTimeout = responseTimeoutMicro 1_800_000_000 }
 
-detail :: String
-detail = "Fission makes developing, deploying, updating, and iterating on web apps quick and easy."
+  processCtx <- mkDefaultProcessContext
+  logOptions <- logOptionsHandle stderr isVerbose
 
-version :: String
-version = Text.unpack $ maybe "unknown" identity (Meta.version =<< Meta.package)
+  withLogFunc logOptions \logFunc ->
+    interpret Base.Config {..} cmd
+
+interpret ::
+  MonadIO m
+  => Base.Config
+  -> Command
+  -> m (Either (OpenUnion App.Errs) ())
+interpret baseCfg cmd =
+  runFissionCLI baseCfg do
+    logDebug . Text.pack $ show cmd
+
+    case cmd of
+      Version _ ->
+        logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
+
+      App subCmd ->
+        App.interpret baseCfg subCmd
+
+      User subCmd ->
+        case subCmd of
+          Register _ -> Handler.setup
+          WhoAmI   _ -> Handler.whoami

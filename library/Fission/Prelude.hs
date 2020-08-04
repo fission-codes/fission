@@ -1,23 +1,40 @@
 -- | A custom @Prelude@-like module for this project
 module Fission.Prelude
   ( module Control.Lens
+
   , module Control.Monad.Logger
   , module Control.Monad.Time
+
+  , module Control.Monad.Cleanup
+  , module Control.Monad.Raise
+  , module Control.Monad.Rescue
+
+  , module Control.Monad.Trans.Cleanup
+  , module Control.Monad.Trans.Rescue
+
   , module Data.Aeson
   , module Data.Bool
   , module Data.Bifunctor
   , module Data.Has
   , module Data.Maybe
   , module Data.WorldPeace
+
+  , module Data.Generics.Product
+  , module Data.Generics.Sum
+
   , module Fission.Internal.Log
   , module Fission.Internal.Time
   , module Fission.Internal.MonadDB
+
   , module Flow
+
   , module RIO
   , module RIO.Process
   , module RIO.Time
   , module Test.QuickCheck
+
   , module Web.PathPieces
+
   , Entity (..)
   , headMaybe
   , identity
@@ -32,61 +49,74 @@ module Fission.Prelude
   , noop
   ) where
 
-import Control.Lens         ((%~), (.~), (?~), (^?))
-import Control.Monad.Logger (MonadLogger (..), LogSource, ToLogStr (..), LogLevel (..), logWithoutLoc)
-import Control.Monad.Time
+import           Control.Lens                                ((%~), (.~), (?~),
+                                                              (^?))
+import           Control.Monad.Logger                        (LogLevel (..),
+                                                              LogSource,
+                                                              MonadLogger (..),
+                                                              ToLogStr (..),
+                                                              logWithoutLoc)
+import           Control.Monad.Time
 
-import Network.IPFS.Internal.Orphanage.Utf8Builder ()
+import           Control.Monad.Cleanup
+import           Control.Monad.Raise
+import           Control.Monad.Rescue
 
-import Data.Aeson
-import Data.Bool
-import Data.Bifunctor (bimap)
-import Data.Has
-import Data.Maybe
-import Data.WorldPeace
+import           Control.Monad.Trans.Cleanup
+import           Control.Monad.Trans.Rescue
 
-import Database.Persist (Entity (..))
+import           Network.IPFS.Internal.Orphanage.Utf8Builder ()
 
-import Flow
+import           Data.Aeson                                  hiding (Options)
+import           Data.Bifunctor                              (bimap)
+import           Data.Bool
+import           Data.Has
+import           Data.Maybe
+import           Data.WorldPeace
 
-import RIO.List (headMaybe, intercalate)
-import RIO.Process
-import RIO.Time
-import RIO.Char (ord)
+import           Data.Generics.Product
+import           Data.Generics.Sum
 
-import RIO.Orphans ()
+import           Database.Persist                            (Entity (..))
 
-import RIO hiding ( Handler
-                  , LogLevel (..)
-                  , LogSource
-                  , logDebug
-                  , logDebugS
-                  , logError
-                  , logErrorS
-                  , logInfo
-                  , logInfoS
-                  , logOther
-                  , logOtherS
-                  , logWarn
-                  , logWarnS
-                  , id
-                  , timeout
-                  , const
-                  , (&)
-                  , (^.)
-                  , exp
-                  )
+import           Flow
 
-import Test.QuickCheck hiding (Result (..))
-import Test.QuickCheck.Instances ()
+import           RIO.Char                                    (ord)
+import           RIO.List                                    (headMaybe,
+                                                              intercalate)
+import           RIO.Process
+import           RIO.Time
 
-import Web.PathPieces
+import           RIO.Orphans                                 ()
 
-import Fission.Internal.Orphanage.OpenUnion ()
-import Fission.Internal.MonadDB
-import Fission.Internal.Log
-import Fission.Internal.Time
-import Fission.Internal.UTF8       (putText, putTextLn, textShow, displayLazyBS)
+import           RIO                                         hiding (Handler,
+                                                              LogLevel (..),
+                                                              LogSource, const,
+                                                              exp, id, logDebug,
+                                                              logDebugS,
+                                                              logError,
+                                                              logErrorS,
+                                                              logInfo, logInfoS,
+                                                              logOther,
+                                                              logOtherS,
+                                                              logWarn, logWarnS,
+                                                              timeout, (&),
+                                                              (^.))
+
+import           Test.QuickCheck                             hiding
+                                                              (Result (..))
+import           Test.QuickCheck.Instances                   ()
+
+import           Web.PathPieces
+
+import           Fission.Internal.Log
+import           Fission.Internal.MonadDB
+import           Fission.Internal.Orphanage.OpenUnion        ()
+import           Fission.Internal.Time
+import           Fission.Internal.UTF8                       (displayLazyBS,
+                                                              putText,
+                                                              putTextLn,
+                                                              textShow)
 
 identity :: a -> a
 identity a = a

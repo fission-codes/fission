@@ -6,7 +6,7 @@ module Fission.Web.Client
   , module Fission.Web.Client.Class
   ) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519           as Ed25519
 
 import           Servant.Client
 import           Servant.Client.Core
@@ -14,13 +14,19 @@ import           Servant.Client.Core
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
- 
+
 import           Fission.Web.Client.Auth
 import           Fission.Web.Client.Class
 import           Fission.Web.Client.JWT
 
-sendRequestM :: MonadWebClient m => m (ClientM a) -> m (Either ClientError a)
-sendRequestM clientAction = sendRequest =<< clientAction
+sendRequestM ::
+  ( MonadWebClient m
+  , MonadRaise     m
+  ,  m `Raises` ClientError
+  )
+  => m (ClientM a)
+  -> m a
+sendRequestM clientAction = ensureM (sendRequest =<< clientAction)
 
 authClient ::
   ( MonadIO      m

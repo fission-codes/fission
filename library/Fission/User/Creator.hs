@@ -9,27 +9,27 @@ module Fission.User.Creator
 import           Fission.User.Creator.Class
 import           Fission.User.Creator.Error
 
-import           Data.UUID (UUID)
-import           Database.Esqueleto hiding ((<&>))
+import           Data.UUID                             (UUID)
+import           Database.Esqueleto                    hiding ((<&>))
 import           Servant
 
-import           Fission.Prelude
-import           Fission.Error as Error
+import           Fission.Error                         as Error
 import           Fission.Models
+import           Fission.Prelude
 
-import           Fission.Key as Key
+import           Fission.Key                           as Key
 
-import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
+import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 
-import qualified Fission.User.Creator.Error as User
-import           Fission.User.Password      as Password
+import qualified Fission.User.Creator.Error            as User
+import           Fission.User.Password                 as Password
 import           Fission.User.Types
-import qualified Fission.User.Validation    as User
+import qualified Fission.User.Validation               as User
 
 import           Network.IPFS.Bytes.Types
 
-import qualified Fission.App.Content as App.Content
+import qualified Fission.App.Content                   as App.Content
 
 
 createDB ::
@@ -38,7 +38,7 @@ createDB ::
   -> Key.Public
   -> Email
   -> UTCTime
-  -> Transaction m (Either Errors UserId)
+  -> Transaction m (Either Errors' UserId)
 createDB username pk email now =
   User
     { userPublicKey     = Just pk
@@ -71,7 +71,7 @@ createWithPasswordDB ::
   -> Password
   -> Email
   -> UTCTime
-  -> Transaction m (Either Errors UserId)
+  -> Transaction m (Either Errors' UserId)
 createWithPasswordDB username password email now =
   Password.hashPassword password >>= \case
     Left err ->
@@ -105,7 +105,7 @@ createWithHerokuDB ::
   -> Username
   -> Password
   -> UTCTime
-  -> Transaction m (Either Errors UserId)
+  -> Transaction m (Either Errors' UserId)
 createWithHerokuDB herokuUUID herokuRegion username password now =
   Heroku.AddOn.create herokuUUID herokuRegion now >>= \case
     Left err ->
@@ -141,11 +141,11 @@ determineConflict ::
   MonadIO m
   => Username
   -> Maybe Key.Public
-  -> Transaction m (Either Errors a)
- 
+  -> Transaction m (Either Errors' a)
+
 determineConflict username Nothing =
   return . Error.openLeft $ User.ConflictingUsername username
- 
+
 determineConflict username (Just pk) = do
   -- NOTE needs to be updated along with DB constraints
   --      because Postgres doesn't do this out of the box

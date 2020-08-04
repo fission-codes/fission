@@ -8,12 +8,12 @@ module Fission.User
   , CRUD
   ) where
 
-import Fission.User.Retriever
-import Fission.User.Creator  hiding (Errors)
-import Fission.User.Modifier hiding (Errors)
-import Fission.User.Destroyer
-import Fission.User.Types
-import Fission.User.Registration.Types
+import           Fission.User.Creator            hiding (Errors')
+import           Fission.User.Destroyer
+import           Fission.User.Modifier           hiding (Errors')
+import           Fission.User.Registration.Types
+import           Fission.User.Retriever
+import           Fission.User.Types
 
 type CRUD m
   = ( Retriever m

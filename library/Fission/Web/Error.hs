@@ -9,12 +9,12 @@ module Fission.Web.Error
   ) where
 
 import           Network.HTTP.Types.Status
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.ByteString.Lazy                    as Lazy
 import           Servant.Server
 
-import           Fission.Prelude
+import           Fission.Prelude                        hiding (ensure, ensureM)
 import           Fission.Web.Error.Class
- 
+
 import           Fission.Internal.Orphanage.ServerError ()
 
 ensure ::
