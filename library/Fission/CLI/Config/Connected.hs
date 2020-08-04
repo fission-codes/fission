@@ -10,6 +10,7 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Network.IPFS
 
 import           Fission.Prelude
+import qualified RIO.NonEmpty as NonEmpty
  
 import           Fission.Authorization.ServerDID
 import qualified Fission.Key as Key
@@ -28,7 +29,6 @@ import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
 import qualified Fission.CLI.IPFS.Connect      as Connect
 
-import qualified RIO.NonEmpty as NonEmpty
 
 -- | Ensure we have a local config file with the appropriate data
 --

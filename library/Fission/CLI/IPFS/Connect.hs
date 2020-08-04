@@ -7,7 +7,7 @@ module Fission.CLI.IPFS.Connect
 import           Fission.Prelude
 
 import qualified System.Console.ANSI as ANSI
-import           RIO.NonEmpty as NonEmpty hiding ((<|))
+import qualified RIO.NonEmpty        as NonEmpty
 
 import           Fission.Web.Client
 import           Fission.Web.Client.Peers as Peers
@@ -20,7 +20,6 @@ import           Network.IPFS
 import qualified Network.IPFS.Types       as IPFS
 import qualified Network.IPFS.Peer        as IPFS.Peer
 import qualified Network.IPFS.Peer.Error  as IPFS.Peer
-
 
 
 -- | Connect to the Fission IPFS network with a set amount of retries
@@ -39,7 +38,8 @@ swarmConnectWithRetry _peers (-1) =
 swarmConnectWithRetry peers tries = do
   attempts <- connectToPeers $ NonEmpty.toList peers
   if any isRight attempts
-    then 
+    then do
+      logDebug $ "Successfully connected to a node. Full results: " <> textShow attempts
       return ok
 
     else 
@@ -51,6 +51,7 @@ swarmConnectWithRetry peers tries = do
           UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
           swarmConnectWithRetry retryPeers (tries - 1)
 
+-- | Connect to a list of peers
 connectToPeers ::
   ( MonadUnliftIO  m
   , MonadLocalIPFS m
