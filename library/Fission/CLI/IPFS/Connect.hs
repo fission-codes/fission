@@ -7,7 +7,7 @@ module Fission.CLI.IPFS.Connect
 import           Fission.Prelude
 
 import qualified System.Console.ANSI as ANSI
-import           Data.List.NonEmpty as NonEmpty hiding ((<|))
+import           RIO.NonEmpty as NonEmpty hiding ((<|))
 
 import           Fission.Web.Client
 import           Fission.Web.Client.Peers as Peers
@@ -17,8 +17,10 @@ import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.CLI.IPFS.Error.Types
 
 import           Network.IPFS
-import qualified Network.IPFS.Peer  as IPFS.Peer
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.Types       as IPFS
+import qualified Network.IPFS.Peer        as IPFS.Peer
+import qualified Network.IPFS.Peer.Error  as IPFS.Peer
+
 
 
 -- | Connect to the Fission IPFS network with a set amount of retries
@@ -28,25 +30,34 @@ swarmConnectWithRetry ::
   , MonadLocalIPFS m
   , MonadWebClient m
   )
-  => IPFS.Peer
+  => NonEmpty IPFS.Peer
   -> Int
   -> m (Either SomeException ())
-swarmConnectWithRetry _peer (-1) =
+swarmConnectWithRetry _peers (-1) =
   return . Left $ toException UnableToConnect
 
-swarmConnectWithRetry peer tries =
-  IPFS.Peer.connect peer >>= \case
-    Right _ ->
+swarmConnectWithRetry peers tries = do
+  attempts <- connectToPeers $ NonEmpty.toList peers
+  if any isRight attempts
+    then 
       return ok
 
-    Left _err ->
+    else 
       Peers.getPeers >>= \case
         Left _ ->
           return . Left $ toException UnableToConnect
 
-        Right peers -> do
+        Right retryPeers -> do
           UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
-          swarmConnectWithRetry (head peers) (tries - 1)
+          swarmConnectWithRetry retryPeers (tries - 1)
+
+connectToPeers ::
+  ( MonadUnliftIO  m
+  , MonadLocalIPFS m
+  )
+  => [IPFS.Peer]
+  -> m [Either IPFS.Peer.Error ()]
+connectToPeers peers = sequence $ IPFS.Peer.connect <$> peers
 
 -- | Create a could not connect to Fission peer message for the terminal
 couldNotSwarmConnect :: MonadIO m => m ()

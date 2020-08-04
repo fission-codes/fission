@@ -28,6 +28,8 @@ import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
 import qualified Fission.CLI.IPFS.Connect      as Connect
 
+import qualified RIO.NonEmpty as NonEmpty
+
 -- | Ensure we have a local config file with the appropriate data
 --
 -- Takes a @Connected@-dependant action, and lifts it into an environment that
@@ -64,13 +66,14 @@ liftConfig BaseConfig {..} = do
     Right secretKey -> do
       config <- Environment.get
  
-      Environment.getOrRetrievePeer config >>= \case
+      maybePeers <- Environment.getOrRetrievePeers config 
+      case NonEmpty.nonEmpty maybePeers of
         Nothing -> do
           CLI.Error.notConnected PeersNotFound
           return $ Left PeersNotFound
 
-        Just peer ->
-          Connect.swarmConnectWithRetry peer 1 >>= \case
+        Just peers ->
+          Connect.swarmConnectWithRetry peers 1 >>= \case
             Left err -> do
               logDebug $ displayShow err
               Connect.couldNotSwarmConnect

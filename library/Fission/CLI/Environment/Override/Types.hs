@@ -1,6 +1,5 @@
 module Fission.CLI.Environment.Override.Types (Override (..)) where
 
-import           RIO.List
 import           RIO.Prelude.Types
 
 import           Servant.API
@@ -48,7 +47,7 @@ instance Monoid Override where
 
 instance ToJSON Override where
   toJSON Override {..} = object $ catMaybes
-    [ ("peers"      .=) <$> tailMaybe peers
+    [ ("peers"      .=) <$> pure peers
     , ("app_url"    .=) <$> maybeAppURL
     , ("user_auth"  .=) <$> maybeUserAuth
     , ("ignore"     .=) <$> maybeIgnored
