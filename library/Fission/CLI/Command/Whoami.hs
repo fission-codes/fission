@@ -55,7 +55,7 @@ whoami = do
 
     Left err ->
       let
-        commonErrMsg = "Please contact Fission support or delete `~/.ssh/fission` and try again."
+        commonErrMsg = "Please contact Fission support https://fission.codes/support or delete `~/.ssh/fission` and try again."
         specific = case err of
           FailureResponse _ (responseStatusCode -> status) ->
             if | status == status404        -> "We don't recognize your key!"
