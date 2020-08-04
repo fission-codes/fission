@@ -26,13 +26,14 @@ import           Fission.CLI.Display.Error   as CLI.Error
 import           Fission.CLI.Display.Success as CLI.Success
 
 import qualified Fission.CLI.Prompt               as Prompt
+import qualified Fission.CLI.Environment          as Env
 import qualified Fission.CLI.Environment.Override as Env.Override
 
 import           Fission.CLI.Command.Types
 
 -- | The command to attach to the CLI tree
 cmd ::
-  ( MonadIO m
+  ( MonadUnliftIO m
   , MonadLogger m
   , MonadWebClient m
   , MonadTime m
@@ -49,7 +50,7 @@ cmd = Command
   }
 
 setup ::
-  ( MonadIO m
+  ( MonadUnliftIO m
   , MonadLogger m
   , MonadWebClient m
   , MonadTime m
@@ -66,7 +67,7 @@ setup =
       maybe createAccount upgradeAccount =<< Env.Override.findBasicAuth
 
 createAccount ::
-  ( MonadIO m
+  ( MonadUnliftIO m
   , MonadLogger m
   , MonadWebClient m
   , MonadTime m
@@ -86,7 +87,8 @@ createAccount = do
       }
 
   sendRequestM (authClient (Proxy @User.Register) `withPayload` form) >>= \case
-    Right _ok ->
+    Right _ok -> do
+      Env.init
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
 
     Left err ->
