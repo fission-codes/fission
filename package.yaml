@@ -1,5 +1,5 @@
 name: fission
-version: '2.6.3'
+version: '2.6.7'
 category: API
 author:
   - Brooklyn Zelenka
@@ -123,6 +123,7 @@ dependencies:
   - network-uri
   - optparse-applicative
   - optparse-simple
+  - parallel
   - path-pieces
   - pem
   - persistent

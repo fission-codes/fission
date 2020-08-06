@@ -1,7 +1,12 @@
 module Main (main) where
 
 import qualified Data.ByteString.Char8 as BS8
-import qualified RIO.Partial           as Partial
+
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
+
+import qualified RIO.Partial as Partial
+import qualified RIO.Process as Process
 
 import           Network.HTTP.Client     as HTTP
 import           Network.HTTP.Client.TLS as HTTP
@@ -10,8 +15,10 @@ import qualified Network.IPFS.BinPath.Types as IPFS
 import qualified Network.IPFS.Timeout.Types as IPFS
 
 import           Servant.Client
- 
+
 import           Fission.Prelude
+
+import qualified Fission.Internal.UTF8 as UTF8
 
 import           Fission.Environment
 import           Fission.Internal.App (isDebugEnabled, setRioVerbose)
@@ -27,7 +34,19 @@ main = do
   logOptions <- logOptionsHandle stderr isVerbose
   processCtx <- mkDefaultProcessContext
 
-  ipfsPath    <- withEnv "IPFS_PATH" (IPFS.BinPath "/usr/local/bin/ipfs") IPFS.BinPath
+  ipfsFallback <- runSimpleApp do
+    (exitCode, systemIPFS, errMsg) <- Process.proc "which" ["ipfs"] Process.readProcess
+
+    case exitCode of
+      ExitSuccess ->
+        return . IPFS.BinPath . Text.unpack . decodeUtf8Lenient . Lazy.toStrict $ UTF8.stripNewline systemIPFS
+
+      ExitFailure _ -> do
+        logDebug errMsg
+        logDebug @Text "No IPFS binary on the $PATH; falling back to default."
+        return $ IPFS.BinPath "/usr/local/bin/ipfs"
+
+  ipfsPath    <- withEnv "IPFS_PATH" ipfsFallback IPFS.BinPath
   ipfsTimeout <- withEnv "IPFS_TIMEOUT" (IPFS.Timeout 3600) (IPFS.Timeout . Partial.read)
 
   isTLS <- getFlag "FISSION_TLS" .!~ True
