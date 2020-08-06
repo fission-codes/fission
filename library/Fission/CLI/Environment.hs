@@ -115,7 +115,7 @@ getOrRetrievePeers Environment {peers = []} =
       Override.writeMerge path $ mempty { peers }
       return peers
 
-getOrRetrievePeers Environment {peers = peers} = do
+getOrRetrievePeers Environment {peers} = do
   logDebug $ "Retrieved Peers from .fission.yaml: " <> textShow peers
   return peers
 
