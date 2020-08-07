@@ -83,7 +83,7 @@ write path env = writeBinaryFileDurable path $ YAML.encode env
 writeMerge :: MonadIO m => FilePath -> Override -> m ()
 writeMerge path newEnv = do
   currentEnv <- decode path
-  writeBinaryFileDurable path $ YAML.encode (currentEnv <> newEnv)
+  write path $ currentEnv <> newEnv
 
 -- | globalEnv environment in users home
 globalEnv :: MonadIO m => m FilePath

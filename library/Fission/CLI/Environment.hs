@@ -5,7 +5,7 @@ module Fission.CLI.Environment
   , getPath
   , couldNotRead
   , removeConfigFile
-  , getOrRetrievePeer
+  , getOrRetrievePeers
  
   -- * Reexport
 
@@ -27,7 +27,6 @@ import           Fission.Web.Client
 import           Fission.Web.Client.Peers         as Peers
 
 import qualified Fission.CLI.Display.Error        as CLI.Error
-import qualified Fission.CLI.Display.Success      as CLI.Success
 
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Types
@@ -60,7 +59,6 @@ init = do
 
       path <- globalEnv
       liftIO $ Override.write path env
-      CLI.Success.putOk "Logged in"
 
 -- | Gets hierarchical environment by recursing through file system
 get :: MonadIO m => m Environment
@@ -94,29 +92,30 @@ removeConfigFile = do
 
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
-getOrRetrievePeer ::
+getOrRetrievePeers ::
   ( MonadUnliftIO  m
   , MonadLogger    m
   , MonadWebClient m
   )
   => Environment
-  -> m (Maybe IPFS.Peer)
-getOrRetrievePeer Environment {peers = (peer : _)} = do
-  logDebug @Text "Retrieved Peer from .fission.yaml"
-  return $ Just peer
-
-getOrRetrievePeer Environment {peers = []} =
+  -> m [IPFS.Peer]
+getOrRetrievePeers Environment {peers = []} =
   Peers.getPeers >>= \case
     Left err -> do
       logError $ displayShow err
       logDebug @Text "Unable to retrieve peers from the network"
-      return Nothing
+      return []
 
     Right nonEmptyPeers -> do
-      logDebug @Text "Retrieved Peer from API"
       path <- globalEnv
-      Override.writeMerge path $ mempty { peers = NonEmpty.toList nonEmptyPeers }
-      return . Just $ NonEmpty.head nonEmptyPeers
+      let peers = NonEmpty.toList nonEmptyPeers
+      logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow peers
+      Override.writeMerge path $ mempty { peers }
+      return peers
+
+getOrRetrievePeers Environment {peers} = do
+  logDebug $ "Retrieved Peers from .fission.yaml: " <> textShow peers
+  return peers
 
 ignoreDefault :: IPFS.Ignored
 ignoreDefault =

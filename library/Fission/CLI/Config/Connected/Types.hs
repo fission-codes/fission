@@ -43,7 +43,7 @@ data ConnectedConfig = ConnectedConfig
   , processCtx   :: !ProcessContext
   , ipfsPath     :: !IPFS.BinPath
   , ipfsTimeout  :: !IPFS.Timeout
-  , peer         :: !IPFS.Peer
+  , peers        :: !(NonEmpty IPFS.Peer)
   , ignoredFiles :: !IPFS.Ignored
   }
 
