@@ -35,8 +35,8 @@ jobs:
     - name: 📸 Build Snapshot
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        stack --no-terminal test --bench --only-snapshot
+        stack --no-terminal test --fast --bench --only-snapshot
 
     - name: 🔨 Build & Test
       run: |
-        stack --no-terminal test --fast --bench --no-run-benchmarks --haddock --no-haddock-deps --coverage
+        stack --no-terminal test --fast
