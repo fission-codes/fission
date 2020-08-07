@@ -89,7 +89,7 @@ liftConfig BaseConfig {..} = do
 
               in
                 runConnected' connCfg do
-                  logDebug @Text "Connected and attempting user verififcation"
+                  logDebug @Text "Connected and attempting user verification"
                   sendRequestM (authClient $ Proxy @User.Verify) >>= \case
                     Left err -> do
                       CLI.Error.notConnected err
