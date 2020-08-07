@@ -115,7 +115,7 @@ createAccount = do
 
       in do
         CLI.Error.put err $
-          errMsg <> " Please try again or contact Fission support."
+          errMsg <> " Please try again or contact Fission support https://fission.codes/support."
          
         createAccount
 
