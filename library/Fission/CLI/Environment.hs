@@ -27,7 +27,6 @@ import           Fission.Web.Client
 import           Fission.Web.Client.Peers         as Peers
 
 import qualified Fission.CLI.Display.Error        as CLI.Error
-import qualified Fission.CLI.Display.Success      as CLI.Success
 
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Types
@@ -60,7 +59,6 @@ init = do
 
       path <- globalEnv
       liftIO $ Override.write path env
-      CLI.Success.putOk "Logged in"
 
 -- | Gets hierarchical environment by recursing through file system
 get :: MonadIO m => m Environment
