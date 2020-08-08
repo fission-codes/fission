@@ -45,7 +45,7 @@ jobs:
       id: cache
       uses: actions/cache@v1
       with:
-        path: ~/.stack-work/install
+        path: ./.stack-work/dist
         key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
 
     - name: Test
