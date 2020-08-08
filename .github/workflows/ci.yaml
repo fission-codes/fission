@@ -34,7 +34,7 @@ jobs:
 
     - name: 🔑 Artifact Cache Key
       id: art_cache_key
-      run: echo ::set-output name=key::$(git log --head | md5sum | awk '{print $1}')
+      run: echo ::set-output name=key::$(git branch)
 
     - name: 💾 Cache Artifacts
       id: cache_arts
