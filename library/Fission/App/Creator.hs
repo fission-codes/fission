@@ -17,25 +17,26 @@ import           Fission.URL.Subdomain.Types
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
-import           Database.Esqueleto hiding ((<&>))
+import           Database.Esqueleto          hiding ((<&>))
 
 createWithPlaceholder ::
   ( App.Creator        m
   , AppCID.Initializer m
   )
   => UserId
+  -> Maybe Subdomain
   -> UTCTime
   -> m (Either Errors (AppId, Subdomain))
-createWithPlaceholder ownerId now = do
+createWithPlaceholder ownerId maySubdomain now = do
   defaultCID <- AppCID.placeholder
-  create ownerId defaultCID now
+  create ownerId defaultCID maySubdomain now
 
-createDB :: 
+createDB ::
      MonadIO m
-  => UserId 
-  -> CID 
-  -> Bytes 
-  -> UTCTime 
+  => UserId
+  -> CID
+  -> Bytes
+  -> UTCTime
   -> Transaction m AppId
 createDB ownerId cid size now = do
   appId <- insert App

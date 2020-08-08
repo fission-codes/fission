@@ -42,7 +42,7 @@ createDB ::
 createDB username pk email now =
   User
     { userPublicKey     = Just pk
-    , userExchangeKeys  = []
+    , userExchangeKeys  = Just []
     , userUsername      = username
     , userEmail         = Just email
     , userRole          = Regular
@@ -65,7 +65,6 @@ createDB username pk email now =
           Just userId -> return $ Right userId
           Nothing -> determineConflict username (Just pk)
 
-
 createWithPasswordDB ::
      MonadIO m
   => Username
@@ -81,7 +80,7 @@ createWithPasswordDB username password email now =
     Right secretDigest ->
       User
         { userPublicKey     = Nothing
-        , userExchangeKeys  = []
+        , userExchangeKeys  = Just []
         , userUsername      = username
         , userEmail         = Just email
         , userRole          = Regular
@@ -98,7 +97,6 @@ createWithPasswordDB username password email now =
         |> bind \case
           Just userId -> return $ Right userId
           Nothing -> determineConflict username Nothing
-
 
 createWithHerokuDB ::
      MonadIO m
@@ -121,7 +119,7 @@ createWithHerokuDB herokuUUID herokuRegion username password now =
         Right secretDigest ->
           User
             { userPublicKey     = Nothing
-            , userExchangeKeys  = []
+            , userExchangeKeys  = Just []
             , userUsername      = username
             , userEmail         = Nothing
             , userRole          = Regular
@@ -149,7 +147,7 @@ determineConflict username Nothing =
   return . Error.openLeft $ User.ConflictingUsername username
  
 determineConflict username (Just pk) = do
-  -- NOTE needs to be updated anlong with DB constraints
+  -- NOTE needs to be updated along with DB constraints
   --      because Postgres doesn't do this out of the box
 
   conflUN <- getBy (UniqueUsername username) <&> fmap \_ ->

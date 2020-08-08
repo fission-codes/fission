@@ -23,6 +23,10 @@ instance Display Subdomain where
 instance Semigroup Subdomain where
   Subdomain subA <> Subdomain subB = Subdomain (subA <> "." <> subB)
 
+instance FromJSON Subdomain where
+  parseJSON = withText "AWS.Subdomain" \txt ->
+    Subdomain <$> parseJSON (String txt)
+
 instance ToJSON Subdomain where
   toJSON (Subdomain sub) = String sub
 
@@ -50,9 +54,8 @@ instance ToParamSchema Subdomain where
 instance FromHttpApiData Subdomain where
   parseUrlPiece = Right . Subdomain
 
-instance FromJSON Subdomain where
-  parseJSON = withText "AWS.Subdomain" \txt ->
-    Subdomain <$> parseJSON (String txt)
+instance ToHttpApiData Subdomain where
+  toUrlPiece = textDisplay
 
 instance MimeRender PlainText Subdomain where
   mimeRender _ = displayLazyBS . get
