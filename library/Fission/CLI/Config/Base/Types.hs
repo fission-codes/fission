@@ -161,7 +161,6 @@ instance MonadWebAuth FissionBase Ed25519.SecretKey where
 instance MonadLocalIPFS FissionBase where
   runLocal opts arg = do
     IPFS.BinPath ipfs <- asks ipfsPath
-    logInfo $ ">>>>>>>>>>>>>>>>>" <> Text.pack ipfs
     IPFS.Timeout secs <- asks ipfsTimeout
 
     let opts' = ("--timeout=" <> show secs <> "s") : opts

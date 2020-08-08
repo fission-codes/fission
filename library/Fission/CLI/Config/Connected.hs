@@ -10,6 +10,7 @@ import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Network.IPFS
 
 import           Fission.Prelude
+import qualified RIO.NonEmpty as NonEmpty
  
 import           Fission.Authorization.ServerDID
 import qualified Fission.Key as Key
@@ -27,6 +28,7 @@ import qualified Fission.CLI.Display.Error as CLI.Error
 import           Fission.CLI.Environment.Types as Environment
 import qualified Fission.CLI.Environment       as Environment
 import qualified Fission.CLI.IPFS.Connect      as Connect
+
 
 -- | Ensure we have a local config file with the appropriate data
 --
@@ -64,13 +66,14 @@ liftConfig BaseConfig {..} = do
     Right secretKey -> do
       config <- Environment.get
  
-      Environment.getOrRetrievePeer config >>= \case
+      maybePeers <- Environment.getOrRetrievePeers config 
+      case NonEmpty.nonEmpty maybePeers of
         Nothing -> do
           CLI.Error.notConnected PeersNotFound
           return $ Left PeersNotFound
 
-        Just peer ->
-          Connect.swarmConnectWithRetry peer 1 >>= \case
+        Just peers ->
+          Connect.swarmConnectWithRetry peers 1 >>= \case
             Left err -> do
               logDebug $ displayShow err
               Connect.couldNotSwarmConnect
@@ -89,7 +92,7 @@ liftConfig BaseConfig {..} = do
 
               in
                 runConnected' connCfg do
-                  logDebug @Text "Connected and attempting user verififcation"
+                  logDebug @Text "Connected and attempting user verification"
                   sendRequestM (authClient $ Proxy @User.Verify) >>= \case
                     Left err -> do
                       CLI.Error.notConnected err
