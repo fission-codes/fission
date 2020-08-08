@@ -23,5 +23,4 @@ nix:
   enable: true
   packages:
   - lzma
-  - postgresql
   - zlib

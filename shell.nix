@@ -12,7 +12,6 @@ pkgs.mkShell {
 
     # Data
     # pkgs.ipfs
-    pkgs.libpqxx
     pkgs.haskellPackages.postgresql-libpq
     pkgs.postgresql
 
