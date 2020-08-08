@@ -32,11 +32,6 @@ jobs:
         path: ~/.stack
         key: ${{ matrix.os }}-${{ steps.dep_cache_key.outputs.key }}
 
-    - name: 🔨 Build
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        stack build --fast
-
     - name: 🔑 Artifact Cache Key
       id: art_cache_key
       run: echo ::set-output name=key::$(git log --head | md5sum | awk '{print $1}')
@@ -47,6 +42,11 @@ jobs:
       with:
         path: ./.stack-work/dist
         key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
+
+    - name: 🔨 Build
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        stack build --fast
 
     - name: Test
       run: |
