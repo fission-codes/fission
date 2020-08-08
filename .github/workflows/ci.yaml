@@ -25,17 +25,17 @@ jobs:
       id: cache_key
       run: echo ::set-output name=key::$(md5sum stack.yaml | awk '{print $1}')
 
+    - name:  Build Snapshot
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        stack build --fast
+
     - name: 💾 Cache Dependencies
       id: cache
       uses: actions/cache@v1
       with:
         path: ~/.stack
         key: ${{ matrix.os }}-${{ steps.cache_key.outputs.key }}
-
-    - name: 📸 Build Snapshot
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        stack --no-terminal test --fast --bench --only-snapshot
 
     - name: 🔨 Build & Test
       run: |
