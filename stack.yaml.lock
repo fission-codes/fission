@@ -33,6 +33,13 @@ packages:
   original:
     hackage: happy-1.19.12
 - completed:
+    hackage: hfsevents-0.1.6@sha256:295b29e8a4ac51a0015f4fb92b4140139d7b13ed691318159a20f85ce785dac6,863
+    pantry-tree:
+      size: 438
+      sha256: 14370510ec9a045fdc5b7e614279a84e3540a968f8b5ad12b8796916c4d6d1ee
+  original:
+    hackage: hfsevents-0.1.6
+- completed:
     hackage: hspec-wai-json-0.10.1@sha256:67b405c38f0a9e2771480c8d3ecd8aeb8d8776a35d3b2906cb1b76c9538617e4,1629
     pantry-tree:
       size: 349
