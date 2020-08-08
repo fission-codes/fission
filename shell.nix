@@ -1,6 +1,7 @@
 let
   sources = import ./nix/sources.nix;
   pkgs    = import sources.nixpkgs {};
+  hinotify = if pkgs.stdenv.isDarwin then pkgs.hfsevents else pkgs.hinotify;
 in
 
 pkgs.mkShell {
@@ -10,9 +11,11 @@ pkgs.mkShell {
     pkgs.zlib
 
     # Data
-    # pkgs.ipfs
-    pkgs.libpqxx
+    pkgs.ipfs
+    pkgs.haskellPackages.postgresql-libpq
     pkgs.postgresql
+
+    hinotify
 
     # Haskell
     pkgs.ghcid

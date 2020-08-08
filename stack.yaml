@@ -11,8 +11,9 @@ extra-deps:
 - base64-bytestring-1.1.0.0
 - cryptostore-0.2.1.0
 - happy-1.19.12
+- hfsevents-0.1.6
 - hspec-wai-json-0.10.1
-- ipfs-1.1.0
+- ipfs-1.1.1
 - lzma-clib-5.2.2
 - raven-haskell-0.1.4.0
 - servant-quickcheck-0.0.7.4
@@ -22,8 +23,6 @@ extra-deps:
 nix:
   enable: true
   packages:
-  - ipfs
-  - libpqxx
   - lzma
   - postgresql
   - zlib

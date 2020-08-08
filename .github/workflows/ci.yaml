@@ -21,22 +21,28 @@ jobs:
     - name: 📥 Checkout repository
       uses: actions/checkout@v1
 
-    - name: 🔑 Cache Key
-      id: cache_key
-      run: echo ::set-output name=key::$(md5sum stack.yaml | awk '{print $1}')
+    - name: 🔑 Dependency Cache Key
+      id: dep_cache_key
+      run: echo ::set-output name=key::$(md5sum stack.yaml.lock | awk '{print $1}')
 
     - name: 💾 Cache Dependencies
-      id: cache
+      id: cache_deps
       uses: actions/cache@v1
       with:
         path: ~/.stack
-        key: ${{ matrix.os }}-${{ steps.cache_key.outputs.key }}
+        key: ${{ matrix.os }}-${{ steps.dep_cache_key.outputs.key }}
 
-    - name: 📸 Build Snapshot
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        stack --no-terminal test --fast --bench --only-snapshot
+    - name: 🔑 Artifact Cache Key
+      id: art_cache_key
+      run: echo ::set-output name=key::$(git branch)
 
-    - name: 🔨 Build & Test
+    - name: 💾 Cache Artifacts
+      id: cache_arts
+      uses: actions/cache@v1
+      with:
+        path: ./.stack-work/dist
+        key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
+
+    - name: Test
       run: |
         stack --no-terminal test --fast
