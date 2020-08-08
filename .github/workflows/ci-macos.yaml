@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Continuous Integration MacOS (no nix)
 
 on:
   push: { "branches": [ "master" ] }
@@ -8,18 +8,16 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [macos-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v10
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-
     - name: 📥 Checkout repository
       uses: actions/checkout@v1
+
+    - name: 🧰 Setup Stack
+      uses: mstksg/setup-stack@v1
 
     - name: 🔑 Dependency Cache Key
       id: dep_cache_key
@@ -45,4 +43,4 @@ jobs:
 
     - name: Test
       run: |
-        stack --no-terminal test --fast
+        stack --no-terminal --no-nix test --fast
