@@ -44,7 +44,6 @@ jobs:
         key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
 
     - name: 🔨 Build
-      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         stack build --fast
 
