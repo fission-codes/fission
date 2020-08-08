@@ -21,6 +21,7 @@ extra-deps:
 
 nix:
   enable: true
+  pure: false
   packages:
   - lzma
   - postgresql
