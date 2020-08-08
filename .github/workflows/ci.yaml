@@ -43,10 +43,6 @@ jobs:
         path: ./.stack-work/dist
         key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
 
-    - name: 🔨 Build
-      run: |
-        stack build --fast
-
     - name: Test
       run: |
         stack --no-terminal test --fast
