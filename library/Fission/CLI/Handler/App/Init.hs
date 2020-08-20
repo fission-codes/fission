@@ -12,6 +12,7 @@ import qualified Fission.Internal.UTF8                  as UTF8
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
+import           Fission.URL                            as URL
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
@@ -45,9 +46,10 @@ appInit ::
   )
   => FilePath
   -> Maybe FilePath
+  -> Maybe URL.Subdomain
   -> m ()
-appInit appDir mayBuildDir' = do
-  attempt (sendRequestM . authClient $ Proxy @App.Create) >>= \case
+appInit appDir mayBuildDir' maySubdomain = do
+  attempt (sendRequestM $ authClient (Proxy @App.Create) `withPayload` maySubdomain) >>= \case
     Left err -> do
       CLI.Error.put err $ textDisplay err
       raise err

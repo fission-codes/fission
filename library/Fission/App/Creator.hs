@@ -26,7 +26,7 @@ createWithPlaceholder ::
   => UserId
   -> Maybe Subdomain
   -> UTCTime
-  -> m (Either Errors (AppId, Subdomain))
+  -> m (Either Errors' (AppId, Subdomain))
 createWithPlaceholder ownerId maySubdomain now = do
   defaultCID <- AppCID.placeholder
   create ownerId defaultCID maySubdomain now

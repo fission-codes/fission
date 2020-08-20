@@ -9,6 +9,8 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
+import qualified Fission.URL                               as URL
+
 import           Fission.CLI.Parser.Command.App.Init.Types
 import qualified Fission.CLI.Parser.Config.IPFS            as IPFS
 import qualified Fission.CLI.Parser.Verbose                as Verbose
@@ -36,14 +38,39 @@ parser = do
     , metavar "APP_PATH"
     ]
 
-  buildDir <- strOption $ mconcat
+  buildDir <- option mayBuild $ mconcat
     [ help    "The file path of the assets or directory to sync"
     -----------
-    , value   ""
+    , value   Nothing
     , metavar "BUILD_PATH"
     -----------
     , long    "build-dir"
     , short   'b'
     ]
 
+  maySubdomain <- option subdomain $ mconcat
+    [ help    "Optional app name"
+    , showDefault
+    -----------
+    , long    "name"
+    , short   'n'
+    -----------
+    , value   Nothing
+    , metavar "NAME"
+    ]
+
   return Options {..}
+
+mayBuild:: ReadM (Maybe FilePath)
+mayBuild = do
+  raw <- str
+  pure case raw of
+    ""   -> Nothing
+    path -> Just path
+
+subdomain :: ReadM (Maybe URL.Subdomain)
+subdomain = do
+  txt <- str
+  pure case txt of
+    ""  -> Nothing
+    sub -> Just (URL.Subdomain sub)

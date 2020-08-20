@@ -36,4 +36,4 @@ class Monad m => Creator m where
     -> CID
     -> Maybe Subdomain
     -> UTCTime
-    -> m (Either Errors (AppId, Subdomain))
+    -> m (Either Errors' (AppId, Subdomain))

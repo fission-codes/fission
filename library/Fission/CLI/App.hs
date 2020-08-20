@@ -50,7 +50,7 @@ interpret baseCfg cmd = do
     Info (App.Info.Options _) ->
       Handler.appInfo
 
-    Init App.Init.Options {appDir, buildDir, ipfsCfg = IPFS.Config {..}} -> do
+    Init App.Init.Options {appDir, buildDir, maySubdomain, ipfsCfg = IPFS.Config {..}} -> do
       binPath' <- IPFS.Local.toBinPath binPath
 
       let
@@ -58,7 +58,7 @@ interpret baseCfg cmd = do
         run' = void . Connected.run baseCfg binPath' timeoutSeconds
 
       case appURL of
-        Nothing -> run' $ Handler.appInit appDir (Just buildDir)
+        Nothing -> run' $ Handler.appInit appDir buildDir maySubdomain
         Just _  -> CLI.Error.put (AlreadyExists @URL) "App already set up"
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
