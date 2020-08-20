@@ -13,6 +13,6 @@ parserWithInfo =
     [ fullDesc
     , progDesc "CLI to interact with Fission services"
     , header   "Fission makes developing, deploying, updating, and iterating on web apps quick and easy."
-    , footer   "Visit https://fission.codes for more"
+    , footer   "Visit https://fission.codes for more information and support"
     ]
 

@@ -41,7 +41,7 @@ whoami = do
     Left err ->
       let
         commonErrMsg =
-          "Please contact Fission support or delete `~/.ssh/fission` and try again."
+          "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."
 
         specific =
           case openUnionMatch err of
