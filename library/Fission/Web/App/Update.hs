@@ -28,7 +28,7 @@ update ::
   ( MonadLogger  m
   , MonadThrow   m
   , MonadTime    m
-  , App.Modifier m -- TODO CanModifyApp?
+  , App.Modifier m
   )
   => Authorization
   -> ServerT API m
