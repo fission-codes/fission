@@ -35,14 +35,14 @@ parser = do
     , short   'a'
     -----------
     , value   "."
-    , metavar "APP_PATH"
+    , metavar "PATH"
     ]
 
   buildDir <- option mayBuild $ mconcat
     [ help    "The file path of the assets or directory to sync"
     -----------
     , value   Nothing
-    , metavar "BUILD_PATH"
+    , metavar "PATH"
     -----------
     , long    "build-dir"
     , short   'b'
@@ -50,7 +50,6 @@ parser = do
 
   maySubdomain <- option subdomain $ mconcat
     [ help    "Optional app name"
-    , showDefault
     -----------
     , long    "name"
     , short   'n'
