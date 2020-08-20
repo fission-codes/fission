@@ -24,9 +24,6 @@ extra-deps:
 nix:
   enable: true
   packages:
-  - ghcid
-  - ipfs
-  - libpqxx
   - lzma
   - postgresql
   - zlib
