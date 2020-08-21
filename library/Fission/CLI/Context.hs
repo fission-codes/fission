@@ -9,5 +9,4 @@ run ::
   => cfgA
   -> FissionCLI errs cfgA a
   -> FissionCLI errs cfgB a
-run cfg = ensureM . runRIO cfg . runRescueT . unFissionCLI
-
+run cfg = ensureM . runFissionCLI cfg

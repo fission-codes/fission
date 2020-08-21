@@ -48,6 +48,7 @@ run ::
   , Contains errs     errs
   , Contains LiftErrs errs
   , IsMember IPFS.UnableToConnect errs
+  , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
 
   , HasLogFunc                 inCfg
@@ -59,24 +60,20 @@ run ::
   -> IPFS.BinPath
   -> IPFS.Timeout
   -> FissionCLI errs Config a
-  -> m (Either (OpenUnion (Errors (FissionCLI errs inCfg))) a)
-run cfg ipfsBinPath ipfsTimeout actions = do
-  result <- runFissionCLI cfg do
+  -> m (Either (OpenUnion errs) a)
+run cfg ipfsBinPath ipfsTimeout actions =
+  runFissionCLI cfg do
     cfg'@Config {peers} <- mkConnected cfg ipfsBinPath ipfsTimeout
 
     Context.run cfg' do
-      Connect.swarmConnectWithRetry peers 5
-      actions
+      attempt (Connect.swarmConnectWithRetry peers 5) >>= \case
+        Left err -> do
+          logDebug $ textDisplay err
+          Connect.couldNotSwarmConnect
+          raise err
 
-  case result of
-    Left err ->
-      runRIO cfg do
-        logDebug $ displayShow err
-        Connect.couldNotSwarmConnect
-        return $ Left err
-
-    Right val ->
-      return $ Right val
+        Right () ->
+          actions
 
 type LiftErrs =
   '[ Key.Error
