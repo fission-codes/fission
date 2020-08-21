@@ -172,7 +172,7 @@ instance
             attempt Key.readEd >>= \case
               Left errs' -> do
                 CLI.Error.put errs' "Unable to find or create key"
-                throwM $ NotFound @Ed25519.SecretKey
+                raise $ NotFound @Ed25519.SecretKey
 
               Right key ->
                 return key

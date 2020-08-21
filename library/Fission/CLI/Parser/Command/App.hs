@@ -25,7 +25,7 @@ parserWithInfo =
   (queries <|> commands <|> fallback) `info` mconcat
     [ fullDesc
     , header $ mconcat
-        [ "This group of commands helps you create, publish, and maintain web apps."
+        [ "This group of commands helps you create, publish, and maintain web apps. "
         , "If no subcommand is provided, the app info will be shown (if any)."
         ]
     , progDesc "User application management"
