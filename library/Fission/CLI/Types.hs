@@ -154,20 +154,14 @@ instance
     return $ Bearer Bearer.Token {..}
 
 instance
-  ( Key.Error `IsMember` errs
+  ( Key.Error                  `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
-  , HasLogFunc cfg
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
   getAuth =
     Key.exists >>= \case
-      True  ->
-        readEd
-
-      False -> do
-        let err = NotFound @Ed25519.SecretKey
-        CLI.Error.put err "Not yet logged in. Please run `fission user register`."
-        raise err
+      True  -> readEd
+      False -> raise $ NotFound @Ed25519.SecretKey
 
 instance MonadMask (FissionCLI errs cfg) where
   mask action = do

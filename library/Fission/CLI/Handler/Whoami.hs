@@ -29,7 +29,8 @@ whoami ::
   , MonadWebAuth   m Ed25519.SecretKey
   , MonadCleanup   m
   , m `Raises` ClientError
-  , Show (OpenUnion (Errors m))
+  , Show    (OpenUnion (Errors m))
+  , Display (OpenUnion (Errors m))
   , IsMember ClientError (Errors m)
   )
   => m ()
@@ -46,7 +47,7 @@ whoami = do
         specific =
           case openUnionMatch err of
             Nothing ->
-              "Unknown Error"
+              textDisplay err
 
             Just respErr ->
               case respErr of
