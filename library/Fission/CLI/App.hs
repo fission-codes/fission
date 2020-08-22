@@ -9,6 +9,8 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
+import qualified Fission.Internal.UTF8                   as UTF8
+
 import           Fission.CLI.Types
 import           Fission.Error
 import qualified Fission.Key                             as Key
@@ -66,8 +68,12 @@ interpret baseCfg cmd = do
         run' = void . Connected.run baseCfg binPath' timeoutSeconds
 
       case appURL of
-        Nothing -> run' $ Handler.appInit appDir buildDir maySubdomain
-        Just _  -> CLI.Error.put (AlreadyExists @URL) "App already set up"
+        Nothing ->
+          run' $ Handler.appInit appDir buildDir maySubdomain
+
+        Just url ->
+          UTF8.put $ "App already set up at " <> textDisplay url
+          raise $ AlreadyExists @URL
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       binPath' <- IPFS.Local.toBinPath binPath
