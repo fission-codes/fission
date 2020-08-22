@@ -32,7 +32,7 @@ putErrOr cont = \case
   Left err  -> put' err
   Right val -> cont val
 
--- | Display an error message to a user encouraging them to run `fission setup`
+-- | Display an error message to a user encouraging them to run `fission app register`
 --   Error depends on if they have basic auth saved somewhere (ie if they are an existing user)
 notConnected :: (MonadIO m, MonadLogger m, Exception err) => err ->  m ()
 notConnected err =
@@ -43,5 +43,5 @@ notConnected err =
     Just _auth ->
       put err $ mconcat
         [ "Thanks for updating fission! The CLI now uses private key authentication.\n"
-        , "Upgrade by running `fission setup`"
+        , "Upgrade by running `fission user register`"
         ]

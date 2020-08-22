@@ -28,7 +28,7 @@ You'll find the most up to date instructions for [installation](https://guide.fi
 If using Linux, install `libpq-dev`
 
 ### Seamless Deployments
-Deployments are just one step: `fission up`
+Deployments are just one step: `fission app publish`
 
 
 ```
@@ -41,7 +41,7 @@ $ fission up hello-universe/
 
 Simple as that!
 
-If you'd like to redeploy everytime you change a file, use `fission watch`
+If you'd like to redeploy everytime you change a file, use `fission app publish --watch`
 
 ## Web API Documentation
 

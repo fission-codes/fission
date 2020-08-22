@@ -71,7 +71,7 @@ interpret baseCfg cmd = do
       case appURL of
         Nothing ->
           CLI.Error.put (NotFound @URL)
-            "You have not set up an app. Please run `fission app init`"
+            "You have not set up an app. Please run `fission app register`"
 
         Just url ->
           run' $ Handler.up watch run' url filePath updateDNS updateData

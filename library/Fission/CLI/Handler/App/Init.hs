@@ -70,13 +70,13 @@ appInit appDir mayBuildDir' maySubdomain = do
         UTF8.putText "⏯️  Next run "
 
         ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
-        UTF8.putText "fission up"
+        UTF8.putText "fission app publish"
         ANSI.setSGR [ANSI.Reset]
 
         UTF8.putText " or "
 
         ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
-        UTF8.putText "fission watch"
+        UTF8.putText "fission app publish --watch"
         ANSI.setSGR [ANSI.Reset]
 
         UTF8.putText " to sync data\n"
