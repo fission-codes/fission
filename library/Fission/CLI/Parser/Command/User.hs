@@ -2,6 +2,8 @@ module Fission.CLI.Parser.Command.User
   ( parserWithInfo
   , parser
   , fallback
+  -- * Reexports
+  , module Fission.CLI.Parser.Command.User.Types
   ) where
 
 import           Options.Applicative
