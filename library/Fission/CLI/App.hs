@@ -14,6 +14,7 @@ import qualified Fission.Internal.UTF8                   as UTF8
 import           Fission.CLI.Types
 import           Fission.Error
 import qualified Fission.Key                             as Key
+import           Fission.Models
 
 import qualified Fission.CLI.Base.Types                  as Base
 import           Fission.CLI.Connected                   as Connected
@@ -39,6 +40,7 @@ type Errs =
    , Key.Error
    , NotRegistered
    , NoKeyFile
+   , AlreadyExists App
    , NotFound URL
    , NotFound Ed25519.SecretKey
    , NotFound [IPFS.Peer]
@@ -71,9 +73,10 @@ interpret baseCfg cmd = do
         Nothing ->
           run' $ Handler.appInit appDir buildDir maySubdomain
 
-        Just url ->
-          UTF8.put $ "App already set up at " <> textDisplay url
-          raise $ AlreadyExists @URL
+        Just url -> do
+          UTF8.putTextLn $ "App already set up at " <> textDisplay url
+          logDebug . textDisplay $ AlreadyExists @App
+          raise $ AlreadyExists @App
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       binPath' <- IPFS.Local.toBinPath binPath
