@@ -1,7 +1,7 @@
 -- | Setup command
 module Fission.CLI.Handler.Setup (setup) where
 
-import qualified Crypto.PubKey.Ed25519            as Ed25519
+import qualified Crypto.PubKey.Ed25519             as Ed25519
 
 import           Network.HTTP.Types.Status
 
@@ -9,27 +9,29 @@ import           Servant.API
 import           Servant.Client.Core
 
 import           Fission.Error
-import qualified Fission.Internal.UTF8            as UTF8
-import qualified Fission.Key                      as Key
+import qualified Fission.Internal.UTF8             as UTF8
+import qualified Fission.Key                       as Key
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
 import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token
-import           Fission.Web.Client               as Client
-import qualified Fission.Web.Client.User          as User
+import           Fission.Web.Client                as Client
+import qualified Fission.Web.Client.User           as User
 
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
-import qualified Fission.User.Username.Types      as User
+import qualified Fission.User.Username.Types       as User
 
-import           Fission.CLI.Display.Error        as CLI.Error
-import           Fission.CLI.Display.Success      as CLI.Success
+import           Fission.CLI.Display.Error         as CLI.Error
+import           Fission.CLI.Display.Success       as CLI.Success
 
-import qualified Fission.CLI.Environment          as Env
-import qualified Fission.CLI.Environment.Override as Env.Override
-import qualified Fission.CLI.Prompt               as Prompt
+import qualified Fission.CLI.Environment           as Env
+import qualified Fission.CLI.Environment.Override  as Env.Override
+import qualified Fission.CLI.Prompt                as Prompt
+
+import qualified Fission.CLI.Handler.User.Setup.UI as UI
 
 setup ::
   ( MonadIO        m
@@ -71,6 +73,7 @@ createAccount ::
   , Show (OpenUnion (Errors m))
   ) => m ()
 createAccount = do
+  UI.run
   username <- Username <$> Prompt.reaskNotEmpty' "Username: "
   email    <- Email    <$> Prompt.reaskNotEmpty' "Email: "
 

@@ -93,6 +93,7 @@ dependencies:
   - base64-bytestring
   - binary
   - bcrypt
+  - brick
   - bytestring
   - cryptonite
   - cryptostore
@@ -170,6 +171,7 @@ dependencies:
   - utf8-string
   - vault
   - vector
+  - vty
   - x509
   - yaml
 
