@@ -8,6 +8,7 @@ import           Network.HTTP.Types.Status
 import           Servant.API
 import           Servant.Client.Core
 
+import           Fission.Error
 import qualified Fission.Internal.UTF8            as UTF8
 import qualified Fission.Key                      as Key
 import           Fission.Prelude
@@ -41,7 +42,9 @@ setup ::
   , MonadCleanup   m
   , m `Raises` Key.Error
   , m `Raises` ClientError
+  , m `Raises` AlreadyExists Ed25519.SecretKey
   , IsMember ClientError (Errors m)
+  , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
   ) => m ()
 setup =
@@ -61,8 +64,10 @@ createAccount ::
   , MonadWebAuth m Token
   , MonadWebAuth m Ed25519.SecretKey
   , MonadCleanup m
-  , m `Raises` ClientError
   , IsMember ClientError (Errors m)
+  , IsMember Key.Error   (Errors m)
+  , m `Raises` ClientError
+  , m `Raises` AlreadyExists Ed25519.SecretKey
   , Show (OpenUnion (Errors m))
   ) => m ()
 createAccount = do
@@ -75,6 +80,16 @@ createAccount = do
       , email    = email
       , password = Nothing
       }
+
+  Key.create |> onRaise \errs ->
+    case openUnionMatch errs of
+      Just Key.AlreadyExists -> do
+        let err = AlreadyExists @Ed25519.SecretKey
+        CLI.Error.put err "Key already exists"
+        raise err
+
+      _ ->
+        return ()
 
   attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
     Right _ok -> do

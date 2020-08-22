@@ -60,7 +60,7 @@ newtype FissionCLI errs cfg a = FissionCLI
                    , MonadRescue
                    )
 
-runFissionCLI ::
+runFissionCLI :: forall errs m cfg a .
   MonadIO m
   => cfg
   -> FissionCLI errs cfg a
@@ -128,7 +128,6 @@ instance ServerDID (FissionCLI errs Base.Config) where
 instance
   ( IsMember Key.Error errs
   , IsMember (NotFound Ed25519.SecretKey) errs
-  , Show (OpenUnion errs)
   , ServerDID (FissionCLI errs cfg)
   , HasField' "fissionURL" cfg BaseUrl
   , HasLogFunc cfg
@@ -157,29 +156,18 @@ instance
 instance
   ( Key.Error `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
-  , Show (OpenUnion errs)
   , HasLogFunc cfg
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
   getAuth =
-    attempt Key.create >>= \case
-      Right _ ->
-        getAuth
+    Key.exists >>= \case
+      True  ->
+        readEd
 
-      Left errs ->
-        case openUnionMatch errs of
-          Just Key.AlreadyExists ->
-            attempt Key.readEd >>= \case
-              Left errs' -> do
-                CLI.Error.put errs' "Unable to find or create key"
-                raise $ NotFound @Ed25519.SecretKey
-
-              Right key ->
-                return key
-
-          _ -> do
-            CLI.Error.put errs "Unable to create key"
-            raise $ NotFound @Ed25519.SecretKey
+      False -> do
+        let err = NotFound @Ed25519.SecretKey
+        CLI.Error.put err "Not yet logged in. Please run `fission user register`."
+        raise err
 
 instance MonadMask (FissionCLI errs cfg) where
   mask action = do
@@ -192,7 +180,6 @@ instance MonadMask (FissionCLI errs cfg) where
     FissionCLI . RescueT . liftIO $ uninterruptibleMask \u ->
       fissionToIO cfg (action $ q cfg u)
 
-  -- FIXME double check implementation against MonadMask ExceptT
   generalBracket acquire release use = do
     cfg <- ask
 
