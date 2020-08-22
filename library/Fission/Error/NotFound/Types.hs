@@ -48,4 +48,4 @@ instance Display (NotFound [IPFS.Peer]) where
   display _ = "Unable to find IPFS peers"
 
 instance Display (NotFound Ed25519.SecretKey) where
-  display _ = "Unable to find Ed25519 Secret Key"
+  display _ = "Unable to find Ed25519 secret key"

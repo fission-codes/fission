@@ -8,6 +8,8 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
+import qualified Fission.Internal.UTF8           as UTF8
+
 import           Fission.Authorization.ServerDID
 import qualified Fission.User.Username.Types     as User
 
@@ -39,26 +41,21 @@ whoami = do
     Right User.Username {username} ->
       CLI.Success.currentlyLoggedInAs username
 
-    Left err ->
-      let
-        commonErrMsg =
-          "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."
+    Left err -> do
+      CLI.Error.put err
+        case openUnionMatch err of
+          Nothing ->
+            textDisplay err
 
-        specific =
-          case openUnionMatch err of
-            Nothing ->
-              textDisplay err
+          Just respErr ->
+            case respErr of
+              FailureResponse _ (responseStatusCode -> status) ->
+                if | status == status404        -> "We don't recognize your key!"
+                   | statusIsClientError status -> "There was a problem with your request."
+                   | otherwise                  -> "There was a server error."
 
-            Just respErr ->
-              case respErr of
-                FailureResponse _ (responseStatusCode -> status) ->
-                  if | status == status404        -> "We don't recognize your key!"
-                     | statusIsClientError status -> "There was a problem with your request."
-                     | otherwise                  -> "There was a server error."
+              ConnectionError _ -> "Trouble contacting the server."
+              DecodeFailure _ _ -> "Trouble decoding the registration response."
+              _                 -> "Invalid content type."
 
-                ConnectionError _ -> "Trouble contacting the server."
-                DecodeFailure _ _ -> "Trouble decoding the registration response."
-                _                 -> "Invalid content type."
-
-      in
-        CLI.Error.put err (specific <> " " <> commonErrMsg)
+      UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."

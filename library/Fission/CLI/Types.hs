@@ -130,7 +130,6 @@ instance
   , IsMember (NotFound Ed25519.SecretKey) errs
   , ServerDID (FissionCLI errs cfg)
   , HasField' "fissionURL" cfg BaseUrl
-  , HasLogFunc cfg
   )
   =>  MonadWebAuth (FissionCLI errs cfg) Token where
   getAuth = do
