@@ -42,8 +42,12 @@ type Errs =
    , NotFound [IPFS.Peer]
    ]
 
-interpret ::
-  (Contains Errs errs)
+interpret :: forall errs .
+  ( Contains Errs errs
+  , Contains errs errs
+  , Display   (OpenUnion errs)
+  , Exception (OpenUnion errs)
+  )
   => Base.Config
   -> App.Options
   -> FissionCLI errs Base.Config ()
@@ -58,7 +62,7 @@ interpret baseCfg cmd = do
       binPath' <- IPFS.Local.toBinPath binPath
 
       let
-        run' :: FissionCLI Errs Connected.Config a -> FissionCLI Errs Base.Config ()
+        run' :: FissionCLI errs Connected.Config a -> FissionCLI errs Base.Config ()
         run' = void . Connected.run baseCfg binPath' timeoutSeconds
 
       case appURL of
@@ -69,7 +73,7 @@ interpret baseCfg cmd = do
       binPath' <- IPFS.Local.toBinPath binPath
 
       let
-        run' :: MonadIO m => FissionCLI Errs Connected.Config a -> m ()
+        run' :: MonadIO m => FissionCLI errs Connected.Config a -> m ()
         run' = void . Connected.run baseCfg binPath' timeoutSeconds
 
       case appURL of

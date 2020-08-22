@@ -66,7 +66,6 @@ interpret baseCfg cmd =
         logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
 
       App subCmd ->
-        -- undefined -- FIXME
         App.interpret baseCfg subCmd
 
       User subCmd ->
