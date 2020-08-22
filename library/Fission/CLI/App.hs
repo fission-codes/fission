@@ -42,7 +42,11 @@ type Errs =
    , NotFound [IPFS.Peer]
    ]
 
-interpret :: Base.Config -> App.Options -> FissionCLI Errs Base.Config ()
+interpret ::
+  (Contains Errs errs)
+  => Base.Config
+  -> App.Options
+  -> FissionCLI errs Base.Config ()
 interpret baseCfg cmd = do
   Environment {appURL} <- Environment.get
 
