@@ -57,11 +57,11 @@ appInit appDir mayBuildDir' maySubdomain = do
     Right appURL' -> do
       logDebug $ "Created app " <> textDisplay appURL'
 
-      guess <- guessBuildDir appDir
+      guess <- promptBuildDir appDir
 
       Env.Override.writeMerge (appDir </> ".fission.yaml") mempty
         { maybeAppURL   = Just appURL'
-        , maybeBuildDir = mayBuildDir' <|> guess
+        , maybeBuildDir = mayBuildDir' <|> Just guess
         }
 
       CLI.Success.putOk $ "App initialized as " <> textDisplay appURL'

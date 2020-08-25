@@ -38,6 +38,7 @@ import           Fission.CLI.Parser.Watch.Types
 -- | Sync the current working directory to the server over IPFS
 up ::
   ( MonadIO          m
+  , MonadCleanup     m
   , MonadLogger      m
   , MonadLocalIPFS   m
   , MonadEnvironment m
