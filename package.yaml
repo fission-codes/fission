@@ -1,5 +1,5 @@
 name: fission
-version: '2.7.1'
+version: '2.8.0.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -106,6 +106,7 @@ dependencies:
   - filepath
   - flow
   - fsnotify
+  - generic-lens
   - Glob
   - haskeline
   - http-client
@@ -135,6 +136,7 @@ dependencies:
   - random-bytestring
   - resource-pool
   - regex-compat
+  - rescue
   - rio
   - rio-orphans
   - RSA

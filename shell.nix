@@ -1,6 +1,7 @@
 let
-  sources = import ./nix/sources.nix;
-  pkgs    = import sources.nixpkgs {};
+  sources  = import ./nix/sources.nix;
+  pkgs     = import sources.nixpkgs {};
+  unstable = import sources.unstable {};
   hinotify = if pkgs.stdenv.isDarwin then pkgs.hfsevents else pkgs.hinotify;
 in
 
@@ -18,17 +19,8 @@ pkgs.mkShell {
     hinotify
 
     # Haskell
-    pkgs.ghcid
-    pkgs.stack
-    pkgs.stylish-haskell
-
-    # Fun
-    pkgs.figlet
-    pkgs.lolcat
+    unstable.ghcid
+    unstable.stack
+    unstable.stylish-haskell
   ];
-
-  shellHook = ''
-    echo "Welcome to the"
-    ${pkgs.figlet}/bin/figlet "Fission Server Shell" | lolcat -a -s 50
-  '';
 }

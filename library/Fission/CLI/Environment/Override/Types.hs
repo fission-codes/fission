@@ -4,15 +4,15 @@ import           RIO.Prelude.Types
 
 import           Servant.API
 
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.Types                       as IPFS
 
 import           Fission.Prelude
- 
+
 import           Fission.URL
 import           Fission.User.DID
 
 import           Fission.Internal.Orphanage.BasicAuthData ()
-import           Fission.Internal.Orphanage.Glob.Pattern ()
+import           Fission.Internal.Orphanage.Glob.Pattern  ()
 
 -- | This is the part that actually gets written to disk.
 --   'Environment' is constructed virtually from layers of 'Override's.
@@ -47,14 +47,18 @@ instance Monoid Override where
 
 instance ToJSON Override where
   toJSON Override {..} = object $ catMaybes
-    [ ("peers"      .=) <$> pure peers
+    [ ("peers"      .=) <$> skipEmpty peers
     , ("app_url"    .=) <$> maybeAppURL
     , ("user_auth"  .=) <$> maybeUserAuth
     , ("ignore"     .=) <$> maybeIgnored
     , ("build_dir"  .=) <$> maybeBuildDir
     , ("server_did" .=) <$> maybeServerDID
     ]
-   
+    where
+      skipEmpty :: [a] -> Maybe [a]
+      skipEmpty [] = Nothing
+      skipEmpty xs = Just xs
+
 instance FromJSON Override where
   parseJSON = withObject "Override" \obj -> do
     peers          <- obj .:? "peers" .!= []
@@ -63,5 +67,5 @@ instance FromJSON Override where
     maybeIgnored   <- obj .:? "ignore"
     maybeBuildDir  <- obj .:? "build_dir"
     maybeServerDID <- obj .:? "server_did"
- 
+
     return Override {..}

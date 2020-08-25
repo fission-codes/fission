@@ -1,6 +1,6 @@
 module Fission.App.Creator.Class
   ( Creator (..)
-  , Errors
+  , Errors'
   ) where
 
 import           Servant
@@ -15,7 +15,7 @@ import           Fission.URL
 
 import qualified Fission.App.Domain     as App.Domain
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ ServerError
    , App.Domain.AlreadyAssociated
 
@@ -36,4 +36,4 @@ class Monad m => Creator m where
     -> CID
     -> Maybe Subdomain
     -> UTCTime
-    -> m (Either Errors (AppId, Subdomain))
+    -> m (Either Errors' (AppId, Subdomain))

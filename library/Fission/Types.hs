@@ -9,7 +9,7 @@ import qualified RIO.ByteString.Lazy                   as Lazy
 import           RIO.NonEmpty
 import qualified RIO.Text                              as Text
 
-import           Database.Esqueleto as SQL hiding ((<&>))
+import           Database.Esqueleto                    as SQL hiding ((<&>))
 
 import           Servant.Client
 import           Servant.Server.Experimental.Auth
@@ -17,30 +17,30 @@ import           Servant.Server.Experimental.Auth
 import           Network.AWS                           as AWS hiding (Request)
 import           Network.AWS.Route53
 
-import qualified Network.IPFS               as IPFS
-import qualified Network.IPFS.Types         as IPFS
-import qualified Network.IPFS.Process.Error as IPFS.Process
-import qualified Network.IPFS.Pin           as IPFS.Pin
-import qualified Network.IPFS.Process       as IPFS
-import qualified Network.IPFS.Peer          as Peer
-import qualified Network.IPFS.Stat          as IPFS.Stat
+import qualified Network.IPFS                          as IPFS
+import qualified Network.IPFS.Peer                     as Peer
+import qualified Network.IPFS.Pin                      as IPFS.Pin
+import qualified Network.IPFS.Process                  as IPFS
+import qualified Network.IPFS.Process.Error            as IPFS.Process
+import qualified Network.IPFS.Stat                     as IPFS.Stat
+import qualified Network.IPFS.Types                    as IPFS
 
 import           Fission.Config.Types
+import qualified Fission.Internal.UTF8                 as UTF8
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
 
 import           Fission.AWS
 import           Fission.AWS.Types                     as AWS
+import           Fission.Error                         as Error
 import           Fission.Models
-import           Fission.Error as Error
- 
-import           Fission.URL as URL
-import           Fission.DNS as DNS
 
-import           Fission.IPFS.DNSLink as DNSLink
+import           Fission.DNS                           as DNS
+import           Fission.URL                           as URL
+
+import qualified Fission.App                           as App
+import qualified Fission.App.Destroyer                 as App.Destroyer
+import           Fission.IPFS.DNSLink                  as DNSLink
 import           Fission.User.Username.Types
-import qualified Fission.App as App
-import qualified Fission.App.Destroyer as App.Destroyer
 
 import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
@@ -50,8 +50,8 @@ import           Fission.IPFS.Linked
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
 import           Fission.Authorization.Types
-import           Fission.AWS as AWS
-import           Fission.AWS.Route53 as Route53
+import           Fission.AWS                           as AWS
+import           Fission.AWS.Route53                   as Route53
 
 import           Fission.Platform.Heroku.Types         as Heroku
 
@@ -62,13 +62,13 @@ import qualified Fission.Web.Auth.Token                as Auth.Token
 import           Fission.Web.Handler
 import           Fission.Web.Server.Reflective         as Reflective
 
-import           Fission.User.DID            as DID
-import qualified Fission.User                as User
+import qualified Fission.User                          as User
 import           Fission.User.Creator.Class
-import qualified Fission.User.Password as Password
-import qualified Fission.User.Modifier.Class as User.Modifier
+import           Fission.User.DID                      as DID
+import qualified Fission.User.Modifier.Class           as User.Modifier
+import qualified Fission.User.Password                 as Password
 
-import qualified Fission.Key as Key
+import qualified Fission.Key                           as Key
 
 import           Fission.Web.Auth.Token.Basic.Class
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
@@ -79,11 +79,11 @@ import           Fission.Authorization.ServerDID.Class
 import           Fission.App.Content                   as App.Content
 import           Fission.App.Domain                    as App.Domain
 
-import           Fission.Challenge as Challenge
-import qualified Fission.Email     as Email
+import           Fission.Challenge                     as Challenge
+import qualified Fission.Email                         as Email
 import           Fission.Email.Class
 
-import qualified Fission.Domain as Domain
+import qualified Fission.Domain                        as Domain
 
 -- | The top-level app type
 newtype Fission a = Fission { unFission :: RIO Config a }
@@ -135,7 +135,7 @@ instance MonadRoute53 Fission where
         AWS.within NorthVirginia do
           resp <- send req
           return $ validate resp
-     
+
     where
       changeRecordMock = do
         mockTime <- currentTime
@@ -162,7 +162,7 @@ instance MonadRoute53 Fission where
     if mockRoute53
       then
         changeRecordMock
-        
+
       else do
         req <- createChangeRequest zoneTxt
 
@@ -222,7 +222,7 @@ instance MonadDNSLink Fission where
         Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right url
-             
+
     where
       gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
@@ -262,7 +262,7 @@ instance IPFS.MonadLocalIPFS Fission where
       (ExitFailure _, _, stdErr)
         | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
             Left $ IPFS.Process.Timeout secs
- 
+
         | otherwise ->
             Left $ IPFS.Process.UnknownErr stdErr
 
@@ -316,7 +316,7 @@ instance ServerDID Fission where
 instance PublicizeServerDID Fission where
   publicize = do
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
- 
+
     Host host <- Reflective.getHost
     did       <- getServerDID
     zoneID    <- asks serverZoneID
@@ -378,20 +378,20 @@ instance User.Creator Fission where
                 let
                   subdomain  = Just $ Subdomain rawUN
                   url        = URL {..}
-              
+
                   userPublic = dataURL `WithPath` ["public"]
                   dataURL    = URL
                     { domainName
                     , subdomain  = Just $ Subdomain (rawUN <> ".files")
                     }
-                    
+
                 DNSLink.follow userId url zoneID userPublic >>= \case
                   Left  err ->
                     return $ Error.relaxedLeft err
 
                   Right _ -> do
                     defaultCID <- asks defaultDataCID
-                  
+
                     User.setData userId defaultCID now <&> \case
                       Left err -> Error.relaxedLeft err
                       Right () -> Right userId
@@ -419,7 +419,7 @@ instance User.Modifier Fission where
         _ <- runDB $ User.updatePasswordDB uID secretDigest now
         return $ Right pass
 
-  updatePublicKey uID pk now = 
+  updatePublicKey uID pk now =
     runUserUpdate updatePK pkToText uID "_did"
     where
       updatePK = User.updatePublicKeyDB uID pk now
@@ -436,12 +436,12 @@ instance User.Modifier Fission where
     where
       removeKey = User.removeExchangeKeyDB uID key now
       keysToText keys = Text.intercalate "," (textDisplay . DID Key . Key.RSAPublicKey <$> keys)
-      
+
   setData userId newCID now = do
     runDB (User.getById userId) >>= \case
       Nothing ->
         return . Error.openLeft $ NotFound @User
-        
+
       Just (Entity _ User { userUsername = Username username }) ->
         IPFS.Stat.getSizeRemote newCID >>= \case
           Left err ->
@@ -460,10 +460,10 @@ instance User.Modifier Fission where
                 }
 
             DNSLink.set userId url zoneID newCID >>= \case
-              Left err -> 
+              Left err ->
                 return $ Error.relaxedLeft err
 
-              Right _  -> 
+              Right _  ->
                 IPFS.Pin.add newCID >>= \case
                   Right _  -> return ok
                   Left err -> return $ Error.openLeft err
@@ -486,7 +486,7 @@ instance App.Creator Fission where
         appId <- runDB (App.createDB ownerId cid size now)
 
         runDB (App.Domain.associateWithFallback ownerId appId maySubdomain now) >>= \case
-          Left err -> 
+          Left err ->
             return $ Error.relaxedLeft err
 
           Right subdomain -> do
@@ -503,7 +503,7 @@ instance App.Creator Fission where
               Right _   -> return $ Right (appId, subdomain)
 
 instance App.Modifier Fission where
-  setCID userId url newCID copyFiles now = 
+  setCID userId url newCID copyFiles now =
     IPFS.Stat.getSizeRemote newCID >>= \case
       Left err ->
         return $ Error.openLeft err
@@ -560,11 +560,11 @@ instance Domain.Creator Fission where
     runDB $ Domain.create domainName userId zoneId now
 
 instance Challenge.Creator Fission where
-  create email = 
+  create email =
     runDB $ Challenge.create email
 
 instance Challenge.Verifier Fission where
-  verify challenge = 
+  verify challenge =
     runDB $ Challenge.verify challenge
 
 instance MonadEmail Fission where
@@ -586,8 +586,8 @@ instance MonadEmail Fission where
         }
 
     liftIO $ runClientM (Email.sendEmail apiKey emailData) env
-  
-pullFromDNS :: [URL] -> Fission (Either App.Destroyer.Errors [URL])
+
+pullFromDNS :: [URL] -> Fission (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do
   domainsAndZoneIDs <- runDB . select $ from \domain -> do
     where_ $ domain ^. DomainDomainName `in_` valList (URL.domainName <$> urls)
@@ -599,13 +599,13 @@ pullFromDNS urls = do
       domainsAndZoneIDs <&> \(SQL.Value domain, SQL.Value zone) -> (domain, zone)
 
   foldM (folder zonesForDomains) (Right []) urls
- 
+
   where
     folder ::
          [(DomainName, ZoneID)]            -- ^ Hosted zone map
-      -> Either App.Destroyer.Errors [URL] -- ^ Accumulator
+      -> Either App.Destroyer.Errors' [URL] -- ^ Accumulator
       -> URL                               -- ^ Focus
-      -> Fission (Either App.Destroyer.Errors [URL])
+      -> Fission (Either App.Destroyer.Errors' [URL])
 
     folder _ (Left err) _ =
       return $ Left err
@@ -622,16 +622,16 @@ pullFromDNS urls = do
             Right _  -> Right (url : accs)
 
 runUserUpdate ::
-     Transaction Fission (Either User.Modifier.Errors a)
+     Transaction Fission (Either User.Modifier.Errors' a)
   -> (a -> Text)
   -> UserId
   -> Text
-  -> Fission (Either User.Modifier.Errors a)
+  -> Fission (Either User.Modifier.Errors' a)
 runUserUpdate updateDB dbValToTxt uID subdomain =
   runDB updateDB >>= \case
     Left err ->
       return $ Left err
-  
+
     Right dbVal -> do
       runDB (User.getById uID) >>= \case
         Nothing ->

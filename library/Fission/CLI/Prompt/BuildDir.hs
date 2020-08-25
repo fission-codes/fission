@@ -1,27 +1,30 @@
 module Fission.CLI.Prompt.BuildDir
   ( checkBuildDir
   , guessBuildDir
+  , promptBuildDir
   ) where
 
-import           Fission.Prelude
+import qualified RIO.ByteString                   as BS
 import           RIO.Directory
 import           RIO.FilePath
+import qualified RIO.Text                         as Text
 
-import qualified Data.Text                        as Text
-
-import qualified Fission.Internal.UTF8            as UTF8
+import qualified Data.ByteString.UTF8             as UTF8
 import qualified System.Console.ANSI              as ANSI
 
+import qualified Fission.Internal.UTF8            as UTF8
+import           Fission.Prelude
+
+import           Fission.CLI.Display.Text
 import           Fission.CLI.Environment.Override as Override
-import qualified Fission.CLI.Prompt               as Prompt
 
 -- | Checks user's current build dir by:
 --   * recursively checking .fission.yaml
 --   * guessing a build dir from common static site generators
 --   * prompting the user with that build dir
 checkBuildDir ::
-  ( MonadIO     m
-  , MonadLogger m
+  ( MonadIO      m
+  , MonadCleanup m
   )
   => FilePath
   -> m FilePath
@@ -32,17 +35,12 @@ checkBuildDir relPath = do
     Just (envPath, buildDir) ->
       return $ takeDirectory envPath </> buildDir
 
-    Nothing ->
-      guessBuildDir relPath >>= \case
-        Nothing ->
-          return relPath
+    Nothing -> do
+      buildDir <- promptBuildDir relPath
+      let updated = mempty { maybeBuildDir = Just buildDir }
 
-        Just guess -> do
-          buildDir <- bool relPath guess <$> promptBuildDir guess
-          let updated = mempty { maybeBuildDir = Just buildDir }
-
-          Override.writeMerge (absPath </> ".fission.yaml") updated
-          return buildDir
+      Override.writeMerge (absPath </> ".fission.yaml") updated
+      return buildDir
 
 -- | Find the closests '.fission.yaml' that contains a build directory,
 --   and return the location of both the env and the build directory
@@ -61,13 +59,33 @@ findEnv path = do
         Just buildDir -> Just (closestEnvPath, buildDir)
 
 -- | Prompt the user to see if they'd like to use a build folder instead of the root
-promptBuildDir :: (MonadIO m, MonadLogger m) => FilePath -> m Bool
-promptBuildDir path = do
-  UTF8.putText $ "👷 We found a possible build dir: "
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-  UTF8.putTextLn $ Text.pack path
-  liftIO $ ANSI.setSGR [ANSI.Reset]
-  Prompt.reaskYN "🤔 Would you like to upload that instead of the project root? (y/n): "
+promptBuildDir ::
+  ( MonadIO      m
+  , MonadCleanup m
+  )
+  => FilePath
+  -> m FilePath
+promptBuildDir relPath = do
+  fallback <- colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+    fallback <- maybe "." identity <$> guessBuildDir relPath
+    UTF8.putText $ "👷 Build directory (" <> Text.pack fallback <> "): "
+    return fallback
+
+  BS.getLine >>= \case
+    "" ->
+      return fallback
+
+    bsPath ->
+      let
+        path = UTF8.toString bsPath
+      in
+        doesDirectoryExist path >>= \case
+          True ->
+            return $ UTF8.toString bsPath
+
+          False -> do
+            UTF8.putTextLn $ Text.pack path <> " does not exist"
+            promptBuildDir relPath
 
 -- | Check path to see if a possible build folder exists there
 guessBuildDir :: MonadIO m => FilePath -> m (Maybe FilePath)

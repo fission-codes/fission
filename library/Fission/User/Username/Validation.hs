@@ -357,6 +357,7 @@ blocklist =
   , "index"
   , "info"
   , "insert"
+  , "internal"
   , "investors"
   , "invitations"
   , "invite"

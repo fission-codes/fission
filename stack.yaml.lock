@@ -47,12 +47,12 @@ packages:
   original:
     hackage: hspec-wai-json-0.10.1
 - completed:
-    hackage: ipfs-1.1.1@sha256:f30297fd6223f431524473e8824ecff99d1104c5b58019c3053a6a11bceab4e2,5222
+    hackage: ipfs-1.1.3@sha256:f3f7b640a735f6132f047714a05435d934a542e6be8ca7d76b96cacbcf673edc,5222
     pantry-tree:
       size: 3783
-      sha256: 909d49dda6e139854120e7f4fff1621f957620a801b11f41c16f066f9793f4d0
+      sha256: 7096e13ef8b4edf962782e86c4cea24aafa84c1d685a0e6bdee6b0daf32d8981
   original:
-    hackage: ipfs-1.1.1
+    hackage: ipfs-1.1.3
 - completed:
     hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
     pantry-tree:
@@ -67,6 +67,13 @@ packages:
       sha256: 19c2aaf9c09d341108777e3a4de975841f81518ed271b156983d25ec622dd266
   original:
     hackage: raven-haskell-0.1.4.0
+- completed:
+    hackage: rescue-0.2.1@sha256:ff687f7a4f6439cd3207f5fcac88d4f5f70878dc6f14b04b4771f2fee7f120fe,4762
+    pantry-tree:
+      size: 1722
+      sha256: 722f36197e88f77cdb39357e6683607f35810ba3cfbf9c007490df81250f5f2b
+  original:
+    hackage: rescue-0.2.1
 - completed:
     hackage: servant-quickcheck-0.0.7.4@sha256:a981a06792e9547d13fa2f9f0f55ba46d28113881a0661e49016c18d9e6358cc,3776
     pantry-tree:

@@ -1,6 +1,6 @@
 module Fission.App.Destroyer.Class
   ( Destroyer (..)
-  , Errors
+  , Errors'
   ) where
 
 import           Database.Esqueleto
@@ -17,7 +17,7 @@ import qualified Fission.AWS.Zone.Types       as AWS
 import qualified Fission.App.Domain.Retriever as AppDomain
 import qualified Fission.App.Retriever        as App
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ NotFound            App
    , ActionNotAuthorized App
 
@@ -34,14 +34,14 @@ class Monad m => Destroyer m where
        UserId
     -> AppId
     -> UTCTime
-    -> m (Either Errors [URL])
+    -> m (Either Errors' [URL])
 
   destroyByURL ::
        UserId
     -> DomainName
     -> Maybe Subdomain
     -> UTCTime
-    -> m (Either Errors [URL])
+    -> m (Either Errors' [URL])
 
 instance MonadIO m => Destroyer (Transaction m) where
   destroy userId appId now = do
@@ -65,7 +65,7 @@ destroyAssociated ::
   -> AppId
   -> [Entity AppDomain]
   -> UTCTime
-  -> Transaction m (Either Errors [URL])
+  -> Transaction m (Either Errors' [URL])
 destroyAssociated userId appId appDomains now =
   App.byId userId appId >>= \case
     Left err ->

@@ -1,20 +1,20 @@
 module Fission.App.Domain.Dissociator.Class
   ( Dissociator (..)
-  , Errors
+  , Errors'
   ) where
 
 import           Database.Esqueleto
 
-import           Fission.Prelude
-import           Fission.Error as Error
+import           Fission.Error            as Error
 import           Fission.Models
 import           Fission.Ownership
+import           Fission.Prelude
 import           Fission.URL
 
 import           Fission.App.Domain.Error as Domain
 import qualified Fission.App.Retriever    as App
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ Domain.NotRegisteredToApp
    , ActionNotAuthorized App
    , NotFound            App
@@ -27,7 +27,7 @@ class Monad m => Dissociator m where
     -> DomainName
     -> Maybe Subdomain
     -> UTCTime
-    -> m (Either Errors ())
+    -> m (Either Errors' ())
 
 instance MonadIO m => Dissociator (Transaction m) where
   dissociate userId appId domainName maySubdomain now =

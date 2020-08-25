@@ -6,16 +6,19 @@ module Fission.CLI.Environment
   , couldNotRead
   , removeConfigFile
   , getOrRetrievePeers
- 
+
   -- * Reexport
 
   , module Fission.CLI.Environment.Class
   , module Fission.CLI.Environment.Types
   ) where
 
-import           Data.List.NonEmpty               as NonEmpty hiding (init, (<|))
+import           Data.List.NonEmpty               as NonEmpty hiding (init,
+                                                               (<|))
 import           RIO.Directory
 import           RIO.FilePath
+
+import           Servant.Client
 
 import qualified Network.IPFS.Types               as IPFS
 import qualified System.Console.ANSI              as ANSI
@@ -38,15 +41,19 @@ import qualified Fission.Internal.UTF8            as UTF8
 
 -- | Initialize the Environment file
 init ::
-  ( MonadUnliftIO  m
+  ( MonadIO        m
   , MonadLogger    m
   , MonadWebClient m
+
+  , MonadCleanup   m
+  , m `Raises` ClientError
+  , Show (OpenUnion (Errors m))
   )
   => m ()
 init = do
   logDebug @Text "Initializing config file"
 
-  Peers.getPeers >>= \case
+  attempt Peers.getPeers >>= \case
     Left err ->
       CLI.Error.put err "Peer retrieval failed"
 
@@ -93,14 +100,18 @@ removeConfigFile = do
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
 getOrRetrievePeers ::
-  ( MonadUnliftIO  m
+  ( MonadIO        m
   , MonadLogger    m
   , MonadWebClient m
+
+  , MonadCleanup   m
+  , m `Raises` ClientError
+  , Show (OpenUnion (Errors m))
   )
   => Environment
   -> m [IPFS.Peer]
 getOrRetrievePeers Environment {peers = []} =
-  Peers.getPeers >>= \case
+  attempt Peers.getPeers >>= \case
     Left err -> do
       logError $ displayShow err
       logDebug @Text "Unable to retrieve peers from the network"

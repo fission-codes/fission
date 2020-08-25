@@ -2,13 +2,13 @@ module Fission.Internal.Mock.Config.Types (Config (..)) where
 
 import           Network.AWS.Route53
 
-import qualified Network.IPFS.Types         as IPFS
-import           Network.IPFS.Process.Error as Process
-import           Network.IPFS.File.Types    as File
-import           Network.IPFS.Client.Pin    as Network.Pin
+import           Network.IPFS.Client.Pin            as Network.Pin
+import           Network.IPFS.File.Types            as File
+import           Network.IPFS.Process.Error         as Process
+import qualified Network.IPFS.Types                 as IPFS
 
 import           Database.Esqueleto
-import           Network.Wai as Wai
+import           Network.Wai                        as Wai
 
 import           Servant
 import           Servant.Client
@@ -17,17 +17,17 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Models
 import           Fission.Prelude
 
-import qualified Fission.IPFS.DNSLink.Class as DNSLink
+import qualified Fission.IPFS.DNSLink.Class         as DNSLink
 
-import qualified Fission.Platform.Heroku.Auth.Types as Heroku
-import           Fission.URL as URL
-import           Fission.User.DID.Types
 import           Fission.Authorization.Types
-import qualified Fission.AWS.Types as AWS
+import qualified Fission.AWS.Types                  as AWS
+import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import           Fission.URL                        as URL
+import           Fission.User.DID.Types
 
 data Config = Config
-  { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> Either DNSLink.Errors URL
-  , followDNSLink   :: URL -> Path URL -> Either DNSLink.Errors ()
+  { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> Either DNSLink.Errors' URL
+  , followDNSLink   :: URL -> Path URL -> Either DNSLink.Errors' ()
   , getBaseDomain   :: URL.DomainName
   , updateRoute53   :: RecordType -> URL -> AWS.ZoneID -> NonEmpty Text -> Natural -> Either ServerError ChangeResourceRecordSetsResponse
   , clearRoute53    :: RecordType -> URL -> Either ServerError ChangeResourceRecordSetsResponse

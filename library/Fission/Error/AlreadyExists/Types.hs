@@ -2,11 +2,12 @@
 
 module Fission.Error.AlreadyExists.Types (AlreadyExists (..)) where
 
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 import           Servant
 
-import           Fission.Prelude
-import           Fission.Web.Error as Error
 import           Fission.Models
+import           Fission.Prelude
+import           Fission.Web.Error     as Error
 
 data AlreadyExists entity
   = AlreadyExists
@@ -35,3 +36,6 @@ instance Display (AlreadyExists App) where
 
 instance Display (AlreadyExists HerokuAddOn) where
   display _ = "Heroku add-on already exists"
+
+instance Display (AlreadyExists Ed25519.SecretKey) where
+  display _ = "Ed25519 secret key already exists"

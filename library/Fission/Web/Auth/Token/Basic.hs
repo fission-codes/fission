@@ -4,8 +4,8 @@ module Fission.Web.Auth.Token.Basic
   , parseBasic
   ) where
 
-import qualified Data.ByteString.Char8  as Ch
-import qualified Data.ByteString.Base64 as Base64
+import qualified Data.ByteString.Base64                           as Base64
+import qualified Data.ByteString.Char8                            as Ch
 
 import           Crypto.BCrypt
 import           Database.Esqueleto
@@ -16,13 +16,13 @@ import           Fission.Prelude
 import           Fission.Authorization
 import           Fission.Models
 
-import qualified Fission.User as User
+import qualified Fission.User                                     as User
 import           Fission.User.Username.Types
 
-import           Fission.Web.Error
+import           Fission.Web.Error                                as Web.Err
 
-import qualified Fission.Web.Auth.Error as Auth
-import qualified Fission.Web.Auth.Token.Basic.Types as Auth.Basic
+import qualified Fission.Web.Auth.Error                           as Auth
+import qualified Fission.Web.Auth.Token.Basic.Types               as Auth.Basic
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
@@ -35,7 +35,7 @@ handler ::
   )
   => Auth.Basic.Token
   -> m Authorization
-handler token = ensureM . checkUser =<< ensure (parseBasic token)
+handler token = Web.Err.ensureM . checkUser =<< Web.Err.ensure (parseBasic token)
 
 checkUser ::
   ( MonadLogger      m

@@ -15,17 +15,17 @@ module Fission.Key.Store
   ) where
 
 import           RIO.Directory
-import           RIO.FilePath
 import           RIO.File
+import           RIO.FilePath
 
-import qualified Crypto.PubKey.Curve25519 as X
-import qualified Crypto.PubKey.Ed25519    as Ed
 import           Crypto.Error
+import qualified Crypto.PubKey.Curve25519         as X
+import qualified Crypto.PubKey.Ed25519            as Ed
 
-import qualified Data.ByteArray as BA
+import qualified Data.ByteArray                   as BA
 
+import           Fission.Key.Error                as Key
 import           Fission.Prelude
-import           Fission.Key.Error as Key
 
 import qualified Fission.Internal.Base64          as B64
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
@@ -34,10 +34,15 @@ import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 import           Fission.Key.Error
 
-create :: MonadIO m => m (Either Key.Error ())
+create ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => m ()
 create = exists >>= \case
-  True  -> return $ Left Key.AlreadyExists
-  False -> Right <$> forceCreate
+  True  -> raise Key.AlreadyExists
+  False -> forceCreate
 
 forceCreate :: MonadIO m => m ()
 forceCreate = do
@@ -54,43 +59,75 @@ writeKey key = do
   path <- location
   writeBinaryFile path $ B64.toByteString key
 
-sign :: MonadIO m => ByteString -> m (Either Key.Error Ed.Signature)
-sign bs = readEd <&> \case
-  Left err -> Left err
-  Right sk -> Right $ signWith sk bs
+sign ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => ByteString
+  -> m Ed.Signature
+sign bs = do
+  sk <- readEd
+  return $ signWith sk bs
 
 signWith :: Ed.SecretKey -> ByteString -> Ed.Signature
 signWith sk bs = Ed.sign sk (Ed.toPublic sk) bs
 
-publicKeyX :: MonadIO m => m (Either Key.Error X.PublicKey)
-publicKeyX = pure . fmap X.toPublic =<< readX
+publicKeyX ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => m X.PublicKey
+publicKeyX = X.toPublic <$> readX
 
-publicKeyEd :: MonadIO m => m (Either Key.Error Ed.PublicKey)
-publicKeyEd = pure . fmap Ed.toPublic =<< readEd
+publicKeyEd ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => m Ed.PublicKey
+publicKeyEd = Ed.toPublic <$> readEd
 
-readX :: MonadIO m => m (Either Key.Error X.SecretKey)
+readX ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => m X.SecretKey
 readX = readKey X.secretKey
 
-readEd :: MonadIO m => m (Either Key.Error Ed.SecretKey)
+readEd ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => m Ed.SecretKey
 readEd = readKey Ed.secretKey
 
 readKey ::
-  MonadIO m
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
   => (BA.ScrubbedBytes -> CryptoFailable a)
-  -> m (Either Key.Error a)
-readKey f = readBytes <&> \case
-  Left  err   -> Left err
-  Right bytes -> parseKey f bytes
+  -> m a
+readKey f = ensureM $ parseKey f <$> readBytes
 
-readBytes :: MonadIO m => m (Either Key.Error BA.ScrubbedBytes)
+readBytes ::
+  ( MonadIO    m
+  , MonadRaise m
+  , Raises     m Key.Error
+  )
+  => m BA.ScrubbedBytes
 readBytes = exists >>= \case
   False ->
-    return $ Left Key.DoesNotExist
-   
+    raise Key.DoesNotExist
+
   True -> do
     path <- location
     bs   <- readFileBinary path
-    return . Right $ B64.Scrubbed.scrub bs
+    return $ B64.Scrubbed.scrub bs
 
 parseKey :: (BA.ScrubbedBytes -> CryptoFailable a) -> BA.ScrubbedBytes -> Either Key.Error a
 parseKey f bytes =

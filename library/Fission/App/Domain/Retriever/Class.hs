@@ -1,19 +1,19 @@
 module Fission.App.Domain.Retriever.Class
   ( Retriever (..)
-  , Errors
+  , Errors'
   ) where
 
-import qualified Database.Persist   as P
-import           Database.Esqueleto hiding ((<&>))
+import           Database.Esqueleto          hiding ((<&>))
+import qualified Database.Persist            as P
 
-import           Fission.Prelude hiding (on)
 import           Fission.Error
 import           Fission.Models
+import           Fission.Prelude             hiding (on)
 import           Fission.URL
 
 import qualified Fission.App.Retriever.Class as App
 
-type Errors = OpenUnion
+type Errors' = OpenUnion
   '[ NotFound            AppDomain
    , ActionNotAuthorized AppDomain
 
@@ -24,8 +24,8 @@ type Errors = OpenUnion
 class Monad m => Retriever m where
   allForOwner         :: UserId -> m [Entity AppDomain]
   allForApp           :: AppId  -> m [Entity AppDomain]
-  allSiblingsByDomain :: DomainName -> Maybe Subdomain -> m (Either Errors [Entity AppDomain])
-  primarySibling      :: UserId -> URL -> m (Either Errors (Entity AppDomain))
+  allSiblingsByDomain :: DomainName -> Maybe Subdomain -> m (Either Errors' [Entity AppDomain])
+  primarySibling      :: UserId -> URL -> m (Either Errors' (Entity AppDomain))
 
 instance MonadIO m => Retriever (Transaction m) where
   primarySibling userId url = do

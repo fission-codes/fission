@@ -25,10 +25,10 @@ type API
   :> PatchAccepted '[JSON] NoContent
 
 update ::
-  ( MonadLogger     m
-  , MonadThrow      m
-  , MonadTime       m
-  , App.Modifier    m
+  ( MonadLogger  m
+  , MonadThrow   m
+  , MonadTime    m
+  , App.Modifier m
   )
   => Authorization
   -> ServerT API m
