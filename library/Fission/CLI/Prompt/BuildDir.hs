@@ -65,13 +65,27 @@ promptBuildDir ::
   )
   => FilePath
   -> m FilePath
-promptBuildDir relPath =
-  colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+promptBuildDir relPath = do
+  fallback <- colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
     fallback <- maybe "." identity <$> guessBuildDir relPath
     UTF8.putText $ "👷 Build directory (" <> Text.pack fallback <> "): "
-    BS.getLine >>= \case
-      ""     -> return fallback
-      bsPath -> return $ UTF8.toString bsPath
+    return fallback
+
+  BS.getLine >>= \case
+    "" ->
+      return fallback
+
+    bsPath ->
+      let
+        path = UTF8.toString bsPath
+      in
+        doesDirectoryExist path >>= \case
+          True ->
+            return $ UTF8.toString bsPath
+
+          False -> do
+            UTF8.putTextLn $ Text.pack path <> " does not exist"
+            promptBuildDir relPath
 
 -- | Check path to see if a possible build folder exists there
 guessBuildDir :: MonadIO m => FilePath -> m (Maybe FilePath)
