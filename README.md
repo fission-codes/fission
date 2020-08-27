@@ -19,6 +19,23 @@ brew services start ipfs
 brew install fission-suite/fission/fission-cli
 ```
 
+Or to build from source:
+
+```shell
+# Dependencies
+brew install stack
+brew install postgresql
+
+# Go to the Fission repo
+cd $FISSION_REPO
+
+# Build & install
+stack install fission-cil --no-nix
+
+# Build only
+stack build fission-cli --no-nix
+```
+
 ### Binary Releases
 
 Grab the latest binary for your operating system from our [release page](https://github.com/fission-suite/fission/releases).
