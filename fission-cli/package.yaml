@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.8.0.0'
+version: '2.8.1.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -82,12 +82,7 @@ default-extensions:
 dependencies:
   - aeson
   - aeson-casing
-  - amazonka
-  - amazonka-core
-  - amazonka-route53
   - ansi-terminal
-  - asn1-encoding
-  - asn1-types
   - base
   - base58string
   - base64-bytestring
@@ -99,13 +94,10 @@ dependencies:
   - data-default-class
   - data-has
   - dns
-  - envy
-  - esqueleto
   - exceptions
   - file-embed
   - filepath
   - fission-core
-  - flow
   - fsnotify
   - generic-lens
   - Glob
@@ -118,54 +110,31 @@ dependencies:
   - lens
   - lens-aeson
   - memory
-  - mime-types
   - monad-logger
   - monad-time
   - mtl
   - network-uri
   - optparse-applicative
-  - optparse-simple
   - parallel
   - path-pieces
   - pem
-  - persistent
-  - persistent-postgresql
-  - persistent-template
-  - pretty-simple
-  - QuickCheck
-  - quickcheck-instances
   - random-bytestring
   - resource-pool
   - regex-compat
   - rescue
   - rio
   - rio-orphans
-  - RSA
   - scientific
   - servant
-  - servant-auth-server
-  - servant-auth-swagger
   - servant-client
   - servant-client-core
-  - servant-server
-  - servant-swagger
-  - servant-swagger-ui
-  - servant-swagger-ui-redoc
-  - streaming-commons
   - swagger2
   - text
   - text-time
   - time
   - transformers
-  - unliftio
   - uuid
   - uuid-types
-  - wai
-  - wai-cors
-  - wai-extra
-  - wai-logger
-  - warp
-  - warp-tls
   - word8
   - world-peace
   - utf8-string

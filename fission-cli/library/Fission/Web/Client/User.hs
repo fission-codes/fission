@@ -5,9 +5,10 @@ module Fission.Web.Client.User
   , UpdatePK
   ) where
 
-import           Servant
-import qualified Fission.Web.User   as User
+import           Servant.API
+
 import           Fission.Web.Routes (UserPrefix)
+import qualified Fission.Web.User   as User
 
 type Register = UserPrefix :> User.RegisterRoute
 type Verify   = UserPrefix :> User.VerifyRoute

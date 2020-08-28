@@ -4,25 +4,23 @@ module Fission.Web.Client.App
   , mkUpdateReq
   ) where
 
-import Fission.Prelude
-
-import           Servant
-import           Servant.Client
-
-
-import           Fission.Web.Client     as Client
-import           Fission.Web.Routes     (AppPrefix)
-import qualified Fission.Web.App.Create as App.Create
-import qualified Fission.Web.App.Update as App.Update
-import qualified Fission.Web.Auth.Types as Auth
-import           Fission.Web.Auth.Token
-
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           Network.IPFS.CID.Types
 
-import           Fission.URL
-import           Fission.Authorization.ServerDID
+import           Servant.API
+import           Servant.Client
 
+import           Fission.Prelude
+
+import qualified Fission.Web.App.Create          as App.Create
+import qualified Fission.Web.App.Update          as App.Update
+import           Fission.Web.Auth.Token
+import qualified Fission.Web.Auth.Types          as Auth
+import           Fission.Web.Client              as Client
+import           Fission.Web.Routes              (AppPrefix)
+
+import           Fission.Authorization.ServerDID
+import           Fission.URL
 
 type Create
   = AppPrefix

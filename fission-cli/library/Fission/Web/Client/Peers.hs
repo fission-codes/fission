@@ -4,16 +4,15 @@ module Fission.Web.Client.Peers
   , getPeers
   ) where
 
-import           Fission.Prelude
+import qualified Network.IPFS.Types         as IPFS
 
-import           Servant
+import           Servant.API
 import           Servant.Client
 
-import qualified Fission.Web.IPFS.Peer      as Peer
+import           Fission.Prelude
 
 import           Fission.Web.Client
-
-import qualified Network.IPFS.Types         as IPFS
+import qualified Fission.Web.IPFS.Peer      as Peer
 
 import qualified Fission.CLI.Display.Cursor as Cursor
 import qualified Fission.CLI.Display.Wait   as CLI.Wait
