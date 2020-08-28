@@ -75,73 +75,61 @@ default-extensions:
   - TypeApplications
   - TypeFamilies
   - TypeSynonymInstances
-  - TemplateHaskell
   - TypeOperators
   - ViewPatterns
 
 dependencies:
-  - aeson
-  - aeson-casing
-  - ansi-terminal
+  ## Base ##
   - base
-  - base58string
-  - base64-bytestring
-  - binary
-  - bcrypt
-  - bytestring
-  - cryptonite
-  - cryptostore
-  - data-default-class
-  - data-has
-  - dns
-  - exceptions
-  - file-embed
-  - filepath
-  - fission-core
-  - fsnotify
-  - generic-lens
-  - Glob
-  - haskeline
-  - http-client
-  - http-client-tls
-  - http-media
-  - http-types
-  - ipfs
-  - lens
-  - lens-aeson
-  - memory
+  - rio
+  - rio-orphans
+
+  ## Capabilities ##
   - monad-logger
   - monad-time
   - mtl
-  - network-uri
+
+  ## CLI ##
+  - ansi-terminal
+  - haskeline
   - optparse-applicative
+
+  ## Concurrency & Parallelism ##
   - parallel
-  - path-pieces
-  - pem
-  - random-bytestring
-  - resource-pool
-  - regex-compat
+
+  ## Cryptogrpahy ##
+  - cryptonite
+
+  ## Data ##
+  - aeson
+  - bytestring
+  - utf8-string
+  - yaml
+
+  ## Error Handling ##
+  - exceptions
   - rescue
-  - rio
-  - rio-orphans
-  - scientific
+
+  ## File System ##
+  - path-pieces
+  - Glob
+  - fsnotify
+
+  ## Lenses ##
+  - generic-lens
+
+  ## Web ##
+  - dns
+  - http-client
+  - http-client-tls
+  - http-types
+  - ipfs
   - servant
   - servant-client
   - servant-client-core
-  - swagger2
-  - text
-  - text-time
-  - time
-  - transformers
-  - uuid
-  - uuid-types
-  - word8
-  - world-peace
-  - utf8-string
-  - vault
-  - vector
-  - x509
-  - yaml
+
+  ## Fission ##
+  - fission-core
 
 library:
   source-dirs: library
