@@ -11,7 +11,7 @@ parser :: Parser Options
 parser = do
   let verboseFlag = VerboseFlag False
 
-  _ <- switch $ mconcat
+  _ <- flag' () $ mconcat
     [ help  "Print version"
     ----------
     , long  "version"
