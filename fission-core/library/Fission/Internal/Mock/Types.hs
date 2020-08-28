@@ -11,58 +11,57 @@ import           Control.Monad.Catch
 import           Control.Monad.Trans.AWS
 import           Control.Monad.Writer
 
-import           Database.Esqueleto as Database
+import           Database.Esqueleto                               as Database
 
 import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.Types                               as IPFS
 
 import           Network.AWS
 
 import           Servant.Client
 import           Servant.Server
 
-import           Fission.Internal.Fixture            as Fixture
-import           Fission.Internal.Mock.Effect        as Effect
-import           Fission.Internal.Mock.Config.Types  as Mock
+import           Fission.Internal.Fixture                         as Fixture
+import qualified Fission.Internal.Fixture.Key.Ed25519             as Ed25519
+import           Fission.Internal.Mock.Config.Types               as Mock
+import           Fission.Internal.Mock.Effect                     as Effect
 import           Fission.Internal.Mock.Session.Types
-import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 
 import           Fission.Prelude
- 
+
 import           Fission.URL
 
-import           Fission.Authorization.Types
 import           Fission.Authorization.Potency.Types
+import           Fission.Authorization.Types
 
-import           Fission.IPFS.Linked.Class
 import           Fission.IPFS.DNSLink.Class
+import           Fission.IPFS.Linked.Class
 
 import           Fission.Models
 import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Class
-import           Fission.Web.Client.Auth.Class
 
 import           Fission.Web.Server.Reflective.Class
-import qualified Fission.Web.Types as Web
+import qualified Fission.Web.Types                                as Web
 
 import           Fission.Web.Auth.Token.Basic.Class
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.AWS
-import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import qualified Fission.Platform.Heroku.Auth.Types               as Heroku
 
-import           Fission.User                  as User
-import           Fission.LoosePin              as LoosePin
-import           Fission.Platform.Heroku.AddOn as Heroku.AddOn
+import           Fission.LoosePin                                 as LoosePin
+import           Fission.Platform.Heroku.AddOn                    as Heroku.AddOn
+import           Fission.User                                     as User
 
 -- Reexport
 
-import           Fission.Internal.Mock.Effect.Types
 import           Fission.Internal.Mock.Config.Types
+import           Fission.Internal.Mock.Effect.Types
 
 {- | Fission's mock type
 
@@ -315,16 +314,3 @@ instance IsMember DestroyLoosePin effs => LoosePin.Destroyer (Mock effs) where
   destroyMany userId cidIds =
     forM_ cidIds \id ->
       Effect.log $ DestroyLoosePinById userId id
-
-instance MonadWebAuth (Mock effs) Authorization where
-  getAuth = return Authorization
-    { sender   = Right did
-    , about    = Fixture.entity Fixture.user
-    , potency  = AppendOnly
-    , resource = Subset (FissionFileSystem "/test/")
-    }
-    where
-      did = DID
-        { publicKey = Ed25519.pk
-        , method    = Key
-        }
