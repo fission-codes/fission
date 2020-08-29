@@ -209,7 +209,7 @@ executables:
       - -O2
 
 tests:
-  fission-doctest:
+  fission-core-doctest:
     main: Main.hs
     source-dirs: doctest
     ghc-options:
@@ -224,7 +224,7 @@ tests:
       - lens-aeson
       - yaml
 
-  fission-test:
+  fission-core-test:
     main: Main.hs
     source-dirs:
       - library
@@ -239,7 +239,7 @@ tests:
       - hspec-expectations
       - hspec-wai
       - hspec-wai-json
-      - fission
+      - fission-core
       - QuickCheck
       - quickcheck-instances
       - servant-quickcheck
@@ -250,7 +250,7 @@ tests:
       - tasty-rerun
       - transformers
 
-  fission-lint:
+  fission-core-lint:
     main: Main.hs
     source-dirs: lint
     dependencies:
@@ -259,7 +259,7 @@ tests:
       - rio
 
 benchmarks:
-  fission-benchmark:
+  fission-core-benchmark:
     main: Main.hs
     source-dirs: benchmark
     ghc-options:
@@ -269,4 +269,4 @@ benchmarks:
       - -O2
     dependencies:
       - criterion
-      - fission
+      - fission-core

@@ -153,3 +153,66 @@ executables:
     # uncomment to build a static binary on Linux
     # cc-options: -static
     # ld-options: -static -pthread
+
+tests:
+  fission-cli-doctest:
+    main: Main.hs
+    source-dirs: doctest
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - directory
+      - directory-tree
+      - doctest
+      - Glob
+      - lens-aeson
+      - yaml
+
+  fission-cli-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - hspec
+      - hspec-core
+      - hspec-expectations
+      - hspec-wai
+      - hspec-wai-json
+      - fission-core
+      - QuickCheck
+      - quickcheck-instances
+      - servant-quickcheck
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
+      - transformers
+
+  fission-cli-lint:
+    main: Main.hs
+    source-dirs: lint
+    dependencies:
+      - base
+      - hlint
+      - rio
+
+benchmarks:
+  fission-cli-benchmark:
+    main: Main.hs
+    source-dirs: benchmark
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -O2
+    dependencies:
+      - criterion
+      - fission-core
