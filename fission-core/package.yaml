@@ -80,67 +80,95 @@ default-extensions:
   - ViewPatterns
 
 dependencies:
+  ## Base ##
+  - base
+  - flow
+  - rio
+  - rio-orphans
+
+  ## Capabilties ##
+  - data-default-class
+  - data-has
+  - monad-logger
+  - monad-time
+  - mtl
+  - resource-pool
+  - unliftio
+
+  ## Command Line ##
+  - envy
+
+  ## Cryptography ##
+  - bcrypt
+  - cryptonite
+  - cryptostore
+  - pem
+  - RSA
+
+  ## Data ##
   - aeson
   - aeson-casing
-  - amazonka
-  - amazonka-core
-  - amazonka-route53
   - ansi-terminal
   - asn1-encoding
   - asn1-types
-  - base
   - base58string
   - base64-bytestring
   - binary
-  - bcrypt
   - bytestring
-  - cryptonite
-  - cryptostore
-  - data-default-class
-  - data-has
-  - dns
-  - envy
+  - generic-lens
+  - lens
+  - lens-aeson
+  - memory
+  - scientific
+  - QuickCheck
+  - quickcheck-instances
+  - random-bytestring
+  - regex-compat
+  - text
+  - text-time
+  - time
+  - uuid
+  - uuid-types
+  - vector
+  - word8
+  - world-peace
+  - utf8-string
+  - vault
+  - yaml
+
+  ## Database ##
   - esqueleto
+  - persistent
+  - persistent-postgresql
+  - persistent-template
+
+  ## Error Handling ##
   - exceptions
+  - rescue
+
+  ## File System ##
   - file-embed
   - filepath
-  - flow
-  - fsnotify
-  - generic-lens
   - Glob
-  - haskeline
+  - path-pieces
+
+  ## Formatting ##
+  - pretty-simple
+
+  ## Infrastructure ##
+  - amazonka
+  - amazonka-core
+  - amazonka-route53
+
+  ## Web ##
+  - dns
   - http-client
   - http-client-tls
   - http-media
   - http-types
   - ipfs
-  - lens
-  - lens-aeson
-  - memory
   - mime-types
-  - monad-logger
-  - monad-time
-  - mtl
   - network-uri
-  - optparse-applicative
-  - optparse-simple
-  - parallel
-  - path-pieces
-  - pem
-  - persistent
-  - persistent-postgresql
-  - persistent-template
-  - pretty-simple
-  - QuickCheck
-  - quickcheck-instances
-  - random-bytestring
-  - resource-pool
-  - regex-compat
-  - rescue
-  - rio
-  - rio-orphans
-  - RSA
-  - scientific
   - servant
   - servant-auth-server
   - servant-auth-swagger
@@ -150,28 +178,14 @@ dependencies:
   - servant-swagger
   - servant-swagger-ui
   - servant-swagger-ui-redoc
-  - streaming-commons
   - swagger2
-  - text
-  - text-time
-  - time
-  - transformers
-  - unliftio
-  - uuid
-  - uuid-types
   - wai
   - wai-cors
   - wai-extra
   - wai-logger
   - warp
   - warp-tls
-  - word8
-  - world-peace
-  - utf8-string
-  - vault
-  - vector
   - x509
-  - yaml
 
 library:
   source-dirs: library
