@@ -35,7 +35,7 @@ shortcuts =
     [ commandGroup "Shortcuts"
     , metavar "SHORTCUT"
     , command "setup" $ Command.User . User.Register <$> User.Register.parserWithInfo
-    , command "up"    $ Command.App  . App.Up <$> App.Up.parserWithInfo
+    , command "up"    $ Command.App  . App.Up        <$> App.Up.parserWithInfo
     ]
 
 subCommands :: Parser Command
