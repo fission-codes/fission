@@ -168,6 +168,9 @@ tests:
       - doctest
       - Glob
       - lens-aeson
+      - QuickCheck
+      - quickcheck-instances
+      - servant-quickcheck
       - yaml
 
   fission-cli-test:
