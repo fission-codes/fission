@@ -1,11 +1,10 @@
-module Test.Fission.Web.Client.Error (tests) where
+module Test.Fission.CLI.Web.Client.Error (tests) where
 
-import           Test.Fission.Prelude as Mock
+import           Test.Fission.CLI.Prelude  as Mock
 
-
+import qualified Fission.Internal.Fixture  as Fixture
 import           Fission.Web.Client.Error
 import           Network.HTTP.Types.Status
-import qualified Fission.Internal.Fixture as Fixture
 
 tests :: IO TestTree
 tests = do
@@ -14,21 +13,21 @@ tests = do
   -- EFFECTFUL SESSION --
   -----------------------
 
-  Mock.Session 
+  Mock.Session
     { effectLog = _effectLog :: [OpenUnion '[LogMsg]]
-    , result = validResult 
+    , result = validResult
     } <- runMock defaultConfig do
         checkStatus [status502, status504] (Right (0 :: Integer))
 
-  Mock.Session 
+  Mock.Session
     { effectLog = _effectLog :: [OpenUnion '[LogMsg]]
-    , result = errResult 
+    , result = errResult
     } <- runMock defaultConfig do
         checkStatus [status502, status504] (Left Fixture.failure502)
 
-  Mock.Session 
+  Mock.Session
     { effectLog = _effectLog :: [OpenUnion '[LogMsg]]
-    , result = allowedErrResult 
+    , result = allowedErrResult
     } <- runMock defaultConfig do
         checkStatus [status504] (Left Fixture.failure502)
 

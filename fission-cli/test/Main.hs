@@ -1,7 +1,7 @@
 module Main (main) where
 
-import           Test.Fission.Prelude
-import qualified Test.Fission.Web.Client as Web.Client
+import           Test.Fission.CLI.Prelude
+import qualified Test.Fission.CLI.Web.Client as CLI.Web.Client
 
 main :: IO ()
 main = defaultMain =<< tests
@@ -9,5 +9,5 @@ main = defaultMain =<< tests
 tests :: IO TestTree
 tests =
   testGroup "Fission CLI Specs" <$> sequence
-    [ Web.Client.tests
+    [ CLI.Web.Client.tests
     ]
