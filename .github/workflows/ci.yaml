@@ -40,7 +40,7 @@ jobs:
       id: cache_arts
       uses: actions/cache@v1
       with:
-        path: ./fission-core/.stack-work/dist
+        path: ./.stack-work/dist
         key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
 
     - name: Test
