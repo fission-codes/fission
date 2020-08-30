@@ -1,4 +1,4 @@
-resolver: lts-15.10
+resolver: lts-15.16
 
 packages:
 - fission-cli
