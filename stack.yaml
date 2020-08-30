@@ -1,7 +1,8 @@
 resolver: lts-15.10
 
 packages:
-- .
+- fission-cli
+- fission-core
 
 allow-newer: true
 
