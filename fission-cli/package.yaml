@@ -196,13 +196,13 @@ tests:
       - tasty-rerun
       - transformers
 
-  fission-cli-lint:
-    main: Main.hs
-    source-dirs: lint
-    dependencies:
-      - base
-      - hlint
-      - rio
+#   fission-cli-lint:
+#     main: Main.hs
+#     source-dirs: lint
+#     dependencies:
+#       - base
+#       - hlint
+#       - rio
 
 benchmarks:
   fission-cli-benchmark:

@@ -250,13 +250,13 @@ tests:
       - tasty-rerun
       - transformers
 
-  fission-core-lint:
-    main: Main.hs
-    source-dirs: lint
-    dependencies:
-      - base
-      - hlint
-      - rio
+#   fission-core-lint:
+#     main: Main.hs
+#     source-dirs: lint
+#     dependencies:
+#       - base
+#       - hlint
+#       - rio
 
 benchmarks:
   fission-core-benchmark:
