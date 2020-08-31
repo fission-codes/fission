@@ -521,20 +521,23 @@ instance App.Modifier Fission where
                   Left err ->
                     return $ openLeft err
 
-                  Right Domain {domainZoneId} ->
-                    DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
+                  Right Domain {domainZoneId} -> do
+                    result <- if copyFiles
+                                then
+                                  IPFS.Pin.add newCID >>= \case
+                                    Right _  -> return ok
+                                    Left err -> return $ openLeft err
+                                else
+                                  return ok
+
+                    case result of
                       Left err ->
-                        return $ relaxedLeft err
+                        return $ Left err
 
                       Right _ ->
-                        if copyFiles
-                          then
-                            IPFS.Pin.add newCID <&> \case
-                              Right _  -> Right appId
-                              Left err -> Error.openLeft err
-
-                          else
-                            return $ Right appId
+                        DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
+                          Left err -> return $ relaxedLeft err
+                          Right _  -> return $ Right appId
 
 instance App.Destroyer Fission where
   destroy uId appId now =
