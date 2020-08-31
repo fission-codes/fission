@@ -448,25 +448,23 @@ instance User.Modifier Fission where
             return $ Error.openLeft err
 
           Right size -> do
-            _ <- runDB $ User.setDataDB userId newCID size now
-
-            userDataDomain <- asks userRootDomain
-            zoneID         <- asks userZoneID
-
-            let
-              url = URL
-                { domainName = userDataDomain
-                , subdomain  = Just $ Subdomain (username <> ".files")
-                }
-
-            DNSLink.set userId url zoneID newCID >>= \case
+            IPFS.Pin.add newCID >>= \case
               Left err ->
-                return $ Error.relaxedLeft err
+                return $ Error.openLeft err
 
-              Right _  ->
-                IPFS.Pin.add newCID >>= \case
-                  Right _  -> return ok
-                  Left err -> return $ Error.openLeft err
+              Right _ -> do
+                zoneID <- asks userZoneID
+                userDataDomain <- asks userRootDomain
+
+                let
+                  url = URL
+                    { domainName = userDataDomain
+                    , subdomain  = Just $ Subdomain (username <> ".files")
+                    }
+
+                DNSLink.set userId url zoneID newCID >>= \case
+                  Left err -> return $ Error.relaxedLeft err
+                  Right _  -> Right <$> runDB (User.setDataDB userId newCID size now)
 
 instance User.Destroyer Fission where
   deactivate requestorId userId = runDB $ User.deactivate requestorId userId
