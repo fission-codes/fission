@@ -507,37 +507,32 @@ instance App.Modifier Fission where
         return $ Error.openLeft err
 
       Right size ->
-        runDB (App.setCidDB userId url newCID size copyFiles now) >>= \case
+        runDB (App.Domain.primarySibling userId url) >>= \case
           Left err ->
-            return $ Left err
+            return $ relaxedLeft err
 
-          Right appId -> do
-            runDB (App.Domain.primarySibling userId url) >>= \case
+          Right (Entity _ AppDomain {..}) ->
+            Domain.getByDomainName appDomainDomainName >>= \case
               Left err ->
-                return $ relaxedLeft err
+                return $ openLeft err
 
-              Right (Entity _ AppDomain {..}) ->
-                Domain.getByDomainName appDomainDomainName >>= \case
+              Right Domain {domainZoneId} -> do
+                result <- if copyFiles
+                            then
+                              IPFS.Pin.add newCID >>= \case
+                                Right _  -> return ok
+                                Left err -> return $ openLeft err
+                            else
+                              return ok
+
+                case result of
                   Left err ->
-                    return $ openLeft err
+                    return $ Left err
 
-                  Right Domain {domainZoneId} -> do
-                    result <- if copyFiles
-                                then
-                                  IPFS.Pin.add newCID >>= \case
-                                    Right _  -> return ok
-                                    Left err -> return $ openLeft err
-                                else
-                                  return ok
-
-                    case result of
-                      Left err ->
-                        return $ Left err
-
-                      Right _ ->
-                        DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
-                          Left err -> return $ relaxedLeft err
-                          Right _  -> return $ Right appId
+                  Right _ ->
+                    DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
+                      Left err -> return $ relaxedLeft err
+                      Right _  -> runDB (App.setCidDB userId url newCID size copyFiles now)
 
 instance App.Destroyer Fission where
   destroy uId appId now =
