@@ -2,9 +2,7 @@
 module Fission.CLI.Environment
   ( init
   , get
-  , getPath
   , couldNotRead
-  , removeConfigFile
   , getOrRetrievePeers
 
   -- * Reexport
@@ -15,6 +13,7 @@ module Fission.CLI.Environment
 
 import           Data.List.NonEmpty               as NonEmpty hiding (init,
                                                                (<|))
+import qualified Data.Yaml                        as YAML
 import           RIO.Directory
 import           RIO.FilePath
 
@@ -60,25 +59,24 @@ init = do
     Right nonEmptyPeers -> do
       let
         env = mempty
-          { peers         = NonEmpty.toList nonEmptyPeers
-          , maybeIgnored  = Just ignoreDefault
+          { peers        = NonEmpty.toList nonEmptyPeers
+          , maybeIgnored = Just ignoreDefault
           }
 
-      path <- globalEnv
-      liftIO $ Override.write path env
+      path <- Override.globalConfig
+      liftIO $ path `Override.writeFile` env
 
 -- | Gets hierarchical environment by recursing through file system
-get :: MonadIO m => m Environment
+get ::
+  ( MonadIO    m
+  , MonadRaise m
+  , m `Raises` YAML.ParseException
+  )
+  => m Environment
 get = do
-  override <- Override.get
-  return $ Override.toFull override
-
--- | Get the path to the Environment file, local or global
-getPath :: MonadIO m => Bool -> m FilePath
-getPath ofLocal =
-  if ofLocal
-    then getCurrentDirectory >>= \dir -> return $ dir </> ".fission.yaml"
-    else globalEnv
+  local  <- decodeFile =<< Override.localConfig
+  global <- decodeFile =<< Override.globalConfig
+  return $ Override.toFull (local <> global)
 
 -- | Create a could not read message for the terminal
 couldNotRead :: MonadIO m => m ()
@@ -91,12 +89,6 @@ couldNotRead = do
 
   liftIO $ ANSI.setSGR [ANSI.Reset]
 
--- | Removes the user's global config file
-removeConfigFile :: MonadUnliftIO m => m (Either IOException ())
-removeConfigFile = do
-  path <- globalEnv
-  try $ removeFile path
-
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
 getOrRetrievePeers ::
@@ -106,6 +98,7 @@ getOrRetrievePeers ::
 
   , MonadCleanup   m
   , m `Raises` ClientError
+  , m `Raises` YAML.ParseException
   , Show (OpenUnion (Errors m))
   )
   => Environment
@@ -118,7 +111,7 @@ getOrRetrievePeers Environment {peers = []} =
       return []
 
     Right nonEmptyPeers -> do
-      path <- globalEnv
+      path <- Override.globalConfig
       let peers = NonEmpty.toList nonEmptyPeers
       logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow peers
       Override.writeMerge path $ mempty { peers }

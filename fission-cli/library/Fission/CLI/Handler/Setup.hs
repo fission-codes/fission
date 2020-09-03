@@ -49,11 +49,8 @@ setup ::
   ) => m ()
 setup =
   attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
-    Right User.Username {username} ->
-      CLI.Success.alreadyLoggedInAs username
-
-    Left _ ->
-      maybe createAccount upgradeAccount =<< Env.Override.findBasicAuth
+    Right User.Username {username} -> CLI.Success.alreadyLoggedInAs username
+    Left _ -> createAccount
 
 createAccount ::
   ( MonadIO m
@@ -164,25 +161,3 @@ createKey = do
   Key.forceCreate
   UTF8.putTextLn "done"
 
-updateDID ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadWebClient m
-  , MonadTime      m
-  , ServerDID      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , MonadCleanup   m
-  , m `Raises` ClientError
-  , Show (OpenUnion (Errors m))
-  )
-  => Key.Public
-  -> m ()
-updateDID pk = do
-  attempt (sendRequestM $ authClient (Proxy @User.UpdatePK) `withPayload` pk) >>= \case
-    Left err ->
-      CLI.Error.put err "Could not upgrade account"
-
-    Right _ -> do
-      _ <- Env.Override.deleteHomeAuth
-      CLI.Success.putOk "Upgrade successful!"

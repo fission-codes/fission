@@ -1,119 +1,94 @@
 module Fission.CLI.Environment.Override
-  ( get
-  , findBasicAuth
-  , findRecurse
-  , decode
-  , write
+  ( globalConfig
+  , globalDir
+  , localConfig
+  , localConfigRel
+  , decodeFile
+  , writeFile
   , writeMerge
-  , globalEnv
   , toFull
   , fromFull
-  , deleteHomeAuth
+  -- * Reexports
   , module Fission.CLI.Environment.Override.Types
   ) where
 
-import qualified Data.Yaml as YAML
+import qualified Data.Yaml                              as YAML
 
 import           RIO.Directory
 import           RIO.File
 import           RIO.FilePath
 
-import           Servant.API
+import           Fission.Prelude
 
-import           Fission.Prelude hiding (decode)
-
-import           Fission.CLI.Environment.Types
 import           Fission.CLI.Environment.Override.Types
-
--- | Gets hierarchical environment by recursed through file system
-get :: MonadIO m => m Override
-get = getRecurse =<< getCurrentDirectory
-
-getRecurse :: MonadIO m => FilePath -> m Override
-getRecurse "/" = do
-  root <- decode "/.fission.yaml"
-  home <- decode =<< globalEnv
-  return (home <> root)
-
-getRecurse path = do
-  parent <- getRecurse $ takeDirectory path
-  curr <- decode (path </> ".fission.yaml")
-  return (parent <> curr)
-
--- | Recurses up to user root to find an env with basic auth data
-findBasicAuth :: MonadIO m => m (Maybe BasicAuthData)
-findBasicAuth = do
-  currDir <- getCurrentDirectory
-  findRecurse (isJust . maybeUserAuth) currDir <&> \case
-    Just (_, env) -> maybeUserAuth env
-    Nothing       -> Nothing
-
--- | Recurses up to user root to find a env that satisfies the 'finder' predicate
-findRecurse ::
-  MonadIO m
-  => (Override -> Bool)
-  -> FilePath
-  -> m (Maybe (FilePath, Override))
-findRecurse pred currentPath = do
-  let filepath = currentPath </> ".fission.yaml"
-  overrideEnv <- decode filepath
- 
-  if | pred overrideEnv ->
-         return $ Just (filepath, overrideEnv)
-        
-     | currentPath == "/" -> do
-         globalPath <- globalEnv
-         globalEnv' <- decode globalPath
-         return if pred globalEnv'
-                  then Just (globalPath, globalEnv')
-                  else Nothing
-                     
-     | otherwise ->
-         findRecurse pred $ takeDirectory currentPath
-
--- | Decodes file to partial environment
-decode :: MonadIO m => FilePath -> m Override
-decode path = liftIO (either mempty identity <$> YAML.decodeFileEither path)
-
--- | Writes partial environment to path
-write :: MonadIO m => FilePath -> Override -> m ()
-write path env = writeBinaryFileDurable path $ YAML.encode env
-
--- | Merge a partial env with an existing env at the path
-writeMerge :: MonadIO m => FilePath -> Override -> m ()
-writeMerge path newEnv = do
-  currentEnv <- decode path
-  write path $ currentEnv <> newEnv
+import           Fission.CLI.Environment.Types
 
 -- | globalEnv environment in users home
-globalEnv :: MonadIO m => m FilePath
-globalEnv = do
+globalConfig :: MonadIO m => m FilePath
+globalConfig = do
+  path <- globalDir
+  return $ path </> "config.yaml"
+
+globalDir :: MonadIO m => m FilePath
+globalDir = do
   home <- getHomeDirectory
-  return $ home </> ".fission.yaml"
+  return $ home </> ".config" </> "fission"
+
+localConfig :: MonadIO m => m FilePath
+localConfig = do
+  pwd <- getCurrentDirectory
+  return $ pwd </> localConfigRel
+
+localConfigRel :: FilePath
+localConfigRel = "fission.yaml"
+
+-- | Decodes file to partial environment
+decodeFile ::
+  ( MonadIO    m
+  , MonadRaise m
+  , m `Raises` YAML.ParseException
+  )
+  => FilePath
+  -> m Override
+decodeFile path =
+  doesFileExist path >>= \case
+    False -> return mempty
+    True  -> ensureM . liftIO $ YAML.decodeFileEither path
+
+-- | Writes partial environment to path
+writeFile :: MonadIO m => FilePath -> Override -> m ()
+writeFile path = writeBinaryFileDurable path . YAML.encode
+
+-- | Merge a partial env with an existing env at the path
+writeMerge ::
+  ( MonadIO    m
+  , MonadRaise m
+  , m `Raises` YAML.ParseException
+  )
+  => FilePath
+  -> Override
+  -> m ()
+writeMerge path newEnv = do
+  currentEnv <- decodeFile path
+  writeFile path $ currentEnv <> newEnv
 
 toFull :: Override -> Environment
-toFull Override {..} = do
+toFull Override {..} =
   Environment
     { peers     = peers
     , appURL    = maybeAppURL
-    , ignored   = fromMaybe [] $ maybeIgnored
+    , ignored   = fromMaybe [] maybeIgnored
     , buildDir  = maybeBuildDir
     , serverDID = maybeServerDID
     }
 
 fromFull :: Environment -> Override
-fromFull Environment {..} = Override
-  { maybeUserAuth  = Nothing
-  , maybeAppURL    = appURL
-  , peers          = peers
-  , maybeBuildDir  = buildDir
-  , maybeServerDID = serverDID
-  , maybeIgnored   = Just ignored
-  }
-
--- | Deletes user_auth from env at ~/.fission.yaml
-deleteHomeAuth :: MonadIO m => m ()
-deleteHomeAuth = do
-  path       <- globalEnv
-  currentEnv <- decode path
-  write path $ currentEnv { maybeUserAuth = Nothing }
+fromFull Environment {..} =
+  Override
+    { maybeUserAuth  = Nothing
+    , maybeAppURL    = appURL
+    , peers          = peers
+    , maybeBuildDir  = buildDir
+    , maybeServerDID = serverDID
+    , maybeIgnored   = Just ignored
+    }

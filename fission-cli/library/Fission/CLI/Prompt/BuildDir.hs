@@ -19,9 +19,9 @@ import           Fission.CLI.Display.Text
 import           Fission.CLI.Environment.Override as Override
 
 -- | Checks user's current build dir by:
---   * recursively checking .fission.yaml
---   * guessing a build dir from common static site generators
---   * prompting the user with that build dir
+--   * Look at the local .fission.yaml
+--   * If not found, guess a build dir from common static site generators
+--   * If no match, prompting the user with that build dir
 checkBuildDir ::
   ( MonadIO      m
   , MonadCleanup m
@@ -29,34 +29,19 @@ checkBuildDir ::
   => FilePath
   -> m FilePath
 checkBuildDir relPath = do
-  absPath <- makeAbsolute relPath
+  Override {buildDir} <- Override.decodeFile =<< Override.localConfig
 
-  findEnv absPath >>= \case
-    Just (envPath, buildDir) ->
-      return $ takeDirectory envPath </> buildDir
+  case buildDir of
+    Just relBuildDir ->
+      return relBuildDir
 
     Nothing -> do
-      buildDir <- promptBuildDir relPath
-      let updated = mempty { maybeBuildDir = Just buildDir }
+      absPath     <- makeAbsolute relPath
+      relBuildDir <- promptBuildDir relPath
+      let new = mempty { maybeBuildDir = Just buildDir }
 
-      Override.writeMerge (absPath </> ".fission.yaml") updated
+      (absPath </> Override.localConfigRel) `Override.writeMerge` new
       return buildDir
-
--- | Find the closests '.fission.yaml' that contains a build directory,
---   and return the location of both the env and the build directory
-findEnv ::
-  MonadIO m
-  => FilePath
-  -> m (Maybe (FilePath, FilePath)) -- ^ (closest env, build directory)
-findEnv path = do
-  Override.findRecurse (isJust . maybeBuildDir) path <&> \case
-    Nothing ->
-      Nothing
-
-    Just (closestEnvPath, Override {..}) ->
-      case maybeBuildDir of
-        Nothing       -> Nothing
-        Just buildDir -> Just (closestEnvPath, buildDir)
 
 -- | Prompt the user to see if they'd like to use a build folder instead of the root
 promptBuildDir ::

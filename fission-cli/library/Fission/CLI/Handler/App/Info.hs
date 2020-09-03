@@ -1,5 +1,7 @@
 module Fission.CLI.Handler.App.Info (appInfo) where
 
+import qualified Data.Yaml                   as YAML
+
 import           Fission.Prelude
 
 import           Fission.Error.Types
@@ -15,6 +17,7 @@ appInfo ::
   , MonadLogger  m
   , MonadCleanup m
   , m `Raises` NotFound URL
+  , m `Raises` YAML.ParseException
   )
   => m ()
 appInfo = do

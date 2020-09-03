@@ -56,7 +56,7 @@ up ::
   -> Bool
   -> m ()
 up watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
-  ignoredFiles <- getIgnoredFiles
+  ignoredFiles <- getIgnoredFiles -- FIXME swap for ipfsignore in fission.yaml
   toAdd        <- Prompt.checkBuildDir appPath
   absPath      <- liftIO $ makeAbsolute toAdd
 
