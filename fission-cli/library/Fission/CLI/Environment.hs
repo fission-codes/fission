@@ -14,8 +14,6 @@ module Fission.CLI.Environment
 import           Data.List.NonEmpty               as NonEmpty hiding (init,
                                                                (<|))
 import qualified Data.Yaml                        as YAML
-import           RIO.Directory
-import           RIO.FilePath
 
 import           Servant.Client
 
@@ -33,7 +31,7 @@ import qualified Fission.CLI.Display.Error        as CLI.Error
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Types
 
-import           Fission.CLI.Environment.Override hiding (get)
+import           Fission.CLI.Environment.Override
 import qualified Fission.CLI.Environment.Override as Override
 
 import qualified Fission.Internal.UTF8            as UTF8
@@ -74,9 +72,9 @@ get ::
   )
   => m Environment
 get = do
-  local  <- decodeFile =<< Override.localConfig
-  global <- decodeFile =<< Override.globalConfig
-  return $ Override.toFull (local <> global)
+  localCfg  <- decodeFile =<< Override.localConfig
+  globalCfg <- decodeFile =<< Override.globalConfig
+  return $ Override.toFull (localCfg <> globalCfg)
 
 -- | Create a could not read message for the terminal
 couldNotRead :: MonadIO m => m ()

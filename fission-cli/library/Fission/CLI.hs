@@ -1,29 +1,31 @@
 module Fission.CLI (cli, interpret) where
 
-import qualified Crypto.PubKey.Ed25519                 as Ed25519
+import qualified Crypto.PubKey.Ed25519                          as Ed25519
 import           Options.Applicative
-import qualified RIO.Text                              as Text
+import qualified RIO.Text                                       as Text
 
-import           Network.HTTP.Client                   as HTTP
-import           Network.HTTP.Client.TLS               as HTTP
+import           Network.HTTP.Client                            as HTTP
+import           Network.HTTP.Client.TLS                        as HTTP
 import           Servant.Client.Core
 
 import           Fission.Prelude
 
 import           Fission.Error
-import qualified Fission.Internal.CLI.Meta             as Meta
+import qualified Fission.Internal.CLI.Meta                      as Meta
 
-import qualified Fission.CLI.Base.Types                as Base
-import qualified Fission.CLI.Handler                   as Handler
+import qualified Fission.CLI.Base.Types                         as Base
+import qualified Fission.CLI.Handler                            as Handler
 
-import           Fission.CLI.Parser                    as CLI
+import           Fission.CLI.Parser                             as CLI
 import           Fission.CLI.Parser.Command.Types
 import           Fission.CLI.Parser.Command.User.Types
-import           Fission.CLI.Parser.Types              as Parser
+import           Fission.CLI.Parser.Types                       as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
-import qualified Fission.CLI.App                       as App
+import qualified Fission.CLI.App                                as App
 import           Fission.CLI.Types
+
+import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
 type Errs = AlreadyExists Ed25519.SecretKey ': App.Errs
 

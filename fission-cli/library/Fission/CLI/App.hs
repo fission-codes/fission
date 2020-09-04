@@ -4,6 +4,7 @@ module Fission.CLI.App
   ) where
 
 import qualified Crypto.PubKey.Ed25519                   as Ed25519
+import qualified Data.Yaml                               as YAML
 import qualified Network.IPFS.Types                      as IPFS
 import           Servant.Client.Core
 
@@ -44,6 +45,7 @@ type Errs =
    , NotFound URL
    , NotFound Ed25519.SecretKey
    , NotFound [IPFS.Peer]
+   , YAML.ParseException
    ]
 
 interpret :: forall errs .

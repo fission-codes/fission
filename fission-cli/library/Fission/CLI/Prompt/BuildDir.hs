@@ -10,6 +10,7 @@ import           RIO.FilePath
 import qualified RIO.Text                         as Text
 
 import qualified Data.ByteString.UTF8             as UTF8
+import qualified Data.Yaml                        as YAML
 import qualified System.Console.ANSI              as ANSI
 
 import qualified Fission.Internal.UTF8            as UTF8
@@ -25,23 +26,24 @@ import           Fission.CLI.Environment.Override as Override
 checkBuildDir ::
   ( MonadIO      m
   , MonadCleanup m
+  , m `Raises` YAML.ParseException
   )
   => FilePath
   -> m FilePath
 checkBuildDir relPath = do
-  Override {buildDir} <- Override.decodeFile =<< Override.localConfig
+  Override {maybeBuildDir} <- Override.decodeFile =<< Override.localConfig
 
-  case buildDir of
+  case maybeBuildDir of
     Just relBuildDir ->
       return relBuildDir
 
     Nothing -> do
       absPath     <- makeAbsolute relPath
       relBuildDir <- promptBuildDir relPath
-      let new = mempty { maybeBuildDir = Just buildDir }
+      let new = mempty { maybeBuildDir = Just relBuildDir }
 
       (absPath </> Override.localConfigRel) `Override.writeMerge` new
-      return buildDir
+      return relBuildDir
 
 -- | Prompt the user to see if they'd like to use a build folder instead of the root
 promptBuildDir ::

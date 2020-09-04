@@ -2,6 +2,7 @@
 module Fission.CLI.Handler.App.Init (appInit) where
 
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
+import qualified Data.Yaml                              as YAML
 import           Options.Applicative
 import           RIO.FilePath                           ((</>))
 import qualified System.Console.ANSI                    as ANSI
@@ -37,6 +38,8 @@ appInit ::
 
   , MonadCleanup   m
   , m `Raises` Servant.ClientError
+  , m `Raises` YAML.ParseException
+
   , Contains (Errors m) (Errors m)
   , Display (OpenUnion (Errors m))
   , Show (OpenUnion (Errors m))

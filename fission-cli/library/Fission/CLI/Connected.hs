@@ -6,6 +6,7 @@ module Fission.CLI.Connected
   ) where
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
+import qualified Data.Yaml                       as YAML
 import qualified RIO.NonEmpty                    as NonEmpty
 
 import qualified Network.HTTP.Client             as HTTP
@@ -47,6 +48,7 @@ run ::
 
   , Contains errs     errs
   , Contains LiftErrs errs
+  , IsMember YAML.ParseException  errs
   , IsMember IPFS.UnableToConnect errs
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
@@ -88,6 +90,7 @@ type LiftErrs =
 mkConnected ::
   ( ServerDID (FissionCLI errs inCfg)
 
+  , IsMember YAML.ParseException errs
   , Contains errs        errs
   , Contains LiftErrs    errs
   , Exception (OpenUnion errs)
@@ -105,7 +108,7 @@ mkConnected inCfg ipfsPath ipfsTimeout = do
   serverDID <- getServerDID
   attempt Key.readEd >>= \case
     Left _err -> do
-      CLI.Error.notConnected NoKeyFile
+      CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile
 
     Right secretKey -> do
@@ -114,7 +117,7 @@ mkConnected inCfg ipfsPath ipfsTimeout = do
 
       case NonEmpty.nonEmpty maybePeers of
         Nothing -> do
-          CLI.Error.notConnected $ NotFound @[IPFS.Peer]
+          CLI.Error.put (NotFound @[IPFS.Peer]) "No peers available"
           raise $ NotFound @[IPFS.Peer]
 
         Just peers -> do
@@ -139,7 +142,7 @@ mkConnected inCfg ipfsPath ipfsTimeout = do
             logDebug @Text "Attempting user verification"
             attempt (sendRequestM . authClient $ Proxy @User.Verify) >>= \case
               Left err -> do
-                CLI.Error.notConnected err
+                CLI.Error.put err "Not registered. Please run: fission user register"
                 raise NotRegistered
 
               Right _ ->

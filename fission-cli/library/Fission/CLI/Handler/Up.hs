@@ -1,6 +1,8 @@
 -- | File sync, IPFS-style
 module Fission.CLI.Handler.Up (up) where
 
+import qualified Data.Yaml                       as YAML
+
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           System.FSNotify                 as FS
 
@@ -47,6 +49,7 @@ up ::
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
   , ServerDID        m
+  , m `Raises` YAML.ParseException
   )
   => WatchFlag
   -> (m () -> IO ())
