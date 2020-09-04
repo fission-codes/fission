@@ -1,7 +1,10 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 module Fission.Error.NotFound.Types (NotFound (..)) where
 
 import qualified Crypto.PubKey.Ed25519   as Ed25519
 import qualified Network.IPFS.Types      as IPFS
+import qualified RIO.ByteString.Lazy     as Lazy
 import           Servant
 
 import qualified Fission.AWS.Zone.Types  as AWS
@@ -17,8 +20,10 @@ data NotFound entity
            , Exception
            )
 
-instance ToServerError (NotFound entity) where
-  toServerError _ = err404
+instance Display (NotFound entity) => ToServerError (NotFound entity) where
+  toServerError err = err404 { errBody }
+    where
+      errBody = Lazy.fromStrict . encodeUtf8 $ textDisplay err
 
 instance Display (NotFound User) where
   display _ = "User not found"

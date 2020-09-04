@@ -5,7 +5,7 @@ module Fission.Web.Auth
   , mkAuth
 
   -- * Reexports
- 
+
   , module Fission.Web.Auth.Class
   , module Fission.Web.Auth.Types
   ) where
@@ -13,19 +13,19 @@ module Fission.Web.Auth
 import           Network.Wai
 import           Servant
 import           Servant.Server.Experimental.Auth
- 
-import           Fission.Prelude
+
 import           Fission.Authorization
+import           Fission.Prelude
 import           Fission.User.DID.Types
 
 import qualified Fission.Platform.Heroku.Auth.Types as Heroku
 
 import           Fission.Web.Auth.Class             as Auth
-import           Fission.Web.Auth.Types             as Auth
 import           Fission.Web.Auth.Token.Basic.Class as BasicAuth
+import           Fission.Web.Auth.Types             as Auth
 
 -- Reexport
- 
+
 import           Fission.Web.Auth.Class
 import           Fission.Web.Auth.Types
 
@@ -45,7 +45,7 @@ mkAuth ::
 mkAuth = do
   didAuth         <- Auth.getVerifier
   higherOrderAuth <- Auth.getVerifier
-  herokuAuth <- BasicAuth.getVerifier
+  herokuAuth      <- BasicAuth.getVerifier
   return $ didAuth
         :. higherOrderAuth
         :. herokuAuth
