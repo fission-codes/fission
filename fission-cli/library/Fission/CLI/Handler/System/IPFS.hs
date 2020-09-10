@@ -28,7 +28,7 @@ placeBinary ::
   => Maybe OS.Supported
   -> m ()
 placeBinary (Just os) = placeBinary' os
- placeBinary Nothing   = placeBinary' =<< ensure OS.get
+placeBinary Nothing   = placeBinary' =<< ensure OS.get
 
 placeBinary' ::
   ( MonadIO          m

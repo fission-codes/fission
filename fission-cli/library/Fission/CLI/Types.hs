@@ -30,11 +30,14 @@ import           Fission.Prelude                     hiding (mask,
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
+
 import           Fission.Key                         as Key
 import           Fission.User.DID.Types
 
 import           Fission.CLI.Base.Types              as Base
 import           Fission.CLI.Connected.Types         as Connected
+
+import           Fission.CLI.IPFS.Ignore
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
@@ -263,16 +266,15 @@ instance
   runRemote query = do
     IPFS.URL url <- asks $ getField @"ipfsURL"
     manager      <- asks $ getField @"httpManager"
-    -- BaseUrl Https "ipfs.io" 443 "ipfs" -- FIXME check that htis is correct
 
     liftIO . runClientM query $ mkClientEnv manager url
 
-instance
-  HasField' "ignoredFiles" cfg IPFS.Ignored
-  => MonadEnvironment (FissionCLI errs cfg) where
-    getIgnoredFiles = asks $ getField @"ignoredFiles" -- MOve to own class
-
+instance MonadEnvironment (FissionCLI errs cfg) where
     getGlobalPath = do
       home <- getHomeDirectory
       return $ home </> ".config" </> "fission"
 
+instance
+  HasField' "ignoredFiles" cfg IPFS.Ignored
+  => MonadIPFSIgnore (FissionCLI errs cfg) where
+    getIgnoredFiles = asks $ getField @"ignoredFiles"

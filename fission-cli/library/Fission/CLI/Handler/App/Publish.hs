@@ -20,22 +20,20 @@ import qualified Fission.Time                    as Time
 import           Fission.URL
 
 import           Fission.Authorization.ServerDID
-
 import           Fission.Web.Auth.Token
 
 import           Fission.Web.Client              as Client
 import           Fission.Web.Client.App          as App
 import           Fission.Web.Client.Error
 
-import           Fission.CLI.Environment         as Environment
+import           Fission.CLI.IPFS.Ignore
 
 import           Fission.CLI.Display.Error
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
 
-import qualified Fission.CLI.Prompt.BuildDir     as Prompt
-
 import           Fission.CLI.Parser.Watch.Types
+import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
 -- | Sync the current working directory to the server over IPFS
 publish ::
@@ -43,7 +41,7 @@ publish ::
   , MonadCleanup     m
   , MonadLogger      m
   , MonadLocalIPFS   m
-  , MonadEnvironment m
+  , MonadIPFSIgnore  m
   , MonadWebClient   m
   , MonadTime        m
   , MonadWebAuth     m Token
@@ -59,7 +57,7 @@ publish ::
   -> Bool
   -> m ()
 publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
-  ignoredFiles <- getIgnoredFiles -- FIXME swap for ipfsignore in fission.yaml
+  ignoredFiles <- getIgnoredFiles
   toAdd        <- Prompt.checkBuildDir appPath
   absPath      <- liftIO $ makeAbsolute toAdd
 

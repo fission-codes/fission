@@ -6,6 +6,7 @@ import qualified RIO.Text                                       as Text
 
 import           Network.HTTP.Client                            as HTTP
 import           Network.HTTP.Client.TLS                        as HTTP
+import qualified Network.IPFS.URL.Types                         as IPFS
 import           Servant.Client.Core
 
 import           Fission.Prelude
@@ -39,6 +40,7 @@ cli = do
 
   let
     VerboseFlag isVerbose = getter cmd
+    ipfsURL               = IPFS.URL $ BaseUrl Https "ipfs.io" 443 "ipfs"
 
     rawHTTPSettings =
       case baseUrlScheme fissionURL of

@@ -57,7 +57,6 @@ run ::
   , HasProcessContext        inCfg
   , HasField' "fissionURL"   inCfg BaseUrl
   , HasField' "httpManager"  inCfg HTTP.Manager
-  -- , HasField' "ignoredFiles" inCfg IPFS.Ignored
   )
   => inCfg
   -> IPFS.BinPath
@@ -100,7 +99,6 @@ mkConnected ::
   , HasProcessContext        inCfg
   , HasField' "fissionURL"   inCfg BaseUrl
   , HasField' "httpManager"  inCfg HTTP.Manager
---   , HasField' "ignoredFiles" inCfg IPFS.Ignored
   )
   => inCfg
   -> IPFS.BinPath -- ^ IPFS BinPath
