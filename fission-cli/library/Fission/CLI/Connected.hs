@@ -53,10 +53,11 @@ run ::
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
 
-  , HasLogFunc                 inCfg
-  , HasProcessContext          inCfg
-  , HasField' "fissionURL"     inCfg BaseUrl
-  , HasField' "httpManager"    inCfg HTTP.Manager
+  , HasLogFunc               inCfg
+  , HasProcessContext        inCfg
+  , HasField' "fissionURL"   inCfg BaseUrl
+  , HasField' "httpManager"  inCfg HTTP.Manager
+  -- , HasField' "ignoredFiles" inCfg IPFS.Ignored
   )
   => inCfg
   -> IPFS.BinPath
@@ -95,10 +96,11 @@ mkConnected ::
   , Contains LiftErrs    errs
   , Exception (OpenUnion errs)
 
-  , HasLogFunc              inCfg
-  , HasProcessContext       inCfg
-  , HasField' "fissionURL"  inCfg BaseUrl
-  , HasField' "httpManager" inCfg HTTP.Manager
+  , HasLogFunc               inCfg
+  , HasProcessContext        inCfg
+  , HasField' "fissionURL"   inCfg BaseUrl
+  , HasField' "httpManager"  inCfg HTTP.Manager
+--   , HasField' "ignoredFiles" inCfg IPFS.Ignored
   )
   => inCfg
   -> IPFS.BinPath -- ^ IPFS BinPath

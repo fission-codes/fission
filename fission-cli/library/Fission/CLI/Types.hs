@@ -11,12 +11,13 @@ import qualified Data.ByteString.Char8               as BS8
 import           Control.Monad.Catch                 as Catch
 
 import qualified RIO.ByteString.Lazy                 as Lazy
+import           RIO.Directory
+import           RIO.FilePath
 import qualified RIO.Text                            as Text
-
 
 import qualified Network.DNS                         as DNS
 import           Network.HTTP.Client                 as HTTP
-import           Network.IPFS
+import           Network.IPFS                        as IPFS
 import           Network.IPFS.Process
 import qualified Network.IPFS.Process.Error          as Process
 import           Network.IPFS.Types                  as IPFS
@@ -256,6 +257,22 @@ instance
             Left $ Process.UnknownErr stdErrs
 
 instance
+  ( HasField' "httpManager" cfg HTTP.Manager
+  , HasField' "ipfsURL"     cfg IPFS.URL
+  ) => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
+  runRemote query = do
+    IPFS.URL url <- asks $ getField @"ipfsURL"
+    manager      <- asks $ getField @"httpManager"
+    -- BaseUrl Https "ipfs.io" 443 "ipfs" -- FIXME check that htis is correct
+
+    liftIO . runClientM query $ mkClientEnv manager url
+
+instance
   HasField' "ignoredFiles" cfg IPFS.Ignored
   => MonadEnvironment (FissionCLI errs cfg) where
-    getIgnoredFiles = asks $ getField @"ignoredFiles"
+    getIgnoredFiles = asks $ getField @"ignoredFiles" -- MOve to own class
+
+    getGlobalPath = do
+      home <- getHomeDirectory
+      return $ home </> ".config" </> "fission"
+

@@ -13,9 +13,10 @@ import qualified Fission.CLI.Display.Success as CLI
 import           Fission.CLI.Environment     as Environment
 
 appInfo ::
-  ( MonadIO      m
-  , MonadLogger  m
-  , MonadCleanup m
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadEnvironment m
+  , MonadCleanup     m
   , m `Raises` NotFound URL
   , m `Raises` YAML.ParseException
   )

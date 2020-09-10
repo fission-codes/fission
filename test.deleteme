@@ -1,0 +1,14 @@
+HTTP/2 400 
+server: nginx
+date: Thu, 10 Sep 2020 17:52:57 GMT
+content-type: text/plain; charset=utf-8
+content-length: 169
+x-content-type-options: nosniff
+access-control-allow-origin: *
+access-control-allow-methods: GET, POST, OPTIONS
+access-control-allow-headers: X-Requested-With, Range, Content-Range, X-Chunked-Output, X-Stream-Output
+access-control-expose-headers: Content-Range, X-Chunked-Output, X-Stream-Output
+x-ipfs-pop: gateway-bank1-sjc1
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+
+invalid ipfs path: invalid path "/ipfs/bafybeif526uqcfwqpgii7t4jghduisc4eaxfi64furk7g7e2amldtf2m4": invalid CID: length greater than remaining number of bytes in buffer

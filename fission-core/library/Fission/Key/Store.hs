@@ -141,4 +141,4 @@ exists = doesFileExist =<< location
 location :: MonadIO m => m FilePath
 location = do
   home <- getHomeDirectory
-  return $ home </> ".ssh" </> "fission"
+  return $ home </> ".ssh" </> "fission" -- FIXME

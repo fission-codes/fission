@@ -1,6 +1,5 @@
 module Fission.CLI.Environment.Override
   ( globalConfig
-  , globalDir
   , localConfig
   , localConfigRel
   , decodeFile
@@ -20,19 +19,15 @@ import           RIO.FilePath
 
 import           Fission.Prelude
 
+import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Override.Types
 import           Fission.CLI.Environment.Types
 
 -- | globalEnv environment in users home
-globalConfig :: MonadIO m => m FilePath
+globalConfig :: MonadEnvironment m => m FilePath
 globalConfig = do
-  path <- globalDir
+  path <- getGlobalPath
   return $ path </> "config.yaml"
-
-globalDir :: MonadIO m => m FilePath
-globalDir = do
-  home <- getHomeDirectory
-  return $ home </> ".config" </> "fission"
 
 localConfig :: MonadIO m => m FilePath
 localConfig = do

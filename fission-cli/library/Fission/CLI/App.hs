@@ -93,4 +93,4 @@ interpret baseCfg cmd = do
             "You have not set up an app. Please run `fission app register`"
 
         Just url ->
-          run' $ Handler.up watch run' url filePath updateDNS updateData
+          run' $ Handler.publish watch run' url filePath updateDNS updateData

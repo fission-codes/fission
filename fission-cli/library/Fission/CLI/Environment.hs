@@ -9,6 +9,7 @@ module Fission.CLI.Environment
 
   , module Fission.CLI.Environment.Class
   , module Fission.CLI.Environment.Types
+  , module Fission.CLI.Environment.Path
   ) where
 
 import           Data.List.NonEmpty               as NonEmpty hiding (init,
@@ -29,6 +30,7 @@ import           Fission.Web.Client.Peers         as Peers
 import qualified Fission.CLI.Display.Error        as CLI.Error
 
 import           Fission.CLI.Environment.Class
+import           Fission.CLI.Environment.Path
 import           Fission.CLI.Environment.Types
 
 import           Fission.CLI.Environment.Override
@@ -38,11 +40,12 @@ import qualified Fission.Internal.UTF8            as UTF8
 
 -- | Initialize the Environment file
 init ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadWebClient m
+  ( MonadIO          m
+  , MonadEnvironment m
+  , MonadLogger      m
+  , MonadWebClient   m
 
-  , MonadCleanup   m
+  , MonadCleanup m
   , m `Raises` ClientError
   , Show (OpenUnion (Errors m))
   )
@@ -66,8 +69,9 @@ init = do
 
 -- | Gets hierarchical environment by recursing through file system
 get ::
-  ( MonadIO    m
-  , MonadRaise m
+  ( MonadIO          m
+  , MonadEnvironment m
+  , MonadRaise       m
   , m `Raises` YAML.ParseException
   )
   => m Environment
@@ -90,11 +94,12 @@ couldNotRead = do
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
 getOrRetrievePeers ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadWebClient m
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadWebClient   m
+  , MonadEnvironment m
 
-  , MonadCleanup   m
+  , MonadCleanup m
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
   , Show (OpenUnion (Errors m))

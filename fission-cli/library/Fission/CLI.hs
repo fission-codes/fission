@@ -29,13 +29,13 @@ import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
 type Errs = AlreadyExists Ed25519.SecretKey ': App.Errs
 
-cli :: IO (Either (OpenUnion Errs) ())
+cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
   Parser.Options
     { fissionDID = cachedServerDID
     , fissionURL
     , cmd
-    } <- execParser CLI.parserWithInfo
+    } <- liftIO $ execParser CLI.parserWithInfo
 
   let
     VerboseFlag isVerbose = getter cmd
@@ -45,7 +45,7 @@ cli = do
         Http  -> defaultManagerSettings
         Https -> tlsManagerSettings
 
-  httpManager <- HTTP.newManager rawHTTPSettings
+  httpManager <- liftIO $ HTTP.newManager rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro 1_800_000_000 }
 
   processCtx <- mkDefaultProcessContext
@@ -72,5 +72,5 @@ interpret baseCfg cmd =
 
       User subCmd ->
         case subCmd of
-          Register _ -> Handler.setup
+          Register _ -> Handler.register
           WhoAmI   _ -> Handler.whoami
