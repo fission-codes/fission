@@ -33,7 +33,11 @@ globalKeyDir = do
   dir <- globalBinaryDir
   return $ dir </> "key"
 
-signingKeyPath :: MonadIO m => m FilePath
+signingKeyPath ::
+  ( MonadIO          m
+  , MonadEnvironment m
+  )
+  => m FilePath
 signingKeyPath = do
   path <- globalKeyDir
   return $ path </> "machine_id.ed25519"

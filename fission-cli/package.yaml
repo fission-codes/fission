@@ -103,6 +103,7 @@ dependencies:
   ## Data ##
   - aeson
   - bytestring
+  - memory
   - utf8-string
   - yaml
 
