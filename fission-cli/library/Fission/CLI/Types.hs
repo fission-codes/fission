@@ -30,7 +30,6 @@ import           Fission.Prelude                     hiding (mask,
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-
 import           Fission.Key                         as Key
 import           Fission.User.DID.Types
 

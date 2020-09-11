@@ -7,6 +7,7 @@ import qualified RIO.ByteString.Lazy          as Lazy
 import qualified RIO.File                     as File
 
 import           Network.IPFS
+import qualified Network.IPFS.BinPath.Types   as IPFS
 import qualified Network.IPFS.File.Types      as File
 import           Servant.Client
 
@@ -41,6 +42,6 @@ placeBinary' ::
   -> m ()
 placeBinary' host = do
   File.Serialized lazyFile <- ensureM . ipfsCat $ Global.IPFS.binCidFor host
-  ipfsPath                 <- Path.globalIPFS
+  IPFS.BinPath ipfsPath    <- Path.globalIPFS
 
   ipfsPath `File.writeBinaryFileDurableAtomic` Lazy.toStrict lazyFile

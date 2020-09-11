@@ -3,6 +3,7 @@ module Fission.CLI.Environment.Path
   , globalIPFS
   ) where
 
+import qualified Network.IPFS.BinPath.Types    as IPFS
 import           RIO.FilePath                  ((</>))
 
 import           Fission.Prelude
@@ -14,7 +15,7 @@ globalBinaryDir = do
   global <- getGlobalPath
   return $ global </> "bin"
 
-globalIPFS :: MonadEnvironment m => m FilePath
+globalIPFS :: MonadEnvironment m => m IPFS.BinPath
 globalIPFS = do
   dir <- globalBinaryDir
-  return $ dir </> "ipfs"
+  return . IPFS.BinPath $ dir </> "ipfs"

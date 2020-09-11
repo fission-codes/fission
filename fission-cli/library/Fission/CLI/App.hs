@@ -26,7 +26,6 @@ import qualified Fission.CLI.Display.Error               as CLI.Error
 import           Fission.CLI.Environment                 as Environment
 import qualified Fission.CLI.Handler                     as Handler
 import qualified Fission.IPFS.Error.Types                as IPFS
-import qualified Fission.IPFS.Local                      as IPFS.Local
 
 import           Fission.CLI.Parser.Command.App          as App
 import qualified Fission.CLI.Parser.Command.App.Info     as App.Info
@@ -65,11 +64,11 @@ interpret baseCfg cmd = do
       Handler.appInfo
 
     Init App.Init.Options {appDir, buildDir, maySubdomain, ipfsCfg = IPFS.Config {..}} -> do
-      binPath' <- IPFS.Local.toBinPath binPath
+      ipfsBinPath <- globalIPFS
 
       let
         run' :: FissionCLI errs Connected.Config a -> FissionCLI errs Base.Config ()
-        run' = void . Connected.run baseCfg binPath' timeoutSeconds
+        run' = void . Connected.run baseCfg ipfsBinPath timeoutSeconds
 
       case appURL of
         Nothing ->
@@ -81,11 +80,11 @@ interpret baseCfg cmd = do
           raise $ AlreadyExists @App
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
-      binPath' <- IPFS.Local.toBinPath binPath
+      ipfsBinPath <- globalIPFS
 
       let
         run' :: MonadIO m => FissionCLI errs Connected.Config a -> m ()
-        run' = void . Connected.run baseCfg binPath' timeoutSeconds
+        run' = void . Connected.run baseCfg ipfsBinPath timeoutSeconds
 
       case appURL of
         Nothing ->

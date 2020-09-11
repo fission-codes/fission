@@ -22,7 +22,7 @@ data Config = Config
   , peers        :: !(NonEmpty IPFS.Peer)
   , ignoredFiles :: !IPFS.Ignored
   }
-  deriving (Generic)
+  deriving Generic
 
 instance HasProcessContext Config where
   processContextL = lens processCtx \cfg newProcessCtx ->
