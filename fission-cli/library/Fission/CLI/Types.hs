@@ -5,6 +5,7 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
+import           Crypto.Hash
 import qualified Crypto.PubKey.Ed25519               as Ed25519
 import qualified Data.ByteString.Char8               as BS8
 
@@ -36,7 +37,7 @@ import           Fission.User.DID.Types
 import           Fission.CLI.Base.Types              as Base
 import           Fission.CLI.Connected.Types         as Connected
 
-import           Fission.CLI.IPFS.Ignore
+import qualified Fission.CLI.IPFS.Ignore             as IPFS.Ignore
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
@@ -241,13 +242,20 @@ instance
   , HasLogFunc              cfg
   )
   => MonadLocalIPFS (FissionCLI errs cfg) where
-  runLocal opts arg = do
-    IPFS.BinPath ipfs <- asks (getField @"ipfsPath")
-    IPFS.Timeout secs <- asks (getField @"ipfsTimeout")
+  runLocal opts' arg = do
+    IPFS.BinPath ipfs <- asks $ getField @"ipfsPath"
+    IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
-    let opts' = ("--timeout=" <> show secs <> "s") : opts
+    pwd        <- getCurrentDirectory
+    ignorePath <- IPFS.Ignore.writeTmp . hash @(Digest SH256) $ read pwd
 
-    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' <&> \case
+    let
+      cidVersion = "--cid-version=1"
+      timeout    = "--timeout=" <> show secs <> "s"
+      ignore     = "--ignore-rules-path=" <> show ignorePath
+      opts       = cidVersion : timeout : ignore : opts'
+
+    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts <&> \case
       (ExitSuccess, contents, _) ->
         Right contents
 

@@ -9,7 +9,7 @@ module Fission.Key.Store
   , readX
   , readEd
   , exists
-  , location
+  , signingKeyPath
   -- * Reexport
   , module Fission.Key.Error
   ) where
@@ -52,7 +52,7 @@ forceCreate = do
 delete :: MonadIO m => m ()
 delete = exists >>= \case
   False -> return ()
-  True  -> removeFile =<< location
+  True  -> removeFile =<< signingKeyPath
 
 writeKey :: MonadIO m => X.SecretKey -> m ()
 writeKey key = do
@@ -125,7 +125,7 @@ readBytes = exists >>= \case
     raise Key.DoesNotExist
 
   True -> do
-    path <- location
+    path <- signingKeyPath
     bs   <- readFileBinary path
     return $ B64.Scrubbed.scrub bs
 
@@ -136,9 +136,4 @@ parseKey f bytes =
     CryptoFailed err -> Left $ Key.ParseError err
 
 exists :: MonadIO m => m Bool
-exists = doesFileExist =<< location
-
-location :: MonadIO m => m FilePath
-location = do
-  home <- getHomeDirectory
-  return $ home </> ".ssh" </> "fission" -- FIXME
+exists = doesFileExist =<< signingKeyPath

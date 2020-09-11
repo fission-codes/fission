@@ -1,6 +1,9 @@
 module Fission.CLI.Environment.Path
   ( globalBinaryDir
   , globalIPFS
+  , globalTmpDir
+  , globalKeyDir
+  , signingKeyPath
   ) where
 
 import qualified Network.IPFS.BinPath.Types    as IPFS
@@ -19,3 +22,18 @@ globalIPFS :: MonadEnvironment m => m IPFS.BinPath
 globalIPFS = do
   dir <- globalBinaryDir
   return . IPFS.BinPath $ dir </> "ipfs"
+
+globalTmpDir :: MonadEnvironment m => m FilePath
+globalTmpDir = do
+  dir <- globalBinaryDir
+  return $ dir </> "tmp"
+
+globalKeyDir :: MonadEnvironment m => m FilePath
+globalKeyDir = do
+  dir <- globalBinaryDir
+  return $ dir </> "key"
+
+signingKeyPath :: MonadIO m => m FilePath
+signingKeyPath = do
+  path <- globalKeyDir
+  return $ path </> "machine_id.ed25519"
