@@ -61,7 +61,6 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
   let copyFiles = updateData
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
-  -- FIXME replace with simpler
   CLI.IPFS.Add.dir absPath >>= putErrOr \cid@(CID hash) -> do
     req <- App.mkUpdateReq appURL cid copyFiles
 
