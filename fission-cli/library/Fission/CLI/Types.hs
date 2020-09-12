@@ -5,7 +5,7 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
-import           Crypto.Hash
+import           Crypto.Hash                         as Crypto
 import qualified Crypto.PubKey.Ed25519               as Ed25519
 import qualified Data.ByteString.Char8               as BS8
 
@@ -14,6 +14,7 @@ import           Control.Monad.Catch                 as Catch
 import qualified RIO.ByteString.Lazy                 as Lazy
 import           RIO.Directory
 import           RIO.FilePath
+import qualified RIO.Partial                         as Partial
 import qualified RIO.Text                            as Text
 
 import qualified Network.DNS                         as DNS
@@ -31,13 +32,16 @@ import           Fission.Prelude                     hiding (mask,
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-import           Fission.Key                         as Key
+import qualified Fission.Key.Error                   as Key
 import           Fission.User.DID.Types
 
 import           Fission.CLI.Base.Types              as Base
 import           Fission.CLI.Connected.Types         as Connected
 
 import qualified Fission.CLI.IPFS.Ignore             as IPFS.Ignore
+
+import           Fission.CLI.Key.Ed25519             as Ed25519
+import           Fission.CLI.Key.Store               as Key.Store
 
 import           Fission.Web.Auth.Token
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
@@ -50,6 +54,10 @@ import qualified Fission.CLI.Display.Error           as CLI.Error
 import qualified Fission.CLI.Display.Loader          as CLI
 
 import           Fission.CLI.Environment.Class
+
+-- FIXMEreexport from ignore
+
+import           Fission.CLI.IPFS.Ignore.Class
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
@@ -162,8 +170,8 @@ instance
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
   getAuth =
-    Key.exists >>= \case
-      True  -> readEd
+    Key.Store.exists >>= \case
+      True  -> Ed25519.parseSecretKey =<< getAsBytes
       False -> raise $ NotFound @Ed25519.SecretKey
 
 instance MonadMask (FissionCLI errs cfg) where
@@ -238,6 +246,7 @@ instance (Contains errs errs, IsMember SomeException errs)
 instance
   ( HasField' "ipfsPath"    cfg IPFS.BinPath
   , HasField' "ipfsTimeout" cfg IPFS.Timeout
+  , MonadIPFSIgnore (FissionCLI errs cfg)
   , HasProcessContext       cfg
   , HasLogFunc              cfg
   )
@@ -247,7 +256,7 @@ instance
     IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
     pwd        <- getCurrentDirectory
-    ignorePath <- IPFS.Ignore.writeTmp . hash @(Digest SH256) $ read pwd
+    ignorePath <- IPFS.Ignore.writeTmp . show . Crypto.hash @ByteString @SHA256 $ Partial.read pwd
 
     let
       cidVersion = "--cid-version=1"
@@ -282,6 +291,6 @@ instance MonadEnvironment (FissionCLI errs cfg) where
       return $ home </> ".config" </> "fission"
 
 instance
-  HasField' "ignoredFiles" cfg IPFS.Ignored
+  HasField' "ignoredFiles" cfg [Text]
   => MonadIPFSIgnore (FissionCLI errs cfg) where
     getIgnoredFiles = asks $ getField @"ignoredFiles"

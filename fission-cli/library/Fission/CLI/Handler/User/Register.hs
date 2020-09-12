@@ -2,9 +2,9 @@
 module Fission.CLI.Handler.User.Register (register) where
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
+import           Crypto.Random
 
 import           Network.HTTP.Types.Status
-
 import           Servant.Client.Core
 
 import           Fission.Prelude
@@ -29,12 +29,15 @@ import           Fission.CLI.Display.Success     as CLI.Success
 import           Fission.CLI.Environment         as Env
 import qualified Fission.CLI.Prompt              as Prompt
 
+import qualified Fission.CLI.Key.Store           as Key.Store
+
 register ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadWebClient   m
   , MonadEnvironment m
   , MonadTime        m
+  , MonadRandom      m
   , ServerDID        m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
@@ -57,6 +60,7 @@ createAccount ::
   , MonadWebClient   m
   , MonadTime        m
   , ServerDID        m
+  , MonadRandom      m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
   , MonadCleanup     m
@@ -77,7 +81,7 @@ createAccount = do
       , password = Nothing
       }
 
-  Key.create |> onRaise \errs ->
+  Key.Store.create |> onRaise \errs ->
     case openUnionMatch errs of
       Just Key.AlreadyExists -> do
         let err = AlreadyExists @Ed25519.SecretKey

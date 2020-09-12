@@ -32,6 +32,9 @@ import qualified Fission.CLI.Context             as Context
 import           Fission.CLI.Error.Types
 import           Fission.CLI.Types
 
+import qualified Fission.CLI.Key.Ed25519         as Ed25519
+import qualified Fission.CLI.Key.Store           as Key.Store
+
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Environment         as Environment
 import           Fission.CLI.Environment.Types   as Environment
@@ -104,14 +107,14 @@ mkConnected ::
   -> IPFS.BinPath -- ^ IPFS BinPath
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
   -> FissionCLI errs inCfg Config
-mkConnected inCfg ipfsPath ipfsTimeout = do
-  serverDID <- getServerDID
-  attempt Key.readEd >>= \case
+mkConnected inCfg ipfsPath ipfsTimeout =
+  attempt (Key.Store.getAsBytes >>= Ed25519.parseSecretKey) >>= \case
     Left _err -> do
       CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile
 
     Right secretKey -> do
+      serverDID  <- getServerDID
       config     <- Environment.get
       maybePeers <- Environment.getOrRetrievePeers config
 

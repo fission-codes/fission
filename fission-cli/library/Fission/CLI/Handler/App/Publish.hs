@@ -26,27 +26,25 @@ import           Fission.Web.Client              as Client
 import           Fission.Web.Client.App          as App
 import           Fission.Web.Client.Error
 
-import           Fission.CLI.IPFS.Ignore
-
 import           Fission.CLI.Display.Error
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
+import qualified Fission.CLI.IPFS.Add            as CLI.IPFS.Add
 
 import           Fission.CLI.Parser.Watch.Types
 import qualified Fission.CLI.Prompt.BuildDir     as Prompt
 
 -- | Sync the current working directory to the server over IPFS
 publish ::
-  ( MonadIO          m
-  , MonadCleanup     m
-  , MonadLogger      m
-  , MonadLocalIPFS   m
-  , MonadIPFSIgnore  m
-  , MonadWebClient   m
-  , MonadTime        m
-  , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
-  , ServerDID        m
+  ( MonadIO        m
+  , MonadCleanup   m
+  , MonadLogger    m
+  , MonadLocalIPFS m
+  , MonadWebClient m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
   , m `Raises` YAML.ParseException
   )
   => WatchFlag
@@ -57,14 +55,14 @@ publish ::
   -> Bool
   -> m ()
 publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
-  ignoredFiles <- getIgnoredFiles
   toAdd        <- Prompt.checkBuildDir appPath
   absPath      <- liftIO $ makeAbsolute toAdd
 
   let copyFiles = updateData
   logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
 
-  IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
+  -- FIXME replace with simpler
+  CLI.IPFS.Add.dir absPath >>= putErrOr \cid@(CID hash) -> do
     req <- App.mkUpdateReq appURL cid copyFiles
 
     retryOnStatus [status502, status504] 100 req >>= \case
