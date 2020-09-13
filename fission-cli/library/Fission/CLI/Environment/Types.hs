@@ -1,6 +1,6 @@
 module Fission.CLI.Environment.Types (Environment (..)) where
 
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.Types                      as IPFS
 
 import           Fission.Prelude
 
@@ -12,7 +12,7 @@ import           Fission.Internal.Orphanage.Glob.Pattern ()
 -- | Virtual environment built up from many layers of 'Environment.Override'.
 data Environment = Environment
   { peers     :: ![IPFS.Peer]
-  , ignored   :: !IPFS.Ignored
+  , ignored   :: ![Text] -- ^ Passing through verbatim for ipfsignore
   , appURL    :: !(Maybe URL)
   , buildDir  :: !(Maybe FilePath)
   , serverDID :: !(Maybe DID)

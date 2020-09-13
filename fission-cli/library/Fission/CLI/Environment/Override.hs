@@ -71,8 +71,9 @@ toFull :: Override -> Environment
 toFull Override {..} =
   Environment
     { peers     = peers
+    , ignored   = ipfsIgnored
+
     , appURL    = maybeAppURL
-    , ignored   = fromMaybe [] maybeIgnored
     , buildDir  = maybeBuildDir
     , serverDID = maybeServerDID
     }
@@ -80,10 +81,11 @@ toFull Override {..} =
 fromFull :: Environment -> Override
 fromFull Environment {..} =
   Override
-    { maybeUserAuth  = Nothing
+    { peers          = peers
+    , ipfsIgnored    = ignored
+
+    , maybeUserAuth  = Nothing
     , maybeAppURL    = appURL
-    , peers          = peers
     , maybeBuildDir  = buildDir
     , maybeServerDID = serverDID
-    , maybeIgnored   = Just ignored
     }

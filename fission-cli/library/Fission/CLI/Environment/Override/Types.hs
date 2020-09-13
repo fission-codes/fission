@@ -18,19 +18,22 @@ import           Fission.Internal.Orphanage.Glob.Pattern  ()
 --   'Environment' is constructed virtually from layers of 'Override's.
 data Override = Override
   { peers          :: ![IPFS.Peer]
+  , ipfsIgnored    :: ![Text]
   , maybeAppURL    :: !(Maybe URL)
   , maybeUserAuth  :: !(Maybe BasicAuthData) -- TODO deprecated
-  , maybeIgnored   :: !(Maybe IPFS.Ignored)
   , maybeBuildDir  :: !(Maybe FilePath)
   , maybeServerDID :: !(Maybe DID)
   }
 
 instance Semigroup Override where
   a <> b = Override
+    -- Combine
     { peers          = peers          a <>  peers          b
+    , ipfsIgnored    = ipfsIgnored    a <>  ipfsIgnored    b
+
+    -- Alternate
     , maybeAppURL    = maybeAppURL    a <|> maybeAppURL    b
     , maybeUserAuth  = maybeUserAuth  a <|> maybeUserAuth  b
-    , maybeIgnored   = maybeIgnored   a <|> maybeIgnored   b
     , maybeBuildDir  = maybeBuildDir  a <|> maybeBuildDir  b
     , maybeServerDID = maybeServerDID a <|> maybeServerDID b
     }
@@ -38,9 +41,10 @@ instance Semigroup Override where
 instance Monoid Override where
   mempty = Override
     { peers          = []
+    , ipfsIgnored    = []
+
     , maybeAppURL    = Nothing
     , maybeUserAuth  = Nothing
-    , maybeIgnored   = Nothing
     , maybeBuildDir  = Nothing
     , maybeServerDID = Nothing
     }
@@ -48,9 +52,10 @@ instance Monoid Override where
 instance ToJSON Override where
   toJSON Override {..} = object $ catMaybes
     [ ("peers"      .=) <$> skipEmpty peers
+    , ("ignore"     .=) <$> skipEmpty ipfsIgnored
+
     , ("app_url"    .=) <$> maybeAppURL
     , ("user_auth"  .=) <$> maybeUserAuth
-    , ("ignore"     .=) <$> maybeIgnored
     , ("build_dir"  .=) <$> maybeBuildDir
     , ("server_did" .=) <$> maybeServerDID
     ]
@@ -61,10 +66,11 @@ instance ToJSON Override where
 
 instance FromJSON Override where
   parseJSON = withObject "Override" \obj -> do
-    peers          <- obj .:? "peers" .!= []
+    peers          <- obj .:? "peers"  .!= []
+    ipfsIgnored    <- obj .:? "ignore" .!= []
+
     maybeAppURL    <- obj .:? "app_url"
     maybeUserAuth  <- obj .:? "user_auth"
-    maybeIgnored   <- obj .:? "ignore"
     maybeBuildDir  <- obj .:? "build_dir"
     maybeServerDID <- obj .:? "server_did"
 

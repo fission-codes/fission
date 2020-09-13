@@ -10,7 +10,6 @@ import qualified Data.Yaml                       as YAML
 import qualified RIO.NonEmpty                    as NonEmpty
 
 import qualified Network.HTTP.Client             as HTTP
-import qualified Network.IPFS.BinPath.Types      as IPFS
 import           Network.IPFS.Local.Class
 import qualified Network.IPFS.Timeout.Types      as IPFS
 import qualified Network.IPFS.Types              as IPFS
@@ -29,6 +28,7 @@ import qualified Fission.Web.Client.User         as User
 
 import           Fission.CLI.Connected.Types
 import qualified Fission.CLI.Context             as Context
+import           Fission.CLI.Environment.Path
 import           Fission.CLI.Error.Types
 import           Fission.CLI.Types
 
@@ -62,13 +62,12 @@ run ::
   , HasField' "httpManager"  inCfg HTTP.Manager
   )
   => inCfg
-  -> IPFS.BinPath
   -> IPFS.Timeout
   -> FissionCLI errs Config a
   -> m (Either (OpenUnion errs) a)
-run cfg ipfsBinPath ipfsTimeout actions =
+run cfg ipfsTimeout actions =
   runFissionCLI cfg do
-    cfg'@Config {peers} <- mkConnected cfg ipfsBinPath ipfsTimeout
+    cfg'@Config {peers} <- mkConnected cfg ipfsTimeout
 
     Context.run cfg' do
       attempt (Connect.swarmConnectWithRetry peers 5) >>= \case
@@ -98,22 +97,22 @@ mkConnected ::
   , Contains LiftErrs    errs
   , Exception (OpenUnion errs)
 
-  , HasLogFunc               inCfg
-  , HasProcessContext        inCfg
-  , HasField' "fissionURL"   inCfg BaseUrl
-  , HasField' "httpManager"  inCfg HTTP.Manager
+  , HasLogFunc              inCfg
+  , HasProcessContext       inCfg
+  , HasField' "fissionURL"  inCfg BaseUrl
+  , HasField' "httpManager" inCfg HTTP.Manager
   )
   => inCfg
-  -> IPFS.BinPath -- ^ IPFS BinPath
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
   -> FissionCLI errs inCfg Config
-mkConnected inCfg ipfsPath ipfsTimeout =
+mkConnected inCfg ipfsTimeout =
   attempt (Key.Store.getAsBytes >>= Ed25519.parseSecretKey) >>= \case
     Left _err -> do
       CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile
 
     Right secretKey -> do
+      ipfsPath   <- globalIPFS
       serverDID  <- getServerDID
       config     <- Environment.get
       maybePeers <- Environment.getOrRetrievePeers config

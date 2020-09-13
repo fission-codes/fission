@@ -8,7 +8,6 @@ import qualified Network.IPFS.Process.Error as Process
 
 import           Fission.Prelude
 
--- FIXME use tmp ignore in the MonadLocalIFPS instance directly
 dir :: IPFS.MonadLocalIPFS m => FilePath -> m (Either Process.Error CID)
 dir path = IPFS.runLocal ["add", "-HQr", path] "" >>= \case
   Left  err    -> return $ Left err

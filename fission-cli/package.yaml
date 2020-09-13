@@ -113,7 +113,7 @@ dependencies:
 
   ## File System ##
   - path-pieces
-  - Glob
+  # - Glob
   - fsnotify
 
   ## Lenses ##

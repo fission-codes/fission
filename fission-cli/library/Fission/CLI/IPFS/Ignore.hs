@@ -26,7 +26,7 @@ writeTmp name = do
 
   let
     ignoresTxt = encodeUtf8 $ Text.intercalate "\n" ignores
-    path = tmpDir </> name
+    path       = tmpDir </> name
 
   path `writeBinaryFileDurableAtomic` ignoresTxt
   return path

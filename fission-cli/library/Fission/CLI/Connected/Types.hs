@@ -20,7 +20,7 @@ data Config = Config
   , ipfsPath     :: !IPFS.BinPath
   , ipfsTimeout  :: !IPFS.Timeout
   , peers        :: !(NonEmpty IPFS.Peer)
-  , ignoredFiles :: !IPFS.Ignored
+  , ignoredFiles :: ![Text] -- ^ Directly for ipfsignore -- passing through verbatim.
   }
   deriving Generic
 

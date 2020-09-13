@@ -7,6 +7,8 @@ module Fission.CLI.Types
 
 import           Crypto.Hash                         as Crypto
 import qualified Crypto.PubKey.Ed25519               as Ed25519
+import           Crypto.Random
+
 import qualified Data.ByteString.Char8               as BS8
 
 import           Control.Monad.Catch                 as Catch
@@ -54,10 +56,7 @@ import qualified Fission.CLI.Display.Error           as CLI.Error
 import qualified Fission.CLI.Display.Loader          as CLI
 
 import           Fission.CLI.Environment.Class
-
--- FIXMEreexport from ignore
-
-import           Fission.CLI.IPFS.Ignore.Class
+import           Fission.CLI.IPFS.Ignore
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
@@ -100,6 +99,9 @@ instance
 instance MonadTime (FissionCLI errs cfg) where
   currentTime = liftIO getCurrentTime
 
+instance MonadRandom (FissionCLI errs cfg) where
+  getRandomBytes = liftIO . getRandomBytes
+
 instance ServerDID (FissionCLI errs Connected.Config) where
   getServerDID = asks serverDID
 
@@ -134,7 +136,6 @@ instance ServerDID (FissionCLI errs Base.Config) where
                 throwM $ NotFound @DID
 
               Right did -> do
-                -- FIXME write the value to disk / root dir
                 return did
 
 instance

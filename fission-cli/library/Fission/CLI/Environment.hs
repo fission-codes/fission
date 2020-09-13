@@ -20,7 +20,6 @@ import           Servant.Client
 
 import qualified Network.IPFS.Types               as IPFS
 import qualified System.Console.ANSI              as ANSI
-import qualified System.FilePath.Glob             as Glob
 
 import           Fission.Prelude
 
@@ -60,8 +59,8 @@ init = do
     Right nonEmptyPeers -> do
       let
         env = mempty
-          { peers        = NonEmpty.toList nonEmptyPeers
-          , maybeIgnored = Just ignoreDefault
+          { peers       = NonEmpty.toList nonEmptyPeers
+          , ipfsIgnored = ignoreDefault
           }
 
       path <- Override.globalConfig
@@ -124,9 +123,9 @@ getOrRetrievePeers Environment {peers} = do
   logDebug $ "Retrieved Peers from .fission.yaml: " <> textShow peers
   return peers
 
-ignoreDefault :: IPFS.Ignored
+ignoreDefault :: [Text]
 ignoreDefault =
-  [ Glob.compile ".fission.yaml"
-  , Glob.compile ".env"
-  , Glob.compile ".DS_Store"
+  [ ".fission.yaml"
+  , ".env"
+  , ".DS_Store"
   ]

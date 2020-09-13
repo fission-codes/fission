@@ -64,11 +64,9 @@ interpret baseCfg cmd = do
       Handler.appInfo
 
     Init App.Init.Options {appDir, buildDir, maySubdomain, ipfsCfg = IPFS.Config {..}} -> do
-      ipfsBinPath <- globalIPFS
-
       let
         run' :: FissionCLI errs Connected.Config a -> FissionCLI errs Base.Config ()
-        run' = void . Connected.run baseCfg ipfsBinPath timeoutSeconds
+        run' = void . Connected.run baseCfg timeoutSeconds
 
       case appURL of
         Nothing ->
@@ -80,12 +78,9 @@ interpret baseCfg cmd = do
           raise $ AlreadyExists @App
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
-      ipfsBinPath <- globalIPFS
-
       let
         run' :: MonadIO m => FissionCLI errs Connected.Config a -> m ()
-        run' = void . Connected.run baseCfg ipfsBinPath timeoutSeconds
-        -- FIXME just lookup directly       ^^^^^^^^^^^
+        run' = void . Connected.run baseCfg timeoutSeconds
 
       case appURL of
         Nothing ->
@@ -93,5 +88,4 @@ interpret baseCfg cmd = do
             "You have not set up an app. Please run `fission app register`"
 
         Just url ->
-          undefined
-          -- run' $ Handler.publish watch run' url filePath updateDNS updateData
+          run' $ Handler.publish watch run' url filePath updateDNS updateData
