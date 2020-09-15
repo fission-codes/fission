@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.8.1.0'
+version: '2.9.0.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -112,8 +112,8 @@ dependencies:
   - rescue
 
   ## File System ##
+  - file-embed
   - path-pieces
-  # - Glob
   - fsnotify
 
   ## Lenses ##

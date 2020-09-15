@@ -7,3 +7,9 @@ data Supported
   | NixOS
   | MacOS
   deriving (Eq, Show)
+
+instance Display Supported where
+  display = \case
+    Linux -> "linux"
+    NixOS -> "nix"
+    MacOS -> "darwin"

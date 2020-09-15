@@ -59,6 +59,8 @@ import qualified Fission.CLI.Display.Loader              as CLI
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.IPFS.Ignore
 
+import           Fission.Internal.Orphanage.BaseUrl      ()
+import           Fission.Internal.Orphanage.ClientError  ()
 import           Fission.Internal.Orphanage.DNS.DNSError ()
 
 newtype FissionCLI errs cfg a = FissionCLI
@@ -143,6 +145,7 @@ instance
                 throwM $ NotFound @DID
 
               Right did -> do
+                logDebug $ "DID retrieved " <> textDisplay did
                 return did
 
 instance
@@ -286,12 +289,22 @@ instance
 instance
   ( HasField' "httpManager" cfg HTTP.Manager
   , HasField' "ipfsURL"     cfg IPFS.URL
+  , HasLogFunc cfg
   ) => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
   runRemote query = do
     IPFS.URL url <- asks $ getField @"ipfsURL"
     manager      <- asks $ getField @"httpManager"
 
-    liftIO . runClientM query $ mkClientEnv manager url
+    logDebug $ "Making remote IPFS request to HTTP gateway " <> textDisplay url
+
+    liftIO (runClientM query $ mkClientEnv manager url) >>= \case
+      Left err -> do
+        logError $ "Failed to read from remote gateway: " <> textDisplay err
+        return $ Left err
+
+      Right val -> do
+        logDebug @Text "Remote IPFS success"
+        return $ Right val
 
 instance MonadEnvironment (FissionCLI errs cfg) where
     getGlobalPath = do

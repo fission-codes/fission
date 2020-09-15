@@ -20,17 +20,17 @@ globalBinaryDir = do
 
 globalIPFS :: MonadEnvironment m => m IPFS.BinPath
 globalIPFS = do
-  dir <- globalBinaryDir
-  return . IPFS.BinPath $ dir </> "ipfs"
+  binDir <- globalBinaryDir
+  return . IPFS.BinPath $ binDir </> "ipfs.cli"
 
 globalTmpDir :: MonadEnvironment m => m FilePath
 globalTmpDir = do
-  dir <- globalBinaryDir
+  dir <- getGlobalPath
   return $ dir </> "tmp"
 
 globalKeyDir :: MonadEnvironment m => m FilePath
 globalKeyDir = do
-  dir <- globalBinaryDir
+  dir <- getGlobalPath
   return $ dir </> "key"
 
 getSigningKeyPath ::

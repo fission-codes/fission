@@ -22,7 +22,13 @@ import           Fission.URL.Types
 import           Fission.CLI.App.Environment.Types
 import qualified Fission.CLI.YAML                  as YAML
 
-create :: MonadIO m => URL -> FilePath -> m ()
+create ::
+  ( MonadIO     m
+  , MonadLogger m
+  )
+  => URL
+  -> FilePath
+  -> m ()
 create appURL buildDir = do
   path <- absPath
   YAML.writeFile path Env {ipfsIgnored = [], ..}

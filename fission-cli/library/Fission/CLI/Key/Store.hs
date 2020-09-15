@@ -12,7 +12,6 @@ module Fission.CLI.Key.Store
   ) where
 
 import           RIO.Directory
-import           RIO.File
 
 import qualified Crypto.PubKey.Curve25519         as Curve25519
 import           Crypto.Random
@@ -23,6 +22,8 @@ import           Fission.Prelude
 
 import           Fission.CLI.Environment
 import           Fission.CLI.Environment.Path     as Path
+import           Fission.CLI.File
+
 import           Fission.Key.Error                as Key
 
 import qualified Fission.Internal.Base64          as B64
@@ -35,6 +36,7 @@ import           Fission.Key.Error
 create ::
   ( MonadIO          m
   , MonadRandom      m
+  , MonadLogger      m
   , MonadEnvironment m
   , MonadRaise       m
   , m `Raises` Key.Error
@@ -47,6 +49,7 @@ create = exists >>= \case
 forceCreate ::
   ( MonadIO          m
   , MonadRandom      m
+  , MonadLogger      m
   , MonadEnvironment m
   )
   => m ()
@@ -64,13 +67,14 @@ delete = exists >>= \case
 persist ::
   ( MonadIO          m
   , MonadEnvironment m
+  , MonadLogger      m
   , ByteArray.ByteArrayAccess a
   )
-  => a -- Curve25519.SecretKey
+  => a
   -> m ()
 persist key = do
   path <- Path.getSigningKeyPath
-  writeBinaryFile path $ B64.toByteString key
+  forceWrite path $ B64.toByteString key
 
 getAsBytes ::
   ( MonadIO          m

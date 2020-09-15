@@ -2,10 +2,15 @@
 
 module Fission.Internal.Orphanage.BaseUrl () where
 
-import Data.Swagger
-import Servant.Client as Client
+import qualified RIO.Text        as Text
 
-import Fission.Prelude
+import           Data.Swagger
+import           Servant.Client  as Client
+
+import           Fission.Prelude
+
+instance Display BaseUrl where
+  textDisplay = Text.pack . show
 
 instance Arbitrary BaseUrl where
   arbitrary = do

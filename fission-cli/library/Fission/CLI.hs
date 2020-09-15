@@ -11,13 +11,18 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
+import qualified Fission.CLI.Meta                               as Meta
 import           Fission.Error
-import qualified Fission.Internal.CLI.Meta                      as Meta
+
+import qualified Fission.CLI.Environment.OS                     as OS
 
 import qualified Fission.CLI.Base.Types                         as Base
 import qualified Fission.CLI.Handler                            as Handler
 
+import qualified Fission.CLI.Handler.Setup                      as Setup
+
 import           Fission.CLI.Parser                             as CLI
+import           Fission.CLI.Parser.Command.Setup.Types         as Setup
 import           Fission.CLI.Parser.Command.Types
 import           Fission.CLI.Parser.Command.User.Types
 import           Fission.CLI.Parser.Types                       as Parser
@@ -28,7 +33,10 @@ import           Fission.CLI.Types
 
 import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
-type Errs = AlreadyExists Ed25519.SecretKey ': App.Errs
+type Errs =
+     OS.Unsupported
+  ': AlreadyExists Ed25519.SecretKey
+  ': App.Errs
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
@@ -40,7 +48,7 @@ cli = do
 
   let
     VerboseFlag isVerbose = getter cmd
-    ipfsURL               = IPFS.URL $ BaseUrl Https "ipfs.io" 443 "ipfs"
+    ipfsURL               = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
 
     rawHTTPSettings =
       case baseUrlScheme fissionURL of
@@ -68,6 +76,9 @@ interpret baseCfg cmd =
     case cmd of
       Version _ ->
         logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
+
+      Setup Setup.Options {forceOS} ->
+        Setup.setup forceOS
 
       App subCmd ->
         App.interpret baseCfg subCmd

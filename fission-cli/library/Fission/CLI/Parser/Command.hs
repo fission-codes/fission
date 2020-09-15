@@ -4,17 +4,15 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
-import qualified Fission.CLI.Parser.Config.Remote         as Remote
+import qualified Fission.CLI.Parser.Config.Remote   as Remote
 import           Fission.CLI.Parser.Types
 
-import qualified Fission.CLI.Parser.Command.App           as App
-import qualified Fission.CLI.Parser.Command.User          as User
-
-import           Fission.CLI.Parser.Command.Types         as Command
-import qualified Fission.CLI.Parser.Command.Version       as Version
-
-import qualified Fission.CLI.Parser.Command.App.Up        as App.Up
-import qualified Fission.CLI.Parser.Command.User.Register as User.Register
+import qualified Fission.CLI.Parser.Command.App     as App
+import qualified Fission.CLI.Parser.Command.App.Up  as App.Up
+import qualified Fission.CLI.Parser.Command.Setup   as Setup
+import           Fission.CLI.Parser.Command.Types   as Command
+import qualified Fission.CLI.Parser.Command.User    as User
+import qualified Fission.CLI.Parser.Command.Version as Version
 
 parser :: Parser Options
 parser = do
@@ -34,8 +32,8 @@ shortcuts =
   hsubparser $ mconcat
     [ commandGroup "Shortcuts"
     , metavar "SHORTCUT"
-    , command "setup" $ Command.User . User.Register <$> User.Register.parserWithInfo
-    , command "up"    $ Command.App  . App.Up        <$> App.Up.parserWithInfo
+    , command "setup" $ Command.Setup         <$> Setup.parserWithInfo
+    , command "up"    $ Command.App  . App.Up <$> App.Up.parserWithInfo
     ]
 
 subCommands :: Parser Command

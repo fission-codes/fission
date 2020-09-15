@@ -6,15 +6,23 @@ module Fission.CLI.YAML
 import qualified Data.Yaml                    as YAML
 
 import           RIO.Directory
-import           RIO.File
 import           RIO.FilePath
 
-import           Fission.Error.NotFound.Types
 import           Fission.Prelude
 
+import           Fission.CLI.File
+import           Fission.Error.NotFound.Types
+
 -- | Writes partial environment to path
-writeFile :: (MonadIO m, ToJSON a) => FilePath -> a -> m ()
-writeFile path = writeBinaryFileDurable path . YAML.encode
+writeFile ::
+  ( MonadIO     m
+  , MonadLogger m
+  , ToJSON a
+  )
+  => FilePath
+  -> a
+  -> m ()
+writeFile path = forceWrite path . YAML.encode
 
 -- | Decodes file to partial environment
 readFile ::

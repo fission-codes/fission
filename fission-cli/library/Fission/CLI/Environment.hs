@@ -14,6 +14,7 @@ import qualified Data.List.NonEmpty              as NonEmpty
 import qualified Data.Yaml                       as YAML
 
 import           RIO.FilePath
+import qualified RIO.Text                        as Text
 
 import           Servant.Client
 
@@ -60,6 +61,7 @@ init = do
     Right nonEmptyPeers -> do
       serverDID      <- getServerDID
       envPath        <- absPath
+      logDebug $ "-------------->" <> Text.pack envPath
       signingKeyPath <- Path.getSigningKeyPath
 
       envPath `YAML.writeFile` Env
