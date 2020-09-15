@@ -1,6 +1,6 @@
-module Fission.CLI.Handler.System.IPFS
-  ( placeBinary
-  , placeBinary'
+module Fission.CLI.IPFS.Executable
+  ( place
+  , place'
   ) where
 
 import qualified RIO.ByteString.Lazy          as Lazy
@@ -18,7 +18,7 @@ import qualified Fission.CLI.Environment.IPFS as Global.IPFS
 import qualified Fission.CLI.Environment.OS   as OS
 import qualified Fission.CLI.Environment.Path as Path
 
-placeBinary ::
+place ::
   ( MonadIO          m
   , MonadEnvironment m
   , MonadRemoteIPFS  m
@@ -28,10 +28,10 @@ placeBinary ::
   )
   => Maybe OS.Supported
   -> m ()
-placeBinary (Just os) = placeBinary' os
-placeBinary Nothing   = placeBinary' =<< ensure OS.get
+place (Just os) = place' os
+place Nothing   = place' =<< ensure OS.get
 
-placeBinary' ::
+place' ::
   ( MonadIO          m
   , MonadEnvironment m
   , MonadRemoteIPFS  m
@@ -40,7 +40,7 @@ placeBinary' ::
   )
   => OS.Supported
   -> m ()
-placeBinary' host = do
+place' host = do
   File.Serialized lazyFile <- ensureM . ipfsCat $ Global.IPFS.binCidFor host
   IPFS.BinPath ipfsPath    <- Path.globalIPFS
 

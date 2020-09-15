@@ -12,30 +12,29 @@ module Fission.CLI.Environment
   , module Fission.CLI.Environment.Path
   ) where
 
-import           Data.List.NonEmpty               as NonEmpty hiding (init,
-                                                               (<|))
-import qualified Data.Yaml                        as YAML
+import           Data.List.NonEmpty            as NonEmpty
+import qualified Data.Yaml                     as YAML
 
 import           Servant.Client
 
-import qualified Network.IPFS.Types               as IPFS
-import qualified System.Console.ANSI              as ANSI
+import qualified Network.IPFS.Types            as IPFS
+import qualified System.Console.ANSI           as ANSI
 
 import           Fission.Prelude
 
-import           Fission.Web.Client
-import           Fission.Web.Client.Peers         as Peers
+import           Fission.Error.NotFound.Types
 
-import qualified Fission.CLI.Display.Error        as CLI.Error
+import           Fission.Web.Client
+import           Fission.Web.Client.Peers      as Peers
+
+import qualified Fission.CLI.Display.Error     as CLI.Error
+import qualified Fission.CLI.YAML              as YAML
 
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Path
 import           Fission.CLI.Environment.Types
 
-import           Fission.CLI.Environment.Override
-import qualified Fission.CLI.Environment.Override as Override
-
-import qualified Fission.Internal.UTF8            as UTF8
+import qualified Fission.Internal.UTF8         as UTF8
 
 -- | Initialize the Environment file
 init ::
@@ -58,13 +57,15 @@ init = do
 
     Right nonEmptyPeers -> do
       let
-        env = mempty
-          { peers       = NonEmpty.toList nonEmptyPeers
-          , ipfsIgnored = ignoreDefault
+        env = Env
+          { peers          = NonEmpty.toList nonEmptyPeers
+          , ignored        = ignoreDefault
+          , serverDID      = undefined -- FIXME
+          , signingKeyPath = undefined -- FIXME
           }
 
-      path <- Override.globalConfig
-      liftIO $ path `Override.writeFile` env
+      path <- absPath
+      path `YAML.writeFile` env
 
 -- | Gets hierarchical environment by recursing through file system
 get ::
@@ -72,23 +73,10 @@ get ::
   , MonadEnvironment m
   , MonadRaise       m
   , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
   )
-  => m Environment
-get = do
-  localCfg  <- decodeFile =<< Override.localConfig
-  globalCfg <- decodeFile =<< Override.globalConfig
-  return $ Override.toFull (localCfg <> globalCfg)
-
--- | Create a could not read message for the terminal
-couldNotRead :: MonadIO m => m ()
-couldNotRead = do
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-  UTF8.putText "🚫 Unable to read credentials. Try logging in with "
-
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-  UTF8.putText "fission login\n"
-
-  liftIO $ ANSI.setSGR [ANSI.Reset]
+  => m Env
+get = YAML.readFile =<< absPath
 
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
@@ -101,11 +89,12 @@ getOrRetrievePeers ::
   , MonadCleanup m
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
   , Show (OpenUnion (Errors m))
   )
-  => Environment
+  => Env
   -> m [IPFS.Peer]
-getOrRetrievePeers Environment {peers = []} =
+getOrRetrievePeers Env {peers = []} =
   attempt Peers.getPeers >>= \case
     Left err -> do
       logError $ displayShow err
@@ -113,19 +102,22 @@ getOrRetrievePeers Environment {peers = []} =
       return []
 
     Right nonEmptyPeers -> do
-      path <- Override.globalConfig
-      let peers = NonEmpty.toList nonEmptyPeers
       logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow peers
-      Override.writeMerge path $ mempty { peers }
+
+      path    <- absPath
+      current <- YAML.readFile path
+
+      let
+        peers = peers current <> NonEmpty.toList nonEmptyPeers
+
+      writeFile path current { peers }
       return peers
 
-getOrRetrievePeers Environment {peers} = do
+getOrRetrievePeers Env {peers} = do
   logDebug $ "Retrieved Peers from .fission.yaml: " <> textShow peers
   return peers
 
-ignoreDefault :: [Text]
-ignoreDefault =
-  [ ".fission.yaml"
-  , ".env"
-  , ".DS_Store"
-  ]
+absPath :: MonadEnvironment m => m FilePath
+absPath = do
+  path <- getGlobalPath
+  return $ path </> "config.yaml"

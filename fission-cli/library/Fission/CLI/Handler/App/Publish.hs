@@ -55,7 +55,7 @@ publish ::
   -> Bool
   -> m ()
 publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
-  toAdd        <- Prompt.checkBuildDir appPath
+  toAdd        <- Prompt.getBuildDir appPath -- FIXME lookup from cfg
   absPath      <- liftIO $ makeAbsolute toAdd
 
   let copyFiles = updateData
