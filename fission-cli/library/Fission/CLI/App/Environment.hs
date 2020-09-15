@@ -1,6 +1,7 @@
 module Fission.CLI.App.Environment
   ( create
   , read
+  , readFrom
   , absPath
   , relPath
   , ignoreDefault
@@ -34,6 +35,16 @@ read ::
   )
   => m Env
 read = YAML.readFile =<< absPath
+
+readFrom ::
+  ( MonadIO    m
+  , MonadRaise m
+  , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
+  )
+  => FilePath
+  -> m Env
+readFrom appPath = YAML.readFile $ appPath </> relPath
 
 absPath :: MonadIO m => m FilePath
 absPath = do

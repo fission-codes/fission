@@ -6,58 +6,60 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
-import           Crypto.Hash                         as Crypto
-import qualified Crypto.PubKey.Ed25519               as Ed25519
+import           Crypto.Hash                             as Crypto
+import qualified Crypto.PubKey.Ed25519                   as Ed25519
 import           Crypto.Random
 
-import qualified Data.ByteString.Char8               as BS8
+import qualified Data.ByteString.Char8                   as BS8
 
-import           Control.Monad.Catch                 as Catch
+import           Control.Monad.Catch                     as Catch
 
-import qualified RIO.ByteString.Lazy                 as Lazy
+import qualified RIO.ByteString.Lazy                     as Lazy
 import           RIO.Directory
 import           RIO.FilePath
-import qualified RIO.Partial                         as Partial
-import qualified RIO.Text                            as Text
+import qualified RIO.Partial                             as Partial
+import qualified RIO.Text                                as Text
 
-import qualified Network.DNS                         as DNS
-import           Network.HTTP.Client                 as HTTP
-import           Network.IPFS                        as IPFS
+import qualified Network.DNS                             as DNS
+import           Network.HTTP.Client                     as HTTP
+import           Network.IPFS                            as IPFS
 import           Network.IPFS.Process
-import qualified Network.IPFS.Process.Error          as Process
-import           Network.IPFS.Types                  as IPFS
+import qualified Network.IPFS.Process.Error              as Process
+import           Network.IPFS.Types                      as IPFS
 
 import           Servant.Client
 
-import           Fission.Prelude                     hiding (mask,
-                                                      uninterruptibleMask)
+import           Fission.Prelude                         hiding (mask,
+                                                          uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-import qualified Fission.Key.Error                   as Key
+import qualified Fission.Key.Error                       as Key
 import           Fission.User.DID.Types
 
-import           Fission.CLI.Base.Types              as Base
-import           Fission.CLI.Connected.Types         as Connected
+import qualified Fission.CLI.Base.Types                  as Base
+import qualified Fission.CLI.Connected.Types             as Connected
 
-import qualified Fission.CLI.IPFS.Ignore             as IPFS.Ignore
+import qualified Fission.CLI.IPFS.Ignore                 as IPFS.Ignore
 
-import           Fission.CLI.Key.Ed25519             as Ed25519
-import           Fission.CLI.Key.Store               as Key.Store
+import           Fission.CLI.Key.Ed25519                 as Ed25519
+import           Fission.CLI.Key.Store                   as Key.Store
 
 import           Fission.Web.Auth.Token
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT          as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types     as Bearer
+import           Fission.Web.Auth.Token.JWT              as JWT
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.JWT              as JWT
+import qualified Fission.Web.Client.JWT                  as JWT
 
-import qualified Fission.CLI.Display.Error           as CLI.Error
-import qualified Fission.CLI.Display.Loader          as CLI
+import qualified Fission.CLI.Display.Error               as CLI.Error
+import qualified Fission.CLI.Display.Loader              as CLI
 
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.IPFS.Ignore
+
+import           Fission.Internal.Orphanage.DNS.DNSError ()
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
@@ -69,7 +71,7 @@ newtype FissionCLI errs cfg a = FissionCLI
                    , MonadThrow
                    , MonadCatch
                    , MonadRaise
- , MonadRescue
+                   , MonadRescue
                    )
 
 runFissionCLI :: forall errs m cfg a .
@@ -104,13 +106,15 @@ instance MonadRandom (FissionCLI errs cfg) where
   getRandomBytes = liftIO . getRandomBytes
 
 instance ServerDID (FissionCLI errs Connected.Config) where
-  getServerDID = asks serverDID
+  getServerDID = asks Connected.serverDID
 
-instance ServerDID (FissionCLI errs Base.Config) where
+instance
+  ( DNS.DNSError `IsMember` errs
+  , NotFound DID `IsMember` errs
+  )
+  => ServerDID (FissionCLI errs Base.Config) where
   getServerDID =
-    -- FIXME
-    undefined >>= \case
-    -- asks cachedServerDID >>= \case
+    asks Base.mayServerDID >>= \case
       Just did ->
         return did
 
@@ -124,13 +128,13 @@ instance ServerDID (FissionCLI errs Base.Config) where
         liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
           Left errs -> do
             CLI.Error.put errs "Unable to find Fission's ID online"
-            throwM errs
+            raise errs
 
           Right [] -> do
             CLI.Error.put (NotFound @DID) $
               "No TXT record at " <> decodeUtf8Lenient url
 
-            throwM $ NotFound @DID
+            raise $ NotFound @DID
 
           Right (didTxt : _) ->
             case eitherDecodeStrict ("\"" <> didTxt <> "\"") of

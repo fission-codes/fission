@@ -59,7 +59,7 @@ delete ::
   => m ()
 delete = exists >>= \case
   False -> return ()
-  True  -> removeFile =<< Path.signingKeyPath
+  True  -> removeFile =<< Path.getSigningKeyPath
 
 persist ::
   ( MonadIO          m
@@ -69,7 +69,7 @@ persist ::
   => a -- Curve25519.SecretKey
   -> m ()
 persist key = do
-  path <- Path.signingKeyPath
+  path <- Path.getSigningKeyPath
   writeBinaryFile path $ B64.toByteString key
 
 getAsBytes ::
@@ -85,7 +85,7 @@ getAsBytes =
       raise Key.DoesNotExist
 
     True -> do
-      path <- Path.signingKeyPath
+      path <- Path.getSigningKeyPath
       bs   <- readFileBinary path
       return $ B64.Scrubbed.scrub bs
 
@@ -94,4 +94,4 @@ exists ::
   , MonadEnvironment m
   )
   => m Bool
-exists = doesFileExist =<< Path.signingKeyPath
+exists = doesFileExist =<< Path.getSigningKeyPath

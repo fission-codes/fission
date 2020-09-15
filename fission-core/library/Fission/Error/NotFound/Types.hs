@@ -6,6 +6,7 @@ import qualified RIO.ByteString.Lazy     as Lazy
 import           RIO.FilePath
 
 import qualified Crypto.PubKey.Ed25519   as Ed25519
+
 import qualified Network.IPFS.Types      as IPFS
 import           Servant
 
@@ -13,6 +14,7 @@ import qualified Fission.AWS.Zone.Types  as AWS
 import           Fission.Models
 import           Fission.Prelude
 import           Fission.URL
+import           Fission.User.DID.Types
 import           Fission.Web.Error.Class
 
 data NotFound entity
@@ -29,6 +31,9 @@ instance Display (NotFound entity) => ToServerError (NotFound entity) where
 
 instance Display (NotFound User) where
   display _ = "User not found"
+
+instance Display (NotFound DID) where
+  display _ = "Unable to find DID"
 
 instance Display (NotFound UserChallenge) where
   display _ = "Challenge not found"

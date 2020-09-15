@@ -1,22 +1,22 @@
 -- | General configuration required to run any CLI function
 module Fission.CLI.Base.Types (Config (..)) where
 
-import qualified Network.HTTP.Client as HTTP
-import           Network.IPFS.Types  as IPFS
+import qualified Network.HTTP.Client    as HTTP
+import           Network.IPFS.Types     as IPFS
 import           Servant.Client
 
 import           Fission.Prelude
 
--- import           Fission.User.DID.Types
+import           Fission.User.DID.Types
 
 -- | The configuration used for the CLI application
 data Config = Config
-  { httpManager :: !HTTP.Manager
-  , fissionURL  :: !BaseUrl
-  , ipfsURL     :: !IPFS.URL
-  -- , cachedServerDID :: !(Maybe DID) -- ^ FIXME? Typically from setting with envar
-  , logFunc     :: !LogFunc
-  , processCtx  :: !ProcessContext
+  { httpManager  :: !HTTP.Manager
+  , fissionURL   :: !BaseUrl
+  , ipfsURL      :: !IPFS.URL
+  , mayServerDID :: !(Maybe DID)
+  , logFunc      :: !LogFunc
+  , processCtx   :: !ProcessContext
   }
   deriving Generic
 

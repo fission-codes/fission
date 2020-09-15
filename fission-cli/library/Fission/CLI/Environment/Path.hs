@@ -3,7 +3,7 @@ module Fission.CLI.Environment.Path
   , globalIPFS
   , globalTmpDir
   , globalKeyDir
-  , signingKeyPath
+  , getSigningKeyPath
   ) where
 
 import qualified Network.IPFS.BinPath.Types    as IPFS
@@ -33,11 +33,11 @@ globalKeyDir = do
   dir <- globalBinaryDir
   return $ dir </> "key"
 
-signingKeyPath ::
+getSigningKeyPath ::
   ( MonadIO          m
   , MonadEnvironment m
   )
   => m FilePath
-signingKeyPath = do
+getSigningKeyPath = do
   path <- globalKeyDir
   return $ path </> "machine_id.ed25519"

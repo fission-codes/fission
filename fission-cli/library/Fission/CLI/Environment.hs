@@ -10,24 +10,27 @@ module Fission.CLI.Environment
   , module Fission.CLI.Environment.Types
   ) where
 
-import qualified Data.List.NonEmpty            as NonEmpty
-import qualified Data.Yaml                     as YAML
+import qualified Data.List.NonEmpty              as NonEmpty
+import qualified Data.Yaml                       as YAML
 
 import           RIO.FilePath
 
 import           Servant.Client
 
-import qualified Network.IPFS.Types            as IPFS
+import qualified Network.IPFS.Types              as IPFS
 
 import           Fission.Prelude
 
+import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
 import           Fission.Web.Client
-import           Fission.Web.Client.Peers      as Peers
+import           Fission.Web.Client.Peers        as Peers
 
-import qualified Fission.CLI.Display.Error     as CLI.Error
-import qualified Fission.CLI.YAML              as YAML
+import           Fission.CLI.Environment.Path    as Path
+
+import qualified Fission.CLI.Display.Error       as CLI.Error
+import qualified Fission.CLI.YAML                as YAML
 
 -- Reexports
 
@@ -40,6 +43,7 @@ init ::
   , MonadEnvironment m
   , MonadLogger      m
   , MonadWebClient   m
+  , ServerDID        m
 
   , MonadCleanup m
   , m `Raises` ClientError
@@ -54,16 +58,16 @@ init = do
       CLI.Error.put err "Peer retrieval failed"
 
     Right nonEmptyPeers -> do
-      let
-        env = Env
-          { peers          = NonEmpty.toList nonEmptyPeers
-          , ignored        = []
-          , serverDID      = undefined -- FIXME
-          , signingKeyPath = undefined -- FIXME
-          }
+      serverDID      <- getServerDID
+      envPath        <- absPath
+      signingKeyPath <- Path.getSigningKeyPath
 
-      path <- absPath
-      path `YAML.writeFile` env
+      envPath `YAML.writeFile` Env
+        { peers          = NonEmpty.toList nonEmptyPeers
+        , ignored        = []
+        , signingKeyPath
+        , serverDID
+        }
 
 -- | Gets hierarchical environment by recursing through file system
 get ::

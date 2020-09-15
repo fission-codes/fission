@@ -5,8 +5,10 @@ module Fission.CLI.App
 
 import qualified Crypto.PubKey.Ed25519                   as Ed25519
 import qualified Data.Yaml                               as YAML
-import qualified Network.IPFS.Types                      as IPFS
 import           Servant.Client.Core
+
+import qualified Network.DNS                             as DNS
+import qualified Network.IPFS.Types                      as IPFS
 
 import           Fission.Prelude
 
@@ -16,6 +18,7 @@ import           Fission.CLI.Types
 import           Fission.Error
 import qualified Fission.Key                             as Key
 import           Fission.Models
+import           Fission.User.DID.Types
 
 import qualified Fission.IPFS.Error.Types                as IPFS
 import           Fission.URL.Types
@@ -42,6 +45,8 @@ type Errs =
    , NotRegistered
    , NoKeyFile
    , AlreadyExists App
+   , DNS.DNSError
+   , NotFound DID
    , NotFound URL
    , NotFound FilePath
    , NotFound Ed25519.SecretKey

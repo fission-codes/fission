@@ -98,10 +98,10 @@ mkConnected ::
   , Contains LiftErrs    errs
   , Exception (OpenUnion errs)
 
-  , HasLogFunc              inCfg
-  , HasProcessContext       inCfg
-  , HasField' "fissionURL"  inCfg BaseUrl
-  , HasField' "httpManager" inCfg HTTP.Manager
+  , HasLogFunc               inCfg
+  , HasProcessContext        inCfg
+  , HasField' "fissionURL"   inCfg BaseUrl
+  , HasField' "httpManager"  inCfg HTTP.Manager
   )
   => inCfg
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
