@@ -22,6 +22,7 @@ import qualified Data.ByteArray                   as ByteArray
 import           Fission.Prelude
 
 import           Fission.CLI.Environment
+import           Fission.CLI.Environment.Path     as Path
 import           Fission.Key.Error                as Key
 
 import qualified Fission.Internal.Base64          as B64
@@ -58,7 +59,7 @@ delete ::
   => m ()
 delete = exists >>= \case
   False -> return ()
-  True  -> removeFile =<< signingKeyPath
+  True  -> removeFile =<< Path.signingKeyPath
 
 persist ::
   ( MonadIO          m
@@ -68,7 +69,7 @@ persist ::
   => a -- Curve25519.SecretKey
   -> m ()
 persist key = do
-  path <- signingKeyPath
+  path <- Path.signingKeyPath
   writeBinaryFile path $ B64.toByteString key
 
 getAsBytes ::
@@ -84,7 +85,7 @@ getAsBytes =
       raise Key.DoesNotExist
 
     True -> do
-      path <- signingKeyPath
+      path <- Path.signingKeyPath
       bs   <- readFileBinary path
       return $ B64.Scrubbed.scrub bs
 
@@ -93,4 +94,4 @@ exists ::
   , MonadEnvironment m
   )
   => m Bool
-exists = doesFileExist =<< signingKeyPath
+exists = doesFileExist =<< Path.signingKeyPath

@@ -33,7 +33,7 @@ type Errs = AlreadyExists Ed25519.SecretKey ': App.Errs
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
   Parser.Options
-    { fissionDID = cachedServerDID
+    { fissionDID = cachedServerDID -- FIXME
     , fissionURL
     , cmd
     } <- liftIO $ execParser CLI.parserWithInfo

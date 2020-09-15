@@ -2,15 +2,14 @@
 module Fission.CLI.Handler.App.Init (appInit) where
 
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
-import qualified Data.Yaml                              as YAML
-import           Options.Applicative
-import           RIO.FilePath                           ((</>))
+-- import qualified Data.Yaml                              as YAML
 import qualified System.Console.ANSI                    as ANSI
 
 import qualified Servant.Client                         as Servant
 
-import qualified Fission.Internal.UTF8                  as UTF8
 import           Fission.Prelude
+
+import qualified Fission.Internal.UTF8                  as UTF8
 
 import           Fission.Authorization.ServerDID
 import           Fission.URL                            as URL
@@ -19,11 +18,13 @@ import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
 import           Fission.Web.Client.App                 as App
 
+import           Fission.CLI.Display.Text
+
 import qualified Fission.CLI.Display.Error              as CLI.Error
 import qualified Fission.CLI.Display.Success            as CLI.Success
 
-import           Fission.CLI.Environment.Override       as Env.Override
-import           Fission.CLI.Prompt.BuildDir
+import qualified Fission.CLI.App.Environment            as App.Env
+import qualified Fission.CLI.Prompt.BuildDir            as BuildDir
 
 import           Fission.Internal.Orphanage.ClientError ()
 
@@ -38,7 +39,7 @@ appInit ::
 
   , MonadCleanup   m
   , m `Raises` Servant.ClientError
-  , m `Raises` YAML.ParseException
+  -- , m `Raises` YAML.ParseException
 
   , Contains (Errors m) (Errors m)
   , Display (OpenUnion (Errors m))
@@ -57,37 +58,29 @@ appInit appDir mayBuildDir' maySubdomain = do
       CLI.Error.put err $ textDisplay err
       raise err
 
-    Right appURL' -> do
-      logDebug $ "Created app " <> textDisplay appURL'
+    Right appURL -> do
+      logDebug $ "Created app " <> textDisplay appURL
 
-      guess <- promptBuildDir appDir
+      guess <- BuildDir.prompt appDir
+      App.Env.create appURL $ fromMaybe guess mayBuildDir'
 
-      Env.Override.writeMerge (appDir </> ".fission.yaml") mempty
-        { maybeAppURL   = Just appURL'
-        , maybeBuildDir = mayBuildDir' <|> Just guess
-        }
+      CLI.Success.putOk $ "App initialized as " <> textDisplay appURL
 
-      CLI.Success.putOk $ "App initialized as " <> textDisplay appURL'
+      UTF8.putText "⏯️  Next run "
 
-      liftIO do
-        UTF8.putText "⏯️  Next run "
-
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
         UTF8.putText "fission app publish"
-        ANSI.setSGR [ANSI.Reset]
 
-        UTF8.putText " or "
+      UTF8.putText " or "
 
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow]
+      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
         UTF8.putText "fission app publish --watch"
-        ANSI.setSGR [ANSI.Reset]
 
-        UTF8.putText " to sync data\n"
+      UTF8.putText " to sync data\n"
 
-        UTF8.putText "💁 It may take DNS time to propagate this initial setup globally. In this case, you can always view your app at "
+      UTF8.putText "💁 It may take DNS time to propagate this initial setup globally. In this case, you can always view your app at "
 
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
-        UTF8.putText $ "https://ipfs.runfission.com/ipns/" <> textDisplay appURL' <> "\n"
-        ANSI.setSGR [ANSI.Reset]
+      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+        UTF8.putText $ "https://ipfs.runfission.com/ipns/" <> textDisplay appURL <> "\n"
 
-        return ()
+      return ()

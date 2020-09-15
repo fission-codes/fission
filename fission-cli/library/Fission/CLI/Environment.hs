@@ -2,23 +2,22 @@
 module Fission.CLI.Environment
   ( init
   , get
-  , couldNotRead
   , getOrRetrievePeers
 
   -- * Reexport
 
   , module Fission.CLI.Environment.Class
   , module Fission.CLI.Environment.Types
-  , module Fission.CLI.Environment.Path
   ) where
 
-import           Data.List.NonEmpty            as NonEmpty
+import qualified Data.List.NonEmpty            as NonEmpty
 import qualified Data.Yaml                     as YAML
+
+import           RIO.FilePath
 
 import           Servant.Client
 
 import qualified Network.IPFS.Types            as IPFS
-import qualified System.Console.ANSI           as ANSI
 
 import           Fission.Prelude
 
@@ -30,11 +29,10 @@ import           Fission.Web.Client.Peers      as Peers
 import qualified Fission.CLI.Display.Error     as CLI.Error
 import qualified Fission.CLI.YAML              as YAML
 
-import           Fission.CLI.Environment.Class
-import           Fission.CLI.Environment.Path
-import           Fission.CLI.Environment.Types
+-- Reexports
 
-import qualified Fission.Internal.UTF8         as UTF8
+import           Fission.CLI.Environment.Class
+import           Fission.CLI.Environment.Types
 
 -- | Initialize the Environment file
 init ::
@@ -59,7 +57,7 @@ init = do
       let
         env = Env
           { peers          = NonEmpty.toList nonEmptyPeers
-          , ignored        = ignoreDefault
+          , ignored        = []
           , serverDID      = undefined -- FIXME
           , signingKeyPath = undefined -- FIXME
           }
@@ -90,28 +88,22 @@ getOrRetrievePeers ::
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  , Show (OpenUnion (Errors m))
+  -- , Show (OpenUnion (Errors m))
   )
   => Env
   -> m [IPFS.Peer]
-getOrRetrievePeers Env {peers = []} =
-  attempt Peers.getPeers >>= \case
-    Left err -> do
-      logError $ displayShow err
-      logDebug @Text "Unable to retrieve peers from the network"
-      return []
+getOrRetrievePeers Env {peers = []} = do
+  nonEmptyPeers <- Peers.getPeers
+  logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow nonEmptyPeers
 
-    Right nonEmptyPeers -> do
-      logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow peers
+  path    <- absPath
+  current <- YAML.readFile @Env path
 
-      path    <- absPath
-      current <- YAML.readFile path
+  let
+    peers' = peers current <> NonEmpty.toList nonEmptyPeers
 
-      let
-        peers = peers current <> NonEmpty.toList nonEmptyPeers
-
-      writeFile path current { peers }
-      return peers
+  YAML.writeFile path current { peers = peers' }
+  return peers'
 
 getOrRetrievePeers Env {peers} = do
   logDebug $ "Retrieved Peers from .fission.yaml: " <> textShow peers

@@ -17,15 +17,16 @@ import           Fission.Error
 import qualified Fission.Key                             as Key
 import           Fission.Models
 
+import qualified Fission.IPFS.Error.Types                as IPFS
+import           Fission.URL.Types
+
 import qualified Fission.CLI.Base.Types                  as Base
 import           Fission.CLI.Connected                   as Connected
 import           Fission.CLI.Error.Types
-import           Fission.URL.Types
 
+import           Fission.CLI.App.Environment             as App.Env
 import qualified Fission.CLI.Display.Error               as CLI.Error
-import           Fission.CLI.Environment                 as Environment
 import qualified Fission.CLI.Handler                     as Handler
-import qualified Fission.IPFS.Error.Types                as IPFS
 
 import           Fission.CLI.Parser.Command.App          as App
 import qualified Fission.CLI.Parser.Command.App.Info     as App.Info
@@ -42,6 +43,7 @@ type Errs =
    , NoKeyFile
    , AlreadyExists App
    , NotFound URL
+   , NotFound FilePath
    , NotFound Ed25519.SecretKey
    , NotFound [IPFS.Peer]
    , YAML.ParseException
@@ -57,8 +59,6 @@ interpret :: forall errs .
   -> App.Options
   -> FissionCLI errs Base.Config ()
 interpret baseCfg cmd = do
-  Environment {appURL} <- Environment.get
-
   case cmd of
     Info (App.Info.Options _) ->
       Handler.appInfo
@@ -68,24 +68,24 @@ interpret baseCfg cmd = do
         run' :: FissionCLI errs Connected.Config a -> FissionCLI errs Base.Config ()
         run' = void . Connected.run baseCfg timeoutSeconds
 
-      case appURL of
-        Nothing ->
-          run' $ Handler.appInit appDir buildDir maySubdomain
-
-        Just url -> do
-          UTF8.putTextLn $ "App already set up at " <> textDisplay url
+      attempt App.Env.read >>= \case
+        Right Env {appURL} -> do
+          UTF8.putTextLn $ "App already set up at " <> textDisplay appURL
           logDebug . textDisplay $ AlreadyExists @App
           raise $ AlreadyExists @App
+
+        Left _ ->
+          run' $ Handler.appInit appDir buildDir maySubdomain
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let
         run' :: MonadIO m => FissionCLI errs Connected.Config a -> m ()
         run' = void . Connected.run baseCfg timeoutSeconds
 
-      case appURL of
-        Nothing ->
+      attempt App.Env.read >>= \case
+        Right Env {appURL} ->
+          run' $ Handler.publish watch run' appURL filePath updateDNS updateData
+
+        Left _ ->
           CLI.Error.put (NotFound @URL)
             "You have not set up an app. Please run `fission app register`"
-
-        Just url ->
-          run' $ Handler.publish watch run' url filePath updateDNS updateData

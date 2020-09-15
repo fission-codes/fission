@@ -1,7 +1,7 @@
 -- | File sync, IPFS-style
 module Fission.CLI.Handler.App.Publish (publish) where
 
-import qualified Data.Yaml                       as YAML
+-- import qualified Data.Yaml                       as YAML
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           System.FSNotify                 as FS
@@ -32,7 +32,7 @@ import qualified Fission.CLI.Display.Success     as CLI.Success
 import qualified Fission.CLI.IPFS.Add            as CLI.IPFS.Add
 
 import           Fission.CLI.Parser.Watch.Types
-import qualified Fission.CLI.Prompt.BuildDir     as Prompt
+import qualified Fission.CLI.Prompt.BuildDir     as BuildDir
 
 -- | Sync the current working directory to the server over IPFS
 publish ::
@@ -45,7 +45,7 @@ publish ::
   , MonadWebAuth   m Token
   , MonadWebAuth   m Ed25519.SecretKey
   , ServerDID      m
-  , m `Raises` YAML.ParseException
+--   , m `Raises` YAML.ParseException
   )
   => WatchFlag
   -> (m () -> IO ())
@@ -55,7 +55,7 @@ publish ::
   -> Bool
   -> m ()
 publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
-  toAdd        <- Prompt.getBuildDir appPath -- FIXME lookup from cfg
+  toAdd        <- BuildDir.prompt appPath -- FIXME lookup from cfg
   absPath      <- liftIO $ makeAbsolute toAdd
 
   let copyFiles = updateData

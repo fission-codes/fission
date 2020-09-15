@@ -84,6 +84,7 @@ type LiftErrs =
    , NoKeyFile
    , ClientError
    , NotRegistered
+   , NotFound FilePath
    , NotFound [IPFS.Peer]
    , NotFound Ed25519.SecretKey
    , SomeException

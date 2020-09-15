@@ -2,9 +2,11 @@
 
 module Fission.Error.NotFound.Types (NotFound (..)) where
 
+import qualified RIO.ByteString.Lazy     as Lazy
+import           RIO.FilePath
+
 import qualified Crypto.PubKey.Ed25519   as Ed25519
 import qualified Network.IPFS.Types      as IPFS
-import qualified RIO.ByteString.Lazy     as Lazy
 import           Servant
 
 import qualified Fission.AWS.Zone.Types  as AWS
@@ -39,6 +41,9 @@ instance Display (NotFound Domain) where
 
 instance Display (NotFound URL) where
   display _ = "URL not found in system"
+
+instance Display (NotFound FilePath) where
+  display _ = "Cannot find file"
 
 instance Display (NotFound App) where
   display _ = "App not found"

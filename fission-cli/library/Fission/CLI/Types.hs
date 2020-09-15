@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.CLI.Types
@@ -68,7 +69,7 @@ newtype FissionCLI errs cfg a = FissionCLI
                    , MonadThrow
                    , MonadCatch
                    , MonadRaise
-                   , MonadRescue
+ , MonadRescue
                    )
 
 runFissionCLI :: forall errs m cfg a .
@@ -107,7 +108,9 @@ instance ServerDID (FissionCLI errs Connected.Config) where
 
 instance ServerDID (FissionCLI errs Base.Config) where
   getServerDID =
-    asks cachedServerDID >>= \case
+    -- FIXME
+    undefined >>= \case
+    -- asks cachedServerDID >>= \case
       Just did ->
         return did
 
