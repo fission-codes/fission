@@ -30,7 +30,7 @@ parser = do
 osParser :: Parser (Maybe OS.Supported)
 osParser = do
   option mayOS $ mconcat
-    [ help ""
+    [ help "Override OS detection"
     ----------
     , long    "os"
     , metavar "OS"
@@ -38,7 +38,7 @@ osParser = do
     , value Nothing
     ]
 
-mayOS:: ReadM (Maybe OS.Supported)
+mayOS :: ReadM (Maybe OS.Supported)
 mayOS = do
   raw <- str
   case Text.toLower raw of

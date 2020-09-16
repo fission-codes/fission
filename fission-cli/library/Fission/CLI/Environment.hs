@@ -3,6 +3,7 @@ module Fission.CLI.Environment
   ( init
   , get
   , getOrRetrievePeers
+  , absPath
 
   -- * Reexport
 
@@ -10,28 +11,27 @@ module Fission.CLI.Environment
   , module Fission.CLI.Environment.Types
   ) where
 
-import qualified Data.List.NonEmpty              as NonEmpty
-import qualified Data.Yaml                       as YAML
-
+import qualified Data.ByteString.Char8         as BS8
+import qualified Data.List.NonEmpty            as NonEmpty
+import qualified Data.Yaml                     as YAML
 import           RIO.FilePath
-import qualified RIO.Text                        as Text
 
+import qualified Network.DNS                   as DNS
 import           Servant.Client
 
-import qualified Network.IPFS.Types              as IPFS
+import qualified Network.IPFS.Types            as IPFS
 
 import           Fission.Prelude
 
-import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
+import           Fission.User.DID.Types
 
 import           Fission.Web.Client
-import           Fission.Web.Client.Peers        as Peers
+import           Fission.Web.Client.Peers      as Peers
 
-import           Fission.CLI.Environment.Path    as Path
-
-import qualified Fission.CLI.Display.Error       as CLI.Error
-import qualified Fission.CLI.YAML                as YAML
+import qualified Fission.CLI.Display.Error     as CLI.Error
+import           Fission.CLI.Environment.Path  as Path
+import qualified Fission.CLI.YAML              as YAML
 
 -- Reexports
 
@@ -44,14 +44,16 @@ init ::
   , MonadEnvironment m
   , MonadLogger      m
   , MonadWebClient   m
-  , ServerDID        m
 
   , MonadCleanup m
   , m `Raises` ClientError
+  , m `Raises` DNS.DNSError
+  , m `Raises` NotFound DID
   , Show (OpenUnion (Errors m))
   )
-  => m ()
-init = do
+  => BaseUrl
+  -> m ()
+init fissionURL = do
   logDebug @Text "Initializing config file"
 
   attempt Peers.getPeers >>= \case
@@ -59,9 +61,8 @@ init = do
       CLI.Error.put err "Peer retrieval failed"
 
     Right nonEmptyPeers -> do
-      serverDID      <- getServerDID
+      serverDID      <- fetchServerDID fissionURL
       envPath        <- absPath
-      logDebug $ "-------------->" <> Text.pack envPath
       signingKeyPath <- Path.getSigningKeyPath
 
       envPath `YAML.writeFile` Env
@@ -94,7 +95,6 @@ getOrRetrievePeers ::
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  -- , Show (OpenUnion (Errors m))
   )
   => Env
   -> m [IPFS.Peer]
@@ -119,3 +119,37 @@ absPath :: MonadEnvironment m => m FilePath
 absPath = do
   path <- getGlobalPath
   return $ path </> "config.yaml"
+
+fetchServerDID ::
+  ( MonadIO     m
+  , MonadRaise  m
+  , MonadLogger m
+  , m `Raises` DNS.DNSError
+  , m `Raises` NotFound DID
+  )
+  => BaseUrl
+  -> m DID
+fetchServerDID fissionURL = do
+  rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+  let url = BS8.pack $ "_did." <> baseUrlHost fissionURL
+
+  logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url
+
+  liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
+    Left errs -> do
+      CLI.Error.put errs "Unable to find Fission's ID online"
+      raise errs
+
+    Right [] -> do
+      CLI.Error.put (NotFound @DID) $ "No TXT record at " <> decodeUtf8Lenient url
+      raise $ NotFound @DID
+
+    Right (didTxt : _) ->
+      case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
+        Left errs -> do
+          CLI.Error.put errs "Unable to find Fission's ID online"
+          raise $ NotFound @DID
+
+        Right serverDID -> do
+          logDebug $ "DID retrieved " <> textDisplay serverDID
+          return serverDID

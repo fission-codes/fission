@@ -4,10 +4,10 @@ module Fission.Internal.MIME
   , defaultMimeLookup
   ) where
 
-import Network.Mime
-import RIO.Map      as Map
+import           Network.Mime
+import           RIO.Map         as Map
 
-import Fission.Prelude
+import           Fission.Prelude
 
 lookupExt :: MimeType -> Extension
 lookupExt mime = fromMaybe "blob" (mimeExt !? mime)
@@ -16,7 +16,7 @@ lookupExt mime = fromMaybe "blob" (mimeExt !? mime)
 -- Have hand-tested many common types, and am getting the expected extensions.
 -- ~BEZ
 mimeExt :: Map MimeType Extension
-mimeExt = Map.fromList <| swap <$> Map.assocs defaultMimeMap
+mimeExt = Map.fromList $ swap <$> Map.assocs defaultMimeMap
   where
     swap :: (a, b) -> (b, a)
     swap (a, b) = (b, a)

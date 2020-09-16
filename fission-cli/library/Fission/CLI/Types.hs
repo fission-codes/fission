@@ -10,7 +10,7 @@ import           Crypto.Hash                             as Crypto
 import qualified Crypto.PubKey.Ed25519                   as Ed25519
 import           Crypto.Random
 
-import qualified Data.ByteString.Char8                   as BS8
+import qualified Data.Yaml                               as YAML
 
 import           Control.Monad.Catch                     as Catch
 
@@ -53,7 +53,6 @@ import           Fission.Web.Auth.Token.JWT              as JWT
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT                  as JWT
 
-import qualified Fission.CLI.Display.Error               as CLI.Error
 import qualified Fission.CLI.Display.Loader              as CLI
 
 import           Fission.CLI.Environment.Class
@@ -111,42 +110,13 @@ instance ServerDID (FissionCLI errs Connected.Config) where
   getServerDID = asks Connected.serverDID
 
 instance
-  ( DNS.DNSError `IsMember` errs
-  , NotFound DID `IsMember` errs
+  ( DNS.DNSError        `IsMember` errs
+  , NotFound DID        `IsMember` errs
+  , NotFound FilePath   `IsMember` errs
+  , YAML.ParseException `IsMember` errs
   )
   => ServerDID (FissionCLI errs Base.Config) where
-  getServerDID =
-    asks Base.mayServerDID >>= \case
-      Just did ->
-        return did
-
-      Nothing -> do
-        rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
-        baseURL <- asks Base.fissionURL
-        let url = BS8.pack $ "_did." <> baseUrlHost baseURL
-
-        logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url
-
-        liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
-          Left errs -> do
-            CLI.Error.put errs "Unable to find Fission's ID online"
-            raise errs
-
-          Right [] -> do
-            CLI.Error.put (NotFound @DID) $
-              "No TXT record at " <> decodeUtf8Lenient url
-
-            raise $ NotFound @DID
-
-          Right (didTxt : _) ->
-            case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
-              Left errs -> do
-                CLI.Error.put errs "Unable to find Fission's ID online"
-                throwM $ NotFound @DID
-
-              Right did -> do
-                logDebug $ "DID retrieved " <> textDisplay did
-                return did
+  getServerDID = asks Base.serverDID
 
 instance
   ( IsMember Key.Error errs
@@ -180,10 +150,10 @@ instance
   , NotFound Ed25519.SecretKey `IsMember` errs
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
-  getAuth =
-    Key.Store.exists >>= \case
-      True  -> Ed25519.parseSecretKey =<< getAsBytes
-      False -> raise $ NotFound @Ed25519.SecretKey
+  getAuth = do
+    attempt getAsBytes >>= \case
+      Right raw -> Ed25519.parseSecretKey raw
+      Left  _   -> raise $ NotFound @Ed25519.SecretKey
 
 instance MonadMask (FissionCLI errs cfg) where
   mask action = do

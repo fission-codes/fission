@@ -11,12 +11,12 @@ import           Fission.User.DID.Types
 
 -- | The configuration used for the CLI application
 data Config = Config
-  { httpManager  :: !HTTP.Manager
-  , fissionURL   :: !BaseUrl
-  , ipfsURL      :: !IPFS.URL
-  , mayServerDID :: !(Maybe DID)
-  , logFunc      :: !LogFunc
-  , processCtx   :: !ProcessContext
+  { httpManager :: !HTTP.Manager
+  , fissionURL  :: !BaseUrl
+  , ipfsURL     :: !IPFS.URL
+  , serverDID   :: !DID
+  , logFunc     :: !LogFunc
+  , processCtx  :: !ProcessContext
   }
   deriving Generic
 

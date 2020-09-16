@@ -21,7 +21,7 @@ globalBinaryDir = do
 globalIPFS :: MonadEnvironment m => m IPFS.BinPath
 globalIPFS = do
   binDir <- globalBinaryDir
-  return . IPFS.BinPath $ binDir </> "ipfs.cli"
+  return . IPFS.BinPath $ binDir </> "ipfs"
 
 globalTmpDir :: MonadEnvironment m => m FilePath
 globalTmpDir = do

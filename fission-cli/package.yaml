@@ -115,6 +115,7 @@ dependencies:
   - file-embed
   - path-pieces
   - fsnotify
+  - turtle
 
   ## Lenses ##
   - generic-lens

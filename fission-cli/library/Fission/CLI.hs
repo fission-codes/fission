@@ -2,6 +2,7 @@ module Fission.CLI (cli, interpret) where
 
 import qualified Crypto.PubKey.Ed25519                          as Ed25519
 import           Options.Applicative
+
 import qualified RIO.Text                                       as Text
 
 import           Network.HTTP.Client                            as HTTP
@@ -14,6 +15,9 @@ import           Fission.Prelude
 import qualified Fission.CLI.Meta                               as Meta
 import           Fission.Error
 
+import           Fission.User.DID.Types
+
+import           Fission.CLI.Environment                        as Env
 import qualified Fission.CLI.Environment.OS                     as OS
 
 import qualified Fission.CLI.Base.Types                         as Base
@@ -33,22 +37,21 @@ import           Fission.CLI.Types
 
 import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
-type Errs =
-     OS.Unsupported
+type Errs
+   = OS.Unsupported
   ': AlreadyExists Ed25519.SecretKey
+  ': OS.Unsupported
+  ': ClientError
   ': App.Errs
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
-  Parser.Options
-    { fissionDID = mayServerDID
-    , fissionURL
-    , cmd
-    } <- liftIO $ execParser CLI.parserWithInfo
+  Parser.Options {fissionDID, fissionURL, cmd} <- liftIO $ execParser CLI.parserWithInfo
 
   let
     VerboseFlag isVerbose = getter cmd
-    ipfsURL               = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
+    ipfsURL = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
+    Right fallbackDID = eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\""
 
     rawHTTPSettings =
       case baseUrlScheme fissionURL of
@@ -61,15 +64,18 @@ cli = do
   processCtx <- mkDefaultProcessContext
   logOptions <- logOptionsHandle stderr isVerbose
 
-  withLogFunc logOptions \logFunc ->
-    interpret Base.Config {..} cmd
+  withLogFunc logOptions \logFunc -> do
+    finalizeDID fissionDID Base.Config {serverDID = fallbackDID, ..} >>= \case
+      Right serverDID -> interpret Base.Config {..} fissionURL cmd
+      Left  err       -> return . Left $ include err
 
 interpret ::
   MonadIO m
   => Base.Config
+  -> BaseUrl
   -> Command
   -> m (Either (OpenUnion Errs) ())
-interpret baseCfg cmd =
+interpret baseCfg fissionURL cmd =
   runFissionCLI baseCfg do
     logDebug . Text.pack $ show cmd
 
@@ -78,7 +84,7 @@ interpret baseCfg cmd =
         logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
 
       Setup Setup.Options {forceOS} ->
-        Setup.setup forceOS
+        Setup.setup forceOS fissionURL
 
       App subCmd ->
         App.interpret baseCfg subCmd
@@ -87,3 +93,16 @@ interpret baseCfg cmd =
         case subCmd of
           Register _ -> Handler.register
           WhoAmI   _ -> Handler.whoami
+
+finalizeDID ::
+  MonadIO m
+  => Maybe DID
+  -> Base.Config
+  -> m (Either (OpenUnion Errs) DID)
+finalizeDID (Just did) _ =
+  pure $ Right did
+
+finalizeDID Nothing baseCfg =
+  runFissionCLI baseCfg do
+    Env {serverDID} <- Env.get
+    return serverDID

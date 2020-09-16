@@ -4,6 +4,7 @@ module Fission.CLI.Handler.User.Register (register) where
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           Crypto.Random
 
+import           Network.DNS
 import           Network.HTTP.Types.Status
 import           Servant.Client.Core
 
@@ -13,6 +14,7 @@ import           Fission.Error
 import qualified Fission.Key                     as Key
 
 import           Fission.Authorization.ServerDID
+import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token
@@ -29,8 +31,6 @@ import           Fission.CLI.Display.Success     as CLI.Success
 import           Fission.CLI.Environment         as Env
 import qualified Fission.CLI.Prompt              as Prompt
 
-import qualified Fission.CLI.Key.Store           as Key.Store
-
 register ::
   ( MonadIO          m
   , MonadLogger      m
@@ -43,6 +43,8 @@ register ::
   , MonadWebAuth     m Ed25519.SecretKey
   , MonadCleanup     m
   , m `Raises` ClientError
+  , m `Raises` DNSError
+  , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
@@ -67,6 +69,8 @@ createAccount ::
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
   , m `Raises` ClientError
+  , m `Raises` DNSError
+  , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , Show (OpenUnion (Errors m))
   ) => m ()
@@ -81,19 +85,8 @@ createAccount = do
       , password = Nothing
       }
 
-  Key.Store.create |> onRaise \errs ->
-    case openUnionMatch errs of
-      Just Key.AlreadyExists -> do
-        let err = AlreadyExists @Ed25519.SecretKey
-        CLI.Error.put err "Key already exists"
-        raise err
-
-      _ ->
-        return ()
-
   attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
     Right _ok -> do
-      Env.init
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
 
     Left err -> do

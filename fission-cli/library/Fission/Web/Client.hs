@@ -46,7 +46,7 @@ authClient api = do
 
   logDebug @Text "Sending web request"
 
-  return . (client api) $ mkAuthenticatedRequest auth \_ath -> authReq
+  return . client api $ mkAuthenticatedRequest auth \_ath -> authReq
 
 infixl 1 `withPayload`
 withPayload :: Functor f => f (a -> b) -> a -> f b

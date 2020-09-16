@@ -4,6 +4,7 @@ module Fission.CLI.IPFS.Executable
   ) where
 
 import qualified RIO.ByteString.Lazy          as Lazy
+import qualified RIO.Text                     as Text
 
 import           Network.IPFS
 import qualified Network.IPFS.BinPath.Types   as IPFS
@@ -11,9 +12,11 @@ import qualified Network.IPFS.File.Types      as File
 import           Servant.Client
 
 import           Fission.Prelude
+import           Turtle                       as Turtle
+
+import qualified Fission.CLI.Environment.IPFS as IPFS
 
 import           Fission.CLI.Environment      as Env
-import qualified Fission.CLI.Environment.IPFS as Global.IPFS
 import qualified Fission.CLI.Environment.OS   as OS
 import qualified Fission.CLI.Environment.Path as Path
 import           Fission.CLI.File
@@ -45,9 +48,9 @@ place' ::
 place' host = do
   logDebug $ "Setting up IPFS binary for " <> textDisplay host
 
-  File.Serialized lazyFile <- ensureM . ipfsCat $ Global.IPFS.binCidFor host
-  IPFS.BinPath ipfsPath    <- Path.globalIPFS
+  IPFS.BinPath    ipfsPath <- Path.globalIPFS
+  File.Serialized lazyFile <- ensureM . ipfsCat $ IPFS.binCidFor host
 
-  logDebug ipfsPath
-
+  logDebug $ "Writing IPFS binary to " <> Text.pack ipfsPath
   ipfsPath `forceWrite` Lazy.toStrict lazyFile
+  void . chmod executable $ Turtle.decodeString ipfsPath
