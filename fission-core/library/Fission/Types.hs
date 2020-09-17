@@ -41,6 +41,7 @@ import qualified Fission.App                           as App
 import qualified Fission.App.Destroyer                 as App.Destroyer
 import           Fission.IPFS.DNSLink                  as DNSLink
 import           Fission.User.Username.Types
+import           Fission.DataRoot                      as DataRoot
 
 import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
@@ -211,6 +212,48 @@ instance MonadRoute53 Fission where
           mockRecordResponse = changeResourceRecordSetsResponse 300 mockChangeInfo
 
         return (Right mockRecordResponse)
+
+  get url (ZoneID zoneID) = do
+    let 
+      urlTxt = textShow url
+      req = listResourceRecordSets (ResourceId zoneID)
+        |> lrrsMaxItems ?~ "1"
+        |> lrrsStartRecordName ?~ urlTxt
+
+    awsResp <- AWS.within NorthVirginia do
+      resp <- send req
+      return $ validate resp
+
+    case awsResp of
+      Left err -> return $ Left err
+
+      Right good ->
+        case Route53.verifyFirstResource good urlTxt of
+          Nothing -> return . Left $ Web.Error.toServerError (404 :: Int)
+          Just rrs -> return $ Right rrs
+
+
+instance MonadDataRoot Fission where
+  get (Username username) = do
+    zoneID <- asks userZoneID
+    rootDomain <- asks userRootDomain
+    let 
+      url = URL 
+        { domainName = rootDomain
+        , subdomain  = Just . URL.Subdomain $ "_dnslink." <> username <> ".files"
+        }
+
+    Route53.get url zoneID >>= \case
+      Left err -> 
+        return $ Left err
+
+      Right rrs ->
+        case Route53.getValuesFromRecords rrs of
+          Nothing -> return . Left $ Web.Error.toServerError (404 :: Int)
+          Just vals -> return $ Right $ extractCID vals
+    where
+      extractCID = CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head 
+
 
 instance MonadDNSLink Fission where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
