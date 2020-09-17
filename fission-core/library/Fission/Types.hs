@@ -6,7 +6,7 @@ module Fission.Types
 import           Control.Monad.Catch
 
 import qualified RIO.ByteString.Lazy                   as Lazy
-import           RIO.NonEmpty
+import           RIO.NonEmpty                          as NonEmpty
 import qualified RIO.Text                              as Text
 
 import           Database.Esqueleto                    as SQL hiding ((<&>))
@@ -252,7 +252,7 @@ instance MonadDataRoot Fission where
           Nothing -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just vals -> return $ Right $ extractCID vals
     where
-      extractCID = CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head 
+      extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head 
 
 
 instance MonadDNSLink Fission where

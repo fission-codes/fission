@@ -3,19 +3,14 @@ module Fission.Web.User.DataRoot
   , server
   ) where
 
-import           Database.Esqueleto
-import           Servant
-
 import           Fission.Prelude
-import           Fission.Authorization
-
-import           Fission.Web.Error as Web.Error
-import qualified Fission.Web.Auth.Types as Auth
+import           Servant
 
 import qualified Fission.User as User
 
-import           Network.IPFS.CID.Types
+import           Fission.DataRoot
 
+import qualified Fission.Web.Auth.Types as Auth
 import qualified Fission.Web.User.DataRoot.Update as Update
 import qualified Fission.Web.User.DataRoot.Get as Get
 
@@ -25,4 +20,11 @@ type UpdateAPI =
   Auth.HigherOrder
   :> Update.API
 
+server ::
+  ( MonadLogger        m
+  , MonadTime          m
+  , MonadDataRoot      m
+  , User.Modifier      m
+  )
+  => ServerT API m
 server = Update.server :<|> Get.server

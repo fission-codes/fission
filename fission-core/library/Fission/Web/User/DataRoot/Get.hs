@@ -20,8 +20,7 @@ type API
   :> Get '[JSON, PlainText] CID
 
 server ::
-  ( MonadThrow    m
-  , MonadLogger   m
+  ( MonadLogger   m
   , MonadDataRoot m
   )
   => ServerT API m
