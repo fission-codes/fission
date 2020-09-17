@@ -9,4 +9,4 @@ import Fission.Prelude
 import Fission.Internal.Meta.Package hiding (package)
 
 package :: Maybe Package
-package = fromContents $(embedFile "./package.yaml")
+package = fromContents $(embedFile "./fission-cli/package.yaml")

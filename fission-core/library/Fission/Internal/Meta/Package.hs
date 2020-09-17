@@ -11,7 +11,7 @@ import Fission.Prelude
 import Fission.Internal.Meta.Package.Types
 
 package :: Maybe Package
-package = fromContents $(embedFile "./package.yaml")
+package = fromContents $(embedFile "./fission-core/package.yaml")
 
 fromContents :: ByteString -> Maybe Package
 fromContents contents =
