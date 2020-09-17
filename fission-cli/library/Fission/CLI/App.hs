@@ -91,7 +91,8 @@ interpret baseCfg cmd = do
               return ()
 
             Nothing -> do
-              logError @Text "" -- FIXME
+              logError @Text "Problem setting up new app"
+              raise errs
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let

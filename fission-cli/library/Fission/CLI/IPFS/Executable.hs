@@ -3,36 +3,33 @@ module Fission.CLI.IPFS.Executable
   , place'
   ) where
 
-import qualified RIO.ByteString.Lazy          as Lazy
-import qualified RIO.Text                     as Text
+import qualified RIO.ByteString.Lazy           as Lazy
+import qualified RIO.Text                      as Text
 
-import qualified Turtle                       as Turtle
+import qualified Turtle                        as Turtle
 
-import           Network.HTTP.Client          as HTTP
 import           Network.IPFS
-import qualified Network.IPFS.File.Types      as File
-import           Network.IPFS.Types           as IPFS
+import qualified Network.IPFS.File.Types       as File
+import           Network.IPFS.Types            as IPFS
 import           Servant.Client
 
 import           Fission.Prelude
 
-import qualified Fission.CLI.Environment.IPFS as IPFS
+import           Fission.Web.Client.HTTP.Class
+
+import qualified Fission.CLI.Environment.IPFS  as IPFS
 
 import           Fission.CLI.Bootstrap
-import           Fission.CLI.Environment      as Env
-import qualified Fission.CLI.Environment.OS   as OS
-import qualified Fission.CLI.Environment.Path as Path
+import           Fission.CLI.Environment       as Env
+import qualified Fission.CLI.Environment.OS    as OS
+import qualified Fission.CLI.Environment.Path  as Path
 import           Fission.CLI.File
 
 place ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadEnvironment m
-  -- FIXME deep annoyance
-  , MonadReader cfg m
-  , HasField' "httpManager" cfg HTTP.Manager
-  , HasField' "ipfsURL"     cfg IPFS.URL
-  --
+  , MonadManagedHTTP m
   , MonadRescue      m
   , m `Raises` OS.Unsupported
   , m `Raises` ClientError
@@ -45,12 +42,8 @@ place Nothing   = place' =<< ensure OS.get
 place' ::
   ( MonadIO          m
   , MonadLogger      m
+  , MonadManagedHTTP m
   , MonadEnvironment m
-  -- FIXME deep annoyance
-  , MonadReader cfg m
-  , HasField' "httpManager" cfg HTTP.Manager
-  , HasField' "ipfsURL"     cfg IPFS.URL
-  --
   , MonadRescue      m
   , m `Raises` ClientError
   )

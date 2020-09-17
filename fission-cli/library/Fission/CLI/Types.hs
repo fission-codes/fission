@@ -37,6 +37,7 @@ import           Fission.Error.NotFound.Types
 
 import qualified Fission.Key.Error                       as Key
 import           Fission.User.DID.Types
+import           Fission.Web.Client.HTTP.Class
 
 import qualified Fission.CLI.Base.Types                  as Base
 import           Fission.CLI.Bootstrap
@@ -285,6 +286,11 @@ instance
         | otherwise ->
             Left $ Process.UnknownErr stdErrs
 
+instance
+  HasField' "httpManager" cfg HTTP.Manager
+  => MonadManagedHTTP (FissionCLI errs cfg) where
+  getHTTPManager = asks $ getField @"httpManager"
+
 instance forall cfg errs .
   ( HasField' "httpManager" cfg HTTP.Manager
   , HasField' "ipfsURL"     cfg IPFS.URL
@@ -297,8 +303,9 @@ instance forall cfg errs .
   )
   => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
   runRemote query = do
-    cleanup startDaemonThread handleRaise stopDaemonThread \_ ->
+    cleanup startDaemonThread handleRaise stopDaemonThread \_ -> do
       runBootstrapT $ runRemote query
+
     where
       runDaemon :: FissionCLI errs cfg ()
       runDaemon = do

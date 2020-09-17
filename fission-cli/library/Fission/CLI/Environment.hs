@@ -2,6 +2,8 @@
 module Fission.CLI.Environment
   ( init
   , get
+  , put
+  , update
   , getOrRetrievePeers
   , absPath
   , fetchServerDID
@@ -92,6 +94,24 @@ get = do
   path <- absPath
   env  <- YAML.readFile path
   return env
+
+put env = do
+  envPath <- absPath
+  envPath `YAML.writeFile` env
+
+update ::
+  ( MonadIO          m
+  , MonadEnvironment m
+  , MonadLogger      m
+  , MonadRaise       m
+  , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
+  )
+  => (Env -> Env)
+  -> m ()
+update updater = do
+  env <- get
+  put $ updater env
 
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store
