@@ -8,7 +8,7 @@ import           Servant
 
 import qualified Fission.User as User
 
-import           Fission.DataRoot
+import           Fission.WNFS
 
 import qualified Fission.Web.Auth.Types as Auth
 import qualified Fission.Web.User.DataRoot.Update as Update
@@ -21,10 +21,11 @@ type UpdateAPI =
   :> Update.API
 
 server ::
-  ( MonadLogger        m
-  , MonadTime          m
-  , MonadDataRoot      m
-  , User.Modifier      m
+  ( MonadLogger   m
+  , MonadThrow    m
+  , MonadTime     m
+  , MonadWNFS     m
+  , User.Modifier m
   )
   => ServerT API m
 server = Update.server :<|> Get.server

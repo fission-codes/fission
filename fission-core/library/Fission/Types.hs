@@ -41,7 +41,7 @@ import qualified Fission.App                           as App
 import qualified Fission.App.Destroyer                 as App.Destroyer
 import           Fission.IPFS.DNSLink                  as DNSLink
 import           Fission.User.Username.Types
-import           Fission.DataRoot                      as DataRoot
+import           Fission.WNFS                          as WNFS
 
 import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
@@ -233,8 +233,8 @@ instance MonadRoute53 Fission where
           Just rrs -> return $ Right rrs
 
 
-instance MonadDataRoot Fission where
-  get (Username username) = do
+instance MonadWNFS Fission where
+  getUserDataRoot (Username username) = do
     zoneID <- asks userZoneID
     rootDomain <- asks userRootDomain
     let 

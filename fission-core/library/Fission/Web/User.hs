@@ -20,7 +20,7 @@ import           Fission.Email
 
 import qualified Fission.Challenge.Creator.Class  as Challenge
 import qualified Fission.Challenge.Verifier.Class as Challenge
-import           Fission.DataRoot
+import           Fission.WNFS
 
 import qualified Fission.Web.User.Create             as Create
 import qualified Fission.Web.User.Verify             as Verify
@@ -92,7 +92,7 @@ server ::
   , MonadLogger        m
   , MonadTime          m
   , MonadEmail         m
-  , MonadDataRoot      m
+  , MonadWNFS          m
   , User.Modifier      m
   , User.Creator       m
   , Challenge.Creator  m

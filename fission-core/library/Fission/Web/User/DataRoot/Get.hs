@@ -9,7 +9,7 @@ import           Servant
 import qualified Fission.Web.Error           as Web.Err
 
 import           Fission.User.Username.Types
-import           Fission.DataRoot as DataRoot
+import           Fission.WNFS as WNFS
 import           Network.IPFS.CID.Types
 
 
@@ -20,8 +20,9 @@ type API
   :> Get '[JSON, PlainText] CID
 
 server ::
-  ( MonadLogger   m
-  , MonadDataRoot m
+  ( MonadLogger m
+  , MonadThrow  m
+  , MonadWNFS   m
   )
   => ServerT API m
-server username = Web.Err.ensureM $ DataRoot.get username
+server username = Web.Err.ensureM $ WNFS.getUserDataRoot username
