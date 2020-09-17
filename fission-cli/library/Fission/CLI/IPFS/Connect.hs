@@ -60,13 +60,18 @@ connectTo ::
   => NonEmpty IPFS.Peer
   -> m ()
 connectTo peers = do
+  sequence (logDebug . show <$> NonEmpty.toList peers)
   attempts <- sequence . parMap rpar IPFS.Peer.connect $ NonEmpty.toList peers
 
   if any isRight attempts
     then do
-      logDebug $ "Successfully connected to a node. Full results: " <> textShow attempts
+      logDebug @Text "Successfully connected to a node. Full results:"
+      logDebug $ show attempts
 
     else do
+      logDebug @Text "Unable to connect. Full results:"
+      logDebug $ show attempts
+
       UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
       raise IPFS.UnableToConnect
 
