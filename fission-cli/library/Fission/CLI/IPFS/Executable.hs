@@ -6,16 +6,19 @@ module Fission.CLI.IPFS.Executable
 import qualified RIO.ByteString.Lazy          as Lazy
 import qualified RIO.Text                     as Text
 
+import qualified Turtle                       as Turtle
+
+import           Network.HTTP.Client          as HTTP
 import           Network.IPFS
-import qualified Network.IPFS.BinPath.Types   as IPFS
 import qualified Network.IPFS.File.Types      as File
+import           Network.IPFS.Types           as IPFS
 import           Servant.Client
 
 import           Fission.Prelude
-import           Turtle                       as Turtle
 
 import qualified Fission.CLI.Environment.IPFS as IPFS
 
+import           Fission.CLI.Bootstrap
 import           Fission.CLI.Environment      as Env
 import qualified Fission.CLI.Environment.OS   as OS
 import qualified Fission.CLI.Environment.Path as Path
@@ -25,7 +28,11 @@ place ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadEnvironment m
-  , MonadRemoteIPFS  m
+  -- FIXME deep annoyance
+  , MonadReader cfg m
+  , HasField' "httpManager" cfg HTTP.Manager
+  , HasField' "ipfsURL"     cfg IPFS.URL
+  --
   , MonadRescue      m
   , m `Raises` OS.Unsupported
   , m `Raises` ClientError
@@ -39,7 +46,11 @@ place' ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadEnvironment m
-  , MonadRemoteIPFS  m
+  -- FIXME deep annoyance
+  , MonadReader cfg m
+  , HasField' "httpManager" cfg HTTP.Manager
+  , HasField' "ipfsURL"     cfg IPFS.URL
+  --
   , MonadRescue      m
   , m `Raises` ClientError
   )
@@ -49,8 +60,9 @@ place' host = do
   logDebug $ "Setting up IPFS binary for " <> textDisplay host
 
   IPFS.BinPath    ipfsPath <- Path.globalIPFS
-  File.Serialized lazyFile <- ensureM . ipfsCat $ IPFS.binCidFor host
+  File.Serialized lazyFile <- ensureM $ runBootstrapT do
+    ipfsCat $ IPFS.binCidFor host
 
   logDebug $ "Writing IPFS binary to " <> Text.pack ipfsPath
   ipfsPath `forceWrite` Lazy.toStrict lazyFile
-  void . chmod executable $ Turtle.decodeString ipfsPath
+  void . Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath

@@ -4,6 +4,7 @@ module Fission.CLI.Environment
   , get
   , getOrRetrievePeers
   , absPath
+  , fetchServerDID
 
   -- * Reexport
 
@@ -24,7 +25,9 @@ import qualified Network.IPFS.Types            as IPFS
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
+
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
 import           Fission.Web.Client
 import           Fission.Web.Client.Peers      as Peers
@@ -51,9 +54,10 @@ init ::
   , m `Raises` NotFound DID
   , Show (OpenUnion (Errors m))
   )
-  => BaseUrl
+  => Username
+  -> BaseUrl
   -> m ()
-init fissionURL = do
+init username fissionURL = do
   logDebug @Text "Initializing config file"
 
   attempt Peers.getPeers >>= \case
@@ -70,18 +74,24 @@ init fissionURL = do
         , ignored        = []
         , signingKeyPath
         , serverDID
+        , username
         }
 
 -- | Gets hierarchical environment by recursing through file system
 get ::
   ( MonadIO          m
   , MonadEnvironment m
+  , MonadLogger      m
   , MonadRaise       m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   )
   => m Env
-get = YAML.readFile =<< absPath
+get = do
+  logDebug @Text "Reading global config.yaml"
+  path <- absPath
+  env  <- YAML.readFile path
+  return env
 
 -- | Retrieves a Fission Peer from local config
 --   If not found we retrive from the network and store

@@ -17,7 +17,6 @@ data Config = Config
   , fissionURL   :: !BaseUrl
   , logFunc      :: !LogFunc
   , processCtx   :: !ProcessContext
-  , ipfsPath     :: !IPFS.BinPath
   , ipfsTimeout  :: !IPFS.Timeout
   , peers        :: !(NonEmpty IPFS.Peer)
   , ignoredFiles :: ![Text] -- ^ Directly for ipfsignore -- passing through verbatim.

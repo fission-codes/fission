@@ -28,7 +28,6 @@ import qualified Fission.Web.Client.User         as User
 
 import           Fission.CLI.Connected.Types
 import qualified Fission.CLI.Context             as Context
-import           Fission.CLI.Environment.Path
 import           Fission.CLI.Error.Types
 import           Fission.CLI.Types
 
@@ -76,7 +75,8 @@ run cfg ipfsTimeout actions =
           Connect.couldNotSwarmConnect
           raise err
 
-        Right () ->
+        Right () -> do
+          logDebug @Text "Connected to remote node"
           actions
 
 type LiftErrs =
@@ -113,17 +113,20 @@ mkConnected inCfg ipfsTimeout =
       raise NoKeyFile
 
     Right secretKey -> do
-      ipfsPath   <- globalIPFS
+      logDebug @Text "Ed25519 key loaded"
+
       serverDID  <- getServerDID
       config     <- Environment.get
       maybePeers <- Environment.getOrRetrievePeers config
 
       case NonEmpty.nonEmpty maybePeers of
         Nothing -> do
+          logDebug @Text "Cannot load peers"
           CLI.Error.put (NotFound @[IPFS.Peer]) "No peers available"
           raise $ NotFound @[IPFS.Peer]
 
         Just peers -> do
+          logDebug @Text "Loaded peers"
           logFunc    <- asks $ view logFuncL
           processCtx <- asks $ view processContextL
 
@@ -148,5 +151,6 @@ mkConnected inCfg ipfsTimeout =
                 CLI.Error.put err "Not registered. Please run: fission user register"
                 raise NotRegistered
 
-              Right _ ->
+              Right _ -> do
+                logDebug @Text "User is registered"
                 return cfg

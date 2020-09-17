@@ -2,7 +2,6 @@
 module Fission.CLI.Handler.App.Init (appInit) where
 
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
--- import qualified Data.Yaml                              as YAML
 import qualified System.Console.ANSI                    as ANSI
 
 import qualified Servant.Client                         as Servant
@@ -39,22 +38,24 @@ appInit ::
 
   , MonadCleanup   m
   , m `Raises` Servant.ClientError
-  -- , m `Raises` YAML.ParseException
 
   , Contains (Errors m) (Errors m)
-  , Display (OpenUnion (Errors m))
-  , Show (OpenUnion (Errors m))
+  , Display  (OpenUnion (Errors m))
+  , Show     (OpenUnion (Errors m))
 
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
   )
   => FilePath
   -> Maybe FilePath
   -> Maybe URL.Subdomain
   -> m ()
 appInit appDir mayBuildDir' maySubdomain = do
+  logDebug @Text "appInit"
+
   attempt (sendRequestM $ authClient (Proxy @App.Create) `withPayload` maySubdomain) >>= \case
     Left err -> do
+      logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err
       raise err
 

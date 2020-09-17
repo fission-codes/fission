@@ -91,7 +91,7 @@ interpret baseCfg fissionURL cmd =
 
       User subCmd ->
         case subCmd of
-          Register _ -> Handler.register
+          Register _ -> void Handler.register
           WhoAmI   _ -> Handler.whoami
 
 finalizeDID ::
@@ -102,7 +102,8 @@ finalizeDID ::
 finalizeDID (Just did) _ =
   pure $ Right did
 
-finalizeDID Nothing baseCfg =
+finalizeDID Nothing baseCfg@Base.Config {fissionURL} =
   runFissionCLI baseCfg do
-    Env {serverDID} <- Env.get
-    return serverDID
+    attempt Env.get >>= \case
+      Right Env {serverDID} -> return serverDID
+      Left  _               -> Env.fetchServerDID fissionURL

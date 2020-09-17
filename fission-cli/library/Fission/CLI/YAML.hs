@@ -7,6 +7,7 @@ import qualified Data.Yaml                    as YAML
 
 import           RIO.Directory
 import           RIO.FilePath
+import qualified RIO.Text                     as Text
 
 import           Fission.Prelude
 
@@ -22,19 +23,28 @@ writeFile ::
   => FilePath
   -> a
   -> m ()
-writeFile path = forceWrite path . YAML.encode
+writeFile path contents = do
+  logDebug $ "Writing YAML file to " <> Text.pack (show path)
+  forceWrite path $ YAML.encode contents
 
 -- | Decodes file to partial environment
 readFile ::
   ( FromJSON a
-  , MonadIO    m
-  , MonadRaise m
+  , MonadIO     m
+  , MonadLogger m
+  , MonadRaise  m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   )
   => FilePath
   -> m a
-readFile path =
+readFile path = do
+  logDebug $ "Reading YAML from " <> Text.pack (show path)
   doesFileExist path >>= \case
-    False -> raise $ NotFound @FilePath
-    True  -> ensureM . liftIO $ YAML.decodeFileEither path
+    False -> do
+      logDebug @Text "Path does not exist"
+      raise $ NotFound @FilePath
+
+    True -> do
+      logDebug @Text "Path does exist"
+      ensureM . liftIO $ YAML.decodeFileEither path

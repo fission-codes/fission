@@ -1,10 +1,11 @@
 module Fission.CLI.Environment.Types (Env (..)) where
 
-import qualified Network.IPFS.Types     as IPFS
+import qualified Network.IPFS.Types          as IPFS
 
 import           Fission.Prelude
 
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
 -- | "Global" environment
 data Env = Env
@@ -12,9 +13,10 @@ data Env = Env
   { peers          :: ![IPFS.Peer]
   , ignored        :: ![Text] -- ^ Passing through verbatim for ipfsignore
 
-  -- DIDs
+  -- IDs
   , serverDID      :: !DID
   , signingKeyPath :: !FilePath
+  , username       :: !Username
   }
 
 instance ToJSON Env where
@@ -23,13 +25,15 @@ instance ToJSON Env where
     , "ignore"           .= ignored
     , "server_did"       .= serverDID
     , "signing_key_path" .= signingKeyPath
+    , "username"         .= username
     ]
 
 instance FromJSON Env where
   parseJSON = withObject "Env" \obj -> do
-    peers          <- obj .: "peers"
-    ignored        <- obj .: "ignored"
-    serverDID      <- obj .: "server_did"
-    signingKeyPath <- obj .: "signing_key_path"
+    peers          <- obj .:  "peers"
+    ignored        <- obj .:? "ignored" .!= []
+    serverDID      <- obj .:  "server_did"
+    signingKeyPath <- obj .:  "signing_key_path"
+    username       <- obj .:  "username"
 
     return Env {..}

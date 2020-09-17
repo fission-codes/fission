@@ -49,11 +49,16 @@ register ::
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
-  ) => m ()
+  )
+  => m Username
 register =
   attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
-    Right User.Username {username} -> CLI.Success.alreadyLoggedInAs username
-    Left _ -> createAccount
+    Right un@User.Username {username} -> do
+      CLI.Success.alreadyLoggedInAs username
+      return un
+
+    Left _ ->
+      createAccount
 
 createAccount ::
   ( MonadIO          m
@@ -73,21 +78,23 @@ createAccount ::
   , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , Show (OpenUnion (Errors m))
-  ) => m ()
+  )
+  => m Username
 createAccount = do
   username <- Username <$> Prompt.reaskNotEmpty' "Username: "
   email    <- Email    <$> Prompt.reaskNotEmpty' "Email: "
 
   let
     form = Registration
-      { username = username
-      , email    = email
+      { username
+      , email
       , password = Nothing
       }
 
   attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
+      return username
 
     Left err -> do
       let

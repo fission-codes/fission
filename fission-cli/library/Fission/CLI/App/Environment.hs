@@ -34,8 +34,9 @@ create appURL buildDir = do
   YAML.writeFile path Env {ipfsIgnored = [], ..}
 
 read ::
-  ( MonadIO    m
-  , MonadRaise m
+  ( MonadIO     m
+  , MonadLogger m
+  , MonadRaise  m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   )
@@ -43,8 +44,9 @@ read ::
 read = YAML.readFile =<< absPath
 
 readFrom ::
-  ( MonadIO    m
-  , MonadRaise m
+  ( MonadIO     m
+  , MonadRaise  m
+  , MonadLogger m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   )

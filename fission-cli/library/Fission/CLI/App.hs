@@ -64,14 +64,18 @@ interpret :: forall errs .
   -> App.Options
   -> FissionCLI errs Base.Config ()
 interpret baseCfg cmd = do
+  logDebug @Text "App interpreter"
+
   case cmd of
     Info (App.Info.Options _) ->
       Handler.appInfo
 
     Init App.Init.Options {appDir, buildDir, maySubdomain, ipfsCfg = IPFS.Config {..}} -> do
       let
-        run' :: FissionCLI errs Connected.Config a -> FissionCLI errs Base.Config ()
-        run' = void . Connected.run baseCfg timeoutSeconds
+        run' ::
+             FissionCLI errs Connected.Config a
+          -> FissionCLI errs Base.Config (Either (OpenUnion errs) a)
+        run' = Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
         Right Env {appURL} -> do
@@ -79,8 +83,15 @@ interpret baseCfg cmd = do
           logDebug . textDisplay $ AlreadyExists @App
           raise $ AlreadyExists @App
 
-        Left _ ->
-          run' $ Handler.appInit appDir buildDir maySubdomain
+        Left errs -> do
+          case openUnionMatch errs of
+            Just (_ :: NotFound FilePath) -> do
+              logDebug @Text "Setting up new app"
+              _ <- run' $ Handler.appInit appDir buildDir maySubdomain
+              return ()
+
+            Nothing -> do
+              logError @Text "" -- FIXME
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let
