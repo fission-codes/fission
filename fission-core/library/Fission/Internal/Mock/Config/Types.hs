@@ -31,6 +31,7 @@ data Config = Config
   , getBaseDomain   :: URL.DomainName
   , updateRoute53   :: RecordType -> URL -> AWS.ZoneID -> NonEmpty Text -> Natural -> Either ServerError ChangeResourceRecordSetsResponse
   , clearRoute53    :: RecordType -> URL -> Either ServerError ChangeResourceRecordSetsResponse
+  , getRoute53      :: URL -> AWS.ZoneID -> Either ServerError ResourceRecordSet
   , now             :: UTCTime
   , linkedPeers     :: NonEmpty IPFS.Peer
   , userVerifier    :: AuthHandler Wai.Request (Entity User)

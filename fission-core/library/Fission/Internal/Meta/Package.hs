@@ -4,14 +4,14 @@ module Fission.Internal.Meta.Package
   , fromContents
   ) where
 
-import Data.FileEmbed
-import Data.Yaml as Yaml
+import           Data.FileEmbed
+import           Data.Yaml                           as Yaml
 
-import Fission.Prelude
-import Fission.Internal.Meta.Package.Types
+import           Fission.Internal.Meta.Package.Types
+import           Fission.Prelude
 
 package :: Maybe Package
-package = fromContents $(embedFile "./fission-core/package.yaml")
+package = fromContents $(embedFile "./package.yaml")
 
 fromContents :: ByteString -> Maybe Package
 fromContents contents =
