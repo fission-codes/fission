@@ -8,14 +8,14 @@ where
 import           Fission.AWS.Route53.Class
 
 import           Fission.Prelude
-import           RIO
 import           Network.AWS.Route53
+import           RIO
 
-verifyFirstResource
-  :: ListResourceRecordSetsResponse -> Text -> Maybe ResourceRecordSet
-verifyFirstResource resp name = case headMaybe recordSets of
-  Nothing  -> Nothing
-  Just rrs -> if (rrs ^. rrsName) == (name <> ".") then Just rrs else Nothing
+verifyFirstResource :: ListResourceRecordSetsResponse -> Text -> Maybe ResourceRecordSet
+verifyFirstResource resp name =
+  case headMaybe recordSets of
+    Nothing  -> Nothing
+    Just rrs -> if (rrs ^. rrsName) == (name <> ".") then Just rrs else Nothing
   where recordSets = resp ^. lrrsrsResourceRecordSets
 
 getValuesFromRecords :: ResourceRecordSet -> Maybe (NonEmpty Text)
