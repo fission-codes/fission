@@ -4,8 +4,6 @@ module Fission.CLI.IPFS.Daemon
   , module Fission.CLI.IPFS.Daemon.Class
   ) where
 
-import           Control.Concurrent            (forkIO, killThread)
-
 import           Fission.Prelude
 
 import           Fission.CLI.IPFS.Daemon.Class
@@ -14,12 +12,11 @@ start ::
   ( MonadIO         m
   , MonadIPFSDaemon m
   )
-  => (m () -> IO ())
-  -> m ThreadId
-start inIO = do
-  threadId <- liftIO . forkIO $ inIO runDaemon
+  => m (Process () () ())
+start = do
+  process <- runDaemon
   waitForStartup
-  return threadId
+  return process
   where
     waitForStartup = do
       checkRunning >>= \case
@@ -30,5 +27,6 @@ start inIO = do
           threadDelay 1_000_000
           waitForStartup
 
-stop :: MonadIO m => ThreadId -> m ()
-stop  = liftIO . killThread
+-- NOTE gets called automatically in CLI.hs
+stop :: MonadIO m => (Process () () ()) -> m ()
+stop  = liftIO . stopProcess

@@ -12,8 +12,10 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
-import qualified Fission.CLI.Meta                               as Meta
 import           Fission.Error
+
+import qualified Fission.CLI.IPFS.Daemon                        as IPFS.Daemon
+import qualified Fission.CLI.Meta                               as Meta
 
 import           Fission.User.DID.Types
 
@@ -61,8 +63,9 @@ cli = do
   httpManager <- liftIO $ HTTP.newManager rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro 1_800_000_000 }
 
-  processCtx <- mkDefaultProcessContext
-  logOptions <- logOptionsHandle stderr isVerbose
+  ipfsDaemonVar <- liftIO newEmptyMVar
+  processCtx    <- mkDefaultProcessContext
+  logOptions    <- logOptionsHandle stderr isVerbose
 
   withLogFunc logOptions \logFunc -> do
     finalizeDID fissionDID Base.Config {serverDID = fallbackDID, ..} >>= \case
@@ -75,24 +78,31 @@ interpret ::
   -> BaseUrl
   -> Command
   -> m (Either (OpenUnion Errs) ())
-interpret baseCfg fissionURL cmd =
-  runFissionCLI baseCfg do
-    logDebug . Text.pack $ show cmd
+interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
+  runFissionCLI baseCfg $
+    dispatch `always` do
+      liftIO (tryReadMVar ipfsDaemonVar) >>= \case
+        Nothing     -> return ()
+        Just daemon -> IPFS.Daemon.stop daemon
 
-    case cmd of
-      Version _ ->
-        logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
+  where
+    dispatch = do
+      logDebug . Text.pack $ show cmd
 
-      Setup Setup.Options {forceOS} ->
-        Setup.setup forceOS fissionURL
+      case cmd of
+        Version _ ->
+          logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
 
-      App subCmd ->
-        App.interpret baseCfg subCmd
+        Setup Setup.Options {forceOS} ->
+          Setup.setup forceOS fissionURL
 
-      User subCmd ->
-        case subCmd of
-          Register _ -> void Handler.register
-          WhoAmI   _ -> Handler.whoami
+        App subCmd ->
+          App.interpret baseCfg subCmd
+
+        User subCmd ->
+          case subCmd of
+            Register _ -> void Handler.register
+            WhoAmI   _ -> Handler.whoami
 
 finalizeDID ::
   MonadIO m

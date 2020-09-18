@@ -55,10 +55,11 @@ run ::
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
 
-  , HasLogFunc               inCfg
-  , HasProcessContext        inCfg
-  , HasField' "fissionURL"   inCfg BaseUrl
-  , HasField' "httpManager"  inCfg HTTP.Manager
+  , HasLogFunc                inCfg
+  , HasProcessContext         inCfg
+  , HasField' "fissionURL"    inCfg BaseUrl
+  , HasField' "httpManager"   inCfg HTTP.Manager
+  , HasField' "ipfsDaemonVar" inCfg (MVar (Process () () ()))
   )
   => inCfg
   -> IPFS.Timeout
@@ -98,10 +99,11 @@ mkConnected ::
   , Contains LiftErrs    errs
   , Exception (OpenUnion errs)
 
-  , HasLogFunc               inCfg
-  , HasProcessContext        inCfg
-  , HasField' "fissionURL"   inCfg BaseUrl
-  , HasField' "httpManager"  inCfg HTTP.Manager
+  , HasLogFunc                inCfg
+  , HasProcessContext         inCfg
+  , HasField' "fissionURL"    inCfg BaseUrl
+  , HasField' "httpManager"   inCfg HTTP.Manager
+  , HasField' "ipfsDaemonVar" inCfg (MVar (Process () () ()))
   )
   => inCfg
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
@@ -127,8 +129,10 @@ mkConnected inCfg ipfsTimeout =
 
         Just peers -> do
           logDebug @Text "Loaded peers"
-          logFunc    <- asks $ view logFuncL
-          processCtx <- asks $ view processContextL
+
+          logFunc       <- asks $ view logFuncL
+          processCtx    <- asks $ view processContextL
+          ipfsDaemonVar <- asks $ getField @"ipfsDaemonVar"
 
           let
             ignoredFiles = Environment.ignored config

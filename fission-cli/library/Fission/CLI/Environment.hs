@@ -95,6 +95,7 @@ get = do
   env  <- YAML.readFile path
   return env
 
+put :: (MonadEnvironment m, MonadIO m, MonadLogger m) => Env -> m ()
 put env = do
   envPath <- absPath
   envPath `YAML.writeFile` env

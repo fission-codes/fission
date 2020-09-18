@@ -52,10 +52,21 @@ place' ::
 place' host = do
   logDebug $ "Setting up IPFS binary for " <> textDisplay host
 
-  IPFS.BinPath    ipfsPath <- Path.globalIPFS
+  IPFS.BinPath ipfsPath <- Path.globalIPFSBin
+  ipfsRepo              <- Path.globalIPFSRepo
+
+  Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
   File.Serialized lazyFile <- ensureM $ runBootstrapT do
     ipfsCat $ IPFS.binCidFor host
 
   logDebug $ "Writing IPFS binary to " <> Text.pack ipfsPath
   ipfsPath `forceWrite` Lazy.toStrict lazyFile
+
   void . Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath
+
+  _exitCode <- runProcess . fromString $ ipfsPath <> " init &> /dev/null"
+  _exitCode <- runProcess . fromString $ ipfsPath <> " config Addresses.API     /ip4/0.0.0.0/tcp/10235"
+  _exitCode <- runProcess . fromString $ ipfsPath <> " config Addresses.Gateway /ip4/0.0.0.0/tcp/11235"
+
+  return ()

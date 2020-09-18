@@ -3,7 +3,6 @@ module Fission.CLI.Handler.Setup (setup) where
 import qualified Crypto.PubKey.Ed25519             as Ed25519
 import           Crypto.Random
 import           Network.DNS
-import           Network.IPFS.Remote.Class
 import           Servant.Client
 
 import           Fission.Prelude
@@ -39,7 +38,6 @@ setup ::
   , MonadRandom      m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
-  , MonadRemoteIPFS  m
   , ServerDID        m
 
   , MonadCleanup m

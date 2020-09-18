@@ -12,7 +12,6 @@ import           Crypto.Random
 
 import qualified Data.Yaml                               as YAML
 
-import           Control.Concurrent
 import           Control.Monad.Catch                     as Catch
 
 import qualified RIO.ByteString.Lazy                     as Lazy
@@ -28,6 +27,8 @@ import qualified Network.IPFS.Process.Error              as Process
 import           Network.IPFS.Types                      as IPFS
 
 import           Servant.Client
+
+import qualified Turtle
 
 import           Fission.Prelude                         hiding (mask,
                                                           uninterruptibleMask)
@@ -253,65 +254,83 @@ instance HasField' "httpManager" cfg HTTP.Manager => MonadManagedHTTP (FissionCL
   getHTTPManager = asks $ getField @"httpManager"
 
 instance
-  ( HasField' "ipfsTimeout" cfg IPFS.Timeout
-  , HasProcessContext       cfg
-  , HasLogFunc              cfg
+  ( HasField' "ipfsTimeout"   cfg IPFS.Timeout
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , HasProcessContext         cfg
+  , HasLogFunc                cfg
   , MonadIPFSIgnore (FissionCLI errs cfg)
   , SomeException `IsMember` errs
   , Contains errs errs
-  , Exception (OpenUnion errs)
   )
   => MonadLocalIPFS (FissionCLI errs cfg) where
   runLocal opts' arg = do
     logDebug @Text "Running local IPFS"
-    IPFS.BinPath ipfs <- globalIPFS
+
+    IPFS.BinPath ipfs <- globalIPFSBin
     IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
-    cfg        <- ask
+    IPFS.Daemon.start
+
     pwd        <- getCurrentDirectory
     ignorePath <- IPFS.Ignore.writeTmp . show . Crypto.hash @ByteString @SHA256 $ fromString pwd
 
     let
       cidVersion = "--cid-version=1"
       timeout    = "--timeout=" <> show secs <> "s"
-      ignore :: String    = "--ignore-rules-path=" <> ignorePath
+      ignore     = "--ignore-rules-path=" <> ignorePath
       cmd        = headMaybe opts'
 
       opts =
         if cmd == Just "pin" || cmd == Just "add"
           -- NOTE must be in this order, with options last (because go-ipfs says so)
-          then opts' <> [cidVersion, timeout, ignore]
+          then opts' <> [timeout, cidVersion, ignore]
           else opts' <> [timeout]
 
-    cleanup (IPFS.Daemon.start $ inIO cfg) handleRaise IPFS.Daemon.stop \_ -> do
-      runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts <&> \case
-        (ExitSuccess, contents, _) ->
-          Right contents
+    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts <&> \case
+      (ExitSuccess, contents, _) ->
+        Right contents
 
-        (ExitFailure _, _, stdErrs)
-          | Lazy.isSuffixOf "context deadline exceeded" stdErrs ->
-              Left $ Process.Timeout secs
+      (ExitFailure _, _, stdErrs)
+        | Lazy.isSuffixOf "context deadline exceeded" stdErrs ->
+            Left $ Process.Timeout secs
 
-          | otherwise ->
-              Left $ Process.UnknownErr stdErrs
+        | otherwise ->
+            Left $ Process.UnknownErr stdErrs
 
 instance
-  ( HasProcessContext cfg
-  , HasLogFunc        cfg
+  ( HasLogFunc cfg
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
   )
   => MonadIPFSDaemon (FissionCLI errs cfg) where
   runDaemon = do
     logDebug @Text "Starting IPFS daemon"
-    BinPath ipfsPath <- globalIPFS
-    startProcess $ fromString $ ipfsPath <> " daemon"
--- proc ipfsPath ["daemon"] \_ -> do
-    logDebug @Text "IPFS daemon running"
-      -- pure ()
+
+    BinPath ipfsPath <- globalIPFSBin
+    daemonVar        <- asks $ getField @"ipfsDaemonVar"
+
+    liftIO (tryReadMVar daemonVar) >>= \case
+      Just daemonProcess -> do
+        logDebug @Text "IPFS Daemon already running"
+        return daemonProcess
+
+      Nothing -> do
+        logDebug @Text "Starting new IPFS Daemon"
+        ipfsRepo <- globalIPFSRepo
+        Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
+        process <- startProcess . fromString $ ipfsPath <> " daemon"
+        logDebug @Text "IPFS daemon running"
+
+        liftIO (tryPutMVar daemonVar process) >>= \case
+          True  -> logDebug @Text "Placed IPFS daemon in MVar"
+          False -> logDebug @Text "IPFS Daemon var full"
+
+        return process
 
   checkRunning = do
     logDebug @Text "Checking if IPFS daemon is running"
 
-    BinPath ipfsPath <- globalIPFS
+    BinPath ipfsPath <- globalIPFSBin
     let command = fromString $ ipfsPath <> " swarm addrs &> /dev/null"
 
     status <- liftIO $ withProcessWait command waitExitCode
@@ -320,10 +339,11 @@ instance
     return $ status == ExitSuccess
 
 instance forall cfg errs .
-  ( HasField' "httpManager" cfg HTTP.Manager
-  , HasField' "ipfsURL"     cfg IPFS.URL
-  , HasLogFunc              cfg
-  , HasProcessContext       cfg
+  ( HasField' "httpManager"   cfg HTTP.Manager
+  , HasField' "ipfsURL"       cfg IPFS.URL
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , HasLogFunc                cfg
+  , HasProcessContext         cfg
   , SomeException `IsMember` errs
   , Exception (OpenUnion errs)
   , Display   (OpenUnion errs)
@@ -331,25 +351,8 @@ instance forall cfg errs .
   )
   => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
   runRemote query = do
-    cfg <- ask
-    cleanup (IPFS.Daemon.start $ inIO cfg) handleRaise IPFS.Daemon.stop \_ -> do
-      runBootstrapT $ runRemote query
-
-inIO ::
-  Exception (OpenUnion errs)
-  => cfg
-  -> FissionCLI errs cfg ()
- -> IO ()
-inIO cfg action = either throwM pure =<< runFissionCLI cfg action
-
-handleRaise ::
-  ( HasLogFunc cfg
-  , Contains errs errs
-  )
-  => ThreadId
-  -> OpenUnion errs
-  -> FissionCLI errs cfg ()
-handleRaise _ errs = raise errs
+    _ <- IPFS.Daemon.start
+    runBootstrapT $ runRemote query
 
 instance MonadEnvironment (FissionCLI errs cfg) where
     getGlobalPath = do

@@ -1,6 +1,7 @@
 module Fission.CLI.Environment.Path
   ( globalBinaryDir
-  , globalIPFS
+  , globalIPFSBin
+  , globalIPFSRepo
   , globalTmpDir
   , globalKeyDir
   , getSigningKeyPath
@@ -18,10 +19,15 @@ globalBinaryDir = do
   global <- getGlobalPath
   return $ global </> "bin"
 
-globalIPFS :: MonadEnvironment m => m IPFS.BinPath
-globalIPFS = do
+globalIPFSBin :: MonadEnvironment m => m IPFS.BinPath
+globalIPFSBin = do
   binDir <- globalBinaryDir
   return . IPFS.BinPath $ binDir </> "ipfs"
+
+globalIPFSRepo :: MonadEnvironment m => m FilePath
+globalIPFSRepo = do
+  global <- getGlobalPath
+  return $ global </> "ipfs"
 
 globalTmpDir :: MonadEnvironment m => m FilePath
 globalTmpDir = do
