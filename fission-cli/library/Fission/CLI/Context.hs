@@ -6,6 +6,7 @@ import           Fission.CLI.Types
 
 run ::
   ( Contains errs errs
+  , Display (OpenUnion errs)
   , HasLogFunc cfgB
   )
   => cfgA

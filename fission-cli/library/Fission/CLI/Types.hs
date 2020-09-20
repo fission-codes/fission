@@ -66,6 +66,7 @@ import           Fission.CLI.IPFS.Ignore
 import           Fission.Internal.Orphanage.BaseUrl      ()
 import           Fission.Internal.Orphanage.ClientError  ()
 import           Fission.Internal.Orphanage.DNS.DNSError ()
+import           Fission.Internal.Orphanage.OpenUnion    ()
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
@@ -85,14 +86,22 @@ runFissionCLI :: forall errs m cfg a .
   -> m (Either (OpenUnion errs) a)
 runFissionCLI cfg = runRIO cfg . runRescueT . unFissionCLI
 
-instance HasLogFunc cfg => MonadRaise (FissionCLI errs cfg) where
+instance forall errs cfg.
+  ( Display (OpenUnion errs)
+  , HasLogFunc cfg
+  )
+  => MonadRaise (FissionCLI errs cfg) where
   type Errors (FissionCLI errs cfg) = errs
 
   raise err = do
-    logDebug @Text "Raised exception"
+    logDebug $ "Raised exception: " <> display (include err :: OpenUnion errs)
     FissionCLI $ raise err
 
-instance HasLogFunc cfg =>  MonadRescue (FissionCLI errs cfg) where
+instance
+  ( HasLogFunc cfg
+  , Display (OpenUnion errs)
+  )
+  => MonadRescue (FissionCLI errs cfg) where
   attempt (FissionCLI (RescueT action)) =
     FissionCLI . RescueT $ Right <$> action
 
@@ -102,6 +111,7 @@ instance HasLogFunc cfg => MonadLogger (FissionCLI errs cfg) where
 
 instance
   ( Contains errs errs
+  , Display (OpenUnion errs)
   , IsMember SomeException errs
   , HasField' "httpManager" cfg HTTP.Manager
   , HasField' "fissionURL"  cfg BaseUrl
@@ -142,6 +152,7 @@ instance
 instance
   ( IsMember Key.Error errs
   , IsMember (NotFound Ed25519.SecretKey) errs
+  , Display (OpenUnion errs)
   , ServerDID (FissionCLI errs cfg)
   , HasField' "fissionURL" cfg BaseUrl
   , HasLogFunc             cfg
@@ -170,6 +181,7 @@ instance
 instance
   ( Key.Error                  `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
+  , Display (OpenUnion errs)
   , HasLogFunc cfg
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
@@ -230,6 +242,7 @@ q cfg u = FissionCLI . RescueT . liftIO . u . fissionToIO cfg
 
 instance
   ( Contains errs errs
+  , Display (OpenUnion errs)
   , IsMember SomeException errs
   , HasLogFunc cfg
   )

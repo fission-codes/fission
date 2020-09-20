@@ -97,7 +97,9 @@ mkConnected ::
   , IsMember YAML.ParseException errs
   , Contains errs        errs
   , Contains LiftErrs    errs
+
   , Exception (OpenUnion errs)
+  , Display   (OpenUnion errs)
 
   , HasLogFunc                inCfg
   , HasProcessContext         inCfg
