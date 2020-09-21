@@ -3,10 +3,10 @@ module Fission.Internal.CLI.Meta
   , package
   ) where
 
-import Data.FileEmbed
+import           Data.FileEmbed
 
-import Fission.Prelude
-import Fission.Internal.Meta.Package hiding (package)
+import           Fission.Internal.Meta.Package hiding (package)
+import           Fission.Prelude
 
 package :: Maybe Package
 package = fromContents $(embedFile "./package.yaml")
