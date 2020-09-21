@@ -136,7 +136,7 @@ mkConnected inCfg ipfsPath ipfsTimeout = do
               }
 
           Context.run cfg do
-            logDebug @Text "Attempting user verififcation"
+            logDebug @Text "Attempting user verification"
             attempt (sendRequestM . authClient $ Proxy @User.Verify) >>= \case
               Left err -> do
                 CLI.Error.notConnected err
