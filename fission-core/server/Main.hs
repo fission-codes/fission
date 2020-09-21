@@ -154,8 +154,8 @@ tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
 
 clientTimeout :: Int
--- clientTimeout = -- 1800000000 -- 30 minutes
 clientTimeout = 540000000 -- 9 minutes = 1 min less than AWS
+-- clientTimeout = -- 1800000000 -- 30 minutes
 
 serverTimeout :: Int
 serverTimeout = 1800

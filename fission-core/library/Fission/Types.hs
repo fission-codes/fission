@@ -273,8 +273,8 @@ instance IPFS.MonadRemoteIPFS Fission where
     manager      <- asks httpManager
 
     Peer.connectRetry peerID 25 >>= \case
-      Left  err -> do logDebug $ "Unable to connect: " <> textDisplay err
-      Right _ -> return ()
+      Left  err -> logDebug $ "Unable to connect: " <> textDisplay err
+      Right _   -> return ()
 
     liftIO . runClientM query $ mkClientEnv manager url
 
