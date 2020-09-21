@@ -45,4 +45,4 @@ jobs:
 
     - name: Test
       run: |
-        stack test --no-terminal
+        rm -r ~/.stack/setup-exe-cache && stack test --no-terminal
