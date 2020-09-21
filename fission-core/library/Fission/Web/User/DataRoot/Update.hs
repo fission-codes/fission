@@ -1,4 +1,4 @@
-module Fission.Web.User.UpdateData
+module Fission.Web.User.DataRoot.Update
   ( API
   , server
   ) where
