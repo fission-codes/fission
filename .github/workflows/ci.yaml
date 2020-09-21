@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 on:
-  push: { "branches": [ "master" ] }
+  push:         { "branches": [ "master" ] }
   pull_request: { "branches": [ "master" ] }
 
 jobs:
@@ -45,4 +45,4 @@ jobs:
 
     - name: Test
       run: |
-        stack test --no-terminal
+        stack clean && stack test --no-terminal
