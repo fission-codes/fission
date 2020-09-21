@@ -140,7 +140,6 @@ executables:
     source-dirs: exe
     dependencies:
       - fission-cli
-      - fission-core
     ghc-options:
       - -threaded
       - -flate-specialise
@@ -166,6 +165,8 @@ tests:
       - directory
       - directory-tree
       - doctest
+      - fission-cli
+      - fission-core
       - Glob
       - lens-aeson
       - QuickCheck
@@ -188,6 +189,7 @@ tests:
       - hspec-expectations
       - hspec-wai
       - hspec-wai-json
+      - fission-cli
       - fission-core
       - QuickCheck
       - quickcheck-instances
@@ -218,4 +220,5 @@ benchmarks:
       - -O2
     dependencies:
       - criterion
+      - fission-cli
       - fission-core
