@@ -12,16 +12,14 @@ newtype StatusCode = StatusCode { unStatusCode :: Int }
                    , Display
                    )
 
-
-statusCodeLens = lens unStatusCode (\_ x -> StatusCode x)
-
 instance Has StatusCode ChangeResourceRecordSetsResponse where
-  hasLens = crrsrsResponseStatus . statusCodeLens
+  getter res = StatusCode $ res ^. crrsrsResponseStatus
+  modifier updater resp = resp & crrsrsResponseStatus %~ mkInnerUpdater updater
 
-  -- getter res = StatusCode $ res ^. crrsrsResponseStatus
-  -- modifier fn res = res & crrsrsResponseStatus %~ (fn (getter res))
+instance Has StatusCode ListResourceRecordSetsResponse where
+  getter res = StatusCode $ res ^. lrrsrsResponseStatus
+  modifier updater resp = resp & lrrsrsResponseStatus %~ mkInnerUpdater updater
 
--- instance Has StatusCode ListResourceRecordSetsResponse where
---   -- hasLens = lrrsrsResponseStatus
---   getter res = Statuscode $ res ^. lrrsrsResponseStatus
 
+mkInnerUpdater :: (StatusCode -> StatusCode) -> (Int -> Int)
+mkInnerUpdater updater = unStatusCode . updater . StatusCode
