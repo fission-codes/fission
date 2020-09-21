@@ -4,11 +4,11 @@ module Fission.Internal.Meta.Package
   , fromContents
   ) where
 
-import Data.FileEmbed
-import Data.Yaml as Yaml
+import           Data.FileEmbed
+import           Data.Yaml                           as Yaml
 
-import Fission.Prelude
-import Fission.Internal.Meta.Package.Types
+import           Fission.Internal.Meta.Package.Types
+import           Fission.Prelude
 
 package :: Maybe Package
 package = fromContents $(embedFile "./package.yaml")

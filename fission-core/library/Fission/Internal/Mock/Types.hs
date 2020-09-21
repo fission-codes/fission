@@ -135,6 +135,10 @@ instance
     runner <- asks clearRoute53
     return $ runner r url
 
+  get url zone = do
+    runner <- asks getRoute53
+    return $ runner url zone
+
 instance
   ( IsMember UpdateRoute53 effs
   , IsMember ClearRoute53  effs

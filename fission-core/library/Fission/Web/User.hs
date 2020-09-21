@@ -20,6 +20,7 @@ import           Fission.Email
 
 import qualified Fission.Challenge.Creator.Class  as Challenge
 import qualified Fission.Challenge.Verifier.Class as Challenge
+import           Fission.WNFS
 
 import qualified Fission.Web.User.Create             as Create
 import qualified Fission.Web.User.Verify             as Verify
@@ -27,7 +28,7 @@ import qualified Fission.Web.User.VerifyEmail        as VerifyEmail
 import qualified Fission.Web.User.Password.Reset     as Reset
 import qualified Fission.Web.User.UpdatePublicKey    as UpdatePublicKey
 import qualified Fission.Web.User.UpdateExchangeKeys as UpdateExchangeKeys
-import qualified Fission.Web.User.UpdateData         as UpdateData
+import qualified Fission.Web.User.DataRoot         as DataRoot
 import qualified Fission.Web.User.WhoAmI             as WhoAmI
 
 import qualified Fission.Web.Auth.Types as Auth
@@ -41,7 +42,7 @@ type API
  :<|> VerifyEmailRoute
  :<|> UpdatePublicKeyRoute
  :<|> UpdateExchangeKeysRoute
- :<|> UpdateDataRoute
+ :<|> DataRootRoute
  :<|> ResetRoute
 
 type Auth
@@ -77,10 +78,9 @@ type UpdateExchangeKeysRoute
     :> Auth
     :> UpdateExchangeKeys.API
 
-type UpdateDataRoute
+type DataRootRoute
   = "data"
-    :> Auth
-    :> UpdateData.API
+    :> DataRoot.API
 
 type ResetRoute
   = "reset_password"
@@ -92,6 +92,7 @@ server ::
   , MonadLogger        m
   , MonadTime          m
   , MonadEmail         m
+  , MonadWNFS          m
   , User.Modifier      m
   , User.Creator       m
   , Challenge.Creator  m
@@ -105,5 +106,5 @@ server = Create.withDID
     :<|> VerifyEmail.server
     :<|> UpdatePublicKey.server
     :<|> UpdateExchangeKeys.server
-    :<|> UpdateData.server
+    :<|> DataRoot.server
     :<|> Reset.server

@@ -28,6 +28,8 @@ import qualified Fission.User                  as User
 import qualified Fission.LoosePin              as LoosePin
 import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
 
+import           Fission.WNFS
+
 import           Fission.Email
 import qualified Fission.Challenge as Challenge
 
@@ -54,6 +56,7 @@ app ::
   , MonadRemoteIPFS           m
   , MonadLocalIPFS            m
   , MonadDNSLink              m
+  , MonadWNFS                 m
   , MonadLogger               m
   , MonadTime                 m
   , MonadEmail                m
@@ -92,6 +95,7 @@ server ::
   , MonadRemoteIPFS           m
   , MonadLocalIPFS            m
   , MonadDNSLink              m
+  , MonadWNFS                 m
   , MonadLogger               m
   , MonadTime                 m
   , MonadEmail                m
@@ -122,6 +126,7 @@ bizServer ::
   , MonadRemoteIPFS           m
   , MonadLocalIPFS            m
   , MonadDNSLink              m
+  , MonadWNFS                 m
   , MonadLogger               m
   , MonadTime                 m
   , MonadEmail                m
