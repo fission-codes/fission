@@ -2,8 +2,8 @@ module Fission.Web.Error.Class (ToServerError (..)) where
 
 import           Servant.Server
 
-import           Network.IPFS.Types
 import           Network.IPFS.Error
+import           Network.IPFS.Types
 
 import qualified Network.IPFS.Add.Error  as Add
 import qualified Network.IPFS.Get.Error  as Get
@@ -64,10 +64,17 @@ instance ToServerError Error where
 
 instance ToServerError Get.Error where
   toServerError = \case
-    Get.InvalidCID       txt          -> err422 { errBody = displayLazyBS txt }
-    Get.UnexpectedOutput _            -> err502 { errBody = "Unexpected IPFS result" }
-    Get.UnknownErr       _            -> err502 { errBody = "Unknown IPFS error" }
-    Get.TimedOut         (CID hash) _ -> err504 { errBody = "IPFS timed out looking for " <> displayLazyBS hash }
+    Get.InvalidCID txt ->
+      err422 { errBody = displayLazyBS txt }
+
+    Get.UnexpectedOutput txt ->
+      err502 { errBody = "Unexpected IPFS result: " <> displayLazyBS txt }
+
+    Get.UnknownErr txt ->
+      err502 { errBody = "Unknown IPFS error" <> displayLazyBS txt}
+
+    Get.TimedOut (CID hash) txt ->
+      err504 { errBody = "IPFS timed out looking for " <> displayLazyBS hash <> " / Detail: " <> displayLazyBS txt}
 
 instance ToServerError Add.Error where
   toServerError = \case
