@@ -1,58 +1,58 @@
 module Main (main) where
 
-import qualified Data.Aeson as JSON
-import qualified Data.Yaml  as YAML
+import qualified Data.Aeson                                   as JSON
+import qualified Data.Yaml                                    as YAML
 
 import           Servant
 
-import qualified Network.HTTP.Client     as HTTP
-import qualified Network.HTTP.Client.TLS as HTTP
+import qualified Network.HTTP.Client                          as HTTP
+import qualified Network.HTTP.Client.TLS                      as HTTP
 
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
 import qualified RIO
-import qualified RIO.Text as Text
+import qualified RIO.Text                                     as Text
 
 import           Fission
 import           Fission.Prelude
- 
-import           Fission.Storage.PostgreSQL
-import qualified Fission.Authorization.ServerDID.Class as ServerDID
+
+import qualified Fission.Authorization.ServerDID.Class        as ServerDID
 import           Fission.Internal.App
+import           Fission.Storage.PostgreSQL
 
-import           Fission.Domain as Domain
+import           Fission.Domain                               as Domain
 
+import           Fission.User                                 as User
 import           Fission.User.DID
-import           Fission.User as User
 
-import qualified Fission.Web       as Web
-import qualified Fission.Web.Error as Web.Error
-import qualified Fission.Web.Log   as Web.Log
-import qualified Fission.Web.Types as Web
+import qualified Fission.Web                                  as Web
+import qualified Fission.Web.Error                            as Web.Error
+import qualified Fission.Web.Log                              as Web.Log
+import qualified Fission.Web.Types                            as Web
 
-import qualified Fission.Web.Middleware.CORS as CORS
+import qualified Fission.Web.Middleware.CORS                  as CORS
 
 import qualified Fission.Platform.Heroku.AddOn.Manifest.Types as Hku
 import qualified Fission.Platform.Heroku.ID.Types             as Hku
 import qualified Fission.Platform.Heroku.Password.Types       as Hku
 
-import           Fission.Environment.IPFS.Types    as IPFS
+import           Fission.Environment.IPFS.Types               as IPFS
 import           Fission.Environment.Types
 
-import qualified Fission.Environment.Auth.Types    as Auth
-import qualified Fission.Environment.AWS.Types     as AWS
-import qualified Fission.Environment.FFS.Types     as FFS
-import qualified Fission.Environment.Server.Types  as Server
-import qualified Fission.Environment.Storage.Types as Storage
-import qualified Fission.Environment.WebApp.Types  as WebApp
-import qualified Fission.Environment.SendInBlue.Types  as SendInBlue
+import qualified Fission.Environment.Auth.Types               as Auth
+import qualified Fission.Environment.AWS.Types                as AWS
+import qualified Fission.Environment.FFS.Types                as FFS
+import qualified Fission.Environment.SendInBlue.Types         as SendInBlue
+import qualified Fission.Environment.Server.Types             as Server
+import qualified Fission.Environment.Storage.Types            as Storage
+import qualified Fission.Environment.WebApp.Types             as WebApp
 
-import qualified Fission.Web.Log.Sentry as Sentry
+import qualified Fission.Web.Log.Sentry                       as Sentry
 
+import           Fission.Web.Auth                             as Auth
 import           Fission.Web.Handler
-import           Fission.Web.Auth as Auth
 
 main :: IO ()
 main = do
@@ -67,7 +67,7 @@ main = do
     Storage.Environment    {..} = env |> storage
     WebApp.Environment     {..} = env |> webApp
     SendInBlue.Environment {..} = env |> sendInBlue
-   
+
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
 
@@ -106,7 +106,7 @@ main = do
       let
         DID _ serverPK = fissionDID
         cfg = Config {..}
-       
+
       runFission cfg do
         logDebug . displayShow =<< ask
         now <- currentTime
@@ -154,7 +154,8 @@ tlsSettings' :: TLSSettings
 tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
 
 clientTimeout :: Int
-clientTimeout = 1800000000
+clientTimeout = 540000000 -- 9 minutes = 1 min less than AWS
+-- clientTimeout = -- 1800000000 -- 30 minutes
 
 serverTimeout :: Int
 serverTimeout = 1800

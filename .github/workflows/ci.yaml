@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 on:
-  push: { "branches": [ "master" ] }
+  push:         { "branches": [ "master" ] }
   pull_request: { "branches": [ "master" ] }
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v10
+    - uses: cachix/install-nix-action@v11
       with:
         nix_path: nixpkgs=channel:nixos-unstable
 
@@ -23,7 +23,7 @@ jobs:
 
     - name: 🔑 Dependency Cache Key
       id: dep_cache_key
-      run: echo ::set-output name=key::$(md5sum stack.yaml.lock | awk '{print $1}')
+      run: echo ::set-output name=key::$(md5sum stack.yaml.lock | awk '{print $1}{print "2"}')
 
     - name: 💾 Cache Dependencies
       id: cache_deps
