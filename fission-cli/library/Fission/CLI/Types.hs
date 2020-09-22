@@ -326,7 +326,18 @@ instance
         return daemonProcess
 
       Nothing -> do
-        process <- startup
+        logDebug @Text "Starting new IPFS Daemon"
+        ipfsRepo <- globalIPFSRepo
+        Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
+        process <- startProcess . fromString $ intercalate " "
+          [ ipfsPath
+          , "daemon"
+          , "--enable-pubsub-experiment"
+          , "--enable-namesys-pubsub"
+          ]
+
+        logDebug @Text "IPFS daemon running"
 
         liftIO (tryPutMVar daemonVar process) >>= \case
           True  -> logDebug @Text "Placed IPFS daemon in MVar"
