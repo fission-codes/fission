@@ -23,7 +23,7 @@ jobs:
 
     - name: 🔑 Dependency Cache Key
       id: dep_cache_key
-      run: echo ::set-output name=key::$(md5sum stack.yaml.lock | awk '{print $1}')
+      run: echo ::set-output name=key::$(md5sum stack.yaml.lock | awk '{print $1}{print "2"}')
 
     - name: 💾 Cache Dependencies
       id: cache_deps
