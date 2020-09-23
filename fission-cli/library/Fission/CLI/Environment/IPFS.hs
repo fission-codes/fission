@@ -9,6 +9,6 @@ import           Fission.CLI.Environment.OS as OS
 binCidFor :: OS.Supported -> IPFS.CID
 binCidFor =
   IPFS.CID . \case
-    Linux -> "bafybeid3dhber24hcbo4gbm3kjap7gqbnfpdd53xbt6snovwx3x2y4ydry"
-    NixOS -> "bafybeif526uqcfwqpgii7t4jghduisc4eaxfi64furk7g7e2amldqtf2m4"
-    MacOS -> "bafybeih2yti3z7sw3hxpvhif2jpcanwttkeirfgfgeno5pgjjebdgymrtm"
+    Linux -> "bafybeigqhqdtdjlzr6mh3qfxrbh2eot53ujlyeh5kv2mhesflllwdsmkyi" -- 0.7
+    NixOS -> "bafybeif526uqcfwqpgii7t4jghduisc4eaxfi64furk7g7e2amldqtf2m4" -- FIXME 0.6 waiting on a 0.7  build
+    MacOS -> "bafybeigefhc7fmispumxmlbrsfsnjboujxgbynmzqvsqpoljqoclinqpke" -- 0.7
