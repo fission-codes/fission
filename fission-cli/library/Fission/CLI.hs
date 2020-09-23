@@ -7,8 +7,10 @@ import qualified RIO.Text                                       as Text
 
 import           Network.HTTP.Client                            as HTTP
 import           Network.HTTP.Client.TLS                        as HTTP
-import qualified Network.IPFS.URL.Types                         as IPFS
 import           Servant.Client.Core
+
+import qualified Network.IPFS.Timeout.Types                     as IPFS
+import qualified Network.IPFS.URL.Types                         as IPFS
 
 import           Fission.Prelude
 
@@ -52,8 +54,10 @@ cli = do
 
   let
     VerboseFlag isVerbose = getter cmd
-    ipfsURL = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
     Right fallbackDID = eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\""
+
+    ipfsURL     = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
+    ipfsTimeout = IPFS.Timeout 3600
 
     rawHTTPSettings =
       case baseUrlScheme fissionURL of
@@ -86,6 +90,7 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
         Just daemon -> IPFS.Daemon.stop daemon
 
   where
+    dispatch :: FissionCLI Errs Base.Config ()
     dispatch = do
       logDebug . Text.pack $ show cmd
 

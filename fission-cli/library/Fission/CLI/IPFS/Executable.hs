@@ -11,6 +11,7 @@ import qualified Turtle                        as Turtle
 import           Network.IPFS
 import qualified Network.IPFS.File.Types       as File
 import           Network.IPFS.Types            as IPFS
+
 import           Servant.Client
 
 import           Fission.Prelude
@@ -23,11 +24,14 @@ import           Fission.CLI.Bootstrap
 import           Fission.CLI.Environment       as Env
 import qualified Fission.CLI.Environment.OS    as OS
 import qualified Fission.CLI.Environment.Path  as Path
+
 import           Fission.CLI.File
+import qualified Fission.CLI.IPFS.Configure    as IPFS.Config
 
 place ::
   ( MonadIO          m
   , MonadLogger      m
+  , MonadLocalIPFS   m
   , MonadEnvironment m
   , MonadManagedHTTP m
   , MonadRescue      m
@@ -42,6 +46,7 @@ place Nothing   = place' =<< ensure OS.get
 place' ::
   ( MonadIO          m
   , MonadLogger      m
+  , MonadLocalIPFS   m
   , MonadManagedHTTP m
   , MonadEnvironment m
   , MonadRescue      m
@@ -65,8 +70,10 @@ place' host = do
 
   void . Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath
 
-  _exitCode <- runProcess . fromString $ ipfsPath <> " init &> /dev/null"
-  _exitCode <- runProcess . fromString $ ipfsPath <> " config Addresses.API     /ip4/0.0.0.0/tcp/10235"
-  _exitCode <- runProcess . fromString $ ipfsPath <> " config Addresses.Gateway /ip4/0.0.0.0/tcp/11235"
+  IPFS.Config.init
+  IPFS.Config.bootstrap
+
+  IPFS.Config.apiAddresses
+  IPFS.Config.gatewayAddresses
 
   return ()

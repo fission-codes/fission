@@ -1,5 +1,3 @@
--- {-# LANGUAGE UndecidableInstances #-}
-
 -- | Overrides for when still bootstrapping the system
 module Fission.CLI.Bootstrap.Types (BootstrapT (..)) where
 

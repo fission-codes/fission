@@ -15,6 +15,7 @@ import           Fission.User.DID.Types
 data Config = Config
   { httpManager   :: !HTTP.Manager
   , fissionURL    :: !BaseUrl
+  , ipfsTimeout   :: !IPFS.Timeout
   , ipfsURL       :: !IPFS.URL
   , serverDID     :: !DID
   , logFunc       :: !LogFunc

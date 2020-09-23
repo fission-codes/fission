@@ -282,33 +282,33 @@ instance
     IPFS.BinPath ipfs <- globalIPFSBin
     IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
-    IPFS.Daemon.start
-
     pwd        <- getCurrentDirectory
     ignorePath <- IPFS.Ignore.writeTmp . show . Crypto.hash @ByteString @SHA256 $ fromString pwd
+
+    void IPFS.Daemon.runDaemon
 
     let
       cidVersion = "--cid-version=1"
       timeout    = "--timeout=" <> show secs <> "s"
       ignore     = "--ignore-rules-path=" <> ignorePath
       cmd        = headMaybe opts'
+      arg'       = Text.unpack . decodeUtf8Lenient $ Lazy.toStrict arg
 
       opts =
-        if cmd == Just "pin" || cmd == Just "add"
-          -- NOTE must be in this order, with options last (because go-ipfs says so)
-          then opts' <> [timeout, cidVersion, ignore]
-          else opts' <> [timeout]
+        if | cmd == Just "swarm"                    -> opts' <> [arg']
+           | cmd == Just "pin" || cmd == Just "add" -> opts' <> [arg', timeout, cidVersion, ignore]
+           | otherwise                              -> opts' <> [arg', timeout]
 
-    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts <&> \case
+    readProcess (fromString $ intercalate " " (ipfs : opts)) >>= \case
       (ExitSuccess, contents, _) ->
-        Right contents
+        return $ Right contents
 
       (ExitFailure _, _, stdErrs)
         | Lazy.isSuffixOf "context deadline exceeded" stdErrs ->
-            Left $ Process.Timeout secs
+            return . Left $ Process.Timeout secs
 
         | otherwise ->
-            Left $ Process.UnknownErr stdErrs
+            return . Left $ Process.UnknownErr stdErrs
 
 instance
   ( HasLogFunc cfg
@@ -329,10 +329,12 @@ instance
       Nothing -> do
         logDebug @Text "Starting new IPFS Daemon"
         ipfsRepo <- globalIPFSRepo
-        Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+        void $ Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
 
-        process <- startProcess . fromString $ ipfsPath <> " daemon"
+        process <- startProcess . fromString $ ipfsPath <> " daemon > /dev/null 2>&1"
         logDebug @Text "IPFS daemon running"
+
+        waitForStartup
 
         liftIO (tryPutMVar daemonVar process) >>= \case
           True  -> logDebug @Text "Placed IPFS daemon in MVar"
@@ -344,12 +346,22 @@ instance
     logDebug @Text "Checking if IPFS daemon is running"
 
     BinPath ipfsPath <- globalIPFSBin
-    let command = fromString $ ipfsPath <> " swarm addrs &> /dev/null"
+    let command = fromString $ ipfsPath <> " swarm addrs > /dev/null 2>&1"
 
     status <- liftIO $ withProcessWait command waitExitCode
     logDebug $ show status
 
     return $ status == ExitSuccess
+
+waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m ()
+waitForStartup = do
+  IPFS.Daemon.checkRunning >>= \case
+    True  -> do
+      return ()
+
+    False -> do
+      threadDelay 1_000_000
+      waitForStartup
 
 instance forall cfg errs .
   ( HasField' "httpManager"   cfg HTTP.Manager
@@ -364,15 +376,16 @@ instance forall cfg errs .
   )
   => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
   runRemote query = do
-    _ <- IPFS.Daemon.start
+    _ <- IPFS.Daemon.runDaemon
     runBootstrapT $ runRemote query
 
 instance MonadEnvironment (FissionCLI errs cfg) where
-    getGlobalPath = do
-      home <- getHomeDirectory
-      return $ home </> ".config" </> "fission"
+  getGlobalPath = do
+    home <- getHomeDirectory
+    return $ home </> ".config" </> "fission"
 
-instance
-  HasField' "ignoredFiles" cfg [Text]
-  => MonadIPFSIgnore (FissionCLI errs cfg) where
-    getIgnoredFiles = asks $ getField @"ignoredFiles"
+instance MonadIPFSIgnore (FissionCLI errs Connected.Config) where
+  getIgnoredFiles = asks $ getField @"ignoredFiles"
+
+instance MonadIPFSIgnore (FissionCLI errs Base.Config) where
+  getIgnoredFiles = pure []
