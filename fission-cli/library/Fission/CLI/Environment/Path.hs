@@ -22,7 +22,7 @@ globalBinaryDir = do
 globalIPFSBin :: MonadEnvironment m => m IPFS.BinPath
 globalIPFSBin = do
   binDir <- globalBinaryDir
-  return . IPFS.BinPath $ binDir </> "ipfs"
+  return . IPFS.BinPath $ binDir </> "fission-ipfs"
 
 globalIPFSRepo :: MonadEnvironment m => m FilePath
 globalIPFSRepo = do

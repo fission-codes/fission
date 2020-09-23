@@ -16,4 +16,5 @@ stop ::
   -> m ()
 stop daemonProc = do
   logDebug @Text "Stopping IPFS Daemon"
+  runProcess . fromString $ "killall fission-ipfs"
   liftIO $ stopProcess daemonProc
