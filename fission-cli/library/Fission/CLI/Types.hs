@@ -331,7 +331,12 @@ instance
       Nothing -> do
         logDebug @Text "Starting new IPFS Daemon"
         ipfsRepo <- globalIPFSRepo
+
         void $ Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
+        mayIPFSPath <- Turtle.need "IPFS_PATH"
+
+        logDebug $"IPFS_PATH set to: " <> show mayIPFSPath
 
         process <- startProcess . fromString $ ipfsPath <> " daemon > /dev/null 2>&1"
         logDebug @Text "IPFS daemon running"
