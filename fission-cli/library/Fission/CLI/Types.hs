@@ -22,7 +22,6 @@ import qualified RIO.Text                                as Text
 import qualified Network.DNS                             as DNS
 import           Network.HTTP.Client                     as HTTP
 import           Network.IPFS                            as IPFS
-import           Network.IPFS.Process
 import qualified Network.IPFS.Process.Error              as Process
 import           Network.IPFS.Types                      as IPFS
 
@@ -269,7 +268,6 @@ instance HasField' "httpManager" cfg HTTP.Manager => MonadManagedHTTP (FissionCL
 instance
   ( HasField' "ipfsTimeout"   cfg IPFS.Timeout
   , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
-  , HasProcessContext         cfg
   , HasLogFunc                cfg
   , MonadIPFSIgnore (FissionCLI errs cfg)
   , SomeException `IsMember` errs
@@ -299,7 +297,11 @@ instance
            | cmd == Just "pin" || cmd == Just "add" -> opts' <> [arg', timeout, cidVersion, ignore]
            | otherwise                              -> opts' <> [arg', timeout]
 
-    readProcess (fromString $ intercalate " " (ipfs : opts)) >>= \case
+      process = intercalate " " (ipfs : opts)
+
+    logDebug $ "Running: " <> process
+
+    readProcess (fromString process) >>= \case
       (ExitSuccess, contents, _) ->
         return $ Right contents
 
