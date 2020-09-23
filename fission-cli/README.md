@@ -33,8 +33,16 @@ cd $FISSION_REPO
 stack install --no-nix fission-cli:fission
 
 # Build only
-stack build --no-nix fission-cli:fission
+stack build --no-nix fission-cli:fission 
 ```
+
+Once you've built the CLI, it is installed in `~/.local/bin/fission`. If you already have an existing fission key in `~/.ssh`, copy it as follows:
+
+```shell
+cp ~/.ssh/fission ~/.config/fission/key/machine_id.ed2551
+```
+
+Now run `fission setup` to install the Fission-controlled IPFS node.
 
 ### Binary Releases
 
