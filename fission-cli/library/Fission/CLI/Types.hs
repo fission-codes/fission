@@ -332,7 +332,11 @@ instance
         logDebug @Text "Starting new IPFS Daemon"
         ipfsRepo <- globalIPFSRepo
 
-        void $ Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+        void . Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
+        let lockPath = Turtle.decodeString $ ipfsRepo <> "/repo.lock"
+        void $ Turtle.touch lockPath
+        void $ Turtle.rm    lockPath
 
         mayIPFSPath <- Turtle.need "IPFS_PATH"
 
