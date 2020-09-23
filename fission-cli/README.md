@@ -30,10 +30,10 @@ brew install postgresql
 cd $FISSION_REPO
 
 # Build & install
-stack install --no-nix fission:fission-cil
+stack install --no-nix fission-cli:fission
 
 # Build only
-stack build --no-nix fission:fission-cli 
+stack build --no-nix fission-cli:fission
 ```
 
 ### Binary Releases
