@@ -348,15 +348,8 @@ instance
         ipfsRepo         <- globalIPFSRepo
         BinPath ipfsPath <- globalIPFSBin
 
-        void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
         void . Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
-
-        let lockPath = Turtle.decodeString $ ipfsRepo <> "/repo.lock"
-        void $ Turtle.touch lockPath
-        void $ Turtle.rm    lockPath
-
         mayIPFSPath <- Turtle.need "IPFS_PATH"
-
         logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath
 
         process <- startProcess . fromString $ ipfsPath <> " daemon > /dev/null 2>&1"
@@ -367,8 +360,15 @@ instance
             return process
 
           False -> do
-            stopProcess process
             logDebug @Text "IPFS daemon startup appears stuck. Retrying."
+
+            stopProcess process
+            void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
+
+            let lockPath = Turtle.decodeString $ ipfsRepo <> "/repo.lock"
+            void $ Turtle.touch lockPath
+            void $ Turtle.rm    lockPath
+
             runDaemon
 
   checkRunning = do
