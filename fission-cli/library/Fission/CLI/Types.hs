@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.CLI.Types
@@ -5,47 +6,64 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
-import qualified Crypto.PubKey.Ed25519               as Ed25519
-import qualified Data.ByteString.Char8               as BS8
+import           Crypto.Hash                             as Crypto
+import qualified Crypto.PubKey.Ed25519                   as Ed25519
+import           Crypto.Random
 
-import           Control.Monad.Catch                 as Catch
+import qualified Data.Yaml                               as YAML
 
-import qualified RIO.ByteString.Lazy                 as Lazy
-import qualified RIO.Text                            as Text
+import           Control.Monad.Catch                     as Catch
 
+import qualified RIO.ByteString.Lazy                     as Lazy
+import           RIO.Directory
+import           RIO.FilePath
+import qualified RIO.Text                                as Text
 
-import qualified Network.DNS                         as DNS
-import           Network.HTTP.Client                 as HTTP
-import           Network.IPFS
-import           Network.IPFS.Process
-import qualified Network.IPFS.Process.Error          as Process
-import           Network.IPFS.Types                  as IPFS
+import qualified Network.DNS                             as DNS
+import           Network.HTTP.Client                     as HTTP
+import           Network.IPFS                            as IPFS
+import qualified Network.IPFS.Process.Error              as Process
+import           Network.IPFS.Types                      as IPFS
 
 import           Servant.Client
 
-import           Fission.Prelude                     hiding (mask,
-                                                      uninterruptibleMask)
+import qualified Turtle
+
+import           Fission.Prelude                         hiding (mask,
+                                                          uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-import           Fission.Key                         as Key
+import qualified Fission.Key.Error                       as Key
 import           Fission.User.DID.Types
+import           Fission.Web.Client.HTTP.Class
 
-import           Fission.CLI.Base.Types              as Base
-import           Fission.CLI.Connected.Types         as Connected
+import qualified Fission.CLI.Base.Types                  as Base
+import           Fission.CLI.Bootstrap
+import qualified Fission.CLI.Connected.Types             as Connected
+
+import           Fission.CLI.IPFS.Daemon                 as IPFS.Daemon
+import           Fission.CLI.IPFS.Ignore                 as IPFS.Ignore
+
+import           Fission.CLI.Key.Ed25519                 as Ed25519
+import           Fission.CLI.Key.Store                   as Key.Store
 
 import           Fission.Web.Auth.Token
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT          as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types     as Bearer
+import           Fission.Web.Auth.Token.JWT              as JWT
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.JWT              as JWT
+import qualified Fission.Web.Client.JWT                  as JWT
 
-import qualified Fission.CLI.Display.Error           as CLI.Error
-import qualified Fission.CLI.Display.Loader          as CLI
+import qualified Fission.CLI.Display.Loader              as CLI
+import           Fission.CLI.Environment
+import           Fission.CLI.Environment.Path
 
-import           Fission.CLI.Environment.Class
+import           Fission.Internal.Orphanage.BaseUrl      ()
+import           Fission.Internal.Orphanage.ClientError  ()
+import           Fission.Internal.Orphanage.DNS.DNSError ()
+import           Fission.Internal.Orphanage.OpenUnion    ()
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
@@ -56,8 +74,6 @@ newtype FissionCLI errs cfg a = FissionCLI
                    , MonadReader cfg
                    , MonadThrow
                    , MonadCatch
-                   , MonadRaise
-                   , MonadRescue
                    )
 
 runFissionCLI :: forall errs m cfg a .
@@ -67,15 +83,36 @@ runFissionCLI :: forall errs m cfg a .
   -> m (Either (OpenUnion errs) a)
 runFissionCLI cfg = runRIO cfg . runRescueT . unFissionCLI
 
+instance forall errs cfg.
+  ( Display (OpenUnion errs)
+  , HasLogFunc cfg
+  )
+  => MonadRaise (FissionCLI errs cfg) where
+  type Errors (FissionCLI errs cfg) = errs
+
+  raise err = do
+    logDebug $ "Raised exception: " <> display (include err :: OpenUnion errs)
+    FissionCLI $ raise err
+
+instance
+  ( HasLogFunc cfg
+  , Display (OpenUnion errs)
+  )
+  => MonadRescue (FissionCLI errs cfg) where
+  attempt (FissionCLI (RescueT action)) =
+    FissionCLI . RescueT $ Right <$> action
+
 instance HasLogFunc cfg => MonadLogger (FissionCLI errs cfg) where
   monadLoggerLog loc src lvl msg =
     FissionCLI (RescueT (Right <$> monadLoggerLog loc src lvl msg))
 
 instance
   ( Contains errs errs
+  , Display (OpenUnion errs)
   , IsMember SomeException errs
   , HasField' "httpManager" cfg HTTP.Manager
   , HasField' "fissionURL"  cfg BaseUrl
+  , HasLogFunc              cfg
   )
   => MonadWebClient (FissionCLI errs cfg) where
   sendRequest req =
@@ -88,48 +125,34 @@ instance
 instance MonadTime (FissionCLI errs cfg) where
   currentTime = liftIO getCurrentTime
 
+instance MonadRandom (FissionCLI errs cfg) where
+  getRandomBytes = liftIO . getRandomBytes
+
 instance ServerDID (FissionCLI errs Connected.Config) where
-  getServerDID = asks serverDID
+  getServerDID = do
+    did <- asks Connected.serverDID
+    logDebug $ "Loaded Server DID: " <> textDisplay did
+    return did
 
-instance ServerDID (FissionCLI errs Base.Config) where
-  getServerDID =
-    asks cachedServerDID >>= \case
-      Just did ->
-        return did
-
-      Nothing -> do
-        rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
-        baseURL <- asks Base.fissionURL
-        let url = BS8.pack $ "_did." <> baseUrlHost baseURL
-
-        logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url
-
-        liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
-          Left errs -> do
-            CLI.Error.put errs "Unable to find Fission's ID online"
-            throwM errs
-
-          Right [] -> do
-            CLI.Error.put (NotFound @DID) $
-              "No TXT record at " <> decodeUtf8Lenient url
-
-            throwM $ NotFound @DID
-
-          Right (didTxt : _) ->
-            case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
-              Left errs -> do
-                CLI.Error.put errs "Unable to find Fission's ID online"
-                throwM $ NotFound @DID
-
-              Right did -> do
-                -- FIXME write the value to disk / root dir
-                return did
+instance
+  ( DNS.DNSError        `IsMember` errs
+  , NotFound DID        `IsMember` errs
+  , NotFound FilePath   `IsMember` errs
+  , YAML.ParseException `IsMember` errs
+  )
+  => ServerDID (FissionCLI errs Base.Config) where
+  getServerDID = do
+    did <- asks Base.serverDID
+    logDebug $ "Loaded Server DID: " <> textDisplay did
+    return did
 
 instance
   ( IsMember Key.Error errs
   , IsMember (NotFound Ed25519.SecretKey) errs
+  , Display (OpenUnion errs)
   , ServerDID (FissionCLI errs cfg)
   , HasField' "fissionURL" cfg BaseUrl
+  , HasLogFunc             cfg
   )
   =>  MonadWebAuth (FissionCLI errs cfg) Token where
   getAuth = do
@@ -155,12 +178,14 @@ instance
 instance
   ( Key.Error                  `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
+  , Display (OpenUnion errs)
+  , HasLogFunc cfg
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
-  getAuth =
-    Key.exists >>= \case
-      True  -> readEd
-      False -> raise $ NotFound @Ed25519.SecretKey
+  getAuth = do
+    attempt getAsBytes >>= \case
+      Right raw -> Ed25519.parseSecretKey raw
+      Left  _   -> raise $ NotFound @Ed25519.SecretKey
 
 instance MonadMask (FissionCLI errs cfg) where
   mask action = do
@@ -203,7 +228,6 @@ instance MonadMask (FissionCLI errs cfg) where
       innerUse  _   (Left  err) = return $ Left err
       innerUse cfg (Right val)  = fissionToIO cfg $ use val
 
--- Same as runBase from module above
 fissionToIO :: cfg -> FissionCLI errs cfg a -> IO (Either (OpenUnion errs) a)
 fissionToIO cfg action = runRIO cfg . runRescueT $ unFissionCLI action
 
@@ -213,7 +237,12 @@ q :: cfg
   -> FissionCLI errs cfg a
 q cfg u = FissionCLI . RescueT . liftIO . u . fissionToIO cfg
 
-instance (Contains errs errs, IsMember SomeException errs)
+instance
+  ( Contains errs errs
+  , Display (OpenUnion errs)
+  , IsMember SomeException errs
+  , HasLogFunc cfg
+  )
   => MonadCleanup (FissionCLI errs cfg) where
   cleanup acquire onErr onOk action =
     mask $ \restore -> do
@@ -231,31 +260,166 @@ instance (Contains errs errs, IsMember SomeException errs)
           _ <- onOk resource
           return output
 
+instance HasField' "httpManager" cfg HTTP.Manager => MonadManagedHTTP (FissionCLI errs cfg) where
+  getHTTPManager = asks $ getField @"httpManager"
+
 instance
-  ( HasField' "ipfsPath"    cfg IPFS.BinPath
-  , HasField' "ipfsTimeout" cfg IPFS.Timeout
-  , HasProcessContext       cfg
-  , HasLogFunc              cfg
+  ( HasField' "ipfsTimeout"   cfg IPFS.Timeout
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , HasLogFunc                cfg
+  , MonadIPFSIgnore (FissionCLI errs cfg)
+  , SomeException `IsMember` errs
+  , Contains errs errs
   )
   => MonadLocalIPFS (FissionCLI errs cfg) where
-  runLocal opts arg = do
-    IPFS.BinPath ipfs <- asks (getField @"ipfsPath")
-    IPFS.Timeout secs <- asks (getField @"ipfsTimeout")
+  runLocal opts' arg = do
+    logDebug @Text "Running local IPFS"
 
-    let opts' = ("--timeout=" <> show secs <> "s") : opts
+    IPFS.BinPath ipfs <- globalIPFSBin
+    IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
-    runProc readProcess ipfs (byteStringInput arg) byteStringOutput opts' <&> \case
+    pwd        <- getCurrentDirectory
+    ignorePath <- IPFS.Ignore.writeTmp . show . Crypto.hash @ByteString @SHA256 $ fromString pwd
+
+    void IPFS.Daemon.runDaemon
+
+    let
+      cidVersion = "--cid-version=1"
+      timeout    = "--timeout=" <> show secs <> "s"
+      ignore     = "--ignore-rules-path=" <> ignorePath
+      cmd        = headMaybe opts'
+      arg'       = Text.unpack . decodeUtf8Lenient $ Lazy.toStrict arg
+
+      opts =
+        if | cmd == Just "swarm"                    -> opts' <> [arg']
+           | cmd == Just "pin" || cmd == Just "add" -> opts' <> [arg', timeout, cidVersion, ignore]
+           | otherwise                              -> opts' <> [arg', timeout]
+
+      process = intercalate " " (ipfs : opts)
+
+    logDebug $ "Running: " <> process
+
+    readProcess (fromString process) >>= \case
       (ExitSuccess, contents, _) ->
-        Right contents
+        return $ Right contents
 
       (ExitFailure _, _, stdErrs)
         | Lazy.isSuffixOf "context deadline exceeded" stdErrs ->
-            Left $ Process.Timeout secs
+            return . Left $ Process.Timeout secs
 
         | otherwise ->
-            Left $ Process.UnknownErr stdErrs
+            return . Left $ Process.UnknownErr stdErrs
 
 instance
-  HasField' "ignoredFiles" cfg IPFS.Ignored
-  => MonadEnvironment (FissionCLI errs cfg) where
-    getIgnoredFiles = asks $ getField @"ignoredFiles"
+  ( HasLogFunc cfg
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  )
+  => MonadIPFSDaemon (FissionCLI errs cfg) where
+  runDaemon = do
+    logDebug @Text "Starting IPFS daemon"
+
+    daemonVar <- asks $ getField @"ipfsDaemonVar"
+
+    liftIO (tryReadMVar daemonVar) >>= \case
+      Just daemonProcess -> do
+        logDebug @Text "IPFS Daemon already running"
+        return daemonProcess
+
+      Nothing -> do
+        process <- startup
+
+        liftIO (tryPutMVar daemonVar process) >>= \case
+          True  -> logDebug @Text "Placed IPFS daemon in MVar"
+          False -> logDebug @Text "IPFS Daemon var full"
+
+        return process
+
+    where
+      startup ::
+        ( MonadIO          m
+        , MonadLogger      m
+        , MonadEnvironment m
+        , MonadIPFSDaemon  m
+        )
+        => m (Process () () ())
+      startup = do
+        logDebug @Text "Starting new IPFS Daemon"
+
+        ipfsRepo         <- globalIPFSRepo
+        BinPath ipfsPath <- globalIPFSBin
+
+        void . Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+        mayIPFSPath <- Turtle.need "IPFS_PATH"
+        logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath
+
+        process <- startProcess . fromString $ ipfsPath <> " daemon > /dev/null 2>&1"
+        logDebug @Text "IPFS daemon started"
+
+        waitForStartup >>= \case
+          True  ->
+            return process
+
+          False -> do
+            logDebug @Text "IPFS daemon startup appears stuck. Retrying."
+
+            stopProcess process
+            void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
+
+            let lockPath = Turtle.decodeString $ ipfsRepo <> "/repo.lock"
+            void $ Turtle.touch lockPath
+            void $ Turtle.rm    lockPath
+
+            runDaemon
+
+  checkRunning = do
+    logDebug @Text "Checking if IPFS daemon is running"
+
+    BinPath ipfsPath <- globalIPFSBin
+    let command = fromString $ ipfsPath <> " swarm addrs > /dev/null 2>&1"
+
+    status <- liftIO $ withProcessWait command waitExitCode
+    logDebug $ show status
+
+    return $ status == ExitSuccess
+
+waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m Bool
+waitForStartup = go (10 :: Natural)
+  where
+    go 0 =
+      return False
+
+    go count =
+      IPFS.Daemon.checkRunning >>= \case
+        True  ->
+          return True
+
+        False -> do
+          threadDelay 1_000_000
+          go $ count - 1
+
+instance forall cfg errs .
+  ( HasField' "httpManager"   cfg HTTP.Manager
+  , HasField' "ipfsURL"       cfg IPFS.URL
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , HasLogFunc                cfg
+  , HasProcessContext         cfg
+  , SomeException `IsMember` errs
+  , Exception (OpenUnion errs)
+  , Display   (OpenUnion errs)
+  , Contains errs errs
+  )
+  => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
+  runRemote query = do
+    _ <- IPFS.Daemon.runDaemon
+    runBootstrapT $ runRemote query
+
+instance MonadEnvironment (FissionCLI errs cfg) where
+  getGlobalPath = do
+    home <- getHomeDirectory
+    return $ home </> ".config" </> "fission"
+
+instance MonadIPFSIgnore (FissionCLI errs Connected.Config) where
+  getIgnoredFiles = asks $ getField @"ignoredFiles"
+
+instance MonadIPFSIgnore (FissionCLI errs Base.Config) where
+  getIgnoredFiles = pure []

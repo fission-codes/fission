@@ -4,6 +4,7 @@ packages:
 - fission-cli
 - fission-core
 
+
 allow-newer: true
 
 extra-deps:
@@ -13,7 +14,7 @@ extra-deps:
 - happy-1.19.12
 - hfsevents-0.1.6
 - hspec-wai-json-0.10.1
-- ipfs-1.1.3
+- ipfs-1.1.5.0
 - lzma-clib-5.2.2
 - raven-haskell-0.1.4.0
 - rescue-0.2.1

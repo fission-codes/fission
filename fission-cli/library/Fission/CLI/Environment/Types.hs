@@ -1,39 +1,39 @@
-module Fission.CLI.Environment.Types (Environment (..)) where
+module Fission.CLI.Environment.Types (Env (..)) where
 
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.Types          as IPFS
 
 import           Fission.Prelude
 
-import           Fission.URL.Types
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
-import           Fission.Internal.Orphanage.Glob.Pattern ()
+-- | "Global" environment
+data Env = Env
+  -- IPFS
+  { peers          :: ![IPFS.Peer]
+  , ignored        :: ![Text] -- ^ Passing through verbatim for ipfsignore
 
--- | Virtual environment built up from many layers of 'Environment.Override'.
-data Environment = Environment
-  { peers     :: ![IPFS.Peer]
-  , ignored   :: !IPFS.Ignored
-  , appURL    :: !(Maybe URL)
-  , buildDir  :: !(Maybe FilePath)
-  , serverDID :: !(Maybe DID)
+  -- IDs
+  , serverDID      :: !DID
+  , signingKeyPath :: !FilePath
+  , username       :: !Username
   }
 
-instance ToJSON Environment where
-  toJSON Environment {..} = object
-    [ "peers"      .= peers
-    , "app_url"    .= appURL
-    , "ignore"     .= ignored
-    , "build_dir"  .= buildDir
-    , "server_did" .= serverDID
+instance ToJSON Env where
+  toJSON Env {..} = object
+    [ "peers"            .= peers
+    , "ignore"           .= ignored
+    , "server_did"       .= serverDID
+    , "signing_key_path" .= signingKeyPath
+    , "username"         .= username
     ]
 
-instance FromJSON Environment where
-  parseJSON = withObject "Environment" \obj -> do
-    peers     <- obj .:  "peers"
-    ignored   <- obj .:  "ignored"
+instance FromJSON Env where
+  parseJSON = withObject "Env" \obj -> do
+    peers          <- obj .:  "peers"
+    ignored        <- obj .:? "ignored" .!= []
+    serverDID      <- obj .:  "server_did"
+    signingKeyPath <- obj .:  "signing_key_path"
+    username       <- obj .:  "username"
 
-    serverDID <- obj .:? "server_did"
-    appURL    <- obj .:? "app_url"
-    buildDir  <- obj .:? "build_dir"
-
-    return Environment {..}
+    return Env {..}

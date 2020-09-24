@@ -4,23 +4,25 @@ module Fission.CLI.IPFS.Connect
   , couldNotSwarmConnect
   ) where
 
-import           Control.Parallel.Strategies (parMap, rpar)
 import qualified RIO.NonEmpty                as NonEmpty
-import           Servant.Client
+
+import           Control.Parallel.Strategies (parMap, rpar)
+
 import qualified System.Console.ANSI         as ANSI
 
-import           Fission.Prelude
+import           Network.IPFS
+import qualified Network.IPFS.Peer           as IPFS.Peer
+import qualified Network.IPFS.Types          as IPFS
+import           Servant.Client
 
-import           Fission.Web.Client
-import           Fission.Web.Client.Peers    as Peers
+import           Fission.Prelude
 
 import qualified Fission.Internal.UTF8       as UTF8
 
 import           Fission.IPFS.Error.Types    as IPFS
 
-import           Network.IPFS
-import qualified Network.IPFS.Peer           as IPFS.Peer
-import qualified Network.IPFS.Types          as IPFS
+import           Fission.Web.Client
+import           Fission.Web.Client.Peers    as Peers
 
 -- | Connect to the Fission IPFS network with a set amount of retries
 swarmConnectWithRetry ::
@@ -37,7 +39,8 @@ swarmConnectWithRetry ::
   => NonEmpty IPFS.Peer
   -> Natural
   -> m ()
-swarmConnectWithRetry peers retries =
+swarmConnectWithRetry peers retries = do
+  logDebug @Text "Connecting peers"
   connectTo peers `rescue` \err ->
     case retries of
       0 ->
@@ -57,12 +60,18 @@ connectTo ::
   => NonEmpty IPFS.Peer
   -> m ()
 connectTo peers = do
-  attempts <- sequence $ parMap rpar IPFS.Peer.connect (NonEmpty.toList peers)
+  sequence (logDebug . show <$> NonEmpty.toList peers)
+  attempts <- sequence . parMap rpar IPFS.Peer.connect $ NonEmpty.toList peers
+
   if any isRight attempts
     then do
-      logDebug $ "Successfully connected to a node. Full results: " <> textShow attempts
+      logDebug @Text "Successfully connected to a node. Full results:"
+      logDebug $ show attempts
 
     else do
+      logDebug @Text "Unable to connect. Full results:"
+      logDebug $ show attempts
+
       UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
       raise IPFS.UnableToConnect
 

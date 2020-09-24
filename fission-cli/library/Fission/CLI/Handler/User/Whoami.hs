@@ -1,5 +1,7 @@
 -- | Whoami command
-module Fission.CLI.Handler.Whoami (whoami) where
+module Fission.CLI.Handler.User.Whoami (whoami) where
+
+import qualified Data.Yaml                       as YAML
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 
@@ -8,6 +10,7 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
+import           Fission.Error.NotFound.Types
 import qualified Fission.Internal.UTF8           as UTF8
 
 import           Fission.Authorization.ServerDID
@@ -17,20 +20,25 @@ import           Fission.Web.Auth.Token
 import           Fission.Web.Client              as Client
 import qualified Fission.Web.Client.User         as User
 
+import           Fission.CLI.Environment         as Env
+
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
 
 -- | The command to attach to the CLI tree
 whoami ::
-  ( MonadIO        m
-  , MonadTime      m
-  , MonadLogger    m
-  , MonadWebClient m
-  , ServerDID      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , MonadCleanup   m
+  ( MonadIO          m
+  , MonadTime        m
+  , MonadLogger      m
+  , MonadWebClient   m
+  , MonadEnvironment m
+  , ServerDID        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , MonadCleanup     m
   , m `Raises` ClientError
+  , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
   , Show    (OpenUnion (Errors m))
   , Display (OpenUnion (Errors m))
   , IsMember ClientError (Errors m)
@@ -38,8 +46,9 @@ whoami ::
   => m ()
 whoami = do
   attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
-    Right User.Username {username} ->
+    Right un@User.Username {username} -> do
       CLI.Success.currentlyLoggedInAs username
+      Env.update \env -> env {username = un}
 
     Left err -> do
       CLI.Error.put err

@@ -1,5 +1,7 @@
 -- | File sync, IPFS-style
-module Fission.CLI.Handler.Up (up) where
+module Fission.CLI.Handler.App.Publish (publish) where
+
+import qualified Data.Yaml                       as YAML
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           System.FSNotify                 as FS
@@ -18,35 +20,36 @@ import qualified Fission.Time                    as Time
 import           Fission.URL
 
 import           Fission.Authorization.ServerDID
-
+import           Fission.Error.NotFound.Types
 import           Fission.Web.Auth.Token
 
 import           Fission.Web.Client              as Client
 import           Fission.Web.Client.App          as App
 import           Fission.Web.Client.Error
 
-import           Fission.CLI.Environment         as Environment
-
 import           Fission.CLI.Display.Error
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
+import qualified Fission.CLI.IPFS.Add            as CLI.IPFS.Add
 
-import qualified Fission.CLI.Prompt.BuildDir     as Prompt
-
+import           Fission.CLI.App.Environment     as App
 import           Fission.CLI.Parser.Watch.Types
 
 -- | Sync the current working directory to the server over IPFS
-up ::
-  ( MonadIO          m
-  , MonadCleanup     m
-  , MonadLogger      m
-  , MonadLocalIPFS   m
-  , MonadEnvironment m
-  , MonadWebClient   m
-  , MonadTime        m
-  , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
-  , ServerDID        m
+publish ::
+  ( MonadIO        m
+  , MonadCleanup   m
+  , MonadLogger    m
+  , MonadLocalIPFS m
+  , MonadWebClient m
+  , MonadTime      m
+  , MonadWebAuth   m Token
+  , MonadWebAuth   m Ed25519.SecretKey
+  , ServerDID      m
+  , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
+  , Show (OpenUnion (Errors m))
+  , Contains (Errors m) (Errors m)
   )
   => WatchFlag
   -> (m () -> IO ())
@@ -55,32 +58,34 @@ up ::
   -> Bool
   -> Bool
   -> m ()
-up watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
-  ignoredFiles <- getIgnoredFiles
-  toAdd        <- Prompt.checkBuildDir appPath
-  absPath      <- liftIO $ makeAbsolute toAdd
+publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
+  attempt (App.readFrom appPath) >>= \case
+    Left err -> do
+      CLI.Error.put err "App not set up. Please double check your path, or run `fission app register`"
+      raise err
 
-  let copyFiles = updateData
-  logDebug $ "Starting single IPFS add locally of " <> displayShow absPath
+    Right App.Env {buildDir} -> do
+      absBuildPath <- liftIO $ makeAbsolute buildDir
+      logDebug $ "Starting single IPFS add locally of " <> displayShow absBuildPath
 
-  IPFS.addDir ignoredFiles absPath >>= putErrOr \cid@(CID hash) -> do
-    req <- App.mkUpdateReq appURL cid copyFiles
+      CLI.IPFS.Add.dir absBuildPath >>= putErrOr \cid@(CID hash) -> do
+        req <- App.mkUpdateReq appURL cid updateData
 
-    retryOnStatus [status502, status504] 100 req >>= \case
-      Left err ->
-        CLI.Error.put err "Server unable to sync data"
+        retryOnStatus [status502, status504] 100 req >>= \case
+          Left err ->
+            CLI.Error.put err "Server unable to sync data"
 
-      Right _ ->
-        case watchFlag of
-          WatchFlag False ->
-            success appURL
+          Right _ ->
+            case watchFlag of
+              WatchFlag False ->
+                success appURL
 
-          WatchFlag True ->
-            liftIO $ FS.withManager \watchMgr -> do
-              hashCache <- newMVar hash
-              timeCache <- newMVar =<< getCurrentTime
-              void $ handleTreeChanges runner appURL copyFiles timeCache hashCache watchMgr absPath
-              forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+              WatchFlag True ->
+                liftIO $ FS.withManager \watchMgr -> do
+                  hashCache <- newMVar hash
+                  timeCache <- newMVar =<< getCurrentTime
+                  void $ handleTreeChanges runner appURL updateData timeCache hashCache watchMgr absBuildPath
+                  forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
 
 handleTreeChanges ::
   ( MonadIO        m
@@ -98,7 +103,7 @@ handleTreeChanges ::
   -> MVar UTCTime
   -> MVar Text
   -> WatchManager
-  -> FilePath
+  -> FilePath -- ^ Build dir
   -> IO StopListening
 handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
   FS.watchTree watchMgr dir (\_ -> True) \_ -> runner do
@@ -107,7 +112,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
 
     unless (diffUTCTime now oldTime < Time.doherty) do
       void $ swapMVar timeCache now
-      threadDelay Time.dohertyMicroSeconds -- Wait for all events to fire in sliding window
+      threadDelay Time.dohertyMicroSeconds
 
       IPFS.addDir [] dir >>= \case
         Left err ->

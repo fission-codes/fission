@@ -24,10 +24,12 @@ type API = "ipfs" :> "peers" :> Peer.API
 getPeers ::
   ( MonadIO        m
   , MonadWebClient m
+  , MonadLogger    m
   , MonadCleanup   m
   , m `Raises` ClientError
   )
   => m (NonEmpty IPFS.Peer)
-getPeers =
+getPeers = do
+  logDebug @Text "Getting peers remotely"
   Cursor.withHidden $ CLI.Wait.waitFor "Retrieving Fission Peer List..." do
     ensureM . sendRequest . client $ Proxy @API

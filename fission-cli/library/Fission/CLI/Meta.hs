@@ -1,6 +1,8 @@
-module Fission.Internal.CLI.Meta
-  ( module Fission.Internal.Meta.Package
-  , package
+{-# LANGUAGE TemplateHaskell #-}
+
+module Fission.CLI.Meta
+  ( package
+  , module Fission.Internal.Meta.Package
   ) where
 
 import           Data.FileEmbed

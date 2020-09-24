@@ -214,7 +214,7 @@ instance MonadRoute53 Fission where
         return (Right mockRecordResponse)
 
   get url (ZoneID zoneID) = do
-    let 
+    let
       urlTxt = textShow url
       req = listResourceRecordSets (ResourceId zoneID)
         |> lrrsMaxItems ?~ "1"
@@ -229,7 +229,7 @@ instance MonadRoute53 Fission where
 
       Right good ->
         case Route53.verifyFirstResource good urlTxt of
-          Nothing -> return . Left $ Web.Error.toServerError (404 :: Int)
+          Nothing  -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just rrs -> return $ Right rrs
 
 
@@ -237,22 +237,22 @@ instance MonadWNFS Fission where
   getUserDataRoot (Username username) = do
     zoneID <- asks userZoneID
     rootDomain <- asks userRootDomain
-    let 
-      url = URL 
+    let
+      url = URL
         { domainName = rootDomain
         , subdomain  = Just . URL.Subdomain $ "_dnslink." <> username <> ".files"
         }
 
     Route53.get url zoneID >>= \case
-      Left err -> 
+      Left err ->
         return $ Left err
 
       Right rrs ->
         case Route53.getValuesFromRecords rrs of
-          Nothing -> return . Left $ Web.Error.toServerError (404 :: Int)
+          Nothing   -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just vals -> return $ Right $ extractCID vals
     where
-      extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head 
+      extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
 
 
 instance MonadDNSLink Fission where

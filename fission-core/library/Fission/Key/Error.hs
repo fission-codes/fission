@@ -13,8 +13,8 @@ data Error
 
 instance Show Error where
   show = \case
-    DoesNotExist -> "~/.ssh/fission does not exist"
-    AlreadyExists -> "~/.ssh/fission already exists"
+    DoesNotExist -> "User key does not exist"
+    AlreadyExists -> "User key already exists"
     ParseError err -> "Parse error" <> show err
 
 instance Display Error where
