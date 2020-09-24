@@ -43,8 +43,8 @@ import qualified Fission.CLI.Base.Types                  as Base
 import           Fission.CLI.Bootstrap
 import qualified Fission.CLI.Connected.Types             as Connected
 
-import qualified Fission.CLI.IPFS.Daemon                 as IPFS.Daemon
-import qualified Fission.CLI.IPFS.Ignore                 as IPFS.Ignore
+import           Fission.CLI.IPFS.Daemon                 as IPFS.Daemon
+import           Fission.CLI.IPFS.Ignore                 as IPFS.Ignore
 
 import           Fission.CLI.Key.Ed25519                 as Ed25519
 import           Fission.CLI.Key.Store                   as Key.Store
@@ -59,8 +59,6 @@ import qualified Fission.Web.Client.JWT                  as JWT
 import qualified Fission.CLI.Display.Loader              as CLI
 import           Fission.CLI.Environment
 import           Fission.CLI.Environment.Path
-import           Fission.CLI.IPFS.Daemon
-import           Fission.CLI.IPFS.Ignore
 
 import           Fission.Internal.Orphanage.BaseUrl      ()
 import           Fission.Internal.Orphanage.ClientError  ()
@@ -320,8 +318,7 @@ instance
   runDaemon = do
     logDebug @Text "Starting IPFS daemon"
 
-    BinPath ipfsPath <- globalIPFSBin
-    daemonVar        <- asks $ getField @"ipfsDaemonVar"
+    daemonVar <- asks $ getField @"ipfsDaemonVar"
 
     liftIO (tryReadMVar daemonVar) >>= \case
       Just daemonProcess -> do
@@ -329,9 +326,29 @@ instance
         return daemonProcess
 
       Nothing -> do
-        logDebug @Text "Starting new IPFS Daemon"
-        ipfsRepo <- globalIPFSRepo
+        process <- startup
 
+        liftIO (tryPutMVar daemonVar process) >>= \case
+          True  -> logDebug @Text "Placed IPFS daemon in MVar"
+          False -> logDebug @Text "IPFS Daemon var full"
+
+        return process
+
+    where
+      startup ::
+        ( MonadIO          m
+        , MonadLogger      m
+        , MonadEnvironment m
+        , MonadIPFSDaemon  m
+        )
+        => m (Process () () ())
+      startup = do
+        logDebug @Text "Starting new IPFS Daemon"
+
+        ipfsRepo         <- globalIPFSRepo
+        BinPath ipfsPath <- globalIPFSBin
+
+        void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
         void . Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
 
         let lockPath = Turtle.decodeString $ ipfsRepo <> "/repo.lock"
@@ -340,18 +357,19 @@ instance
 
         mayIPFSPath <- Turtle.need "IPFS_PATH"
 
-        logDebug $"IPFS_PATH set to: " <> show mayIPFSPath
+        logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath
 
         process <- startProcess . fromString $ ipfsPath <> " daemon > /dev/null 2>&1"
-        logDebug @Text "IPFS daemon running"
+        logDebug @Text "IPFS daemon started"
 
-        waitForStartup
+        waitForStartup >>= \case
+          True  ->
+            return process
 
-        liftIO (tryPutMVar daemonVar process) >>= \case
-          True  -> logDebug @Text "Placed IPFS daemon in MVar"
-          False -> logDebug @Text "IPFS Daemon var full"
-
-        return process
+          False -> do
+            stopProcess process
+            logDebug @Text "IPFS daemon startup appears stuck. Retrying."
+            runDaemon
 
   checkRunning = do
     logDebug @Text "Checking if IPFS daemon is running"
@@ -364,15 +382,20 @@ instance
 
     return $ status == ExitSuccess
 
-waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m ()
-waitForStartup = do
-  IPFS.Daemon.checkRunning >>= \case
-    True  -> do
-      return ()
+waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m Bool
+waitForStartup = go (10 :: Natural)
+  where
+    go 0 =
+      return False
 
-    False -> do
-      threadDelay 1_000_000
-      waitForStartup
+    go count =
+      IPFS.Daemon.checkRunning >>= \case
+        True  ->
+          return True
+
+        False -> do
+          threadDelay 1_000_000
+          go $ count - 1
 
 instance forall cfg errs .
   ( HasField' "httpManager"   cfg HTTP.Manager

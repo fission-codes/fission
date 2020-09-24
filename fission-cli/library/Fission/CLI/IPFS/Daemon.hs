@@ -1,5 +1,6 @@
 module Fission.CLI.IPFS.Daemon
   ( stop
+  , forceStop
   , module Fission.CLI.IPFS.Daemon.Class
   ) where
 
@@ -16,5 +17,8 @@ stop ::
   -> m ()
 stop daemonProc = do
   logDebug @Text "Stopping IPFS Daemon"
-  runProcess . fromString $ "killall fission-ipfs"
+  void forceStop
   liftIO $ stopProcess daemonProc
+
+forceStop :: MonadIO m => m ExitCode
+forceStop = runProcess . fromString $ "killall fission-ipfs > /dev/null 2>&1"
