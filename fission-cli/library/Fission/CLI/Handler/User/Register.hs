@@ -92,39 +92,44 @@ createAccount = do
       }
 
   attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
-    Right _ok -> do
-      CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
-      return username
-
     Left err -> do
-      let
-        errMsg =
-          case openUnionMatch err of
-            Nothing ->
-              "Unknown Error"
-
-            Just respErr ->
-              case respErr of
-                FailureResponse _ (responseStatusCode -> status) ->
-                  if | status == status409 ->
-                        "It looks like that account already exists."
-
-                     | statusIsClientError status ->
-                        "There was a problem with your request."
-
-                     | otherwise ->
-                        "There was a server error."
-
-                ConnectionError _ ->
-                  "Trouble contacting the server."
-
-                DecodeFailure _ _ ->
-                  "Trouble decoding the registration response."
-
-                _ ->
-                  "Invalid content type."
-
-      CLI.Error.put err $
-        errMsg <> " Please try again or contact Fission support at https://fission.codes"
+      let msg = registerErrMsg err
+      CLI.Error.put msg $
+        msg <> " Please try again or contact Fission support at https://fission.codes"
 
       createAccount
+
+    Right _ok -> do
+      CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
+
+      -- FIXME register exchange key
+
+      return username
+
+
+registerErrMsg :: IsMember ClientError errs => OpenUnion errs -> Text
+registerErrMsg err =
+  case openUnionMatch err of
+    Nothing ->
+      "Unknown Error"
+
+    Just respErr ->
+      case respErr of
+        FailureResponse _ (responseStatusCode -> status) ->
+          if | status == status409 ->
+                "It looks like that account already exists."
+
+              | statusIsClientError status ->
+                "There was a problem with your request."
+
+              | otherwise ->
+                "There was a server error."
+
+        ConnectionError _ ->
+          "Trouble contacting the server."
+
+        DecodeFailure _ _ ->
+          "Trouble decoding the registration response."
+
+        _ ->
+          "Invalid content type."
