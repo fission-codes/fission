@@ -111,11 +111,7 @@ mkConnected ::
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
   -> FissionCLI errs inCfg Config
 mkConnected inCfg ipfsTimeout = do
-  result <- attempt do
-    scrubbed <- Key.Store.getAsBytes (Proxy @SigningKey)
-    ensureM $ Key.Store.parse (Proxy @SigningKey) scrubbed
-
-  case result of
+  attempt (Key.Store.fetch $ Proxy @SigningKey) >>= \case
     Left _err -> do
       CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile

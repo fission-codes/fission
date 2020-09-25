@@ -2,11 +2,14 @@
 module Fission.CLI.Handler.User.Register (register) where
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
+import qualified Crypto.PubKey.RSA               as RSA
 import           Crypto.Random
 
 import           Network.DNS
 import           Network.HTTP.Types.Status
-import           Servant.Client.Core
+
+import           Servant.API
+import           Servant.Client
 
 import           Fission.Prelude
 
@@ -24,6 +27,8 @@ import qualified Fission.Web.Client.User         as User
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
 import qualified Fission.User.Username.Types     as User
+
+import           Fission.CLI.Key.Store           as KeyStore
 
 import           Fission.CLI.Display.Error       as CLI.Error
 import           Fission.CLI.Display.Success     as CLI.Success
@@ -102,10 +107,15 @@ createAccount = do
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
 
-      -- FIXME register exchange key
+      -- FIXME move to own module
+      exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
+      exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
+
+      attempt (sendRequestM (getAddExchangePKClient `withPayload` exchangePK)) >>= \case
+        Left _ -> undefined
+        Right _ -> undefined
 
       return username
-
 
 registerErrMsg :: IsMember ClientError errs => OpenUnion errs -> Text
 registerErrMsg err =
@@ -133,3 +143,18 @@ registerErrMsg err =
 
         _ ->
           "Invalid content type."
+
+-- FIXME put in better module
+getAddExchangePKClient ::
+  ( MonadIO      m
+  , MonadTime    m
+  , MonadLogger  m
+  , ServerDID    m
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  )
+  => m (RSA.PublicKey -> ClientM [RSA.PublicKey])
+getAddExchangePKClient = do
+  (addExchangeKey :<|> _) <- authClient $ Proxy @User.ExchangeKeysAPI
+  return addExchangeKey
+

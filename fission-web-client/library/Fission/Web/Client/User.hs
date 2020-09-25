@@ -3,6 +3,7 @@ module Fission.Web.Client.User
   , Verify
   , WhoAmI
   , UpdatePK
+  , ExchangeKeysAPI
   ) where
 
 import           Servant.API
@@ -14,3 +15,5 @@ type Register = UserPrefix :> User.RegisterRoute
 type Verify   = UserPrefix :> User.VerifyRoute
 type WhoAmI   = UserPrefix :> User.WhoAmIRoute
 type UpdatePK = UserPrefix :> User.UpdatePublicKeyRoute
+
+type ExchangeKeysAPI = UserPrefix :> User.UpdateExchangeKeysRoute

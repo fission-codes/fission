@@ -5,6 +5,7 @@ module Fission.Web.User
   , VerifyRoute
   , VerifyEmailRoute
   , UpdatePublicKeyRoute
+  , UpdateExchangeKeysRoute
   , ResetRoute
   , WhoAmIRoute
   , server
@@ -12,26 +13,26 @@ module Fission.Web.User
 
 import           Servant
 
+import           Fission.IPFS.DNSLink.Class          as DNSLink
 import           Fission.Prelude
-import           Fission.IPFS.DNSLink.Class as DNSLink
 
-import qualified Fission.User as User
 import           Fission.Email
+import qualified Fission.User                        as User
 
-import qualified Fission.Challenge.Creator.Class  as Challenge
-import qualified Fission.Challenge.Verifier.Class as Challenge
+import qualified Fission.Challenge.Creator.Class     as Challenge
+import qualified Fission.Challenge.Verifier.Class    as Challenge
 import           Fission.WNFS
 
 import qualified Fission.Web.User.Create             as Create
+import qualified Fission.Web.User.DataRoot           as DataRoot
+import qualified Fission.Web.User.Password.Reset     as Reset
+import qualified Fission.Web.User.UpdateExchangeKeys as UpdateExchangeKeys
+import qualified Fission.Web.User.UpdatePublicKey    as UpdatePublicKey
 import qualified Fission.Web.User.Verify             as Verify
 import qualified Fission.Web.User.VerifyEmail        as VerifyEmail
-import qualified Fission.Web.User.Password.Reset     as Reset
-import qualified Fission.Web.User.UpdatePublicKey    as UpdatePublicKey
-import qualified Fission.Web.User.UpdateExchangeKeys as UpdateExchangeKeys
-import qualified Fission.Web.User.DataRoot         as DataRoot
 import qualified Fission.Web.User.WhoAmI             as WhoAmI
 
-import qualified Fission.Web.Auth.Types as Auth
+import qualified Fission.Web.Auth.Types              as Auth
 
 
 type API

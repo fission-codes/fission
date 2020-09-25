@@ -5,6 +5,7 @@ module Fission.CLI.Key.Store
   , persist
   , exists
   , getAsBytes
+  , fetch
 
   -- * Reexport
 
@@ -47,6 +48,39 @@ create keyPxy = exists keyPxy >>= \case
   True  -> raise Key.AlreadyExists
   False -> forceCreate keyPxy
 
+forceCreate ::
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
+  )
+  => Proxy key
+  -> m ()
+forceCreate pxy = persist pxy =<< KeyStore.generate pxy
+
+persist ::
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
+  )
+  => Proxy key
+  -> SecretKey key
+  -> m ()
+persist keyRole key = do
+  path <- KeyStore.getPath keyRole
+  forceWrite path $ B64.toByteString key
+
+fetch ::
+  ( MonadIO       m
+  , MonadKeyStore m key
+  , MonadRaise    m
+  , m `Raises` Key.Error
+  )
+  => Proxy key
+  -> m (SecretKey key)
+fetch pxy = do
+  scrubbed <- getAsBytes pxy
+  ensureM $ parse pxy scrubbed
+
 getAsBytes ::
   ( MonadIO       m
   , MonadKeyStore m key
@@ -73,15 +107,6 @@ exists ::
   -> m Bool
 exists pxy = doesFileExist =<< KeyStore.getPath pxy
 
-forceCreate ::
-  ( MonadIO       m
-  , MonadLogger   m
-  , MonadKeyStore m key
-  )
-  => Proxy key
-  -> m ()
-forceCreate pxy = persist pxy =<< KeyStore.generate pxy
-
 delete ::
   ( MonadIO       m
   , MonadKeyStore m key
@@ -91,15 +116,3 @@ delete ::
 delete pxy = exists pxy >>= \case
   False -> return ()
   True  -> removeFile =<< KeyStore.getPath pxy
-
-persist ::
-  ( MonadIO       m
-  , MonadLogger   m
-  , MonadKeyStore m key
-  )
-  => Proxy key
-  -> SecretKey key
-  -> m ()
-persist keyRole key = do
-  path <- KeyStore.getPath keyRole
-  forceWrite path $ B64.toByteString key
