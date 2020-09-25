@@ -31,8 +31,7 @@ import qualified Fission.CLI.Context             as Context
 import           Fission.CLI.Error.Types
 import           Fission.CLI.Types
 
-import qualified Fission.CLI.Key.Ed25519         as Ed25519
-import qualified Fission.CLI.Key.Store           as Key.Store
+import           Fission.CLI.Key.Store           as Key.Store
 
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Environment         as Environment
@@ -95,6 +94,7 @@ mkConnected ::
   ( ServerDID (FissionCLI errs inCfg)
 
   , IsMember YAML.ParseException errs
+  , IsMember Key.Store.Error errs
   , Contains errs        errs
   , Contains LiftErrs    errs
 
@@ -110,8 +110,12 @@ mkConnected ::
   => inCfg
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
   -> FissionCLI errs inCfg Config
-mkConnected inCfg ipfsTimeout =
-  attempt (Key.Store.getAsBytes >>= Ed25519.parseSecretKey) >>= \case
+mkConnected inCfg ipfsTimeout = do
+  result <- attempt do
+    scrubbed <- Key.Store.getAsBytes (Proxy @SigningKey)
+    ensureM $ Key.Store.parse (Proxy @SigningKey) scrubbed
+
+  case result of
     Left _err -> do
       CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile

@@ -20,7 +20,7 @@ import           RIO.FilePath
 import qualified RIO.Text                                as Text
 
 import qualified Network.DNS                             as DNS
-import           Network.HTTP.Client                     as HTTP
+import           Network.HTTP.Client                     as HTTP hiding (Proxy)
 import           Network.IPFS                            as IPFS
 import qualified Network.IPFS.Process.Error              as Process
 import           Network.IPFS.Types                      as IPFS
@@ -46,7 +46,6 @@ import qualified Fission.CLI.Connected.Types             as Connected
 import           Fission.CLI.IPFS.Daemon                 as IPFS.Daemon
 import           Fission.CLI.IPFS.Ignore                 as IPFS.Ignore
 
-import           Fission.CLI.Key.Ed25519                 as Ed25519
 import           Fission.CLI.Key.Store                   as Key.Store
 
 import           Fission.Web.Auth.Token
@@ -183,9 +182,11 @@ instance
   )
   => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
   getAuth = do
-    attempt getAsBytes >>= \case
-      Right raw -> Ed25519.parseSecretKey raw
+    attempt (getAsBytes signKey) >>= \case
+      Right raw -> ensureM $ Key.Store.parse signKey raw
       Left  _   -> raise $ NotFound @Ed25519.SecretKey
+    where
+      signKey = Proxy @SigningKey
 
 instance MonadMask (FissionCLI errs cfg) where
   mask action = do

@@ -3,6 +3,7 @@ module Fission.CLI.Key.Store.Class (MonadKeyStore (..)) where
 import qualified RIO.ByteString.Lazy                          as Lazy
 import qualified RIO.Text                                     as Text
 
+import           Data.Binary                                  as Binary
 import           Data.ByteArray                               as ByteArray
 
 import           Crypto.Error

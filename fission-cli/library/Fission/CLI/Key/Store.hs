@@ -5,12 +5,12 @@ module Fission.CLI.Key.Store
   , persist
   , exists
   , getAsBytes
-  , parseSecretKey
 
   -- * Reexport
 
   , module Fission.Key.Error
   , module Fission.CLI.Key.Store.Class
+  , module Fission.CLI.Key.Store.Types
   ) where
 
 import           RIO.Directory
@@ -31,11 +31,14 @@ import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 -- Reexports
 
-import           Fission.CLI.Key.Store.Class
 import           Fission.Key.Error
+
+import           Fission.CLI.Key.Store.Class
+import           Fission.CLI.Key.Store.Types
 
 create ::
   ( MonadIO           m
+  , MonadLogger       m
   , MonadKeyStore key m
   , MonadRaise        m
   , m `Raises` Key.Error
@@ -65,16 +68,6 @@ getAsBytes keyPxy =
       bs   <- readFileBinary path
       return $ B64.Scrubbed.scrub bs
 
-parseSecretKey ::
-  ( MonadRaise m
-  , MonadKeyStore key m
-  , Raises     m Key.Error
-  )
-  => Proxy key
-  -> ByteArray.ScrubbedBytes
-  -> m (SecretKey key)
-parseSecretKey pxy sb = ensureM $ parse pxy sb
-
 exists ::
   ( MonadIO           m
   , MonadKeyStore key m
@@ -85,6 +78,7 @@ exists pxy = doesFileExist =<< KeyStore.getPath pxy
 
 forceCreate ::
   ( MonadIO           m
+  , MonadLogger       m
   , MonadKeyStore key m
   )
   => Proxy key

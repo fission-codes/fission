@@ -102,6 +102,7 @@ dependencies:
 
   ## Data ##
   - aeson
+  - binary
   - bytestring
   - memory
   - utf8-string

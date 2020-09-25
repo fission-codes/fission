@@ -1,7 +1,7 @@
 module Fission.CLI.Handler.Setup (setup) where
 
 import qualified Crypto.PubKey.Ed25519             as Ed25519
-import           Crypto.Random
+
 import           Network.DNS
 import           Network.IPFS
 import           Servant.Client
@@ -21,7 +21,7 @@ import qualified Fission.CLI.Environment.OS        as OS
 import qualified Fission.CLI.Display.Success       as Display
 import qualified Fission.CLI.IPFS.Executable       as Executable
 
-import qualified Fission.CLI.Key.Store             as Key
+import           Fission.CLI.Key.Store             as Key
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.CLI.Handler.User.Register as User
@@ -30,17 +30,17 @@ import           Fission.Web.Auth.Token
 import           Fission.Web.Client                as Client
 
 setup ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  , MonadWebClient   m
-  , MonadManagedHTTP m
-  , MonadLocalIPFS   m
-  , MonadTime        m
-  , MonadLogger      m
-  , MonadRandom      m
-  , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
-  , ServerDID        m
+  ( MonadIO                  m
+  , MonadEnvironment         m
+  , MonadWebClient           m
+  , MonadManagedHTTP         m
+  , MonadLocalIPFS           m
+  , MonadTime                m
+  , MonadLogger              m
+  , MonadKeyStore SigningKey m -- FIXME flip order?
+  , MonadWebAuth             m Token
+  , MonadWebAuth             m Ed25519.SecretKey
+  , ServerDID                m
 
   , MonadCleanup m
   , m `Raises` OS.Unsupported
@@ -58,7 +58,7 @@ setup ::
   -> BaseUrl
   -> m ()
 setup maybeOS fissionURL = do
-  Key.create
+  Key.create (Proxy @SigningKey)
   username <- User.register
 
   UTF8.putText "Setting default config..."
