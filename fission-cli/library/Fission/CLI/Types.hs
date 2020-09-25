@@ -326,18 +326,7 @@ instance
         return daemonProcess
 
       Nothing -> do
-        logDebug @Text "Starting new IPFS Daemon"
-        ipfsRepo <- globalIPFSRepo
-        Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
-
-        process <- startProcess . fromString $ intercalate " "
-          [ ipfsPath
-          , "daemon"
-          , "--enable-pubsub-experiment"
-          , "--enable-namesys-pubsub"
-          ]
-
-        logDebug @Text "IPFS daemon running"
+        process <- startup
 
         liftIO (tryPutMVar daemonVar process) >>= \case
           True  -> logDebug @Text "Placed IPFS daemon in MVar"
@@ -361,9 +350,15 @@ instance
 
         void . Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
         mayIPFSPath <- Turtle.need "IPFS_PATH"
-        logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath
+        logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath <> " " <> ipfsRepo
 
-        process <- startProcess . fromString $ ipfsPath <> " daemon > /dev/null 2>&1"
+        process <- startProcess . fromString $ intercalate " "
+          [ ipfsPath
+          , "daemon"
+          , "--enable-pubsub-experiment"
+          , "--enable-namesys-pubsub"
+          ]
+
         logDebug @Text "IPFS daemon started"
 
         waitForStartup >>= \case

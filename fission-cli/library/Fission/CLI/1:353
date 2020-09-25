@@ -1,0 +1,72 @@
+Agent pid 11920
+0;fish /home/expede/Work/fission/fission-cli/library/Fission/CLIWelcome to fish
+, the friendly interactive shell                                              
+0;fish /home/expede/Work/fission/fission-cli/library/Fission/CLI⏎              
+> cd ~/Work/fission/
+0;fish /home/expede/Work/fission⏎                                              
+╭─expede@espresso-bar /home/expede/Work/fission  ‹system›  <cli-linking*> 
+╰─$ stack install fission-cli:fission
+fission-cli-2.9.0.0: unregistering (local file changes: README.md fission-cli.c
+abal library/Fission/CLI/Environment/Path.hs library/Fission/CLI/Key/Excha...)
+fission-cli> configure (lib + exe)
+Configuring fission-cli-2.9.0.0...
+fission-cli> build (lib + exe)
+Preprocessing library for fission-cli-2.9.0.0..
+Building library for fission-cli-2.9.0.0..
+[45 of 99] Compiling Fission.CLI.App.Environment.Types
+[46 of 99] Compiling Fission.CLI.Base.Types
+[47 of 99] Compiling Fission.CLI.Connected.Types
+[48 of 99] Compiling Fission.CLI.Display.Error
+[49 of 99] Compiling Fission.CLI.Environment.Class
+[50 of 99] Compiling Fission.CLI.Environment.OS.Error
+[51 of 99] Compiling Fission.CLI.Environment.OS.Types
+[52 of 99] Compiling Fission.CLI.Environment.OS
+[53 of 99] Compiling Fission.CLI.Environment.IPFS
+[54 of 99] Compiling Fission.CLI.Environment.Path
+[55 of 99] Compiling Fission.CLI.Environment.Types
+[56 of 99] Compiling Fission.CLI.File
+[57 of 99] Compiling Fission.CLI.IPFS.Add
+[58 of 99] Compiling Fission.CLI.IPFS.Daemon.Class
+[59 of 99] Compiling Fission.CLI.IPFS.Daemon
+[60 of 99] Compiling Fission.CLI.IPFS.Ignore.Class
+[61 of 99] Compiling Fission.CLI.IPFS.Ignore
+[62 of 99] Compiling Fission.CLI.Key.Ed25519
+[63 of 99] Compiling Fission.CLI.Meta
+[64 of 99] Compiling Fission.CLI.Parser.Command.Setup.Types
+[65 of 99] Compiling Fission.CLI.Parser.Command.Setup
+[66 of 99] Compiling Fission.CLI.Parser.Command.Types
+[68 of 99] Compiling Fission.CLI.Prompt.BuildDir
+[70 of 99] Compiling Fission.CLI.Parser.Command
+[72 of 99] Compiling Fission.CLI.YAML
+[73 of 99] Compiling Fission.CLI.App.Environment
+[74 of 99] Compiling Fission.CLI.Handler.App.Info
+[75 of 99] Compiling Fission.Web.Client.HTTP.Class
+[76 of 99] Compiling Fission.CLI.Bootstrap.Types
+[77 of 99] Compiling Fission.CLI.Bootstrap
+[78 of 99] Compiling Fission.Web.Client
+[81 of 99] Compiling Fission.CLI.Handler.App.Publish
+[82 of 99] Compiling Fission.CLI.Handler.App.Init
+[84 of 99] Compiling Fission.Web.Client.Peers
+[85 of 99] Compiling Fission.CLI.IPFS.Connect
+[86 of 99] Compiling Fission.CLI.Environment
+[87 of 99] Compiling Fission.CLI.Key.Store
+[88 of 99] Compiling Fission.CLI.Types
+
+/home/expede/Work/fission/fission-cli/library/Fission/CLI/Types.hs:353:71: erro
+r:                                                                            
+    Variable not in scope: daemon :: String
+    |
+353 |         logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath <> " " <> dae
+mon                                                                           
+    |                                                                       ^^^
+^^^                                                                           
+
+
+--  While building package fission-cli-2.9.0.0 using:
+      /home/expede/.stack/setup-exe-cache/x86_64-linux-nix/Cabal-simple_mPHDZzA
+J_3.0.1.0_ghc-8.8.3 --builddir=.stack-work/dist/x86_64-linux-nix/Cabal-3.0.1.0 
+build lib:fission-cli exe:fission --ghc-options " -fdiagnostics-color=always" 
+    Process exited with code: ExitFailure 1
+0;fish /home/expede/Work/fission⏎                                              
+╭─expede@espresso-bar /home/expede/Work/fission  ‹system›  <cli-linking*> 
+╰─$                                                                        ↵ 1
