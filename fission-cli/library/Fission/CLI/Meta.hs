@@ -5,10 +5,10 @@ module Fission.CLI.Meta
   , module Fission.Internal.Meta.Package
   ) where
 
--- import           Data.FileEmbed
+import           Data.FileEmbed
 
 import           Fission.Internal.Meta.Package hiding (package)
 import           Fission.Prelude
 
 package :: Maybe Package
-package = Nothing -- FIXME fromContents $(embedFile "./package.yaml")
+package = fromContents $(embedFile "./package.yaml")

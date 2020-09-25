@@ -30,17 +30,17 @@ import           Fission.Web.Auth.Token
 import           Fission.Web.Client                as Client
 
 setup ::
-  ( MonadIO                  m
-  , MonadEnvironment         m
-  , MonadWebClient           m
-  , MonadManagedHTTP         m
-  , MonadLocalIPFS           m
-  , MonadTime                m
-  , MonadLogger              m
-  , MonadKeyStore SigningKey m -- FIXME flip order?
-  , MonadWebAuth             m Token
-  , MonadWebAuth             m Ed25519.SecretKey
-  , ServerDID                m
+  ( MonadIO           m
+  , MonadEnvironment  m
+  , MonadWebClient    m
+  , MonadManagedHTTP  m
+  , MonadLocalIPFS    m
+  , MonadTime         m
+  , MonadLogger       m
+  , MonadKeyStore     m SigningKey
+  , MonadWebAuth      m (SecretKey SigningKey)
+  , MonadWebAuth      m Token
+  , ServerDID         m
 
   , MonadCleanup m
   , m `Raises` OS.Unsupported

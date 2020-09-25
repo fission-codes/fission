@@ -35,8 +35,9 @@ import           Fission.Web.Client
 import           Fission.Web.Client.Peers      as Peers
 
 import qualified Fission.CLI.Display.Error     as CLI.Error
-import           Fission.CLI.Environment.Path  as Path
 import qualified Fission.CLI.YAML              as YAML
+
+import           Fission.CLI.Key.Store         as KeyStore
 
 -- Reexports
 
@@ -49,6 +50,7 @@ init ::
   , MonadEnvironment m
   , MonadLogger      m
   , MonadWebClient   m
+  , MonadKeyStore    m SigningKey
 
   , MonadCleanup m
   , m `Raises` ClientError
@@ -69,7 +71,7 @@ init username fissionURL = do
     Right nonEmptyPeers -> do
       serverDID      <- fetchServerDID fissionURL
       envPath        <- absPath
-      signingKeyPath <- Path.getSigningKeyPath
+      signingKeyPath <- KeyStore.getPath $ Proxy @SigningKey
 
       envPath `YAML.writeFile` Env
         { peers          = NonEmpty.toList nonEmptyPeers

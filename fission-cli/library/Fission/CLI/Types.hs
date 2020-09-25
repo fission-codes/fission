@@ -180,7 +180,7 @@ instance
   , Display (OpenUnion errs)
   , HasLogFunc cfg
   )
-  => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
+  => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where -- FIXME switch to MonadKeyStore => MonadWebAuth
   getAuth = do
     attempt (getAsBytes signKey) >>= \case
       Right raw -> ensureM $ Key.Store.parse signKey raw

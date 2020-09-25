@@ -4,9 +4,6 @@ module Fission.CLI.Environment.Path
   , globalIPFSRepo
   , globalTmpDir
   , globalKeyDir
-  , getSigningKeyPath
-  , getExchangePublicKeyPath
-  , getExchangeSecretKeyPath
   ) where
 
 import qualified Network.IPFS.BinPath.Types    as IPFS
@@ -40,30 +37,3 @@ globalKeyDir :: MonadEnvironment m => m FilePath
 globalKeyDir = do
   dir <- getGlobalPath
   return $ dir </> "key"
-
-getSigningKeyPath ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  )
-  => m FilePath
-getSigningKeyPath = do
-  path <- globalKeyDir
-  return $ path </> "machine_id.ed25519"
-
-getExchangePublicKeyPath ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  )
-  => m FilePath
-getExchangePublicKeyPath = do
-  path <- globalKeyDir
-  return $ path </> "exchange.rsa.pub"
-
-getExchangeSecretKeyPath ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  )
-  => m FilePath
-getExchangeSecretKeyPath = do
-  path <- globalKeyDir
-  return $ path </> "exchange.rsa"

@@ -19,8 +19,6 @@ import qualified Data.ByteArray                   as ByteArray
 
 import           Fission.Prelude
 
-import           Fission.CLI.Environment
-import           Fission.CLI.Environment.Path     as Path
 import           Fission.CLI.File
 
 import           Fission.CLI.Key.Store.Class      as KeyStore
@@ -37,10 +35,10 @@ import           Fission.CLI.Key.Store.Class
 import           Fission.CLI.Key.Store.Types
 
 create ::
-  ( MonadIO           m
-  , MonadLogger       m
-  , MonadKeyStore key m
-  , MonadRaise        m
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
+  , MonadRaise    m
   , m `Raises` Key.Error
   )
   => Proxy key
@@ -50,10 +48,9 @@ create keyPxy = exists keyPxy >>= \case
   False -> forceCreate keyPxy
 
 getAsBytes ::
-  ( MonadIO           m
-  , MonadEnvironment  m
-  , MonadKeyStore key m
-  , MonadRaise        m
+  ( MonadIO       m
+  , MonadKeyStore m key
+  , MonadRaise    m
   , m `Raises` Key.Error
   )
   => Proxy key
@@ -64,30 +61,30 @@ getAsBytes keyPxy =
       raise Key.DoesNotExist
 
     True -> do
-      path <- Path.getSigningKeyPath
+      path <- KeyStore.getPath keyPxy
       bs   <- readFileBinary path
       return $ B64.Scrubbed.scrub bs
 
 exists ::
-  ( MonadIO           m
-  , MonadKeyStore key m
+  ( MonadIO       m
+  , MonadKeyStore m key
   )
   => Proxy key
   -> m Bool
 exists pxy = doesFileExist =<< KeyStore.getPath pxy
 
 forceCreate ::
-  ( MonadIO           m
-  , MonadLogger       m
-  , MonadKeyStore key m
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
   )
   => Proxy key
   -> m ()
 forceCreate pxy = persist pxy =<< KeyStore.generate pxy
 
 delete ::
-  ( MonadIO           m
-  , MonadKeyStore key m
+  ( MonadIO       m
+  , MonadKeyStore m key
   )
   => Proxy key
   -> m ()
@@ -96,9 +93,9 @@ delete pxy = exists pxy >>= \case
   True  -> removeFile =<< KeyStore.getPath pxy
 
 persist ::
-  ( MonadIO           m
-  , MonadLogger       m
-  , MonadKeyStore key m
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
   )
   => Proxy key
   -> SecretKey key
