@@ -58,7 +58,8 @@ setup ::
   -> BaseUrl
   -> m ()
 setup maybeOS fissionURL = do
-  Key.create (Proxy @SigningKey)
+  Key.create $ Proxy @SigningKey
+  Key.create $ Proxy @ExchangeKey
   username <- User.register
 
   UTF8.putText "Setting default config..."
