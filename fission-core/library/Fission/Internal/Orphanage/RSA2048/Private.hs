@@ -2,13 +2,14 @@
 
 module Fission.Internal.Orphanage.RSA2048.Private () where
 
+import qualified RIO.ByteString.Lazy as Lazy
+
 import           Data.Binary         as Binary
 import           Data.ByteArray      as ByteArray
 
-import qualified RIO.ByteString.Lazy as Lazy
-
 import qualified Codec.Crypto.RSA    as Codec.RSA
 import qualified Crypto.PubKey.RSA   as RSA
+
 import qualified System.IO.Unsafe    as Unsafe
 
 import           Fission.Prelude
