@@ -3,7 +3,7 @@ resolver: lts-15.10
 packages:
 - fission-cli
 - fission-core
-
+- fission-web-client
 
 allow-newer: true
 
