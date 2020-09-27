@@ -102,20 +102,48 @@ createAccount = do
       CLI.Error.put msg $
         msg <> " Please try again or contact Fission support at https://fission.codes"
 
+      -- FIXME move old ky elsewhere ordelete it... or ask to delete I guess?
+
       createAccount
 
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
 
-      -- FIXME move to own module
-      exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
-      exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
+      setupExchangeKey
 
-      attempt (sendRequestM (getAddExchangePKClient `withPayload` exchangePK)) >>= \case
-        Left _ -> undefined
-        Right _ -> undefined
+      -- FIXME move to own module
 
       return username
+
+setupExchangeKey ::
+  ( MonadIO          m
+  , MonadTime        m
+  , MonadLogger      m
+  , MonadRandom      m
+  , MonadEnvironment m
+  , ServerDID        m
+  , MonadWebClient   m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , MonadRescue      m
+  , m `Raises` ClientError
+  , m `Raises` Key.Error
+  , ClientError `IsMember` Errors m -- FIXME change in Rescue: `type Raises m err = IsMember err (Errors m)`
+  )
+  => m ()
+setupExchangeKey = do
+  exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
+  exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
+
+  attempt (sendRequestM (getAddExchangePKClient `withPayload` exchangePK)) >>= \case
+    Right _ ->
+      return ()
+
+    Left err -> do
+      let msg = registerErrMsg err
+
+      CLI.Error.put msg $
+        msg <> " Please try again or contact Fission support at https://fission.codes"
 
 registerErrMsg :: IsMember ClientError errs => OpenUnion errs -> Text
 registerErrMsg err =
