@@ -39,7 +39,7 @@ stack build --no-nix fission-cli:fission
 Once you've built the CLI, it is installed in `~/.local/bin/fission`. If you already have an existing fission key in `~/.ssh`, copy it as follows:
 
 ```shell
-cp ~/.ssh/fission ~/.config/fission/key/machine_id.ed2551
+cp ~/.ssh/fission ~/.config/fission/key/machine_id.ed25519
 ```
 
 Now run `fission setup` to install the Fission-controlled IPFS node.
@@ -57,7 +57,7 @@ Deployments are just one step: `fission app publish`
 
 
 ```
-$ fission up hello-universe/
+$ fission app publish
 🚀 Now live on the network
 👌 QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN
 📝 DNS updated! Check out your site at:
