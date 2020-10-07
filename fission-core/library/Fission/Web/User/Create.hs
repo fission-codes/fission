@@ -6,17 +6,20 @@ module Fission.Web.User.Create
   ) where
 
 import           Servant
+
 import           Fission.Prelude
 
-import           Fission.IPFS.DNSLink   as DNSLink
-import           Fission.Web.Error      as Web.Err
+import           Fission.IPFS.DNSLink                   as DNSLink
+import           Fission.Web.Error                      as Web.Err
 
-import qualified Fission.User           as User
+import qualified Fission.User                           as User
 import           Fission.User.DID.Types
 
-import qualified Fission.Challenge.Creator.Class as Challenge
+import qualified Fission.Challenge.Creator.Class        as Challenge
 
 import           Fission.Email
+
+import           Fission.Internal.Orphanage.ClientError ()
 
 type API
   =  Summary "Create user with DID and UCAN proof"
@@ -41,15 +44,19 @@ withDID ::
   => DID
   -> ServerT API m
 withDID DID {..} User.Registration {username, email} = do
-  now <- currentTime
-  userId <- Web.Err.ensureM $ User.create username publicKey email now
+  now       <- currentTime
+  userId    <- Web.Err.ensureM $ User.create username publicKey email now
   challenge <- Web.Err.ensureM $ Challenge.create userId
 
   sendVerificationEmail (Recipient email username) challenge >>= \case
     Left _ ->
-      Web.Err.throw err500 { errBody = "Could not send verification email" }
+      -- Overwhelmingly likely that it's user error, so inferring 422
+      --
+      -- Really we would FIXME and inspect the response,
+      -- and sendVerificationEmail returns a more descriptive error
+      Web.Err.throw err422 { errBody = "Could not send verification email" }
 
-    Right _ -> 
+    Right _ ->
       return NoContent
 
 withPassword ::
@@ -70,7 +77,7 @@ withPassword User.Registration {username, password = Just pass, email} = do
   challenge <- Web.Err.ensureM $ Challenge.create userId
 
   sendVerificationEmail (Recipient email username) challenge >>= \case
-    Left _ -> 
+    Left _ ->
       Web.Err.throw err500 { errBody = "Could not send verification email" }
-    Right _ -> 
+    Right _ ->
       return ()

@@ -1,8 +1,9 @@
 module Fission.CLI.IPFS.Configure
   ( init
   , bootstrap
-  , apiAddresses
-  , gatewayAddresses
+  , apiAddress
+  , gatewayAddress
+  , websocketAddress
   ) where
 
 import qualified RIO.ByteString.Lazy          as Lazy
@@ -32,12 +33,17 @@ bootstrap = forM_ peers (IPFS.runLocal ["bootstrap", "add"])
       , "/ip4/3.226.224.78/udp/4001/quic/p2p/QmPeeeZZXxMBAPxxba7a6ggjDr5jLuD3RAFnmPPcvJ9fMS"
       ]
 
-apiAddresses :: (MonadIO m, MonadEnvironment m) => m ()
-apiAddresses = do
+setApiAddress :: (MonadIO m, MonadEnvironment m) => m ()
+setApiAddress = do
   IPFS.BinPath ipfsPath <- globalIPFSBin
   void . runProcess . fromString $ ipfsPath <> " config Addresses.API /ip4/0.0.0.0/tcp/10235"
 
-gatewayAddresses :: (MonadIO m, MonadEnvironment m) => m ()
-gatewayAddresses = do
+setGatewayAddress :: (MonadIO m, MonadEnvironment m) => m ()
+setGatewayAddress = do
   IPFS.BinPath ipfsPath <- globalIPFSBin
   void . runProcess . fromString $ ipfsPath <> " config Addresses.Gateway /ip4/0.0.0.0/tcp/11235"
+
+setSwarmAddresses :: (MonadIO m, MonadEnvironment m) => m ()
+setSwarmAddresses = do
+  IPFS.BinPath ipfsPath <- globalIPFSBin
+  void . runProcess . fromString $ ipfsPath <> " config Addresses.Swarm FIXME FIXME FIXME"

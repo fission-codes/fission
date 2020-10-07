@@ -1,23 +1,28 @@
 module Fission.User.Registration.Types ( Registration(..) ) where
 
-import Data.Swagger hiding (email)
+import qualified Crypto.PubKey.RSA                         as RSA
+import           Data.Swagger                              hiding (email)
 
-import Fission.Prelude
-import Fission.User.Email.Types
-import Fission.User.Username.Types
-import Fission.User.Password.Types
+import           Fission.Prelude
+import           Fission.User.Email.Types
+import           Fission.User.Password.Types
+import           Fission.User.Username.Types
+
+import           Fission.Internal.Orphanage.RSA2048.Public ()
 
 data Registration = Registration
-  { username :: !Username
-  , email    :: !Email
-  , password :: !(Maybe Password)
+  { username   :: !Username
+  , email      :: !Email
+  , password   :: !(Maybe Password)
+  , exchangePK :: !(Maybe RSA.PublicKey)
   }
 
 instance Arbitrary Registration where
   arbitrary = do
-    username <- arbitrary
-    password <- arbitrary
-    email    <- arbitrary
+    username   <- arbitrary
+    password   <- arbitrary
+    email      <- arbitrary
+    exchangePK <- arbitrary
 
     return Registration {..}
 
@@ -29,9 +34,10 @@ instance ToJSON Registration where
 
 instance FromJSON Registration where
   parseJSON = withObject "Registration" \obj -> do
-    username <- obj .:  "username"
-    password <- obj .:? "password"
-    email    <- obj .:  "email"
+    username   <- obj .:  "username"
+    password   <- obj .:? "password"
+    exchangePK <- obj .:? "exchangePK"
+    email      <- obj .:  "email"
 
     return Registration {..}
 
@@ -50,9 +56,10 @@ instance ToSchema Registration where
       |> description ?~
            "The information that a user needs to provide to login/register."
       |> example ?~ toJSON Registration
-           { username = "username"
-           , email    = "alice@example.com"
-           , password = Nothing
+           { username   = "username"
+           , email      = "alice@example.com"
+           , password   = Nothing
+           , exchangePK = Nothing
            }
       |> NamedSchema (Just "Registration")
       |> pure

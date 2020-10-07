@@ -73,7 +73,8 @@ place' host = do
   IPFS.Config.init
   IPFS.Config.bootstrap
 
-  IPFS.Config.apiAddresses
-  IPFS.Config.gatewayAddresses
+  IPFS.Config.apiAddress
+  IPFS.Config.gatewayAddress
+  IPFS.Config.websocketAddress
 
   return ()

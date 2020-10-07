@@ -60,7 +60,11 @@ setup ::
 setup maybeOS fissionURL = do
   Key.create $ Proxy @SigningKey
   Key.create $ Proxy @ExchangeKey
+
   username <- User.register
+
+  UTF8.putText "Registering exchange key..."
+  -- username <- User.register -- FIXME check out Register.hs
 
   UTF8.putText "Setting default config..."
   Env.init username fissionURL

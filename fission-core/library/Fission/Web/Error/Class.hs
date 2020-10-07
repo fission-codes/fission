@@ -1,15 +1,18 @@
 module Fission.Web.Error.Class (ToServerError (..)) where
 
+import           Servant.Client                         (ClientError (..))
 import           Servant.Server
 
 import           Network.IPFS.Error
 import           Network.IPFS.Types
 
-import qualified Network.IPFS.Add.Error  as Add
-import qualified Network.IPFS.Get.Error  as Get
-import qualified Network.IPFS.Peer.Error as Peer
+import qualified Network.IPFS.Add.Error                 as Add
+import qualified Network.IPFS.Get.Error                 as Get
+import qualified Network.IPFS.Peer.Error                as Peer
 
 import           Fission.Prelude
+
+import           Fission.Internal.Orphanage.ClientError ()
 
 class ToServerError err where
   toServerError :: err -> ServerError
@@ -98,3 +101,6 @@ instance ToServerError (OpenUnion '[]) where
 
 instance (ToServerError a, ToServerError (OpenUnion as)) => ToServerError (OpenUnion (a ': as)) where
   toServerError err = openUnion toServerError toServerError err
+
+instance ToServerError ClientError where
+  toServerError err = err502 { errBody = displayLazyBS err }

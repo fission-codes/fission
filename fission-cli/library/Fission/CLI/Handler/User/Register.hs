@@ -21,7 +21,9 @@ import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token
+
 import           Fission.Web.Client              as Client
+import qualified Fission.Web.Client.User         as Client
 import qualified Fission.Web.Client.User         as User
 
 import           Fission.User.Email.Types
@@ -89,11 +91,15 @@ createAccount = do
   username <- Username <$> Prompt.reaskNotEmpty' "Username: "
   email    <- Email    <$> Prompt.reaskNotEmpty' "Email: "
 
+  exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
+  exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
+
   let
     form = Registration
       { username
       , email
-      , password = Nothing
+      , password   = Nothing
+      , exchangePK = Just exchangPK
       }
 
   attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
@@ -102,48 +108,7 @@ createAccount = do
       CLI.Error.put msg $
         msg <> " Please try again or contact Fission support at https://fission.codes"
 
-      -- FIXME move old ky elsewhere ordelete it... or ask to delete I guess?
-
       createAccount
-
-    Right _ok -> do
-      CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
-
-      setupExchangeKey
-
-      -- FIXME move to own module
-
-      return username
-
-setupExchangeKey ::
-  ( MonadIO          m
-  , MonadTime        m
-  , MonadLogger      m
-  , MonadRandom      m
-  , MonadEnvironment m
-  , ServerDID        m
-  , MonadWebClient   m
-  , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
-  , MonadRescue      m
-  , m `Raises` ClientError
-  , m `Raises` Key.Error
-  , ClientError `IsMember` Errors m -- FIXME change in Rescue: `type Raises m err = IsMember err (Errors m)`
-  )
-  => m ()
-setupExchangeKey = do
-  exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
-  exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
-
-  attempt (sendRequestM (getAddExchangePKClient `withPayload` exchangePK)) >>= \case
-    Right _ ->
-      return ()
-
-    Left err -> do
-      let msg = registerErrMsg err
-
-      CLI.Error.put msg $
-        msg <> " Please try again or contact Fission support at https://fission.codes"
 
 registerErrMsg :: IsMember ClientError errs => OpenUnion errs -> Text
 registerErrMsg err =
@@ -171,18 +136,3 @@ registerErrMsg err =
 
         _ ->
           "Invalid content type."
-
--- FIXME put in better module
-getAddExchangePKClient ::
-  ( MonadIO      m
-  , MonadTime    m
-  , MonadLogger  m
-  , ServerDID    m
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
-  )
-  => m (RSA.PublicKey -> ClientM [RSA.PublicKey])
-getAddExchangePKClient = do
-  (addExchangeKey :<|> _) <- authClient $ Proxy @User.ExchangeKeysAPI
-  return addExchangeKey
-
