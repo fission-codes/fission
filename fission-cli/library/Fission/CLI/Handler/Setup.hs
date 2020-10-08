@@ -4,6 +4,7 @@ import qualified Crypto.PubKey.Ed25519             as Ed25519
 
 import           Network.DNS
 import           Network.IPFS
+import qualified Network.IPFS.Process.Error        as IPFS
 import           Servant.Client
 
 import           Fission.Prelude
@@ -45,6 +46,7 @@ setup ::
   , MonadCleanup m
   , m `Raises` OS.Unsupported
   , m `Raises` ClientError
+  , m `Raises` IPFS.Error
   , m `Raises` Key.Error
   , m `Raises` DNSError
   , m `Raises` NotFound DID

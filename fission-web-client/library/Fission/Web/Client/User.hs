@@ -34,7 +34,6 @@ import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as User
 
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
@@ -59,5 +58,5 @@ addExchangePK ::
   )
   => m (RSA.PublicKey -> ClientM [RSA.PublicKey])
 addExchangePK = do
-  (addExchangeKey :<|> _) <- authClient $ Proxy @User.ExchangeKeysAPI
+  (addExchangeKey :<|> _) <- authClient $ Proxy @ExchangeKeysAPI
   return addExchangeKey

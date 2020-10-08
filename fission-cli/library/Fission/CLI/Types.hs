@@ -276,6 +276,7 @@ instance
   runLocal opts' arg = do
     logDebug @Text "Running local IPFS"
 
+    ipfsRepo          <- globalIPFSRepo
     IPFS.BinPath ipfs <- globalIPFSBin
     IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
@@ -296,7 +297,7 @@ instance
            | cmd == Just "pin" || cmd == Just "add" -> opts' <> [arg', timeout, cidVersion, ignore]
            | otherwise                              -> opts' <> [arg', timeout]
 
-      process = intercalate " " (ipfs : opts)
+      process = intercalate " " ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
 
     logDebug $ "Running: " <> process
 
@@ -349,15 +350,13 @@ instance
         ipfsRepo         <- globalIPFSRepo
         BinPath ipfsPath <- globalIPFSBin
 
-        void . Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
-        mayIPFSPath <- Turtle.need "IPFS_PATH"
-        logDebug $ "IPFS_PATH set to: " <> show mayIPFSPath <> " " <> ipfsRepo
-
         process <- startProcess . fromString $ intercalate " "
-          [ ipfsPath
+          [ "IPFS_PATH=" <> ipfsRepo
+          , ipfsPath
           , "daemon"
           , "--enable-pubsub-experiment"
           , "--enable-namesys-pubsub"
+          , " > /dev/null 2>&1"
           ]
 
         logDebug @Text "IPFS daemon started"

@@ -2,13 +2,11 @@
 module Fission.CLI.Handler.User.Register (register) where
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
-import qualified Crypto.PubKey.RSA               as RSA
 import           Crypto.Random
 
 import           Network.DNS
 import           Network.HTTP.Types.Status
 
-import           Servant.API
 import           Servant.Client
 
 import           Fission.Prelude
@@ -23,7 +21,6 @@ import           Fission.User.Username.Types
 import           Fission.Web.Auth.Token
 
 import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as Client
 import qualified Fission.Web.Client.User         as User
 
 import           Fission.User.Email.Types
@@ -99,7 +96,7 @@ createAccount = do
       { username
       , email
       , password   = Nothing
-      , exchangePK = Just exchangPK
+      , exchangePK = Just exchangePK
       }
 
   attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
@@ -109,6 +106,10 @@ createAccount = do
         msg <> " Please try again or contact Fission support at https://fission.codes"
 
       createAccount
+
+    Right _ok -> do
+      CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
+      return username
 
 registerErrMsg :: IsMember ClientError errs => OpenUnion errs -> Text
 registerErrMsg err =

@@ -10,6 +10,7 @@ import qualified Turtle                        as Turtle
 
 import           Network.IPFS
 import qualified Network.IPFS.File.Types       as File
+import qualified Network.IPFS.Process.Error    as IPFS
 import           Network.IPFS.Types            as IPFS
 
 import           Servant.Client
@@ -37,6 +38,7 @@ place ::
   , MonadRescue      m
   , m `Raises` OS.Unsupported
   , m `Raises` ClientError
+  , m `Raises` IPFS.Error
   )
   => Maybe OS.Supported
   -> m ()
@@ -51,19 +53,15 @@ place' ::
   , MonadEnvironment m
   , MonadRescue      m
   , m `Raises` ClientError
+  , m `Raises` IPFS.Error
   )
   => OS.Supported
   -> m ()
 place' host = do
   logDebug $ "Setting up IPFS binary for " <> textDisplay host
 
-  IPFS.BinPath ipfsPath <- Path.globalIPFSBin
-  ipfsRepo              <- Path.globalIPFSRepo
-
-  Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
-
-  File.Serialized lazyFile <- ensureM $ runBootstrapT do
-    ipfsCat $ IPFS.binCidFor host
+  IPFS.BinPath ipfsPath    <- Path.globalIPFSBin
+  File.Serialized lazyFile <- ensureM . runBootstrapT . ipfsCat $ IPFS.binCidFor host
 
   logDebug $ "Writing IPFS binary to " <> Text.pack ipfsPath
   ipfsPath `forceWrite` Lazy.toStrict lazyFile
@@ -71,10 +69,9 @@ place' host = do
   void . Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath
 
   IPFS.Config.init
-  IPFS.Config.bootstrap
+  void $ IPFS.Config.enableRelay
 
-  IPFS.Config.apiAddress
-  IPFS.Config.gatewayAddress
-  IPFS.Config.websocketAddress
-
-  return ()
+  void $ IPFS.Config.setApiAddress
+  void $ IPFS.Config.setBootstrap
+  void $ IPFS.Config.setGatewayAddress
+  void $ IPFS.Config.setSwarmAddresses
