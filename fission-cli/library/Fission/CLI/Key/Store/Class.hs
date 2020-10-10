@@ -38,6 +38,7 @@ class
 
 instance
   ( MonadIO          m
+  , MonadLogger      m
   , MonadRandom      m
   , MonadEnvironment m
   )
@@ -46,19 +47,24 @@ instance
     type PublicKey SigningKey = Ed25519.PublicKey
 
     toPublic _pxy = pure . Ed25519.toPublic
-    generate _pxy = Ed25519.generateSecretKey
+
+    generate _pxy = do
+      logDebug @Text "Generating signing key"
+      Ed25519.generateSecretKey
 
     getPath _pxy = do
       path <- globalKeyDir
       return $ path </> "machine_id.ed25519"
 
-    parse _pxy bs =
+    parse _pxy bs = do
+      logDebug @Text "Parsing signing key"
       return case Ed25519.secretKey bs of
         CryptoPassed sk  -> Right sk
         CryptoFailed err -> Left . Key.ParseError . Text.pack $ show err
 
 instance
-  ( MonadRandom      m
+  ( MonadLogger      m
+  , MonadRandom      m
   , MonadEnvironment m
   )
   => MonadKeyStore m ExchangeKey where
@@ -66,13 +72,17 @@ instance
     type PublicKey ExchangeKey = RSA.PublicKey
 
     toPublic _pxy = pure . RSA.private_pub
-    generate _pxy = snd <$> RSA.generate 2048 65537
+
+    generate _pxy = do
+      logDebug @Text "Generating exchange key"
+      snd <$> RSA.generate 2048 65537
 
     getPath _pxy = do
       path <- globalKeyDir
       return $ path </> "exchange.rsa2048"
 
-    parse    _pxy scrubbed =
+    parse    _pxy scrubbed = do
+      logDebug @Text "Parsing exchange key"
       return case Binary.decodeOrFail (Lazy.pack $ ByteArray.unpack scrubbed) of
         Left  (_, _, msg) -> Left . Key.ParseError $ Text.pack msg
         Right (_, _, key) -> Right key

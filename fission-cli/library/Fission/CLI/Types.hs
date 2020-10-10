@@ -301,6 +301,8 @@ instance
 
     logDebug $ "Running: " <> process
 
+    Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
     readProcess (fromString process) >>= \case
       (ExitSuccess, contents, _) ->
         return $ Right contents
@@ -350,6 +352,8 @@ instance
         ipfsRepo         <- globalIPFSRepo
         BinPath ipfsPath <- globalIPFSBin
 
+        Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
+
         process <- startProcess . fromString $ intercalate " "
           [ "IPFS_PATH=" <> ipfsRepo
           , ipfsPath
@@ -380,12 +384,23 @@ instance
   checkRunning = do
     logDebug @Text "Checking if IPFS daemon is running"
 
+    ipfsRepo         <- globalIPFSRepo
     BinPath ipfsPath <- globalIPFSBin
-    let command = fromString $ ipfsPath <> " swarm addrs > /dev/null 2>&1"
 
+    let
+      command =
+        fromString $ intercalate " "
+          [ "IPFS_PATH=" <> ipfsRepo
+          , ipfsPath
+          , "swarm"
+          , "addrs"
+          , "> /dev/null 2>&1"
+          ]
+
+    Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
     status <- liftIO $ withProcessWait command waitExitCode
-    logDebug $ show status
 
+    logDebug $ show status
     return $ status == ExitSuccess
 
 waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m Bool

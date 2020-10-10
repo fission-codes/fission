@@ -96,7 +96,8 @@ setSwarmAddresses = do
     [ "config --json"
     , "Addresses.Swarm"
     ]
-    (encode ("/ip4/0.0.0.0/tcp/4231/wc" : existing))
+    (fromString . show $ encode ("/ip4/0.0.0.0/tcp/4231/ws" : existing))
+               -- ^^^^ `show` to get string escaping
 
 enableRelay ::
   ( MonadLocalIPFS m

@@ -9,6 +9,7 @@ import           Network.HTTP.Client                            as HTTP
 import           Network.HTTP.Client.TLS                        as HTTP
 import           Servant.Client.Core
 
+import qualified Network.IPFS.Process.Error                     as IPFS (Error)
 import qualified Network.IPFS.Timeout.Types                     as IPFS
 import qualified Network.IPFS.URL.Types                         as IPFS
 
@@ -44,8 +45,8 @@ import           Fission.Internal.Orphanage.Yaml.ParseException ()
 type Errs
    = OS.Unsupported
   ': AlreadyExists Ed25519.SecretKey
-  ': OS.Unsupported
   ': ClientError
+  ': IPFS.Error
   ': App.Errs
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
