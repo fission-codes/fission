@@ -75,7 +75,7 @@ instance
 
     generate _pxy = do
       logDebug @Text "Generating exchange key"
-      snd <$> RSA.generate 2048 65537
+      snd <$> RSA.generate 2048 65537 -- FIXME switch to OpenSSL.RSA for MUCH faster generation
 
     getPath _pxy = do
       path <- globalKeyDir
