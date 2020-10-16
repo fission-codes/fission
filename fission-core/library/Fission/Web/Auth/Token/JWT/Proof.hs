@@ -9,30 +9,30 @@ module Fission.Web.Auth.Token.JWT.Proof
   , module Fission.Web.Auth.Token.JWT.Proof.Error
   ) where
 
-import qualified RIO.List as List
+import qualified RIO.List                                         as List
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT             as JWT
+import           Fission.Web.Auth.Token.JWT                       as JWT
 import           Fission.Web.Auth.Token.JWT.Proof.Error
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-delegatedInBounds :: JWT -> JWT -> Either Error JWT
+delegatedInBounds :: UCAN -> UCAN -> Either Error UCAN
 delegatedInBounds  jwt prfJWT = do
   signaturesMatch  jwt prfJWT
   resourceInSubset jwt prfJWT
   potencyInSubset  jwt prfJWT
   timeInSubset     jwt prfJWT
 
-signaturesMatch :: JWT -> JWT -> Either Error JWT
+signaturesMatch :: UCAN -> UCAN -> Either Error UCAN
 signaturesMatch jwt prfJWT =
   if (jwt |> claims |> sender) == (prfJWT |> claims |> receiver)
     then Right jwt
     else Left InvalidSignatureChain
 
-resourceInSubset :: JWT -> JWT -> Either Error JWT
+resourceInSubset :: UCAN -> UCAN -> Either Error UCAN
 resourceInSubset jwt prfJWT =
   case ((jwt |> claims |> resource), (prfJWT |> claims |> resource)) of
     (Subset (FissionFileSystem path), Subset (FissionFileSystem proofPath)) ->
@@ -45,13 +45,13 @@ resourceInSubset jwt prfJWT =
         then Right jwt
         else Left ScopeOutOfBounds
 
-potencyInSubset :: JWT -> JWT -> Either Error JWT
+potencyInSubset :: UCAN -> UCAN -> Either Error UCAN
 potencyInSubset jwt prfJWT =
   if (jwt |> claims |> potency) <= (prfJWT |> claims |> potency)
     then Right jwt
     else Left PotencyEscelation
 
-timeInSubset :: JWT -> JWT -> Either Error JWT
+timeInSubset :: UCAN -> UCAN -> Either Error UCAN
 timeInSubset jwt prfJWT =
   if startBoundry && expiryBoundry
     then Right jwt

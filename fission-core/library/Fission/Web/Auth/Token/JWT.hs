@@ -1,5 +1,5 @@
 module Fission.Web.Auth.Token.JWT
-  ( JWT    (..)
+  ( UCAN   (..)
   , Claims (..)
   , Proof  (..)
 
@@ -23,6 +23,8 @@ import qualified Crypto.PubKey.RSA.PKCS15                         as RSA.PKCS15
 import           Crypto.PubKey.Ed25519                            (toPublic)
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
 
+import qualified Data.Aeson                                       as JSON
+
 import qualified Data.ByteString.Base64.URL                       as BS.B64.URL
 
 import           Network.IPFS.CID.Types
@@ -40,16 +42,20 @@ import qualified Fission.Internal.UTF8                            as UTF8
 
 import           Fission.Key                                      as Key
 
-import           Fission.Authorization.Potency.Types
+-- FIXME delete import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
+
+import           Fission.URL.DomainName.Types
+import           Fission.URL.Types
 
 import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
+import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+-- FIXME delete import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+-- FIXME delete import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 -- Reexports
 
@@ -57,18 +63,18 @@ import           Fission.Web.Auth.Token.JWT.RawContent
 
 -- Orphans
 
-import           Fission.Internal.Orphanage.CID ()
-import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import           Fission.Internal.Orphanage.CID                   ()
+import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
-data JWT = JWT
+data UCAN = UCAN
   { header :: !Header
   , claims :: !Claims
   , sig    :: !Signature.Signature
   } deriving (Show, Eq)
 
-instance Arbitrary JWT where
+instance Arbitrary UCAN where
   arbitrary = do
     header   <- arbitrary
     (pk, sk) <- case alg header of
@@ -76,7 +82,7 @@ instance Arbitrary JWT where
         RSA2048.Pair pk' sk' <- arbitrary
         return (RSAPublicKey pk', Left sk')
 
-      Algorithm.Ed25519 -> do
+      Algorithm.EdDSA -> do
         sk' <- arbitrary
         return (Ed25519PublicKey (toPublic sk'), Right sk')
 
@@ -84,17 +90,17 @@ instance Arbitrary JWT where
 
     let
       claims = claims' {sender = DID Key pk}
-   
+
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
         Right edSK -> Right $ signEd25519 header claims edSK
 
     case sig' of
       Left _    -> error "Unable to sign JWT"
-      Right sig -> return JWT {..}
+      Right sig -> return UCAN {..}
 
-instance ToJSON JWT where
-  toJSON JWT {..} = String $ content <> "." <> textDisplay sig
+instance ToJSON UCAN where
+  toJSON UCAN {..} = String $ content <> "." <> textDisplay sig
     where
       content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
 
@@ -106,14 +112,14 @@ instance ToJSON JWT where
           |> BS.B64.URL.encode
           |> UTF8.stripPadding
 
-instance FromJSON JWT where
+instance FromJSON UCAN where
   parseJSON = withText "JWT.Token" \txt ->
     case Text.split (== '.') txt of
       [rawHeader, rawClaims, rawSig] -> do
         header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
         claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
         sig    <- Signature.parse (alg header) (toJSON rawSig)
-        return JWT {..}
+        return UCAN {..}
 
       _ ->
         fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
@@ -124,48 +130,194 @@ instance FromJSON JWT where
 -- Claims --
 ------------
 
+data Attenuation
+  = FileSystem WNFSAttenuation
+  deriving (Show, Eq)
+
+instance Arbitrary Attenuation where
+  arbitrary = FileSystem <$> arbitrary
+
+instance ToJSON Attenuation where
+  toJSON (FileSystem att) = toJSON att
+
+instance FromJSON Attenuation where
+  parseJSON val = FileSystem <$> parseJSON val
+
+data WNFSAttenuation = WNFSAttenuation
+  { wnfsResource :: !WNFSResource
+  , capability   :: !WNFSCapability
+  }
+  deriving (Show, Eq)
+
+instance Arbitrary WNFSAttenuation where
+  arbitrary = do
+    wnfsResource <- arbitrary
+    capability   <- arbitrary
+
+    return WNFSAttenuation {..}
+
+instance ToJSON WNFSAttenuation where
+  toJSON WNFSAttenuation {..} =
+    object
+      [ "wnfs" .= urn
+      , "cap"  .= capability
+      ]
+    where
+      urn :: WNFSResource
+      urn = undefined -- FIXME
+
+instance FromJSON WNFSAttenuation where
+  parseJSON = withObject "WNFS.Attenuation" \obj -> do
+    wnfsResource <- obj .: "wnfs"
+    capability   <- obj .: "cap"
+
+    return WNFSAttenuation {..}
+
+data WNFSResource = WNFSResource
+  { namespace :: DomainName
+  , username  :: Username
+  , filePath  :: FilePath
+  }
+  deriving (Show, Eq)
+
+instance Arbitrary WNFSResource where
+  arbitrary = do
+    namespace  <- arbitrary -- FIXME may need some more constraint
+    username   <- arbitrary
+    filePath   <- arbitrary
+
+    return WNFSResource {..}
+
+instance ToJSON WNFSResource where
+  toJSON WNFSResource {..} =
+    String (textDisplay username <> "." <> textDisplay namespace <> normalizedPath)
+    where
+      txt =
+        Text.pack filePath
+
+      normalizedPath =
+        case Text.uncons txt of
+         Just ('/', _) -> txt
+         _             -> "/" <> txt
+
+instance FromJSON WNFSResource where
+  parseJSON = withText "WNFS.Path" \txt -> do
+    let
+      (url, path') =
+        Text.break (/= '/') txt
+
+      pathStr =
+        Text.unpack path'
+
+      filePath =
+        case pathStr of
+         ('/' : _) -> pathStr
+         _         -> '/' : pathStr
+
+    URL
+      { subdomain = Just (Subdomain rawSubdomain)
+      , domainName
+      } <- parseJSON $ String url
+
+    username <- parseJSON $ String rawSubdomain
+
+    return WNFSResource
+      { namespace = domainName
+      , username
+      , filePath
+      }
+
+data WNFSCapability
+  = Create
+  | Revise
+  | SoftDelete
+  | Overwrite
+  | SuperUser
+  deriving (Show, Eq, Ord)
+
+instance Arbitrary WNFSCapability where
+  arbitrary = elements
+    [ Create
+    , Revise
+    , SoftDelete
+    , Overwrite
+    , SuperUser
+    ]
+
+instance ToJSON WNFSCapability where
+  toJSON = \case
+    Create     -> "CREATE"
+    Revise     -> "REVISE"
+    SoftDelete -> "SOFT_DELETE"
+    Overwrite  -> "OVERWRITE"
+    SuperUser  -> "SUPER_USER"
+
+instance FromJSON WNFSCapability where
+  parseJSON = withText "WNFS.Capability" \txt ->
+    case Text.toUpper txt of
+      "CREATE"      -> pure Create
+      "REVISE"      -> pure Revise
+      "SOFT_DELETE" -> pure SoftDelete
+      "OVERWRITE"   -> pure Overwrite
+      "SUPER_USER"  -> pure SuperUser
+      other         -> fail $ show other <> " is not a valid capabilty"
+
+newtype Fact = Fact JSON.Value
+  deriving newtype ( Eq
+                   , Show
+                   , IsString
+                   , ToJSON
+                   , FromJSON
+                   )
+
+instance Arbitrary Fact where
+  arbitrary = elements ["hello world"] -- FIXME Expand
+
 data Claims = Claims
   -- Dramatis Personae
-  { sender   :: !DID
-  , receiver :: !DID
-  -- Authorization Target
-  , resource :: !(Scope Resource)
-  , potency  :: !Potency
-  , proof    :: !Proof
+  { sender       :: !DID
+  , receiver     :: !DID
+  -- Scope (set-like operations)
+  , proofs       :: !Proof
+  , attenuations :: ![Attenuation]
+  -- Additional signed info
+  , facts        :: ![Fact]
   -- Temporal Bounds
-  , exp      :: !UTCTime
-  , nbf      :: !UTCTime
+  , exp          :: !UTCTime
+  , nbf          :: !UTCTime
   } deriving Show
 
 instance Display Claims where
   textDisplay = Text.pack . show
 
 instance Eq Claims where
-  jwtA == jwtB = eqWho && eqAuth && eqTime
+  ucanA == ucanB = eqWho && eqAuth && eqTime
     where
-      eqWho = sender jwtA == sender   jwtB
-         && receiver jwtA == receiver jwtB
+      eqWho = sender ucanA == sender   ucanB
+         && receiver ucanA == receiver ucanB
 
-      eqAuth = resource jwtA == resource jwtB
-             &&   proof jwtA == proof    jwtB
-             && potency jwtA == potency  jwtB
+      eqAuth = attenuations ucanA == attenuations ucanB
+             &&      proofs ucanA == proofs       ucanB
+             &&       facts ucanA == facts        ucanB
 
-      eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
-            && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
+      eqTime = roundUTC (exp ucanA) == roundUTC (exp ucanB)
+            && roundUTC (nbf ucanA) == roundUTC (nbf ucanB)
 
 instance Arbitrary Claims where
   arbitrary = do
-    sender   <- arbitrary
-    resource <- arbitrary
-    potency  <- arbitrary
-    proof    <- arbitrary
-    exp      <- arbitrary
-    nbf      <- arbitrary
-    pk       <- arbitrary
+    sender     <- arbitrary
+    receiverPK <- arbitrary
+
+    exp <- arbitrary
+    nbf <- arbitrary
+
+    attenuations <- arbitrary
+    proofs       <- arbitrary
+    facts        <- arbitrary
 
     let
       receiver = DID
-        { publicKey = pk
+        { publicKey = receiverPK
         , method    = Key
         }
 
@@ -176,9 +328,9 @@ instance ToJSON Claims where
     [ "iss" .= sender
     , "aud" .= receiver
     --
-    , "prf" .= proof
-    , "ptc" .= potency
-    , "rsc" .= resource
+    , "prf" .= proofs
+    , "att" .= attenuations
+    , "fct" .= facts
     --
     , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
@@ -189,12 +341,19 @@ instance FromJSON Claims where
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
     --
-    resource <- obj .:  "rsc"
-    potency  <- obj .:? "ptc" .!= AuthNOnly
-    proof    <- obj .:? "prf" .!= RootCredential
+    attenuations <- obj .:  "att"
+    proofs'      <- obj .:? "prf"
+    facts        <- obj .:? "fct" .!= []
     --
     nbf <- fromSeconds <$> obj .: "nbf"
     exp <- fromSeconds <$> obj .: "exp"
+
+    let
+      proofs =
+        case proofs' of
+          Nothing   -> RootCredential
+          Just []   -> RootCredential
+          Just prfs -> DelegatedFrom prfs
 
     return Claims {..}
 
@@ -204,35 +363,44 @@ instance FromJSON Claims where
 
 data Proof
   = RootCredential
-  | Nested    JWT.RawContent JWT
+  | DelegatedFrom [DelegateProof]
+  deriving (Show, Eq)
+
+data DelegateProof
+  = Nested    JWT.RawContent UCAN
   | Reference CID
   deriving (Show, Eq)
 
 instance Arbitrary Proof where
   arbitrary = frequency
-    [ (1, nested)
+    [ (1, DelegatedFrom <$> nested)
     , (5, pure RootCredential)
     ]
     where
+      nested :: Gen [DelegateProof]
       nested = do
-        innerJWT@(JWT {..}) <- arbitrary
+        innerJWT@(UCAN {..}) <- arbitrary
         let rawContent = RawContent $ B64.URL.encodeJWT header claims
-        return $ Nested rawContent innerJWT
+        return [Nested rawContent innerJWT]
 
 instance ToJSON Proof where
-  toJSON = \case
-    RootCredential ->
-      Null
+  toJSON RootCredential        = Null
+  toJSON (DelegatedFrom inner) = toJSON inner
 
+instance ToJSON DelegateProof where
+  toJSON = \case
     Reference cid ->
       toJSON cid
 
-    Nested (JWT.RawContent raw) JWT {sig} ->
+    Nested (JWT.RawContent raw) UCAN {sig} ->
       String (raw <> "." <> textDisplay sig)
 
 instance FromJSON Proof where
   parseJSON Null = return RootCredential
-  parseJSON val  = withText "Credential Proof" resolver val
+  parseJSON val  = DelegatedFrom <$> parseJSON val
+
+instance FromJSON DelegateProof where
+  parseJSON val = withText "Delegate Proof" resolver val
     where
       resolver txt =
         if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'

@@ -13,36 +13,31 @@ import           Fission.SemVer.Types
 
 import           Fission.Key.Asymmetric.Algorithm.Types
 
-import           Fission.Web.Auth.Token.JWT.Header.Cty.Types
 import           Fission.Web.Auth.Token.JWT.Header.Typ.Types
 
 data Header = Header
   { typ :: !Typ         -- ^ Standard JWT '"typ"' field
   , alg :: !Algorithm   -- ^ Standard JWT '"alg"' field
-  , cty :: !(Maybe Cty) -- ^ Standard JWT '"cty"' field. Set to '"JWT"' if there's a recursive JWT in the claims
-  , uav :: !SemVer      -- ^ UCAN Version, mainly to state assumptions
+  , ucv :: !SemVer      -- ^ UCAN Version, mainly to state assumptions
   } deriving (Show, Eq)
 
 instance Arbitrary Header where
   arbitrary = do
     typ <- arbitrary
     alg <- arbitrary
-    cty <- arbitrary
-    uav <- SemVer 0 <$> ((1 +) <$> arbitrary) <*> arbitrary
+    let ucv = SemVer 0 4 0 -- SemVer 0 <$> ((1 +) <$> arbitrary) <*> arbitrary
     return Header {..}
 
 instance ToJSON Header where
   toJSON Header {..} = object
     [ "typ" .= typ
     , "alg" .= alg
-    , "cty" .= cty
-    , "uav" .= uav
+    , "ucv" .= ucv
     ]
 
 instance FromJSON Header where
   parseJSON = withObject "JWT.Header" \obj -> do
-    typ <- obj .:  "typ"
-    alg <- obj .:  "alg"
-    cty <- obj .:? "cty"
-    uav <- obj .:  "uav"
+    typ <- obj .: "typ"
+    alg <- obj .: "alg"
+    ucv <- obj .: "ucv"
     return Header {..}

@@ -4,7 +4,7 @@ module Fission.Web.Auth.Token.JWT.Signature
   , module Fission.Web.Auth.Token.JWT.Signature.Types
   ) where
 
-import qualified Data.Aeson.Types as JSON
+import qualified Data.Aeson.Types                           as JSON
 
 import           Fission.Prelude
 
@@ -17,4 +17,4 @@ import           Fission.Web.Auth.Token.JWT.Signature.Types
 
 parse :: Algorithm -> JSON.Value -> JSON.Parser Signature
 parse Algorithm.RSA2048 val = Signature.RS256   <$> parseJSON val
-parse Algorithm.Ed25519 val = Signature.Ed25519 <$> parseJSON val
+parse Algorithm.EdDSA   val = Signature.Ed25519 <$> parseJSON val

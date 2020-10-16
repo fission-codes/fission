@@ -14,16 +14,16 @@ import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 
 data Token = Token
-  { jwt        :: !JWT            -- ^ The actual token
+  { jwt        :: !UCAN           -- ^ The actual token
   , rawContent :: !JWT.RawContent -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
 
 instance Arbitrary Token where
   arbitrary = do
-    jwt@JWT {..} <- arbitrary
+    ucan@UCAN {..} <- arbitrary
     return Token
-      { jwt
+      { jwt = ucan
       , rawContent = RawContent $ B64.URL.encodeJWT header claims
       }
 
