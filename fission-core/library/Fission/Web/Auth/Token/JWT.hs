@@ -2,6 +2,9 @@ module Fission.Web.Auth.Token.JWT
   ( UCAN   (..)
   , Claims (..)
   , Proof  (..)
+  , DelegateProof   (..)
+  , Attenuation     (..)
+  , WNFSAttenuation (..)
 
   , signEd25519
   , signRS256
@@ -363,7 +366,7 @@ instance FromJSON Claims where
 
 data Proof
   = RootCredential
-  | DelegatedFrom [DelegateProof]
+  | DelegatedFrom (NonEmpty DelegateProof)
   deriving (Show, Eq)
 
 data DelegateProof
@@ -377,11 +380,11 @@ instance Arbitrary Proof where
     , (5, pure RootCredential)
     ]
     where
-      nested :: Gen [DelegateProof]
+      nested :: Gen (NonEmpty DelegateProof)
       nested = do
         innerJWT@(UCAN {..}) <- arbitrary
         let rawContent = RawContent $ B64.URL.encodeJWT header claims
-        return [Nested rawContent innerJWT]
+        return (Nested rawContent innerJWT :| [])
 
 instance ToJSON Proof where
   toJSON RootCredential        = Null

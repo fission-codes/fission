@@ -1,7 +1,8 @@
 module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types (Scope (..)) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
+-- FIXME needs redoiung as attenuation
 data Scope subset
   = Complete
   | Subset subset

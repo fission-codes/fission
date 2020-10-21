@@ -8,6 +8,24 @@ module Fission.Web.Auth.Token.JWT.Validation
   , checkRSA2048Signature
   ) where
 
+import qualified RIO.List                                         as List
+
+import           Fission.Prelude
+
+import           Fission.Web.Auth.Token.JWT                       as JWT
+import           Fission.Web.Auth.Token.JWT.Proof.Error
+
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+
+
+
+
+
+import           Network.IPFS.CID.Types
+
+
+
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
@@ -26,8 +44,6 @@ import           Fission.Web.Auth.Token.JWT.Claims.Error
 import           Fission.Web.Auth.Token.JWT.Header.Error
 import           Fission.Web.Auth.Token.JWT.Signature.Error
 
-import           Fission.Web.Auth.Token.JWT.Proof                 as JWT.Proof
-
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
 
@@ -40,8 +56,8 @@ check ::
   , MonadTime      m
   )
   => JWT.RawContent
-  -> JWT
-  -> m (Either JWT.Error JWT)
+  -> UCAN
+  -> m (Either JWT.Error UCAN)
 check rawContent jwt = do
   now <- currentTime
   case checkTime now jwt of
@@ -58,9 +74,9 @@ check' ::
   , Proof.Resolver m
   )
   => JWT.RawContent
-  -> JWT
+  -> UCAN
   -> UTCTime
-  -> m (Either JWT.Error JWT)
+  -> m (Either JWT.Error UCAN)
 check' raw jwt now =
   case pureChecks raw jwt of
     Left  err -> return $ Left err
@@ -68,23 +84,23 @@ check' raw jwt now =
 
 pureChecks ::
      JWT.RawContent
-  -> JWT
-  -> Either JWT.Error JWT
+  -> UCAN
+  -> Either JWT.Error UCAN
 pureChecks raw jwt = do
   _ <- checkVersion  jwt
   checkSignature raw jwt
 
-checkReceiver :: ServerDID m => JWT -> m (Either JWT.Error JWT)
-checkReceiver jwt@JWT {claims = JWT.Claims {receiver}} = do
+checkReceiver :: ServerDID m => UCAN -> m (Either JWT.Error UCAN)
+checkReceiver ucan@UCAN {claims = JWT.Claims {receiver}} = do
   serverDID <- getServerDID
   return if receiver == serverDID
-    then Right jwt
+    then Right ucan
     else Left $ ClaimsError IncorrectReceiver
 
-checkVersion :: JWT -> Either JWT.Error JWT
-checkVersion jwt@JWT { header = JWT.Header {ucv = SemVer mjr mnr pch}} =
-  if mjr == 1 && mnr >= 0 && pch >= 0
-    then Right jwt
+checkVersion :: UCAN -> Either JWT.Error UCAN
+checkVersion ucan@UCAN { header = JWT.Header {ucv = SemVer mjr mnr pch}} =
+  if mjr == 0 && mnr >=4 && pch >= 0
+    then Right ucan
     else Left $ JWT.HeaderError UnsupportedVersion
 
 checkProof ::
@@ -92,56 +108,84 @@ checkProof ::
   , Proof.Resolver m
   )
   => UTCTime
-  -> JWT
-  -> m (Either JWT.Error JWT)
-checkProof now jwt@JWT {claims = Claims {proof}} =
-  case proof of
-    RootCredential ->
-      return $ Right jwt
+  -> UCAN
+  -> m (Either JWT.Error UCAN) -- FIXME JWT.Error ~> UCAN.Error
+checkProof now ucan@UCAN {claims = Claims {proofs}} =
+  case proofs of
+    RootCredential            -> return $ Right ucan
+    DelegatedFrom innerProofs -> foldM folder (Right ucan) innerProofs
 
-    Reference cid ->
+  where
+    folder ::
+      ( Proof.Resolver m
+      , ServerDID      m
+      )
+      => (Either JWT.Error UCAN)
+      -> DelegateProof
+      -> m (Either JWT.Error UCAN)
+    folder (Left err) _ = return $ Left err
+    folder (Right _) x  = checkInner x
+
+    checkInner ::
+      ( Proof.Resolver m
+      , ServerDID      m
+      )
+      => DelegateProof
+      -> m (Either JWT.Error UCAN)
+    checkInner = \case
+      Reference cid            -> resolveCID cid
+      Nested rawProof proofJWT -> checkNested rawProof proofJWT
+
+    checkNested ::
+      ( ServerDID      m
+      , Proof.Resolver m
+      )
+      => RawContent
+      -> UCAN
+      -> m (Either JWT.Error UCAN)
+    checkNested rawProof proofJWT =
+      check' rawProof proofJWT now >>= \case
+        Left err -> return $ Left err
+        Right _  -> delegatedInBounds ucan proofJWT
+
+    resolveCID ::
+      ( ServerDID      m
+      , Proof.Resolver m
+      )
+      => CID
+      -> m (Either JWT.Error UCAN)
+    resolveCID cid =
       Proof.resolve cid >>= \case
         Left err ->
-          return . Left . JWT.ClaimsError . ProofError . JWT.Proof.ResolverError $ err
+          return . Left . JWT.ClaimsError . ProofError $ ResolverError err
 
         Right (rawProof, proofJWT) ->
-          check' rawProof proofJWT now <&> \case
-            Left err -> Left err
-            Right _  -> checkDelegate proofJWT
+          check' rawProof proofJWT now >>= \case
+            Left err -> return $ Left err
+            Right _  -> delegatedInBounds ucan proofJWT
 
-    Nested rawProof proofJWT ->
-      check' rawProof proofJWT now <&> \case
-        Left err -> Left err
-        Right _  -> checkDelegate proofJWT
-
-    where
-      checkDelegate proofJWT =
-        case JWT.Proof.delegatedInBounds jwt proofJWT of
-          Left err -> Left . JWT.ClaimsError $ ProofError err
-          Right _  -> Right jwt
-
-checkTime :: UTCTime -> JWT -> Either JWT.Error JWT
-checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
+checkTime :: UTCTime -> UCAN -> Either JWT.Error UCAN
+checkTime now ucan@UCAN {claims = JWT.Claims { exp, nbf }} = do
   if | now > exp -> Left $ JWT.ClaimsError Expired
      | now < nbf -> Left $ JWT.ClaimsError TooEarly
-     | otherwise -> Right jwt
+     | otherwise -> Right ucan
 
-checkSignature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
-checkSignature rawContent jwt@JWT {sig} =
+checkSignature :: JWT.RawContent -> UCAN -> Either JWT.Error UCAN
+checkSignature rawContent ucan@UCAN {sig} =
   case sig of
-    Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt
-    Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent jwt rs256Sig
+    Signature.Ed25519 _        -> checkEd25519Signature rawContent ucan
+    Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent ucan rs256Sig
 
 checkRSA2048Signature ::
      JWT.RawContent
-  -> JWT
+  -> UCAN
   -> RS256.Signature
-  -> Either JWT.Error JWT
-checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSig) = do
+  -> Either JWT.Error UCAN
+checkRSA2048Signature (JWT.RawContent raw) ucan@UCAN {..} (RS256.Signature innerSig) = do
   case publicKey of
     RSAPublicKey pk ->
       if Crypto.RSA.PKCS.verify (Just SHA256) pk content innerSig
-        then Right jwt
+        then Right ucan
         else Left $ JWT.SignatureError SignatureDoesNotMatch
 
     _ ->
@@ -151,12 +195,12 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
     content = encodeUtf8 raw
     Claims {sender = User.DID {publicKey}} = claims
 
-checkEd25519Signature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
-checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
+checkEd25519Signature :: JWT.RawContent -> UCAN -> Either JWT.Error UCAN
+checkEd25519Signature (JWT.RawContent raw) ucan@UCAN {..} =
   case (publicKey, sig) of
     (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->
       if Crypto.Ed25519.verify pk (encodeUtf8 raw) edSig
-        then Right jwt
+        then Right ucan
         else Left $ JWT.SignatureError SignatureDoesNotMatch
 
     (_, _) ->
@@ -164,3 +208,86 @@ checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
 
   where
     Claims {sender = User.DID {publicKey}} = claims
+
+delegatedInBounds ::
+  Proof.Resolver m
+  => UCAN
+  -> UCAN
+  -> m (Either JWT.Error UCAN)
+delegatedInBounds ucan prfUCAN =
+  case pureChecks' of
+    Left err ->
+      return $ Left err
+
+    Right UCAN {claims = Claims {attenuations, proofs}} ->
+      foldM (folder proofs) (Right ucan) attenuations
+
+  where
+    folder _ (Left err) _ =
+      return $ Left err
+
+    folder proofs acc att =
+      attenuationInProofs att proofs >>= \case
+        Left err -> return $ Left err
+        Right _  -> return $ acc
+
+    pureChecks' = do
+      _ <- signaturesMatch ucan prfUCAN
+      timeInSubset         ucan prfUCAN
+
+  -- FIXME is this only structural, or arewe going to actually check ownsershipo and stuff heer?
+  --   I believe so, in Validation.hs
+
+signaturesMatch :: UCAN -> UCAN -> Either JWT.Error UCAN
+signaturesMatch jwt prfJWT =
+  if (jwt |> claims |> sender) == (prfJWT |> claims |> receiver)
+    then Right jwt
+    else Left . ClaimsError $ ProofError InvalidSignatureChain
+
+attenuationInProofs ::
+  Proof.Resolver m
+  => Attenuation
+  -> Proof
+  -> m (Either JWT.Error ())
+attenuationInProofs att = \case
+  RootCredential ->
+    return $ Right ()
+
+  DelegatedFrom proofs ->
+    foldM folder (Right ()) proofs
+
+  where
+    folder (Left err) _ = return $ Left err
+    folder (Right ()) x = attenuationInDelegateProof att x
+
+attenuationInDelegateProof ::
+  Proof.Resolver m
+  => Attenuation
+  -> DelegateProof
+  -> m (Either JWT.Error ())
+attenuationInDelegateProof att = \case
+  Reference _cid -> do
+    let resolved = undefined --FIXME resoilved CID & rerun
+    attenuationInDelegateProof att resolved
+
+  Nested _ UCAN {claims = Claims {attenuations = proofAttenuations}} ->
+    -- FIXME we check up the whole chain elsewhere, yes?
+    return $ sequence_ (go att <$> proofAttenuations)
+
+  where
+    go :: Attenuation -> Attenuation -> Either JWT.Error ()
+    go (FileSystem claimWNFS) (FileSystem proofWNFS) =
+      case (compare (wnfsResource claimWNFS) (wnfsResource proofWNFS), compare (claimWNFS) (proofWNFS)) of
+        (GT, _) -> Left . ClaimsError $ ProofError ScopeOutOfBounds
+        (_, GT) -> Left . ClaimsError $ ProofError CapabilityEscelation
+        _       -> Right ()
+
+timeInSubset :: UCAN -> UCAN -> Either JWT.Error UCAN
+timeInSubset jwt prfJWT =
+  if startBoundry && expiryBoundry
+    then Right jwt
+    else Left . ClaimsError $ ProofError TimeNotSubset
+
+  where
+    startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
+    expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)

@@ -25,7 +25,7 @@ instance Arbitrary Header where
   arbitrary = do
     typ <- arbitrary
     alg <- arbitrary
-    let ucv = SemVer 0 4 0 -- SemVer 0 <$> ((1 +) <$> arbitrary) <*> arbitrary
+    ucv <- SemVer 0 <$> ((4 +) <$> arbitrary) <*> arbitrary
     return Header {..}
 
 instance ToJSON Header where
