@@ -5,6 +5,7 @@ module Fission.Web.Auth.Token.JWT
   , DelegateProof   (..)
   , Attenuation     (..)
   , WNFSAttenuation (..)
+  , WNFSResource    (..)
 
   , signEd25519
   , signRS256

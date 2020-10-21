@@ -9,6 +9,7 @@ module Fission.Web.Auth.Token.JWT.Validation
   ) where
 
 import qualified RIO.List                                         as List
+import qualified RIO.Text                                         as Text
 
 import           Fission.Prelude
 
@@ -20,6 +21,8 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 
 
+import           Fission.URL.Types
+import qualified Fission.User.Username.Types                      as Username
 
 
 import           Network.IPFS.CID.Types
@@ -291,3 +294,45 @@ timeInSubset jwt prfJWT =
   where
     startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
     expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)
+
+-- data WNFSAttenuation = WNFSAttenuation
+--   { wnfsResource :: !WNFSResource
+--   , capability   :: !WNFSCapability
+--   }
+--   deriving (Show, Eq)
+
+
+wnfsAttenuationInSubset :: WNFSAttenuation -> WNFSAttenuation -> Bool
+wnfsAttenuationInSubset subject proof =
+  capability subject <= capability proof
+  && wnfsResourceInSubset (wnfsResource subject) (wnfsResource proof)
+
+
+-- data WNFSResource = WNFSResource
+--   { namespace :: DomainName
+--   , username  :: Username
+--   , filePath  :: FilePath
+--   }
+--   deriving (Show, Eq)
+
+wnfsResourceInSubset :: WNFSResource -> WNFSResource -> Bool
+wnfsResourceInSubset inner outer =
+  namespaceMatches && usernameMatches && filePathSubset
+
+  where
+    namespaceMatches = namespace inner == namespace outer
+    usernameMatches  = username  inner == username  outer
+    filePathSubset   = outerPath `Text.isPrefixOf` innerPath -- FIXME needs to handle private paths
+
+    innerPath = normalizePath . Text.pack $ filePath inner
+    outerPath = normalizePath . Text.pack $ filePath outer
+
+    normalizePath raw =
+      if "/" `Text.isSuffixOf` raw
+        then raw
+        else raw <> "/"
+
+-- wnfsCapabilityInSubset :: _
+-- wnfsCapabilityInSubset inner outer =
+--   if inner <= outer
+--     then
