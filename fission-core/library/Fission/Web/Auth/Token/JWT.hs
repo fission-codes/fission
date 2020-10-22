@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 module Fission.Web.Auth.Token.JWT
   ( UCAN   (..)
   , Claims (..)
@@ -23,6 +25,7 @@ import           Fission.Web.Auth.Token.UCAN.Attenuated.Types
 import           Fission.Web.Auth.Token.UCAN.Fact.Types
 import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
+import           Data.Has
 
 
 
@@ -259,13 +262,13 @@ instance
 -- Proof --
 -----------
 
-data Proof privilege fact
+data Proof ucan
   = RootCredential -- ^ i.e. "Self evident"
-  | DelegatedFrom (NonEmpty (DelegateProof privilege fact))
+  | DelegatedFrom (NonEmpty (DelegateProof ucan))
   deriving (Show, Eq)
 
-data DelegateProof privilege fact
-  = Nested    JWT.RawContent (UCAN privilege fact)
+data DelegateProof ucan
+  = Nested    JWT.RawContent ucan
   | Reference CID
   deriving (Show, Eq)
 
@@ -279,51 +282,39 @@ instance
       , (5, pure RootCredential)
       ]
       where
-        nested :: Gen (NonEmpty DelegateProof)
+        nested :: Gen (NonEmpty (DelegateProof privilege fact))
         nested = do
           innerJWT@(UCAN {..}) <- arbitrary
           let rawContent = RawContent $ B64.URL.encodeJWT header claims
           return (Nested rawContent innerJWT :| [])
 
-instance
-  ( ToJSON privilege
-  , ToJSON fact
-  )
-  => ToJSON (Proof privilege fact) where
-    toJSON RootCredential        = Null
-    toJSON (DelegatedFrom inner) = toJSON inner
+instance ToJSON ucan => ToJSON (Proof ucan) where
+  toJSON RootCredential        = Null
+  toJSON (DelegatedFrom inner) = toJSON inner
 
 instance
-  ( ToJSON privilege
-  , ToJSON fact
+  ( Has Signature ucan
+  , ToJSON ucan
   )
-  => ToJSON (DelegateProof privilege fact) where
+  => ToJSON (DelegateProof ucan) where
     toJSON = \case
       Reference cid ->
         toJSON cid
 
-      Nested (JWT.RawContent raw) UCAN {sig} ->
-        String (raw <> "." <> textDisplay sig)
+      Nested (JWT.RawContent raw) ucan ->
+        String (raw <> "." <> textDisplay $ signatureFor ucan)
 
-instance
-  ( FromJSON privilege
-  , FromJSON fact
-  )
-  => FromJSON (Proof privilege fact) where
-    parseJSON Null = return RootCredential
-    parseJSON val  = DelegatedFrom <$> parseJSON val
+instance FromJSON ucan => FromJSON (Proof ucan) where
+  parseJSON Null = return RootCredential
+  parseJSON val  = DelegatedFrom <$> parseJSON val
 
-instance
-  ( FromJSON privilege
-  , FromJSON fact
-  )
-  => FromJSON (DelegateProof privilege fact) where
-    parseJSON val = withText "Delegate Proof" resolver val
-      where
-        resolver txt =
-          if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
-            then Nested (JWT.contentOf txt) <$> parseJSON val
-            else Reference <$> parseJSON val
+instance FromJSON ucan => FromJSON (DelegateProof ucan) where
+  parseJSON val = withText "Delegate Proof" resolver val
+    where
+      resolver txt =
+        if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
+          then Nested (JWT.contentOf txt) <$> parseJSON val
+          else Reference <$> parseJSON val
 
 -----------------------
 -- Signature Helpers --
