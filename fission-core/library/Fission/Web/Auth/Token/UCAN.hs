@@ -1,18 +1,22 @@
 module Fission.Web.Auth.Token.UCAN (handler) where
 
+
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+
+
 import           Fission.Models
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import qualified Fission.User.Retriever                as User
-import qualified Fission.Web.Error                     as Web.Error
+import qualified Fission.User.Retriever                     as User
+import qualified Fission.Web.Error                          as Web.Error
 
-import           Fission.Web.Auth.Token.JWT            as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
-import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
+import           Fission.Web.Auth.Token.JWT                 as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver        as Proof
+import qualified Fission.Web.Auth.Token.JWT.Validation      as JWT
 
-import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
-import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types        as Bearer
+import           Fission.Web.Auth.Token.JWT.Resolver        as JWT
 
 import           Fission.Authorization.ServerDID
 import           Fission.Authorization.Types
@@ -42,20 +46,21 @@ toAuthorization ::
   , MonadDB        t m
   , User.Retriever t
   )
-  => JWT
-  -> m Authorization
-toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
-  JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} <- getRoot jwt
+  => UCAN
+  -> m (Authorization Resource)
+toAuthorization ucan@UCAN {claims = JWT.Claims {..}} = do
+  UCAN {claims = JWT.Claims {sender = DID {publicKey = pk}}} <- getRoot jwt
   runDB (User.getByPublicKey pk) >>= \case
     Just about -> return Authorization {sender = Right sender, ..}
     Nothing    -> Web.Error.throw $ NotFound @User
 
-getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => JWT -> m JWT
-getRoot jwt@JWT {claims = JWT.Claims {proof}} =
-  case proof of
+getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => UCAN -> m UCAN
+getRoot ucan@UCAN {claims = JWT.Claims {proofs}} =
+  case proofs of
     JWT.RootCredential ->
       return jwt
 
+-- FIXME new structure
     JWT.Nested _ proofJWT ->
       getRoot proofJWT
 

@@ -7,16 +7,18 @@ import           Database.Esqueleto
 import           Servant
 
 import           Network.IPFS
-import qualified Network.IPFS.Pin        as IPFS.Pin
-import qualified Network.IPFS.Add        as IPFS
-import qualified Network.IPFS.Types      as IPFS
-import           Network.IPFS.File.Types as File
+import qualified Network.IPFS.Add                           as IPFS
+import           Network.IPFS.File.Types                    as File
+import qualified Network.IPFS.Pin                           as IPFS.Pin
+import qualified Network.IPFS.Types                         as IPFS
 
 import           Fission.Prelude
-import           Fission.Authorization.Types
 
-import           Fission.LoosePin.Creator as LoosePin
-import qualified Fission.Web.Error        as Web.Err
+import           Fission.Authorization.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+
+import           Fission.LoosePin.Creator                   as LoosePin
+import qualified Fission.Web.Error                          as Web.Err
 
 type API
   =  Summary "Upload file"
@@ -33,7 +35,7 @@ add ::
   , MonadDB          t m
   , LoosePin.Creator t
   )
-  => Authorization
+  => Authorization [Resource]
   -> ServerT API m
 add Authorization {about = Entity userId _} (Serialized rawData) =
   IPFS.addRaw rawData >>= \case

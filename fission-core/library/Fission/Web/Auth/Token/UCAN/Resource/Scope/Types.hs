@@ -4,7 +4,7 @@ import           Fission.Prelude
 
 -- FIXME needs redoiung as attenuation
 data Scope subset
-  = Complete
+  = Complete -- FIXME Rename "All"?
   | Subset subset
   deriving (Eq, Show)
 

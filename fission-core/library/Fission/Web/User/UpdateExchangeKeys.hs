@@ -10,13 +10,15 @@ module Fission.Web.User.UpdateExchangeKeys
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Models
-import           Fission.Authorization
- 
-import qualified Fission.Web.Error as Web.Error
-import qualified Fission.User      as User
 
-import qualified Crypto.PubKey.RSA as RSA
+import           Fission.Authorization
+import           Fission.Models
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+
+import qualified Fission.User                               as User
+import qualified Fission.Web.Error                          as Web.Error
+
+import qualified Crypto.PubKey.RSA                          as RSA
 
 type API = AddAPI :<|> RemoveAPI
 
@@ -38,7 +40,7 @@ server ::
   , MonadThrow    m
   , User.Modifier m
   )
-  => Authorization
+  => Authorization [Resource]
   -> ServerT API m
 server Authorization {about = Entity userId _} = addKey userId :<|> removeKey userId
 

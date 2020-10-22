@@ -7,10 +7,12 @@ import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Authorization
 
-import           Fission.Web.Error as Web.Error
-import qualified Fission.User as User
+import           Fission.Authorization
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+
+import qualified Fission.User                               as User
+import           Fission.Web.Error                          as Web.Error
 
 import           Network.IPFS.CID.Types
 
@@ -27,7 +29,7 @@ server ::
   , MonadTime       m
   , User.Modifier   m
   )
-  => Authorization
+  => Authorization [Resource]
   -> ServerT API m
 server Authorization {about = Entity userID _} newCID = do
   now <- currentTime

@@ -10,6 +10,7 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver as JWT.Resolver
 data Error
   = InvalidSignatureChain
   | ScopeOutOfBounds
+  | ResourceEscelation
   | CapabilityEscelation
   | TimeNotSubset
   | ResolverError JWT.Resolver.Error
@@ -19,7 +20,8 @@ instance Display Error where
   display = \case
     InvalidSignatureChain -> "Invalid signature chain"
     ScopeOutOfBounds      -> "Path scope not in delegated rights"
-    CapabilityEscelation  -> "Potency escelation"
+    ResourceEscelation    -> "Resource escelation"
+    CapabilityEscelation  -> "Capabilty escelation"
     TimeNotSubset         -> "Time bounds are not a subset"
     ResolverError resErr  -> "Unable to resolve CID proof: " <> display resErr
 

@@ -63,8 +63,7 @@ checkUser (BasicAuthData username password) =
               return $ Right Authorization
                 { about    = user
                 , sender   = Left Heroku
-                , potency  = SuperUser
-                , resource = Complete
+                , rights   = [Complete] -- FIXME
                 }
 
             else do

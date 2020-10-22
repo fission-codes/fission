@@ -5,7 +5,7 @@ module Fission.Web.Auth.Token.JWT
   , DelegateProof   (..)
   , Attenuation     (..)
   , WNFSAttenuation (..)
-  , WNFSResource    (..)
+  , WNFSResource (..)
 
   , signEd25519
   , signRS256
@@ -17,6 +17,8 @@ module Fission.Web.Auth.Token.JWT
   ) where
 
 import qualified System.IO.Unsafe                                 as Unsafe
+
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import           Crypto.Random                                    (MonadRandom (..))
@@ -134,7 +136,7 @@ instance FromJSON UCAN where
 -- Claims --
 ------------
 
-data Attenuation
+data Attenuation -- FIXME THIS EXISTS ELSEWHERE!!!
   = FileSystem WNFSAttenuation
   deriving (Show, Eq)
 
@@ -275,7 +277,7 @@ newtype Fact = Fact JSON.Value
                    )
 
 instance Arbitrary Fact where
-  arbitrary = elements ["hello world"] -- FIXME Expand
+  arbitrary = elements ["hello world"] -- FIXME Expand!
 
 data Claims = Claims
   -- Dramatis Personae
@@ -283,7 +285,7 @@ data Claims = Claims
   , receiver     :: !DID
   -- Scope (set-like operations)
   , proofs       :: !Proof
-  , attenuations :: ![Attenuation]
+  , attenuations :: !(Scope [Attenuation])
   -- Additional signed info
   , facts        :: ![Fact]
   -- Temporal Bounds

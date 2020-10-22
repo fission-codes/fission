@@ -7,13 +7,15 @@ import           Database.Esqueleto
 import           Servant
 
 import           Fission.Prelude
+
 import           Fission.Authorization
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import qualified Fission.User          as User
-import qualified Fission.User.Password as User.Password
+import qualified Fission.User                               as User
+import qualified Fission.User.Password                      as User.Password
 
-import qualified Fission.Web.Error                     as Web.Err
-import qualified Fission.Web.User.Password.Reset.Types as User.Password
+import qualified Fission.Web.Error                          as Web.Err
+import qualified Fission.Web.User.Password.Reset.Types      as User.Password
 
 type API
   =  Summary "Reset password"
@@ -28,12 +30,12 @@ server ::
   , MonadIO       m
   , User.Modifier m
   )
-  => Authorization
+  => Authorization [Resource]
   -> ServerT API m
 server Authorization {about = Entity userId _} User.Password.Reset { maybePassword } = do
   now      <- currentTime
   password <- maybe User.Password.random pure maybePassword
- 
+
   User.updatePassword userId password now >>= \case
     Left  err         -> Web.Err.throw err
     Right updatedPass -> return updatedPass

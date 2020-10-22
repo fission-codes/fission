@@ -7,11 +7,13 @@ import           Servant
 
 import           Network.IPFS.CID.Types
 
-import           Fission.Authorization
 import           Fission.Prelude
 
-import qualified Fission.App            as App
-import           Fission.Web.Error      as Web.Error
+import           Fission.Authorization
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+
+import qualified Fission.App                                as App
+import           Fission.Web.Error                          as Web.Error
 
 import           Fission.URL.Types
 
@@ -30,7 +32,7 @@ update ::
   , MonadTime    m
   , App.Modifier m
   )
-  => Authorization
+  => Authorization [Resource]
   -> ServerT API m
 update Authorization {about = Entity userId _} url newCID copyDataFlag = do
   now <- currentTime

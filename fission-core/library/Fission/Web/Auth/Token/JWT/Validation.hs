@@ -8,8 +8,11 @@ module Fission.Web.Auth.Token.JWT.Validation
   , checkRSA2048Signature
   ) where
 
+import qualified RIO.ByteString                                   as BS
 import qualified RIO.List                                         as List
 import qualified RIO.Text                                         as Text
+
+import qualified Data.Bits                                        as Bits
 
 import           Fission.Prelude
 
@@ -41,6 +44,8 @@ import qualified Fission.User                                     as User
 
 import           Fission.Authorization.ServerDID.Class
 
+-- FIXME move to proof submoule?
+import           Fission.Web.Auth.Token.JWT.Proof.Error           as UCAN.Proof
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 
 import           Fission.Web.Auth.Token.JWT.Claims.Error
@@ -222,17 +227,26 @@ delegatedInBounds ucan prfUCAN =
     Left err ->
       return $ Left err
 
-    Right UCAN {claims = Claims {attenuations, proofs}} ->
-      foldM (folder proofs) (Right ucan) attenuations
+    Right UCAN {claims = Claims {attenuations = Complete}} ->
+      return $ Right ucan
+
+    Right UCAN {claims = Claims {attenuations = Subset atts, proofs}} ->
+      foldM (folder proofs) (Right ucan) atts
 
   where
+    folder ::
+      Proof.Resolver m
+      => Proof
+      -> Either JWT.Error UCAN
+      -> Attenuation
+      -> m (Either JWT.Error UCAN)
     folder _ (Left err) _ =
       return $ Left err
 
     folder proofs acc att =
       attenuationInProofs att proofs >>= \case
         Left err -> return $ Left err
-        Right _  -> return $ acc
+        Right _  -> return acc
 
     pureChecks' = do
       _ <- signaturesMatch ucan prfUCAN
@@ -253,15 +267,16 @@ attenuationInProofs ::
   -> Proof
   -> m (Either JWT.Error ())
 attenuationInProofs att = \case
-  RootCredential ->
-    return $ Right ()
-
-  DelegatedFrom proofs ->
-    foldM folder (Right ()) proofs
-
+  RootCredential       -> return $ Right ()
+  DelegatedFrom proofs -> foldM folder (Right ()) proofs
   where
-    folder (Left err) _ = return $ Left err
-    folder (Right ()) x = attenuationInDelegateProof att x
+    folder ::
+      Proof.Resolver m
+      => Either JWT.Error ()
+      -> DelegateProof
+      -> m (Either JWT.Error ())
+    folder (Left err) _     = return $ Left err
+    folder (Right ()) proof = attenuationInDelegateProof att proof
 
 attenuationInDelegateProof ::
   Proof.Resolver m
@@ -280,10 +295,9 @@ attenuationInDelegateProof att = \case
   where
     go :: Attenuation -> Attenuation -> Either JWT.Error ()
     go (FileSystem claimWNFS) (FileSystem proofWNFS) =
-      case (compare (wnfsResource claimWNFS) (wnfsResource proofWNFS), compare (claimWNFS) (proofWNFS)) of
-        (GT, _) -> Left . ClaimsError $ ProofError ScopeOutOfBounds
-        (_, GT) -> Left . ClaimsError $ ProofError CapabilityEscelation
-        _       -> Right ()
+      case wnfsAttenuationInSubset claimWNFS proofWNFS of
+        Left err -> Left . ClaimsError $ ProofError err
+        Right () -> Right ()
 
 timeInSubset :: UCAN -> UCAN -> Either JWT.Error UCAN
 timeInSubset jwt prfJWT =
@@ -295,25 +309,15 @@ timeInSubset jwt prfJWT =
     startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
     expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)
 
--- data WNFSAttenuation = WNFSAttenuation
---   { wnfsResource :: !WNFSResource
---   , capability   :: !WNFSCapability
---   }
---   deriving (Show, Eq)
-
-
-wnfsAttenuationInSubset :: WNFSAttenuation -> WNFSAttenuation -> Bool
+wnfsAttenuationInSubset :: WNFSAttenuation -> WNFSAttenuation -> Either UCAN.Proof.Error ()
 wnfsAttenuationInSubset subject proof =
-  capability subject <= capability proof
-  && wnfsResourceInSubset (wnfsResource subject) (wnfsResource proof)
-
-
--- data WNFSResource = WNFSResource
---   { namespace :: DomainName
---   , username  :: Username
---   , filePath  :: FilePath
---   }
---   deriving (Show, Eq)
+  case (resourceCheck, capability subject <= capability proof) of
+    (False, _) -> Left ResourceEscelation
+    (_, False) -> Left CapabilityEscelation
+    _          -> Right ()
+  where
+    resourceCheck =
+      wnfsResourceInSubset (wnfsResource subject) (wnfsResource proof)
 
 wnfsResourceInSubset :: WNFSResource -> WNFSResource -> Bool
 wnfsResourceInSubset inner outer =
@@ -322,7 +326,11 @@ wnfsResourceInSubset inner outer =
   where
     namespaceMatches = namespace inner == namespace outer
     usernameMatches  = username  inner == username  outer
-    filePathSubset   = outerPath `Text.isPrefixOf` innerPath -- FIXME needs to handle private paths
+
+    filePathSubset   =
+      if | "/public/"  `Text.isPrefixOf` innerPath -> outerPath `Text.isPrefixOf` innerPath
+         | "/private/" `Text.isPrefixOf` innerPath -> containedInPrivatePath innerPath outerPath
+         | otherwise                               -> False
 
     innerPath = normalizePath . Text.pack $ filePath inner
     outerPath = normalizePath . Text.pack $ filePath outer
@@ -332,7 +340,9 @@ wnfsResourceInSubset inner outer =
         then raw
         else raw <> "/"
 
--- wnfsCapabilityInSubset :: _
--- wnfsCapabilityInSubset inner outer =
---   if inner <= outer
---     then
+containedInPrivatePath :: Text -> Text -> Bool
+containedInPrivatePath innerPath outerPath =
+  zipWith (Bits..&.) innerWords outerWords == outerWords
+  where
+    innerWords = BS.unpack $ encodeUtf8 innerPath
+    outerWords = BS.unpack $ encodeUtf8 outerPath

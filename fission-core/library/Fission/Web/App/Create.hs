@@ -10,13 +10,14 @@ import           Fission.Prelude
 
 import           Fission.Authorization
 import           Fission.URL
-import           Fission.Web.Error          as Web.Error
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Error                          as Web.Error
 
-import           Fission.App.Content        as AppCID
-import qualified Fission.App.Creator        as App
-import           Fission.App.Domain         as App.Domain
+import           Fission.App.Content                        as AppCID
+import qualified Fission.App.Creator                        as App
+import           Fission.App.Domain                         as App.Domain
 
-import           Fission.IPFS.DNSLink.Class as DNSLink
+import           Fission.IPFS.DNSLink.Class                 as DNSLink
 
 type API
   =  Summary "Create app"
@@ -32,7 +33,7 @@ create ::
   , MonadLogger            m
   , MonadDNSLink           m
   )
-  => Authorization
+  => Authorization [Resource]
   -> ServerT API m
 create Authorization {about = Entity userId _} maySubdomain = do
   now            <- currentTime
