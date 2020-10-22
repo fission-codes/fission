@@ -36,7 +36,7 @@ server ::
   , User.Modifier m
   )
   => Authorization Resource -> ServerT API m
-server Authorization {rootUser = Entity userID User {userUsername = Username rawUN}} cid = do
+server Authorization {about = Entity userID User {userUsername = Username rawUN}} cid = do
   now <- currentTime
   Web.Err.ensureM $ User.setData userID cid now
   return . DomainName $ rawUN <> ".fission.name"
