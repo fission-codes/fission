@@ -288,7 +288,10 @@ attenuationInDelegateProof att = \case
     let resolved = undefined --FIXME resoilved CID & rerun
     attenuationInDelegateProof att resolved
 
-  Nested _ UCAN {claims = Claims {attenuations = proofAttenuations}} ->
+  Nested _ UCAN {claims = Claims {attenuations = Complete}} ->
+    return $ Right () -- FIXME actually not true! Need to look higher in the chain, no?
+
+  Nested _ UCAN {claims = Claims {attenuations = Subset proofAttenuations}} ->
     -- FIXME we check up the whole chain elsewhere, yes?
     return $ sequence_ (go att <$> proofAttenuations)
 

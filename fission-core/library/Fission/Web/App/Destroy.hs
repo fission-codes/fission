@@ -56,7 +56,7 @@ destroyByURL ::
   )
   => Authorization [Resource]
   -> ServerT ByURLAPI m
-destroyByURL Authorization {rootUser = Entity userId _} URL {..} = do
+destroyByURL Authorization {about = Entity userId _} URL {..} = do
   now <- currentTime
   Web.Error.ensureM $ App.destroyByURL userId domainName subdomain now
   return NoContent
@@ -71,7 +71,7 @@ destroyById ::
   )
   => Authorization [Resource]
   -> ServerT ByIdAPI m
-destroyById Authorization {rootUser = Entity userId _} appId = do
+destroyById Authorization {about = Entity userId _} appId = do
   now <- currentTime
   Web.Error.ensureM $ App.destroy userId appId now
   return NoContent

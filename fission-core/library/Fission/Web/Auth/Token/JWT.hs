@@ -6,6 +6,7 @@ module Fission.Web.Auth.Token.JWT
   , Attenuation     (..)
   , WNFSAttenuation (..)
   , WNFSResource (..)
+  , WNFSCapability (..)
 
   , signEd25519
   , signRS256
