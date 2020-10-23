@@ -9,7 +9,6 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver as JWT.Resolver
 
 data Error
   = InvalidSignatureChain
-  | ScopeOutOfBounds -- FIXME remove?
   | ResourceEscelation
   | CapabilityEscelation
   | TimeNotSubset
@@ -19,7 +18,6 @@ data Error
 instance Display Error where
   display = \case
     InvalidSignatureChain -> "Invalid signature chain"
-    ScopeOutOfBounds      -> "Path scope not in delegated rights"
     ResourceEscelation    -> "Resource escelation"
     CapabilityEscelation  -> "Capabilty escelation"
     TimeNotSubset         -> "Time bounds are not a subset"
@@ -27,8 +25,8 @@ instance Display Error where
 
 instance ToServerError Error where
   toServerError = \case
-    ResolverError err     -> toServerError err
-    ScopeOutOfBounds      -> err401 { errBody = displayLazyBS ScopeOutOfBounds      }
+    InvalidSignatureChain -> err422 { errBody = displayLazyBS InvalidSignatureChain }
+    ResourceEscelation    -> err401 { errBody = displayLazyBS ResourceEscelation    }
     CapabilityEscelation  -> err401 { errBody = displayLazyBS CapabilityEscelation  }
     TimeNotSubset         -> err422 { errBody = displayLazyBS TimeNotSubset         }
-    InvalidSignatureChain -> err422 { errBody = displayLazyBS InvalidSignatureChain }
+    ResolverError err     -> toServerError err
