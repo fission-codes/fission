@@ -14,6 +14,7 @@ import qualified RIO.Text                                         as Text
 
 import qualified Data.Bits                                        as Bits
 
+import Fission.Web.Auth.Token.UCAN.Privilege.Types
 
 import qualified Fission.Web.Auth.Token.JWT.RawContent.Types as JWT
 
@@ -28,7 +29,7 @@ import           Fission.Web.Auth.Token.JWT.Proof.Error
 import Fission.Web.Auth.Token.UCAN.Proof.Types
 import Fission.Web.Auth.Token.UCAN.Attenuated.Types
 -- FIXME WNFS.Types would be nice
-import qualified  Fission.WNFS.Subgraph.Types as WNFS
+import            Fission.WNFS.Subgraph.Types as WNFS
 import qualified  Fission.WNFS.Privilege.Types as WNFS
 
 import qualified Fission.Web.Auth.Token.UCAN.Privilege.Types as Privilege
@@ -95,7 +96,7 @@ check' ::
   , m `Proof.Resolves` UCAN privilege fact
   )
   => JWT.RawContent
-  -> UCAN
+  -> UCAN privilege fact
   -> UTCTime
   -> m (Either JWT.Error (UCAN privilege fact))
 check' raw jwt now =
@@ -127,7 +128,7 @@ checkVersion ucan@UCAN { header = UCAN.Header {ucv = SemVer mjr mnr pch}} =
     then Right ucan
     else Left $ JWT.HeaderError UnsupportedVersion
 
-checkProof ::
+checkProof :: forall m privilege fact .
   ( ServerDID m
   , m `Proof.Resolves` UCAN privilege fact
   )
@@ -141,43 +142,29 @@ checkProof now ucan@UCAN {claims = Claims {proofs}} =
 
   where
     folder ::
-      ( m `Proof.Resolves` UCAN privilege fac t
-      , ServerDID      m
-      )
-      => (Either JWT.Error (UCAN privilege fact))
-      -> DelegateProof privilege fact
-      -> m (Either JWT.Error UCAN)
+         (Either JWT.Error (UCAN privilege fact))
+      -> DelegateProof (UCAN privilege fact)
+      -> m (Either JWT.Error (UCAN privilege fact))
     folder (Left err) _ = return $ Left err
     folder (Right _) x  = checkInner x
 
     checkInner ::
-      ( m `Proof.Resolves` UCAN privilege fact
-      , ServerDID      m
-      )
-      => DelegateProof privilege fact
+         DelegateProof (UCAN privilege fact)
       -> m (Either JWT.Error (UCAN privilege fact))
     checkInner = \case
       Reference cid            -> resolveCID cid
       Nested rawProof proofJWT -> checkNested rawProof proofJWT
 
     checkNested ::
-      ( ServerDID m
-      , m `Proof.Resolves` UCAN privilege fact
-      )
-      => JWT.RawContent
+         JWT.RawContent
       -> UCAN privilege fact
-      -> m (Either JWT.Error UCAN)
+      -> m (Either JWT.Error (UCAN privilege fact))
     checkNested rawProof proofJWT =
       check' rawProof proofJWT now >>= \case
         Left err -> return $ Left err
         Right _  -> delegatedInBounds ucan proofJWT
 
-    resolveCID ::
-      ( ServerDID m
-      , m `Proof.Resolves` (UCAN privilege fact)
-      )
-      => CID
-      -> m (Either JWT.Error (UCAN privilege fact))
+    resolveCID :: CID -> m (Either JWT.Error (UCAN privilege fact))
     resolveCID cid =
       Proof.resolve cid >>= \case
         Left err ->
@@ -243,6 +230,7 @@ checkEd25519Signature (JWT.RawContent raw) ucan@UCAN {..} =
     Claims {sender = User.DID {publicKey}} = claims
 
 delegatedInBounds ::
+  forall m privilege fact .
   m `Proof.Resolves` UCAN privilege fact
   => UCAN privilege fact
   -> UCAN privilege fact
@@ -256,17 +244,17 @@ delegatedInBounds ucan prfUCAN =
       return $ Right ucan
 
     Right UCAN {claims = Claims {attenuations = Subset atts, proofs}} ->
-      foldM (folder proofs) (Right ucan) atts
+      foldM (folder proofs) (Left . ClaimsError $ ProofError ResourceEscelation) atts
+      -- foldM (folder proofs) (Right ucan) atts
 
   where
     folder ::
-      m `Proof.Resolves` UCAN privilege fact
-      => Proof privilege fact
-      -> Either JWT.Error UCAN
+         Proof (UCAN privilege fact)
+      -> Either JWT.Error (UCAN privilege fact)
       -> Attenuated privilege
-      -> m (Either JWT.Error UCAN)
-    folder _ (Left err) _ =
-      return $ Left err
+      -> m (Either JWT.Error (UCAN privilege fact))
+    folder _ (Right ucan') _ =
+      return $ Right ucan'
 
     folder proofs acc att =
       attenuationInProofs att proofs >>= \case
@@ -292,43 +280,67 @@ signaturesMatch jwt prfJWT =
 attenuationInProofs ::
   m `Proof.Resolves` UCAN privilege fact
   => Attenuated privilege
-  -> Proof privilege fact
+  -> Proof (UCAN privilege fact)
   -> m (Either JWT.Error ())
 attenuationInProofs att = \case
   RootCredential       -> return $ Right ()
-  DelegatedFrom proofs -> foldM folder (Right ()) proofs
+  DelegatedFrom proofs -> foldM folder (Left . ClaimsError $ ProofError ResourceEscelation) proofs
   where
     folder ::
       m `Proof.Resolves` UCAN privilege fact
       => Either JWT.Error ()
       -> DelegateProof privilege
       -> m (Either JWT.Error ())
-    folder (Left err) _     = return $ Left err
-    folder (Right ()) proof = attenuationInDelegateProof att proof
+    folder (Right ()) _     = return $ Right ()
+    folder (Left  _)  proof = attenuationInDelegateProof att proof
 
 attenuationInDelegateProof ::
   m `Proof.Resolves` UCAN Privilege fact
-  => Attenuated Pivilege
-  -> DelegateProof Privilege
+  => Attenuated Privilege -- FIXME NEXT =======================> make a tosubset class
+  -> DelegateProof (UCAN Privilege fact)
   -> m (Either JWT.Error ())
-attenuationInDelegateProof att = \case
-  Reference _cid -> do
-    let resolved = undefined --FIXME resoilved CID & rerun
-    attenuationInDelegateProof att resolved
+attenuationInDelegateProof AllInScope _ =
+  return $ Right ()
+ 
+attenuationInDelegateProof subset@(Subset att) proof =
+  case proof of
+    Reference _cid -> do
+      let resolved = undefined --FIXME resoilved CID & rerun
+      attenuationInDelegateProof subset resolved
 
-  Nested _ UCAN {claims = Claims {attenuations = Complete}} ->
-    return $ Right () -- FIXME actually not true! Need to look higher in the chain, no?
+    Nested _ UCAN {claims = Claims {attenuations = AllInScope}} ->
+      return $ Right () -- FIXME actually not true! Need to look higher in the chain, no?
 
-  Nested _ UCAN {claims = Claims {attenuations = Subset proofAttenuations}} ->
-    -- FIXME we check up the whole chain elsewhere, yes?
-    return $ sequence_ (go att <$> proofAttenuations)
+    Nested _ UCAN {claims = Claims {attenuations = Subset proofAttenuations}} ->
+      -- FIXME we check up the whole chain elsewhere, yes?
+      return $ sequence_ (go att <$> proofAttenuations)
 
   where
-    go :: Attenuated Privilege -> Attenuated Privilege -> Either JWT.Error ()
+    -- FIXME move to a general comparison function
+    go :: Privilege -> Privilege -> Either JWT.Error ()
     go (Privilege.WNFS claimWNFS) (Privilege.WNFS proofWNFS) =
       case wnfsAttenuationInSubset claimWNFS proofWNFS of
         Left err -> Left . ClaimsError $ ProofError err
         Right () -> Right ()
+ 
+    go (Privilege.WNFS _) _ =
+      Left . ClaimsError $ ProofError ResourceEscelation
+
+    go (Privilege.FissionWebApp inner) (Privilege.FissionWebApp outer) =
+      if inner == outer
+        then Right ()
+        else Left . ClaimsError $ ProofError ResourceEscelation
+ 
+    go (Privilege.FissionWebApp _) _ =
+      Left . ClaimsError $ ProofError ResourceEscelation
+
+    go (Privilege.RegisteredDomain inner) (Privilege.RegisteredDomain outer) =
+      if inner == outer
+        then Right ()
+        else Left . ClaimsError $ ProofError ResourceEscelation
+
+    go (Privilege.RegisteredDomain _) _ =
+      Left . ClaimsError $ ProofError ResourceEscelation
 
 timeInSubset ::
      UCAN privilege fact
@@ -349,13 +361,13 @@ wnfsAttenuationInSubset ::
   -> WNFS.Privilege
   -> Either UCAN.Proof.Error ()
 wnfsAttenuationInSubset subject proof =
-  case (resourceCheck, capability subject <= capability proof) of
+  case (resourceCheck, WNFS.capability subject <= WNFS.capability proof) of
     (False, _) -> Left ResourceEscelation
     (_, False) -> Left CapabilityEscelation
     _          -> Right ()
   where
     resourceCheck =
-      wnfsResourceInSubset (wnfsResource subject) (wnfsResource proof)
+      wnfsResourceInSubset (WNFS.subgraph subject) (WNFS.subgraph proof)
 
 wnfsResourceInSubset :: WNFS.Subgraph -> WNFS.Subgraph -> Bool
 wnfsResourceInSubset inner outer =

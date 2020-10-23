@@ -9,7 +9,7 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver as JWT.Resolver
 
 data Error
   = InvalidSignatureChain
-  | ScopeOutOfBounds
+  | ScopeOutOfBounds -- FIXME remove?
   | ResourceEscelation
   | CapabilityEscelation
   | TimeNotSubset
