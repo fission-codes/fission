@@ -244,20 +244,23 @@ delegatedInBounds ucan prfUCAN =
       return $ Right ucan
 
     Right UCAN {claims = Claims {attenuations = Subset atts, proofs}} ->
-      foldM (folder proofs) (Left . ClaimsError $ ProofError ResourceEscelation) atts
-      -- foldM (folder proofs) (Right ucan) atts
+    -- Right UCAN {claims = Claims {attenuations = Subset atts, proofs}} ->
+      foldM (folder proofs) baseErr atts
 
   where
+    baseErr =
+      Left . ClaimsError $ ProofError ResourceEscelation
+     
     folder ::
          Proof (UCAN privilege fact)
       -> Either JWT.Error (UCAN privilege fact)
-      -> Attenuated privilege
+      -> privilege
       -> m (Either JWT.Error (UCAN privilege fact))
     folder _ (Right ucan') _ =
       return $ Right ucan'
 
     folder proofs acc att =
-      attenuationInProofs att proofs >>= \case
+      attenuationInProofs (Subset [att]) proofs >>= \case -- FIXME Subset? Not ideal.
         Left err -> return $ Left err
         Right _  -> return acc
 
@@ -278,8 +281,9 @@ signaturesMatch jwt prfJWT =
     else Left . ClaimsError $ ProofError InvalidSignatureChain
 
 attenuationInProofs ::
+  forall m privilege fact .
   m `Proof.Resolves` UCAN privilege fact
-  => Attenuated privilege
+  => Attenuated [privilege]
   -> Proof (UCAN privilege fact)
   -> m (Either JWT.Error ())
 attenuationInProofs att = \case
@@ -287,35 +291,56 @@ attenuationInProofs att = \case
   DelegatedFrom proofs -> foldM folder (Left . ClaimsError $ ProofError ResourceEscelation) proofs
   where
     folder ::
-      m `Proof.Resolves` UCAN privilege fact
-      => Either JWT.Error ()
-      -> DelegateProof privilege
+         Either JWT.Error ()
+      -> DelegateProof (UCAN privilege fact)
       -> m (Either JWT.Error ())
     folder (Right ()) _     = return $ Right ()
-    folder (Left  _)  proof = attenuationInDelegateProof att proof
+    folder (Left  _)  proof = check'' att proof
+
+    check'' ::
+         Attenuated [privilege]
+      -> DelegateProof (UCAN privilege fact)
+      -> m (Either JWT.Error ())
+    check'' = undefined -- attenuationInDelegateProof
 
 attenuationInDelegateProof ::
+  forall m fact .
   m `Proof.Resolves` UCAN Privilege fact
-  => Attenuated Privilege -- FIXME NEXT =======================> make a tosubset class
+  => Attenuated [Privilege]
   -> DelegateProof (UCAN Privilege fact)
   -> m (Either JWT.Error ())
+ 
 attenuationInDelegateProof AllInScope _ =
   return $ Right ()
  
-attenuationInDelegateProof subset@(Subset att) proof =
+attenuationInDelegateProof subset@(Subset atts) proof =
   case proof of
     Reference _cid -> do
-      let resolved = undefined --FIXME resoilved CID & rerun
-      attenuationInDelegateProof subset resolved
+      resolved <- undefined -- FIXME Proof.resolve cid or resoolvererror
+      recurseResolved subset resolved
 
     Nested _ UCAN {claims = Claims {attenuations = AllInScope}} ->
       return $ Right () -- FIXME actually not true! Need to look higher in the chain, no?
 
-    Nested _ UCAN {claims = Claims {attenuations = Subset proofAttenuations}} ->
+    Nested _ UCAN {claims = Claims {attenuations = Subset proofAtts}} ->
       -- FIXME we check up the whole chain elsewhere, yes?
-      return $ sequence_ (go att <$> proofAttenuations)
+      return $ foldr (folder proofAtts) undefined atts -- FIXME
 
   where
+    folder :: [Privilege] -> Privilege -> Either JWT.Error () -> Either JWT.Error ()
+    folder _      _   (Right ()) = Right ()
+    folder proofs att err        = foldr (checker att) err proofs
+
+    checker att proof' = \case
+      Right () -> Right ()
+      Left  _  -> go att proof'
+
+    recurseResolved ::
+         Attenuated [Privilege]
+      -> DelegateProof (UCAN Privilege fact)
+      -> m (Either JWT.Error ())
+    recurseResolved = attenuationInDelegateProof
+
     -- FIXME move to a general comparison function
     go :: Privilege -> Privilege -> Either JWT.Error ()
     go (Privilege.WNFS claimWNFS) (Privilege.WNFS proofWNFS) =
