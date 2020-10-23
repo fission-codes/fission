@@ -14,14 +14,24 @@ import qualified RIO.Text                                         as Text
 
 import qualified Data.Bits                                        as Bits
 
+
+import qualified Fission.Web.Auth.Token.JWT.RawContent.Types as JWT
+
+import Fission.Web.Auth.Token.UCAN.Privilege.Types
+
+import qualified Fission.Web.Auth.Token.UCAN.Types as UCAN
+
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT                       as JWT
 import           Fission.Web.Auth.Token.JWT.Proof.Error
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import Fission.Web.Auth.Token.UCAN.Proof.Types
+import Fission.Web.Auth.Token.UCAN.Attenuated.Types
+-- FIXME WNFS.Types would be nice
+import qualified  Fission.WNFS.Subgraph.Types as WNFS
+import qualified  Fission.WNFS.Privilege.Types as WNFS
 
+import qualified Fission.Web.Auth.Token.UCAN.Privilege.Types as Privilege
 
 
 import           Fission.URL.Types
@@ -55,17 +65,20 @@ import           Fission.Web.Auth.Token.JWT.Signature.Error
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
 
-import           Fission.Web.Auth.Token.JWT                       as JWT
 import           Fission.Web.Auth.Token.JWT.Error                 as JWT
 
+import           Fission.Web.Auth.Token.UCAN.Types
+
+import qualified Fission.Web.Auth.Token.JWT.RawContent.Types      as JWT
+
 check ::
-  ( Proof.Resolver m
-  , ServerDID      m
-  , MonadTime      m
+  ( m `Proof.Resolves` UCAN privilege fact
+  , ServerDID m
+  , MonadTime m
   )
   => JWT.RawContent
-  -> UCAN
-  -> m (Either JWT.Error UCAN)
+  -> UCAN privilege fact
+  -> m (Either JWT.Error (UCAN privilege fact))
 check rawContent jwt = do
   now <- currentTime
   case checkTime now jwt of
@@ -79,12 +92,12 @@ check rawContent jwt = do
 
 check' ::
   ( ServerDID      m
-  , Proof.Resolver m
+  , m `Proof.Resolves` UCAN privilege fact
   )
   => JWT.RawContent
   -> UCAN
   -> UTCTime
-  -> m (Either JWT.Error UCAN)
+  -> m (Either JWT.Error (UCAN privilege fact))
 check' raw jwt now =
   case pureChecks raw jwt of
     Left  err -> return $ Left err
@@ -92,32 +105,35 @@ check' raw jwt now =
 
 pureChecks ::
      JWT.RawContent
-  -> UCAN
-  -> Either JWT.Error UCAN
+  -> UCAN privilege fact
+  -> Either JWT.Error (UCAN privilege fact)
 pureChecks raw jwt = do
   _ <- checkVersion  jwt
   checkSignature raw jwt
 
-checkReceiver :: ServerDID m => UCAN -> m (Either JWT.Error UCAN)
-checkReceiver ucan@UCAN {claims = JWT.Claims {receiver}} = do
+checkReceiver ::
+  ServerDID m
+  => UCAN privilege fact
+  -> m (Either JWT.Error (UCAN privilege fact))
+checkReceiver ucan@UCAN {claims = UCAN.Claims {receiver}} = do
   serverDID <- getServerDID
   return if receiver == serverDID
     then Right ucan
     else Left $ ClaimsError IncorrectReceiver
 
-checkVersion :: UCAN -> Either JWT.Error UCAN
-checkVersion ucan@UCAN { header = JWT.Header {ucv = SemVer mjr mnr pch}} =
+checkVersion :: UCAN privilege fact -> Either JWT.Error (UCAN privilege fact)
+checkVersion ucan@UCAN { header = UCAN.Header {ucv = SemVer mjr mnr pch}} =
   if mjr == 0 && mnr >=4 && pch >= 0
     then Right ucan
     else Left $ JWT.HeaderError UnsupportedVersion
 
 checkProof ::
-  ( ServerDID      m
-  , Proof.Resolver m
+  ( ServerDID m
+  , m `Proof.Resolves` UCAN privilege fact
   )
   => UTCTime
-  -> UCAN
-  -> m (Either JWT.Error UCAN) -- FIXME JWT.Error ~> UCAN.Error
+  -> UCAN privilege fact
+  -> m (Either JWT.Error (UCAN privilege fact)) -- FIXME JWT.Error ~> UCAN.Error
 checkProof now ucan@UCAN {claims = Claims {proofs}} =
   case proofs of
     RootCredential            -> return $ Right ucan
@@ -125,31 +141,31 @@ checkProof now ucan@UCAN {claims = Claims {proofs}} =
 
   where
     folder ::
-      ( Proof.Resolver m
+      ( m `Proof.Resolves` UCAN privilege fac t
       , ServerDID      m
       )
-      => (Either JWT.Error UCAN)
-      -> DelegateProof
+      => (Either JWT.Error (UCAN privilege fact))
+      -> DelegateProof privilege fact
       -> m (Either JWT.Error UCAN)
     folder (Left err) _ = return $ Left err
     folder (Right _) x  = checkInner x
 
     checkInner ::
-      ( Proof.Resolver m
+      ( m `Proof.Resolves` UCAN privilege fact
       , ServerDID      m
       )
-      => DelegateProof
-      -> m (Either JWT.Error UCAN)
+      => DelegateProof privilege fact
+      -> m (Either JWT.Error (UCAN privilege fact))
     checkInner = \case
       Reference cid            -> resolveCID cid
       Nested rawProof proofJWT -> checkNested rawProof proofJWT
 
     checkNested ::
-      ( ServerDID      m
-      , Proof.Resolver m
+      ( ServerDID m
+      , m `Proof.Resolves` UCAN privilege fact
       )
-      => RawContent
-      -> UCAN
+      => JWT.RawContent
+      -> UCAN privilege fact
       -> m (Either JWT.Error UCAN)
     checkNested rawProof proofJWT =
       check' rawProof proofJWT now >>= \case
@@ -157,11 +173,11 @@ checkProof now ucan@UCAN {claims = Claims {proofs}} =
         Right _  -> delegatedInBounds ucan proofJWT
 
     resolveCID ::
-      ( ServerDID      m
-      , Proof.Resolver m
+      ( ServerDID m
+      , m `Proof.Resolves` (UCAN privilege fact)
       )
       => CID
-      -> m (Either JWT.Error UCAN)
+      -> m (Either JWT.Error (UCAN privilege fact))
     resolveCID cid =
       Proof.resolve cid >>= \case
         Left err ->
@@ -172,13 +188,19 @@ checkProof now ucan@UCAN {claims = Claims {proofs}} =
             Left err -> return $ Left err
             Right _  -> delegatedInBounds ucan proofJWT
 
-checkTime :: UTCTime -> UCAN -> Either JWT.Error UCAN
-checkTime now ucan@UCAN {claims = JWT.Claims { exp, nbf }} = do
+checkTime ::
+     UTCTime
+  -> UCAN privilege fact
+  -> Either JWT.Error (UCAN privilege fact)
+checkTime now ucan@UCAN {claims = UCAN.Claims { exp, nbf }} = do
   if | now > exp -> Left $ JWT.ClaimsError Expired
      | now < nbf -> Left $ JWT.ClaimsError TooEarly
      | otherwise -> Right ucan
 
-checkSignature :: JWT.RawContent -> UCAN -> Either JWT.Error UCAN
+checkSignature ::
+     JWT.RawContent
+  -> UCAN privilege fact
+  -> Either JWT.Error (UCAN privilege fact)
 checkSignature rawContent ucan@UCAN {sig} =
   case sig of
     Signature.Ed25519 _        -> checkEd25519Signature rawContent ucan
@@ -186,9 +208,9 @@ checkSignature rawContent ucan@UCAN {sig} =
 
 checkRSA2048Signature ::
      JWT.RawContent
-  -> UCAN
+  -> UCAN privilege fact
   -> RS256.Signature
-  -> Either JWT.Error UCAN
+  -> Either JWT.Error (UCAN privilege fact)
 checkRSA2048Signature (JWT.RawContent raw) ucan@UCAN {..} (RS256.Signature innerSig) = do
   case publicKey of
     RSAPublicKey pk ->
@@ -203,7 +225,10 @@ checkRSA2048Signature (JWT.RawContent raw) ucan@UCAN {..} (RS256.Signature inner
     content = encodeUtf8 raw
     Claims {sender = User.DID {publicKey}} = claims
 
-checkEd25519Signature :: JWT.RawContent -> UCAN -> Either JWT.Error UCAN
+checkEd25519Signature ::
+     JWT.RawContent
+  -> UCAN privilege fact
+  -> Either JWT.Error (UCAN privilege fact)
 checkEd25519Signature (JWT.RawContent raw) ucan@UCAN {..} =
   case (publicKey, sig) of
     (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->
@@ -218,16 +243,16 @@ checkEd25519Signature (JWT.RawContent raw) ucan@UCAN {..} =
     Claims {sender = User.DID {publicKey}} = claims
 
 delegatedInBounds ::
-  Proof.Resolver m
-  => UCAN
-  -> UCAN
-  -> m (Either JWT.Error UCAN)
+  m `Proof.Resolves` UCAN privilege fact
+  => UCAN privilege fact
+  -> UCAN privilege fact
+  -> m (Either JWT.Error (UCAN privilege fact))
 delegatedInBounds ucan prfUCAN =
   case pureChecks' of
     Left err ->
       return $ Left err
 
-    Right UCAN {claims = Claims {attenuations = Complete}} ->
+    Right UCAN {claims = Claims {attenuations = AllInScope}} ->
       return $ Right ucan
 
     Right UCAN {claims = Claims {attenuations = Subset atts, proofs}} ->
@@ -235,10 +260,10 @@ delegatedInBounds ucan prfUCAN =
 
   where
     folder ::
-      Proof.Resolver m
-      => Proof
+      m `Proof.Resolves` UCAN privilege fact
+      => Proof privilege fact
       -> Either JWT.Error UCAN
-      -> Attenuation
+      -> Attenuated privilege
       -> m (Either JWT.Error UCAN)
     folder _ (Left err) _ =
       return $ Left err
@@ -255,33 +280,36 @@ delegatedInBounds ucan prfUCAN =
   -- FIXME is this only structural, or arewe going to actually check ownsershipo and stuff heer?
   --   I believe so, in Validation.hs
 
-signaturesMatch :: UCAN -> UCAN -> Either JWT.Error UCAN
+signaturesMatch ::
+     UCAN privilege fact
+  -> UCAN privilege fact
+  -> Either JWT.Error (UCAN privilege fact)
 signaturesMatch jwt prfJWT =
   if (jwt |> claims |> sender) == (prfJWT |> claims |> receiver)
     then Right jwt
     else Left . ClaimsError $ ProofError InvalidSignatureChain
 
 attenuationInProofs ::
-  Proof.Resolver m
-  => Attenuation
-  -> Proof
+  m `Proof.Resolves` UCAN privilege fact
+  => Attenuated privilege
+  -> Proof privilege fact
   -> m (Either JWT.Error ())
 attenuationInProofs att = \case
   RootCredential       -> return $ Right ()
   DelegatedFrom proofs -> foldM folder (Right ()) proofs
   where
     folder ::
-      Proof.Resolver m
+      m `Proof.Resolves` UCAN privilege fact
       => Either JWT.Error ()
-      -> DelegateProof
+      -> DelegateProof privilege
       -> m (Either JWT.Error ())
     folder (Left err) _     = return $ Left err
     folder (Right ()) proof = attenuationInDelegateProof att proof
 
 attenuationInDelegateProof ::
-  Proof.Resolver m
-  => Attenuation
-  -> DelegateProof
+  m `Proof.Resolves` UCAN Privilege fact
+  => Attenuated Pivilege
+  -> DelegateProof Privilege
   -> m (Either JWT.Error ())
 attenuationInDelegateProof att = \case
   Reference _cid -> do
@@ -296,13 +324,16 @@ attenuationInDelegateProof att = \case
     return $ sequence_ (go att <$> proofAttenuations)
 
   where
-    go :: Attenuation -> Attenuation -> Either JWT.Error ()
-    go (FileSystem claimWNFS) (FileSystem proofWNFS) =
+    go :: Attenuated Privilege -> Attenuated Privilege -> Either JWT.Error ()
+    go (Privilege.WNFS claimWNFS) (Privilege.WNFS proofWNFS) =
       case wnfsAttenuationInSubset claimWNFS proofWNFS of
         Left err -> Left . ClaimsError $ ProofError err
         Right () -> Right ()
 
-timeInSubset :: UCAN -> UCAN -> Either JWT.Error UCAN
+timeInSubset ::
+     UCAN privilege fact
+  -> UCAN privilege fact
+  -> Either JWT.Error (UCAN privilege fact)
 timeInSubset jwt prfJWT =
   if startBoundry && expiryBoundry
     then Right jwt
@@ -312,7 +343,11 @@ timeInSubset jwt prfJWT =
     startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
     expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)
 
-wnfsAttenuationInSubset :: WNFSAttenuation -> WNFSAttenuation -> Either UCAN.Proof.Error ()
+-- FIXME move to WNFS modules
+wnfsAttenuationInSubset ::
+     WNFS.Privilege
+  -> WNFS.Privilege
+  -> Either UCAN.Proof.Error ()
 wnfsAttenuationInSubset subject proof =
   case (resourceCheck, capability subject <= capability proof) of
     (False, _) -> Left ResourceEscelation
@@ -322,7 +357,7 @@ wnfsAttenuationInSubset subject proof =
     resourceCheck =
       wnfsResourceInSubset (wnfsResource subject) (wnfsResource proof)
 
-wnfsResourceInSubset :: WNFSResource -> WNFSResource -> Bool
+wnfsResourceInSubset :: WNFS.Subgraph -> WNFS.Subgraph -> Bool
 wnfsResourceInSubset inner outer =
   namespaceMatches && usernameMatches && filePathSubset
 

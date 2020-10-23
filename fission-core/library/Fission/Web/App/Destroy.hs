@@ -10,15 +10,16 @@ module Fission.Web.App.Destroy
 import           Database.Esqueleto
 import           Servant
 
-import           Fission.Authorization
 import           Fission.Prelude
+
+import           Fission.Authorization
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
 import           Fission.Models
 import           Fission.URL.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import qualified Fission.App.Destroyer.Class                as App
-import qualified Fission.Web.Error                          as Web.Error
+import qualified Fission.App.Destroyer.Class                 as App
+import qualified Fission.Web.Error                           as Web.Error
 
 type API = ByURLAPI :<|> ByIdAPI
 
@@ -41,7 +42,7 @@ server ::
   , MonadLogger   m
   , App.Destroyer m
   )
-  => Authorization [Resource] -- FIXME maybe restrict to needed resource?
+  => Authorization Privilege -- FIXME maybe restrict to needed resource?
   -> ServerT API m
 server auth = destroyByURL auth
          :<|> destroyById  auth
@@ -54,7 +55,7 @@ destroyByURL ::
   , MonadLogger   m
   , App.Destroyer m
   )
-  => Authorization [Resource]
+  => Authorization Privilege
   -> ServerT ByURLAPI m
 destroyByURL Authorization {about = Entity userId _} URL {..} = do
   now <- currentTime
@@ -69,7 +70,7 @@ destroyById ::
   , MonadLogger   m
   , App.Destroyer m
   )
-  => Authorization [Resource]
+  => Authorization Privilege
   -> ServerT ByIdAPI m
 destroyById Authorization {about = Entity userId _} appId = do
   now <- currentTime

@@ -1,13 +1,11 @@
-module Fission.Web.Auth.Token.JWT.Resolver.Class (Resolver (..)) where
+module Fission.Web.Auth.Token.JWT.Resolver.Class (Resolves (..)) where
 
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver.Error
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
-
-class Monad m => Resolver m where
-  resolve :: CID -> m (Either Error (JWT.RawContent, UCAN))
+class Monad m => Resolves jwt m where
+  resolve :: CID -> m (Either Error (JWT.RawContent, jwt))

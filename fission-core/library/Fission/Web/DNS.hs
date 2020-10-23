@@ -8,16 +8,18 @@ import           Servant
 
 import           Network.IPFS.CID.Types
 
-import           Fission.Authorization
-import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.URL                                as URL
-import qualified Fission.Web.Error                          as Web.Err
+import           Fission.Models
 
-import qualified Fission.User.Modifier                      as User
+import           Fission.Authorization
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types
+
+import           Fission.URL                                 as URL
+import qualified Fission.Web.Error                           as Web.Err
+
+import qualified Fission.User.Modifier                       as User
 import           Fission.User.Username.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 type API
   =  Summary "Set account's DNSLink"
@@ -35,7 +37,8 @@ server ::
   , MonadLogger   m
   , User.Modifier m
   )
-  => Authorization Resource -> ServerT API m
+  => Authorization Privilege
+  -> ServerT API m
 server Authorization {about = Entity userID User {userUsername = Username rawUN}} cid = do
   now <- currentTime
   Web.Err.ensureM $ User.setData userID cid now

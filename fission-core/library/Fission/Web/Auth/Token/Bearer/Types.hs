@@ -12,6 +12,7 @@ import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
+import           Fission.Web.Auth.Token.UCAN
 
 data Token = Token
   { jwt        :: !UCAN           -- ^ The actual token

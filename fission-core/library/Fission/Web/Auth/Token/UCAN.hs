@@ -1,5 +1,54 @@
 module Fission.Web.Auth.Token.UCAN (handler) where
 
+import qualified System.IO.Unsafe                                 as Unsafe
+
+import           Fission.Web.Auth.Token.UCAN.Attenuated.Types
+
+
+import           Fission.Web.Auth.Token.UCAN.Proof.Types
+
+
+
+
+import           Crypto.Hash.Algorithms                           (SHA256 (..))
+import           Crypto.Random                                    (MonadRandom (..))
+
+import qualified Crypto.PubKey.RSA                                as RSA
+import qualified Crypto.PubKey.RSA.PKCS15                         as RSA.PKCS15
+
+import           Crypto.PubKey.Ed25519                            (toPublic)
+import qualified Crypto.PubKey.Ed25519                            as Ed25519
+
+import qualified Data.ByteString.Base64.URL                       as BS.B64.URL
+
+import qualified RIO.ByteString.Lazy                              as Lazy
+import qualified RIO.Text                                         as Text
+
+import qualified Fission.Internal.Base64.URL                      as B64.URL
+import           Fission.Prelude
+
+import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
+
+import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
+import qualified Fission.Internal.UTF8                            as UTF8
+
+import           Fission.Key                                      as Key
+
+import           Fission.User.DID.Types
+
+import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
+import           Fission.Web.Auth.Token.JWT.Signature             as Signature
+import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
+
+-- Reexports
+
+import           Fission.Web.Auth.Token.JWT.RawContent
+
+-- Orphans
+
+import           Fission.Internal.Orphanage.CID                   ()
+import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
+
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
@@ -58,7 +107,7 @@ toAuthorization ucan@UCAN {claims = JWT.Claims {..}} = do
     Nothing    -> Web.Error.throw $ NotFound @User
 
 
-toRights :: Username -> Scope [Resource] -> [Resource] -- FIXME RENAME "Attenuation" to "Right"
+toRights :: Username -> Attenuated [Resource] -> [Resource] -- FIXME RENAME "Attenuation" to "Right"
 toRights name = \case
   Subset atts ->
     atts
@@ -102,3 +151,25 @@ getRoot ucan@UCAN {claims = JWT.Claims {proofs}} =
         Left err -> do
           logWarn $ "Failed token resolution " <> textDisplay err
           throwM err
+
+signEd25519 ::
+  ToJSON claims
+  => Header
+  -> claims
+  -> Ed25519.SecretKey
+  -> Signature.Signature
+signEd25519 header claims sk =
+  Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
+
+signRS256 ::
+  ( ToJSON claims
+  , MonadRandom m
+  )
+  => Header
+  -> claims
+  -> RSA.PrivateKey
+  -> m (Either RSA.Error Signature.Signature)
+signRS256 header claims sk =
+  RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 $ B64.URL.encodeJWT header claims) <&> \case
+    Left err  -> Left err
+    Right sig -> Right . Signature.RS256 $ RS256.Signature sig
