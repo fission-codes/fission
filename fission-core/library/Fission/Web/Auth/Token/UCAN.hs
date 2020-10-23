@@ -1,13 +1,18 @@
-module Fission.Web.Auth.Token.UCAN (handler) where
+module Fission.Web.Auth.Token.UCAN
+  ( toAuthorization
+  -- , getRoot
+  ) where
 
 import qualified System.IO.Unsafe                                 as Unsafe
 
 import           Fission.Web.Auth.Token.UCAN.Attenuated.Types
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
 
 import           Fission.Web.Auth.Token.UCAN.Proof.Types
 
 
+import qualified Fission.Web.Auth.Token.UCAN.Proof.Types          as Proof
 
 
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
@@ -50,7 +55,7 @@ import           Fission.Internal.Orphanage.CID                   ()
 import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+-- import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.Prelude
 
@@ -60,116 +65,87 @@ import           Fission.Error.NotFound.Types
 import qualified Fission.User.Retriever                           as User
 import qualified Fission.Web.Error                                as Web.Error
 
-import           Fission.Web.Auth.Token.JWT                       as JWT
+-- import           Fission.Web.Auth.Token.JWT                       as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 import qualified Fission.Web.Auth.Token.JWT.Validation            as JWT
 
-import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
+-- import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
 import           Fission.Web.Auth.Token.JWT.Resolver              as JWT
 
 import           Fission.Authorization.ServerDID
 import           Fission.Authorization.Types
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types                      (Username)
-import           Fission.Web.Auth.Token.JWT
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+-- import           Fission.Web.Auth.Token.JWT
+-- import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
--- | Auth handler for delegated auth
--- Ensures properly formatted token *and does check against DB*
-handler ::
-  ( MonadLogger      m
-  , MonadThrow       m
-  , Resolver         m
-  , ServerDID        m
-  , MonadTime        m
-  , MonadDB        t m
-  , User.Retriever t
-  )
-  => Bearer.Token
-  -> m (Authorization [Resource])
-handler (Bearer.Token jwt rawContent) = do
-  void . Web.Error.ensureM $ JWT.check rawContent jwt
-  toAuthorization jwt
+import           Fission.Web.Auth.Token.UCAN.Types                as UCAN
+
+import qualified Fission.WNFS.Capability.Types                    as WNFS
+import qualified Fission.WNFS.Privilege.Types                     as WNFS
+import qualified Fission.WNFS.Subgraph.Types                      as WNFS
+
+
+
+
+import           Fission.Web.Auth.Token.JWT.Resolver.Class        as UCAN
 
 toAuthorization ::
-  ( JWT.Resolver     m
-  , MonadThrow       m
-  , MonadLogger      m
+  forall m t privilege fact .
+  ( m `Proof.Resolves` UCAN privilege fact
+  -- , MonadThrow       m
+  -- , MonadLogger      m
   , MonadDB        t m
   , User.Retriever t
   )
-  => UCAN
-  -> m (Authorization [Resource])
-toAuthorization ucan@UCAN {claims = JWT.Claims {..}} = do
-  UCAN {claims = JWT.Claims {sender = DID {publicKey = pk}}} <- getRoot ucan
-  runDB (User.getByPublicKey pk) >>= \case
-    Just about@(Entity _ User {userUsername}) -> return Authorization {sender = Right sender, rights = toRights userUsername attenuations, about}
-    Nothing    -> Web.Error.throw $ NotFound @User
+  => UCAN privilege fact -- FIXME would sure be nice to have a typesafe resolved version
+  -> m (Either JWT.Error (Authorization privilege)) -- FIXME couldn't hurt to make this more structured
+toAuthorization ucan@UCAN {claims = UCAN.Claims {..}} = do
+  toAccesses ucan >>= \case
+    Left  err    -> return $ Left err
+    Right access -> return $ Right Authorization {sender = Right sender, access}
 
-
-toRights :: Username -> Attenuated [Resource] -> [Resource] -- FIXME RENAME "Attenuation" to "Right"
-toRights name = \case
-  Subset atts ->
-    atts
-
-  Complete ->
-    -- Default WNFS rights
-    [ FissionFileSystem WNFSAttenuation -- FIXME Not on Resource!
-        { wnfsResource = WNFSResource
-            { namespace = "fission.name"
-            , username  = name
-            , filePath  = "/public/"
-            }
-        , capability = SuperUser
-        }
-    , FissionFileSystem WNFSAttenuation
-        { wnfsResource = WNFSResource
-            { namespace = "fission.name"
-            , username  = name
-            , filePath  = "/private/"
-            }
-        , capability = SuperUser
-        }
-    ]
-
-
-getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => UCAN -> m UCAN
-getRoot ucan@UCAN {claims = JWT.Claims {proofs}} =
-  case proofs of
-    JWT.RootCredential ->
-      return ucan
-
--- FIXME new structure
-    JWT.Nested _ proofJWT ->
-      getRoot proofJWT
-
-    Reference cid ->
-      Proof.resolve cid >>= \case
-        Right (_, proofJWT) ->
-          getRoot proofJWT
-
-        Left err -> do
-          logWarn $ "Failed token resolution " <> textDisplay err
-          throwM err
-
-signEd25519 ::
-  ToJSON claims
-  => Header
-  -> claims
-  -> Ed25519.SecretKey
-  -> Signature.Signature
-signEd25519 header claims sk =
-  Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
-
-signRS256 ::
-  ( ToJSON claims
-  , MonadRandom m
+toAccesses ::
+  ( m `Proof.Resolves` UCAN privilege fact
+  , MonadDB        t m
+  , User.Retriever t
   )
-  => Header
-  -> claims
-  -> RSA.PrivateKey
-  -> m (Either RSA.Error Signature.Signature)
-signRS256 header claims sk =
-  RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 $ B64.URL.encodeJWT header claims) <&> \case
-    Left err  -> Left err
-    Right sig -> Right . Signature.RS256 $ RS256.Signature sig
+  => UCAN privilege fact
+  -> m (Either JWT.Error [Access privilege])
+toAccesses UCAN {attenuations = Subset privs}} =
+  return $ Right (Specifically <$> privs)
+
+toAccesses UCAN {claims = UCAN.Claims {sender = DID {publicKey}, attenuations = AllInScope, proofs}} =
+  case proofs of
+    RootCredential -> do
+      runDB (User.getByPublicKey publicKey) >>= \case
+        Nothing ->
+          undefined -- FIXME
+
+        Just rootUser ->
+          return $ Right [AllBelongingTo rootUser]
+
+    DelegatedFrom delegateProofs ->
+      foldM folder (Right []) delegateProofs
+
+  where
+    folder ::
+         Either JWT.Error [Access privilege]
+      -> DelegateProof (UCAN privilege fact)
+      -> m (Either JWT.Error [Access privilege])
+    folder (Left err) _ =
+      return $ Left err
+
+    folder (Right acc) (Nested _ proof) =
+      appendAccesses acc proof
+
+    folder (Right acc) (Reference cid) =
+      UCAN.resolve cid >>= \case
+        Left  err       -> return $ Left err
+        Right (_, ucan) -> appendAccesses acc ucan
+
+    appendAccesses :: [Access privilege] -> UCAN privilege fact -> [Access privilege]
+    appendAccesses acc ucan =
+      toAccesses ucan >>= \case
+        Left err -> return $ Left err
+        Right newPrivs -> return $ Right (acc <> newPrivs)

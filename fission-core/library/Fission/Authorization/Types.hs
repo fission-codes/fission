@@ -2,28 +2,25 @@
 
 module Fission.Authorization.Types
   ( Authorization (..)
-  , Heroku (..)
+  -- Reexport
+  , module Fission.Authorization.Access.Types
+  , module Fission.Authorization.Heroku.Types
   ) where
 
-import qualified RIO.Text                                    as Text
+import qualified RIO.Text                           as Text
 
 import           Fission.Prelude
 
-import           Fission.Models
 import           Fission.User.DID
 
-import           Fission.Web.Auth.Token.UCAN.Privilege.Types
-
-data Heroku = Heroku
-  deriving (Show, Eq)
+import           Fission.Authorization.Access.Types
+import           Fission.Authorization.Heroku.Types
 
 -- | The final high-level authorization -- internal use only
-data Authorization entity = Authorization
-  { sender     :: !(Either Heroku DID)
-  , about      :: !(Entity User)
-  , privileges :: ![Privilege]
-  }
-  deriving (Show, Eq)
+data Authorization privilege = Authorization
+  { sender :: !(Either Heroku DID)
+  , access :: ![Access privilege]
+  } deriving (Show, Eq)
 
-instance Show entity => Display (Authorization entity) where
+instance Show privilege => Display (Authorization privilege) where
   textDisplay = Text.pack . show

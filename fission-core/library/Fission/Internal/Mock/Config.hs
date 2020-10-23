@@ -4,32 +4,33 @@ module Fission.Internal.Mock.Config
   ) where
 
 import           Network.AWS.Route53
-import           Network.IPFS.Client.Pin                     as IPFS.Client
-import           Network.IPFS.File.Types                     as File
-import qualified Network.IPFS.Types                          as IPFS
+import           Network.IPFS.Client.Pin                      as IPFS.Client
+import           Network.IPFS.File.Types                      as File
+import qualified Network.IPFS.Types                           as IPFS
 
 import           Servant
 import           Servant.Server.Experimental.Auth
 
-import qualified Fission.Platform.Heroku.Auth.Types          as Heroku
+import qualified Fission.Platform.Heroku.Auth.Types           as Heroku
 import           Fission.Prelude
 
 import           Fission.User.DID.Types
 
 import           Fission.Authorization.Types
+import           Fission.Web.Auth.Token.UCAN.Attenuated.Types
 import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
-import           Fission.URL.Types                           as URL
+import           Fission.URL.Types                            as URL
 
-import           Fission.Internal.Fixture.Entity             as Fixture
-import           Fission.Internal.Fixture.Key.Ed25519        as Fixture.Ed25519
-import           Fission.Internal.Fixture.Time               as Fixture
-import           Fission.Internal.Fixture.User               as Fixture
+import           Fission.Internal.Fixture.Entity              as Fixture
+import           Fission.Internal.Fixture.Key.Ed25519         as Fixture.Ed25519
+import           Fission.Internal.Fixture.Time                as Fixture
+import           Fission.Internal.Fixture.User                as Fixture
 
 import           Fission.Internal.Mock.Config.Types
 
-import           Fission.Internal.Orphanage.CID              ()
-import           Fission.Internal.Orphanage.Serilaized       ()
+import           Fission.Internal.Orphanage.CID               ()
+import           Fission.Internal.Orphanage.Serilaized        ()
 
 defaultConfig :: Config
 defaultConfig = Config
@@ -66,7 +67,7 @@ authZ :: Monad m => m (Authorization [Privilege])
 authZ = return Authorization
     { sender     = Right did
     , about      = Fixture.entity Fixture.user
-    , privileges = [] --FIXME add several
+    , privileges = Subset [] --FIXME add several
     }
     where
       did = DID
