@@ -26,6 +26,8 @@ module Fission.Prelude
   , module Fission.Internal.Time
   , module Fission.Internal.MonadDB
 
+  , module Fission.PartialOrder.Class
+
   , module Flow
 
   , module RIO
@@ -108,6 +110,8 @@ import           Test.QuickCheck                             hiding
 import           Test.QuickCheck.Instances                   ()
 
 import           Web.PathPieces
+
+import           Fission.PartialOrder.Class
 
 import           Fission.Internal.Log
 import           Fission.Internal.MonadDB

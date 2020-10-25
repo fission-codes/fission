@@ -19,6 +19,23 @@ data Privilege = Privilege
 instance Display Privilege where
   textDisplay = Text.pack . show
 
+instance PartialOrder Privilege where
+  relationship a b =
+    case (urlRel, capRel) of
+      (Equal,      Equal)      -> Equal
+
+      (Descendant, Equal)      -> Descendant
+      (Descendant, Descendant) -> Descendant
+
+      (Ancestor,   Equal)      -> Ancestor
+      (Ancestor,   Ancestor)   -> Ancestor
+
+      _                        -> Sibling
+
+    where
+      urlRel = relationship (url a) (url b)
+      capRel = relationship (capability a) (capability b)
+
 instance Arbitrary Privilege where
   arbitrary = do
     url        <- arbitrary

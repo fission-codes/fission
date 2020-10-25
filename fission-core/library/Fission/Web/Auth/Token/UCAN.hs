@@ -26,6 +26,7 @@ import           Crypto.Random                                    (MonadRandom (
 
 import qualified Crypto.PubKey.RSA                                as RSA
 import qualified Crypto.PubKey.RSA.PKCS15                         as RSA.PKCS15
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types      as UCAN
 
 import           Crypto.PubKey.Ed25519                            (toPublic)
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
@@ -206,6 +207,8 @@ initSession ucan@UCAN {claims = UCAN.Claims {sender}} = do
 
 -}
 
+-- FIXME *** STILL NEEDS TO CHECK TIME BOUNDS AND WHATNOT ***
+
 collectAcrossManyDelegateProofs ::
   forall t m fact .
   ( m `Proof.Resolves` UCAN Privilege fact
@@ -365,3 +368,32 @@ checkInDelegateProof initialPriv focusedPriv = \case
             tracePrivilegeToRoot initialPriv sender focusedPriv attenuations proofs
 
 isSubset = undefined
+
+
+isSubset' :: Privilege -> Attenuated Privilege -> Maybe Privilege
+isSubset' priv AllInScope = Just priv
+isSubset' priv (Subset proofPrivs) =
+  undefined
+  -- filter (priv
+
+comparey (UCAN.WNFS wnfsPriv) (UCAN.WNFS wnfsProof) =
+  if namespace wnfsPriv == namespace wnfsProof
+     && username wnfsPriv == username wnfsProof
+     && filePath wnfsPriv <= filePath wnfsProof
+    then Just wnfsProof
+    else Nothing
+
+comparey (UCAN.FissionWebApp url) proof@(UCAN.FissionWebApp proofURL) =
+  if url <= proofURL
+    then Just proof
+    else Nothing
+
+comparey (UCAN.RegisteredDomain dom)  proof@(UCAN.RegisteredDomain proofDom) =
+  if dom <= proofDom
+    then Just proof
+    else Nothing
+
+comparey _ _ =
+  Nothing
+
+

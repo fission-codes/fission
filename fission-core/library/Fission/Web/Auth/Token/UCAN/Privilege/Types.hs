@@ -10,6 +10,7 @@ data Privilege
   = WNFS             WNFS.Privilege -- ^ Fission FileSystem path
   | FissionWebApp    URL            -- ^ Primary URL for an App FIXME needs capability
   | RegisteredDomain DomainName     -- ^ Any domain name to which we have DNS access -- FIXME needs capabilty
+  -- | Unknown Text -- FIXME shoudl this be captured as an either?
   deriving (Eq, Show)
 
 instance Arbitrary Privilege where
@@ -19,6 +20,14 @@ instance Arbitrary Privilege where
       , FissionWebApp    <$> arbitrary
       , RegisteredDomain <$> arbitrary
       ]
+
+instance PartialOrder Privilege where
+  relationship x y =
+    case (x, y) of
+      (WNFS             a, WNFS             b) -> relationship a b
+      (FissionWebApp    a, FissionWebApp    b) -> relationship a b
+      (RegisteredDomain a, RegisteredDomain b) -> relationship a b
+      _                                        -> Sibling
 
 instance FromJSON Privilege where
   parseJSON = withObject "Privilege" \obj -> do

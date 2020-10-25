@@ -19,6 +19,17 @@ data Privilege = Privilege
 instance Display Privilege where
   textDisplay = Text.pack . show
 
+instance PartialOrder Privileg where
+  relationship domA domB =
+    case (domRel, capRel) of
+      (Equal, Equal) -> Equal
+      (Equal, rel)   -> rel
+      _              -> Siblings
+
+    where
+      domainRel = relationship (domain     domA) (domain     domB)
+      capRel    = relationship (capability domA) (capability domB)
+
 instance Arbitrary Privilege where
   arbitrary = do
     domain     <- arbitrary

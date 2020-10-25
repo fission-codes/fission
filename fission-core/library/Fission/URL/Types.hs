@@ -5,17 +5,17 @@ module Fission.URL.Types
   , module Fission.URL.Path.Types
   ) where
 
-import           Data.Swagger hiding (URL)
+import           Data.Swagger                 hiding (URL)
 import           Servant
 
-import qualified RIO.List as List
-import qualified RIO.Text as Text
+import qualified RIO.List                     as List
+import qualified RIO.Text                     as Text
 
 import           Fission.Prelude
 
 import           Fission.URL.DomainName.Types
-import           Fission.URL.Subdomain.Types
 import           Fission.URL.Path.Types
+import           Fission.URL.Subdomain.Types
 
 data URL = URL
   { domainName :: DomainName
@@ -24,6 +24,18 @@ data URL = URL
 
 instance Eq URL where
   urlA == urlB = textDisplay urlA == textDisplay urlB
+
+instance PartialOrder URL where
+  relationship urlA urlB =
+    case (Text.isPrefixOf urlA urlB, Text.isPrefixOf urlB urlA) of
+      (True, True) -> Equal
+      (_,    True) -> Descendant
+      (True, _   ) -> Ancestor
+      _            -> Siblings
+
+    where
+      txtA = textDisplay urlA
+      txtB = textDisplay urlB
 
 instance Arbitrary URL where
   arbitrary = URL <$> arbitrary <*> arbitrary
@@ -76,7 +88,7 @@ instance ToJSON URL where
       DomainName domain = domainName
 
       normalizedSubdomain = case subdomain of
-        Nothing -> ""
+        Nothing              -> ""
         Just (Subdomain sub) -> sub <> "."
 
 instance FromJSON URL where

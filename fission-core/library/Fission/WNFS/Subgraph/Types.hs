@@ -31,6 +31,26 @@ instance Arbitrary Subgraph where
 
     return Subgraph {..}
 
+instance PartialOrder Subgraph where
+  relationship sgA sgB =
+    case (namespaceCheck, usernameCheck, filePathEq, filePathSubset) of
+      (True, True, True,  _)     -> Equal
+      (True, True, False, True)  -> Descendant
+      (True, True, False, False) -> Ancestor
+      _                          -> Siblings
+
+  where
+    namespaceCheck = namespace sgA == namespace sgB
+    usernameCheck  = username  sgA == username  sgB
+
+    filePathEq = filePath sgA == filePath sgB
+
+    filePathSubset =
+      Text.isPrefixOf (withEndSlash (filePath sgA)) (withEndSlash (filePath sgB))
+
+    withEndSlash path =
+      Text.stripSuffix "/" (Text.pack path) <> "/"
+
 instance ToJSON Subgraph where
   toJSON Subgraph {..} =
     String (textDisplay username <> "." <> textDisplay namespace <> normalizedPath)

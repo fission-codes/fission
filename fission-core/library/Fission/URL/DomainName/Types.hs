@@ -17,7 +17,6 @@ newtype DomainName = DomainName { get :: Text }
                     , Generic
                     , Show
                     , Read
-                    , Ord
                     )
   deriving newtype  ( IsString
                     , PathPiece
@@ -32,6 +31,12 @@ instance Arbitrary DomainName where
 
 instance Display DomainName where
   textDisplay (DomainName txt) = txt
+
+instance PartialOrder DomainName where
+  relationship dnA dnB =
+    if dnA == dnB
+      then Equal
+      else Siblings
 
 instance PersistField DomainName where
   toPersistValue (DomainName name') = PersistText name'
