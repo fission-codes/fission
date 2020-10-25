@@ -1,4 +1,4 @@
-module Fission.WNFS.Capability.Types (Capability (..)) where
+module Fission.WNFS.Privilege.Capability.Types (Capability (..)) where
 
 import qualified RIO.Text        as Text
 

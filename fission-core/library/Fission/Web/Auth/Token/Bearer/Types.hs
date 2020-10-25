@@ -4,19 +4,22 @@ module Fission.Web.Auth.Token.Bearer.Types (Token (..)) where
 import           Data.Aeson.Types
 import           Servant.API
 
-import qualified RIO.ByteString.Lazy                   as Lazy
-import qualified RIO.Text                              as Text
+import qualified RIO.ByteString.Lazy                         as Lazy
+import qualified RIO.Text                                    as Text
 
-import qualified Fission.Internal.Base64.URL           as B64.URL
+import qualified Fission.Internal.Base64.URL                 as B64.URL
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT
-import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
-import           Fission.Web.Auth.Token.UCAN
+-- import           Fission.Web.Auth.Token.JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent       as JWT
+
+import           Fission.Web.Auth.Token.UCAN.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types
+import           Fission.Web.Auth.Token.UCAN.Types
 
 data Token = Token
-  { jwt        :: !UCAN           -- ^ The actual token
-  , rawContent :: !JWT.RawContent -- ^ Primarily to pass in to the verifier
+  { jwt        :: !(UCAN Privilege Fact) -- ^ The actual token
+  , rawContent :: !JWT.RawContent        -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
 

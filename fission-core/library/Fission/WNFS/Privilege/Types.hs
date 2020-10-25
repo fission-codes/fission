@@ -1,8 +1,15 @@
-module Fission.WNFS.Privilege.Types (Privilege (..)) where
+module Fission.WNFS.Privilege.Types
+  ( Privilege (..)
+  -- * Reexports
+  , module Fission.WNFS.Privilege.Capability.Types
+  , module Fission.WNFS.Subgraph.Types
+  ) where
 
 import           Fission.Prelude
 
-import           Fission.WNFS.Capability.Types
+import           Fission.Authorization.PrivilegeFor.Types
+
+import           Fission.WNFS.Privilege.Capability.Types
 import           Fission.WNFS.Subgraph.Types
 
 data Privilege = Privilege
@@ -10,6 +17,8 @@ data Privilege = Privilege
   , capability :: !Capability
   }
   deriving (Show, Eq)
+
+type instance PrivilegeFor Subgraph = Privilege
 
 instance Arbitrary Privilege where
   arbitrary = do

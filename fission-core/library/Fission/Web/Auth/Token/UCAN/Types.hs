@@ -139,7 +139,7 @@ data Claims privilege fact = Claims -- our use case: Claims [Privileege] Fact
   , receiver     :: !DID
   -- Scope (set-like operations)
   , proofs       :: !(Proof (UCAN privilege fact)) -- ^ Input scope (self-certifying)
-  , attenuations :: !(Attenuated [privilege])      -- ^ Output scope (certified by this UCAN)
+  , attenuations :: !(Attenuated [privilege]) -- ^ Output scope (certified by this UCAN)
   -- Additional signed info
   , facts        :: ![fact]
   -- Temporal Bounds

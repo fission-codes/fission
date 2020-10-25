@@ -1,9 +1,14 @@
 module Fission.WNFS.Subgraph.Types (Subgraph (..)) where
 
-import qualified RIO.Text                     as Text
+import qualified RIO.Text                                 as Text
+
+import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
+import           Fission.Models                           (UserId)
+
+import           Fission.Authorization.PrivilegeFor.Types
 import           Fission.User.Username.Types
 
 import           Fission.URL.DomainName.Types
@@ -16,11 +21,13 @@ data Subgraph = Subgraph
   }
   deriving (Show, Eq)
 
+type instance LookupData Subgraph   = (UserId, CID) -- CID here is existing data root
+
 instance Arbitrary Subgraph where
   arbitrary = do
-    namespace  <- arbitrary -- FIXME may need some more constraint
-    username   <- arbitrary
-    filePath   <- arbitrary
+    namespace <- arbitrary -- FIXME may need some more constraint
+    username  <- arbitrary
+    filePath  <- arbitrary
 
     return Subgraph {..}
 

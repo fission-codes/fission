@@ -12,7 +12,7 @@ import           Fission.Prelude
 
 import           Fission.Models
 
-import           Fission.Authorization
+import qualified Fission.Authorization                       as Auth
 import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
 import           Fission.URL                                 as URL
@@ -37,9 +37,10 @@ server ::
   , MonadLogger   m
   , User.Modifier m
   )
-  => Authorization Privilege
+  => Auth.Session
   -> ServerT API m
-server Authorization {about = Entity userID User {userUsername = Username rawUN}} cid = do
-  now <- currentTime
-  Web.Err.ensureM $ User.setData userID cid now
-  return . DomainName $ rawUN <> ".fission.name"
+server = undefined -- FIXME
+-- server Auth.Session {about = Entity userID User {userUsername = Username rawUN}} cid = do
+--   now <- currentTime
+--   Web.Err.ensureM $ User.setData userID cid now
+--   return . DomainName $ rawUN <> ".fission.name"

@@ -12,7 +12,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.Authorization                       as Auth
 import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
 import           Fission.Models
@@ -42,7 +42,7 @@ server ::
   , MonadLogger   m
   , App.Destroyer m
   )
-  => Authorization Privilege -- FIXME maybe restrict to needed resource?
+  => Auth.Session
   -> ServerT API m
 server auth = destroyByURL auth
          :<|> destroyById  auth
@@ -55,12 +55,13 @@ destroyByURL ::
   , MonadLogger   m
   , App.Destroyer m
   )
-  => Authorization Privilege
+  => Auth.Session
   -> ServerT ByURLAPI m
-destroyByURL Authorization {about = Entity userId _} URL {..} = do
-  now <- currentTime
-  Web.Error.ensureM $ App.destroyByURL userId domainName subdomain now
-  return NoContent
+destroyByURL = undefined -- FIXME!
+-- destroyByURL Auth.Session {about = Entity userId _} URL {..} = do
+--   now <- currentTime
+--   Web.Error.ensureM $ App.destroyByURL userId domainName subdomain now
+--   return NoContent
 
 -- FIXME 1. ensure that the user has rights to this app!
 -- FIXME 2. change relationship to "source" and "alias" (follower) apps
@@ -70,9 +71,10 @@ destroyById ::
   , MonadLogger   m
   , App.Destroyer m
   )
-  => Authorization Privilege
+  => Auth.Session
   -> ServerT ByIdAPI m
-destroyById Authorization {about = Entity userId _} appId = do
-  now <- currentTime
-  Web.Error.ensureM $ App.destroy userId appId now
-  return NoContent
+destroyById = undefined -- FIXME
+--destroyById Auth.Session {about = Entity userId _} appId = do
+--  now <- currentTime
+--  Web.Error.ensureM $ App.destroy userId appId now
+--  return NoContent

@@ -16,7 +16,8 @@ import           Fission.Prelude
 
 import           Fission.User.DID.Types
 
-import           Fission.Authorization.Types
+import qualified Fission.Authorization.Types                  as Authorization
+
 import           Fission.Web.Auth.Token.UCAN.Attenuated.Types
 import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
@@ -63,14 +64,16 @@ defaultConfig = Config
       Right $ resourceRecordSet "mock" Txt
   }
 
-authZ :: Monad m => m (Authorization [Privilege])
-authZ = return Authorization
-    { sender     = Right did
-    , about      = Fixture.entity Fixture.user
-    , privileges = Subset [] --FIXME add several
-    }
-    where
-      did = DID
-        { publicKey = Fixture.Ed25519.pk
-        , method    = Key
-        }
+authZ :: m (Authorization.Session)
+-- authZ :: Monad m => m (Authorization.Session)
+authZ = undefined -- FIXME!!
+-- authZ = return Authorization.Session
+--     { sender     = Right did
+--     , about      = Fixture.entity Fixture.user
+--     , privileges = Subset [] --FIXME add several
+--     }
+--     where
+--       did = DID
+--         { publicKey = Fixture.Ed25519.pk
+--         , method    = Key
+--         }
