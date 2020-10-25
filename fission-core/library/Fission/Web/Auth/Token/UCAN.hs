@@ -288,9 +288,9 @@ tracePrivilegeToRoot ::
   -> Proof (UCAN Privilege fact)
   -> m (Either UCAN.Error [Unchecked Privilege])
 tracePrivilegeToRoot initialPriv latestSender focusPriv attenuations proofs =
-  if isSubset focusPriv attenuations
-    then checkAttenuatedPrivilege initialPriv latestSender focusPriv attenuations proofs
-    else return $ Left NoProof
+  case findValidProof focusPriv attenuations of
+    Nothing    -> return $ Left NoProof
+    Just match -> checkAttenuatedPrivilege initialPriv latestSender focusPriv attenuations proofs -- FIXME hmmmm
 
 -- At the end of this one, we've checked that the focused privilege is backed up by an attenuation in the proof UCAN
 checkAttenuatedPrivilege ::
@@ -310,9 +310,9 @@ checkAttenuatedPrivilege initialPriv latestDID focusPriv focusAttenuation proof 
       rootOrContinue initialPriv latestDID focusPriv proof
 
     Subset candidatePrivs ->
-      case filter (isSubset focusPriv) candidatePrivs of
-        []             -> return $ Left NoProof
-        (newFocus : _) -> rootOrContinue initialPriv latestDID newFocus proof
+      case findValidProof focusPriv (Subset candidatePrivs) of -- FIXME hmmmm
+        Nothing       -> return $ Left NoProof
+        Just newFocus -> rootOrContinue initialPriv latestDID newFocus proof
 
 -- Here we assume that the attenuations are okay (having already been checked by checkNested)
 rootOrContinue ::
@@ -367,33 +367,19 @@ checkInDelegateProof initialPriv focusedPriv = \case
           UCAN {claims = UCAN.Claims {sender, attenuations, proofs}} ->
             tracePrivilegeToRoot initialPriv sender focusedPriv attenuations proofs
 
-isSubset = undefined
+findValidProof :: Privilege -> Attenuated Privilege -> Maybe Privilege
+findValidProof priv = \case
+  AllInScope ->
+    Just priv
 
+  Subset proofPrivs ->
+    case filter predicate proofPrivs of
+      []          -> Nothing
+      (match : _) -> match
 
-isSubset' :: Privilege -> Attenuated Privilege -> Maybe Privilege
-isSubset' priv AllInScope = Just priv
-isSubset' priv (Subset proofPrivs) =
-  undefined
-  -- filter (priv
-
-comparey (UCAN.WNFS wnfsPriv) (UCAN.WNFS wnfsProof) =
-  if namespace wnfsPriv == namespace wnfsProof
-     && username wnfsPriv == username wnfsProof
-     && filePath wnfsPriv <= filePath wnfsProof
-    then Just wnfsProof
-    else Nothing
-
-comparey (UCAN.FissionWebApp url) proof@(UCAN.FissionWebApp proofURL) =
-  if url <= proofURL
-    then Just proof
-    else Nothing
-
-comparey (UCAN.RegisteredDomain dom)  proof@(UCAN.RegisteredDomain proofDom) =
-  if dom <= proofDom
-    then Just proof
-    else Nothing
-
-comparey _ _ =
-  Nothing
-
-
+  where
+    predicate a =
+      case relationship priv a of
+        Equal      -> True
+        Descendant -> True
+        _          -> False

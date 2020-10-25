@@ -5,16 +5,16 @@ module Fission.PartialOrder.Class
   , module Fission.PartialOrder.Types
   ) where
 
-import           Fission.Prelude
+import           RIO
 
 import           Fission.PartialOrder.Types
 
-class Eq a => PartialOrder a where
+class PartialOrder a where
   relationship :: a -> a -> Relationship
 
-instance (Eq a, Ord a) => PartialOrder a where
-  relationship x y =
-    case compare x y of
-      EQ -> Equal
-      LT -> Descendant
-      GT -> Ancestor
+-- instance Ord a => PartialOrder a where
+--   relationship x y =
+--     case compare x y of
+--       EQ -> Equal
+--       LT -> Descendant
+--       GT -> Ancestor

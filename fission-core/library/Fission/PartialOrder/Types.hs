@@ -1,6 +1,6 @@
 module Fission.PartialOrder.Types (Relationship (..)) where
 
-import           Fission.Prelude
+import           RIO
 
 data Relationship
   = Ancestor

@@ -11,7 +11,7 @@ import           Fission.Domain.Privilege.Capability.Types
 import           Fission.URL.DomainName.Types
 
 data Privilege = Privilege
-  { domain     :: !DomainName
+  { domainName :: !DomainName
   , capability :: !Capability
   }
   deriving (Show, Eq)
@@ -19,20 +19,19 @@ data Privilege = Privilege
 instance Display Privilege where
   textDisplay = Text.pack . show
 
-instance PartialOrder Privileg where
-  relationship domA domB =
+instance PartialOrder Privilege where
+  relationship a b =
     case (domRel, capRel) of
-      (Equal, Equal) -> Equal
-      (Equal, rel)   -> rel
-      _              -> Siblings
+      (Equal, rel) -> rel
+      _            -> Sibling
 
     where
-      domainRel = relationship (domain     domA) (domain     domB)
-      capRel    = relationship (capability domA) (capability domB)
+      capRel = relationship (capability a) (capability b)
+      domRel = relationship (domainName a) (domainName b)
 
 instance Arbitrary Privilege where
   arbitrary = do
-    domain     <- arbitrary
+    domainName <- arbitrary
     capability <- arbitrary
 
     return Privilege {..}
@@ -40,13 +39,13 @@ instance Arbitrary Privilege where
 instance ToJSON Privilege where
   toJSON Privilege {..} =
     object
-      [ "domain" .= domain
+      [ "domain" .= domainName
       , "cap"    .= capability
       ]
 
 instance FromJSON Privilege where
   parseJSON = withObject "Domain.Privilege" \obj -> do
-    domain     <- obj .: "domain"
+    domainName <- obj .: "domain"
     capability <- obj .: "cap"
 
     return Privilege {..}

@@ -14,7 +14,6 @@ import           Fission.Prelude
 -- | Type safety wrapper for domain names
 newtype DomainName = DomainName { get :: Text }
   deriving          ( Eq
-                    , Generic
                     , Show
                     , Read
                     )
@@ -36,7 +35,7 @@ instance PartialOrder DomainName where
   relationship dnA dnB =
     if dnA == dnB
       then Equal
-      else Siblings
+      else Sibling
 
 instance PersistField DomainName where
   toPersistValue (DomainName name') = PersistText name'
