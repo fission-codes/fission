@@ -35,10 +35,14 @@ instance Arbitrary Subgraph where
 
 instance PartialOrder Subgraph where
   relationship sgA sgB =
-    case (namespaceCheck, usernameCheck, isPrivate) of
-      (True, True, True)  -> checkPrivate
-      (True, True, False) -> checkPublic
-      _                   -> Sibling
+    case (namespaceCheck, usernameCheck) of
+      (True, True) ->
+        if "/private/" `Text.isPrefixOf` pathA
+          then checkPrivate
+          else checPublic
+
+      _ ->
+        Sibling
 
     where
       checkPrivate =
@@ -59,8 +63,6 @@ instance PartialOrder Subgraph where
 
       namespaceCheck = namespace sgA == namespace sgB
       usernameCheck  = username  sgA == username  sgB
-
-      isPrivate = "/private/" `Text.isPrefixOf` pathA
 
       pathA = Text.pack $ filePath sgA
       pathB = Text.pack $ filePath sgB
