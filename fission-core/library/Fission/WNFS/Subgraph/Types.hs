@@ -1,5 +1,7 @@
 module Fission.WNFS.Subgraph.Types (Subgraph (..)) where
 
+import           Data.Bits
+
 import qualified RIO.Text                                 as Text
 
 import           Network.IPFS.CID.Types
@@ -33,23 +35,42 @@ instance Arbitrary Subgraph where
 
 instance PartialOrder Subgraph where
   relationship sgA sgB =
-    case (namespaceCheck, usernameCheck, filePathEq, filePathSubset) of
-      (True, True, True,  _)     -> Equal
-      (True, True, False, True)  -> Descendant
-      (True, True, False, False) -> Ancestor
-      _                          -> Sibling
+    case (namespaceCheck, usernameCheck, isPrivate) of
+      (True, True, True)  -> checkPrivate
+      (True, True, False) -> checkPublic
+      _                   -> Sibling
 
     where
+      checkPrivate =
+        case (pathA == pathB, bytesA `containedIn` bytesB, bytesB `containedIn` bytesA) of
+          (True, _, _)    -> Equal
+          (_, True, _)    -> Descendant
+          (_, _,    True) -> Ancestor
+          _               -> Sibling
+
+      xs `containedIn` ys = zipWith (.|.) xs ys == ys
+
+      checkPublic =
+        case (pathA == pathB, pathSubset pathA pathB, pathSubset pathB pathA) of
+          (True, _,    _)   -> Equal
+          (_,    True, _)   -> Descendant
+          (_,    _,   True) -> Ancestor
+          _                 -> Sibling
+
       namespaceCheck = namespace sgA == namespace sgB
       usernameCheck  = username  sgA == username  sgB
 
-      filePathEq = filePath sgA == filePath sgB
+      isPrivate = "/private/" `Text.isPrefixOf` pathA
 
-      filePathSubset =
-        Text.isPrefixOf (withEndSlash (filePath sgA)) (withEndSlash (filePath sgB))
+      pathA = Text.pack $ filePath sgA
+      pathB = Text.pack $ filePath sgB
 
-      withEndSlash path =
-        Text.dropSuffix "/" (Text.pack path) <> "/"
+      bytesA = ord <$> filePath sgA
+      bytesB = ord <$> filePath sgB
+
+      pathSubset x y = withEndSlash x `Text.isPrefixOf` withEndSlash y
+
+      withEndSlash path = Text.dropSuffix "/" path <> "/"
 
 instance ToJSON Subgraph where
   toJSON Subgraph {..} =
