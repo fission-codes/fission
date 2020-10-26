@@ -11,6 +11,7 @@ data Capability
   | Overwrite
   | SuperUser
   deriving (Show, Eq, Ord)
+  deriving PartialOrder via TotalOrder Capability
 
 instance Arbitrary Capability where
   arbitrary = elements

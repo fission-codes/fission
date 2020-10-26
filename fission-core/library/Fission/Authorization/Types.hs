@@ -24,7 +24,7 @@ import qualified Fission.WNFS.Privilege.Types                as WNFS
 
 -- | The final high-level authorization -- internal use only
 data Session = Session
-  { requestor :: !DID
+  { requestor :: !(Either Heroku DID)
   , unchecked :: ![Unchecked Privilege]
 
   , subgraphs :: ![Allowed WNFS.Subgraph]

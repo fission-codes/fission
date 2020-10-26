@@ -3,24 +3,28 @@ module Fission.Web.Auth.DID (handler) where
 import           Network.Wai
 
 import           Fission.Prelude
- 
-import qualified Fission.Web.Error      as Web.Error
-import qualified Fission.Web.Auth.Error as Auth
 
-import qualified Fission.Web.Auth.Token              as Token
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import qualified Fission.Web.Auth.Error                      as Auth
+import qualified Fission.Web.Error                           as Web.Error
 
-import           Fission.Web.Auth.Token.JWT            as JWT
-import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+import qualified Fission.Web.Auth.Token                      as Token
+import qualified Fission.Web.Auth.Token.Bearer.Types         as Bearer
 
-import           Fission.User.DID.Types
+-- import           Fission.Web.Auth.Token.JWT            as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver         as JWT
+import qualified Fission.Web.Auth.Token.JWT.Validation       as JWT
+
 import           Fission.Authorization.ServerDID
+import           Fission.User.DID.Types
+
+import           Fission.Web.Auth.Token.UCAN.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types
+import           Fission.Web.Auth.Token.UCAN.Types           as UCAN
 
 -- | Auth handler for registering DIDs
 -- Ensures properly formatted token but *does not check against DB*
 handler ::
-  ( JWT.Resolver m
+  ( m `JWT.Resolves` UCAN Privilege Fact
   , ServerDID    m
   , MonadLogger  m
   , MonadThrow   m
@@ -36,7 +40,7 @@ handler req =
           logWarn $ "Failed registration with token " <> textDisplay token
           Web.Error.throw err
 
-        Right JWT.JWT {claims = JWT.Claims {sender}} ->
+        Right UCAN {claims = UCAN.Claims {sender}} ->
           return sender
 
     Right token@(Token.Basic _) -> do
@@ -45,4 +49,3 @@ handler req =
 
     Left err ->
       Web.Error.throw err
-     

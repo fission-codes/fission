@@ -1,5 +1,6 @@
 module Fission.Web.Auth.Token.UCAN
   ( initSession
+  , toAuthorization
   -- , getRoot
   ) where
 
@@ -98,6 +99,8 @@ import qualified Fission.Web.Auth.Token.UCAN.Error                as UCAN
 
 import           Fission.Web.Auth.Token.JWT.Resolver.Class        as UCAN
 
+toAuthorization = undefined -- FIXME FIXME FIXME
+
 -- toAuthorization :: -- FIXME probbaly belonmgs in the auth section
 --   ( m `Proof.Resolves` UCAN Privilege fact
 --   -- , MonadThrow       m
@@ -183,7 +186,7 @@ initSession ucan@UCAN {claims = UCAN.Claims {sender}} = do
 
     Right unchecked ->
       return $ Right Authorization.Session
-        { requestor = sender
+        { requestor = Right sender
         , unchecked = unchecked
         , subgraphs = []
         , domains   = []
@@ -367,7 +370,7 @@ checkInDelegateProof initialPriv focusedPriv = \case
           UCAN {claims = UCAN.Claims {sender, attenuations, proofs}} ->
             tracePrivilegeToRoot initialPriv sender focusedPriv attenuations proofs
 
-findValidProof :: Privilege -> Attenuated Privilege -> Maybe Privilege
+findValidProof :: Privilege -> Attenuated [Privilege] -> Maybe Privilege
 findValidProof priv = \case
   AllInScope ->
     Just priv
@@ -375,7 +378,7 @@ findValidProof priv = \case
   Subset proofPrivs ->
     case filter predicate proofPrivs of
       []          -> Nothing
-      (match : _) -> match
+      (match : _) -> Just match
 
   where
     predicate a =

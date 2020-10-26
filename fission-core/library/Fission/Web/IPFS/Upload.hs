@@ -14,7 +14,7 @@ import qualified Network.IPFS.Types                         as IPFS
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types
+import qualified Fission.Authorization.Types                as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.LoosePin.Creator                   as LoosePin
@@ -35,13 +35,15 @@ add ::
   , MonadDB          t m
   , LoosePin.Creator t
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-add Authorization {about = Entity userId _} (Serialized rawData) =
+add Authorization.Session {} (Serialized rawData) =
+-- add Authorization {about = Entity userId _} (Serialized rawData) =
   IPFS.addRaw rawData >>= \case
     Right newCID ->
       IPFS.Pin.add newCID >>= \case
         Right pinnedCID -> do
+          let userId = undefined -- FIXME
           runDBNow $ LoosePin.createMany userId [pinnedCID]
           return pinnedCID
 

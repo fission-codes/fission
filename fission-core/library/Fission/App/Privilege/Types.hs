@@ -33,7 +33,7 @@ instance PartialOrder Privilege where
       _                        -> Sibling
 
     where
-      urlRel = relationship (url a) (url b)
+      urlRel = relationship (url a)        (url b)
       capRel = relationship (capability a) (capability b)
 
 instance Arbitrary Privilege where

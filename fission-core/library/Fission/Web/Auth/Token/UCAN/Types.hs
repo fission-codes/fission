@@ -15,6 +15,7 @@ import           Fission.Web.Auth.Token.JWT.RawContent.Class
 import           Fission.Web.Auth.Token.UCAN.Proof.Types
 
 
+import qualified Fission.Internal.Base64.URL                  as B64.URL
 
 
 
@@ -44,7 +45,10 @@ import           Fission.Web.Auth.Token.JWT.Signature         as Signature
 -- Reexports
 
 import           Fission.Web.Auth.Token.JWT.Header.Types
--- import           Fission.Web.Auth.Token.JWT.RawContent
+
+import           Fission.Web.Auth.Token.JWT.RawContent.Types  as JWT
+
+import           Fission.Web.Auth.Token.JWT.RawContent.Class
 
 -- Orphans
 
@@ -55,7 +59,7 @@ data UCAN privilege fact = UCAN
   { header :: !Header
   , claims :: !(Claims privilege fact)
   , sig    :: !Signature.Signature
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Generic)
 
 instance
   ( Arbitrary privilege
@@ -64,7 +68,7 @@ instance
   , ToJSON privilege
   , ToJSON fact
 
-  , HasField' "signature" (UCAN privilege fact) Signature
+  -- , HasField' "signature" (UCAN privilege fact) Signature
   , ToRawContent          (UCAN privilege fact)
   )
   => Arbitrary (UCAN privilege fact) where
@@ -95,8 +99,15 @@ instance
 instance
   ( ToJSON privilege
   , ToJSON fact
+  )
+  => ToRawContent (UCAN privilege fact) where
+    toRawContent UCAN {..} = JWT.RawContent $ B64.URL.encodeJWT header claims
 
-  , HasField' "signature" (UCAN privilege fact) Signature
+instance
+  ( ToJSON privilege
+  , ToJSON fact
+
+  -- , HasField' "signature" (UCAN privilege fact) Signature
   )
   => ToJSON (UCAN privilege fact) where
   toJSON UCAN {..} = String $ content <> "." <> textDisplay sig
@@ -174,7 +185,7 @@ instance
   , ToJSON privilege
   , ToJSON fact
 
-  , HasField' "signature" (UCAN privilege fact) Signature
+  -- , HasField' "signature" (UCAN privilege fact) Signature
   , ToRawContent          (UCAN privilege fact)
   )
   => Arbitrary (Claims privilege fact) where
@@ -201,7 +212,7 @@ instance
   ( ToJSON privilege
   , ToJSON fact
 
-  , HasField' "signature" (UCAN privilege fact) Signature
+  -- , HasField' "signature" (UCAN privilege fact) Signature
   )
   => ToJSON (Claims privilege fact) where
     toJSON Claims {..} = object

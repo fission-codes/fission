@@ -5,7 +5,7 @@ module Fission.Web.App
 
 import           Servant
 
-import           Fission.Authorization
+import qualified Fission.Authorization      as Authorization
 import           Fission.Prelude
 
 import           Fission.IPFS.DNSLink.Class as DNSLink
@@ -36,7 +36,7 @@ server ::
   , App.Retriever         t
   , App.Domain.Retriever  t
   )
-  => Authorization
+  => Authorization.Session -- FIXME move to a monadic interface (TVar?)
   -> ServerT API m
 server auth = Index.index    auth
          :<|> Create.create  auth

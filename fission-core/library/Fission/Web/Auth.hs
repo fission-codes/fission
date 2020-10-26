@@ -14,7 +14,7 @@ import           Network.Wai
 import           Servant
 import           Servant.Server.Experimental.Auth
 
-import           Fission.Authorization
+import           Fission.Authorization              as Authorization
 import           Fission.Prelude
 import           Fission.User.DID.Types
 
@@ -31,15 +31,15 @@ import           Fission.Web.Auth.Types
 
 type Checks
   = '[ AuthHandler    Request DID
-     , AuthHandler    Request Authorization
+     , AuthHandler    Request Authorization.Session
      , BasicAuthCheck Heroku.Auth
      ]
 
 -- | Construct an authorization context
 mkAuth ::
-  ( MonadAuth      DID           m
-  , MonadAuth      Authorization m
-  , MonadBasicAuth Heroku.Auth   m
+  ( MonadAuth      DID                   m
+  , MonadAuth      Authorization.Session m
+  , MonadBasicAuth Heroku.Auth           m
   )
   => m (Context Checks)
 mkAuth = do

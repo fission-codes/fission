@@ -7,7 +7,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.Models
@@ -18,6 +18,8 @@ type API
   :> Description "Get username registered to currently authenticated user"
   :> Get '[PlainText, JSON] Username
 
-server :: Monad m => Authorization [Resource] -> ServerT API m
-server Authorization {about = Entity _ User { userUsername }} =
+server :: Monad m => Authorization.Session -> ServerT API m
+server Authorization.Session {} = do
+-- server Authorization {about = Entity _ User { userUsername }} =
+  let userUsername = undefined -- FIXME
   return userUsername

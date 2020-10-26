@@ -29,7 +29,7 @@ import           Fission.Internal.Mock.Session.Types
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types
+import           Fission.Authorization.Types                as Authorization
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
@@ -106,7 +106,7 @@ instance MonadAuth DID (Mock effs) where
 instance MonadAuth (Entity User) (Mock effs) where
   getVerifier = asks userVerifier
 
-instance MonadAuth (Authorization [Resource]) (Mock effs) where
+instance MonadAuth Authorization.Session (Mock effs) where
   getVerifier = asks authVerifier
 
 instance IsMember RunAWS effs => MonadAWS (Mock effs) where

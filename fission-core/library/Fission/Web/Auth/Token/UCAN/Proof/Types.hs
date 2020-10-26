@@ -36,10 +36,10 @@ instance (ToRawContent ucan, Arbitrary ucan) => Arbitrary (Proof ucan) where
       nested :: Gen (NonEmpty (DelegateProof ucan))
       nested = do
         innerUCAN <- arbitrary
-        return (Nested (toRawToken innerUCAN) innerUCAN :| [])
+        return (Nested (toRawContent innerUCAN) innerUCAN :| [])
 
 instance
-  ( HasField' "signature" ucan Signature
+  ( HasField' "sig" ucan Signature
   , ToJSON ucan
   )
   => ToJSON (Proof ucan) where
@@ -47,7 +47,7 @@ instance
     toJSON (DelegatedFrom inner) = toJSON inner
 
 instance
-  ( HasField' "signature" ucan Signature
+  ( HasField' "sig" ucan Signature
   , ToJSON ucan
   )
   => ToJSON (DelegateProof ucan) where
@@ -56,7 +56,7 @@ instance
         toJSON cid
 
       Nested (JWT.RawContent raw) ucan ->
-        String (raw <> "." <> textDisplay (getField @"signature" ucan))
+        String (raw <> "." <> textDisplay (getField @"sig" ucan))
 
 instance FromJSON ucan => FromJSON (Proof ucan) where
   parseJSON Null = return RootCredential

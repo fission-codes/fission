@@ -16,7 +16,7 @@ import qualified Network.IPFS.Pin                           as IPFS.Pin
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types
+import qualified Fission.Authorization.Types                as Authorization
 import           Fission.Models
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
@@ -47,9 +47,12 @@ server ::
   , LoosePin.Retriever t
   , LoosePin.Destroyer t
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-server Authorization {about = Entity userId _} = pin userId :<|> unpin userId
+-- server Authorization {about = Entity userId _} = pin userId :<|> unpin userId
+server Authorization.Session {} = do
+  let userId = undefined -- FIXME
+  pin userId :<|> unpin userId
 
 pin ::
   ( MonadRemoteIPFS    m

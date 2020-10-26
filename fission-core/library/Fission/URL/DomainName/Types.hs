@@ -13,12 +13,13 @@ import           Fission.Prelude
 
 -- | Type safety wrapper for domain names
 newtype DomainName = DomainName { get :: Text }
-  deriving          ( Eq
-                    , Show
+  deriving          ( Show
                     , Read
                     )
   deriving newtype  ( IsString
                     , PathPiece
+                    , Eq
+                    , Ord
                     )
 
 instance Arbitrary DomainName where

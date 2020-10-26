@@ -8,7 +8,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import qualified Fission.User                               as User
@@ -30,9 +30,11 @@ server ::
   , MonadIO       m
   , User.Modifier m
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-server Authorization {about = Entity userId _} User.Password.Reset { maybePassword } = do
+server Authorization.Session {} User.Password.Reset { maybePassword } = do
+-- server Authorization {about = Entity userId _} User.Password.Reset { maybePassword } = do
+  let userId = undefined -- FIXME
   now      <- currentTime
   password <- maybe User.Password.random pure maybePassword
 

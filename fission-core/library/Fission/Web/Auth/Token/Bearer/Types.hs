@@ -10,7 +10,6 @@ import qualified RIO.Text                                    as Text
 import qualified Fission.Internal.Base64.URL                 as B64.URL
 import           Fission.Prelude
 
--- import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Web.Auth.Token.JWT.RawContent       as JWT
 
 import           Fission.Web.Auth.Token.UCAN.Fact.Types
@@ -28,17 +27,17 @@ instance Arbitrary Token where
     ucan@UCAN {..} <- arbitrary
     return Token
       { jwt = ucan
-      , rawContent = RawContent $ B64.URL.encodeJWT header claims
+      , rawContent = JWT.RawContent $ B64.URL.encodeJWT header claims
       }
 
 instance Display Token where
   textDisplay = Text.pack . show
 
 instance ToJSON Token where
-  toJSON (Token bs _) =
-    case toJSON bs of
+  toJSON Token {jwt} =
+    case toJSON jwt of
       String txt -> String $ "Bearer " <> txt
-      _          -> error "impossible"
+      other      -> error $ "IMPOSSIBLE CASE JWT token as a non-String: " <> show other
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->

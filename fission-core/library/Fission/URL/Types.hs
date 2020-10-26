@@ -27,11 +27,11 @@ instance Eq URL where
 
 instance PartialOrder URL where
   relationship urlA urlB =
-    case (Text.isPrefixOf urlA urlB, Text.isPrefixOf urlB urlA) of
-      (True, True) -> Equal
-      (_,    True) -> Descendant
-      (True, _   ) -> Ancestor
-      _            -> Siblings
+    case (Text.isPrefixOf txtA txtB, Text.isPrefixOf txtB txtA) of
+      (True,  True)  -> Equal
+      (False, True)  -> Descendant
+      (True,  False) -> Ancestor
+      _              -> Sibling
 
     where
       txtA = textDisplay urlA

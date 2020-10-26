@@ -9,19 +9,19 @@ import           Fission.Prelude
 import           Fission.Models                           (UserId)
 
 import           Fission.Authorization.PrivilegeFor.Types
-import           Fission.User.Username.Types
+import           Fission.User.Username.Types              (Username)
 
 import           Fission.URL.DomainName.Types
 import           Fission.URL.Types
 
 data Subgraph = Subgraph
-  { namespace :: DomainName
-  , username  :: Username
-  , filePath  :: FilePath
+  { namespace :: !DomainName
+  , username  :: !Username
+  , filePath  :: !FilePath
   }
   deriving (Show, Eq)
 
-type instance LookupData Subgraph   = (UserId, CID) -- CID here is existing data root
+type instance LookupData Subgraph = (UserId, CID) -- CID here is existing data root
 
 instance Arbitrary Subgraph where
   arbitrary = do
@@ -37,19 +37,19 @@ instance PartialOrder Subgraph where
       (True, True, True,  _)     -> Equal
       (True, True, False, True)  -> Descendant
       (True, True, False, False) -> Ancestor
-      _                          -> Siblings
+      _                          -> Sibling
 
-  where
-    namespaceCheck = namespace sgA == namespace sgB
-    usernameCheck  = username  sgA == username  sgB
+    where
+      namespaceCheck = namespace sgA == namespace sgB
+      usernameCheck  = username  sgA == username  sgB
 
-    filePathEq = filePath sgA == filePath sgB
+      filePathEq = filePath sgA == filePath sgB
 
-    filePathSubset =
-      Text.isPrefixOf (withEndSlash (filePath sgA)) (withEndSlash (filePath sgB))
+      filePathSubset =
+        Text.isPrefixOf (withEndSlash (filePath sgA)) (withEndSlash (filePath sgB))
 
-    withEndSlash path =
-      Text.stripSuffix "/" (Text.pack path) <> "/"
+      withEndSlash path =
+        Text.dropSuffix "/" (Text.pack path) <> "/"
 
 instance ToJSON Subgraph where
   toJSON Subgraph {..} =

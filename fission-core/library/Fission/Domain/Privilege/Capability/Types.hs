@@ -7,6 +7,7 @@ import           Fission.Prelude
 data Capability
   = SuperUser
   deriving (Show, Eq, Ord)
+  deriving PartialOrder via TotalOrder Capability
 
 instance Display Capability where
   display SuperUser = "Domain.SuperUser"

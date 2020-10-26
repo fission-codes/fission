@@ -11,7 +11,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Models
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
@@ -40,9 +40,12 @@ server ::
   , MonadThrow    m
   , User.Modifier m
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-server Authorization {about = Entity userId _} = addKey userId :<|> removeKey userId
+server Authorization.Session {} = do
+-- server Authorization {about = Entity userId _} =
+  let userId = undefined
+  addKey userId :<|> removeKey userId
 
 addKey ::
   ( MonadTime     m

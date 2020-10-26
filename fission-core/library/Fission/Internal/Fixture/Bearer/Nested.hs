@@ -14,13 +14,19 @@ import           Servant.API
 
 
 import           Fission.Authorization.ServerDID.Class
-import qualified Fission.Internal.Time                 as Time
+import qualified Fission.Internal.Time                       as Time
 import           Fission.Prelude
 
-import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
-import           Fission.Web.Auth.Token.JWT            as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types         as Bearer
+-- import           Fission.Web.Auth.Token.JWT.Types            as JWTo
 
-import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
+import           Fission.Web.Auth.Token.UCAN.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types
+import           Fission.Web.Auth.Token.UCAN.Types
+
+import           Fission.Web.Auth.Token.JWT.RawContent.Types as JWT
+
+import           Fission.Web.Auth.Token.JWT.Resolver         as Proof
 
 newtype InTimeBounds a = InTimeBounds { unwrap :: Identity a }
   deriving newtype
@@ -31,7 +37,7 @@ newtype InTimeBounds a = InTimeBounds { unwrap :: Identity a }
     , Show
     )
 
-instance Proof.Resolver InTimeBounds where
+instance InTimeBounds `Proof.Resolves` jwt where
   resolve = error "shouldn't hit this in our specific case"
 
 instance ServerDID InTimeBounds where
@@ -52,6 +58,6 @@ jsonRSA2048 :: Text
 jsonRSA2048 = "Bearer " <> unRawContent rawContent <> ".Q7dBT4vbz9tgWlLgGgex-sk69immscmpvz-r7TQfxgIsJUBwLiWk0q0mxW5l1In2x_HU_Q42N9C5XOnoYwauPGsjOmtisGNtWCzNuUWDPdHfcBVcg1CEFt0FtTr2zM0WT7TaiWh6WK5J16G3Sf1Nd2uxWCXYIMZWng7lvbKqOY-ME0M4eIHQ6gh1oS45rQhvxQ33NS8p17mET3KvZ3OlQVXsk641N8tSJPgJv-Y4Io5b4HpiYWO9Z2E4N_r4DkexW3D8ztdcBtCVIqPVjOKtA63jX1cFaqU7Rs0z_KpvPlQqOh4BQeI1AjGSrgnckmIgMFn11Dx98DsxwIxN8NrD_g"
 
 tokenRSA2048 :: Bearer.Token
-jwtRSA2048   :: UCAN
+jwtRSA2048   :: UCAN Privilege Fact
 
 Right tokenRSA2048@(Bearer.Token jwtRSA2048 _) = parseUrlPiece jsonRSA2048

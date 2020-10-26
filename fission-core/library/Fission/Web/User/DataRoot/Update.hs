@@ -8,7 +8,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import qualified Fission.User                               as User
@@ -29,9 +29,11 @@ server ::
   , MonadTime       m
   , User.Modifier   m
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-server Authorization {about = Entity userID _} newCID = do
+server Authorization.Session {} newCID = do
+-- server Authorization {about = Entity userID _} newCID = do
+  let userID = undefined -- FIXME
   now <- currentTime
   Web.Error.ensureM $ User.setData userID newCID now
   return NoContent

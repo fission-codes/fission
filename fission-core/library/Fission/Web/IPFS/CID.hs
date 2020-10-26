@@ -9,7 +9,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types
+import qualified Fission.Authorization.Types                as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import qualified Fission.LoosePin                           as LoosePin
@@ -24,8 +24,10 @@ allForUser ::
   ( MonadDB            t m
   , LoosePin.Retriever t
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-allForUser Authorization {about = Entity userId _} = runDB do
+allForUser Authorization.Session {} = runDB do
+-- allForUser Authorization {about = Entity userId _} = runDB do
+  let userId = undefined
   pins <- LoosePin.getByUserId userId
   return (getInner loosePinCid <$> pins)

@@ -6,7 +6,7 @@ module Fission.Web.App.Index
 import           RIO.Map                                    as Map
 import           Servant
 
-import           Fission.Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Prelude
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
@@ -26,9 +26,12 @@ index ::
   , App.Retriever        t
   , App.Domain.Retriever t
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-index Authorization {about = Entity userId _} = runDB do
+index Authorization.Session {} = runDB do
+-- index Authorization {about = Entity userId _} = runDB do
+  let userId = undefined -- FIXME
+
   apps        <- App.ownedBy userId
   appXDomains <- forM apps findDomains
   return (Map.fromList appXDomains)

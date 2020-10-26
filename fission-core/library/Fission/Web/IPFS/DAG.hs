@@ -9,7 +9,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types
+import qualified Fission.Authorization.Types                as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.LoosePin.Creator                   as LoosePin
@@ -36,9 +36,10 @@ put ::
   , MonadDB          t m
   , LoosePin.Creator t
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-put Authorization {about = Entity userId _} (Serialized rawData) =
+put Authorization.Session {} (Serialized rawData) =
+-- put Authorization {about = Entity userId _} (Serialized rawData) =
   IPFS.DAG.put rawData >>= \case
     Left err ->
       Web.Err.throw err
@@ -49,6 +50,7 @@ put Authorization {about = Entity userId _} (Serialized rawData) =
           Web.Err.throw err
 
         Right pinnedCID -> do
+          let userId = undefined -- FIXME
           newCID
             |> return
             |> LoosePin.createMany userId

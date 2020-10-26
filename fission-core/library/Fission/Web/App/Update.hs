@@ -9,11 +9,12 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import           Fission.Authorization
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+-- import           Fission.Authorization
+-- import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import qualified Fission.Authorization.Types as Authorization
 
-import qualified Fission.App                                as App
-import           Fission.Web.Error                          as Web.Error
+import qualified Fission.App                 as App
+import           Fission.Web.Error           as Web.Error
 
 import           Fission.URL.Types
 
@@ -32,9 +33,11 @@ update ::
   , MonadTime    m
   , App.Modifier m
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-update Authorization {about = Entity userId _} url newCID copyDataFlag = do
+update Authorization.Session {} url newCID copyDataFlag = do
+-- update Authorization {about = Entity userId _} url newCID copyDataFlag = do
+  let userId = undefined -- FIXME
   now <- currentTime
   Web.Error.ensureM $ App.setCID userId url newCID copyFiles now
   return NoContent

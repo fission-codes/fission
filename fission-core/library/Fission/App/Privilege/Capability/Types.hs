@@ -8,6 +8,7 @@ data Capability
   = Revise
   | SuperUser
   deriving (Show, Eq, Ord)
+  deriving PartialOrder via TotalOrder Capability
 
 instance Display Capability where
   display Revise    = "App.Revise"

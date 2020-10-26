@@ -10,14 +10,17 @@ import           Fission.Prelude
 
 import           Fission.Authorization
 import           Fission.URL
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
-import           Fission.Web.Error                          as Web.Error
+import           Fission.Web.Error           as Web.Error
 
-import           Fission.App.Content                        as AppCID
-import qualified Fission.App.Creator                        as App
-import           Fission.App.Domain                         as App.Domain
+-- import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import           Fission.IPFS.DNSLink.Class                 as DNSLink
+import qualified Fission.Authorization.Types as Authorization
+
+import           Fission.App.Content         as AppCID
+import qualified Fission.App.Creator         as App
+import           Fission.App.Domain          as App.Domain
+
+import           Fission.IPFS.DNSLink.Class  as DNSLink
 
 type API
   =  Summary "Create app"
@@ -33,9 +36,13 @@ create ::
   , MonadLogger            m
   , MonadDNSLink           m
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-create Authorization {about = Entity userId _} maySubdomain = do
+create Authorization.Session {} maySubdomain = do
+-- create Authorization.Session {about = Entity userId _} maySubdomain = do
+
+  let userId = undefined -- FIXME
+
   now            <- currentTime
   (_, subdomain) <- Web.Error.ensureM $ App.createWithPlaceholder userId maySubdomain now
   defaultDomain  <- App.Domain.initial

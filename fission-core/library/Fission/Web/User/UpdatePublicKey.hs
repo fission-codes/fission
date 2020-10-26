@@ -7,7 +7,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import qualified Fission.Web.Error                          as Web.Error
@@ -27,9 +27,11 @@ server ::
   , MonadThrow    m
   , User.Modifier m
   )
-  => Authorization [Resource]
+  => Authorization.Session
   -> ServerT API m
-server Authorization {about = Entity userID _} pk = do
+server Authorization.Session {} pk = do
+  let userID = undefined -- FIXME
+-- server Authorization {about = Entity userID _} pk = do
   now <- currentTime
   Web.Error.ensureM $ User.updatePublicKey userID pk now
   return NoContent

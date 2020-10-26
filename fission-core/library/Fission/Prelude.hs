@@ -27,6 +27,7 @@ module Fission.Prelude
   , module Fission.Internal.MonadDB
 
   , module Fission.PartialOrder.Class
+  , module Fission.TotalOrder.Types
 
   , module Flow
 
@@ -112,6 +113,7 @@ import           Test.QuickCheck.Instances                   ()
 import           Web.PathPieces
 
 import           Fission.PartialOrder.Class
+import           Fission.TotalOrder.Types
 
 import           Fission.Internal.Log
 import           Fission.Internal.MonadDB

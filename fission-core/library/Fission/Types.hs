@@ -86,6 +86,13 @@ import           Fission.Email.Class
 
 import qualified Fission.Domain                        as Domain
 
+
+import qualified Fission.Authorization.Types           as Authorization
+import           Fission.Web.Auth.Token.UCAN.Types
+
+
+
+
 -- | The top-level app type
 newtype Fission a = Fission { unFission :: RIO Config a }
   deriving newtype ( Functor
@@ -333,7 +340,7 @@ instance MonadAuth DID Fission where
     return $ mkAuthHandler \req ->
       toHandler (runRIO cfg) . unFission $ Auth.DID.handler req
 
-instance MonadAuth Authorization Fission where
+instance MonadAuth Authorization.Session Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
@@ -345,16 +352,20 @@ instance App.Domain.Initializer Fission where
 instance App.Content.Initializer Fission where
   placeholder = asks appPlaceholder
 
-instance JWT.Resolver Fission where
-  resolve cid@(IPFS.CID hash) =
-    IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
-      Left errMsg ->
-        Left $ CannotResolve cid errMsg
+instance
+  ( FromJSON privilege
+  , FromJSON fact
+  )
+  => Fission `JWT.Resolves` UCAN privilege fact where
+    resolve cid@(IPFS.CID hash) =
+      IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
+        Left errMsg ->
+          Left $ CannotResolve cid errMsg
 
-      Right (Lazy.toStrict -> resolvedBS) ->
-        case eitherDecodeStrict resolvedBS of
-          Left  _   -> Left $ InvalidJWT resolvedBS
-          Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
+        Right (Lazy.toStrict -> resolvedBS) ->
+          case eitherDecodeStrict resolvedBS of
+            Left  _   -> Left $ InvalidJWT resolvedBS
+            Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
 
 instance ServerDID Fission where
   getServerDID = asks fissionDID

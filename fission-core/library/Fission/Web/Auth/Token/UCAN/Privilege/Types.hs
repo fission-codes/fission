@@ -1,8 +1,8 @@
 module Fission.Web.Auth.Token.UCAN.Privilege.Types (Privilege (..)) where
 
-import           Fission.Prelude
+import qualified RIO.Text                       as Text
 
-import           Fission.URL
+import           Fission.Prelude
 
 import qualified Fission.App.Privilege.Types    as App
 import qualified Fission.Domain.Privilege.Types as Domain

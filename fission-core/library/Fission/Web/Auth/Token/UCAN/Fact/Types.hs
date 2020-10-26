@@ -18,7 +18,4 @@ instance FromJSON Fact where
   parseJSON = withText "Fact" \txt -> pure $ RawText txt
 
 instance Arbitrary Fact where
-  arbitrary =
-    elements
-      [ RawText "hello world"
-      ] -- FIXME Expand!
+  arbitrary = RawText <$> arbitrary

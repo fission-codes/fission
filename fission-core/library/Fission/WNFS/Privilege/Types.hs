@@ -27,6 +27,25 @@ instance Arbitrary Privilege where
 
     return Privilege {..}
 
+instance PartialOrder Privilege where
+  relationship x y =
+    case (sgRel, capRel) of
+      (Equal,      Equal)      -> Equal
+
+      (Descendant, Descendant) -> Descendant
+      (Descendant, Equal)      -> Descendant
+      (Equal,      Descendant) -> Descendant
+
+      (Ancestor,   Ancestor)   -> Ancestor
+      (Ancestor,   Equal)      -> Ancestor
+      (Equal,      Ancestor)   -> Ancestor
+
+      (_,          _)          -> Sibling
+
+    where
+      sgRel  = relationship (subgraph   x) (subgraph   y)
+      capRel = relationship (capability x) (capability y)
+
 instance ToJSON Privilege where
   toJSON Privilege {..} =
     object
