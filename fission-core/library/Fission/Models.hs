@@ -39,8 +39,6 @@ import qualified Fission.AWS.Zone.Types                    as AWS
 import qualified Fission.App.Privilege.Types               as App
 import qualified Fission.Domain.Privilege.Types            as Domain
 
-import           Fission.Authorization.PrivilegeFor.Types
-
 import           Fission.Internal.Orphanage.Bytes          ()
 import           Fission.Internal.Orphanage.CID            ()
 import           Fission.Internal.Orphanage.RSA2048.Public ()
@@ -249,9 +247,6 @@ instance ToSchema UserId where
       |> NamedSchema (Just "UserId")
       |> pure
 
--- FIXME will need this: type instance PrivilegeFor Domain = Domain.Privilege
-type instance LookupData User = UserId
-
 -----------
 -- App --
 -----------
@@ -274,13 +269,3 @@ instance Display AppId where
 
 instance ToJSONKey AppId where
   toJSONKey = toJSONKeyText textDisplay
-
-type instance PrivilegeFor App = App.Privilege
-type instance LookupData   App = AppId
-
-------------
--- Domain --
-------------
-
-type instance PrivilegeFor Domain = Domain.Privilege
-type instance LookupData   Domain = DomainId

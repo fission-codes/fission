@@ -7,7 +7,8 @@ module Fission.WNFS.Privilege.Types
 
 import           Fission.Prelude
 
-import           Fission.Authorization.PrivilegeFor.Types
+--import qualified Fission.Authorization.Allowable         as Allowable
+-- FIXME delete PrivilegfeFor
 
 import           Fission.WNFS.Privilege.Capability.Types
 import           Fission.WNFS.Subgraph.Types
@@ -18,7 +19,7 @@ data Privilege = Privilege
   }
   deriving (Show, Eq)
 
-type instance PrivilegeFor Subgraph = Privilege
+-- type instance Allowable.Privilege Subgraph = Privilege
 
 instance Arbitrary Privilege where
   arbitrary = do

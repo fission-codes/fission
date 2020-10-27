@@ -40,7 +40,7 @@ instance MonadIO m => Associator (Transaction m) where
         return $ relaxedLeft err
 
       Right (Entity _ app) ->
-        case isOwnedBy userId app of
+        case app `isOwnedBy` userId of
           False ->
             return . Error.openLeft $ ActionNotAuthorized @App userId
 

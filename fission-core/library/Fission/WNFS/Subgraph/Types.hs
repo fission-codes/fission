@@ -2,19 +2,20 @@ module Fission.WNFS.Subgraph.Types (Subgraph (..)) where
 
 import           Data.Bits
 
-import qualified RIO.Text                                 as Text
+import qualified RIO.Text                                     as Text
 
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import           Fission.Models                           (UserId)
+import           Fission.Models
 
-import           Fission.Authorization.PrivilegeFor.Types
-import           Fission.User.Username.Types              (Username)
+import           Fission.User.Username.Types                  (Username)
 
 import           Fission.URL.DomainName.Types
 import           Fission.URL.Types
+
+import           Fission.Authorization.Access.Unchecked.Types
 
 data Subgraph = Subgraph
   { namespace :: !DomainName
@@ -23,13 +24,12 @@ data Subgraph = Subgraph
   }
   deriving (Show, Eq)
 
-type instance LookupData Subgraph = (UserId, CID) -- CID here is existing data root
-
 instance Arbitrary Subgraph where
   arbitrary = do
-    namespace <- arbitrary -- FIXME may need some more constraint
-    username  <- arbitrary
-    filePath  <- arbitrary
+    let namespace = "fission.name"
+
+    username <- arbitrary
+    filePath <- arbitrary
 
     return Subgraph {..}
 
@@ -39,7 +39,7 @@ instance PartialOrder Subgraph where
       (True, True) ->
         if "/private/" `Text.isPrefixOf` pathA
           then checkPrivate
-          else checPublic
+          else checkPublic
 
       _ ->
         Sibling

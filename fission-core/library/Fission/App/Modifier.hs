@@ -42,7 +42,7 @@ setCidDB userId URL {..} newCID size _copyFlag now = do
           return . Error.openLeft $ NotFound @App
 
         Just app ->
-          if isOwnedBy userId app
+          if app `isOwnedBy` userId
             then do
               update appId
                 [ AppCid  =. newCID

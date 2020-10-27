@@ -72,7 +72,7 @@ destroyAssociated userId appId appDomains now =
       return $ relaxedLeft err
 
     Right (Entity _ app) ->
-      if isOwnedBy userId app
+      if app `isOwnedBy` userId
         then do
           putMany (toEvent now <$> appDomains)
           deleteCascade appId

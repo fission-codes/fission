@@ -16,7 +16,7 @@ type Errors' = OpenUnion
 
 class Monad m => Retriever m where
   byId    :: UserId -> AppId -> m (Either Errors' (Entity App))
-  byURL   :: UserId -> URL -> m (Either Errors' (Entity App))
+  byURL   :: UserId -> URL   -> m (Either Errors' (Entity App))
   ownedBy :: UserId -> m [Entity App]
 
 instance MonadIO m => Retriever (Transaction m) where
@@ -26,7 +26,7 @@ instance MonadIO m => Retriever (Transaction m) where
         openLeft $ NotFound @App
 
       Just app ->
-        if isOwnedBy userId app
+        if app `isOwnedBy` userId
           then Right app
           else openLeft $ ActionNotAuthorized @App userId
 
@@ -57,6 +57,6 @@ instance MonadIO m => Retriever (Transaction m) where
             Error.openLeft $ NotFound @App
 
           (app : _) ->
-            if isOwnedBy userId app
+            if app `isOwnedBy` userId
               then Right app
               else Error.openLeft $ ActionNotAuthorized @App userId

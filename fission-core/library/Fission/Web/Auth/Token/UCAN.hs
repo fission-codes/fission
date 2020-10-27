@@ -332,7 +332,7 @@ rootOrContinue initialPriv DID {publicKey} focusPrivilege = \case
   RootCredential -> -- You've hit root. Yay!
     runDB (User.getByPublicKey publicKey) >>= \case
       Nothing   -> return $ Left UserNotFound
-      Just user -> return $ Right [initialPriv `GrantedBy` user]
+      Just user -> return $ Right [initialPriv `DelegatedBy` user]
 
   DelegatedFrom delProofs ->
     foldM step (Right []) delProofs

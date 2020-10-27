@@ -8,5 +8,5 @@ import           Prelude
 
 import           Fission.Ownership.Class
 
-isOwnedBy :: Owned item => UserId -> item -> Bool
-isOwnedBy userId item = userId == ownerId item
+isOwnedBy :: Owned item => item -> UserId -> Bool
+item `isOwnedBy` userId = userId == ownerId item

@@ -36,9 +36,9 @@ instance MonadIO m => Dissociator (Transaction m) where
         return <| Error.relaxedLeft err
 
       Right app ->
-        case isOwnedBy userId app of
+        case app `isOwnedBy` userId of
           False ->
-            return . Error.openLeft <| ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId
 
           True -> do
             insert_ DissociateAppDomainEvent
@@ -48,11 +48,11 @@ instance MonadIO m => Dissociator (Transaction m) where
               , dissociateAppDomainEventInsertedAt = now
               }
 
-            howMany <- deleteCount <| from \appDomain ->
-              where_ <|  appDomain ^. AppDomainAppId      ==. val appId
+            howMany <- deleteCount $ from \appDomain ->
+              where_ $   appDomain ^. AppDomainAppId      ==. val appId
                      &&. appDomain ^. AppDomainDomainName ==. val domainName
                      &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
 
             return case howMany of
-              0 -> Error.openLeft <| Domain.NotRegisteredToApp appId domainName maySubdomain
+              0 -> Error.openLeft $ Domain.NotRegisteredToApp appId domainName maySubdomain
               _ -> ok

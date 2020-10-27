@@ -25,9 +25,10 @@ import qualified Network.IPFS.Process.Error            as IPFS.Process
 import qualified Network.IPFS.Stat                     as IPFS.Stat
 import qualified Network.IPFS.Types                    as IPFS
 
+import           Fission.Prelude
+
 import           Fission.Config.Types
 import qualified Fission.Internal.UTF8                 as UTF8
-import           Fission.Prelude
 
 import           Fission.AWS
 import           Fission.AWS.Types                     as AWS
@@ -36,6 +37,7 @@ import           Fission.Models
 
 import           Fission.DNS                           as DNS
 import           Fission.URL                           as URL
+
 
 import qualified Fission.App                           as App
 import qualified Fission.App.Destroyer                 as App.Destroyer
@@ -50,7 +52,9 @@ import           Fission.Web.Types
 import           Fission.IPFS.Linked
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
+import           Fission.Authorization.Allowable
 import           Fission.Authorization.Types
+
 import           Fission.AWS                           as AWS
 import           Fission.AWS.Route53                   as Route53
 
