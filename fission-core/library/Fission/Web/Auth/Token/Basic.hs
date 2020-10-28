@@ -24,9 +24,7 @@ import           Fission.Web.Error                  as Web.Err
 import qualified Fission.Web.Auth.Error             as Auth
 import qualified Fission.Web.Auth.Token.Basic.Types as Auth.Basic
 
-import qualified Fission.Authorization.Types        as Authorization
-
--- import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import qualified Fission.Authorization              as Authorization
 
 handler ::
   ( MonadIO          m

@@ -9,7 +9,7 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.Authorization.Types                as Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import qualified Fission.LoosePin                           as LoosePin

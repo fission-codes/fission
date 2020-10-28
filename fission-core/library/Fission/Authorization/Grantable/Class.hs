@@ -58,9 +58,10 @@ class (Monad m, Allowable resource) => Grantable resource m where
   -- | Lookup and veriy that the unchecked privilege is valid
   --   Returns a proof to carry around on success
   grant ::
-       ActionScope resource
-    -> Unchecked (ActionScope resource)
-    -> m (Maybe (Access resource))
+       ActionScope resource             -- ^ Requested action
+    -> Unchecked (ActionScope resource) -- ^ Unchecked permission
+    -> m (Maybe (Access resource))      -- ^ Possibly allowed
+    -> m (Either (ActionNotAuthorized resource) (Access resource))
 
 instance
   ( App.Retriever       m

@@ -11,10 +11,10 @@ import           Fission.Prelude
 
 -- import           Fission.Authorization
 -- import           Fission.Web.Auth.Token.UCAN.Resource.Types
-import qualified Fission.Authorization.Types as Authorization
+import qualified Fission.Authorization  as Authorization
 
-import qualified Fission.App                 as App
-import           Fission.Web.Error           as Web.Error
+import qualified Fission.App            as App
+import           Fission.Web.Error      as Web.Error
 
 import           Fission.URL.Types
 

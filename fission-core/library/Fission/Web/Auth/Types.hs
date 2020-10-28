@@ -13,7 +13,7 @@ import           Servant.Server.Experimental.Auth
 
 import           Fission.Platform.Heroku.Auth.Types as Heroku
 
-import qualified Fission.Authorization.Types        as Authorization
+import qualified Fission.Authorization              as Authorization
 import           Fission.User.DID.Types
 import           Fission.Web.Auth.Token
 

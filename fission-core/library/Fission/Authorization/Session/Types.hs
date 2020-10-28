@@ -1,6 +1,5 @@
--- | Fission authorization
-
-module Fission.Authorization.Types
+-- | Fission authorization sessions
+module Fission.Authorization.Session.Types
   ( Session (..)
   -- Reexport
   , module Fission.Authorization.Heroku.Types

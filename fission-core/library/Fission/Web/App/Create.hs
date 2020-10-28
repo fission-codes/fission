@@ -10,17 +10,17 @@ import           Fission.Prelude
 
 import           Fission.Authorization
 import           Fission.URL
-import           Fission.Web.Error           as Web.Error
+import           Fission.Web.Error          as Web.Error
 
 -- import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import qualified Fission.Authorization.Types as Authorization
+import qualified Fission.Authorization      as Authorization
 
-import           Fission.App.Content         as AppCID
-import qualified Fission.App.Creator         as App
-import           Fission.App.Domain          as App.Domain
+import           Fission.App.Content        as AppCID
+import qualified Fission.App.Creator        as App
+import           Fission.App.Domain         as App.Domain
 
-import           Fission.IPFS.DNSLink.Class  as DNSLink
+import           Fission.IPFS.DNSLink.Class as DNSLink
 
 type API
   =  Summary "Create app"

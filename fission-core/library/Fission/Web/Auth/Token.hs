@@ -23,7 +23,7 @@ import           Fission.Web.Auth.Token.UCAN.Fact.Types
 import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 import           Fission.Web.Auth.Token.UCAN.Types
 
-import qualified Fission.Authorization.Types                 as Authorization
+import qualified Fission.Authorization                       as Authorization
 import qualified Fission.Web.Auth.Token.Bearer               as UCAN
 
 -- | Higher order auth handler

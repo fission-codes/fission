@@ -29,7 +29,7 @@ import           Fission.Internal.Mock.Session.Types
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types                as Authorization
+import           Fission.Authorization                      as Authorization
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 

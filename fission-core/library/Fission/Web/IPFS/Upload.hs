@@ -14,7 +14,7 @@ import qualified Network.IPFS.Types                         as IPFS
 
 import           Fission.Prelude
 
-import qualified Fission.Authorization.Types                as Authorization
+import qualified Fission.Authorization                      as Authorization
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.LoosePin.Creator                   as LoosePin

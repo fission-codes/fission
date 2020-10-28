@@ -25,10 +25,9 @@ import qualified Network.IPFS.Process.Error            as IPFS.Process
 import qualified Network.IPFS.Stat                     as IPFS.Stat
 import qualified Network.IPFS.Types                    as IPFS
 
-import           Fission.Prelude
-
 import           Fission.Config.Types
 import qualified Fission.Internal.UTF8                 as UTF8
+import           Fission.Prelude
 
 import           Fission.AWS
 import           Fission.AWS.Types                     as AWS
@@ -37,7 +36,6 @@ import           Fission.Models
 
 import           Fission.DNS                           as DNS
 import           Fission.URL                           as URL
-
 
 import qualified Fission.App                           as App
 import qualified Fission.App.Destroyer                 as App.Destroyer
@@ -52,9 +50,7 @@ import           Fission.Web.Types
 import           Fission.IPFS.Linked
 import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
 
-import           Fission.Authorization.Allowable
-import           Fission.Authorization.Types
-
+import           Fission.Authorization                 as Authorization
 import           Fission.AWS                           as AWS
 import           Fission.AWS.Route53                   as Route53
 
@@ -90,41 +86,34 @@ import           Fission.Email.Class
 
 import qualified Fission.Domain                        as Domain
 
-
-import qualified Fission.Authorization.Types           as Authorization
-import           Fission.Web.Auth.Token.UCAN.Types
-
-
-
-
 -- | The top-level app type
-newtype Fission a = Fission { unFission :: RIO Config a }
+newtype Fission cfgExt a = Fission { unFission :: RIO (Config cfgExt) a }
   deriving newtype ( Functor
                    , Applicative
                    , Monad
                    , MonadIO
                    , MonadUnliftIO
-                   , MonadReader Config
+                   , MonadReader (Config cfgExt)
                    , MonadThrow
                    , MonadCatch
                    , MonadMask
                    )
 
-instance MonadLogger Fission where
+instance MonadLogger (Fission cfgExt) where
   monadLoggerLog loc src lvl msg = Fission $ monadLoggerLog loc src lvl msg
 
-instance MonadTime Fission where
+instance MonadTime (Fission cfgExt) where
   currentTime = liftIO getCurrentTime
 
-instance MonadReflectiveServer Fission where
+instance MonadReflectiveServer (Fission cfgExt) where
   getHost = asks host
 
-instance MonadDB (Transaction Fission) Fission where
+instance MonadDB (Transaction (Fission cfgExt)) (Fission cfgExt) where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
 
-instance MonadAWS Fission where
+instance MonadAWS (Fission cfgExt) where
   liftAWS awsAction = do
     accessKey <- asks awsAccessKey
     secretKey <- asks awsSecretKey
@@ -132,7 +121,7 @@ instance MonadAWS Fission where
 
     runResourceT $ runAWS env awsAction
 
-instance MonadRoute53 Fission where
+instance MonadRoute53 (Fission cfgExt) where
   clear recordType url@URL {..} (ZoneID zoneTxt) = do
     logDebug $ "Clearing DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
@@ -244,7 +233,7 @@ instance MonadRoute53 Fission where
           Just rrs -> return $ Right rrs
 
 
-instance MonadWNFS Fission where
+instance MonadWNFS (Fission cfgExt) where
   getUserDataRoot (Username username) = do
     zoneID <- asks userZoneID
     rootDomain <- asks userRootDomain
@@ -266,7 +255,7 @@ instance MonadWNFS Fission where
       extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
 
 
-instance MonadDNSLink Fission where
+instance MonadDNSLink (Fission cfgExt) where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
     Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
       Left err ->
@@ -297,10 +286,10 @@ instance MonadDNSLink Fission where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
 
-instance MonadLinkedIPFS Fission where
+instance MonadLinkedIPFS (Fission cfgExt) where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
 
-instance IPFS.MonadLocalIPFS Fission where
+instance IPFS.MonadLocalIPFS (Fission cfgExt) where
   runLocal opts arg = do
     IPFS.BinPath ipfs <- asks ipfsPath
     IPFS.Timeout secs <- asks ipfsTimeout
@@ -320,7 +309,7 @@ instance IPFS.MonadLocalIPFS Fission where
         | otherwise ->
             Left $ IPFS.Process.UnknownErr stdErr
 
-instance IPFS.MonadRemoteIPFS Fission where
+instance IPFS.MonadRemoteIPFS (Fission cfgExt) where
   runRemote query = do
     peerID       <- asks ipfsRemotePeer
     IPFS.URL url <- asks ipfsURL
@@ -332,49 +321,45 @@ instance IPFS.MonadRemoteIPFS Fission where
 
     liftIO . runClientM query $ mkClientEnv manager url
 
-instance MonadBasicAuth Heroku.Auth Fission where
+instance MonadBasicAuth Heroku.Auth (Fission cfgExt) where
   getVerifier = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
     return $ Heroku.Auth <$> Auth.basic hkuID hkuPass
 
-instance MonadAuth DID Fission where
+instance MonadAuth DID (Fission cfgExt) where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
       toHandler (runRIO cfg) . unFission $ Auth.DID.handler req
 
-instance MonadAuth Authorization.Session Fission where
+instance MonadAuth Authorization.Session (Fission cfgExt) where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
       toHandler (runRIO cfg) . unFission $ Auth.Token.handler req
 
-instance App.Domain.Initializer Fission where
+instance App.Domain.Initializer (Fission cfgExt) where
   initial = asks baseAppDomain
 
-instance App.Content.Initializer Fission where
+instance App.Content.Initializer (Fission cfgExt) where
   placeholder = asks appPlaceholder
 
-instance
-  ( FromJSON privilege
-  , FromJSON fact
-  )
-  => Fission `JWT.Resolves` UCAN privilege fact where
-    resolve cid@(IPFS.CID hash) =
-      IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
-        Left errMsg ->
-          Left $ CannotResolve cid errMsg
+instance FromJSON jwt => Fission cfgExt `JWT.Resolves` jwt where
+  resolve cid@(IPFS.CID hash) =
+    IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
+      Left errMsg ->
+        Left $ CannotResolve cid errMsg
 
-        Right (Lazy.toStrict -> resolvedBS) ->
-          case eitherDecodeStrict resolvedBS of
-            Left  _   -> Left $ InvalidJWT resolvedBS
-            Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
+      Right (Lazy.toStrict -> resolvedBS) ->
+        case eitherDecodeStrict resolvedBS of
+          Left  _   -> Left $ InvalidJWT resolvedBS
+          Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
 
-instance ServerDID Fission where
+instance ServerDID (Fission cfgExt) where
   getServerDID = asks fissionDID
 
-instance PublicizeServerDID Fission where
+instance PublicizeServerDID (Fission cfgExt) where
   publicize = do
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -409,14 +394,14 @@ instance PublicizeServerDID Fission where
               then ok
               else Left $ Web.Error.toServerError status
 
-instance User.Retriever Fission where
+instance User.Retriever (Fission cfgExt) where
   getById            userId   = runDB $ User.getById userId
   getByUsername      username = runDB $ User.getByUsername username
   getByPublicKey     pk       = runDB $ User.getByPublicKey pk
   getByHerokuAddOnId hId      = runDB $ User.getByHerokuAddOnId hId
   getByEmail         email    = runDB $ User.getByEmail email
 
-instance User.Creator Fission where
+instance User.Creator (Fission cfgExt) where
   create username@(Username rawUN) pk email now =
     runDB (User.createDB username pk email now) >>= \case
       Left err ->
@@ -470,7 +455,7 @@ instance User.Creator Fission where
           Left err -> Error.relaxedLeft err
           Right _  -> Right userId
 
-instance User.Modifier Fission where
+instance User.Modifier (Fission cfgExt) where
   updatePassword uID pass now =
     Password.hashPassword pass >>= \case
       Left err ->
@@ -527,15 +512,15 @@ instance User.Modifier Fission where
                   Left err -> return $ Error.relaxedLeft err
                   Right _  -> Right <$> runDB (User.setDataDB userId newCID size now)
 
-instance User.Destroyer Fission where
+instance User.Destroyer (Fission cfgExt) where
   deactivate requestorId userId = runDB $ User.deactivate requestorId userId
 
-instance App.Retriever Fission where
+instance App.Retriever (Fission cfgExt) where
   byId    uId appId = runDB $ App.byId    uId appId
   byURL   uId url   = runDB $ App.byURL   uId url
   ownedBy uId       = runDB $ App.ownedBy uId
 
-instance App.Creator Fission where
+instance App.Creator (Fission cfgExt) where
   create ownerId cid maySubdomain now =
     IPFS.Stat.getSizeRemote cid >>= \case
       Left err ->
@@ -561,7 +546,7 @@ instance App.Creator Fission where
               Left  err -> return $ Error.relaxedLeft err
               Right _   -> return $ Right (appId, subdomain)
 
-instance App.Modifier Fission where
+instance App.Modifier (Fission cfgExt) where
   setCID userId url newCID copyFiles now =
     IPFS.Stat.getSizeRemote newCID >>= \case
       Left err ->
@@ -595,7 +580,7 @@ instance App.Modifier Fission where
                       Left err -> return $ relaxedLeft err
                       Right _  -> runDB (App.setCidDB userId url newCID size copyFiles now)
 
-instance App.Destroyer Fission where
+instance App.Destroyer (Fission cfgExt) where
   destroy uId appId now =
     runDB (App.destroy uId appId now) >>= \case
       Left err   -> return $ Left err
@@ -606,25 +591,25 @@ instance App.Destroyer Fission where
       Left err   -> return $ Left err
       Right urls -> pullFromDNS urls
 
-instance Heroku.AddOn.Creator Fission where
+instance Heroku.AddOn.Creator (Fission cfgExt) where
   create uuid region now = runDB $ Heroku.AddOn.create uuid region now
 
-instance Domain.Retriever Fission where
+instance Domain.Retriever (Fission cfgExt) where
   getByDomainName domain = runDB $ Domain.getByDomainName domain
 
-instance Domain.Creator Fission where
+instance Domain.Creator (Fission cfgExt) where
   create domainName userId zoneId now =
     runDB $ Domain.create domainName userId zoneId now
 
-instance Challenge.Creator Fission where
+instance Challenge.Creator (Fission cfgExt) where
   create email =
     runDB $ Challenge.create email
 
-instance Challenge.Verifier Fission where
+instance Challenge.Verifier (Fission cfgExt) where
   verify challenge =
     runDB $ Challenge.verify challenge
 
-instance MonadEmail Fission where
+instance MonadEmail (Fission cfgExt) where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager
     Host baseHostUrl <- asks host
@@ -644,11 +629,11 @@ instance MonadEmail Fission where
 
     liftIO $ runClientM (Email.sendEmail apiKey emailData) env
 
-pullFromDNS :: [URL] -> Fission (Either App.Destroyer.Errors' [URL])
+pullFromDNS :: [URL] -> Fission cfgExt (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do
   domainsAndZoneIDs <- runDB . select $ from \domain -> do
     where_ $ domain ^. DomainDomainName `in_` valList (URL.domainName <$> urls)
-    return (domain ^. DomainDomainName, domain ^. DomainZoneId)
+    return  (domain ^. DomainDomainName, domain ^. DomainZoneId)
 
   let
     zonesForDomains :: [(DomainName, ZoneID)]
@@ -659,10 +644,10 @@ pullFromDNS urls = do
 
   where
     folder ::
-         [(DomainName, ZoneID)]            -- ^ Hosted zone map
+         [(DomainName, ZoneID)]             -- ^ Hosted zone map
       -> Either App.Destroyer.Errors' [URL] -- ^ Accumulator
-      -> URL                               -- ^ Focus
-      -> Fission (Either App.Destroyer.Errors' [URL])
+      -> URL                                -- ^ Focus
+      -> Fission cfgExt (Either App.Destroyer.Errors' [URL])
 
     folder _ (Left err) _ =
       return $ Left err
@@ -679,11 +664,11 @@ pullFromDNS urls = do
             Right _  -> Right (url : accs)
 
 runUserUpdate ::
-     Transaction Fission (Either User.Modifier.Errors' a)
+     Transaction (Fission cfgExt) (Either User.Modifier.Errors' a)
   -> (a -> Text)
   -> UserId
   -> Text
-  -> Fission (Either User.Modifier.Errors' a)
+  -> Fission cfgExt (Either User.Modifier.Errors' a)
 runUserUpdate updateDB dbValToTxt uID subdomain =
   runDB updateDB >>= \case
     Left err ->

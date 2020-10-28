@@ -15,7 +15,7 @@ import           Fission.Web.Auth.Token.UCAN.Proof.Types
 
 
 import           Fission.Authorization.Access.Unchecked.Types
-import           Fission.Authorization.Types
+-- import           Fission.Authorization.Types
 
 import qualified Fission.Web.Auth.Token.UCAN.Proof.Types          as Proof
 
@@ -83,7 +83,7 @@ import qualified Fission.Web.Auth.Token.JWT.Validation            as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver              as JWT
 
 import           Fission.Authorization.ServerDID
-import qualified Fission.Authorization.Types                      as Authorization
+-- import qualified Fission.Authorization.Types                      as Authorization
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types                      (Username)
 -- import           Fission.Web.Auth.Token.JWT
@@ -168,8 +168,6 @@ toAuthorization = undefined -- FIXME FIXME FIXME
 --------------------
 -- KICKOFF SEARCH --
 --------------------
-
--- FIXME can generaliuze Privilege with a typeclass
 
 initSession ::
   forall t m fact .

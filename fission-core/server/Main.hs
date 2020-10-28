@@ -23,9 +23,7 @@ import           Fission.Internal.App
 import           Fission.Storage.PostgreSQL
 
 import           Fission.Domain                               as Domain
-
 import           Fission.User                                 as User
-import           Fission.User.DID
 
 import qualified Fission.Web                                  as Web
 import qualified Fission.Web.Error                            as Web.Error
@@ -105,6 +103,7 @@ main = do
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
       let
         DID _ serverPK = fissionDID
+        extended = ()
         cfg = Config {..}
 
       runFission cfg do

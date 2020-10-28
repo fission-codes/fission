@@ -6,25 +6,25 @@ import           Servant.Server.Experimental.Auth
 
 import           Test.Tasty.Hspec
 
-import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
+import qualified Fission.Internal.Fixture.Key.Ed25519            as Ed25519
 
-import           Fission.Internal.Fixture.Entity as Fixture
-import           Fission.Internal.Fixture.User   as Fixture
+import           Fission.Internal.Fixture.Entity                 as Fixture
+import           Fission.Internal.Fixture.User                   as Fixture
 
-import           Fission.Authorization.Types
-import qualified Fission.Platform.Heroku.Auth.Types as Heroku
+import           Fission.Authorization
+import qualified Fission.Platform.Heroku.Auth.Types              as Heroku
 import           Fission.User.DID.Types
 import           Fission.Web.Auth
 
-import           Test.Fission.Prelude               as Mock
-import qualified Test.Fission.Web.Auth.Token.JWT    as JWT
-import qualified Test.Fission.Web.Auth.Token.Bearer as Bearer
-import qualified Test.Fission.Web.Auth.Token        as Token
+import           Test.Fission.Prelude                            as Mock
+import qualified Test.Fission.Web.Auth.Token                     as Token
+import qualified Test.Fission.Web.Auth.Token.Bearer              as Bearer
+import qualified Test.Fission.Web.Auth.Token.JWT                 as JWT
 
 import qualified Test.Fission.Web.Auth.Token.UCAN.Resource       as Resource
 import qualified Test.Fission.Web.Auth.Token.UCAN.Resource.Scope as Scope
 
-import qualified Test.Fission.Web.Auth.Signature.Ed25519 as Ed
+import qualified Test.Fission.Web.Auth.Signature.Ed25519         as Ed
 
 tests :: IO TestTree
 tests = do

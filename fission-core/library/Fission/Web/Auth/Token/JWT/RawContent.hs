@@ -13,5 +13,4 @@ import           Fission.Web.Auth.Token.JWT.RawContent.Types
 
 -- | Smart constructor for 'RawContent'
 contentOf :: Text -> RawContent
--- FIXME switch to HttpApiData, no?
 contentOf = RawContent . Text.dropEnd 1 . Text.dropWhileEnd (not . (== '.'))

@@ -8,33 +8,32 @@ module Fission.Internal.Development
   ) where
 
 import           Data.Pool
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql                   (SqlBackend)
 
 import           Servant.Client
 
-import qualified Network.HTTP.Client     as HTTP
-import qualified Network.HTTP.Client.TLS as HTTP
+import qualified Network.HTTP.Client                    as HTTP
+import qualified Network.HTTP.Client.TLS                as HTTP
 
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.IPFS.Types                     as IPFS
 
 import           Fission
 import           Fission.Prelude
 
-import qualified Fission.AWS.Types as AWS
+import qualified Fission.AWS.Types                      as AWS
 import           Fission.Web.Types
 
 import qualified Fission.Platform.Heroku.ID.Types       as Hku
 import qualified Fission.Platform.Heroku.Password.Types as Hku
 
-import           Fission.Storage.PostgreSQL.ConnectionInfo.Types
 import           Fission.Storage.PostgreSQL
 
 import           Fission.URL.Types
 import           Fission.User.DID.Types
 
-import qualified Fission.Email.SendInBlue.Types as SIB
+import qualified Fission.Email.SendInBlue.Types         as SIB
 
-import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
+import           Fission.Internal.Fixture.Key.Ed25519   as Fixture.Ed25519
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -45,7 +44,7 @@ import           Fission.Internal.Fixture.Key.Ed25519 as Fixture.Ed25519
      > runOne Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-runOne :: Fission a -> IO a
+runOne :: Fission () a -> IO a
 runOne action = do
   logOptions <- logOptionsHandle stdout True
   processCtx  <- mkDefaultProcessContext
@@ -82,14 +81,15 @@ run ::
   -> ProcessContext
   -> HTTP.Manager
   -> HTTP.Manager
-  -> Fission a
+  -> Fission () a
   -> IO a
 run logFunc dbPool processCtx httpManager tlsManager action =
   runFission config do
     logDebug $ textShow config
     action
   where
-    config = Config {..}
+    extended = ()
+    config   = Config {..}
 
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
@@ -157,8 +157,9 @@ mkConfig ::
   -> HTTP.Manager
   -> HTTP.Manager
   -> LogFunc
-  -> Config
-mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
+  -> ext
+  -> Config ext
+mkConfig dbPool processCtx httpManager tlsManager logFunc extended = Config {..}
   where
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
@@ -217,7 +218,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-mkConfig' :: IO (Config, IO ())
+mkConfig' :: IO (Config (), IO ())
 mkConfig' = do
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
@@ -227,7 +228,7 @@ mkConfig' = do
   (logFunc, close) <- newLogFunc . setLogUseTime True =<< logOptionsHandle stdout True
 
   withDBPool logFunc connectionInfo (PoolSize 4) \dbPool -> do
-    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc
+    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc ()
     return (cfg, close)
 
 connectionInfo :: ConnectionInfo
