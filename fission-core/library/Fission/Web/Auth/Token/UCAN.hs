@@ -15,7 +15,7 @@ import           Fission.Web.Auth.Token.UCAN.Proof.Types
 
 
 import           Fission.Authorization.Access.Unchecked.Types
--- import           Fission.Authorization.Types
+import           Fission.Authorization.Session.Types              as Authorization
 
 import qualified Fission.Web.Auth.Token.UCAN.Proof.Types          as Proof
 

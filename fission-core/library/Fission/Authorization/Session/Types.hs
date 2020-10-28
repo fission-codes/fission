@@ -23,7 +23,7 @@ import           Fission.Web.Auth.Token.UCAN.Privilege.Types
 
 import qualified Fission.WNFS.Privilege.Types                 as WNFS
 
--- | The final high-level authorization -- internal use only
+-- | The final high-level authorization
 data Session = Session
   { requestor :: !(Either Heroku DID)
   , unchecked :: ![Unchecked Privilege]

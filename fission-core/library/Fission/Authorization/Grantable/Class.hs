@@ -1,4 +1,4 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
+-- {-# LANGUAGE AllowAmbiguousTypes #-}
 
 module Fission.Authorization.Grantable.Class (Grantable (..)) where
 
@@ -12,6 +12,8 @@ import           Fission.User.Namespace.Class
 import           Fission.WNFS.Privilege.Types                 as Subgraph
 -- import           Fission.WNFS.Subgraph.Types
 import           Fission.Prelude
+
+import           Fission.Error.ActionNotAuthorized.Types
 
 import           Fission.Models
 import           Fission.URL.Types
@@ -58,9 +60,8 @@ class (Monad m, Allowable resource) => Grantable resource m where
   -- | Lookup and veriy that the unchecked privilege is valid
   --   Returns a proof to carry around on success
   grant ::
-       ActionScope resource             -- ^ Requested action
+       ActionScope resource             -- ^ Requested scope of action
     -> Unchecked (ActionScope resource) -- ^ Unchecked permission
-    -> m (Maybe (Access resource))      -- ^ Possibly allowed
     -> m (Either (ActionNotAuthorized resource) (Access resource))
 
 instance
@@ -69,14 +70,15 @@ instance
   , AppDomain.Retriever m
   )
   => Grantable App m where
-    grant requested (AsUser user) =
-      checkApp requested user
+    grant requested = \case
+      AsUser user ->
+        checkApp requested user
 
-    grant requested (privilege `DelegatedBy` user) =
-      case relationship requested privilege of
-        Sibling  -> return Nothing
-        Ancestor -> return Nothing
-        _        -> checkApp requested user
+      privilege `DelegatedBy` user@(Entity userId _) ->
+        case relationship requested privilege of
+          Sibling  -> return . Left $ ActionNotAuthorized userId
+          Ancestor -> return . Left $ ActionNotAuthorized userId
+          _        -> checkApp requested user
 
 checkApp ::
   ( App.Retriever       m
@@ -85,67 +87,69 @@ checkApp ::
   )
   => App.Privilege
   -> Entity User
-  -> m (Maybe (Access App))
+  -> m (Either (ActionNotAuthorized App) (Access App))
 checkApp App.Privilege {url = url@URL {..}, capability} (Entity userId _) =
   AppDomain.primarySibling userId url >>= \case
     Left _ ->
-      return Nothing
+      return . Left $ ActionNotAuthorized userId
 
     Right appDomain@(Entity _ AppDomain {appDomainAppId, appDomainDomainName, appDomainSubdomain}) ->
       -- NOTE App.byId also does access check
       App.byId userId appDomainAppId >>= \case
         Left _ ->
-          return Nothing
+          return . Left $ ActionNotAuthorized userId
 
         Right app ->
-          return $ Just App.Permission
+          return $ Right App.Permission
             { app
             , appDomain
             , capability
             }
 
 instance Domain.Retriever m => Grantable Domain m where
-  grant requested (AsUser user) =
-    checkDomain requested user
+  grant requested = \case
+    AsUser user ->
+      checkDomain requested user
 
-  grant requested (privilege `DelegatedBy` user) =
-    case relationship requested privilege of
-      Sibling  -> return Nothing
-      Ancestor -> return Nothing
-      _        -> checkDomain requested user
+    privilege `DelegatedBy` user@(Entity userId _) ->
+      case relationship requested privilege of
+        Sibling  -> return . Left $ ActionNotAuthorized userId
+        Ancestor -> return . Left $ ActionNotAuthorized userId
+        _        -> checkDomain requested user
 
 checkDomain ::
   Domain.Retriever m
   => Domain.Privilege
   -> Entity User
-  -> m (Maybe (Access Domain))
+  -> m (Either (ActionNotAuthorized Domain) (Access Domain))
 checkDomain Domain.Privilege {..} (Entity userId _) =
   Domain.getByDomainName domainName >>= \case
     Left _ ->
-      return Nothing
+      return . Left $ ActionNotAuthorized userId
 
     Right domain ->
       if domain `isOwnedBy` userId
-        then return $ Just Domain.Permission {domain, capability}
-        else return Nothing
+        then return $ Right Domain.Permission {domain, capability}
+        else return . Left $ ActionNotAuthorized userId
 
 instance MonadUserNamespace m => Grantable Subgraph m where
-  grant requested (AsUser user) =
-    checkSubgraph requested user
+  grant requested = \case
+    AsUser user ->
+      checkSubgraph requested user
 
-  grant requested (privilege `DelegatedBy` user) =
-    case relationship requested privilege of
-      Sibling  -> return Nothing
-      Ancestor -> return Nothing
-      _        -> checkSubgraph requested user
+    privilege `DelegatedBy` user@(Entity userId _) ->
+      case relationship requested privilege of
+        Sibling  -> return . Left $ ActionNotAuthorized userId
+        Ancestor -> return . Left $ ActionNotAuthorized userId
+        _        -> checkSubgraph requested user
 
 checkSubgraph ::
   MonadUserNamespace m
   => Subgraph.Privilege
   -> Entity User
-  -> m (Maybe (Access Subgraph))
-checkSubgraph privilege@Subgraph.Privilege {subgraph = Subgraph {..}} owner@(Entity _ User {..}) = do
+  -> m (Either (ActionNotAuthorized Subgraph) (Access Subgraph))
+checkSubgraph privilege@Subgraph.Privilege {subgraph = Subgraph {..}} owner@(Entity userId User {..}) = do
   fissionNamespace <- getUserNamespace
   if namespace == fissionNamespace && username == userUsername
-    then return $ Just Subgraph.Permission {owner, privilege}
-    else return Nothing
+     then return $ Right Subgraph.Permission {owner, privilege}
+     else return . Left $ ActionNotAuthorized userId

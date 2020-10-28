@@ -3,88 +3,103 @@ module Fission.Types
   , module Fission.Config.Types
   ) where
 
+import           Control.Concurrent.STM.TVar
 import           Control.Monad.Catch
 
-import qualified RIO.ByteString.Lazy                   as Lazy
-import           RIO.NonEmpty                          as NonEmpty
-import qualified RIO.Text                              as Text
+import qualified RIO.ByteString.Lazy                         as Lazy
+import           RIO.NonEmpty                                as NonEmpty hiding (filter)
+import qualified RIO.Text                                    as Text
 
-import           Database.Esqueleto                    as SQL hiding ((<&>))
+import           Database.Esqueleto                          as SQL hiding
+                                                                     ((<&>))
 
 import           Servant.Client
 import           Servant.Server.Experimental.Auth
 
-import           Network.AWS                           as AWS hiding (Request)
+import           Network.AWS                                 as AWS hiding
+                                                                     (Request)
 import           Network.AWS.Route53
 
-import qualified Network.IPFS                          as IPFS
-import qualified Network.IPFS.Peer                     as Peer
-import qualified Network.IPFS.Pin                      as IPFS.Pin
-import qualified Network.IPFS.Process                  as IPFS
-import qualified Network.IPFS.Process.Error            as IPFS.Process
-import qualified Network.IPFS.Stat                     as IPFS.Stat
-import qualified Network.IPFS.Types                    as IPFS
+import qualified Network.IPFS                                as IPFS
+import qualified Network.IPFS.Peer                           as Peer
+import qualified Network.IPFS.Pin                            as IPFS.Pin
+import qualified Network.IPFS.Process                        as IPFS
+import qualified Network.IPFS.Process.Error                  as IPFS.Process
+import qualified Network.IPFS.Stat                           as IPFS.Stat
+import qualified Network.IPFS.Types                          as IPFS
 
 import           Fission.Config.Types
-import qualified Fission.Internal.UTF8                 as UTF8
+import qualified Fission.Internal.UTF8                       as UTF8
 import           Fission.Prelude
 
 import           Fission.AWS
-import           Fission.AWS.Types                     as AWS
-import           Fission.Error                         as Error
+import           Fission.AWS.Types                           as AWS
+import           Fission.Error                               as Error
 import           Fission.Models
 
-import           Fission.DNS                           as DNS
-import           Fission.URL                           as URL
+import           Fission.DNS                                 as DNS
+import           Fission.URL                                 as URL
 
-import qualified Fission.App                           as App
-import qualified Fission.App.Destroyer                 as App.Destroyer
-import           Fission.IPFS.DNSLink                  as DNSLink
+import           Fission.User.Namespace.Class
+
+import qualified Fission.App                                 as App
+import qualified Fission.App.Destroyer                       as App.Destroyer
+import qualified Fission.App.Privilege.Types                 as App
+
+import           Fission.IPFS.DNSLink                        as DNSLink
 import           Fission.User.Username.Types
-import           Fission.WNFS                          as WNFS
 
-import qualified Fission.Web.Error                     as Web.Error
+import           Fission.WNFS                                as WNFS
+import           Fission.WNFS.Privilege.Types                as Subgraph
+import           Fission.WNFS.Subgraph.Types
+
+import qualified Fission.Web.Error                           as Web.Error
 import           Fission.Web.Types
 
 
 import           Fission.IPFS.Linked
-import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
+import qualified Fission.Platform.Heroku.AddOn.Creator       as Heroku.AddOn
 
-import           Fission.Authorization                 as Authorization
-import           Fission.AWS                           as AWS
-import           Fission.AWS.Route53                   as Route53
+import           Fission.Authorization                       as Authorization
+import           Fission.Authorization.Session.Class
 
-import           Fission.Platform.Heroku.Types         as Heroku
+import           Fission.Web.Auth.Token.UCAN.Privilege.Types as Privilege
 
-import           Fission.Web.Auth                      as Auth
-import qualified Fission.Web.Auth.DID                  as Auth.DID
-import qualified Fission.Web.Auth.Token                as Auth.Token
+import           Fission.AWS                                 as AWS
+import           Fission.AWS.Route53                         as Route53
+
+import           Fission.Platform.Heroku.Types               as Heroku
+
+import           Fission.Web.Auth                            as Auth
+import qualified Fission.Web.Auth.DID                        as Auth.DID
+import qualified Fission.Web.Auth.Token                      as Auth.Token
 
 import           Fission.Web.Handler
-import           Fission.Web.Server.Reflective         as Reflective
+import           Fission.Web.Server.Reflective               as Reflective
 
-import qualified Fission.User                          as User
+import qualified Fission.User                                as User
 import           Fission.User.Creator.Class
-import           Fission.User.DID                      as DID
-import qualified Fission.User.Modifier.Class           as User.Modifier
-import qualified Fission.User.Password                 as Password
+import           Fission.User.DID                            as DID
+import qualified Fission.User.Modifier.Class                 as User.Modifier
+import qualified Fission.User.Password                       as Password
 
-import qualified Fission.Key                           as Key
+import qualified Fission.Key                                 as Key
 
 import           Fission.Web.Auth.Token.Basic.Class
-import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent       as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver         as JWT
 
 import           Fission.Authorization.ServerDID.Class
 
-import           Fission.App.Content                   as App.Content
-import           Fission.App.Domain                    as App.Domain
+import           Fission.App.Content                         as App.Content
+import           Fission.App.Domain                          as App.Domain
 
-import           Fission.Challenge                     as Challenge
-import qualified Fission.Email                         as Email
+import           Fission.Challenge                           as Challenge
+import qualified Fission.Email                               as Email
 import           Fission.Email.Class
 
-import qualified Fission.Domain                        as Domain
+import           Fission.Domain                              as Domain
+import qualified Fission.Domain.Privilege.Types              as Domain
 
 -- | The top-level app type
 newtype Fission cfgExt a = Fission { unFission :: RIO (Config cfgExt) a }
@@ -341,6 +356,14 @@ instance MonadAuth Authorization.Session (Fission cfgExt) where
 
 instance App.Domain.Initializer (Fission cfgExt) where
   initial = asks baseAppDomain
+
+instance App.Domain.Retriever (Fission cfgExt) where
+  allForApp      appId      = runDB $ allForApp appId
+  allForOwner    userId     = runDB $ allForOwner userId
+  primarySibling userId url = runDB $ primarySibling userId url
+
+  allSiblingsByDomain domainName maySubdomain =
+    runDB $ allSiblingsByDomain domainName maySubdomain
 
 instance App.Content.Initializer (Fission cfgExt) where
   placeholder = asks appPlaceholder
@@ -690,3 +713,97 @@ runUserUpdate updateDB dbValToTxt uID subdomain =
           Route53.set Txt url zoneID segments 10 >>= \case
             Left serverErr -> return $ Error.openLeft serverErr
             Right _        -> return $ Right dbVal
+
+instance MonadUserNamespace (Fission extCfg) where
+  getUserNamespace = asks userRootDomain
+
+instance MonadAuthSession App (Fission (TVar Authorization.Session)) where
+  allChecked =
+    queryAuthSession apps
+
+  allUnchecked =
+    foldr folder [] <$> queryAuthSession unchecked
+    where
+      folder priv acc =
+        case priv of
+          Privilege.FissionWebApp priv `DelegatedBy` userId ->
+            (priv `DelegatedBy` userId) : acc
+
+          AsUser uID ->
+            AsUser uID : acc
+
+          _ ->
+            acc
+
+  addAccess newPermission =
+    modifyAuthSession \session@Authorization.Session {apps} ->
+      session {apps = (newPermission : apps)}
+
+  dropUnchecked privilege userID =
+    modifyAuthSession \session@Authorization.Session {unchecked} ->
+      session {unchecked = filter (toRemove (Privilege.FissionWebApp privilege) userID) unchecked}
+
+instance MonadAuthSession Domain (Fission (TVar Authorization.Session)) where
+  allChecked =
+    queryAuthSession domains
+
+  allUnchecked =
+    foldr folder [] <$> queryAuthSession unchecked
+    where
+      folder priv acc =
+        case priv of
+          AsUser uID ->
+            AsUser uID : acc
+
+          Privilege.RegisteredDomain priv `DelegatedBy` userId ->
+            (priv `DelegatedBy` userId) : acc
+
+          _ ->
+            acc
+
+  addAccess newPermission =
+    modifyAuthSession \session@Authorization.Session {domains} ->
+      session {domains = (newPermission : domains)}
+
+  dropUnchecked privilege userID =
+    modifyAuthSession \session@Authorization.Session {unchecked} ->
+      session {unchecked = filter (toRemove (Privilege.RegisteredDomain privilege) userID) unchecked}
+
+instance MonadAuthSession Subgraph (Fission (TVar Authorization.Session)) where
+  allChecked =
+    queryAuthSession subgraphs
+
+  allUnchecked =
+    foldr folder [] <$> queryAuthSession unchecked
+    where
+      folder priv acc =
+        case priv of
+          Privilege.WNFS priv `DelegatedBy` userId ->
+            (priv `DelegatedBy` userId) : acc
+
+          AsUser uID ->
+            AsUser uID : acc
+
+          _ ->
+            acc
+
+  addAccess newPermission =
+    modifyAuthSession \session@Authorization.Session {subgraphs} ->
+      session {subgraphs = (newPermission : subgraphs)}
+
+  dropUnchecked privilege userID =
+    modifyAuthSession \session@Authorization.Session {unchecked} ->
+      session {unchecked = filter (toRemove (Privilege.WNFS privilege) userID) unchecked}
+
+queryAuthSession query = do
+  sessionVar <- asks extended
+  session    <- liftIO . atomically $ readTVar sessionVar
+  return $ query session
+
+modifyAuthSession modifier = do
+  sessionVar <- asks extended
+  liftIO . atomically $ modifyTVar sessionVar modifier
+
+toRemove privilege userId = \case
+  priv `DelegatedBy` Entity uID _ -> privilege `isEncompassedBy` priv && uID == userId
+  _ -> False

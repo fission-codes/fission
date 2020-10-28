@@ -7,7 +7,7 @@ import           Fission.Prelude
 
 import qualified Fission.Web.Error                           as Web.Error
 
-import qualified Fission.Authorization.Types                 as Authorization
+import qualified Fission.Authorization.Session.Types         as Authorization
 
 import           Fission.Web.Auth.Token.JWT.Resolver.Class   as JWT
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
+-- {-# LANGUAGE AllowAmbiguousTypes #-}
 
  module Fission.Authorization.Allowable.Class (Allowable (..)) where
 
@@ -24,8 +24,8 @@ import           Fission.Domain.Permission.Types              as Domain
 import           Fission.Domain.Privilege.Types               as Domain
 
 class Allowable resource where
-  type ActionScope resource -- ^ Scope of action to (e.g. requested privilege)
-  type Access      resource -- ^ Validation proof (to be cached)
+  type ActionScope resource = s | s -> resource -- ^ Scope of action to (e.g. requested privilege)
+  type Access      resource = a | a -> resource -- ^ Validation proof (to be cached)
 
   -- | Check if a requested privilege is granted by the Access proof
   isAllowed :: ActionScope resource -> Access resource -> Bool
