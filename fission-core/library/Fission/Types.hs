@@ -120,6 +120,9 @@ instance MonadLogger Fission where
 instance MonadTime Fission where
   currentTime = liftIO getCurrentTime
 
+instance MonadSTM Fission where
+  atomicallyM = liftIO . atomically
+
 instance MonadReflectiveServer Fission where
   getHost = asks host
 
@@ -506,12 +509,12 @@ instance User.Modifier Fission where
       removeKey = User.removeExchangeKeyDB uID key now
       keysToText keys = Text.intercalate "," (textDisplay . DID Key . Key.RSAPublicKey <$> keys)
 
-  setData userId newCID now = do
-    runDB (User.getById userId) >>= \case
+  setData username newCID now = do
+    runDB (User.getByUsername username) >>= \case
       Nothing ->
         return . Error.openLeft $ NotFound @User
 
-      Just (Entity _ User { userUsername = Username username }) ->
+      Just (Entity userId User { userUsername = Username rawUN }) ->
         IPFS.Stat.getSizeRemote newCID >>= \case
           Left err ->
             return $ Error.openLeft err
@@ -528,7 +531,7 @@ instance User.Modifier Fission where
                 let
                   url = URL
                     { domainName = userDataDomain
-                    , subdomain  = Just $ Subdomain (username <> ".files")
+                    , subdomain  = Just $ Subdomain (rawUN <> ".files")
                     }
 
                 DNSLink.set userId url zoneID newCID >>= \case

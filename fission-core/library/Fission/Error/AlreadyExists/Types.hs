@@ -2,12 +2,17 @@
 
 module Fission.Error.AlreadyExists.Types (AlreadyExists (..)) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519               as Ed25519
 import           Servant
 
-import           Fission.Models
 import           Fission.Prelude
-import           Fission.Web.Error     as Error
+
+import           Fission.Models
+import           Fission.Web.Error                   as Error
+
+import           Fission.User.Username.Types
+
+import           Fission.Key.Asymmetric.Public.Types as Key
 
 data AlreadyExists entity
   = AlreadyExists
@@ -21,6 +26,9 @@ instance Display (AlreadyExists entity) => ToServerError (AlreadyExists entity) 
 
 instance Display (AlreadyExists User) where
   display _ = "User already exists"
+
+instance Display (AlreadyExists Username) where
+  display _ = "Username already exists"
 
 instance Display (AlreadyExists UserChallenge) where
   display _ = "Challenge already exists"
@@ -39,3 +47,6 @@ instance Display (AlreadyExists HerokuAddOn) where
 
 instance Display (AlreadyExists Ed25519.SecretKey) where
   display _ = "Ed25519 secret key already exists"
+
+instance Display (AlreadyExists Key.Public) where
+  display _ = "Public key already exists"

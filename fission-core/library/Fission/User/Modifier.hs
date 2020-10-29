@@ -7,6 +7,8 @@ module Fission.User.Modifier
   , module Fission.User.Modifier.Class
   ) where
 
+import qualified RIO.List                    as List
+
 import           Fission.User.Modifier.Class
 
 import           Fission.Error
@@ -21,9 +23,6 @@ import           Database.Persist            as Persist
 
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
-
-import qualified RIO.List                    as List
-
 
 updatePasswordDB ::
      MonadIO m

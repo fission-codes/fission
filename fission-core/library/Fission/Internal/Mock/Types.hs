@@ -38,6 +38,7 @@ import           Fission.IPFS.Linked.Class
 
 import           Fission.Models
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Class
 
@@ -248,25 +249,25 @@ instance
     Effect.log $ CreateHerokuAddOn uuid
     return . Right $ Database.toSqlKey 0
 
-instance IsMember ModifyUser effs => User.Modifier (Mock effs) where
+instance ModifyUser `IsMember` effs => User.Modifier (Mock effs) where
   updatePassword uID password _ = do
-    Effect.log $ ModifyUser uID
+    Effect.log $ ModifyUserById uID
     return $ Right password
 
   updatePublicKey uID newPK _ = do
-    Effect.log $ ModifyUser uID
+    Effect.log $ ModifyUserById uID
     return $ Right newPK
 
   addExchangeKey uID key _ = do
-    Effect.log $ ModifyUser uID
+    Effect.log $ ModifyUserById uID
     return $ Right [key]
 
   removeExchangeKey uID _ _ = do
-    Effect.log $ ModifyUser uID
+    Effect.log $ ModifyUserById uID
     return $ Right []
 
-  setData uID _ _ = do
-    Effect.log $ ModifyUser uID
+  setData username _ _ = do
+    Effect.log $ ModifyUserByUsername username
     return ok
 
 instance IsMember DestroyUser effs => User.Destroyer (Mock effs) where

@@ -21,15 +21,15 @@ module Fission.Internal.Mock.Effect.Types
   , FissionEffs
   ) where
 
-import qualified Network.IPFS.Types  as IPFS
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified Network.IPFS.Types          as IPFS
+import qualified RIO.ByteString.Lazy         as Lazy
 
 import           Control.Monad.Logger
-import           Data.UUID as UUID
+import           Data.UUID                   as UUID
 
-import           Fission.Prelude
-import qualified Fission.Key as Key
+import qualified Fission.Key                 as Key
 import           Fission.Models
+import           Fission.Prelude
 
 import           Fission.URL.Types
 
@@ -123,7 +123,8 @@ data CreateUser
   deriving (Eq, Show)
 
 data ModifyUser
-  = ModifyUser UserId
+  = ModifyUserById       UserId
+  | ModifyUserByUsername Username
   deriving (Eq, Show)
 
 data DestroyUser

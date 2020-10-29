@@ -1,4 +1,4 @@
-module Fission.Authorization.Requestor.Class where
+module Fission.Authorization.Requestor.Class (MonadRequestor (..)) where
 
 import           Fission.Prelude
 

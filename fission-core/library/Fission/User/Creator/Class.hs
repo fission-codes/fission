@@ -36,7 +36,9 @@ type Errors' = OpenUnion
    , AlreadyExists HerokuAddOn
    , App.Domain.AlreadyAssociated
 
-   , User.AlreadyExists
+   , AlreadyExists Username
+   , AlreadyExists Key.Public
+
    , NotFound User
 
    , Username.Invalid

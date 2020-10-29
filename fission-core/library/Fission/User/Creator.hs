@@ -31,7 +31,6 @@ import           Network.IPFS.Bytes.Types
 
 import qualified Fission.App.Content                   as App.Content
 
-
 createDB ::
      MonadIO m
   => Username
@@ -143,21 +142,23 @@ determineConflict ::
   -> Maybe Key.Public
   -> Transaction m (Either Errors' a)
 
-determineConflict username Nothing =
-  return . Error.openLeft $ User.ConflictingUsername username
+determineConflict _ Nothing =
+  return . Error.openLeft $ Error.AlreadyExists @Username
 
 determineConflict username (Just pk) = do
   -- NOTE needs to be updated along with DB constraints
   --      because Postgres doesn't do this out of the box
 
-  conflUN <- getBy (UniqueUsername username) <&> fmap \_ ->
-    User.ConflictingUsername username
+  conflUN <- getBy (UniqueUsername username) >>= \case
+    Just  _ -> return . Just . Error.openLeft $ Error.AlreadyExists @Username
+    Nothing -> return Nothing
 
-  conflPK <- getBy (UniquePublicKey $ Just pk) <&> fmap \_ ->
-    User.ConflictingPublicKey pk
+  conflPK <- getBy (UniquePublicKey $ Just pk) >>= \case
+    Just  _ -> return . Just . Error.openLeft $ Error.AlreadyExists @Key.Public
+    Nothing -> return Nothing
 
   -- conflEmail TODO
 
   return case conflUN <|> conflPK of
-    Just err -> Error.openLeft err
+    Just err -> err
     Nothing  -> Error.openLeft err409 { errBody = "User already exists" }
