@@ -7,11 +7,11 @@ module Fission.Authorization.Session
   , module           Fission.Authorization.Session.Types
   ) where
 
-import qualified RIO.List                                as List
+import qualified RIO.List                              as List
 
 import           Fission.Prelude
 
-import           Fission.Error.ActionNotAuthorized.Types
+import           Fission.Error.UserNotAuthorized.Types
 
 import           Fission.Authorization.Allowable
 import           Fission.Authorization.Grantable

@@ -19,8 +19,8 @@ type Errors' = OpenUnion
   '[ ServerError
    , InvalidURL
 
-   , NotFound            URL
-   , ActionNotAuthorized URL
+   , NotFound          URL
+   , UserNotAuthorized URL
    ]
 
 -- | Low-level 'DNSLink' interface

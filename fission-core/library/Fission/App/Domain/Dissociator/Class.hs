@@ -16,8 +16,8 @@ import qualified Fission.App.Retriever    as App
 
 type Errors' = OpenUnion
   '[ Domain.NotRegisteredToApp
-   , ActionNotAuthorized App
-   , NotFound            App
+   , UserNotAuthorized App
+   , NotFound          App
    ]
 
 class Monad m => Dissociator m where
@@ -33,12 +33,12 @@ instance MonadIO m => Dissociator (Transaction m) where
   dissociate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
-        return <| Error.relaxedLeft err
+        return $ Error.relaxedLeft err
 
       Right app ->
         case app `isOwnedBy` userId of
           False ->
-            return . Error.openLeft $ ActionNotAuthorized @App userId
+            return . Error.openLeft $ UserNotAuthorized @App userId
 
           True -> do
             insert_ DissociateAppDomainEvent

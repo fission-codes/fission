@@ -10,8 +10,8 @@ import           Fission.Error      as Error
 import           Fission.URL
 
 type Errors' = OpenUnion
-  '[ ActionNotAuthorized App
-   , NotFound            App
+  '[ UserNotAuthorized App
+   , NotFound          App
    ]
 
 class Monad m => Retriever m where
@@ -28,7 +28,7 @@ instance MonadIO m => Retriever (Transaction m) where
       Just app ->
         if app `isOwnedBy` userId
           then Right app
-          else openLeft $ ActionNotAuthorized @App userId
+          else openLeft $ UserNotAuthorized @App userId
 
   ownedBy userId =
     select $ from \app -> do
@@ -59,4 +59,4 @@ instance MonadIO m => Retriever (Transaction m) where
           (app : _) ->
             if app `isOwnedBy` userId
               then Right app
-              else Error.openLeft $ ActionNotAuthorized @App userId
+              else Error.openLeft $ UserNotAuthorized @App userId

@@ -21,9 +21,9 @@ type Errors' = OpenUnion
    , NotFound Domain
    , NotFound URL
 
-   , ActionNotAuthorized App
-   , ActionNotAuthorized AppDomain
-   , ActionNotAuthorized URL
+   , UserNotAuthorized App
+   , UserNotAuthorized AppDomain
+   , UserNotAuthorized URL
 
    , IPFS.Pin.Error
    , IPFS.Stat.Error

@@ -23,8 +23,8 @@ import           Fission.User.Password  as Password
 type Errors' = OpenUnion
   '[ NotFound User
 
-   , NotFound            URL
-   , ActionNotAuthorized URL
+   , NotFound          URL
+   , UserNotAuthorized URL
 
    , IPFS.Pin.Error
    , IPFS.Stat.Error

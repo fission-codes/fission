@@ -2,13 +2,13 @@ module Fission.User.Destroyer.Class (Destroyer (..)) where
 
 import           Database.Esqueleto
 
+import           Fission.Error      as Error
 import           Fission.Models
-import           Fission.Prelude hiding (set, Value)
-import           Fission.Error as Error
+import           Fission.Prelude    hiding (Value, set)
 
 -- | Destroy @User@s
 class Monad m => Destroyer m where
-  deactivate :: UserId -> UserId -> m (Either (ActionNotAuthorized User) ())
+  deactivate :: UserId -> UserId -> m (Either (UserNotAuthorized User) ())
 
 instance MonadIO m => Destroyer (Transaction m) where
   deactivate requestorId userId = do
@@ -30,4 +30,4 @@ instance MonadIO m => Destroyer (Transaction m) where
         return ok
 
       else
-        return . Left $ ActionNotAuthorized requestorId
+        return . Left $ UserNotAuthorized requestorId

@@ -52,4 +52,4 @@ setCidDB userId URL {..} newCID size _copyFlag now = do
               return $ Right appId
 
             else
-              return . Error.openLeft $ ActionNotAuthorized @App userId
+              return . Error.openLeft $ UserNotAuthorized @App userId

@@ -13,7 +13,7 @@ import           Fission.WNFS.Privilege.Types                 as Subgraph
 -- import           Fission.WNFS.Subgraph.Types
 import           Fission.Prelude
 
-import           Fission.Error.ActionNotAuthorized.Types
+import           Fission.Error.UserNotAuthorized.Types
 
 import           Fission.Models
 import           Fission.URL.Types
@@ -62,7 +62,7 @@ class (Monad m, Allowable resource) => Grantable resource m where
   grant ::
        ActionScope resource             -- ^ Requested scope of action
     -> Unchecked (ActionScope resource) -- ^ Unchecked permission
-    -> m (Either (ActionNotAuthorized resource) (Access resource))
+    -> m (Either (UserNotAuthorized resource) (Access resource))
 
 instance
   ( App.Retriever       m
@@ -76,8 +76,8 @@ instance
 
       privilege `DelegatedBy` user@(Entity userId _) ->
         case relationship requested privilege of
-          Sibling  -> return . Left $ ActionNotAuthorized userId
-          Ancestor -> return . Left $ ActionNotAuthorized userId
+          Sibling  -> return . Left $ UserNotAuthorized userId
+          Ancestor -> return . Left $ UserNotAuthorized userId
           _        -> checkApp requested user
 
 checkApp ::
@@ -87,17 +87,17 @@ checkApp ::
   )
   => App.Privilege
   -> Entity User
-  -> m (Either (ActionNotAuthorized App) (Access App))
+  -> m (Either (UserNotAuthorized App) (Access App))
 checkApp App.Privilege {url = url@URL {..}, capability} (Entity userId _) =
   AppDomain.primarySibling userId url >>= \case
     Left _ ->
-      return . Left $ ActionNotAuthorized userId
+      return . Left $ UserNotAuthorized userId
 
     Right appDomain@(Entity _ AppDomain {appDomainAppId, appDomainDomainName, appDomainSubdomain}) ->
       -- NOTE App.byId also does access check
       App.byId userId appDomainAppId >>= \case
         Left _ ->
-          return . Left $ ActionNotAuthorized userId
+          return . Left $ UserNotAuthorized userId
 
         Right app ->
           return $ Right App.Permission
@@ -113,24 +113,24 @@ instance Domain.Retriever m => Grantable Domain m where
 
     privilege `DelegatedBy` user@(Entity userId _) ->
       case relationship requested privilege of
-        Sibling  -> return . Left $ ActionNotAuthorized userId
-        Ancestor -> return . Left $ ActionNotAuthorized userId
+        Sibling  -> return . Left $ UserNotAuthorized userId
+        Ancestor -> return . Left $ UserNotAuthorized userId
         _        -> checkDomain requested user
 
 checkDomain ::
   Domain.Retriever m
   => Domain.Privilege
   -> Entity User
-  -> m (Either (ActionNotAuthorized Domain) (Access Domain))
+  -> m (Either (UserNotAuthorized Domain) (Access Domain))
 checkDomain Domain.Privilege {..} (Entity userId _) =
   Domain.getByDomainName domainName >>= \case
     Left _ ->
-      return . Left $ ActionNotAuthorized userId
+      return . Left $ UserNotAuthorized userId
 
     Right domain ->
       if domain `isOwnedBy` userId
         then return $ Right Domain.Permission {domain, capability}
-        else return . Left $ ActionNotAuthorized userId
+        else return . Left $ UserNotAuthorized userId
 
 instance MonadUserNamespace m => Grantable Subgraph m where
   grant requested = \case
@@ -139,17 +139,17 @@ instance MonadUserNamespace m => Grantable Subgraph m where
 
     privilege `DelegatedBy` user@(Entity userId _) ->
       case relationship requested privilege of
-        Sibling  -> return . Left $ ActionNotAuthorized userId
-        Ancestor -> return . Left $ ActionNotAuthorized userId
+        Sibling  -> return . Left $ UserNotAuthorized userId
+        Ancestor -> return . Left $ UserNotAuthorized userId
         _        -> checkSubgraph requested user
 
 checkSubgraph ::
   MonadUserNamespace m
   => Subgraph.Privilege
   -> Entity User
-  -> m (Either (ActionNotAuthorized Subgraph) (Access Subgraph))
+  -> m (Either (UserNotAuthorized Subgraph) (Access Subgraph))
 checkSubgraph privilege@Subgraph.Privilege {subgraph = Subgraph {..}} owner@(Entity userId User {..}) = do
   fissionNamespace <- getUserNamespace
   if namespace == fissionNamespace && username == userUsername
      then return $ Right Subgraph.Permission {owner, privilege}
-     else return . Left $ ActionNotAuthorized userId
+     else return . Left $ UserNotAuthorized userId

@@ -19,11 +19,11 @@ type Errors' = OpenUnion
   '[ ServerError
    , App.Domain.AlreadyAssociated
 
-   , ActionNotAuthorized App
-   , NotFound            App
+   , UserNotAuthorized App
+   , NotFound          App
 
-   , ActionNotAuthorized URL
-   , NotFound            URL
+   , UserNotAuthorized URL
+   , NotFound          URL
 
    , IPFS.Stat.Error
 

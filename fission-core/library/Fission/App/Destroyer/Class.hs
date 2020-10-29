@@ -18,11 +18,11 @@ import qualified Fission.App.Domain.Retriever as AppDomain
 import qualified Fission.App.Retriever        as App
 
 type Errors' = OpenUnion
-  '[ NotFound            App
-   , ActionNotAuthorized App
+  '[ NotFound          App
+   , UserNotAuthorized App
 
-   , NotFound            AppDomain
-   , ActionNotAuthorized AppDomain
+   , NotFound          AppDomain
+   , UserNotAuthorized AppDomain
 
    , NotFound AWS.ZoneID
 
@@ -78,7 +78,7 @@ destroyAssociated userId appId appDomains now =
           deleteCascade appId
           return $ Right (extractURL <$> appDomains)
         else
-          return . openLeft $ ActionNotAuthorized @App userId
+          return . openLeft $ UserNotAuthorized @App userId
 
 toEvent :: UTCTime -> Entity AppDomain -> DissociateAppDomainEvent
 toEvent now (Entity _ AppDomain {..}) =

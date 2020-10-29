@@ -14,11 +14,11 @@ import           Fission.URL
 import qualified Fission.App.Retriever.Class as App
 
 type Errors' = OpenUnion
-  '[ NotFound            AppDomain
-   , ActionNotAuthorized AppDomain
+  '[ NotFound          AppDomain
+   , UserNotAuthorized AppDomain
 
    , NotFound            App
-   , ActionNotAuthorized App
+   , UserNotAuthorized App
    ]
 
 class Monad m => Retriever m where

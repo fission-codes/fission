@@ -807,3 +807,11 @@ modifyAuthSession modifier = do
 toRemove privilege userId = \case
   priv `DelegatedBy` Entity uID _ -> privilege `isEncompassedBy` priv && uID == userId
   _ -> False
+
+instance MonadLiftAuthSession (Fission Authorization.Session) (Fission ()) where
+  withAuthSession session action = do
+    cfg        <- ask
+    sessionVar <- atomically $ newTVar session
+
+    -- FIXME maybe an "updateExtended" or "extendConfig" typeclass?
+    Fission . RIO . withReaderT cfg{extended = sessionVar} . unRIO $ unFission action
