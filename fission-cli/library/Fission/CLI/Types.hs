@@ -1,3 +1,4 @@
+-- FIXME remove ambiguous types by making (probably) Errors injective
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -313,6 +314,9 @@ instance
 
         | otherwise ->
             return . Left $ Process.UnknownErr stdErrs
+
+-- byteStringOutput :: StreamSpec 'STOutput (STM ByteString)
+-- setStdout byteStringOutput
 
 instance
   ( HasLogFunc cfg

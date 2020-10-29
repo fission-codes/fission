@@ -12,6 +12,7 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.RawContent
   ) where
 
+
 import qualified System.IO.Unsafe                                 as Unsafe
 
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
@@ -44,12 +45,12 @@ import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
+import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 -- Reexports
 
@@ -57,8 +58,8 @@ import           Fission.Web.Auth.Token.JWT.RawContent
 
 -- Orphans
 
-import           Fission.Internal.Orphanage.CID ()
-import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import           Fission.Internal.Orphanage.CID                   ()
+import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
@@ -84,7 +85,7 @@ instance Arbitrary JWT where
 
     let
       claims = claims' {sender = DID Key pk}
-   
+
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
         Right edSK -> Right $ signEd25519 header claims edSK
@@ -120,6 +121,33 @@ instance FromJSON JWT where
     where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
 
+-----------
+-- Facts --
+-----------
+
+data Fact
+--   = SessionKey AES256
+  = Unknown Text
+  deriving (Show, Eq)
+
+instance Display Fact where
+  textDisplay = \case
+    Unknown txt -> txt
+
+instance Arbitrary Fact where
+  -- FIXME add more cases
+  arbitrary = Unknown <$> arbitrary
+
+instance ToJSON Fact where
+  toJSON = \case
+    Unknown txt -> String txt
+
+instance FromJSON Fact where
+  parseJSON = \case
+    -- FIXME SessionKey goes here, above the stirng case
+    String txt -> return $ Unknown txt
+    _          -> fail "Unable to parse Fact"
+
 ------------
 -- Claims --
 ------------
@@ -135,13 +163,15 @@ data Claims = Claims
   -- Temporal Bounds
   , exp      :: !UTCTime
   , nbf      :: !UTCTime
+  -- 0.3.1
+  , facts    :: ![Fact]
   } deriving Show
 
 instance Display Claims where
   textDisplay = Text.pack . show
 
 instance Eq Claims where
-  jwtA == jwtB = eqWho && eqAuth && eqTime
+  jwtA == jwtB = eqWho && eqAuth && eqTime && eqFacts
     where
       eqWho = sender jwtA == sender   jwtB
          && receiver jwtA == receiver jwtB
@@ -153,12 +183,15 @@ instance Eq Claims where
       eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
             && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
 
+      eqFacts = facts jwtA == facts jwtB
+
 instance Arbitrary Claims where
   arbitrary = do
     sender   <- arbitrary
     resource <- arbitrary
     potency  <- arbitrary
     proof    <- arbitrary
+    facts    <- arbitrary
     exp      <- arbitrary
     nbf      <- arbitrary
     pk       <- arbitrary
@@ -179,6 +212,7 @@ instance ToJSON Claims where
     , "prf" .= proof
     , "ptc" .= potency
     , "rsc" .= resource
+    , "fct" .= facts
     --
     , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
@@ -192,6 +226,7 @@ instance FromJSON Claims where
     resource <- obj .:  "rsc"
     potency  <- obj .:? "ptc" .!= AuthNOnly
     proof    <- obj .:? "prf" .!= RootCredential
+    facts    <- obj .:? "fct" .!= []
     --
     nbf <- fromSeconds <$> obj .: "nbf"
     exp <- fromSeconds <$> obj .: "exp"

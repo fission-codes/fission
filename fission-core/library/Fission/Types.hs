@@ -298,16 +298,44 @@ instance IPFS.MonadLocalIPFS Fission where
       opts' = ("--timeout=" <> show secs <> "s") : opts
       args' = byteStringInput arg
 
-    IPFS.runProc readProcess ipfs args' byteStringOutput opts' <&> \case
-      (ExitSuccess, contents, _) ->
-        Right contents
+    case opts of
+      ("pubsub" : "sub") ->
+        -- NOTE blocking & single message.
+        -- Also need to start a new channel every time you listen.
+        -- Not a huge change to generalize, but not priority right now.
+        -- ~@expede
 
-      (ExitFailure _, _, stdErr)
-        | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
-            Left $ IPFS.Process.Timeout secs
+        Right <$> IPFS.runProc waitForFirstMessage ipfs args' byteStringOutput opts'
 
-        | otherwise ->
-            Left $ IPFS.Process.UnknownErr stdErr
+      _ ->
+        IPFS.runProc readProcess ipfs args' byteStringOutput opts' <&> \case
+          (ExitSuccess, contents, _) ->
+            Right contents
+
+          (ExitFailure _, _, stdErr)
+            | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
+                Left $ IPFS.Process.Timeout secs
+
+            | otherwise ->
+                Left $ IPFS.Process.UnknownErr stdErr
+
+waitForFirstMessage process = do
+  messageVar <- liftIO newMVar
+
+  withProcessWait ipfsSub \channel ->
+    waitForFirstMessage channel messageVar
+
+  liftIO $ takeMVar messageVar
+  where
+    go channel mVar =
+      getStdOut channel >>= \case
+        "" ->
+          go channel mVar
+
+        bs -> do
+          -- If there's already a message, we just exit
+          void $ tryPutMVar messageVar bs
+          stopProcess p
 
 instance IPFS.MonadRemoteIPFS Fission where
   runRemote query = do
