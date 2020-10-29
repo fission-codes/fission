@@ -23,7 +23,7 @@ import           Fission.Web.Types
 import qualified Fission.Email.SendInBlue.Types         as SIB
 
 -- | The top level 'Fission' application 'RIO' configuration
-data Config ext = Config
+data Config = Config
   { processCtx     :: !ProcessContext
   , logFunc        :: !LogFunc
   --
@@ -59,11 +59,9 @@ data Config ext = Config
   , fissionDID     :: !DID
   , serverZoneID   :: !AWS.ZoneID
   , liveDriveURL   :: !URL
-  --
-  , extended       :: !ext
   }
 
-instance Show ext => Show (Config ext) where
+instance Show Config where
   show Config {..} = intercalate "\n"
     [ "Config {"
     , "  processCtx        = **SOME PROC CONTEXT**"
@@ -101,15 +99,13 @@ instance Show ext => Show (Config ext) where
     , "  fissionDID        = " <> show fissionDID
     , "  serverZoneID      = " <> show serverZoneID
     , "  liveDriveURL      = " <> show liveDriveURL
-    --
-    , "  extended          = " <> show extended
     , "}"
     ]
 
-instance HasProcessContext (Config ext) where
+instance HasProcessContext Config where
   processContextL = lens processCtx \cfg newProcessCtx ->
     cfg { processCtx = newProcessCtx }
 
-instance HasLogFunc (Config ext) where
+instance HasLogFunc Config where
   logFuncL = lens logFunc \cfg newLogFunc' ->
     cfg { logFunc = newLogFunc' }

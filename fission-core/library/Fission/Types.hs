@@ -102,33 +102,33 @@ import           Fission.Domain                              as Domain
 import qualified Fission.Domain.Privilege.Types              as Domain
 
 -- | The top-level app type
-newtype Fission cfgExt a = Fission { unFission :: RIO (Config cfgExt) a }
+newtype Fission a = Fission { unFission :: RIO Config a }
   deriving newtype ( Functor
                    , Applicative
                    , Monad
                    , MonadIO
                    , MonadUnliftIO
-                   , MonadReader (Config cfgExt)
+                   , MonadReader Config
                    , MonadThrow
                    , MonadCatch
                    , MonadMask
                    )
 
-instance MonadLogger (Fission cfgExt) where
+instance MonadLogger Fission where
   monadLoggerLog loc src lvl msg = Fission $ monadLoggerLog loc src lvl msg
 
-instance MonadTime (Fission cfgExt) where
+instance MonadTime Fission where
   currentTime = liftIO getCurrentTime
 
-instance MonadReflectiveServer (Fission cfgExt) where
+instance MonadReflectiveServer Fission where
   getHost = asks host
 
-instance MonadDB (Transaction (Fission cfgExt)) (Fission cfgExt) where
+instance MonadDB (Transaction Fission) Fission where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
 
-instance MonadAWS (Fission cfgExt) where
+instance MonadAWS Fission where
   liftAWS awsAction = do
     accessKey <- asks awsAccessKey
     secretKey <- asks awsSecretKey
@@ -136,7 +136,7 @@ instance MonadAWS (Fission cfgExt) where
 
     runResourceT $ runAWS env awsAction
 
-instance MonadRoute53 (Fission cfgExt) where
+instance MonadRoute53 Fission where
   clear recordType url@URL {..} (ZoneID zoneTxt) = do
     logDebug $ "Clearing DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
@@ -248,7 +248,7 @@ instance MonadRoute53 (Fission cfgExt) where
           Just rrs -> return $ Right rrs
 
 
-instance MonadWNFS (Fission cfgExt) where
+instance MonadWNFS Fission where
   getUserDataRoot (Username username) = do
     zoneID <- asks userZoneID
     rootDomain <- asks userRootDomain
@@ -270,7 +270,7 @@ instance MonadWNFS (Fission cfgExt) where
       extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
 
 
-instance MonadDNSLink (Fission cfgExt) where
+instance MonadDNSLink Fission where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
     Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
       Left err ->
@@ -301,10 +301,10 @@ instance MonadDNSLink (Fission cfgExt) where
       dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
 
-instance MonadLinkedIPFS (Fission cfgExt) where
+instance MonadLinkedIPFS Fission where
   getLinkedPeers = pure <$> asks ipfsRemotePeer
 
-instance IPFS.MonadLocalIPFS (Fission cfgExt) where
+instance IPFS.MonadLocalIPFS Fission where
   runLocal opts arg = do
     IPFS.BinPath ipfs <- asks ipfsPath
     IPFS.Timeout secs <- asks ipfsTimeout
@@ -324,7 +324,7 @@ instance IPFS.MonadLocalIPFS (Fission cfgExt) where
         | otherwise ->
             Left $ IPFS.Process.UnknownErr stdErr
 
-instance IPFS.MonadRemoteIPFS (Fission cfgExt) where
+instance IPFS.MonadRemoteIPFS Fission where
   runRemote query = do
     peerID       <- asks ipfsRemotePeer
     IPFS.URL url <- asks ipfsURL
@@ -336,28 +336,28 @@ instance IPFS.MonadRemoteIPFS (Fission cfgExt) where
 
     liftIO . runClientM query $ mkClientEnv manager url
 
-instance MonadBasicAuth Heroku.Auth (Fission cfgExt) where
+instance MonadBasicAuth Heroku.Auth Fission where
   getVerifier = do
     Heroku.ID       hkuID   <- asks herokuID
     Heroku.Password hkuPass <- asks herokuPassword
     return $ Heroku.Auth <$> Auth.basic hkuID hkuPass
 
-instance MonadAuth DID (Fission cfgExt) where
+instance MonadAuth DID Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
       toHandler (runRIO cfg) . unFission $ Auth.DID.handler req
 
-instance MonadAuth Authorization.Session (Fission cfgExt) where
+instance MonadAuth Authorization.Session Fission where
   getVerifier = do
     cfg <- ask
     return $ mkAuthHandler \req ->
       toHandler (runRIO cfg) . unFission $ Auth.Token.handler req
 
-instance App.Domain.Initializer (Fission cfgExt) where
+instance App.Domain.Initializer Fission where
   initial = asks baseAppDomain
 
-instance App.Domain.Retriever (Fission cfgExt) where
+instance App.Domain.Retriever Fission where
   allForApp      appId      = runDB $ allForApp appId
   allForOwner    userId     = runDB $ allForOwner userId
   primarySibling userId url = runDB $ primarySibling userId url
@@ -365,10 +365,10 @@ instance App.Domain.Retriever (Fission cfgExt) where
   allSiblingsByDomain domainName maySubdomain =
     runDB $ allSiblingsByDomain domainName maySubdomain
 
-instance App.Content.Initializer (Fission cfgExt) where
+instance App.Content.Initializer Fission where
   placeholder = asks appPlaceholder
 
-instance FromJSON jwt => Fission cfgExt `JWT.Resolves` jwt where
+instance FromJSON jwt => Fission `JWT.Resolves` jwt where
   resolve cid@(IPFS.CID hash) =
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
       Left errMsg ->
@@ -379,10 +379,10 @@ instance FromJSON jwt => Fission cfgExt `JWT.Resolves` jwt where
           Left  _   -> Left $ InvalidJWT resolvedBS
           Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
 
-instance ServerDID (Fission cfgExt) where
+instance ServerDID Fission where
   getServerDID = asks fissionDID
 
-instance PublicizeServerDID (Fission cfgExt) where
+instance PublicizeServerDID Fission where
   publicize = do
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -417,14 +417,14 @@ instance PublicizeServerDID (Fission cfgExt) where
               then ok
               else Left $ Web.Error.toServerError status
 
-instance User.Retriever (Fission cfgExt) where
+instance User.Retriever Fission where
   getById            userId   = runDB $ User.getById userId
   getByUsername      username = runDB $ User.getByUsername username
   getByPublicKey     pk       = runDB $ User.getByPublicKey pk
   getByHerokuAddOnId hId      = runDB $ User.getByHerokuAddOnId hId
   getByEmail         email    = runDB $ User.getByEmail email
 
-instance User.Creator (Fission cfgExt) where
+instance User.Creator Fission where
   create username@(Username rawUN) pk email now =
     runDB (User.createDB username pk email now) >>= \case
       Left err ->
@@ -478,7 +478,7 @@ instance User.Creator (Fission cfgExt) where
           Left err -> Error.relaxedLeft err
           Right _  -> Right userId
 
-instance User.Modifier (Fission cfgExt) where
+instance User.Modifier Fission where
   updatePassword uID pass now =
     Password.hashPassword pass >>= \case
       Left err ->
@@ -535,15 +535,15 @@ instance User.Modifier (Fission cfgExt) where
                   Left err -> return $ Error.relaxedLeft err
                   Right _  -> Right <$> runDB (User.setDataDB userId newCID size now)
 
-instance User.Destroyer (Fission cfgExt) where
+instance User.Destroyer Fission where
   deactivate requestorId userId = runDB $ User.deactivate requestorId userId
 
-instance App.Retriever (Fission cfgExt) where
+instance App.Retriever Fission where
   byId    uId appId = runDB $ App.byId    uId appId
   byURL   uId url   = runDB $ App.byURL   uId url
   ownedBy uId       = runDB $ App.ownedBy uId
 
-instance App.Creator (Fission cfgExt) where
+instance App.Creator Fission where
   create ownerId cid maySubdomain now =
     IPFS.Stat.getSizeRemote cid >>= \case
       Left err ->
@@ -569,7 +569,7 @@ instance App.Creator (Fission cfgExt) where
               Left  err -> return $ Error.relaxedLeft err
               Right _   -> return $ Right (appId, subdomain)
 
-instance App.Modifier (Fission cfgExt) where
+instance App.Modifier Fission where
   setCID userId url newCID copyFiles now =
     IPFS.Stat.getSizeRemote newCID >>= \case
       Left err ->
@@ -603,7 +603,7 @@ instance App.Modifier (Fission cfgExt) where
                       Left err -> return $ relaxedLeft err
                       Right _  -> runDB (App.setCidDB userId url newCID size copyFiles now)
 
-instance App.Destroyer (Fission cfgExt) where
+instance App.Destroyer Fission where
   destroy uId appId now =
     runDB (App.destroy uId appId now) >>= \case
       Left err   -> return $ Left err
@@ -614,25 +614,25 @@ instance App.Destroyer (Fission cfgExt) where
       Left err   -> return $ Left err
       Right urls -> pullFromDNS urls
 
-instance Heroku.AddOn.Creator (Fission cfgExt) where
+instance Heroku.AddOn.Creator Fission where
   create uuid region now = runDB $ Heroku.AddOn.create uuid region now
 
-instance Domain.Retriever (Fission cfgExt) where
+instance Domain.Retriever Fission where
   getByDomainName domain = runDB $ Domain.getByDomainName domain
 
-instance Domain.Creator (Fission cfgExt) where
+instance Domain.Creator Fission where
   create domainName userId zoneId now =
     runDB $ Domain.create domainName userId zoneId now
 
-instance Challenge.Creator (Fission cfgExt) where
+instance Challenge.Creator Fission where
   create email =
     runDB $ Challenge.create email
 
-instance Challenge.Verifier (Fission cfgExt) where
+instance Challenge.Verifier Fission where
   verify challenge =
     runDB $ Challenge.verify challenge
 
-instance MonadEmail (Fission cfgExt) where
+instance MonadEmail Fission where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager
     Host baseHostUrl <- asks host
@@ -652,7 +652,7 @@ instance MonadEmail (Fission cfgExt) where
 
     liftIO $ runClientM (Email.sendEmail apiKey emailData) env
 
-pullFromDNS :: [URL] -> Fission cfgExt (Either App.Destroyer.Errors' [URL])
+pullFromDNS :: [URL] -> Fission (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do
   domainsAndZoneIDs <- runDB . select $ from \domain -> do
     where_ $ domain ^. DomainDomainName `in_` valList (URL.domainName <$> urls)
@@ -670,7 +670,7 @@ pullFromDNS urls = do
          [(DomainName, ZoneID)]             -- ^ Hosted zone map
       -> Either App.Destroyer.Errors' [URL] -- ^ Accumulator
       -> URL                                -- ^ Focus
-      -> Fission cfgExt (Either App.Destroyer.Errors' [URL])
+      -> Fission (Either App.Destroyer.Errors' [URL])
 
     folder _ (Left err) _ =
       return $ Left err
@@ -687,11 +687,11 @@ pullFromDNS urls = do
             Right _  -> Right (url : accs)
 
 runUserUpdate ::
-     Transaction (Fission cfgExt) (Either User.Modifier.Errors' a)
+     Transaction Fission (Either User.Modifier.Errors' a)
   -> (a -> Text)
   -> UserId
   -> Text
-  -> Fission cfgExt (Either User.Modifier.Errors' a)
+  -> Fission (Either User.Modifier.Errors' a)
 runUserUpdate updateDB dbValToTxt uID subdomain =
   runDB updateDB >>= \case
     Left err ->
@@ -714,104 +714,5 @@ runUserUpdate updateDB dbValToTxt uID subdomain =
             Left serverErr -> return $ Error.openLeft serverErr
             Right _        -> return $ Right dbVal
 
-instance MonadUserNamespace (Fission extCfg) where
+instance MonadUserNamespace Fission where
   getUserNamespace = asks userRootDomain
-
-instance MonadAuthSession App (Fission (TVar Authorization.Session)) where
-  allChecked =
-    queryAuthSession apps
-
-  allUnchecked =
-    foldr folder [] <$> queryAuthSession unchecked
-    where
-      folder priv acc =
-        case priv of
-          Privilege.FissionWebApp priv `DelegatedBy` userId ->
-            (priv `DelegatedBy` userId) : acc
-
-          AsUser uID ->
-            AsUser uID : acc
-
-          _ ->
-            acc
-
-  addAccess newPermission =
-    modifyAuthSession \session@Authorization.Session {apps} ->
-      session {apps = (newPermission : apps)}
-
-  dropUnchecked privilege userID =
-    modifyAuthSession \session@Authorization.Session {unchecked} ->
-      session {unchecked = filter (toRemove (Privilege.FissionWebApp privilege) userID) unchecked}
-
-instance MonadAuthSession Domain (Fission (TVar Authorization.Session)) where
-  allChecked =
-    queryAuthSession domains
-
-  allUnchecked =
-    foldr folder [] <$> queryAuthSession unchecked
-    where
-      folder priv acc =
-        case priv of
-          AsUser uID ->
-            AsUser uID : acc
-
-          Privilege.RegisteredDomain priv `DelegatedBy` userId ->
-            (priv `DelegatedBy` userId) : acc
-
-          _ ->
-            acc
-
-  addAccess newPermission =
-    modifyAuthSession \session@Authorization.Session {domains} ->
-      session {domains = (newPermission : domains)}
-
-  dropUnchecked privilege userID =
-    modifyAuthSession \session@Authorization.Session {unchecked} ->
-      session {unchecked = filter (toRemove (Privilege.RegisteredDomain privilege) userID) unchecked}
-
-instance MonadAuthSession Subgraph (Fission (TVar Authorization.Session)) where
-  allChecked =
-    queryAuthSession subgraphs
-
-  allUnchecked =
-    foldr folder [] <$> queryAuthSession unchecked
-    where
-      folder priv acc =
-        case priv of
-          Privilege.WNFS priv `DelegatedBy` userId ->
-            (priv `DelegatedBy` userId) : acc
-
-          AsUser uID ->
-            AsUser uID : acc
-
-          _ ->
-            acc
-
-  addAccess newPermission =
-    modifyAuthSession \session@Authorization.Session {subgraphs} ->
-      session {subgraphs = (newPermission : subgraphs)}
-
-  dropUnchecked privilege userID =
-    modifyAuthSession \session@Authorization.Session {unchecked} ->
-      session {unchecked = filter (toRemove (Privilege.WNFS privilege) userID) unchecked}
-
-queryAuthSession query = do
-  sessionVar <- asks extended
-  session    <- liftIO . atomically $ readTVar sessionVar
-  return $ query session
-
-modifyAuthSession modifier = do
-  sessionVar <- asks extended
-  liftIO . atomically $ modifyTVar sessionVar modifier
-
-toRemove privilege userId = \case
-  priv `DelegatedBy` Entity uID _ -> privilege `isEncompassedBy` priv && uID == userId
-  _ -> False
-
-instance MonadLiftAuthSession (Fission Authorization.Session) (Fission ()) where
-  withAuthSession session action = do
-    cfg        <- ask
-    sessionVar <- atomically $ newTVar session
-
-    -- FIXME maybe an "updateExtended" or "extendConfig" typeclass?
-    Fission . RIO . withReaderT cfg{extended = sessionVar} . unRIO $ unFission action

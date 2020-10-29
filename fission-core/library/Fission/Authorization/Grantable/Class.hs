@@ -1,5 +1,3 @@
--- {-# LANGUAGE AllowAmbiguousTypes #-}
-
 module Fission.Authorization.Grantable.Class (Grantable (..)) where
 
 import           Fission.Prelude

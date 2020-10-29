@@ -28,16 +28,15 @@ type API
   :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
 
 server ::
-  ( MonadLogger          n
-  , MonadThrow           n
-  , MonadTime            n
-  , User.Modifier        n
-  , MonadLiftAuthSession n m
+  ( MonadLogger   m
+  , MonadThrow    m
+  , MonadTime     m
+  , User.Modifier m
   )
   => Authorization.Session
   -> ServerT API m
 server session newCID = do
-  withAuthSession session do
+  -- FIXME withAuthSession session do
   -- server Authorization {about = Entity userID _} newCID = do
     let userID = undefined -- FIXME
     now <- currentTime

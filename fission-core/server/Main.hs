@@ -103,7 +103,6 @@ main = do
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
       let
         DID _ serverPK = fissionDID
-        extended = ()
         cfg = Config {..}
 
       runFission cfg do

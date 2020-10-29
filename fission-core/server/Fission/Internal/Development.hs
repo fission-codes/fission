@@ -44,7 +44,7 @@ import           Fission.Internal.Fixture.Key.Ed25519   as Fixture.Ed25519
      > runOne Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-runOne :: Fission () a -> IO a
+runOne :: Fission a -> IO a
 runOne action = do
   logOptions <- logOptionsHandle stdout True
   processCtx  <- mkDefaultProcessContext
@@ -81,15 +81,14 @@ run ::
   -> ProcessContext
   -> HTTP.Manager
   -> HTTP.Manager
-  -> Fission () a
+  -> Fission a
   -> IO a
 run logFunc dbPool processCtx httpManager tlsManager action =
   runFission config do
     logDebug $ textShow config
     action
   where
-    extended = ()
-    config   = Config {..}
+    config = Config {..}
 
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
@@ -157,9 +156,8 @@ mkConfig ::
   -> HTTP.Manager
   -> HTTP.Manager
   -> LogFunc
-  -> ext
-  -> Config ext
-mkConfig dbPool processCtx httpManager tlsManager logFunc extended = Config {..}
+  -> Config
+mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
   where
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
@@ -218,7 +216,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc extended = Config {..}
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-mkConfig' :: IO (Config (), IO ())
+mkConfig' :: IO (Config, IO ())
 mkConfig' = do
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
@@ -228,7 +226,7 @@ mkConfig' = do
   (logFunc, close) <- newLogFunc . setLogUseTime True =<< logOptionsHandle stdout True
 
   withDBPool logFunc connectionInfo (PoolSize 4) \dbPool -> do
-    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc ()
+    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc
     return (cfg, close)
 
 connectionInfo :: ConnectionInfo
