@@ -19,7 +19,7 @@ subscribe ::
   , m `SubscribesTo` a
   )
   => Topic
-  -> m (TQueue (Either String (Message a)), Async ())
+  -> m (TQueue (Message a), Async ())
 subscribe topic = do
   tq       <- liftIO $ atomically newTQueue
   listener <- subscribeWithQueue topic tq
@@ -30,7 +30,7 @@ withQueue ::
   , m `SubscribesTo` a
   )
   => Topic
-  -> (TQueue (Either String (Message a)) -> m a)
+  -> (TQueue (Message a) -> m a)
   -> m a
 withQueue topic reactor = do
   (tq, listener) <- subscribe topic
