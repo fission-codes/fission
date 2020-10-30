@@ -15,31 +15,16 @@ import qualified Fission.Web.User                as User
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import qualified Crypto.PubKey.RSA               as RSA
-import           Crypto.Random
 
-import           Network.DNS
-import           Network.HTTP.Types.Status
-
-import           Servant.API
 import           Servant.Client
 
 import           Fission.Prelude
 
-import           Fission.Error
-import qualified Fission.Key                     as Key
-
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
-import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client              as Client
-
-import           Fission.User.Email.Types
-import           Fission.User.Registration.Types
-import qualified Fission.User.Username.Types     as User
-
-
 
 type Register = UserPrefix :> User.RegisterRoute
 type Verify   = UserPrefix :> User.VerifyRoute

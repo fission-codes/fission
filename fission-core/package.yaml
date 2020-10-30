@@ -98,6 +98,10 @@ dependencies:
   ## Command Line ##
   - envy
 
+  ## Concurrency ##
+  - async
+  - stm
+
   ## Cryptography ##
   - bcrypt
   - cryptonite

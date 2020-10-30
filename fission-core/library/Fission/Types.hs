@@ -25,9 +25,11 @@ import qualified Network.IPFS.Process.Error            as IPFS.Process
 import qualified Network.IPFS.Stat                     as IPFS.Stat
 import qualified Network.IPFS.Types                    as IPFS
 
-import           Fission.Config.Types
-import qualified Fission.Internal.UTF8                 as UTF8
 import           Fission.Prelude
+
+import           Fission.Config.Types
+
+import qualified Fission.Internal.UTF8                 as UTF8
 
 import           Fission.AWS
 import           Fission.AWS.Types                     as AWS
@@ -298,44 +300,16 @@ instance IPFS.MonadLocalIPFS Fission where
       opts' = ("--timeout=" <> show secs <> "s") : opts
       args' = byteStringInput arg
 
-    case opts of
-      ("pubsub" : "sub") ->
-        -- NOTE blocking & single message.
-        -- Also need to start a new channel every time you listen.
-        -- Not a huge change to generalize, but not priority right now.
-        -- ~@expede
+    IPFS.runProc readProcess ipfs args' byteStringOutput opts' <&> \case
+      (ExitSuccess, contents, _) ->
+        Right contents
 
-        Right <$> IPFS.runProc waitForFirstMessage ipfs args' byteStringOutput opts'
+      (ExitFailure _, _, stdErr)
+        | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
+            Left $ IPFS.Process.Timeout secs
 
-      _ ->
-        IPFS.runProc readProcess ipfs args' byteStringOutput opts' <&> \case
-          (ExitSuccess, contents, _) ->
-            Right contents
-
-          (ExitFailure _, _, stdErr)
-            | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
-                Left $ IPFS.Process.Timeout secs
-
-            | otherwise ->
-                Left $ IPFS.Process.UnknownErr stdErr
-
-waitForFirstMessage process = do
-  messageVar <- liftIO newMVar
-
-  withProcessWait ipfsSub \channel ->
-    waitForFirstMessage channel messageVar
-
-  liftIO $ takeMVar messageVar
-  where
-    go channel mVar =
-      getStdOut channel >>= \case
-        "" ->
-          go channel mVar
-
-        bs -> do
-          -- If there's already a message, we just exit
-          void $ tryPutMVar messageVar bs
-          stopProcess p
+        | otherwise ->
+            Left $ IPFS.Process.UnknownErr stdErr
 
 instance IPFS.MonadRemoteIPFS Fission where
   runRemote query = do

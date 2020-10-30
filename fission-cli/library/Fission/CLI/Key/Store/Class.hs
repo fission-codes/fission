@@ -32,6 +32,7 @@ class
   type PublicKey keyRole
 
   getPath  :: Proxy keyRole -> m FilePath
+  -- NOTE probably can get rid of some of these proxies?
   toPublic :: Proxy keyRole -> SecretKey keyRole -> m (PublicKey keyRole)
   generate :: Proxy keyRole -> m (SecretKey keyRole)
   parse    :: Proxy keyRole -> ScrubbedBytes -> m (Either Key.Error (SecretKey keyRole))

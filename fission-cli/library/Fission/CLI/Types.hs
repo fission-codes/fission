@@ -60,6 +60,8 @@ import qualified Fission.CLI.Display.Loader              as CLI
 import           Fission.CLI.Environment
 import           Fission.CLI.Environment.Path
 
+import qualified Fission.IPFS.PubSub.Subscription        as IPFS.PubSub
+
 import           Fission.Internal.Orphanage.BaseUrl      ()
 import           Fission.Internal.Orphanage.ClientError  ()
 import           Fission.Internal.Orphanage.DNS.DNSError ()
@@ -315,8 +317,37 @@ instance
         | otherwise ->
             return . Left $ Process.UnknownErr stdErrs
 
--- byteStringOutput :: StreamSpec 'STOutput (STM ByteString)
--- setStdout byteStringOutput
+instance -- forall cfg errs a .
+  ( HasField' "httpManager"   cfg HTTP.Manager
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , SomeException `IsMember` errs
+  , ClientError   `IsMember` errs
+  , FromJSON a
+  )
+  => FissionCLI errs cfg `IPFS.PubSub.SubscribesTo` a where
+  subscribeWithQueue topic tq = do
+    void IPFS.Daemon.runDaemon
+
+    manager <- asks $ getField @"httpManager"
+    url     <- parseBaseUrl "http://127.0.0.1:10235/" -- FIXME extract port to common location
+    cfg     <- ask
+
+    liftIO $ async do
+      runFissionCLI cfg (runInner manager url tq) >>= \case
+        Left err -> return () -- FIXME?
+        Right () -> return ()
+
+    where
+      runInner ::
+        ( SomeException `IsMember` errs
+        , ClientError   `IsMember` errs
+        )
+        => Manager
+        -> BaseUrl
+        -> TQueue a
+        -> FissionCLI errs cfg ()
+      runInner manager url tq =
+        IPFS.PubSub.runMessageStream (mkClientEnv manager url) tq
 
 instance
   ( HasLogFunc cfg
