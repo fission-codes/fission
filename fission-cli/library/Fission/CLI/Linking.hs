@@ -13,6 +13,8 @@ import           Crypto.Hash.Algorithms
 import qualified Crypto.PubKey.RSA                as Crypto.RSA
 import           Crypto.Random.Types
 
+import qualified RIO.ByteString                   as BS
+
 import           Fission.User.DID.Types           as DID
 
 import qualified Data.ByteString.Lazy.Char8       as BS8
@@ -33,6 +35,10 @@ import qualified Fission.IPFS.PubSub.Subscription as Sub
 import qualified Fission.IPFS.PubSub.Topic        as IPFS.PubSub
 
 import           Fission.CLI.Key.Store            as KeyStore
+
+
+
+import           Fission.IPFS.PubSub.Topic
 
 
 
@@ -77,11 +83,11 @@ requestFrom targetDID =
   reattempt 10 do
     throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
     throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
-   
+
     pubSubSendClear topic throwawayPK -- STEP 2, yes out of order is actually correct
     sessionKey <- getAuthenticatedSessionKey topic throwawaySK -- STEP 1-4
     secureSendPIN topic sessionKey -- STEP 5
-   
+
     ucan <- listenForFinalUCAN sessionKey -- STEP 6
     storeUCAN ucan
   where
@@ -107,13 +113,13 @@ getAuthenticatedSessionKey topic sk =
     return sessionKey
 
 -- STEP 3
-listenForSessionKey :: m (CryptoKey AES256 ByteString)
+listenForSessionKey :: m (SymmetricKey AES256 ByteString)
 listenForSessionKey throwawaySK tq = ensureM $ readRSA throwawaySK tq
 
 listenForValidProof sessionKey tq = undefined -- readAES256 sessionKey tq
 
 -- STEP 5
-secureSendPIN topic sessionKey =
+secureSendPIN topic sessionKey = do
   randomBS <- liftIO $ getRandomBytes 6
 
   let
@@ -125,7 +131,7 @@ secureSendPIN topic sessionKey =
 pubSubSendClear ::
   ( ToJSON msg
   , MonadRaise m
-  , m `Raises` IPFS.Error
+  , m `Raises` IPFS.Process.Error
   )
   => Topic
   -> msg
@@ -138,22 +144,39 @@ pubSubSendClear topic msg =
 pubSubSendSecure topic msg aesKey =
   pubSubSendClear topic (msg `encryptWith` aesKey)
 
-class Encryptable cipher a where
-  data PublicData cipher
- 
-  encryptWith ::
-       a
-    -> CryptoKey  cipher
-    -> PublicData cipher
-    -> CryptoFailable (EncryptedPayload cipher a)
-
-  decryptWith ::
-       EncryptedPayload cipher a
-    -> Cryptokey cipher
-    -> PublicData cipher
-    -> CryptoFailable a
- 
+-- class Encryptable cipher a m where
+--   data Encrypted cipher
 --
+--   data Encryptor cipher
+--   data Decryptor cipher
+--
+--   encryptWith ::
+--        a
+--     -> Encryptor cipher
+--     -> m (CryptoFailable EncryptedPayload)
+--
+--   decryptWith ::
+--        Encrypted cipher a
+--     -> Decryptor cipher
+--     -> m (CryptoFailable a)
+
+
+--
+--   encryptWith payload aesKey =
+--     genIV >>= \case
+--       Nothing ->
+--         undefined -- FIXME CryptoError? Maybe put on genIV
+--
+--       Just iv ->
+--         encrypt aesKey iv payload
+
+
+-- instance Encryptable RSA2048  -- FIXME or somehting
+
+
+
+
+
 -- newtype Ciphertext cipher a = Ciphertext ByteString
 --
 -- instance Encryptable cipher a => Encryptable (Ciphertext cipher a) where
@@ -165,39 +188,54 @@ class Encryptable cipher a where
 -- instance FromJSON a => FromJSON (Ciphertext AES256 a) where
 --   parseJSON raw = Ciphertext <$> parseJSON raw
 
-data EncryptedPayload cipher a = EncryptedPayload
-  { publicData :: PublicData cipher -- ^ e.g. IV for AES or PK for RSA
-  , cipherText :: ByteString
+-- data EncryptedPayload cipher a = EncryptedPayload
+--   { publicData :: PublicData cipher -- ^ e.g. IV for AES or PK for RSA
+--   , cipherText :: ByteString
+--   }
+
+-- instance (ToJSON a, Encryptable a) => ToJSON (EncryptedPayload AES256 a) where
+--   toJSON (Ciphertext a) = String . decodeUtf8Lenient $ encryptWith AES256 a
+--
+-- instance FromJSON a => FromJSON (Ciphertext AES256 a) where
+--   parseJSON raw = Ciphertext <$> parseJSON raw
+
+data SessionPayload = SessionPayload
+  { encrypted :: ByteString
+  , iv        :: IV AES256
   }
 
-instance Encryptable cipher (EncryptedPayload cipher a) where
-  encryptWith
+newtype EncryptedWith cipher
+  = EncryptedPayload { getEncryptedPayload :: ByteString }
+  deriving Eq
 
-instance (ToJSON a, Encryptable a) => ToJSON (EncryptedPayload AES256 a) where
-  toJSON (Ciphertext a) = String . decodeUtf8Lenient $ encryptWith AES256 a
+---
 
-instance FromJSON a => FromJSON (Ciphertext AES256 a) where
-  parseJSON raw = Ciphertext <$> parseJSON raw
+newtype SymmetricKey cipher
+  = SymmetricKey { rawKey :: ByteString }
+  deriving newtype Eq
 
-data AESKeyExchange = AESKeyExchange
-  { sessionKey :: CryptoKey AES256 ByteString }
-  deriving Eq -- NOTE do not create a show instance
+instance ToJSON (SymmetricKey AES256) where
+  toJSON (SymmetricKey bs) = String $ decodeUtf8Lenient bs
 
-instance ToJSON (CryptoKey AES256 ByteString) where
-  toJSON (CryptoKey bs) = String $ decodeUtf8Lenient bs
+instance FromJSON (SymmetricKey AES256) where
+  parseJSON = withText "AES256 SymmetricKey" \txt ->
+    return . SymmetricKey $ encodeUtf8 txt
 
-instance FromJSON (CryptoKey AES256 ByteString) where
-  parseJSON = withText "AES256 CryptoKey" \txt ->
-    return . CryptoKey $ encodeUtf8 txt
+---
 
-instance ToJSON AESKeyExchange where
-  toJSON (AESKeyExchange key) =
-    object ["sessionKey" .= key]
+newtype SessionKeyExchange = SessionKeyExchange
+  { sessionKey :: SymmetricKey AES256 }
+  deriving newtype Eq
 
-instance FromJSON AESKeyExchange where
-  parseJSON = withObject "AESKeyExchange" \obj -> do
+instance ToJSON SessionKeyExchange where
+  toJSON (SessionKeyExchange key) = object ["sessionKey" .= key]
+
+instance FromJSON SessionKeyExchange where
+  parseJSON = withObject "SessionKeyExchange" \obj -> do
     sessionKey <- obj .: "sessionKey"
-    return AESKeyExchange {..}
+    return SessionKeyExchange {..}
+
+data RSA2048
 
 readRSA ::
   ( MonadIO     m
@@ -208,7 +246,7 @@ readRSA ::
   , FromJSON a
   )
   => RSA.PrivateKey
-  -> TQueue (Sub.Message (Ciphertext RSA.PublicKey (CryptoKey AES256 ByteString)))
+  -> TQueue (Sub.Message (EncryptedWith RSA.PrivateKey))
   -- ^^^^^^^^^^^^^^^^^ FIXME maybe do this step in the queue handler?
   -> m a
 readRSA sk tq = do
@@ -216,45 +254,42 @@ readRSA sk tq = do
   Sub.Message {payload = secretMsg} <- liftIO . atomically $ readTQueue tq
   clearBS <- ensureM $ RSA.OAEP.decryptSafer oaepParams sk secretMsg
   ensure $ eitherDecodeStrict clearBS -- FIXME better "can't decode JSON" error
-
   where
     oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 
 encrypt ::
-  ByteArray a
-  => CryptoKey AES256 a
+     SymmetricKey AES256
   -> IV  AES256
-  -> a
+  -> ByteString
   -> CryptoFailable (AEAD AES256) -- or AEAD a?
-encrypt (CryptoKey rawKey) iv msg =
+encrypt (SymmetricKey rawKey) iv msg =
   case cipherInit rawKey of
-    CryptoFailed err    -> CryptoFailed err
-    CryptoPassed cipher -> aeadInit AEAD_GCM cipher iv
+    CryptoFailed err    ->
+      CryptoFailed err
+
+    CryptoPassed cipher ->
+      let
+        blockCipher = aeadInit AEAD_GCM cipher iv -- FIXME doesn't use msg?!
+      in
+        return $ ctrCombine blockCipher iv msg -- AFAICT ctrCombine if correct for GCM encryption
 
 decrypt ::
   ByteArray a
-  => CryptoKey AES256 a
+  => SymmetricKey AES256
   -> IV  AES256
-  -> a
+  -> ByteString
   -> Either CryptoError a
-decrypt = undefined -- encrypt -- FIXME MASSIVELY RAISED EYEBROWS
+decrypt = encrypt -- NOTE shockingly this is correct
 
 -- | Not required, but most general implementation
-data CryptoKey c a where
-  CryptoKey :: (BlockCipher c, ByteArray a) => a -> CryptoKey c a
+-- data SymmetricKey c a where
+  -- SymmetricKey :: (BlockCipher c, ByteArray a) => a -> SymmetricKey c a
 
-instance Eq (CryptoKey c a) where
-  CryptoKey a == CryptoKey b = a == b
+
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
-genAES256 ::
-  ( MonadRandom m
-  , ByteArray   a
-  )
-  => Proxy AES256
-  -> Natural
-  -> m (CryptoKey AES256 a)
-genAES256 _ size = CryptoKey <$> getRandomBytes (fromIntegral size)
+genAES256 :: (MonadRandom m, ByteArray a) => m (SymmetricKey AES256)
+genAES256 = SymmetricKey <$> getRandomBytes (blockSize (undefined :: AES256)) -- FIXME or something?
 
 -- | Generate a random initialization vector for a given block cipher
 genIV :: MonadRandom m => m (Maybe (IV AES256))
@@ -263,8 +298,8 @@ genIV = do
   return $ makeIV (bytes :: ByteString)
 
 -- | Initialize a block cipher
--- initCipher :: ByteArray a => CryptoKey AES256 a -> Either CryptoError AES256
--- initCipher (CryptoKey k) = -- NOTE just use the cryptofalable version fs
+-- initCipher :: ByteArray a => SymmetricKey AES256 a -> Either CryptoError AES256
+-- initCipher (SymmetricKey k) = -- NOTE just use the cryptofalable version fs
 --   case cipherInit k of
 --     CryptoFailed e -> Left e
 --     CryptoPassed a -> Right a
