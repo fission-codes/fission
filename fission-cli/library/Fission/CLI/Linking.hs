@@ -9,6 +9,8 @@ module Fission.CLI.Linking where
 6. Credential delegation
 -}
 
+import qualified Data.ByteArray                   as ByteArray
+
 import           Crypto.Cipher.Types
 import           Crypto.Hash.Algorithms
 import qualified Crypto.PubKey.RSA                as Crypto.RSA
@@ -64,6 +66,22 @@ import           Data.ByteString                  (ByteString)
 
 import           Fission.CLI.Environment.Class
 
+listenToLinkRequests ::
+  ( MonadLogger m
+  , MonadKeyStore m ExchangeKey
+  , MonadLocalIPFS m
+  , MonadIO m
+  , MonadRandom m
+  , MonadRescue m
+  , m `Sub.SubscribesTo` EncryptedWith AES256
+  , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
+  , m `Raises` CryptoError
+  , m `Raises` IPFS.Process.Error
+  , m `Raises` String
+  , m `Raises` RSA.Error
+  )
+  => m ()
+listenToLinkRequests = undefined
 
 -- NOTE MonadSTM from the other branch would be nice here
 requestFrom ::
@@ -73,7 +91,6 @@ requestFrom ::
   , MonadIO m
   , MonadRandom m
   , MonadRescue m
-  -- , m `Sub.SubscribesTo` ByteString -- Make work with AES and RSA stuiff
   , m `Sub.SubscribesTo` EncryptedWith AES256
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
   , m `Raises` CryptoError
@@ -124,9 +141,9 @@ broadcastPK topic pk = pubSubSendClear topic pk -- FIXME make DID
 getAuthenticatedSessionKey ::
   ( MonadIO     m
   , MonadRandom m
+  , MonadRaise  m
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey -- NOTE SubscribesToChannel & SubscribesToSecure
   , m `Sub.SubscribesTo` EncryptedWith AES256
-  , MonadRaise m
   , m `Raises` RSA.Error
   , m `Raises` String
   )
@@ -156,50 +173,108 @@ listenForSessionKey ::
 listenForSessionKey throwawaySK tq = readRSA throwawaySK tq
 
 listenForValidProof ::
-    SessionKey
-    -> TQueue (Sub.Message (EncryptedWith AES256))
-    -> m UCAN.JWT
+     SessionKey
+  -> TQueue (Sub.Message (EncryptedWith AES256))
+  -> m UCAN.JWT
 listenForValidProof sessionKey tq = undefined -- readAES256 sessionKey tq
 
 -- STEP 5
+secureSendPIN ::
+  ( MonadIO        m
+  , MonadLocalIPFS m
+  , MonadRandom    m
+  , MonadRaise     m
+  , m `Raises` IPFS.Process.Error
+  , m `Raises` CryptoError
+  )
+  => Topic
+  -> SessionKey
+  -> m ()
 secureSendPIN topic sessionKey = do
   randomBS <- liftIO $ getRandomBytes 6
 
   let
     pin :: Text
-    pin = mconcat $ (textDisplay . mod 10) <$> BS.unpack randomBS -- FIXME check mod direction
+    pin = Text.takeEnd 6 . Text.pack . mconcat $ show <$> BS.unpack randomBS -- FIXME check mod direction
 
-  pubSubSendSecure topic pin sessionKey
+  pubSubSendSecure topic sessionKey pin
 
 pubSubSendClear ::
   ( ToJSON  msg
-  , Display msg
+  -- , Display msg
   , MonadLocalIPFS m
-  , MonadRaise m
+  , MonadRaise     m
   , m `Raises` IPFS.Process.Error
   )
   => Topic
   -> msg
   -> m ()
-pubSubSendClear topic msg = do
-  ensureM $ IPFS.runLocal
-    ["pubsub", "pub", Text.unpack $ textDisplay topic]
-    (Lazy.fromStrict . encodeUtf8 $ textDisplay msg)
+pubSubSendClear topic msg =
+  void . ensureM $ IPFS.runLocal ["pubsub", "pub", Text.unpack $ textDisplay topic] (encode msg)
 
-  return ()
+pubSubSendSecure ::
+  ( ToJSON a
+  , MonadLocalIPFS m
+  , MonadRandom m
+  , MonadRaise     m
+  , m `Raises` IPFS.Process.Error
+  , m `Raises` CryptoError
+  )
+  => Topic
+  -> SessionKey
+  -> a
+  -> m ()
+pubSubSendSecure topic (SessionKey aesKey) msg = do
+  encrypted <- toSecureMessage aesKey msg
+  pubSubSendClear topic encrypted
 
-pubSubSendSecure topic msg aesKey =
-  undefined -- FIXME
-  -- pubSubSendClear topic (msg `encryptWith` aesKey)
+toSecureMessage ::
+  ( MonadRandom m
+  , MonadRaise  m
+  , m `Raises` CryptoError
+  , ToJSON msg
+  )
+  => SymmetricKey AES256
+  -> msg
+  -> m SessionMessage
+toSecureMessage aesKey msg = do
+  genIV >>= \case
+    Nothing ->
+      undefined -- FIXME better error
+
+    Just iv -> do
+      payload <- ensure $ encrypt aesKey iv msg
+      return $ SessionMessage {..}
 
 data SessionMessage = SessionMessage
   { payload :: EncryptedWith AES256
   , iv      :: IV AES256
   }
 
+instance ToJSON SessionMessage where
+  toJSON SessionMessage {..} =
+    object [ "payload" .= payload
+           , "iv"      .= (decodeUtf8Lenient $ ByteArray.convert iv)
+           ]
+
+instance FromJSON SessionMessage where
+  parseJSON = withObject "SessionMessage" \obj -> do
+    payload <- obj .: "payload"
+    ivTxt   <- obj .: "iv"
+    case makeIV $ encodeUtf8 ivTxt of
+      Nothing -> fail "Invalid (IV AES256)"
+      Just iv -> return SessionMessage {..}
+
 newtype EncryptedWith cipher
   = EncryptedPayload { ciphertext :: ByteString }
   deriving Eq
+
+instance ToJSON (EncryptedWith cipher) where
+  toJSON (EncryptedPayload bs) = String $ decodeUtf8Lenient bs
+
+instance FromJSON (EncryptedWith AES256) where
+  parseJSON = withText "EncryptedWith AES256" \txt ->
+    return . EncryptedPayload $ encodeUtf8 txt
 
 ---
 
@@ -252,9 +327,10 @@ readRSA sk tq = do
     oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 
 encrypt ::
-     SymmetricKey AES256
+  ToJSON a
+  => SymmetricKey AES256
   -> IV AES256
-  -> ByteString
+  -> a
   -> Either CryptoError (EncryptedWith AES256)
 encrypt (SymmetricKey rawKey) iv plaintext =
   case cipherInit rawKey of
@@ -268,11 +344,9 @@ encrypt (SymmetricKey rawKey) iv plaintext =
 
         CryptoPassed blockCipher ->
           let
-            (ciphertext, _) = aeadEncrypt blockCipher plaintext
+            (ciphertext, _) = aeadEncrypt blockCipher . Lazy.toStrict $ encode plaintext
           in
-        -- FIXME maybe this? return . EncryptedPayload $ ctrCombine blockCipher iv msg -- AFAICT ctrCombine if correct for GCM encryption
             Right $ EncryptedPayload ciphertext
-
 
 decrypt ::
      SymmetricKey AES256
@@ -295,12 +369,6 @@ decrypt (SymmetricKey aesKey) iv (EncryptedPayload ciphertext) =
           in
             Right plaintext
 
--- | Not required, but most general implementation
--- data SymmetricKey c a where
-  -- SymmetricKey :: (BlockCipher c, ByteArray a) => a -> SymmetricKey c a
-
-
-
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
 genAES256 :: MonadRandom m => m (SymmetricKey AES256)
 genAES256 = SymmetricKey <$> getRandomBytes (blockSize (undefined :: AES256)) -- FIXME or something?
@@ -310,10 +378,3 @@ genIV :: MonadRandom m => m (Maybe (IV AES256))
 genIV = do
   bytes <- CRT.getRandomBytes $ blockSize (undefined :: AES256)
   return $ makeIV (bytes :: ByteString)
-
--- | Initialize a block cipher
--- initCipher :: ByteArray a => SymmetricKey AES256 a -> Either CryptoError AES256
--- initCipher (SymmetricKey k) = -- NOTE just use the cryptofalable version fs
---   case cipherInit k of
---     CryptoFailed e -> Left e
---     CryptoPassed a -> Right a
