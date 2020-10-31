@@ -13,6 +13,7 @@ import           Fission.Prelude
 
 import           Fission.IPFS.PubSub.Subscription.Client.Types
 import           Fission.IPFS.PubSub.Subscription.Message.Types
+import           Fission.IPFS.PubSub.Topic.Types
 
 runMessageStream ::
   forall m msg .
@@ -23,9 +24,11 @@ runMessageStream ::
   , FromJSON msg
   )
   => ClientEnv
-  -> TQueue (Either String (Message msg)) -- FIXME better error type
+  -> Topic
+  -> TQueue (Message msg)
+  -> (String -> IO ())
   -> m ()
-runMessageStream env tq =
+runMessageStream env topic tq withErr =
   liftIO go >>= \case
     Right ()         -> return ()
     Left (Left err)  -> raise err
@@ -41,20 +44,19 @@ runMessageStream env tq =
 
     streamClient :: IO ()
     streamClient =
-      Streaming.withClientM messageStreamClient env \case
+      Streaming.withClientM (messageStreamClient topic) env \case
         Left  err    -> throwM err
         Right stream -> foreach withErr withMsg stream
 
-    withErr :: String -> IO ()
-    withErr str = atomically $ writeTQueue tq (Left str)
-
     withMsg :: Message msg -> IO ()
-    withMsg msg = atomically $ writeTQueue tq (Right msg)
+    withMsg msg =
+      atomically $ writeTQueue tq msg
 
 messageStreamClient ::
   forall a m .
   ( FromJSON a
   , MonadIO m
   )
-  => Streaming.ClientM (SourceT m (Message a))
+  => Topic
+  -> Streaming.ClientM (SourceT m (Message a))
 messageStreamClient = Streaming.client (Proxy @(MessageStream m a))

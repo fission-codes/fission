@@ -309,7 +309,7 @@ instance IPFS.MonadLocalIPFS Fission where
             Left $ IPFS.Process.Timeout secs
 
         | otherwise ->
-            Left $ IPFS.Process.UnknownErr stdEr r
+            Left $ IPFS.Process.UnknownErr stdErr
 
 instance IPFS.MonadRemoteIPFS Fission where
   runRemote query = do

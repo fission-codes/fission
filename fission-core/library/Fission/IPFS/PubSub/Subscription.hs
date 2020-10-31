@@ -30,8 +30,8 @@ withQueue ::
   , m `SubscribesTo` a
   )
   => Topic
-  -> (TQueue (Message a) -> m a)
-  -> m a
+  -> (TQueue (Message a) -> m b)
+  -> m b
 withQueue topic reactor = do
   (tq, listener) <- subscribe topic
   result         <- reactor tq

@@ -317,12 +317,15 @@ instance
         | otherwise ->
             return . Left $ Process.UnknownErr stdErrs
 
-instance -- forall cfg errs a .
+instance forall errs cfg a .
   ( HasField' "httpManager"   cfg HTTP.Manager
   , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , HasLogFunc                cfg
+  , Show          (OpenUnion errs)
+  , Display       (OpenUnion errs)
   , SomeException `IsMember` errs
   , ClientError   `IsMember` errs
-  , FromJSON a
+  , FromJSON  a
   )
   => FissionCLI errs cfg `IPFS.PubSub.SubscribesTo` a where
   subscribeWithQueue topic tq = do
@@ -333,21 +336,23 @@ instance -- forall cfg errs a .
     cfg     <- ask
 
     liftIO $ async do
-      runFissionCLI cfg (runInner manager url tq) >>= \case
-        Left err -> return () -- FIXME?
-        Right () -> return ()
+      void $ runFissionCLI cfg do
+        attempt (runInner cfg manager url) >>= \case
+          Left err -> logDebug $ "Async IPFS pubsub error: " <> show err
+          Right () -> return ()
 
     where
       runInner ::
-        ( SomeException `IsMember` errs
-        , ClientError   `IsMember` errs
-        )
-        => Manager
+           cfg
+        -> Manager
         -> BaseUrl
-        -> TQueue a
         -> FissionCLI errs cfg ()
-      runInner manager url tq =
-        IPFS.PubSub.runMessageStream (mkClientEnv manager url) tq
+      runInner cfg manager url =
+        IPFS.PubSub.runMessageStream (mkClientEnv manager url) topic tq \errStr ->
+          void . runFissionCLI cfg $ logInnerErr errStr
+
+      logInnerErr :: String -> FissionCLI '[] cfg ()
+      logInnerErr errStr = logDebug $ "Async IPFS pubsub error:" <> errStr
 
 instance
   ( HasLogFunc cfg
