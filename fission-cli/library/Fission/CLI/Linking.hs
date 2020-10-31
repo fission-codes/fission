@@ -261,6 +261,7 @@ instance FromJSON SessionMessage where
   parseJSON = withObject "SessionMessage" \obj -> do
     payload <- obj .: "payload"
     ivTxt   <- obj .: "iv"
+
     case makeIV $ encodeUtf8 ivTxt of
       Nothing -> fail "Invalid (IV AES256)"
       Just iv -> return SessionMessage {..}
