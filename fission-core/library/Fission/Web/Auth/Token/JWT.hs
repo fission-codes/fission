@@ -2,6 +2,7 @@ module Fission.Web.Auth.Token.JWT
   ( JWT    (..)
   , Claims (..)
   , Proof  (..)
+  , Fact   (..)
 
   , signEd25519
   , signRS256

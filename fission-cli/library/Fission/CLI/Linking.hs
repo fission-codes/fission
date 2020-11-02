@@ -11,6 +11,8 @@ module Fission.CLI.Linking where
 
 import qualified Data.ByteArray                            as ByteArray
 
+import qualified System.Console.ANSI                       as ANSI
+
 import           Crypto.Cipher.Types
 import           Crypto.Hash.Algorithms
 import qualified Crypto.PubKey.RSA                         as Crypto.RSA
@@ -39,12 +41,17 @@ import qualified Fission.IPFS.PubSub.Topic                 as IPFS.PubSub
 
 import           Fission.CLI.Key.Store                     as KeyStore
 
+import qualified Fission.Internal.UTF8                     as UTF8
 import           Fission.Web.Auth.Token.JWT                as JWT
 
+import qualified Fission.CLI.Display.Text                  as Display
 import           Fission.Key.Asymmetric.Public.Types
 
 import           Fission.IPFS.PubSub.Topic
 
+
+
+import qualified Fission.CLI.Prompt                        as CLI.Prompt
 
 
 import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
@@ -90,20 +97,30 @@ listenToLinkRequests ::
   , MonadKeyStore m ExchangeKey
   , MonadLocalIPFS m
   , MonadIO m
+  , MonadTime m
+  , ServerDID m
+  , JWT.Resolver m
+  , MonadEnvironment m
   , MonadRandom m
-  , MonadRescue m
+  , MonadCleanup m
+  , m `Sub.SubscribesTo` DID
+  , m `Sub.SubscribesTo` SessionPayload UCAN.JWT
+  , m `Sub.SubscribesTo` SessionPayload PIN
   , m `Sub.SubscribesTo` EncryptedWith AES256
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
   , m `Raises` CryptoError
   , m `Raises` IPFS.Process.Error
   , m `Raises` String
   , m `Raises` RSA.Error
+  , m `Raises` JWT.Error
+  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` Error
   )
   => DID
   -> m ()
 listenToLinkRequests targetDID = do
   -- FIXME If root device, plz check first
-  machineSK <- KeyStore.fetch @SigningKey
+  machineSK <- KeyStore.fetch (Proxy @SigningKey)
   machinePK <- KeyStore.toPublic (Proxy @SigningKey) machineSK
 
   let
@@ -121,34 +138,88 @@ listenToLinkRequests targetDID = do
     throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
     throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
 
-    requestorExchangeDID <- IPFS.PubSub.Subscription.withQueue topic \tq -> do
-      liftIO . atomically $ readTQueue tq
+    DID Key pk <- waitToReceive topic
 
-    sessionKey <- SessionKey <$> genAES256
+    reqExchangeKey <- case pk of
+                        RSAPublicKey pk' -> return pk'
+                        _                -> raise "Not an RSA key" -- FIXME
 
+    sessionKey       <- SessionKey <$> genAES256
+    secretSessionKey <- ensureM $ RSA.OAEP.encrypt oaepParams reqExchangeKey (Lazy.toStrict $ encode sessionKey)
 
+    pubSubSendSecure topic sessionKey $ decodeUtf8Lenient secretSessionKey
 
+    reqDID@(DID Key requestorPK) <- waitToReceive topic
 
+    pubSubSendSecure topic sessionKey $ (undefined :: UCAN.JWT) -- FIXME UCAN minus potency
 
+    pin <- waitToReceiveSecure sessionKey topic
+    confirmPIN pin >>= \case
+      False ->
+        pubSubSendSecure topic sessionKey LinkDenied
 
-    -- Send sesison key encrypted with requestorExchangeDID
-    -- wait 1000ms -- YIKES would be good to get a "got it"
-    -- send UCAN with potency of none and the aes key in facts encrypted with the aes key
-    -- listen for requestor DID
-    -- ASK USER if they want to allow this
-    -- create & send delegated access
+      True -> do
+        confirmUCANDelegation reqDID
 
-    let throwawayDID = DID Key (RSAPublicKey throwawayPK)
+        delegatedUCAN :: UCAN.JWT <- delegateAllTo reqDID
+        pubSubSendSecure topic sessionKey delegatedUCAN
 
-    pubSubSendClear topic throwawayPK -- STEP 2, yes out of order is actually correct
-    sessionKey <- getAuthenticatedSessionKey targetDID topic throwawaySK -- STEP 1-4
-    secureSendPIN topic sessionKey -- STEP 5
+confirmPIN (PIN pinTxt) =
+  Display.colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
+    UTF8.putText "⚠️⚠️ SECURITY CHECK"
 
-    ucan <- listenForFinalUCAN myDID topic sessionKey -- STEP 6
-    storeUCAN ucan
+    CLI.Prompt.reaskYN $ Text.intercalate " "
+      [ "🔢 Confirm that the following PIN code is from your other device:"
+      , pinTxt
+      , "[Y/n]"
+      ]
+
+data LinkStatus
+  = LinkDenied
+  deriving (Eq, Show)
+
+instance ToJSON LinkStatus where
+  toJSON LinkDenied =
+    object ["linkStatus" .= ("DENIED" :: Text)]
+
+instance FromJSON LinkStatus where
+  parseJSON =
+    withObject "LinkStatus" \obj -> do
+      status :: Text <- obj .: "linkStatus"
+      case status of
+        "DENIED" -> return LinkDenied
+        _        -> fail "Invalid link status"
+
+-- {linkStatus: DENIED}
+confirmUCANDelegation = undefined
+
+delegateAllTo did = do
+  undefined
 
 listenForRequestorExchangeDID = do
+  undefined
 
+waitToReceive topic =
+  IPFS.PubSub.Subscription.withQueue topic \tq -> do
+    Sub.Message {payload} <- liftIO . atomically $ readTQueue tq
+    return payload
+
+waitToReceiveSecure ::
+  ( MonadIO     m
+  , MonadLogger m
+  , MonadRandom m
+  , MonadRaise  m
+  , m `Sub.SubscribesTo` SessionPayload a
+  , m `Raises` String
+  , m `Raises` CryptoError
+  , FromJSON a
+  )
+  => SessionKey
+  -> Topic
+  -> m a
+waitToReceiveSecure sessionKey topic =
+  IPFS.PubSub.Subscription.withQueue topic \tq -> do
+    readAES256 sessionKey tq
 
 fetchUCANForDID = undefined
 
@@ -165,7 +236,7 @@ requestFrom ::
   , MonadRescue m
   , m `Sub.SubscribesTo` EncryptedWith AES256
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
-  , m `Sub.SubscribesTo` SessionPayload
+  , m `Sub.SubscribesTo` SessionPayload JWT.RawContent
   , m `Raises` CryptoError
   , m `Raises` IPFS.Process.Error
   , m `Raises` String
@@ -203,7 +274,7 @@ listenForFinalUCAN ::
   , MonadRandom  m
   , MonadLogger  m
   , MonadRaise   m
-  , m `Sub.SubscribesTo` SessionPayload
+  , m `Sub.SubscribesTo` SessionPayload JWT.RawContent
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` JWT.Error
   , m `Raises` CryptoError
@@ -248,7 +319,7 @@ getAuthenticatedSessionKey ::
   , MonadRaise  m
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey -- NOTE SubscribesToChannel & SubscribesToSecure
   , m `Sub.SubscribesTo` EncryptedWith AES256
-  , m `Sub.SubscribesTo` SessionPayload
+  , m `Sub.SubscribesTo` SessionPayload JWT.RawContent
   , m `Raises` RSA.Error
   , m `Raises` String
   , m `Raises` CryptoError
@@ -299,7 +370,7 @@ listenForValidProof ::
   )
   => DID
   -> SessionKey
-  -> TQueue (Sub.Message SessionPayload)
+  -> TQueue (Sub.Message (SessionPayload JWT.RawContent))
   -> m UCAN.JWT
 listenForValidProof targetDID sessionKey@(SessionKey (SymmetricKey rawKey)) tq = do
   candidateRaw@(UCAN.RawContent txt) <- readAES256 sessionKey tq -- FIXME rename to popSecureMsg
@@ -314,24 +385,41 @@ listenForValidProof targetDID sessionKey@(SessionKey (SymmetricKey rawKey)) tq =
         [] ->
           raise "No facts" -- FIXME
 
-        (aesFact : _) -> do
-          case cipherInit aesFact of
-            CryptoFailed _ ->
-              raise "Invalid session key in facts"
+        (Unknown aesFact : _) -> do
+          case encodeUtf8 aesFact == rawKey of
+            False ->
+              raise "Sesison key doesn't match! ABORT!"
 
-            CryptoPassed key ->
-              case key == rawKey of
-                False ->
-                  raise "Sesison key doesn't match! ABORT!"
+            True -> do
+              ensureM $ UCAN.check candidateRaw candidateUCAN
 
-                True -> do
-                  ensureM $ UCAN.check candidateRaw candidateUCAN
+              -- FIXME actually I think that this step wil be handled by the ServerID -> UsreDID chang
+              UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot candidateUCAN
+              if sender == targetDID
+                then return candidateUCAN
+                else raise "InvalidSender" -- FIXME better error than string
 
-                  -- FIXME actually I think that this step wil be handled by the ServerID -> UsreDID chang
-                  UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot candidateUCAN
-                  if sender == targetDID
-                    then return candidateUCAN
-                    else raise "InvalidSender" -- FIXME better error than string
+newtype PIN = PIN Text
+  deriving newtype (Show, Display, Eq, ToJSON, FromJSON)
+
+genPIN ::
+  ( MonadIO        m
+  , MonadLocalIPFS m
+  , MonadLogger    m
+  , MonadRandom    m
+  , MonadRaise     m
+  , m `Raises` IPFS.Process.Error
+  , m `Raises` CryptoError
+  )
+  => m PIN
+genPIN = do
+  randomBS <- liftIO $ getRandomBytes 6
+
+  let
+    txt :: Text
+    txt = Text.takeEnd 6 . Text.pack . mconcat $ show <$> BS.unpack randomBS
+
+  return $ PIN txt
 
 -- STEP 5
 secureSendPIN ::
@@ -346,14 +434,8 @@ secureSendPIN ::
   => Topic
   -> SessionKey
   -> m ()
-secureSendPIN topic sessionKey = do
-  randomBS <- liftIO $ getRandomBytes 6
-
-  let
-    pin :: Text
-    pin = Text.takeEnd 6 . Text.pack . mconcat $ show <$> BS.unpack randomBS -- FIXME check mod direction
-
-  pubSubSendSecure topic sessionKey pin
+secureSendPIN topic sessionKey =
+  pubSubSendSecure topic sessionKey =<< genPIN
 
 pubSubSendClear ::
   ( MonadLocalIPFS m
@@ -377,11 +459,11 @@ pubSubSendSecure ::
   , MonadRaise     m
   , m `Raises` IPFS.Process.Error
   , m `Raises` CryptoError
-  , ToJSON a
+  , ToJSON msg
   )
   => Topic
   -> SessionKey
-  -> a
+  -> msg
   -> m ()
 pubSubSendSecure topic (SessionKey aesKey) msg = do
   encrypted <- toSecureMessage aesKey msg
@@ -395,7 +477,7 @@ toSecureMessage ::
   )
   => SymmetricKey AES256
   -> msg
-  -> m SessionPayload
+  -> m (SessionPayload msg)
 toSecureMessage aesKey msg = do
   genIV >>= \case
     Nothing ->
@@ -406,13 +488,13 @@ toSecureMessage aesKey msg = do
       return $ SessionPayload {..}
 
 -- fixme rename as SessionPayload, since the pubsub field it livesin will be "payload"
-data SessionPayload = SessionPayload
+data SessionPayload expected = SessionPayload
   { secretMessage :: EncryptedWith AES256 -- FIXMe rename ciphertext
   , iv            :: IV AES256
   }
   deriving Eq
 
-instance Display SessionPayload where
+instance Display (SessionPayload expected) where
   textDisplay SessionPayload {..} =
     mconcat
       [ "SessionPayload{"
@@ -421,16 +503,16 @@ instance Display SessionPayload where
       , "}"
       ]
 
-instance Show SessionPayload where
+instance Show (SessionPayload expected) where
   show = Text.unpack . textDisplay
 
-instance ToJSON SessionPayload where
+instance ToJSON (SessionPayload expected) where
   toJSON SessionPayload {..} =
     object [ "payload" .= secretMessage -- FIXME in the spec! payload -> secretMessage
            , "iv"      .= (decodeUtf8Lenient $ ByteArray.convert iv)
            ]
 
-instance FromJSON SessionPayload where
+instance FromJSON (SessionPayload expected) where
   parseJSON = withObject "SessionPayload" \obj -> do
     secretMessage <- obj .: "payload"
     ivTxt         <- obj .: "iv"
@@ -515,8 +597,7 @@ readRSA sk tq = do
         Right payload ->
           return payload
 
-  where
-    oaepParams = RSA.OAEP.defaultOAEPParams SHA256
+oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 
 readAES256 ::
   ( MonadIO     m
@@ -525,12 +606,11 @@ readAES256 ::
   , MonadRaise  m
   , m `Raises` String
   , m `Raises` CryptoError
-  , FromJSON a
+  , FromJSON msg
   )
   => SessionKey
-  -> TQueue (Sub.Message SessionPayload)
-  -- ^^^^^^^^^^^^^^^^^ FIXME maybe do this step in the queue handler?
-  -> m a
+  -> TQueue (Sub.Message (SessionPayload msg))
+  -> m msg
 readAES256 sessionKey@(SessionKey aes256) tq = do
   -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?
   Sub.Message
