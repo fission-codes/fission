@@ -21,8 +21,6 @@ import           Servant.Client
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
-import           Fission.User.DID.Types
-
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client              as Client
 

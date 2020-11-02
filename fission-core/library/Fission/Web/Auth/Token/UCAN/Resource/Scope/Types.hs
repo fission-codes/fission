@@ -1,6 +1,6 @@
 module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types (Scope (..)) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 data Scope subset
   = Complete

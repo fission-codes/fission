@@ -8,3 +8,7 @@ newtype RawContent = RawContent { unRawContent :: Text }
 
 instance Display RawContent where
   textDisplay = unRawContent
+
+instance FromJSON RawContent where
+  parseJSON = withText "JWT.RawContent" \txt ->
+    return $ RawContent txt

@@ -1,22 +1,27 @@
-module Fission.Web.Auth.Token.UCAN (handler) where
+module Fission.Web.Auth.Token.UCAN
+  ( handler
+  , getRoot
+  ) where
 
 import           Fission.Models
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import qualified Fission.User.Retriever                as User
-import qualified Fission.Web.Error                     as Web.Error
+import qualified Fission.User.Retriever                    as User
+import qualified Fission.Web.Error                         as Web.Error
 
-import           Fission.Web.Auth.Token.JWT            as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
-import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
+import           Fission.Web.Auth.Token.JWT                as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver       as Proof
+import qualified Fission.Web.Auth.Token.JWT.Validation     as JWT
 
-import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
-import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types       as Bearer
+import           Fission.Web.Auth.Token.JWT.Resolver       as JWT
 
 import           Fission.Authorization.ServerDID
 import           Fission.Authorization.Types
 import           Fission.User.DID.Types
+
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as Resolver
 
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*
@@ -45,16 +50,26 @@ toAuthorization ::
   => JWT
   -> m Authorization
 toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
-  JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} <- getRoot jwt
-  runDB (User.getByPublicKey pk) >>= \case
-    Just about -> return Authorization {sender = Right sender, ..}
-    Nothing    -> Web.Error.throw $ NotFound @User
+  getRoot jwt >>= \case
+    Left err ->
+      throwM err
 
-getRoot :: (JWT.Resolver m, MonadThrow m, MonadLogger m) => JWT -> m JWT
+    Right JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} ->
+      runDB (User.getByPublicKey pk) >>= \case
+        Just about -> return Authorization {sender = Right sender, ..}
+        Nothing    -> Web.Error.throw $ NotFound @User
+
+-- FIXME move to better module
+getRoot ::
+  ( JWT.Resolver m
+  , MonadLogger  m
+  )
+  => JWT
+  -> m (Either Resolver.Error JWT)
 getRoot jwt@JWT {claims = JWT.Claims {proof}} =
   case proof of
     JWT.RootCredential ->
-      return jwt
+      return $ Right jwt
 
     JWT.Nested _ proofJWT ->
       getRoot proofJWT
@@ -66,4 +81,4 @@ getRoot jwt@JWT {claims = JWT.Claims {proof}} =
 
         Left err -> do
           logWarn $ "Failed token resolution " <> textDisplay err
-          throwM err
+          return $ Left err
