@@ -36,27 +36,25 @@ import           Fission.Web.Auth.Token.JWT.Error                 as JWT
 
 check ::
   ( Proof.Resolver m
-  , ServerDID      m
   , MonadTime      m
   )
-  => JWT.RawContent
+  => DID
+  -> JWT.RawContent
   -> JWT
   -> m (Either JWT.Error JWT)
-check rawContent jwt = do
+check receiverDID rawContent jwt = do
   now <- currentTime
   case checkTime now jwt of
     Left err ->
       return $ Left err
 
     Right _  ->
-      checkReceiver jwt >>= \case
+      checkReceiver receiverDID jwt >>= \case
         Left  err -> return $ Left err
         Right _   -> check' rawContent jwt now
 
 check' ::
-  ( ServerDID      m
-  , Proof.Resolver m
-  )
+  Proof.Resolver m
   => JWT.RawContent
   -> JWT
   -> UTCTime
@@ -74,8 +72,8 @@ pureChecks raw jwt = do
   _ <- checkVersion  jwt
   checkSignature raw jwt
 
-checkReceiver :: ServerDID m => JWT -> m (Either JWT.Error JWT)
-checkReceiver jwt@JWT {claims = JWT.Claims {receiver}} = do
+checkReceiver :: Monad m => DID -> JWT -> m (Either JWT.Error JWT)
+checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} = do
   serverDID <- getServerDID
   return if receiver == serverDID
     then Right jwt
@@ -88,9 +86,7 @@ checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
     else Left $ JWT.HeaderError UnsupportedVersion
 
 checkProof ::
-  ( ServerDID      m
-  , Proof.Resolver m
-  )
+  Proof.Resolver m
   => UTCTime
   -> JWT
   -> m (Either JWT.Error JWT)
