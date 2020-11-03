@@ -1,6 +1,7 @@
 module Fission.Security.EncryptedWith.Types (EncryptedWith (..)) where
 
 import           Crypto.Cipher.AES (AES256)
+import qualified Crypto.PubKey.RSA as RSA
 
 import           Fission.Prelude
 
@@ -17,4 +18,8 @@ instance ToJSON (EncryptedWith cipher) where
 
 instance FromJSON (EncryptedWith AES256) where
   parseJSON = withText "EncryptedWith AES256" \txt ->
+    return . EncryptedPayload $ encodeUtf8 txt
+
+instance FromJSON (EncryptedWith RSA.PrivateKey) where
+  parseJSON = withText "EncryptedWith RSA.PrivateKey" \txt ->
     return . EncryptedPayload $ encodeUtf8 txt

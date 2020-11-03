@@ -42,12 +42,91 @@ import           Fission.CLI.Types
 
 import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
+
+
+
+
+import qualified RIO.ByteString                                 as BS
+
+import           Crypto.Error
+import qualified Crypto.PubKey.Ed25519                          as Ed25519
+import qualified Crypto.PubKey.RSA.Types                        as RSA
+
+import           Network.DNS                                    as DNS
+import           Network.IPFS
+import qualified Network.IPFS.Process.Error                     as IPFS.Process
+import           Servant.Client
+
+import           Fission.Error
+import           Fission.Error.NotFound.Types
+
+import           Fission.Security.EncryptedWith.Types
+
+import           Fission.Authorization.ServerDID
+
+import           Fission.User.DID.Types
+import           Fission.User.Username.Types
+
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error      as UCAN.Resolver
+import           Fission.Web.Client.Class
+import           Fission.Web.Client.HTTP.Class
+
+import           Fission.Web.Auth.Token
+import qualified Fission.Web.Auth.Token.JWT.Error               as JWT
+import           Fission.Web.Client                             as Client
+
+import           Fission.CLI.Environment                        as Env
+import qualified Fission.CLI.Environment.OS                     as OS
+
+import qualified Fission.CLI.Display.Success                    as Display
+import qualified Fission.CLI.IPFS.Executable                    as Executable
+
+import           Fission.CLI.Key.Store                          as Key
+
+import qualified Fission.CLI.Handler.User.Link.Request          as Link
+import qualified Fission.CLI.Handler.User.Register              as User
+
+import qualified Fission.IPFS.PubSub.Subscription               as Sub
+import qualified Fission.IPFS.PubSub.Subscription               as IPFS.PubSub.Subscription
+
+import qualified Fission.IPFS.PubSub.Session.Key.Types          as Session
+import qualified Fission.IPFS.PubSub.Session.Payload            as Session
+import           Fission.Web.Auth.Token.JWT                     as JWT
+import qualified Fission.Web.Auth.Token.JWT                     as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Error               as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Class      as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error      as UCAN.Resolver
+import qualified Fission.Web.Auth.Token.JWT.Validation          as UCAN
+import qualified Fission.Web.Auth.Token.UCAN                    as UCAN
+
+
 type Errs
    = OS.Unsupported
   ': AlreadyExists Ed25519.SecretKey
   ': ClientError
   ': IPFS.Error
+  -- Linking
+  ': OS.Unsupported
+  ': ClientError
+  ': IPFS.Error
+  ': Key.Error
+  ': DNSError
+  ': NotFound DID
+  ': AlreadyExists Ed25519.SecretKey
+  ': NotFound DID
+  ': DNS.DNSError
+  ': CryptoError
+  ': IPFS.Process.Error
+  ': String
+  ': RSA.Error
+  ': JWT.Error
+  ': UCAN.Resolver.Error
+  ': Key.Error
+  -- App
   ': App.Errs
+
+
+
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
@@ -109,6 +188,19 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
           case subCmd of
             Register _ -> void Handler.register
             WhoAmI   _ -> Handler.whoami
+
+  -- FIXME remove when you have better erroro rtyes
+instance Display String where
+  textDisplay = Text.pack
+
+instance Display CryptoError where
+  textDisplay = Text.pack . show
+
+instance Display RSA.Error where
+  textDisplay = Text.pack . show
+
+instance Exception String
+instance Exception RSA.Error
 
 finalizeDID ::
   MonadIO m
