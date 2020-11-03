@@ -1,126 +1,78 @@
 module Fission.CLI.Linking where
 
-{-
-1. Everyone subscribes to channel
-2. Requestor broadcasts public key
-3. Open a secure channel
-4. Provider authentication over UCAN
-5. Confirm requestor PIN
-6. Credential delegation
--}
-
-import qualified Data.ByteArray                            as ByteArray
-
 import qualified System.Console.ANSI                       as ANSI
 
+import           Crypto.Cipher.AES                         (AES256)
 import           Crypto.Cipher.Types
+import           Crypto.Error                              (CryptoError (..),
+                                                            CryptoFailable (..))
 import           Crypto.Hash.Algorithms
-import qualified Crypto.PubKey.RSA                         as Crypto.RSA
-import           Crypto.Random.Types
-
-import qualified RIO.ByteString                            as BS
-
-import           Fission.User.DID.Types                    as DID
-
-import qualified Data.ByteString.Lazy.Char8                as BS8
-import qualified RIO.ByteString.Lazy                       as Lazy
-import qualified RIO.Text                                  as Text
-
-import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import qualified Crypto.PubKey.RSA.OAEP                    as RSA.OAEP
 import qualified Crypto.PubKey.RSA.Types                   as RSA
+import           Crypto.Random.Types                       as CRT
+
+import           Data.ByteArray                            as ByteArray
+
+import qualified RIO.ByteString                            as BS
+import qualified RIO.ByteString.Lazy                       as Lazy
+import qualified RIO.Text                                  as Text
 
 import           Network.IPFS.Local.Class                  as IPFS
 import qualified Network.IPFS.Process.Error                as IPFS.Process
 
 import           Fission.Prelude
 
+import qualified Fission.Internal.UTF8                     as UTF8
+
+import           Fission.IPFS.PubSub.Topic
+import           Fission.User.DID.Types                    as DID
+
+import           Fission.Key.Asymmetric.Public.Types
+import qualified Fission.Key.Symmetric.Types               as Symmetric
+
 import qualified Fission.IPFS.PubSub.Subscription          as IPFS.PubSub.Subscription
 import qualified Fission.IPFS.PubSub.Subscription          as Sub
 import qualified Fission.IPFS.PubSub.Topic                 as IPFS.PubSub
 
-import           Fission.CLI.Key.Store                     as KeyStore
-
-import qualified Fission.Internal.UTF8                     as UTF8
-import           Fission.Web.Auth.Token.JWT                as JWT
-
-import qualified Fission.CLI.Display.Text                  as Display
-import           Fission.Key.Asymmetric.Public.Types
-
-import           Fission.IPFS.PubSub.Topic
-
-
-
-import qualified Fission.CLI.Prompt                        as CLI.Prompt
-
-
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
-
-import qualified Fission.Web.Auth.Token.Bearer.Types       as Bearer
-
-import qualified Fission.Web.Auth.Token.JWT                as UCAN
-
-
-
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
-
+import           Fission.Authorization.Potency.Types
 import           Fission.Authorization.ServerDID.Class
-
-import           Crypto.Cipher.AES                         (AES256)
-import           Crypto.Cipher.Types                       (AEAD (..),
-                                                            AEADMode (..),
-                                                            BlockCipher (..),
-                                                            Cipher (..), IV,
-                                                            KeySizeSpecifier (..),
-                                                            makeIV, nullIV)
-import           Crypto.Error                              (CryptoError (..),
-                                                            CryptoFailable (..))
-
-import qualified Crypto.Random.Types                       as CRT
-
-
-import           Data.ByteArray                            (ByteArray)
-import           Data.ByteString                           (ByteString)
-
-import           Fission.CLI.Environment.Class
-
+import           Fission.Web.Auth.Token.JWT                as JWT
+import qualified Fission.Web.Auth.Token.JWT                as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Error          as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
 import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
-
 import qualified Fission.Web.Auth.Token.UCAN               as UCAN
 
-import qualified Fission.Web.Auth.Token.JWT.Error          as JWT
+import qualified Fission.CLI.Display.Text                  as Display
+import           Fission.CLI.Environment.Class
+import           Fission.CLI.Key.Store                     as KeyStore
+import qualified Fission.CLI.Prompt                        as CLI.Prompt
 
-import           Fission.Authorization.Potency.Types
+import qualified Fission.CLI.PubSub.Session.Key.Types      as Session
+
+import qualified Fission.CLI.Linking.Status.Types          as Linking
 
 listenToLinkRequests ::
-  ( MonadLogger m
-  , MonadKeyStore m ExchangeKey
-  , MonadLocalIPFS m
-  , MonadIO m
-  , MonadTime m
-  , ServerDID m
-  , JWT.Resolver m
+  ( MonadLogger      m
+  , MonadKeyStore    m ExchangeKey
+  , MonadLocalIPFS   m
+  , MonadIO          m
   , MonadEnvironment m
-  , MonadRandom m
-  , MonadCleanup m
+  , MonadCleanup     m
   , m `Sub.SubscribesTo` DID
-  , m `Sub.SubscribesTo` SessionPayload UCAN.JWT
-  , m `Sub.SubscribesTo` SessionPayload PIN
-  , m `Sub.SubscribesTo` EncryptedWith AES256
-  , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
+  , m `Sub.SubscribesTo` SessionPayload Challenge
   , m `Raises` CryptoError
   , m `Raises` IPFS.Process.Error
   , m `Raises` String
   , m `Raises` RSA.Error
-  , m `Raises` JWT.Error
-  , m `Raises` UCAN.Resolver.Error
   , m `Raises` Error
   )
   => DID
   -> m ()
 listenToLinkRequests targetDID = do
   -- FIXME If root device, plz check first
-  machineSK <- KeyStore.fetch (Proxy @SigningKey)
+  machineSK <- KeyStore.fetch    (Proxy @SigningKey)
   machinePK <- KeyStore.toPublic (Proxy @SigningKey) machineSK
 
   let
@@ -135,60 +87,50 @@ listenToLinkRequests targetDID = do
     topic = IPFS.PubSub.Topic ("deviceLinking@" <> textDisplay targetDID)
 
   reattempt 100 do
-    throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
-    throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
+    -- throwawaySK    <- KeyStore.generate (Proxy @ExchangeKey)
+    -- throwawayPK    <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
 
-    DID Key pk <- waitToReceive topic
-
+    DID Key pk     <- waitToReceive topic
     reqExchangeKey <- case pk of
-                        RSAPublicKey pk' -> return pk'
-                        _                -> raise "Not an RSA key" -- FIXME
+                          RSAPublicKey pk' -> return pk'
+                          _                -> raise "Not an RSA key" -- FIXME
 
-    sessionKey       <- SessionKey <$> genAES256
+    sessionKey       <- Session.Key <$> genAES256
     secretSessionKey <- ensureM $ RSA.OAEP.encrypt oaepParams reqExchangeKey (Lazy.toStrict $ encode sessionKey)
 
     pubSubSendSecure topic sessionKey $ decodeUtf8Lenient secretSessionKey
 
-    reqDID@(DID Key requestorPK) <- waitToReceive topic
+    requestorDID :: DID <- waitToReceive topic
 
     pubSubSendSecure topic sessionKey $ (undefined :: UCAN.JWT) -- FIXME UCAN minus potency
 
     pin <- waitToReceiveSecure sessionKey topic
-    confirmPIN pin >>= \case
+    confirmChallenge pin >>= \case
       False ->
-        pubSubSendSecure topic sessionKey LinkDenied
+        pubSubSendSecure topic sessionKey Linking.Denied
 
       True -> do
-        confirmUCANDelegation reqDID
+        confirmUCANDelegation requestorDID
 
-        delegatedUCAN :: UCAN.JWT <- delegateAllTo reqDID
+        delegatedUCAN :: UCAN.JWT <- delegateAllTo requestorDID
         pubSubSendSecure topic sessionKey delegatedUCAN
 
-confirmPIN (PIN pinTxt) =
+confirmChallenge ::
+  ( MonadCleanup m
+  , MonadLogger m
+  , MonadIO m
+  )
+  => Challenge
+  -> m Bool
+confirmChallenge (Challenge pinTxt) =
   Display.colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
     UTF8.putText "⚠️⚠️ SECURITY CHECK"
 
     CLI.Prompt.reaskYN $ Text.intercalate " "
-      [ "🔢 Confirm that the following PIN code is from your other device:"
+      [ "🔢 Confirm that the following Challenge code is from your other device:"
       , pinTxt
       , "[Y/n]"
       ]
-
-data LinkStatus
-  = LinkDenied
-  deriving (Eq, Show)
-
-instance ToJSON LinkStatus where
-  toJSON LinkDenied =
-    object ["linkStatus" .= ("DENIED" :: Text)]
-
-instance FromJSON LinkStatus where
-  parseJSON =
-    withObject "LinkStatus" \obj -> do
-      status :: Text <- obj .: "linkStatus"
-      case status of
-        "DENIED" -> return LinkDenied
-        _        -> fail "Invalid link status"
 
 -- {linkStatus: DENIED}
 confirmUCANDelegation = undefined
@@ -199,6 +141,7 @@ delegateAllTo did = do
 listenForRequestorExchangeDID = do
   undefined
 
+waitToReceive :: (MonadIO m, m `Sub.SubscribesTo` a) => Topic -> m a
 waitToReceive topic =
   IPFS.PubSub.Subscription.withQueue topic \tq -> do
     Sub.Message {payload} <- liftIO . atomically $ readTQueue tq
@@ -207,19 +150,23 @@ waitToReceive topic =
 waitToReceiveSecure ::
   ( MonadIO     m
   , MonadLogger m
-  , MonadRandom m
-  , MonadRaise  m
+  , MonadRescue m
   , m `Sub.SubscribesTo` SessionPayload a
   , m `Raises` String
   , m `Raises` CryptoError
   , FromJSON a
   )
-  => SessionKey
+  => Session.Key
   -> Topic
   -> m a
 waitToReceiveSecure sessionKey topic =
-  IPFS.PubSub.Subscription.withQueue topic \tq -> do
-    readAES256 sessionKey tq
+  IPFS.PubSub.Subscription.withQueue topic \tq -> go tq
+  where
+    -- go :: TQueue (Sub.Message (SessionPayload (Either err a))) -> m a
+    go tq =
+      attempt (readAES256 sessionKey tq) >>= \case
+        Left  _   -> go tq
+        Right val -> return val
 
 fetchUCANForDID = undefined
 
@@ -232,9 +179,7 @@ requestFrom ::
   , MonadTime   m
   , ServerDID   m -- FIXME not sevrer, userDID
   , JWT.Resolver m
-  , MonadRandom m
   , MonadRescue m
-  , m `Sub.SubscribesTo` EncryptedWith AES256
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
   , m `Sub.SubscribesTo` SessionPayload JWT.RawContent
   , m `Raises` CryptoError
@@ -254,9 +199,9 @@ requestFrom targetDID myDID =
 
     let throwawayDID = DID Key (RSAPublicKey throwawayPK)
 
-    pubSubSendClear topic throwawayPK -- STEP 2, yes out of order is actually correct
+    pubSubSendClear topic throwawayDID -- STEP 2, yes out of order is actually correct
     sessionKey <- getAuthenticatedSessionKey targetDID topic throwawaySK -- STEP 1-4
-    secureSendPIN topic sessionKey -- STEP 5
+    secureSendChallenge topic sessionKey -- STEP 5
 
     ucan <- listenForFinalUCAN myDID topic sessionKey -- STEP 6
     storeUCAN ucan
@@ -282,7 +227,7 @@ listenForFinalUCAN ::
   )
   => DID
   -> Topic
-  -> SessionKey
+  -> Session.Key
   -> m UCAN.JWT -- FIXME Or the raw bytestirng version? At minimum want to validate internally
 listenForFinalUCAN targetDID topic sessionKey =
   IPFS.PubSub.Subscription.withQueue topic \tq -> do
@@ -318,7 +263,6 @@ getAuthenticatedSessionKey ::
   , JWT.Resolver m
   , MonadRaise  m
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey -- NOTE SubscribesToChannel & SubscribesToSecure
-  , m `Sub.SubscribesTo` EncryptedWith AES256
   , m `Sub.SubscribesTo` SessionPayload JWT.RawContent
   , m `Raises` RSA.Error
   , m `Raises` String
@@ -329,7 +273,7 @@ getAuthenticatedSessionKey ::
   => DID
   -> Topic
   -> RSA.PrivateKey
-  -> m SessionKey
+  -> m Session.Key
 getAuthenticatedSessionKey targetDID topic sk = do
   -- STEP 3
   sessionKey <- IPFS.PubSub.Subscription.withQueue topic $ listenForSessionKey sk
@@ -351,28 +295,26 @@ listenForSessionKey ::
   )
   => RSA.PrivateKey
   -> TQueue (Sub.Message (EncryptedWith RSA.PrivateKey))
-  -> m SessionKey
+  -> m Session.Key
 listenForSessionKey throwawaySK tq = readRSA throwawaySK tq
 
 listenForValidProof ::
   ( MonadIO     m
   , MonadLogger m
-  , MonadRandom m
   , MonadTime   m
   , JWT.Resolver m
   , ServerDID m -- FIXME not targeting the *server*, so plz fix in check function
   , MonadRaise  m
   , m `Raises` JWT.Error
-  , m `Raises` RSA.Error
   , m `Raises` String -- FIXME better error
   , m `Raises` CryptoError
   , m `Raises` UCAN.Resolver.Error
   )
   => DID
-  -> SessionKey
+  -> Session.Key
   -> TQueue (Sub.Message (SessionPayload JWT.RawContent))
   -> m UCAN.JWT
-listenForValidProof targetDID sessionKey@(SessionKey (SymmetricKey rawKey)) tq = do
+listenForValidProof targetDID sessionKey@(Session.Key (Symmetric.Key rawKey)) tq = do
   candidateRaw@(UCAN.RawContent txt) <- readAES256 sessionKey tq -- FIXME rename to popSecureMsg
   candidateUCAN <- ensure . eitherDecodeStrict $ encodeUtf8 txt
 
@@ -399,30 +341,22 @@ listenForValidProof targetDID sessionKey@(SessionKey (SymmetricKey rawKey)) tq =
                 then return candidateUCAN
                 else raise "InvalidSender" -- FIXME better error than string
 
-newtype PIN = PIN Text
+newtype Challenge = Challenge Text
   deriving newtype (Show, Display, Eq, ToJSON, FromJSON)
 
-genPIN ::
-  ( MonadIO        m
-  , MonadLocalIPFS m
-  , MonadLogger    m
-  , MonadRandom    m
-  , MonadRaise     m
-  , m `Raises` IPFS.Process.Error
-  , m `Raises` CryptoError
-  )
-  => m PIN
-genPIN = do
-  randomBS <- liftIO $ getRandomBytes 6
+genChallenge :: (MonadIO m, MonadLogger m) => m Challenge
+genChallenge = do
+  randomBS <- liftIO $ getRandomBytes 6 -- NOTE we want actual IO for system enrtopy
 
   let
     txt :: Text
     txt = Text.takeEnd 6 . Text.pack . mconcat $ show <$> BS.unpack randomBS
 
-  return $ PIN txt
+  logDebug $ "Generated random Challenge: " <> txt
+  return $ Challenge txt
 
 -- STEP 5
-secureSendPIN ::
+secureSendChallenge ::
   ( MonadIO        m
   , MonadLocalIPFS m
   , MonadLogger    m
@@ -432,10 +366,10 @@ secureSendPIN ::
   , m `Raises` CryptoError
   )
   => Topic
-  -> SessionKey
+  -> Session.Key
   -> m ()
-secureSendPIN topic sessionKey =
-  pubSubSendSecure topic sessionKey =<< genPIN
+secureSendChallenge topic sessionKey =
+  pubSubSendSecure topic sessionKey =<< genChallenge
 
 pubSubSendClear ::
   ( MonadLocalIPFS m
@@ -462,10 +396,10 @@ pubSubSendSecure ::
   , ToJSON msg
   )
   => Topic
-  -> SessionKey
+  -> Session.Key
   -> msg
   -> m ()
-pubSubSendSecure topic (SessionKey aesKey) msg = do
+pubSubSendSecure topic (Session.Key aesKey) msg = do
   encrypted <- toSecureMessage aesKey msg
   pubSubSendClear topic encrypted
 
@@ -475,7 +409,7 @@ toSecureMessage ::
   , m `Raises` CryptoError
   , ToJSON msg
   )
-  => SymmetricKey AES256
+  => Symmetric.Key AES256
   -> msg
   -> m (SessionPayload msg)
 toSecureMessage aesKey msg = do
@@ -538,30 +472,7 @@ instance FromJSON (EncryptedWith AES256) where
 
 ---
 
-newtype SymmetricKey cipher
-  = SymmetricKey { rawKey :: ByteString }
-  deriving newtype Eq
-
-instance ToJSON (SymmetricKey AES256) where
-  toJSON (SymmetricKey bs) = String $ decodeUtf8Lenient bs
-
-instance FromJSON (SymmetricKey AES256) where
-  parseJSON = withText "AES256 SymmetricKey" \txt ->
-    return . SymmetricKey $ encodeUtf8 txt
-
 ---
-
-newtype SessionKey = SessionKey
-  { sessionKey :: SymmetricKey AES256 }
-  deriving newtype Eq
-
-instance ToJSON SessionKey where
-  toJSON SessionKey {..} = object ["sessionKey" .= sessionKey]
-
-instance FromJSON SessionKey where
-  parseJSON = withObject "SessionKey" \obj -> do
-    sessionKey <- obj .: "sessionKey"
-    return SessionKey {..}
 
 readRSA ::
   ( MonadIO     m
@@ -597,22 +508,27 @@ readRSA sk tq = do
         Right payload ->
           return payload
 
+oaepParams ::
+  ( ByteArray       output
+  , ByteArrayAccess seed
+  )
+  => RSA.OAEP.OAEPParams SHA256 seed output
 oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 
 readAES256 ::
   ( MonadIO     m
   , MonadLogger m
-  , MonadRandom m
   , MonadRaise  m
   , m `Raises` String
   , m `Raises` CryptoError
   , FromJSON msg
   )
-  => SessionKey
+  => Session.Key
   -> TQueue (Sub.Message (SessionPayload msg))
   -> m msg
-readAES256 sessionKey@(SessionKey aes256) tq = do
+readAES256 (Session.Key aes256) tq = do
   -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?
+  -- FIXME or at caller?
   Sub.Message
     { payload = SessionPayload
                   { secretMessage = secretMsg@(EncryptedPayload ciphertext)
@@ -638,11 +554,11 @@ readAES256 sessionKey@(SessionKey aes256) tq = do
 
 encrypt ::
   ToJSON a
-  => SymmetricKey AES256
+  => Symmetric.Key AES256
   -> IV AES256
   -> a
   -> Either CryptoError (EncryptedWith AES256)
-encrypt (SymmetricKey rawKey) iv plaintext =
+encrypt (Symmetric.Key rawKey) iv plaintext =
   case cipherInit rawKey of
     CryptoFailed err ->
       Left err
@@ -659,11 +575,11 @@ encrypt (SymmetricKey rawKey) iv plaintext =
             Right $ EncryptedPayload ciphertext
 
 decrypt ::
-     SymmetricKey AES256
+     Symmetric.Key AES256
   -> IV AES256
   -> EncryptedWith AES256
   -> Either CryptoError ByteString
-decrypt (SymmetricKey aesKey) iv (EncryptedPayload ciphertext) =
+decrypt (Symmetric.Key aesKey) iv (EncryptedPayload ciphertext) =
   case cipherInit aesKey of
     CryptoFailed err ->
       Left err
@@ -680,8 +596,8 @@ decrypt (SymmetricKey aesKey) iv (EncryptedPayload ciphertext) =
             Right plaintext
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
-genAES256 :: MonadRandom m => m (SymmetricKey AES256)
-genAES256 = SymmetricKey <$> getRandomBytes (blockSize (undefined :: AES256)) -- FIXME or something?
+genAES256 :: MonadRandom m => m (Symmetric.Key AES256)
+genAES256 = Symmetric.Key <$> getRandomBytes (blockSize (undefined :: AES256)) -- FIXME or something?
 
 -- | Generate a random initialization vector for a given block cipher
 genIV :: MonadRandom m => m (Maybe (IV AES256))
