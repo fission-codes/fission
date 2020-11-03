@@ -13,12 +13,13 @@ import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25
 import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
 
 import           Fission.Prelude
+
 import           Fission.SemVer.Types
 
 import           Fission.Key                                      as Key
-import qualified Fission.User                                     as User
 
-import           Fission.Authorization.ServerDID.Class
+import qualified Fission.User                                     as User
+import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 
@@ -49,7 +50,7 @@ check receiverDID rawContent jwt = do
       return $ Left err
 
     Right _  ->
-      checkReceiver receiverDID jwt >>= \case
+      case checkReceiver receiverDID jwt of
         Left  err -> return $ Left err
         Right _   -> check' rawContent jwt now
 
@@ -72,10 +73,9 @@ pureChecks raw jwt = do
   _ <- checkVersion  jwt
   checkSignature raw jwt
 
-checkReceiver :: Monad m => DID -> JWT -> m (Either JWT.Error JWT)
-checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} = do
-  serverDID <- getServerDID
-  return if receiver == serverDID
+checkReceiver :: DID -> JWT -> Either JWT.Error JWT
+checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} =
+  if receiver == recipientDID
     then Right jwt
     else Left $ ClaimsError IncorrectReceiver
 

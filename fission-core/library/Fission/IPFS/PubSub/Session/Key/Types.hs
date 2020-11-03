@@ -1,4 +1,4 @@
-module Fission.CLI.PubSub.Session.Key.Types (Key (..)) where
+module Fission.IPFS.PubSub.Session.Key.Types (Key (..)) where
 
 import           Crypto.Cipher.AES           (AES256)
 

@@ -37,7 +37,8 @@ handler ::
   => Bearer.Token
   -> m Authorization
 handler (Bearer.Token jwt rawContent) = do
-  void . Web.Error.ensureM $ JWT.check rawContent jwt
+  serverDID <- getServerDID
+  void . Web.Error.ensureM $ JWT.check serverDID rawContent jwt
   toAuthorization jwt
 
 toAuthorization ::
