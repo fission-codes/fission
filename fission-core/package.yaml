@@ -106,6 +106,7 @@ dependencies:
   - bcrypt
   - cryptonite
   - cryptostore
+  - HsOpenSSL
   - pem
   - RSA
 

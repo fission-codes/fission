@@ -1,6 +1,4 @@
--- |
-
-module Fission.CLI.Linking.PIN.Types where
+module Fission.CLI.Linking.PIN.Types (PIN (..)) where
 
 import           Fission.Prelude
 

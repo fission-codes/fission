@@ -43,17 +43,20 @@ import           Fission.IPFS.PubSub.Topic
 import           Fission.CLI.Key.Store                     as KeyStore
 import qualified Fission.CLI.Linking.PIN                   as PIN
 
+import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
+
 import qualified Fission.IPFS.PubSub.Publish               as Publish
 import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
 
 requestFrom ::
-  ( MonadLogger    m
-  , MonadKeyStore  m ExchangeKey
-  , MonadLocalIPFS m
-  , MonadIO        m
-  , MonadTime      m
-  , JWT.Resolver   m
-  , MonadRescue    m
+  ( MonadLogger     m
+  , MonadIPFSDaemon m
+  , MonadKeyStore   m ExchangeKey
+  , MonadLocalIPFS  m
+  , MonadIO         m
+  , MonadTime       m
+  , JWT.Resolver    m
+  , MonadRescue     m
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
   , m `Sub.SubscribesTo` Session.Payload JWT.RawContent
   , m `Raises` CryptoError
@@ -68,6 +71,8 @@ requestFrom ::
   -> m ()
 requestFrom targetDID myDID =
   reattempt 10 do
+    -- IPFS.Daemon.runDaemon
+
     throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
     throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
 
@@ -149,7 +154,7 @@ getAuthenticatedSessionKey ::
   , MonadRandom m
   , MonadTime   m
   , JWT.Resolver m
-  , MonadRaise  m
+  , MonadRescue  m
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey -- NOTE SubscribesToChannel & SubscribesToSecure
   , m `Sub.SubscribesTo` Session.Payload JWT.RawContent
   , m `Raises` RSA.Error
@@ -163,14 +168,21 @@ getAuthenticatedSessionKey ::
   -> RSA.PrivateKey
   -> m Session.Key
 getAuthenticatedSessionKey targetDID topic sk = do
-  -- STEP 3
-  sessionKey <- IPFS.PubSub.Subscription.withQueue topic $ listenForSessionKey sk
+  logDebug @Text "Listening for authenticated session key"
 
-  -- STEP 4
-  IPFS.PubSub.Subscription.withQueue topic $ listenForValidProof targetDID sessionKey
+  attempt go >>= \case
+    Left  _   -> go
+    Right key -> return key
+  where
+    go = do
+      -- STEP 3
+      sessionKey <- IPFS.PubSub.Subscription.withQueue topic $ listenForSessionKey sk
 
-  -- Bootstrapped & validated session key
-  return sessionKey
+      -- STEP 4
+      IPFS.PubSub.Subscription.withQueue topic $ listenForValidProof targetDID sessionKey
+
+      -- Bootstrapped & validated session key
+      return sessionKey
 
 -- STEP 3
 listenForSessionKey ::
@@ -202,6 +214,8 @@ listenForValidProof ::
   -> TQueue (Sub.Message (Session.Payload JWT.RawContent))
   -> m UCAN.JWT
 listenForValidProof targetDID sessionKey@(Session.Key (Symmetric.Key rawKey)) tq = do
+  logDebug @Text "Lisening for valid UCAN proof"
+
   candidateRaw@(UCAN.RawContent txt) <- Secure.popMessage sessionKey tq -- FIXME rename to popSecureMsg
   candidateUCAN <- ensure . eitherDecodeStrict $ encodeUtf8 txt
 

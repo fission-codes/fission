@@ -11,6 +11,7 @@ import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519                        as Ed25519
 import qualified Crypto.PubKey.RSA                            as RSA
 import           Crypto.Random.Types
+import qualified OpenSSL.RSA                                  as OpenSSL
 
 import           Fission.Prelude
 
@@ -64,7 +65,8 @@ instance
         CryptoFailed err -> Left . Key.ParseError . Text.pack $ show err
 
 instance
-  ( MonadLogger      m
+  ( MonadIO          m
+  , MonadLogger      m
   , MonadRandom      m
   , MonadEnvironment m
   )
@@ -76,7 +78,7 @@ instance
 
     generate _pxy = do
       logDebug @Text "Generating exchange key"
-      snd <$> RSA.generate 2048 65537 -- FIXME switch to OpenSSL.RSA for MUCH faster generation
+      genRSA2048
 
     getPath _pxy = do
       path <- globalKeyDir
@@ -87,3 +89,35 @@ instance
       return case Binary.decodeOrFail (Lazy.pack $ ByteArray.unpack scrubbed) of
         Left  (_, _, msg) -> Left . Key.ParseError $ Text.pack msg
         Right (_, _, key) -> Right key
+
+genRSA2048 :: MonadIO m => m RSA.PrivateKey
+genRSA2048 = do
+  pair <- liftIO $ OpenSSL.generateRSAKey' 2048 65537
+
+  let
+    public_size = OpenSSL.rsaSize pair
+    public_n    = OpenSSL.rsaN pair
+    public_e    = OpenSSL.rsaE pair
+
+    private_pub = RSA.PublicKey {public_size, public_n, public_e}
+
+    private_d = OpenSSL.rsaD pair
+    private_p = OpenSSL.rsaP pair
+    private_q = OpenSSL.rsaQ pair
+
+  case OpenSSL.rsaDMP1 pair of
+    Nothing ->
+      genRSA2048
+
+    Just private_dP ->
+      case OpenSSL.rsaDMQ1 pair of
+        Nothing ->
+          genRSA2048
+
+        Just private_dQ ->
+          case OpenSSL.rsaIQMP pair of
+            Nothing ->
+              genRSA2048
+
+            Just private_qinv ->
+              return RSA.PrivateKey {..}

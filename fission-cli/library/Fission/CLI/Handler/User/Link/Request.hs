@@ -6,6 +6,8 @@ import qualified Data.ByteString.Char8                     as BS8
 import qualified Network.DNS                               as DNS
 import qualified Network.IPFS.Process.Error                as IPFS.Process
 
+import qualified RIO.NonEmpty                              as NonEmpty
+
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
@@ -15,6 +17,10 @@ import           Fission.Key.Error                         as Key
 
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
+
+import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
+
+import qualified Fission.DNS                               as DNS
 
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 
@@ -63,15 +69,16 @@ import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
 import           Fission.CLI.Environment.Class
 
 requestRoot ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadKeyStore  m ExchangeKey
-  , MonadLocalIPFS m
-  , MonadIO        m
-  , MonadTime      m
-  , JWT.Resolver   m
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadKeyStore    m ExchangeKey
+  , MonadLocalIPFS   m
+  , MonadIPFSDaemon  m
+  , MonadIO          m
+  , MonadTime        m
+  , JWT.Resolver     m
   , MonadEnvironment m
-  , MonadRescue    m
+  , MonadRescue      m
   , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
   , m `Sub.SubscribesTo` Session.Payload JWT.RawContent
   , m `Raises` NotFound DID
@@ -87,7 +94,8 @@ requestRoot ::
   => Username
   -> m ()
 requestRoot username = do
-  targetDID <- getDIDByUsername username
+  dnsList   <- ensureM $ getDIDByUsername username
+  targetDID <- ensureM $ decodeDID dnsList
 
   sk        <- Key.Store.fetch    (Proxy @SigningKey)
   pk        <- Key.Store.toPublic (Proxy @SigningKey) sk
@@ -97,34 +105,42 @@ requestRoot username = do
 getDIDByUsername ::
   ( MonadIO     m
   , MonadLogger m
-  , MonadRaise  m
-  , m `Raises` NotFound DID
-  , m `Raises` DNS.DNSError
   )
   => Username
-  -> m DID
+  -> m (Either DNS.DNSError [ByteString])
 getDIDByUsername (Username usernameTxt) = do
+  logDebug $ "Fetching DID for " <> usernameTxt
+
   rs <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
-
-  let url = "_did." <> encodeUtf8 usernameTxt <> ".fission.name"
-
-  logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url
 
   liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
     Left errs -> do
       CLI.Error.put errs ("Unable to find DID for: " <> usernameTxt)
-      raise errs
+      return $ Left errs
 
-    Right [] -> do
-      CLI.Error.put (NotFound @DID) $ "No TXT record at " <> decodeUtf8Lenient url
-      raise $ NotFound @DID
+    Right listBS ->
+      return $ Right listBS
+  where
+    url = "_did." <> encodeUtf8 usernameTxt <> ".fissionuser.net" -- FIXME environment
 
-    Right (didTxt : _) ->
-      case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
+decodeDID ::
+  ( MonadIO     m
+  , MonadLogger m
+  )
+  => [ByteString]
+  -> m (Either (NotFound DID) DID)
+decodeDID listBS = do
+  case fmap decodeUtf8Lenient <$> NonEmpty.nonEmpty listBS of
+    Nothing -> do
+      CLI.Error.put (NotFound @DID) $ "No DID field found"
+      return . Left $ NotFound @DID
+
+    Just nonEmptyTxt ->
+      case eitherDecode . encode $ DNS.mergeSegments nonEmptyTxt of
         Left errs -> do
           CLI.Error.put errs "Unable to find Fission's ID online"
-          raise $ NotFound @DID
+          return . Left $ NotFound @DID
 
         Right userDID -> do
           logDebug $ "DID retrieved " <> textDisplay userDID
-          return userDID
+          return $ Right userDID

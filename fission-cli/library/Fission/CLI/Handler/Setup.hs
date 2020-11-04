@@ -58,12 +58,15 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
 import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
 import qualified Fission.Web.Auth.Token.UCAN               as UCAN
 
+import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
+
 setup ::
   ( MonadIO           m
   , MonadEnvironment  m
   , MonadWebClient    m
   , MonadManagedHTTP  m
   , MonadLocalIPFS    m
+  , MonadIPFSDaemon   m
   , MonadTime         m
   , MonadLogger       m
   , MonadKeyStore     m SigningKey
@@ -104,20 +107,22 @@ setup maybeOS fissionURL = do
   Key.create $ Proxy @SigningKey
   Key.create $ Proxy @ExchangeKey
 
-  UTF8.putText "👤 If you have an existing account, enter the username. Press enter to create a new one."
+  UTF8.putText "Installing dependencies..."
+  Executable.place maybeOS
+
+  UTF8.putText "👤 If you have an existing account, enter the username. [Enter for new account]: "
   username <- BS.getLine >>= \case
-                "" ->
+                "" -> do
+                  logDebug @Text "Setting up new account"
                   User.register
 
                 uNameBS -> do
                   let uName = Username $ decodeUtf8Lenient uNameBS
+                  logDebug $ "Atempting link to: " <> textDisplay uName
                   Link.requestRoot uName
                   return uName
 
   UTF8.putText "Setting default config..."
   Env.init username fissionURL
-
-  UTF8.putText "Installing dependencies..."
-  Executable.place maybeOS
 
   Display.putOk "Done"

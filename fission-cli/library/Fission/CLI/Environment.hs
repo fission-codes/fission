@@ -52,6 +52,7 @@ init ::
   , MonadWebClient   m
   , MonadKeyStore    m SigningKey
 
+  , MonadRescue   m
   , MonadCleanup m
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError

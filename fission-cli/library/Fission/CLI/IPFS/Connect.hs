@@ -31,6 +31,7 @@ swarmConnectWithRetry ::
   , MonadLocalIPFS m
   , MonadWebClient m
 
+  , MonadRescue  m
   , MonadCleanup m
   , m `Raises` IPFS.UnableToConnect
   , m `Raises` ClientError

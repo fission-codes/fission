@@ -26,6 +26,7 @@ import qualified Network.DNS                               as DNS
 import           Network.HTTP.Client                       as HTTP hiding
                                                                     (Proxy)
 import           Network.IPFS                              as IPFS
+import           Network.IPFS.Process                      as IPFS
 import qualified Network.IPFS.Process.Error                as Process
 import           Network.IPFS.Types                        as IPFS
 
@@ -64,6 +65,8 @@ import           Fission.CLI.Environment
 import           Fission.CLI.Environment.Path
 
 import qualified Fission.IPFS.PubSub.Subscription          as IPFS.PubSub
+
+import           Fission.Web.Auth.Token.JWT.Resolver.Error
 
 import           Fission.Internal.Orphanage.BaseUrl        ()
 import           Fission.Internal.Orphanage.ClientError    ()
@@ -320,7 +323,15 @@ instance
         | otherwise ->
             return . Left $ Process.UnknownErr stdErrs
 
-instance JWT.Resolver (FissionCLI errs cfg) where
+instance
+  ( HasLogFunc                cfg
+  , HasField' "ipfsTimeout"   cfg IPFS.Timeout
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , IsMember SomeException errs
+  , Contains errs errs
+  , MonadIPFSIgnore (FissionCLI errs cfg)
+  )
+  => JWT.Resolver (FissionCLI errs cfg) where
   resolve cid@(IPFS.CID hash) =
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
       Left errMsg ->
@@ -343,6 +354,7 @@ instance forall errs cfg a .
   )
   => FissionCLI errs cfg `IPFS.PubSub.SubscribesTo` a where
   subscribeWithQueue topic tq = do
+    logDebug $ "Subscribing to IPFS pubsub topic: "<> textDisplay topic
     void IPFS.Daemon.runDaemon
 
     manager <- asks $ getField @"httpManager"

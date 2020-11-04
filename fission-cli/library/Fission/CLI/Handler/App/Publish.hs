@@ -43,6 +43,7 @@ publish ::
   , MonadLocalIPFS m
   , MonadWebClient m
   , MonadTime      m
+  , MonadRescue    m
   , MonadWebAuth   m Token
   , MonadWebAuth   m Ed25519.SecretKey
   , ServerDID      m

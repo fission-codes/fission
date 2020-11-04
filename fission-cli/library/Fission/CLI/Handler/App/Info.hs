@@ -12,9 +12,10 @@ import qualified Fission.CLI.Display.Success as CLI
 
 import           Fission.CLI.App.Environment as Env
 
-appInfo :: forall m .
+appInfo ::
   ( MonadIO      m
   , MonadLogger  m
+  , MonadRescue  m
   , MonadCleanup m
   , m `Raises` NotFound FilePath
   , m `Raises` YAML.ParseException

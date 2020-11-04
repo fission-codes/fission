@@ -36,6 +36,7 @@ appInit ::
   , MonadWebClient m
   , ServerDID      m
 
+  , MonadRescue    m
   , MonadCleanup   m
   , m `Raises` Servant.ClientError
 

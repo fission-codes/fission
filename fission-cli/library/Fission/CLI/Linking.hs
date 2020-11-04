@@ -152,6 +152,7 @@ waitToReceive topic =
     return payload
 
 waitToReceiveSecure ::
+  forall m a .
   ( MonadIO     m
   , MonadLogger m
   , MonadRescue m
@@ -166,7 +167,7 @@ waitToReceiveSecure ::
 waitToReceiveSecure sessionKey topic =
   IPFS.PubSub.Subscription.withQueue topic \tq -> go tq
   where
-    -- go :: TQueue (Sub.Message (Session.Payload (Either err a))) -> m a
+    go :: TQueue (Sub.Message (Session.Payload a)) -> m a
     go tq =
       attempt (Secure.popMessage sessionKey tq) >>= \case
         Left  _   -> go tq

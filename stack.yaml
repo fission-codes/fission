@@ -26,5 +26,6 @@ nix:
   enable: true
   packages:
   - lzma
+  - openssl
   - postgresql
   - zlib

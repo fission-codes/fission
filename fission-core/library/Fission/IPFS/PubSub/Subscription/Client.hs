@@ -17,8 +17,9 @@ import           Fission.IPFS.PubSub.Topic.Types
 
 runMessageStream ::
   forall m msg .
-  ( MonadIO    m
-  , MonadRaise m
+  ( MonadIO     m
+  , MonadLogger m
+  , MonadRaise  m
   , m `Raises` ClientError
   , m `Raises` SomeException
   , FromJSON msg
@@ -28,7 +29,9 @@ runMessageStream ::
   -> TQueue (Message msg)
   -> (String -> IO ())
   -> m ()
-runMessageStream env topic tq withErr =
+runMessageStream env topic tq withErr = do
+  logDebug @Text "Starting IPFS PubSub stream"
+
   liftIO go >>= \case
     Right ()         -> return ()
     Left (Left err)  -> raise err
