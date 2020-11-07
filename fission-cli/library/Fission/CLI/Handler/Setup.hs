@@ -11,7 +11,10 @@ import           Fission.Prelude
 import qualified Fission.Internal.UTF8             as UTF8
 
 import           Fission.Error.NotFound.Types
+
 import           Fission.User.DID.Types
+import qualified Fission.User.Username.Error       as Username
+
 import           Fission.Web.Client.Class
 import           Fission.Web.Client.HTTP.Class
 
@@ -49,6 +52,7 @@ setup ::
   , m `Raises` DNSError
   , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
+  , m `Raises` Username.Invalid
 
   , IsMember ClientError (Errors m)
   , IsMember Key.Error (Errors m)

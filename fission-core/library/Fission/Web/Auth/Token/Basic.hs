@@ -17,7 +17,9 @@ import           Fission.Authorization
 import           Fission.Models
 
 import qualified Fission.User                                     as User
-import           Fission.User.Username.Types
+
+import qualified Fission.User.Username.Error                      as Username
+import           Fission.User.Username.Types                      as Username
 
 import           Fission.Web.Error                                as Web.Err
 
@@ -44,14 +46,20 @@ checkUser ::
   )
   => BasicAuthData
   -> m (Either Auth.Error Authorization)
-checkUser (BasicAuthData username password) =
-  runDB (User.getByUsername . Username $ decodeUtf8Lenient username) >>= \case
-    Nothing -> do
+checkUser (BasicAuthData rawUsername password) =
+  case mkUsername $ decodeUtf8Lenient rawUsername of
+    Left _ -> do
       logWarn attemptMsg
       return $ Left Auth.NoSuchUser
 
-    Just usr ->
-      validate usr
+    Right username ->
+      runDB (User.getByUsername username) >>= \case
+        Nothing -> do
+          logWarn attemptMsg
+          return $ Left Auth.NoSuchUser
+
+        Just usr ->
+          validate usr
 
   where
     validate :: MonadLogger m => Entity User -> m (Either Auth.Error Authorization)
@@ -76,7 +84,7 @@ checkUser (BasicAuthData username password) =
           return $ Left Auth.Unauthorized
 
     attemptMsg :: ByteString
-    attemptMsg = "Unauthorized user! Attempted with username: " <> username
+    attemptMsg = "Unauthorized user! Attempted with username: " <> rawUsername
 
 parseBasic :: Auth.Basic.Token -> Either Auth.Error BasicAuthData
 parseBasic (Auth.Basic.Token token) =

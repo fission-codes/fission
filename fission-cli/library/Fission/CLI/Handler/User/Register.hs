@@ -23,7 +23,7 @@ import qualified Fission.Web.Client.User         as User
 
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
-import qualified Fission.User.Username.Types     as User
+import qualified Fission.User.Username.Error     as Username
 
 import           Fission.CLI.Display.Error       as CLI.Error
 import           Fission.CLI.Display.Success     as CLI.Success
@@ -46,6 +46,7 @@ register ::
   , m `Raises` DNSError
   , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
+  , m `Raises` Username.Invalid
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
@@ -53,9 +54,9 @@ register ::
   => m Username
 register =
   attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
-    Right un@User.Username {username} -> do
-      CLI.Success.alreadyLoggedInAs username
-      return un
+    Right username -> do
+      CLI.Success.alreadyLoggedInAs $ textDisplay username
+      return username
 
     Left _ ->
       createAccount
@@ -77,12 +78,13 @@ createAccount ::
   , m `Raises` DNSError
   , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
+  , m `Raises` Username.Invalid
   , Show (OpenUnion (Errors m))
   )
   => m Username
 createAccount = do
-  username <- Username <$> Prompt.reaskNotEmpty' "Username: "
-  email    <- Email    <$> Prompt.reaskNotEmpty' "Email: "
+  username <- ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
+  email    <- Email <$> Prompt.reaskNotEmpty' "Email: "
 
   let
     form = Registration

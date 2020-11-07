@@ -1,27 +1,17 @@
 -- | Username validation
 
 module Fission.User.Username.Validation
-  ( check
-  , isValid
+  ( isValid
   , isUsernameChar
   ) where
 
-import qualified Data.Char                   as Char
-import qualified RIO.Text                    as Text
+import qualified Data.Char       as Char
+import qualified RIO.Text        as Text
 
 import           Fission.Prelude
 
-import           Fission.User.Username.Error
-import           Fission.User.Username.Types
-
 -- $setup
 -- >>> :set -XOverloadedStrings
-
-check :: Username -> Either Invalid Username
-check username =
-  if isValid username
-    then Right username
-    else Left Invalid
 
 -- | Confirm that a username is valid
 --
@@ -66,8 +56,8 @@ check username =
 --
 -- >>> isValid (Username "name&with#chars")
 -- False
-isValid :: Username -> Bool
-isValid (Username rawUsername) =
+isValid :: Text -> Bool
+isValid rawUsername =
   all (== True) preds
   where
     preds :: [Bool]

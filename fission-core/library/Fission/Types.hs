@@ -40,7 +40,6 @@ import           Fission.URL                           as URL
 import qualified Fission.App                           as App
 import qualified Fission.App.Destroyer                 as App.Destroyer
 import           Fission.IPFS.DNSLink                  as DNSLink
-import           Fission.User.Username.Types
 import           Fission.WNFS                          as WNFS
 
 import qualified Fission.Web.Error                     as Web.Error
@@ -234,13 +233,13 @@ instance MonadRoute53 Fission where
 
 
 instance MonadWNFS Fission where
-  getUserDataRoot (Username username) = do
+  getUserDataRoot username = do
     zoneID <- asks userZoneID
     rootDomain <- asks userRootDomain
     let
       url = URL
         { domainName = rootDomain
-        , subdomain  = Just . URL.Subdomain $ "_dnslink." <> username <> ".files"
+        , subdomain  = Just . URL.Subdomain $ "_dnslink." <> textDisplay username <> ".files"
         }
 
     Route53.get url zoneID >>= \case
@@ -402,7 +401,7 @@ instance User.Retriever Fission where
   getByEmail         email    = runDB $ User.getByEmail email
 
 instance User.Creator Fission where
-  create username@(Username rawUN) pk email now =
+  create username pk email now =
     runDB (User.createDB username pk email now) >>= \case
       Left err ->
         return $ Left err
@@ -422,13 +421,13 @@ instance User.Creator Fission where
                 zoneID     <- asks userZoneID
 
                 let
-                  subdomain  = Just $ Subdomain rawUN
+                  subdomain  = Just . Subdomain $ textDisplay username
                   url        = URL {..}
 
                   userPublic = dataURL `WithPath` ["public"]
                   dataURL    = URL
                     { domainName
-                    , subdomain  = Just $ Subdomain (rawUN <> ".files")
+                    , subdomain  = Just $ Subdomain (textDisplay username <> ".files")
                     }
 
                 DNSLink.follow userId url zoneID userPublic >>= \case
@@ -488,7 +487,7 @@ instance User.Modifier Fission where
       Nothing ->
         return . Error.openLeft $ NotFound @User
 
-      Just (Entity _ User { userUsername = Username username }) ->
+      Just (Entity _ User { userUsername }) ->
         IPFS.Stat.getSizeRemote newCID >>= \case
           Left err ->
             return $ Error.openLeft err
@@ -505,7 +504,7 @@ instance User.Modifier Fission where
                 let
                   url = URL
                     { domainName = userDataDomain
-                    , subdomain  = Just $ Subdomain (username <> ".files")
+                    , subdomain  = Just $ Subdomain (textDisplay userUsername <> ".files")
                     }
 
                 DNSLink.set userId url zoneID newCID >>= \case
@@ -679,12 +678,13 @@ runUserUpdate updateDB dbValToTxt uID subdomain =
         Nothing ->
           return . Error.openLeft $ NotFound @User
 
-        Just (Entity _ User { userUsername = Username rawUN }) -> do
+        Just (Entity _ User { userUsername }) -> do
           domainName <- asks userRootDomain
           zoneID     <- asks userZoneID
 
           let
-            url = URL {domainName, subdomain = Just (Subdomain subdomain) <> Just (Subdomain rawUN)}
+            unSubDom = Subdomain $ textDisplay userUsername
+            url      = URL {domainName, subdomain = Just (Subdomain subdomain) <> Just unSubDom}
             segments = DNS.splitRecord $ dbValToTxt dbVal
 
           Route53.set Txt url zoneID segments 10 >>= \case

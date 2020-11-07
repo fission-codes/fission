@@ -1,18 +1,23 @@
-module Fission.User.Username.Types (Username (..)) where
+module Fission.User.Username.Types
+  ( Username
+  , mkUsername
+  ) where
 
 import           Database.Persist.Class
-import           Database.Persist.Types
 import           Database.Persist.Sql
 
 import           Data.Swagger
 import           Servant
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy              as Lazy
+import qualified RIO.Text                         as Text
 
-import qualified Network.IPFS.Internal.UTF8 as UTF8
+import qualified Network.IPFS.Internal.UTF8       as UTF8
 
 import           Fission.Prelude
+
+import           Fission.User.Username.Error
+import           Fission.User.Username.Validation
 
 newtype Username = Username { username :: Text }
   deriving newtype ( Show
@@ -20,6 +25,15 @@ newtype Username = Username { username :: Text }
                    , Display
                    , IsString
                    )
+
+mkUsername :: Text -> Either Invalid Username
+mkUsername txt =
+  if isValid normalized
+    then Right $ Username normalized
+    else Left Invalid
+
+  where
+    normalized = Text.toLower txt
 
 instance Arbitrary Username where
   arbitrary = Username <$> arbitrary
