@@ -12,12 +12,10 @@ import           Fission.Authorization
 import           Fission.Models
 import           Fission.Prelude
 
-import           Fission.URL                 as URL
-import qualified Fission.Web.Error           as Web.Err
+import           Fission.URL            as URL
+import qualified Fission.Web.Error      as Web.Err
 
-import qualified Fission.User.Modifier       as User
-import           Fission.User.Username.Types
-
+import qualified Fission.User.Modifier  as User
 
 type API
   =  Summary "Set account's DNSLink"
@@ -34,7 +32,7 @@ server ::
   , User.Modifier m
   )
   => Authorization -> ServerT API m
-server Authorization {about = Entity userID User {userUsername = Username rawUN}} cid = do
+server Authorization {about = Entity userID User {userUsername}} cid = do
   now <- currentTime
   Web.Err.ensureM $ User.setData userID cid now
-  return . DomainName $ rawUN <> ".fission.name"
+  return . DomainName $ textDisplay userUsername <> ".fission.name"

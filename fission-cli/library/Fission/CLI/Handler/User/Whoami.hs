@@ -14,7 +14,6 @@ import           Fission.Error.NotFound.Types
 import qualified Fission.Internal.UTF8           as UTF8
 
 import           Fission.Authorization.ServerDID
-import qualified Fission.User.Username.Types     as User
 
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client              as Client
@@ -46,9 +45,9 @@ whoami ::
   => m ()
 whoami = do
   attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
-    Right un@User.Username {username} -> do
-      CLI.Success.currentlyLoggedInAs username
-      Env.update \env -> env {username = un}
+    Right username -> do
+      CLI.Success.currentlyLoggedInAs $ textDisplay username
+      Env.update \env -> env {username}
 
     Left err -> do
       CLI.Error.put err

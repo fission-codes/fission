@@ -25,12 +25,10 @@ import qualified Fission.Platform.Heroku.Region.Types  as Heroku
 import qualified Fission.User.Creator.Error            as User
 import           Fission.User.Password                 as Password
 import           Fission.User.Types
-import qualified Fission.User.Validation               as User
 
 import           Network.IPFS.Bytes.Types
 
 import qualified Fission.App.Content                   as App.Content
-
 
 createDB ::
      MonadIO m
@@ -40,30 +38,26 @@ createDB ::
   -> UTCTime
   -> Transaction m (Either Errors' UserId)
 createDB username pk email now =
-  User
-    { userPublicKey     = Just pk
-    , userExchangeKeys  = Just []
-    , userUsername      = username
-    , userEmail         = Just email
-    , userRole          = Regular
-    , userActive        = True
-    , userVerified      = False
-    , userHerokuAddOnId = Nothing
-    , userSecretDigest  = Nothing
-    , userDataRoot      = App.Content.empty
-    , userDataRootSize  = Bytes 0
-    , userInsertedAt    = now
-    , userModifiedAt    = now
-    }
-    |> User.check
-    |> \case
-      Left err ->
-        return $ Error.openLeft err
-
-      Right user ->
-        insertUnique user >>= \case
-          Just userId -> return $ Right userId
-          Nothing -> determineConflict username (Just pk)
+  insertUnique user >>= \case
+    Just userId -> return $ Right userId
+    Nothing     -> determineConflict username (Just pk)
+  where
+    user =
+      User
+        { userPublicKey     = Just pk
+        , userExchangeKeys  = Just []
+        , userUsername      = username
+        , userEmail         = Just email
+        , userRole          = Regular
+        , userActive        = True
+        , userVerified      = False
+        , userHerokuAddOnId = Nothing
+        , userSecretDigest  = Nothing
+        , userDataRoot      = App.Content.empty
+        , userDataRootSize  = Bytes 0
+        , userInsertedAt    = now
+        , userModifiedAt    = now
+        }
 
 createWithPasswordDB ::
      MonadIO m
