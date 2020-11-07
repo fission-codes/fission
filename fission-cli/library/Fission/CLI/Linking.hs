@@ -91,7 +91,7 @@ listenToLinkRequests targetDID = do
 
   let
     topic :: IPFS.PubSub.Topic
-    topic = IPFS.PubSub.Topic ("deviceLinking@" <> textDisplay targetDID)
+    topic = IPFS.PubSub.Topic ("deviceLinking#" <> textDisplay targetDID)
 
   reattempt 100 do
     DID Key pk     <- waitToReceive topic

@@ -86,7 +86,7 @@ requestFrom targetDID myDID =
     storeUCAN ucan
   where
     topic :: Topic
-    topic = Topic ("deviceLinking@" <> textDisplay targetDID)
+    topic = Topic ("deviceLinking#" <> textDisplay targetDID)
 
 storeUCAN = undefined
 
