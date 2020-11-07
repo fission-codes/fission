@@ -35,4 +35,4 @@ server ::
 server Authorization {about = Entity userID User {userUsername}} cid = do
   now <- currentTime
   Web.Err.ensureM $ User.setData userID cid now
-  return . DomainName $ (textDisplay userUsername) <> ".fission.name"
+  return . DomainName $ textDisplay userUsername <> ".fission.name"
