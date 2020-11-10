@@ -34,7 +34,6 @@ import qualified Fission.Web.User.WhoAmI             as WhoAmI
 
 import qualified Fission.Web.Auth.Types              as Auth
 
-
 type API
   =   RegisterRoute
  :<|> Create.PasswordAPI

@@ -101,6 +101,7 @@ dependencies:
   ## Concurrency ##
   - async
   - stm
+  - unagi-chan
 
   ## Cryptography ##
   - bcrypt
@@ -180,9 +181,11 @@ dependencies:
   - servant-client
   - servant-client-core
   - servant-server
+  - servant-subscriber
   - servant-swagger
   - servant-swagger-ui
   - servant-swagger-ui-redoc
+  - servant-websockets
   - swagger2
   - wai
   - wai-cors
@@ -190,6 +193,7 @@ dependencies:
   - wai-logger
   - warp
   - warp-tls
+  - websockets
   - x509
 
 library:
