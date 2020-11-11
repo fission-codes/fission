@@ -101,7 +101,7 @@ dependencies:
   ## Concurrency ##
   - async
   - stm
-  - unagi-chan
+  - stm-chans
 
   ## Cryptography ##
   - bcrypt
@@ -122,6 +122,7 @@ dependencies:
   - binary
   - bytestring
   - generic-lens
+  - hashable
   - lens
   - lens-aeson
   - memory

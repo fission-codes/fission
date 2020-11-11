@@ -7,8 +7,8 @@ import           Data.Swagger
 
 import           Servant
 import           Servant.Swagger
+import qualified Servant.Swagger.Internal.TypeLevel.API   as Servant.API
 import           Servant.Swagger.UI.ReDoc
-import qualified Servant.Swagger.Internal.TypeLevel.API as Servant.API
 
 import           Fission.Prelude
 
@@ -16,11 +16,12 @@ import           Fission.Internal.Orphanage.BasicAuth     ()
 import           Fission.Internal.Orphanage.BasicAuthData ()
 import           Fission.Internal.Orphanage.HigherOrder   ()
 import           Fission.Internal.Orphanage.RegisterDid   ()
+import           Fission.Internal.Orphanage.WebSocket     ()
 
-import qualified Fission.Internal.Meta as Meta
+import qualified Fission.Internal.Meta                    as Meta
 
-import qualified Fission.Web.Routes as Web
-import qualified Fission.Web.Types  as Web
+import qualified Fission.Web.Routes                       as Web
+import qualified Fission.Web.Types                        as Web
 
 type API = SwaggerSchemaUI "docs" "docs.json"
 

@@ -101,6 +101,8 @@ main = do
       condDebug      = if pretty then identity else logStdoutDev
 
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
+      linkRelayStoreVar <- atomically $ newTVar mempty
+
       let
         DID _ serverPK = fissionDID
         cfg = Config {..}

@@ -21,10 +21,13 @@ import qualified Fission.User                        as User
 
 import qualified Fission.Challenge.Creator.Class     as Challenge
 import qualified Fission.Challenge.Verifier.Class    as Challenge
+
+import           Fission.Web.User.Link.Relay         (MonadRelayStore)
 import           Fission.WNFS
 
 import qualified Fission.Web.User.Create             as Create
 import qualified Fission.Web.User.DataRoot           as DataRoot
+import qualified Fission.Web.User.Link               as Link
 import qualified Fission.Web.User.Password.Reset     as Reset
 import qualified Fission.Web.User.UpdateExchangeKeys as UpdateExchangeKeys
 import qualified Fission.Web.User.UpdatePublicKey    as UpdatePublicKey
@@ -44,6 +47,7 @@ type API
  :<|> UpdateExchangeKeysRoute
  :<|> DataRootRoute
  :<|> ResetRoute
+ :<|> LinkRoute
 
 type Auth
   = Auth.HigherOrder
@@ -51,6 +55,10 @@ type Auth
 type RegisterRoute
   = Auth.RegisterDID
     :> Create.API
+
+type LinkRoute
+  = "link"
+    :> Link.API
 
 type WhoAmIRoute
   = "whoami"
@@ -93,6 +101,7 @@ server ::
   , MonadTime          m
   , MonadEmail         m
   , MonadWNFS          m
+  , MonadRelayStore    m
   , User.Modifier      m
   , User.Creator       m
   , Challenge.Creator  m
@@ -108,3 +117,4 @@ server = Create.withDID
     :<|> UpdateExchangeKeys.server
     :<|> DataRoot.server
     :<|> Reset.server
+    :<|> Link.socket

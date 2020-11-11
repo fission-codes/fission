@@ -3,9 +3,9 @@ module Fission.Web.User.Link
   , socket
   ) where
 
-import qualified Control.Concurrent.Chan.Unagi.Bounded as Unagi
+import           RIO.Set                     as Set
 
-import qualified Network.WebSockets                    as WS
+import qualified Network.WebSockets          as WS
 
 import           Servant
 import           Servant.API.WebSocket
@@ -13,42 +13,35 @@ import           Servant.API.WebSocket
 import           Fission.Prelude
 
 import           Fission.User.DID.Types
+import           Fission.Web.User.Link.Relay as Relay
 
 type API
-  = "link"
-  :> Capture "did" DID
-  :> WebSocket
+  = Capture "did" DID
+    :> WebSocket
 
 socket ::
-  ( MonadLogger m
-  , MonadIO     m
-  -- , MonadLinkRelay m
+  ( MonadIO         m
+  , MonadRelayStore m
   )
   => ServerT API m
 socket did conn = do
-  writeSide <- getRoomFor did -- FIXME line below
-  -- writeSide <- ensureM $ getRoomFor did
+  storeVar <- getStoreVar
+  (sentBufferVar, chanIn, chanOut) <- atomicallyM $ setupSTM did storeVar
 
-  liftIO $ WS.withPingThread conn 30 (pure ()) do
-    readSide <- Unagi.dupChan writeSide
-    concurrently_ (outbound readSide) (inbound writeSide)
+  liftIO $ WS.withPingThread conn 30 noop do
+    concurrently_
+      (inbound  conn chanIn  sentBufferVar)
+      (outbound conn chanOut sentBufferVar)
 
-  where
-    outbound readSide =
-      forever do
-        msg <- Unagi.readChan readSide
-        WS.sendDataMessage conn msg
+setupSTM ::
+     DID
+  -> TVar Relay.Store
+  -> STM (TVar (Set a), ChannelIn, ChannelOut)
+setupSTM did storeVar = do
+  store            <- readTVar storeVar
+  (chanIn, store') <- getOrCreate did store
+  chanOut          <- Relay.toReadChan chanIn
+  sentBufferVar    <- newTVar Set.empty
 
-    inbound writeSide =
-      forever do
-        msg <- WS.receiveDataMessage conn
-        Unagi.writeChan writeSide msg
-
-gtRoomFor :: Monad m => DID -> m (Either (NotFound RelayChan) RelayChan)
-getRoomFor did = undefined -- FIXME
-
-newtype RelayChan = RelayChan { getRelayChan :: Unagi.InChan WS.DataMessage }
-
--- FIXME move to top level & include in Fission.Config.Types
-newtype LinkRelay = LinkRelay
-  { getRelays :: HashMap DID (Unagi.InChan WS.DataMessage) }
+  swapTVar storeVar store'
+  return (sentBufferVar, chanIn, chanOut)

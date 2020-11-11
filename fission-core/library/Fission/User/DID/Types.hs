@@ -5,16 +5,21 @@ module Fission.User.DID.Types
   ) where
 
 import qualified Data.Aeson.Types              as JSON
+import           Data.Swagger
 
 import           Data.Base58String.Bitcoin     as BS58.BTC
 import           Data.Binary                   hiding (encode)
 import qualified Data.ByteString.Base64        as BS64
+import           Data.Hashable                 (Hashable (..))
 
 import qualified RIO.ByteString                as BS
 import qualified RIO.Text                      as Text
 
-import qualified Fission.Internal.UTF8         as UTF8
+import           Servant
+
 import           Fission.Prelude
+
+import qualified Fission.Internal.UTF8         as UTF8
 
 import           Fission.Key                   as Key
 import           Fission.User.DID.Method.Types
@@ -75,6 +80,9 @@ instance Arbitrary DID where
 
     return DID {..}
 
+instance Hashable DID where
+  hashWithSalt salt did = hashWithSalt salt $ textDisplay did
+
 instance Display DID where -- NOTE `pk` here is base2, not base58
   textDisplay (DID method pk) = header <> UTF8.toBase58Text (BS.pack multicodecW8)
     where
@@ -91,6 +99,18 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
                                     |    "expect 373 Bytes", encoded in the mixed-endian format
                                   "raw"
                               -}
+
+instance ToParamSchema DID where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+
+instance ToHttpApiData DID where
+  toUrlPiece = textDisplay
+
+instance FromHttpApiData DID where
+  parseUrlPiece txt =
+    case eitherDecodeStrict ("\"" <> encodeUtf8 txt <> "\"") of
+      Left  err -> Left $ Text.pack err
+      Right val -> Right val
 
 instance ToJSON DID where
   toJSON = String . textDisplay

@@ -2,20 +2,21 @@
 
 module Fission.Error.NotFound.Types (NotFound (..)) where
 
-import qualified RIO.ByteString.Lazy     as Lazy
+import qualified RIO.ByteString.Lazy                       as Lazy
 import           RIO.FilePath
 
-import qualified Crypto.PubKey.Ed25519   as Ed25519
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
 
-import qualified Network.IPFS.Types      as IPFS
+import qualified Network.IPFS.Types                        as IPFS
 import           Servant
 
-import qualified Fission.AWS.Zone.Types  as AWS
+import qualified Fission.AWS.Zone.Types                    as AWS
 import           Fission.Models
 import           Fission.Prelude
 import           Fission.URL
 import           Fission.User.DID.Types
 import           Fission.Web.Error.Class
+import qualified Fission.Web.User.Link.Relay.Channel.Types as Relay
 
 data NotFound entity
   = NotFound
@@ -64,3 +65,6 @@ instance Display (NotFound [IPFS.Peer]) where
 
 instance Display (NotFound Ed25519.SecretKey) where
   display _ = "Unable to find Ed25519 secret key"
+
+instance Display (NotFound Relay.ChannelIn) where
+  display _ = "Unable to find matching link relay channel"

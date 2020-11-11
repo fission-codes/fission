@@ -78,6 +78,7 @@ import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
 
 import           Fission.Authorization.ServerDID.Class
+import           Fission.Web.User.Link.Relay           (MonadRelayStore (..))
 
 import           Fission.App.Content                   as App.Content
 import           Fission.App.Domain                    as App.Domain
@@ -114,6 +115,9 @@ instance MonadDB (Transaction Fission) Fission where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
+
+instance MonadRelayStore Fission where
+  getStoreVar = asks linkRelayStoreVar
 
 instance MonadAWS Fission where
   liftAWS awsAction = do

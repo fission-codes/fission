@@ -47,6 +47,7 @@ module Fission.Prelude
   , ord
   , ok
   , noop
+  , atomicallyM
   ) where
 
 import           Control.Lens                                ((%~), (.~), (?~),
@@ -130,3 +131,6 @@ ok = Right ()
 
 noop :: Applicative f => f ()
 noop = pure ()
+
+atomicallyM :: MonadIO m => STM a -> m a
+atomicallyM = liftIO . atomically
