@@ -15,6 +15,8 @@ import           Crypto.Random.Types
 import           Network.IPFS.Local.Class                  as IPFS
 import qualified Network.IPFS.Process.Error                as IPFS.Process
 
+import qualified Network.WebSockets                        as WS
+
 import           Fission.Prelude
 
 import           Fission.Key.Asymmetric.Public.Types
@@ -48,6 +50,8 @@ import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 import qualified Fission.IPFS.PubSub.Publish               as Publish
 import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
 
+import           Fission.IPFS.PubSub.Session.Payload.Types
+
 requestFrom ::
   ( MonadLogger     m
   , MonadIPFSDaemon m
@@ -69,24 +73,52 @@ requestFrom ::
   => DID
   -> DID
   -> m ()
-requestFrom targetDID myDID =
-  reattempt 10 do
-    -- IPFS.Daemon.runDaemon
+requestFrom targetDID myDID = do
+  tqIn  <- atomicallyM newTQueue
+  tqOut <- atomicallyM newTQueue
 
-    throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
-    throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
+  socket targetDID tqIn tqOut `withAsync` \_ -> do
+    reattempt 10 do
+      throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
+      throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
 
-    let throwawayDID = DID Key (RSAPublicKey throwawayPK)
+      let throwawayDID = DID Key (RSAPublicKey throwawayPK)
 
-    Publish.sendClear topic throwawayDID -- STEP 2, yes out of order is actually correct
-    sessionKey <- getAuthenticatedSessionKey targetDID topic throwawaySK -- STEP 1-4
-    secureSendPIN topic sessionKey -- STEP 5
+      wsSendClear targetDID throwawayDID tqOut -- STEP 2, yes out of order is actually correct
+      sessionKey <- getAuthenticatedSessionKey targetDID topic throwawaySK -- STEP 1-4
+      secureSendPIN topic sessionKey -- STEP 5
 
-    ucan <- listenForFinalUCAN targetDID myDID topic sessionKey -- STEP 6
-    storeUCAN ucan
-  where
-    topic :: Topic
-    topic = Topic ("deviceLinking#" <> textDisplay targetDID)
+      ucan <- listenForFinalUCAN targetDID myDID topic sessionKey -- STEP 6
+      storeUCAN ucan
+
+wsSendClear ::
+  ( MonadLogger m
+  , ToJSON  msg
+  , Display msg
+  )
+  => DID
+  -> msg
+  -> TQueue msg
+  -> m ()
+wsSendClear did msg tqOut = do
+  logDebug $ "Pushing over cleartext websocket: " <> textDisplay msg
+  atomicallyM $ writeTQueue tqOut msg
+
+wsSendSecure ::
+  ( MonadLogger    m
+  , MonadRandom    m
+  , MonadRaise     m
+  , m `Raises` CryptoError
+  , ToJSON msg
+  )
+  => DID
+  -> Session.Key
+  -> msg
+  -> TQueue msg
+  -> m ()
+wsSendSecure did (Session.Key aesKey) msg tq = do
+  encrypted <- Payload.toSecure aesKey msg
+  wsSendClear did encrypted tqOut
 
 storeUCAN = undefined
 
@@ -183,6 +215,44 @@ getAuthenticatedSessionKey targetDID topic sk = do
 
       -- Bootstrapped & validated session key
       return sessionKey
+
+-- FIXME SUBSCRIBE WSS
+socket ::
+  ( ToJSON   a
+  , FromJSON a
+  , MonadIO m
+  )
+  => DID
+  -> TQueue a -- FIXME newtype
+  -> TQueue a
+  -> m ()
+socket did tqIn tqOut =
+  -- FIXME get from config
+  liftIO $ WS.runClient "runfission.net" 443 ("/user/link/did:key:z" <> show did) \conn -> do
+    concurrently_
+      (incoming tqOut conn)
+      (outgoing tqIn  conn)
+
+outgoing :: ToJSON a => TQueue a -> WS.Connection -> IO ()
+outgoing tqIn conn =
+  forever do
+    msg <- atomically $ readTQueue tqIn
+    WS.sendDataMessage conn (WS.Binary $ encode msg)
+
+incoming :: FromJSON a => TQueue a -> WS.Connection -> IO ()
+incoming tqOut conn =
+  forever do
+    rawMsg <- WS.receiveDataMessage conn
+    -- FIXME log that you got a message
+
+    let
+      bsMsg = case rawMsg of
+                WS.Text   bs _ -> bs
+                WS.Binary bs   -> bs
+
+    case eitherDecode bsMsg of
+      Left  _   -> noop -- Silently fail FIXME?
+      Right msg -> atomically $ writeTQueue tq msg
 
 -- STEP 3
 listenForSessionKey ::
