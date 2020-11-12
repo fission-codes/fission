@@ -50,7 +50,26 @@ import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 import qualified Fission.IPFS.PubSub.Publish               as Publish
 import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
 
-import           Fission.IPFS.PubSub.Session.Payload.Types
+import           Fission.IPFS.PubSub.Session.Payload       as Payload
+
+data RequestorMessageIn
+  = GetSessionKey Session.Key
+  | FinalUCAN     UCAN.JWT
+
+instance FromJSON RequestorMessageIn where
+  parseJSON jsn =
+    sessionKey <|> ucan
+    where
+      sessionKey = GetSessionKey <$> parseJSON jsn
+      ucan       = FinalUCAN     <$> parseJSON jsn
+
+data RequestorMessageOut
+  = BroadcastDID DID
+  | SendPIN PIN.PIN
+
+instance ToJSON RequestorMessageOut where
+  toJSON (BroadcastDID did) = toJSON did
+  toJSON (SendPIN pin)      = toJSON pin
 
 requestFrom ::
   ( MonadLogger     m
@@ -84,11 +103,11 @@ requestFrom targetDID myDID = do
 
       let throwawayDID = DID Key (RSAPublicKey throwawayPK)
 
-      wsSendClear targetDID throwawayDID tqOut -- STEP 2, yes out of order is actually correct
+      wsSendClear tqOut throwawayDID -- STEP 2, yes out of order is actually correct
       sessionKey <- getAuthenticatedSessionKey targetDID topic throwawaySK -- STEP 1-4
-      secureSendPIN topic sessionKey -- STEP 5
+      secureSendPIN sessionKey tqOut -- STEP 5
 
-      ucan <- listenForFinalUCAN targetDID myDID topic sessionKey -- STEP 6
+      ucan <- listenForFinalUCAN targetDID myDID sessionKey tqIn -- STEP 6
       storeUCAN ucan
 
 wsSendClear ::
@@ -96,11 +115,10 @@ wsSendClear ::
   , ToJSON  msg
   , Display msg
   )
-  => DID
+  => TQueue msg
   -> msg
-  -> TQueue msg
   -> m ()
-wsSendClear did msg tqOut = do
+wsSendClear tqOut msg = do
   logDebug $ "Pushing over cleartext websocket: " <> textDisplay msg
   atomicallyM $ writeTQueue tqOut msg
 
@@ -111,14 +129,12 @@ wsSendSecure ::
   , m `Raises` CryptoError
   , ToJSON msg
   )
-  => DID
-  -> Session.Key
+  => Session.Key
+  -> TQueue (Payload msg)
   -> msg
-  -> TQueue msg
   -> m ()
-wsSendSecure did (Session.Key aesKey) msg tq = do
-  encrypted <- Payload.toSecure aesKey msg
-  wsSendClear did encrypted tqOut
+wsSendSecure (Session.Key aesKey) tqOut msg =
+  wsSendClear tqOut =<< Payload.toSecure aesKey msg
 
 storeUCAN = undefined
 
@@ -132,12 +148,13 @@ secureSendPIN ::
   , m `Raises` IPFS.Process.Error
   , m `Raises` CryptoError
   )
-  => Topic
-  -> Session.Key
+  => Session.Key
+  -> TQueue (Payload PIN.PIN)
   -> m ()
-secureSendPIN topic sessionKey =
-  Publish.sendSecure topic sessionKey =<< PIN.create
+secureSendPIN sessionKey tqOut =
+  wsSendSecure sessionKey tqOut =<< PIN.create
 
+-- FIXME getFinalUCAN or awaitFinalUCAN
 listenForFinalUCAN ::
   ( MonadIO      m
   , JWT.Resolver m
@@ -152,14 +169,13 @@ listenForFinalUCAN ::
   )
   => DID
   -> DID
-  -> Topic
   -> Session.Key
+  -> TQueue (Session.Payload UCAN.RawContent)
   -> m UCAN.JWT -- FIXME Or the raw bytestirng version? At minimum want to validate internally
-listenForFinalUCAN targetDID recipientDID topic sessionKey =
-  IPFS.PubSub.Subscription.withQueue topic \tq -> go tq
+listenForFinalUCAN targetDID recipientDID sessionKey tq = go
   where
-    go tq = do
-      candidateRaw@(UCAN.RawContent raw) <- Secure.popMessage sessionKey tq -- FIXME rename to popSecureMsg
+    go = do
+      candidateRaw@(UCAN.RawContent raw) <- Secure.popMessage sessionKey tq
 
       candidateUCAN <- ensure . eitherDecodeStrict $ encodeUtf8 raw
       ensureM $ UCAN.check recipientDID candidateRaw candidateUCAN
@@ -167,7 +183,7 @@ listenForFinalUCAN targetDID recipientDID topic sessionKey =
       UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot candidateUCAN
       if sender == targetDID
         then return candidateUCAN
-        else go tq
+        else go
 
 broadcastDID ::
   ( MonadLocalIPFS m

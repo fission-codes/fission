@@ -32,16 +32,14 @@ popMessage ::
   , FromJSON msg
   )
   => Session.Key
-  -> TQueue (Message (Session.Payload msg))
+  -> TQueue (Session.Payload msg)
   -> m msg
 popMessage (Session.Key aes256) tq = do
   -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?
   -- FIXME or at caller?
-  Message
-    { payload = Session.Payload
-                  { secretMessage = secretMsg@(EncryptedPayload ciphertext)
-                  , iv
-                  }
+  Session.Payload
+    { secretMessage = secretMsg@(EncryptedPayload ciphertext)
+    , iv
     } <- liftIO . atomically $ readTQueue tq
 
   case Symmetric.decrypt aes256 iv secretMsg of
