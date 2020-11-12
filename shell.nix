@@ -2,7 +2,7 @@ let
   sources  = import ./nix/sources.nix;
   pkgs     = import sources.nixpkgs  {};
   unstable = import sources.unstable {};
-  hinotify = if pkgs.stdenv.isDarwin then pkgs.hfsevents else pkgs.hinotify;
+  # hinotify = if pkgs.stdenv.isDarwin then pkgs.hfsevents else pkgs.hinotify;
 in
 
 pkgs.mkShell {
@@ -16,7 +16,7 @@ pkgs.mkShell {
     pkgs.haskellPackages.postgresql-libpq
     pkgs.postgresql
 
-    hinotify
+    # pkgs.hinotify
 
     # Haskell
     unstable.ghcid
