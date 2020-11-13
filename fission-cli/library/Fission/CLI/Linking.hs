@@ -122,6 +122,7 @@ listenToLinkRequests ::
   , MonadKeyStore    m ExchangeKey
   , MonadLocalIPFS   m
   , MonadIO          m
+  , MonadBaseControl IO          m
   , MonadEnvironment m
   , MonadCleanup     m
   , m `Sub.SubscribesTo` DID
@@ -131,13 +132,14 @@ listenToLinkRequests ::
   , m `Raises` String
   , m `Raises` RSA.Error
   , m `Raises` Error
+  , MonadFail m
   )
   => DID
   -> m ()
 listenToLinkRequests targetDID = do
   -- FIXME If root device, plz check first
-  machineSK <- KeyStore.fetch    (Proxy @SigningKey)
-  machinePK <- KeyStore.toPublic (Proxy @SigningKey) machineSK
+  machineSK  <- KeyStore.fetch    (Proxy @SigningKey)
+  machinePK  <- KeyStore.toPublic (Proxy @SigningKey) machineSK
 
   let
     machineDID = DID Key (Ed25519PublicKey machinePK)
@@ -147,26 +149,42 @@ listenToLinkRequests targetDID = do
     -- Step 1
     WS.runClient "runfission.net" 443 ("/user/link/did:key:z" <> show rootDID) \conn -> do
       runInBase $ reattempt 100 do
-        tmpDID           <- ensureM $ wsReceiveJSON conn
-        sessionKey       <- Session.Key <$> Symmetric.genAES256
+        DID Key reqPK <- ensureM $ wsReceiveJSON conn
+
+        reqExchangeKey <- case reqPK of
+                            RSAPublicKey pk -> return pk
+                            _               -> raise "Not an exchange key"
+
+
+        sessionKey@(Session.Key aes) <- Session.Key <$> Symmetric.genAES256
         secretSessionKey <- ensureM $ RSA.OAEP.encrypt oaepParams reqExchangeKey (Lazy.toStrict $ encode sessionKey)
 
-        wsSend conn secretSessionKey
+        wsSend conn $ decodeUtf8Lenient secretSessionKey
 
         requestorDID :: DID <- awaitSecure conn sessionKey -- FIXME retry
 
-        wsSend conn =<< Payload.toSecure sessionKey (undefined :: UCAN.JWT) -- FIXME UCAN minus potency
+        wsSend conn =<< Payload.toSecure aes (undefined :: UCAN.JWT) -- FIXME UCAN minus potency
 
         pin <- awaitSecure conn sessionKey
         confirmChallenge pin >>= \case
           False ->
-            wsSend conn =<< Payload.toSecure sessionKey Linking.Denied
+            wsSend conn =<< Payload.toSecure aes Linking.Denied
 
           True -> do
             confirmUCANDelegation requestorDID
 
             delegatedUCAN :: UCAN.JWT <- delegateAllTo requestorDID
-            wsSend conn =<< Payload.toSecure sessionKey delegatedUCAN
+            wsSend conn =<< Payload.toSecure aes delegatedUCAN
+
+wsReceiveJSON :: (MonadIO m, FromJSON a) => WS.Connection -> m (Either String a)
+wsReceiveJSON conn = eitherDecode <$> wsReceive conn
+
+wsReceive :: MonadIO m => WS.Connection -> m Lazy.ByteString
+wsReceive conn =
+  liftIO (WS.receiveDataMessage conn) <&> \case
+    WS.Text   bs _ -> bs
+    WS.Binary bs   -> bs
+
 
 awaitSecure ::
   ( MonadIO     m

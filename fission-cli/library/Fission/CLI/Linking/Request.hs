@@ -7,6 +7,9 @@ module Fission.CLI.Linking.Request
   , listenForValidProof
   ) where
 
+import           Crypto.Cipher.AES                         (AES256)
+import qualified Fission.Key.Symmetric                     as Symmetric
+
 import           Data.ByteArray                            as ByteArray
 
 import           Crypto.Error
@@ -90,7 +93,7 @@ requestFrom targetDID myDID = do
     -- Step 1
     WS.runClient "runfission.net" 443 ("/user/link/did:key:z" <> show targetDID) \conn -> do
       runInBase $ reattempt 10 do
-        throwawaySK :: RSA.PrivateKey <- KeyStore.generate (Proxy @ExchangeKey)
+        throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
         throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
 
         let throwawayDID = DID Key (RSAPublicKey throwawayPK)
@@ -99,8 +102,8 @@ requestFrom targetDID myDID = do
         sessionKey <- getAuthenticatedSessionKey conn targetDID throwawaySK -- STEPS 3 & 4
         secureSendPIN conn sessionKey -- STEP 5
 
-        ucan <- listenForFinalUCAN conn sessionKey targetDID myDID -- STEP 6
-        storeUCAN ucan
+        rawUCAN <- listenForFinalUCAN conn sessionKey targetDID myDID -- STEP 6
+        storeUCAN rawUCAN
 
 wsSend ::
   ( MonadLogger m
@@ -115,10 +118,10 @@ wsSend conn msg = do
   logDebug $ "Pushing over cleartext websocket: " <> textDisplay msg
   liftIO $ WS.sendDataMessage conn (WS.Binary $ encode msg)
 
-storeUCAN :: MonadIO m => JWT -> m ()
+storeUCAN :: MonadIO m => UCAN.RawContent -> m ()
 storeUCAN = undefined
 
-storeWNFSKeyFor :: Monad m => DID -> FilePath -> Symmetric.Key -> m ()
+storeWNFSKeyFor :: Monad m => DID -> FilePath -> Symmetric.Key AES256 -> m ()
 storeWNFSKeyFor did path aes = undefined
 
 -- STEP 5
@@ -143,7 +146,7 @@ listenForFinalUCAN ::
   , JWT.Resolver m
   , MonadTime    m
   , MonadLogger  m
-  , MonadRaise   m
+  , MonadRescue  m
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` JWT.Error
   , m `Raises` CryptoError
