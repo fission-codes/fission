@@ -168,9 +168,9 @@ waitToReceiveSecure sessionKey topic =
   IPFS.PubSub.Subscription.withQueue topic \tq -> go tq
   where
     go :: TQueue (Sub.Message (Session.Payload a)) -> m a
-    go tq =
-      attempt (Secure.popMessage sessionKey tq) >>= \case
-        Left  _   -> go tq
-        Right val -> return val
+    go tq = undefined
+     --  attempt (Secure.popMessage sessionKey tq) >>= \case
+     --    Left  _   -> go tq
+     --    Right val -> return val
 
 fetchUCANForDID = undefined

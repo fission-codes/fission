@@ -11,7 +11,7 @@ import           Fission.Prelude
 import           Fission.Security.EncryptedWith.Types
 
 data Payload expected = Payload
-  { secretMessage :: EncryptedWith AES256
+  { secretMessage :: expected `EncryptedWith` AES256
   , iv            :: IV AES256
   }
   deriving Eq

@@ -15,6 +15,7 @@ import           Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
 
 import qualified Data.Yaml                                 as YAML
 
+import           Control.Monad.Base
 import           Control.Monad.Catch                       as Catch
 
 import qualified RIO.ByteString.Lazy                       as Lazy
@@ -91,7 +92,27 @@ runFissionCLI :: forall errs m cfg a .
   -> m (Either (OpenUnion errs) a)
 runFissionCLI cfg = runRIO cfg . runRescueT . unFissionCLI
 
-instance forall errs cfg.
+instance MonadBase IO (FissionCLI errs cfg) where
+  liftBase = liftIO
+
+instance
+  ( HasLogFunc cfg
+  , Contains errs errs
+  , Display (OpenUnion errs)
+  )
+  => MonadBaseControl IO (FissionCLI errs cfg) where
+  type StM (FissionCLI errs cfg) a = Either (OpenUnion errs) a
+
+  -- NOTE type RunInBase ~ FissionCLI errs cfg a -> IO (Either errs a)
+  liftBaseWith runner = do
+    cfg <- ask
+    liftIO  $ runner \action -> runFissionCLI cfg action
+
+  restoreM = \case
+    Left  err -> raise err
+    Right val -> pure val
+
+instance forall errs cfg .
   ( Display (OpenUnion errs)
   , HasLogFunc cfg
   )

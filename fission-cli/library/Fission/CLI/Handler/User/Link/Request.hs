@@ -70,6 +70,7 @@ import           Fission.CLI.Environment.Class
 
 requestRoot ::
   ( MonadIO          m
+  , MonadBaseControl IO m
   , MonadLogger      m
   , MonadKeyStore    m ExchangeKey
   , MonadLocalIPFS   m
@@ -79,8 +80,6 @@ requestRoot ::
   , JWT.Resolver     m
   , MonadEnvironment m
   , MonadRescue      m
-  , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
-  , m `Sub.SubscribesTo` Session.Payload JWT.RawContent
   , m `Raises` NotFound DID
   , m `Raises` DNS.DNSError
   , m `Raises` CryptoError

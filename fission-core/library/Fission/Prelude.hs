@@ -12,6 +12,8 @@ module Fission.Prelude
   , module Control.Monad.Trans.Cleanup
   , module Control.Monad.Trans.Rescue
 
+  , module Control.Monad.Trans.Control
+
   , module Data.Aeson
   , module Data.Bool
   , module Data.Bifunctor
@@ -65,6 +67,8 @@ import           Control.Monad.Rescue
 
 import           Control.Monad.Trans.Cleanup
 import           Control.Monad.Trans.Rescue
+
+import           Control.Monad.Trans.Control
 
 import           Network.IPFS.Internal.Orphanage.Utf8Builder ()
 

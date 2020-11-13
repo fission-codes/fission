@@ -29,7 +29,7 @@ encrypt ::
   => Symmetric.Key AES256
   -> IV AES256
   -> a
-  -> Either CryptoError (EncryptedWith AES256)
+  -> Either CryptoError (a `EncryptedWith` AES256)
 encrypt (Symmetric.Key rawKey) iv plaintext =
   case cipherInit rawKey of
     CryptoFailed err ->
@@ -49,7 +49,7 @@ encrypt (Symmetric.Key rawKey) iv plaintext =
 decrypt ::
      Symmetric.Key AES256
   -> IV AES256
-  -> EncryptedWith AES256
+  -> a `EncryptedWith` AES256
   -> Either CryptoError ByteString
 decrypt (Symmetric.Key aesKey) iv (EncryptedPayload ciphertext) =
   case cipherInit aesKey of

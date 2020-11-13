@@ -89,10 +89,12 @@ dependencies:
   ## Capabilties ##
   - data-default-class
   - data-has
+  - monad-control
   - monad-logger
   - monad-time
   - mtl
   - resource-pool
+  - transformers-base
   - unliftio
 
   ## Command Line ##
@@ -100,6 +102,7 @@ dependencies:
 
   ## Concurrency ##
   - async
+  - lifted-async
   - stm
   - stm-chans
 

@@ -68,7 +68,7 @@ popRSAMessage ::
   , FromJSON a
   )
   => RSA.PrivateKey
-  -> TQueue (Sub.Message (EncryptedWith RSA.PrivateKey))
+  -> TQueue (Sub.Message (a `EncryptedWith` RSA.PrivateKey))
   -> m a
 popRSAMessage sk tq = do
   -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?

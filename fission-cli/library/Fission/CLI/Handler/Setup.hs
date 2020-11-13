@@ -62,6 +62,7 @@ import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 
 setup ::
   ( MonadIO           m
+  , MonadBaseControl IO m
   , MonadEnvironment  m
   , MonadWebClient    m
   , MonadManagedHTTP  m
@@ -76,8 +77,6 @@ setup ::
   , JWT.Resolver      m
 
   , MonadCleanup m
-  , m `Sub.SubscribesTo` EncryptedWith RSA.PrivateKey
-  , m `Sub.SubscribesTo` Session.Payload JWT.RawContent
 
   , m `Raises` OS.Unsupported
   , m `Raises` ClientError

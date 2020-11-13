@@ -86,9 +86,11 @@ dependencies:
   - stm
 
   ## Capabilities ##
+  - monad-control
   - monad-logger
   - monad-time
   - mtl
+  - transformers-base
 
   ## CLI ##
   - ansi-terminal
@@ -96,6 +98,8 @@ dependencies:
   - optparse-applicative
 
   ## Concurrency & Parallelism ##
+  - async
+  - lifted-async
   - parallel
 
   ## Cryptogrpahy ##
@@ -132,6 +136,7 @@ dependencies:
   - servant
   - servant-client
   - servant-client-core
+  - websockets
 
   ## Fission ##
   - fission-core
