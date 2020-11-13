@@ -13,6 +13,8 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.RawContent
   ) where
 
+import qualified Fission.IPFS.PubSub.Session.Key.Types            as Session
+
 
 import qualified System.IO.Unsafe                                 as Unsafe
 
@@ -127,27 +129,34 @@ instance FromJSON JWT where
 -----------
 
 data Fact
---   = SessionKey AES256
-  = Unknown Text
-  deriving (Show, Eq)
+  = SessionKey Session.Key
+  | Unknown Text
+  deriving Eq
+
+instance Show Fact where
+  show = Text.unpack . textDisplay
 
 instance Display Fact where
   textDisplay = \case
-    Unknown txt -> txt
+    Unknown    txt -> txt
+    SessionKey aes -> textDisplay aes
 
 instance Arbitrary Fact where
-  -- FIXME add more cases
-  arbitrary = Unknown <$> arbitrary
+  arbitrary = oneof [ Unknown    <$> arbitrary
+                    , SessionKey <$> arbitrary
+                    ]
 
 instance ToJSON Fact where
   toJSON = \case
-    Unknown txt -> String txt
+    Unknown    txt -> String txt
+    SessionKey key -> toJSON key
 
 instance FromJSON Fact where
-  parseJSON = \case
-    -- FIXME SessionKey goes here, above the stirng case
-    String txt -> return $ Unknown txt
-    _          -> fail "Unable to parse Fact"
+  parseJSON jsn = do
+    parseSessionKey jsn <|> parseUnknown jsn <|> fail "Unable to parse Fact"
+    where
+      parseUnknown = withText "Fact.Unkown" \txt -> return $ Unknown txt
+      parseSessionKey obj = SessionKey <$> parseJSON obj
 
 ------------
 -- Claims --

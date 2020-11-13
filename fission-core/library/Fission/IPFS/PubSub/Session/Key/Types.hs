@@ -10,6 +10,12 @@ newtype Key = Key
   { aesKey :: Symmetric.Key AES256 }
   deriving newtype Eq
 
+instance Arbitrary Key where
+  arbitrary = Key <$> arbitrary
+
+instance Display Key where
+  display (Key aes) = display aes
+
 instance ToJSON Key where
   toJSON Key {..} = object ["sessionKey" .= aesKey]
 
