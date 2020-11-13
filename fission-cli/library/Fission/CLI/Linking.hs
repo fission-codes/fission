@@ -57,8 +57,65 @@ import qualified Fission.IPFS.PubSub.Publish               as Publish
 import qualified Fission.IPFS.PubSub.Session.Key.Types     as Session
 import qualified Fission.IPFS.PubSub.Session.Payload       as Session
 
+import           Data.ByteArray                            as ByteArray
+
 import           Fission.IPFS.PubSub.Subscription.Secure   as Secure
 
+import           Crypto.Error
+import           Crypto.Hash.Algorithms
+import qualified Crypto.PubKey.RSA.OAEP                    as RSA.OAEP
+import qualified Crypto.PubKey.RSA.Types                   as RSA
+import           Crypto.Random.Types
+
+import qualified RIO.ByteString.Lazy                       as Lazy
+import qualified RIO.Text                                  as Text
+
+import           Crypto.Error
+import qualified Crypto.PubKey.RSA.Types                   as RSA
+import           Crypto.Random.Types
+
+import           Network.IPFS.Local.Class                  as IPFS
+import qualified Network.IPFS.Process.Error                as IPFS.Process
+
+import qualified Network.WebSockets                        as WS
+
+import           Fission.Prelude
+
+import           Fission.Key.Asymmetric.Public.Types
+import qualified Fission.Key.Symmetric                     as Symmetric
+
+import           Fission.User.DID.Types
+
+import           Fission.Security.EncryptedWith.Types
+
+import           Fission.Authorization.Potency.Types
+import           Fission.Web.Auth.Token.JWT                as JWT
+import qualified Fission.Web.Auth.Token.JWT                as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Error          as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
+import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
+import qualified Fission.Web.Auth.Token.UCAN               as UCAN
+
+import qualified Fission.IPFS.PubSub.Session.Key.Types     as Session
+import qualified Fission.IPFS.PubSub.Session.Payload       as Session
+
+import qualified Fission.IPFS.PubSub.Subscription          as Sub
+import qualified Fission.IPFS.PubSub.Subscription          as IPFS.PubSub.Subscription
+import           Fission.IPFS.PubSub.Topic
+
+import           Fission.CLI.Key.Store                     as KeyStore
+import qualified Fission.CLI.Linking.PIN                   as PIN
+
+import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
+
+import qualified Fission.IPFS.PubSub.Publish               as Publish
+import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
+
+import           Fission.IPFS.PubSub.Session.Payload       as Payload
+import           Fission.Security.EncryptedWith.Types
+
+import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
 
 listenToLinkRequests ::
   ( MonadLogger      m
@@ -83,41 +140,79 @@ listenToLinkRequests targetDID = do
   machinePK <- KeyStore.toPublic (Proxy @SigningKey) machineSK
 
   let
-    machineDID =
-      DID Key (Ed25519PublicKey machinePK)
+    machineDID = DID Key (Ed25519PublicKey machinePK)
+    rootDID    = machineDID -- FIXME
 
-  -- case machineDID == targetDID of
-    -- True ->
+  control \runInBase ->
+    -- Step 1
+    WS.runClient "runfission.net" 443 ("/user/link/did:key:z" <> show rootDID) \conn -> do
+      runInBase $ reattempt 100 do
+        tmpDID           <- ensureM $ wsReceiveJSON conn
+        sessionKey       <- Session.Key <$> Symmetric.genAES256
+        secretSessionKey <- ensureM $ RSA.OAEP.encrypt oaepParams reqExchangeKey (Lazy.toStrict $ encode sessionKey)
 
-  let
-    topic :: IPFS.PubSub.Topic
-    topic = IPFS.PubSub.Topic ("deviceLinking#" <> textDisplay targetDID)
+        wsSend conn secretSessionKey
 
-  reattempt 100 do
-    DID Key pk     <- waitToReceive topic
-    reqExchangeKey <- case pk of
-                          RSAPublicKey pk' -> return pk'
-                          _                -> raise "Not an RSA key" -- FIXME
+        requestorDID :: DID <- awaitSecure conn sessionKey -- FIXME retry
 
-    sessionKey       <- Session.Key <$> Symmetric.genAES256
-    secretSessionKey <- ensureM $ RSA.OAEP.encrypt oaepParams reqExchangeKey (Lazy.toStrict $ encode sessionKey)
+        wsSend conn =<< Payload.toSecure sessionKey (undefined :: UCAN.JWT) -- FIXME UCAN minus potency
 
-    Publish.sendSecure topic sessionKey $ decodeUtf8Lenient secretSessionKey
+        pin <- awaitSecure conn sessionKey
+        confirmChallenge pin >>= \case
+          False ->
+            wsSend conn =<< Payload.toSecure sessionKey Linking.Denied
 
-    requestorDID :: DID <- waitToReceive topic
+          True -> do
+            confirmUCANDelegation requestorDID
 
-    Publish.sendSecure topic sessionKey $ (undefined :: UCAN.JWT) -- FIXME UCAN minus potency
+            delegatedUCAN :: UCAN.JWT <- delegateAllTo requestorDID
+            wsSend conn =<< Payload.toSecure sessionKey delegatedUCAN
 
-    pin <- waitToReceiveSecure sessionKey topic
-    confirmChallenge pin >>= \case
-      False ->
-        Publish.sendSecure topic sessionKey Linking.Denied
+awaitSecure ::
+  ( MonadIO     m
+  , MonadLogger m
+  , MonadRaise  m
+  , m `Raises` String
+  , m `Raises` CryptoError
+  , FromJSON a
+  )
+  => WS.Connection
+  -> Session.Key
+  -> m a
+awaitSecure conn (Session.Key aes256) = do
+  Session.Payload
+    { secretMessage = secretMsg@(EncryptedPayload ciphertext)
+    , iv
+    } <- ensureM $ wsReceiveJSON conn
 
-      True -> do
-        confirmUCANDelegation requestorDID
+  case Symmetric.decrypt aes256 iv secretMsg of
+    Left err -> do
+      -- FIXME MOVE THIS PART TO the decrypt function, even it that means wrapping in m
+      logDebug $ "Unable to decrypt message via AES256: " <> decodeUtf8Lenient ciphertext
+      raise err
 
-        delegatedUCAN :: UCAN.JWT <- delegateAllTo requestorDID
-        Publish.sendSecure topic sessionKey delegatedUCAN
+    Right clearBS ->
+      case eitherDecodeStrict $ "Bearer " <> clearBS of -- FIXME total hack
+        -- FIXME better "can't decode JSON" error
+        Left err -> do
+          logDebug $ "Unable to decode AES-decrypted message. Raw = " <> decodeUtf8Lenient clearBS
+          raise err
+
+        Right a ->
+          return a
+
+wsSend ::
+  ( MonadLogger m
+  , MonadIO m
+  , ToJSON msg
+  , Display msg
+  )
+  => WS.Connection
+  -> msg
+  -> m ()
+wsSend conn msg = do
+  logDebug $ "Pushing over cleartext websocket: " <> textDisplay msg
+  liftIO $ WS.sendDataMessage conn (WS.Binary $ encode msg)
 
 confirmChallenge ::
   ( MonadCleanup m
@@ -144,33 +239,3 @@ delegateAllTo did = do
 
 listenForRequestorExchangeDID = do
   undefined
-
-waitToReceive :: (MonadIO m, m `Sub.SubscribesTo` a) => Topic -> m a
-waitToReceive topic =
-  IPFS.PubSub.Subscription.withQueue topic \tq -> do
-    Sub.Message {payload} <- liftIO . atomically $ readTQueue tq
-    return payload
-
-waitToReceiveSecure ::
-  forall m a .
-  ( MonadIO     m
-  , MonadLogger m
-  , MonadRescue m
-  , m `Sub.SubscribesTo` Session.Payload a
-  , m `Raises` String
-  , m `Raises` CryptoError
-  , FromJSON a
-  )
-  => Session.Key
-  -> Topic
-  -> m a
-waitToReceiveSecure sessionKey topic =
-  IPFS.PubSub.Subscription.withQueue topic \tq -> go tq
-  where
-    go :: TQueue (Sub.Message (Session.Payload a)) -> m a
-    go tq = undefined
-     --  attempt (Secure.popMessage sessionKey tq) >>= \case
-     --    Left  _   -> go tq
-     --    Right val -> return val
-
-fetchUCANForDID = undefined

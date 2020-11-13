@@ -1,6 +1,5 @@
 module Fission.CLI.Linking.Request
   ( requestFrom
-  , broadcastDID
   , getAuthenticatedSessionKey
   , secureSendPIN
   , listenForFinalUCAN
@@ -66,34 +65,10 @@ import           Fission.Security.EncryptedWith.Types
 
 import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
 
--- data RequestorMessageReceive
---   = GetSessionKey (Session.Key `EncryptedWith` RSA.PrivateKey) -- Step 3
---   | GetUCAN       (Payload UCAN.JWT) -- Steps 4 & 5
---
--- instance FromJSON RequestorMessageReceive where
---   parseJSON jsn =
---     ucan <|> sessionKey
---     where
---       ucan       = GetUCAN       <$> parseJSON jsn
---       sessionKey = GetSessionKey <$> parseJSON jsn
---
--- data RequestorMessageSend
---   = BroadcastDID DID          -- Step 2
---   | SendPIN (Payload PIN.PIN) -- Step 5
---   deriving (Show, Eq)
---
--- instance Display RequestorMessageSend where
---   textDisplay = Text.pack . show
---
--- instance ToJSON RequestorMessageSend where
---   toJSON (BroadcastDID did) = toJSON did
---   toJSON (SendPIN pin)      = toJSON pin
-
 requestFrom ::
   ( MonadLogger     m
   , MonadIPFSDaemon m
   , MonadKeyStore   m ExchangeKey
-  , MonadLocalIPFS  m
   , MonadIO         m
   , MonadTime       m
   , JWT.Resolver    m
@@ -114,19 +89,18 @@ requestFrom targetDID myDID = do
   control \runInBase ->
     -- Step 1
     WS.runClient "runfission.net" 443 ("/user/link/did:key:z" <> show targetDID) \conn -> do
-      runInBase do
-        reattempt 10 do
-          throwawaySK :: RSA.PrivateKey <- KeyStore.generate (Proxy @ExchangeKey)
-          throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
+      runInBase $ reattempt 10 do
+        throwawaySK :: RSA.PrivateKey <- KeyStore.generate (Proxy @ExchangeKey)
+        throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
 
-          let throwawayDID = DID Key (RSAPublicKey throwawayPK)
+        let throwawayDID = DID Key (RSAPublicKey throwawayPK)
 
-          wsSend conn throwawayDID -- STEP 2
-          sessionKey <- getAuthenticatedSessionKey conn targetDID throwawaySK -- STEPS 3 & 4
-          secureSendPIN conn sessionKey -- STEP 5
+        wsSend conn throwawayDID -- STEP 2
+        sessionKey <- getAuthenticatedSessionKey conn targetDID throwawaySK -- STEPS 3 & 4
+        secureSendPIN conn sessionKey -- STEP 5
 
-          ucan <- listenForFinalUCAN conn sessionKey targetDID myDID -- STEP 6
-          storeUCAN ucan
+        ucan <- listenForFinalUCAN conn sessionKey targetDID myDID -- STEP 6
+        storeUCAN ucan
 
 wsSend ::
   ( MonadLogger m
@@ -143,6 +117,9 @@ wsSend conn msg = do
 
 storeUCAN :: MonadIO m => JWT -> m ()
 storeUCAN = undefined
+
+storeWNFSKeyFor :: Monad m => DID -> FilePath -> Symmetric.Key -> m ()
+storeWNFSKeyFor did path aes = undefined
 
 -- STEP 5
 secureSendPIN ::
@@ -176,28 +153,16 @@ listenForFinalUCAN ::
   -> Session.Key
   -> DID
   -> DID
-  -> m UCAN.JWT -- FIXME Or the raw bytestirng version? At minimum want to validate internally
-listenForFinalUCAN conn sessionKey targetDID recipientDID = go
-  where
-    go = do
-      Bearer.Token {..} <- awaitSecureUCAN conn sessionKey
-      ensureM $ UCAN.check recipientDID rawContent jwt
-      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
+  -> m UCAN.RawContent
+listenForFinalUCAN conn sessionKey targetDID recipientDID =
+  reattempt 100 do
+    Bearer.Token {..} <- awaitSecureUCAN conn sessionKey
+    ensureM $ UCAN.check recipientDID rawContent jwt
+    UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
-      if sender == targetDID
-        then return jwt
-        else go
-
-broadcastDID ::
-  ( MonadLocalIPFS m
-  , MonadLogger    m
-  , MonadRaise     m
-  , m `Raises` IPFS.Process.Error
-  )
-  => Topic
-  -> DID
-  -> m ()
-broadcastDID topic did = Publish.sendClear topic did
+    if sender == targetDID
+      then return rawContent
+      else raise "no ucan" -- FIXME
 
 getAuthenticatedSessionKey ::
   ( MonadIO      m
@@ -210,7 +175,6 @@ getAuthenticatedSessionKey ::
   , m `Raises` String
   , m `Raises` CryptoError
   , m `Raises` JWT.Error
-  -- , m `Raises` UCAN.Resolver.Error
   )
   => WS.Connection
   -> DID
@@ -320,10 +284,11 @@ awaitSecureUCAN ::
   , MonadRaise  m
   , m `Raises` String
   , m `Raises` CryptoError
+  , FromJSON a
   )
   => WS.Connection
   -> Session.Key
-  -> m Bearer.Token
+  -> m a
 awaitSecureUCAN conn (Session.Key aes256) = do
   -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?
   -- FIXME or at caller?
