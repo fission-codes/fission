@@ -184,7 +184,9 @@ listenToLinkRequests targetDID = do
 
         let
           -- FIXME next line jus a sketch
-          sessionKeyProof = authenticateSessionKey reqExchangeKey fromEdSK proof sessionKey now =
+          now = undefined
+          fromEdSK = undefined
+          sessionKeyProof = authenticateSessionKey reqExchangeKey fromEdSK proof sessionKey now
 
         wsSend conn =<< Payload.toSecure aes sessionKeyProof
 

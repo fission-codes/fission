@@ -7,11 +7,13 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
+import           Fission.PubSub.Class
+import           Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
+
 import           Crypto.Hash                               as Crypto
 import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           Crypto.Random
 
-import           Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
 
 import qualified Data.Yaml                                 as YAML
 
@@ -174,6 +176,9 @@ instance
     did <- asks Base.serverDID
     logDebug $ "Loaded Server DID: " <> textDisplay did
     return did
+
+instance MonadPubSub (FissionCLI errs cfg) where
+  type Connection (FissionCLI errs cfg) = WS.Connection
 
 instance
   ( IsMember Key.Error errs
