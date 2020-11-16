@@ -317,7 +317,7 @@ authenticateSessionKey ::
      DID
   -> SecretKey SigningKey
   -> JWT.Proof
-  -> Session.Key
+  -> Symmetric.Key AES256
   -> UTCTime
   -> JWT
 authenticateSessionKey toDID fromEdSK proof sessionKey now = JWT {..}

@@ -251,6 +251,43 @@ instance
           Right payload ->
             return payload
 
+instance
+  ( HasLogFunc cfg
+  , String    `IsMember` errs -- FIXME better erro r
+  , RSA.Error `IsMember` errs -- FIXME better erro r
+  , Contains errs errs
+  , Display (OpenUnion errs)
+  )
+  => MonadPubSubSecure (FissionCLI errs cfg) RSA.PrivateKey where
+  type SecurePayload (FissionCLI errs cfg) RSA.PrivateKey expected =
+    expected `EncryptedWith` RSA.PrivateKey
+
+  genSessionKey () = Key.Store.generate (Proxy @ExchangeKey)
+
+  toSecurePayload sk msg = do
+    let
+      clearBS = Lazy.toStrict $ encode msg
+      pk      = RSA.toPublic sk
+
+    cipherBS <- ensureM $ RSA.OAEP.encrypt oaepParams pk clearBS
+    return . EncryptedPayload $ Lazy.fromStrict cipherBS
+
+  fromSecurePayload sk (EncryptedPayload msg) =
+    RSA.OAEP.decryptSafer oaepParams sk (Lazy.toStrict msg) >>= \case
+      Left err -> do
+        logDebug $ "Unable to decrypt message via RSA: " <> msg
+        raise err
+
+      Right clearBS ->
+        case eitherDecodeStrict clearBS of
+          -- FIXME better "can't decode JSON" error
+          Left err -> do
+            logDebug $ "Unable to decode RSA-decrypted message. Raw = " <> decodeUtf8Lenient clearBS
+            raise err
+
+          Right payload ->
+            return payload
+
 oaepParams ::
   ( ByteArray       output
   , ByteArrayAccess seed

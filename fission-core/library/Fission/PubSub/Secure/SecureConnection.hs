@@ -18,5 +18,5 @@ secureConnection ::
   -> (SecureConnection m cipher -> m a)
   -> m a
 secureConnection conn genData withSecureConn = do
-  sessionKey <- genSessionKey genData
+  key <- genSessionKey genData
   withSecureConn SecureConnection {..}

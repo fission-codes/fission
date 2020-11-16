@@ -2,11 +2,13 @@ module Fission.PubSub
   ( listen
   , broadcast
   , module Fission.PubSub.Class
+  , module Fission.PubSub.Topic.Types
   ) where
 
 import           Fission.Prelude
 
 import           Fission.PubSub.Class
+import           Fission.PubSub.Topic.Types
 
 listen ::
   ( MonadPubSub m
@@ -22,8 +24,6 @@ listen conn = do
 
 broadcast ::
   ( MonadPubSub m
-  , MonadRaise  m
-  , m `Raises` String
   , ToJSON msg
   )
   => Connection m

@@ -13,19 +13,6 @@ import           Fission.PubSub
 import           Fission.PubSub.Secure.Class
 import           Fission.PubSub.Secure.SecureConnection
 
-secureBroadcast ::
-  ( MonadPubSubSecure m cipher
-  , MonadRaise        m
-  , m `Raises` String
-  , ToJSON msg
-  , ToJSON (SecurePayload m cipher msg)
-  )
-  => SecureConnection m cipher
-  -> msg
-  -> m ()
-secureBroadcast SecureConnection {..} msg =
-  broadcast conn =<< toSecurePayload sessionKey msg
-
 secureListen ::
   ( MonadPubSubSecure m cipher
   , MonadRaise        m
@@ -37,4 +24,15 @@ secureListen ::
   -> m msg
 secureListen SecureConnection {..} = do
   payload <- listen conn
-  ensureM $ fromSecurePayload sessionKey payload
+  ensureM $ fromSecurePayload key payload
+
+secureBroadcast ::
+  ( MonadPubSubSecure m cipher
+  , ToJSON msg
+  , ToJSON (SecurePayload m cipher msg)
+  )
+  => SecureConnection m cipher
+  -> msg
+  -> m ()
+secureBroadcast SecureConnection {..} msg =
+  broadcast conn =<< toSecurePayload key msg

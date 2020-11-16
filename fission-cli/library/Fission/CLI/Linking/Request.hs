@@ -1,14 +1,10 @@
-module Fission.CLI.Linking.Request
-  ( requestFrom
-  , getAuthenticatedSessionKey
-  , secureSendPIN
-  , listenForFinalUCAN
-  , listenForSessionKey
-  , listenForValidProof
-  ) where
+module Fission.CLI.Linking.Request (requestFrom) where
 
 import qualified Fission.Key.Symmetric.AES256.Payload.Types as AES256
-
+import           Fission.PubSub                             as PubSub
+import qualified Fission.PubSub.DM.Channel.Types            as DM
+import           Fission.PubSub.Secure                      as PubSub.Secure
+import           Servant.Client.Core
 
 import           Crypto.Cipher.AES                          (AES256)
 import qualified Fission.Key.Symmetric                      as Symmetric
@@ -71,14 +67,21 @@ import           Fission.Security.EncryptedWith.Types
 import           Fission.Web.Auth.Token.Bearer.Types        as Bearer
 
 requestFrom ::
-  ( MonadLogger     m
-  , MonadIPFSDaemon m
-  , MonadKeyStore   m ExchangeKey
-  , MonadIO         m
-  , MonadTime       m
-  , JWT.Resolver    m
-  , MonadBaseControl IO m
-  , MonadRescue     m
+  ( MonadLogger       m
+  , MonadIPFSDaemon   m
+  , MonadKeyStore     m ExchangeKey
+  , MonadIO           m
+  , MonadTime         m
+  , JWT.Resolver      m
+  , MonadRescue       m
+  , MonadPubSub       m
+  , MonadPubSubSecure m (Symmetric.Key AES256)
+  , MonadPubSubSecure m RSA.PrivateKey
+  , MonadPubSubSecure m DM.Channel
+  , ToJSON (SecurePayload m (Symmetric.Key AES256) PIN.PIN)
+  , ToJSON (SecurePayload m (Symmetric.Key AES256) Token)
+  , FromJSON (SecurePayload m (Symmetric.Key AES256) Token)
+  , FromJSON (SecurePayload m RSA.PrivateKey (Symmetric.Key AES256))
   , m `Raises` CryptoError
   , m `Raises` IPFS.Process.Error
   , m `Raises` String
@@ -89,169 +92,42 @@ requestFrom ::
   => DID
   -> DID
   -> m ()
-requestFrom targetDID myDID = do
- -- WebSocket class? Linking class?
-  control \runInBase ->
-    -- Step 1
-    WS.runClient "runfission.net" 443 ("/user/link/did:key:z" <> show targetDID) \conn -> do
-      runInBase $ reattempt 10 do
-        throwawaySK <- KeyStore.generate (Proxy @ExchangeKey)
-        throwawayPK <- KeyStore.toPublic (Proxy @ExchangeKey) throwawaySK
+requestFrom targetDID myDID =
+  PubSub.connect baseURL topic \conn -> reattempt 10 do
+    aesKey <- secureConnection conn () \rsaConn@SecureConnection {key} ->
+      reattempt 10 do
+        broadcast conn $ DID Key (RSAPublicKey $ RSA.private_pub key) -- STEP 2
 
-        let throwawayDID = DID Key (RSAPublicKey throwawayPK)
+        reattempt 10 do
+          -- STEP 3
+          aesKey      <- secureListen rsaConn
+          bearerToken <- secureListen SecureConnection {conn, key = aesKey}-- sessionKey
 
-        wsSend conn throwawayDID -- STEP 2
-        sessionKey <- getAuthenticatedSessionKey conn targetDID throwawaySK -- STEPS 3 & 4
-        secureSendPIN conn sessionKey -- STEP 5
+          -- STEP 4
+          validateProof bearerToken targetDID myDID aesKey
+          return aesKey
 
-        rawUCAN <- listenForFinalUCAN conn sessionKey targetDID myDID -- STEP 6
-        storeUCAN rawUCAN
+    let aesConn = SecureConnection {conn, key = aesKey}
 
-wsSend ::
-  ( MonadLogger m
-  , MonadIO m
-  , ToJSON msg
-  , Display msg
-  )
-  => WS.Connection
-  -> msg
-  -> m ()
-wsSend conn msg = do
-  logDebug $ "Pushing over cleartext websocket: " <> textDisplay msg
-  liftIO $ WS.sendDataMessage conn (WS.Binary $ encode msg)
+    -- Step 5
+    pin <- PIN.create
+    secureBroadcast aesConn pin
 
-storeUCAN :: MonadIO m => UCAN.RawContent -> m ()
-storeUCAN = undefined
+    -- STEP 6
+    reattempt 100 do
+      Bearer.Token {..} <- secureListen aesConn
+      ensureM $ UCAN.check myDID rawContent jwt
+      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
-storeWNFSKeyFor :: Monad m => DID -> FilePath -> Symmetric.Key AES256 -> m ()
-storeWNFSKeyFor did path aes = undefined
+      if sender == targetDID
+        then storeUCAN rawContent
+        else raise "no ucan" -- FIXME
 
--- STEP 5
-secureSendPIN ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadRandom    m
-  , MonadRaise     m
-  , m `Raises` CryptoError
-  )
-  => WS.Connection
-  -> (Symmetric.Key AES256)
-  -> m ()
-secureSendPIN conn sessionKey = do
-  pin       <- PIN.create
-  securePIN <- Payload.toSecure sessionKey pin
-  undefined
-  -- wsSend conn securePIN
-
--- FIXME getFinalUCAN or awaitFinalUCAN
-listenForFinalUCAN ::
-  ( MonadIO      m
-  , JWT.Resolver m
-  , MonadTime    m
-  , MonadLogger  m
-  , MonadRescue  m
-  , m `Raises` UCAN.Resolver.Error
-  , m `Raises` JWT.Error
-  , m `Raises` CryptoError
-  , m `Raises` String
-  )
-  => WS.Connection
-  -> (Symmetric.Key AES256)
-  -> DID
-  -> DID
-  -> m UCAN.RawContent
-listenForFinalUCAN conn sessionKey targetDID recipientDID =
-  reattempt 100 do
-    Bearer.Token {..} <- awaitSecureUCAN conn sessionKey
-    ensureM $ UCAN.check recipientDID rawContent jwt
-    UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
-
-    if sender == targetDID
-      then return rawContent
-      else raise "no ucan" -- FIXME
-
-getAuthenticatedSessionKey ::
-  ( MonadIO      m
-  , MonadLogger  m
-  , MonadRandom  m
-  , MonadTime    m
-  , JWT.Resolver m
-  , MonadRescue  m
-  , m `Raises` RSA.Error
-  , m `Raises` String
-  , m `Raises` CryptoError
-  , m `Raises` JWT.Error
-  )
-  => WS.Connection
-  -> DID
-  -> RSA.PrivateKey
-  -> m (Symmetric.Key AES256)
-getAuthenticatedSessionKey conn targetDID sk = do
-  logDebug @Text "Listening for authenticated session key"
-
-  attempt go >>= \case
-    Left  _   -> go
-    Right key -> return key
   where
-    go = do
-      -- STEP 3
-      sessionKey <- listenForSessionKey conn sk
+    topic   = PubSub.Topic $ textDisplay targetDID
+    baseURL = BaseUrl Https "runfission.net" 443 "/user/link"
 
-      -- STEP 4
-      listenForValidProof conn sessionKey targetDID
-
-      -- Bootstrapped & validated session key
-      return sessionKey
-
-wsReceiveJSON :: (MonadIO m, FromJSON a) => WS.Connection -> m (Either String a)
-wsReceiveJSON conn = eitherDecode <$> wsReceive conn
-
-wsReceive :: MonadIO m => WS.Connection -> m Lazy.ByteString
-wsReceive conn =
-  liftIO (WS.receiveDataMessage conn) <&> \case
-    WS.Text   bs _ -> bs
-    WS.Binary bs   -> bs
-
--- STEP 3
-listenForSessionKey ::
-  ( MonadIO     m
-  , MonadLogger m
-  , MonadRandom m
-  , MonadRescue m
-  , m `Raises` RSA.Error
-  , m `Raises` String -- FIXME better error
-  )
-  => WS.Connection
-  -> RSA.PrivateKey
-  -> m (Symmetric.Key AES256)
-listenForSessionKey conn sk =
-  reattempt 100 do
-    secretMsg <- Lazy.toStrict <$> wsReceive conn
-
-    -- FIXME probably move to own module in core
-    RSA.OAEP.decryptSafer oaepParams sk secretMsg >>= \case
-      Left err -> do
-        logDebug $ "Unable to decrypt message via RSA: " <> decodeUtf8Lenient secretMsg
-        raise err
-
-      Right clearBS ->
-        case eitherDecodeStrict clearBS of
-          -- FIXME better "can't decode JSON" error
-          Left err -> do
-            logDebug $ "Unable to decode RSA-decrypted message. Raw = " <> decodeUtf8Lenient clearBS
-            raise err
-
-          Right payload ->
-            return payload
-
-oaepParams ::
-  ( ByteArray       output
-  , ByteArrayAccess seed
-  )
-  => RSA.OAEP.OAEPParams SHA256 seed output
-oaepParams = RSA.OAEP.defaultOAEPParams SHA256
-
-listenForValidProof ::
+validateProof ::
   ( MonadIO      m
   , MonadLogger  m
   , MonadTime    m
@@ -261,14 +137,13 @@ listenForValidProof ::
   , m `Raises` String -- FIXME better error
   , m `Raises` CryptoError
   )
-  => WS.Connection
-  -> Symmetric.Key AES256
+  => Bearer.Token
   -> DID
+  -> DID
+  -> Symmetric.Key AES256
   -> m UCAN.JWT
-listenForValidProof conn sessionKey@(Symmetric.Key rawKey) targetDID = do
-  logDebug @Text "Lisening for valid UCAN proof"
-
-  Bearer.Token {..} <- awaitSecureUCAN conn sessionKey -- FIXME rename to popSecureMsg
+validateProof Bearer.Token {..} myDID targetDID sessionAES = do
+  ensureM $ UCAN.check myDID rawContent jwt
 
   case (jwt |> claims |> potency) == AuthNOnly of
     False ->
@@ -279,42 +154,13 @@ listenForValidProof conn sessionKey@(Symmetric.Key rawKey) targetDID = do
         [] ->
           raise "No facts" -- FIXME
 
-        (Unknown aesFact : _) ->
-          case encodeUtf8 aesFact == rawKey of
+        (SessionKey aesFact : _) ->
+          case aesFact == sessionAES of
             False -> raise "Sesison key doesn't match! ABORT!"
             True  -> ensureM $ UCAN.check targetDID rawContent jwt
 
-awaitSecureUCAN ::
-  ( MonadIO     m
-  , MonadLogger m
-  , MonadRaise  m
-  , m `Raises` String
-  , m `Raises` CryptoError
-  , FromJSON a
-  )
-  => WS.Connection
-  -> Symmetric.Key AES256
-  -> m a
-awaitSecureUCAN conn aes256 = do
-  -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?
-  -- FIXME or at caller?
-  AES256.Payload
-    { secretMessage = secretMsg@(EncryptedPayload ciphertext)
-    , iv
-    } <- ensureM $ wsReceiveJSON conn
+storeUCAN :: MonadIO m => UCAN.RawContent -> m ()
+storeUCAN = undefined
 
-  case Symmetric.decrypt aes256 iv secretMsg of
-    Left err -> do
-      -- FIXME MOVE THIS PART TO the decrypt function, even it that means wrapping in m
-      logDebug $ "Unable to decrypt message via AES256: " <> ciphertext
-      raise err
-
-    Right clearBS ->
-      case eitherDecodeStrict $ "Bearer " <> clearBS of -- FIXME total hack
-        -- FIXME better "can't decode JSON" error
-        Left err -> do
-          logDebug $ "Unable to decode AES-decrypted message. Raw = " <> clearBS
-          raise err
-
-        Right bearer ->
-          return bearer
+storeWNFSKeyFor :: Monad m => DID -> FilePath -> Symmetric.Key AES256 -> m ()
+storeWNFSKeyFor did path aes = undefined

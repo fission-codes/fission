@@ -13,7 +13,9 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.RawContent
   ) where
 
-import qualified Fission.IPFS.PubSub.Session.Key.Types            as Session
+-- import qualified Fission.IPFS.PubSub.Session.Key.Types            as Session
+import           Crypto.Cipher.AES                                (AES256)
+import qualified Fission.Key.Symmetric.Types                      as Symmetric
 
 
 import qualified System.IO.Unsafe                                 as Unsafe
@@ -129,7 +131,7 @@ instance FromJSON JWT where
 -----------
 
 data Fact
-  = SessionKey Session.Key
+  = SessionKey (Symmetric.Key AES256)
   | Unknown Text
   deriving Eq
 

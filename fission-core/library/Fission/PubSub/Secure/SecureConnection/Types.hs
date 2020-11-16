@@ -6,6 +6,6 @@ import           Fission.PubSub.Class
 import           Fission.PubSub.Secure.Class
 
 data SecureConnection m cipher = SecureConnection
-  { conn       :: Connection m
-  , sessionKey :: cipher
+  { conn :: Connection m
+  , key  :: cipher
   }
