@@ -63,31 +63,17 @@ import           Fission.CLI.Key.Store                     as KeyStore
 import qualified Fission.CLI.Linking.PIN                   as PIN
 
 import qualified Fission.IPFS.PubSub.Publish               as Publish
-import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
-
 
 import           Fission.CLI.Environment.Class
 
 requestRoot ::
   ( MonadIO          m
-  , MonadBaseControl IO m
   , MonadLogger      m
   , MonadKeyStore    m ExchangeKey
-  , MonadLocalIPFS   m
-  , MonadIPFSDaemon  m
-  , MonadIO          m
-  , MonadTime        m
-  , JWT.Resolver     m
   , MonadEnvironment m
   , MonadRescue      m
   , m `Raises` NotFound DID
   , m `Raises` DNS.DNSError
-  , m `Raises` CryptoError
-  , m `Raises` IPFS.Process.Error
-  , m `Raises` String
-  , m `Raises` RSA.Error
-  , m `Raises` JWT.Error
-  , m `Raises` UCAN.Resolver.Error
   , m `Raises` Key.Error
   )
   => Username
@@ -99,7 +85,7 @@ requestRoot username = do
   sk        <- Key.Store.fetch    (Proxy @SigningKey)
   pk        <- Key.Store.toPublic (Proxy @SigningKey) sk
 
-  Linking.requestFrom targetDID (DID Key $ Ed25519PublicKey pk)
+  undefined -- Linking.requestFrom targetDID (DID Key $ Ed25519PublicKey pk)
 
 getDIDByUsername ::
   ( MonadIO     m

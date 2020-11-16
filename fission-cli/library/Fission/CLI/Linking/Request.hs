@@ -1,93 +1,49 @@
 module Fission.CLI.Linking.Request (requestFrom) where
 
-import qualified Fission.Key.Symmetric.AES256.Payload.Types as AES256
-import           Fission.PubSub                             as PubSub
-import qualified Fission.PubSub.DM.Channel.Types            as DM
-import           Fission.PubSub.Secure                      as PubSub.Secure
+import           Crypto.Cipher.AES                         (AES256)
+import qualified Crypto.PubKey.RSA.Types                   as RSA
+
 import           Servant.Client.Core
-
-import           Crypto.Cipher.AES                          (AES256)
-import qualified Fission.Key.Symmetric                      as Symmetric
-
-import           Data.ByteArray                             as ByteArray
-
-import           Crypto.Error
-import           Crypto.Hash.Algorithms
-import qualified Crypto.PubKey.RSA.OAEP                     as RSA.OAEP
-import qualified Crypto.PubKey.RSA.Types                    as RSA
-import           Crypto.Random.Types
-
-import qualified RIO.ByteString.Lazy                        as Lazy
-import qualified RIO.Text                                   as Text
-
-import           Crypto.Error
-import qualified Crypto.PubKey.RSA.Types                    as RSA
-import           Crypto.Random.Types
-
-import           Network.IPFS.Local.Class                   as IPFS
-import qualified Network.IPFS.Process.Error                 as IPFS.Process
-
-import qualified Network.WebSockets                         as WS
 
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Public.Types
-import qualified Fission.Key.Symmetric                      as Symmetric
-
+import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
 
-import           Fission.Security.EncryptedWith.Types
+import           Fission.Key.Asymmetric.Public.Types
+import qualified Fission.Key.Symmetric                     as Symmetric
 
-import           Fission.Authorization.Potency.Types
-import           Fission.Web.Auth.Token.JWT                 as JWT
-import qualified Fission.Web.Auth.Token.JWT                 as UCAN
-import qualified Fission.Web.Auth.Token.JWT.Error           as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Class  as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error  as UCAN.Resolver
-import qualified Fission.Web.Auth.Token.JWT.Validation      as UCAN
-import qualified Fission.Web.Auth.Token.UCAN                as UCAN
+import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
+import           Fission.Web.Auth.Token.JWT                as JWT
+import qualified Fission.Web.Auth.Token.JWT                as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Error          as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
+import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
+import qualified Fission.Web.Auth.Token.UCAN               as UCAN
 
-import qualified Fission.IPFS.PubSub.Session.Payload        as Session
+import           Fission.PubSub                            as PubSub
+import           Fission.PubSub.Secure                     as PubSub.Secure
 
-import qualified Fission.IPFS.PubSub.Subscription           as Sub
-import qualified Fission.IPFS.PubSub.Subscription           as IPFS.PubSub.Subscription
-import           Fission.IPFS.PubSub.Topic
+import qualified Fission.CLI.Linking.PIN                   as PIN
 
-import           Fission.CLI.Key.Store                      as KeyStore
-import qualified Fission.CLI.Linking.PIN                    as PIN
-
-import           Fission.CLI.IPFS.Daemon                    as IPFS.Daemon
-
-import qualified Fission.IPFS.PubSub.Publish                as Publish
-import qualified Fission.IPFS.PubSub.Subscription.Secure    as Secure
-
-import           Fission.IPFS.PubSub.Session.Payload        as Payload
-import           Fission.Security.EncryptedWith.Types
-
-import           Fission.Web.Auth.Token.Bearer.Types        as Bearer
+type AESPayload m expected = SecurePayload m (Symmetric.Key AES256) expected
+type RSAPayload m expected = SecurePayload m RSA.PrivateKey expected
 
 requestFrom ::
   ( MonadLogger       m
-  , MonadIPFSDaemon   m
-  , MonadKeyStore     m ExchangeKey
   , MonadIO           m
   , MonadTime         m
   , JWT.Resolver      m
-  , MonadRescue       m
-  , MonadPubSub       m
   , MonadPubSubSecure m (Symmetric.Key AES256)
   , MonadPubSubSecure m RSA.PrivateKey
-  , MonadPubSubSecure m DM.Channel
-  , ToJSON (SecurePayload m (Symmetric.Key AES256) PIN.PIN)
-  , ToJSON (SecurePayload m (Symmetric.Key AES256) Token)
-  , FromJSON (SecurePayload m (Symmetric.Key AES256) Token)
-  , FromJSON (SecurePayload m RSA.PrivateKey (Symmetric.Key AES256))
-  , m `Raises` CryptoError
-  , m `Raises` IPFS.Process.Error
+  , MonadRescue       m
   , m `Raises` String
-  , m `Raises` RSA.Error
   , m `Raises` JWT.Error
   , m `Raises` UCAN.Resolver.Error
+  , ToJSON   (AESPayload m PIN.PIN) -- FIXME can make cleaner with a constraint alias on pubsubsecure
+  , FromJSON (AESPayload m Token)
+  , FromJSON (RSAPayload m (Symmetric.Key AES256))
   )
   => DID
   -> DID
@@ -129,13 +85,11 @@ requestFrom targetDID myDID =
 
 validateProof ::
   ( MonadIO      m
-  , MonadLogger  m
   , MonadTime    m
   , JWT.Resolver m
   , MonadRaise   m
   , m `Raises` JWT.Error
   , m `Raises` String -- FIXME better error
-  , m `Raises` CryptoError
   )
   => Bearer.Token
   -> DID
@@ -151,13 +105,13 @@ validateProof Bearer.Token {..} myDID targetDID sessionAES = do
 
     True ->
       case (jwt |> claims |> facts) of
-        [] ->
-          raise "No facts" -- FIXME
-
         (SessionKey aesFact : _) ->
           case aesFact == sessionAES of
             False -> raise "Sesison key doesn't match! ABORT!"
             True  -> ensureM $ UCAN.check targetDID rawContent jwt
+
+        _ ->
+          raise "No session key fact" -- FIXME
 
 storeUCAN :: MonadIO m => UCAN.RawContent -> m ()
 storeUCAN = undefined

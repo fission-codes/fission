@@ -267,7 +267,7 @@ instance
   toSecurePayload sk msg = do
     let
       clearBS = Lazy.toStrict $ encode msg
-      pk      = RSA.toPublic sk
+      pk      = RSA.private_pub sk
 
     cipherBS <- ensureM $ RSA.OAEP.encrypt oaepParams pk clearBS
     return . EncryptedPayload $ Lazy.fromStrict cipherBS
