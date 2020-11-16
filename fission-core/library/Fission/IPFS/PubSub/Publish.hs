@@ -47,4 +47,4 @@ sendSecure ::
   -> m ()
 sendSecure topic (Session.Key aesKey) msg = do
   encrypted <- Payload.toSecure aesKey msg
-  sendClear topic encrypted
+  undefined -- sendClear topic encrypted

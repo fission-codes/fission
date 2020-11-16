@@ -7,66 +7,68 @@ module Fission.CLI.Linking.Request
   , listenForValidProof
   ) where
 
-import           Crypto.Cipher.AES                         (AES256)
-import qualified Fission.Key.Symmetric                     as Symmetric
+import qualified Fission.Key.Symmetric.AES256.Payload.Types as AES256
 
-import           Data.ByteArray                            as ByteArray
+
+import           Crypto.Cipher.AES                          (AES256)
+import qualified Fission.Key.Symmetric                      as Symmetric
+
+import           Data.ByteArray                             as ByteArray
 
 import           Crypto.Error
 import           Crypto.Hash.Algorithms
-import qualified Crypto.PubKey.RSA.OAEP                    as RSA.OAEP
-import qualified Crypto.PubKey.RSA.Types                   as RSA
+import qualified Crypto.PubKey.RSA.OAEP                     as RSA.OAEP
+import qualified Crypto.PubKey.RSA.Types                    as RSA
 import           Crypto.Random.Types
 
-import qualified RIO.ByteString.Lazy                       as Lazy
-import qualified RIO.Text                                  as Text
+import qualified RIO.ByteString.Lazy                        as Lazy
+import qualified RIO.Text                                   as Text
 
 import           Crypto.Error
-import qualified Crypto.PubKey.RSA.Types                   as RSA
+import qualified Crypto.PubKey.RSA.Types                    as RSA
 import           Crypto.Random.Types
 
-import           Network.IPFS.Local.Class                  as IPFS
-import qualified Network.IPFS.Process.Error                as IPFS.Process
+import           Network.IPFS.Local.Class                   as IPFS
+import qualified Network.IPFS.Process.Error                 as IPFS.Process
 
-import qualified Network.WebSockets                        as WS
+import qualified Network.WebSockets                         as WS
 
 import           Fission.Prelude
 
 import           Fission.Key.Asymmetric.Public.Types
-import qualified Fission.Key.Symmetric                     as Symmetric
+import qualified Fission.Key.Symmetric                      as Symmetric
 
 import           Fission.User.DID.Types
 
 import           Fission.Security.EncryptedWith.Types
 
 import           Fission.Authorization.Potency.Types
-import           Fission.Web.Auth.Token.JWT                as JWT
-import qualified Fission.Web.Auth.Token.JWT                as UCAN
-import qualified Fission.Web.Auth.Token.JWT.Error          as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
-import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
-import qualified Fission.Web.Auth.Token.UCAN               as UCAN
+import           Fission.Web.Auth.Token.JWT                 as JWT
+import qualified Fission.Web.Auth.Token.JWT                 as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Error           as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Class  as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error  as UCAN.Resolver
+import qualified Fission.Web.Auth.Token.JWT.Validation      as UCAN
+import qualified Fission.Web.Auth.Token.UCAN                as UCAN
 
-import qualified Fission.IPFS.PubSub.Session.Key.Types     as Session
-import qualified Fission.IPFS.PubSub.Session.Payload       as Session
+import qualified Fission.IPFS.PubSub.Session.Payload        as Session
 
-import qualified Fission.IPFS.PubSub.Subscription          as Sub
-import qualified Fission.IPFS.PubSub.Subscription          as IPFS.PubSub.Subscription
+import qualified Fission.IPFS.PubSub.Subscription           as Sub
+import qualified Fission.IPFS.PubSub.Subscription           as IPFS.PubSub.Subscription
 import           Fission.IPFS.PubSub.Topic
 
-import           Fission.CLI.Key.Store                     as KeyStore
-import qualified Fission.CLI.Linking.PIN                   as PIN
+import           Fission.CLI.Key.Store                      as KeyStore
+import qualified Fission.CLI.Linking.PIN                    as PIN
 
-import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
+import           Fission.CLI.IPFS.Daemon                    as IPFS.Daemon
 
-import qualified Fission.IPFS.PubSub.Publish               as Publish
-import qualified Fission.IPFS.PubSub.Subscription.Secure   as Secure
+import qualified Fission.IPFS.PubSub.Publish                as Publish
+import qualified Fission.IPFS.PubSub.Subscription.Secure    as Secure
 
-import           Fission.IPFS.PubSub.Session.Payload       as Payload
+import           Fission.IPFS.PubSub.Session.Payload        as Payload
 import           Fission.Security.EncryptedWith.Types
 
-import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
+import           Fission.Web.Auth.Token.Bearer.Types        as Bearer
 
 requestFrom ::
   ( MonadLogger     m
@@ -133,12 +135,13 @@ secureSendPIN ::
   , m `Raises` CryptoError
   )
   => WS.Connection
-  -> Session.Key
+  -> (Symmetric.Key AES256)
   -> m ()
-secureSendPIN conn (Session.Key sessionKey) = do
+secureSendPIN conn sessionKey = do
   pin       <- PIN.create
   securePIN <- Payload.toSecure sessionKey pin
-  wsSend conn securePIN
+  undefined
+  -- wsSend conn securePIN
 
 -- FIXME getFinalUCAN or awaitFinalUCAN
 listenForFinalUCAN ::
@@ -153,7 +156,7 @@ listenForFinalUCAN ::
   , m `Raises` String
   )
   => WS.Connection
-  -> Session.Key
+  -> (Symmetric.Key AES256)
   -> DID
   -> DID
   -> m UCAN.RawContent
@@ -182,7 +185,7 @@ getAuthenticatedSessionKey ::
   => WS.Connection
   -> DID
   -> RSA.PrivateKey
-  -> m Session.Key
+  -> m (Symmetric.Key AES256)
 getAuthenticatedSessionKey conn targetDID sk = do
   logDebug @Text "Listening for authenticated session key"
 
@@ -220,7 +223,7 @@ listenForSessionKey ::
   )
   => WS.Connection
   -> RSA.PrivateKey
-  -> m Session.Key
+  -> m (Symmetric.Key AES256)
 listenForSessionKey conn sk =
   reattempt 100 do
     secretMsg <- Lazy.toStrict <$> wsReceive conn
@@ -259,10 +262,10 @@ listenForValidProof ::
   , m `Raises` CryptoError
   )
   => WS.Connection
-  -> Session.Key
+  -> Symmetric.Key AES256
   -> DID
   -> m UCAN.JWT
-listenForValidProof conn sessionKey@(Session.Key (Symmetric.Key rawKey)) targetDID = do
+listenForValidProof conn sessionKey@(Symmetric.Key rawKey) targetDID = do
   logDebug @Text "Lisening for valid UCAN proof"
 
   Bearer.Token {..} <- awaitSecureUCAN conn sessionKey -- FIXME rename to popSecureMsg
@@ -290,12 +293,12 @@ awaitSecureUCAN ::
   , FromJSON a
   )
   => WS.Connection
-  -> Session.Key
+  -> Symmetric.Key AES256
   -> m a
-awaitSecureUCAN conn (Session.Key aes256) = do
+awaitSecureUCAN conn aes256 = do
   -- FIXME maybe just ignore bad messags rather htan blowing up? Or retry?
   -- FIXME or at caller?
-  Session.Payload
+  AES256.Payload
     { secretMessage = secretMsg@(EncryptedPayload ciphertext)
     , iv
     } <- ensureM $ wsReceiveJSON conn
@@ -303,14 +306,14 @@ awaitSecureUCAN conn (Session.Key aes256) = do
   case Symmetric.decrypt aes256 iv secretMsg of
     Left err -> do
       -- FIXME MOVE THIS PART TO the decrypt function, even it that means wrapping in m
-      logDebug $ "Unable to decrypt message via AES256: " <> decodeUtf8Lenient ciphertext
+      logDebug $ "Unable to decrypt message via AES256: " <> ciphertext
       raise err
 
     Right clearBS ->
       case eitherDecodeStrict $ "Bearer " <> clearBS of -- FIXME total hack
         -- FIXME better "can't decode JSON" error
         Left err -> do
-          logDebug $ "Unable to decode AES-decrypted message. Raw = " <> decodeUtf8Lenient clearBS
+          logDebug $ "Unable to decode AES-decrypted message. Raw = " <> clearBS
           raise err
 
         Right bearer ->

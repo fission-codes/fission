@@ -1,4 +1,4 @@
-module Fission.IPFS.PubSub.Session.Payload.Types (Payload (..)) where
+module Fission.Key.Symmetric.AES256.Payload.Types (Payload (..)) where
 
 import           Data.ByteArray                       as ByteArray
 import qualified RIO.Text                             as Text

@@ -42,16 +42,16 @@ encrypt (Symmetric.Key rawKey) iv plaintext =
 
         CryptoPassed blockCipher ->
           let
-            (ciphertext, _) = aeadEncrypt blockCipher . Lazy.toStrict $ encode plaintext
+            (cipherBS, _) = aeadEncrypt blockCipher . Lazy.toStrict $ encode plaintext
           in
-            Right $ EncryptedPayload ciphertext
+            Right . EncryptedPayload $ Lazy.fromStrict cipherBS
 
 decrypt ::
      Symmetric.Key AES256
   -> IV AES256
   -> a `EncryptedWith` AES256
   -> Either CryptoError ByteString
-decrypt (Symmetric.Key aesKey) iv (EncryptedPayload ciphertext) =
+decrypt (Symmetric.Key aesKey) iv (EncryptedPayload cipherLBS) =
   case cipherInit aesKey of
     CryptoFailed err ->
       Left err
@@ -63,10 +63,9 @@ decrypt (Symmetric.Key aesKey) iv (EncryptedPayload ciphertext) =
 
         CryptoPassed blockCipher ->
           let
-            (plaintext, _) = aeadDecrypt blockCipher ciphertext
+            (clearBS, _) = aeadDecrypt blockCipher $ Lazy.toStrict cipherLBS
           in
-            Right plaintext
-
+            Right clearBS
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
 genAES256 :: MonadRandom m => m (Symmetric.Key AES256)

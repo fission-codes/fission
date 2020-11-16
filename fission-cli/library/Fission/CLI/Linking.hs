@@ -1,5 +1,7 @@
 module Fission.CLI.Linking where
 
+import qualified Fission.Key.Symmetric.AES256.Payload.Types       as AES256
+
 import qualified Fission.Internal.Orphanage.ClientM               ()
 import qualified Fission.Key                                      as Key
 
@@ -146,8 +148,6 @@ listenToLinkRequests ::
   , MonadBaseControl IO m -- FIXME more semantic class
   , MonadEnvironment m
   , MonadCleanup     m
-  , m `Sub.SubscribesTo` DID
-  , m `Sub.SubscribesTo` Session.Payload Challenge
   , m `Raises` CryptoError
   , m `Raises` IPFS.Process.Error
   , m `Raises` String
@@ -186,24 +186,25 @@ listenToLinkRequests targetDID = do
           -- FIXME next line jus a sketch
           now = undefined
           fromEdSK = undefined
-          sessionKeyProof = authenticateSessionKey reqExchangeKey fromEdSK proof sessionKey now
+          sessionKeyProof = undefined -- authenticateSessionKey reqExchangeKey fromEdSK proof sessionKey now
 
-        wsSend conn =<< Payload.toSecure aes sessionKeyProof
-
-        requestorDID :: DID <- reattempt 100 $ getSecure conn sessionKey
-
-
-        pin <- getSecure conn sessionKey
-        confirmChallenge pin >>= \case
-          False -> do
-            wsSend conn =<< Payload.toSecure aes Linking.Denied
-            raise Linking.Denied
-
-          True -> do
-            now <- currentTime
-            let delegatedUCAN = delegateAllTo requestorDID machineSK proof now
-            secureUCAN <- Payload.toSecure aes delegatedUCAN
-            wsSend conn secureUCAN
+        return ()
+--         wsSend conn =<< Payload.toSecure aes sessionKeyProof
+--
+--         requestorDID :: DID <- reattempt 100 $ getSecure conn sessionKey
+--
+--
+--         pin <- getSecure conn sessionKey
+--         confirmChallenge pin >>= \case
+--           False -> do
+--             wsSend conn =<< Payload.toSecure aes Linking.Denied
+--             raise Linking.Denied
+--
+--           True -> do
+--             now <- currentTime
+--             let delegatedUCAN = delegateAllTo requestorDID machineSK proof now
+--             secureUCAN <- Payload.toSecure aes delegatedUCAN
+--             wsSend conn secureUCAN
 
 wsReceiveJSON :: (MonadIO m, FromJSON a) => WS.Connection -> m (Either String a)
 wsReceiveJSON conn = eitherDecode <$> wsReceive conn
@@ -226,7 +227,7 @@ getSecure ::
   -> Session.Key
   -> m a
 getSecure conn (Session.Key aes256) = do
-  Session.Payload
+  AES256.Payload
     { secretMessage = secretMsg@(EncryptedPayload ciphertext)
     , iv
     } <- ensureM $ wsReceiveJSON conn
@@ -234,7 +235,7 @@ getSecure conn (Session.Key aes256) = do
   case Symmetric.decrypt aes256 iv secretMsg of
     Left err -> do
       -- FIXME MOVE THIS PART TO the decrypt function, even it that means wrapping in m
-      logDebug $ "Unable to decrypt message via AES256: " <> decodeUtf8Lenient ciphertext
+      logDebug $ "Unable to decrypt message via AES256: " <> ciphertext
       raise err
 
     Right clearBS ->

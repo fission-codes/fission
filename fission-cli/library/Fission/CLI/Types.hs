@@ -7,74 +7,89 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
-import           Fission.PubSub.Class
-import           Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
+import           Crypto.Cipher.AES                          (AES256)
+import           Crypto.Error
+import           Crypto.Hash.Algorithms
+import qualified Crypto.PubKey.RSA.OAEP                     as RSA.OAEP
+import qualified Crypto.PubKey.RSA.Types                    as RSA
+import           Crypto.Random.Types
+import           Data.ByteArray
+import qualified Fission.Key.Symmetric.AES256.Payload.Types as AES
+import qualified Fission.PubSub.DM.Channel.Types            as DM
+import           Fission.PubSub.Secure.Class
+import           Fission.Security.EncryptedWith.Types
+import qualified OpenSSL.RSA                                as OpenSSL
 
-import           Crypto.Hash                               as Crypto
-import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import qualified Fission.Key.Symmetric                      as Symmetric
+import           Fission.PubSub.Class
+import           Fission.Web.Auth.Token.JWT.Resolver.Class  as JWT
+import qualified Network.WebSockets                         as WS
+
+import           Crypto.Hash                                as Crypto
+import qualified Crypto.PubKey.Ed25519                      as Ed25519
 import           Crypto.Random
 
 
-import qualified Data.Yaml                                 as YAML
+import qualified Data.Yaml                                  as YAML
 
 import           Control.Monad.Base
-import           Control.Monad.Catch                       as Catch
+import           Control.Monad.Catch                        as Catch
 
-import qualified RIO.ByteString.Lazy                       as Lazy
+import qualified RIO.ByteString.Lazy                        as Lazy
 import           RIO.Directory
 import           RIO.FilePath
-import qualified RIO.Text                                  as Text
+import qualified RIO.Text                                   as Text
 
-import qualified Network.DNS                               as DNS
-import           Network.HTTP.Client                       as HTTP hiding
-                                                                    (Proxy)
-import           Network.IPFS                              as IPFS
-import           Network.IPFS.Process                      as IPFS
-import qualified Network.IPFS.Process.Error                as Process
-import           Network.IPFS.Types                        as IPFS
+import qualified Network.DNS                                as DNS
+import           Network.HTTP.Client                        as HTTP hiding
+                                                                     (Proxy)
+import           Network.IPFS                               as IPFS
+-- import           Network.IPFS.Process                      as IPFS
+import qualified Network.IPFS.Process.Error                 as Process
+import           Network.IPFS.Types                         as IPFS
 
 import           Servant.Client
 
 import qualified Turtle
 
-import           Fission.Prelude                           hiding (mask,
-                                                            uninterruptibleMask)
+import           Fission.Prelude                            hiding (mask,
+                                                             uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-import qualified Fission.Key.Error                         as Key
+import qualified Fission.Key.Error                          as Key
 import           Fission.User.DID.Types
 import           Fission.Web.Client.HTTP.Class
 
-import qualified Fission.CLI.Base.Types                    as Base
+import qualified Fission.CLI.Base.Types                     as Base
 import           Fission.CLI.Bootstrap
-import qualified Fission.CLI.Connected.Types               as Connected
+import qualified Fission.CLI.Connected.Types                as Connected
 
-import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
-import           Fission.CLI.IPFS.Ignore                   as IPFS.Ignore
+import           Fission.CLI.IPFS.Daemon                    as IPFS.Daemon
+import           Fission.CLI.IPFS.Ignore                    as IPFS.Ignore
 
-import           Fission.CLI.Key.Store                     as Key.Store
+import           Fission.CLI.Key.Store                      as Key.Store
 
 import           Fission.Web.Auth.Token
-import qualified Fission.Web.Auth.Token.Bearer.Types       as Bearer
-import           Fission.Web.Auth.Token.JWT                as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types        as Bearer
+import           Fission.Web.Auth.Token.JWT                 as JWT
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.JWT                    as JWT
+import qualified Fission.Web.Client.JWT                     as JWT
 
-import qualified Fission.CLI.Display.Loader                as CLI
+import qualified Fission.CLI.Display.Loader                 as CLI
 import           Fission.CLI.Environment
 import           Fission.CLI.Environment.Path
 
-import qualified Fission.IPFS.PubSub.Subscription          as IPFS.PubSub
+import qualified Fission.IPFS.PubSub.Subscription           as IPFS.PubSub
 
 import           Fission.Web.Auth.Token.JWT.Resolver.Error
 
-import           Fission.Internal.Orphanage.BaseUrl        ()
-import           Fission.Internal.Orphanage.ClientError    ()
-import           Fission.Internal.Orphanage.DNS.DNSError   ()
-import           Fission.Internal.Orphanage.OpenUnion      ()
+import           Fission.Internal.Orphanage.BaseUrl         ()
+import           Fission.Internal.Orphanage.ClientError     ()
+import           Fission.Internal.Orphanage.DNS.DNSError    ()
+import           Fission.Internal.Orphanage.OpenUnion       ()
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
@@ -177,8 +192,110 @@ instance
     logDebug $ "Loaded Server DID: " <> textDisplay did
     return did
 
-instance MonadPubSub (FissionCLI errs cfg) where
+instance
+  ( HasLogFunc cfg
+  , Contains errs errs
+  , Display (OpenUnion errs)
+  )
+  => MonadPubSub (FissionCLI errs cfg) where
   type Connection (FissionCLI errs cfg) = WS.Connection
+
+  connect BaseUrl {..} (Topic rawTopic) withConn =
+    control \runInBase ->
+      WS.runClient baseUrlHost baseUrlPort path \conn ->
+        runInBase $ withConn conn
+    where
+      path = baseUrlPath <> "/" <> Text.unpack rawTopic
+
+  sendLBS conn msg =
+    liftIO . WS.sendDataMessage conn $ WS.Binary msg
+
+  receiveLBS conn = do
+    liftIO (WS.receiveDataMessage conn) >>= \case
+      WS.Text   lbs _ -> return lbs
+      WS.Binary lbs   -> return lbs
+
+instance
+  ( HasLogFunc cfg
+  , String    `IsMember` errs -- FIXME better erro r
+  , RSA.Error `IsMember` errs -- FIXME better erro r
+  , Contains errs errs
+  , Display (OpenUnion errs)
+  )
+  => MonadPubSubSecure (FissionCLI errs cfg) (DM.Channel) where
+  type SecurePayload (FissionCLI errs cfg) DM.Channel expected =
+    expected `EncryptedWith` RSA.PrivateKey
+
+  genSessionKey partnerPK = do
+    yourSK <- Key.Store.generate (Proxy @ExchangeKey)
+    return DM.Channel {..}
+
+  toSecurePayload DM.Channel {partnerPK} msg = do
+    let clearBS = Lazy.toStrict $ encode msg
+    cipherBS <- ensureM $ RSA.OAEP.encrypt oaepParams partnerPK clearBS
+    return . EncryptedPayload $ Lazy.fromStrict cipherBS
+
+  fromSecurePayload DM.Channel {yourSK} (EncryptedPayload msg) =
+    RSA.OAEP.decryptSafer oaepParams yourSK (Lazy.toStrict msg) >>= \case
+      Left err -> do
+        logDebug $ "Unable to decrypt message via RSA: " <> msg
+        raise err
+
+      Right clearBS ->
+        case eitherDecodeStrict clearBS of
+          -- FIXME better "can't decode JSON" error
+          Left err -> do
+            logDebug $ "Unable to decode RSA-decrypted message. Raw = " <> decodeUtf8Lenient clearBS
+            raise err
+
+          Right payload ->
+            return payload
+
+oaepParams ::
+  ( ByteArray       output
+  , ByteArrayAccess seed
+  )
+  => RSA.OAEP.OAEPParams SHA256 seed output
+oaepParams = RSA.OAEP.defaultOAEPParams SHA256
+
+instance
+  ( HasLogFunc cfg
+  , CryptoError `IsMember` errs
+  , String `IsMember` errs -- FIXME better error PLZ!
+  , Contains errs errs
+  , Display (OpenUnion errs)
+  )
+  => MonadPubSubSecure (FissionCLI errs cfg) (Symmetric.Key AES256) where
+  type SecurePayload (FissionCLI errs cfg) (Symmetric.Key AES256) expected =
+    AES.Payload expected
+
+  genSessionKey () = Symmetric.genAES256 -- FIXME make an aes256 module
+
+  fromSecurePayload sessionKey AES.Payload {..} =
+    case Symmetric.decrypt sessionKey iv secretMessage of
+      Left err -> do
+        -- FIXME MOVE THIS PART TO the decrypt function, even it that means wrapping in m
+        logDebug $ "Unable to decrypt message via AES256: " <> display secretMessage
+        raise err
+
+      Right clearLBS ->
+        case eitherDecodeStrict $ "Bearer " <> clearLBS of -- FIXME total hack
+          -- FIXME better "can't decode JSON" error
+          Left err -> do
+            logDebug $ "Unable to decode AES-decrypted message. Raw = " <> clearLBS
+            raise err
+
+          Right a ->
+            return a
+
+  toSecurePayload sessionKey@Symmetric.Key {rawKey} msg = do
+    Symmetric.genIV >>= \case
+      Nothing ->
+        undefined -- FIXME better error
+
+      Just iv -> do
+        secretMessage <- ensure $ Symmetric.encrypt sessionKey iv msg
+        return $ AES.Payload {..}
 
 instance
   ( IsMember Key.Error errs
@@ -358,8 +475,8 @@ instance
   , MonadIPFSIgnore (FissionCLI errs cfg)
   )
   => JWT.Resolver (FissionCLI errs cfg) where
-  resolve cid@(IPFS.CID hash) =
-    IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
+  resolve cid@(IPFS.CID hash') =
+    IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash') <&> \case
       Left errMsg ->
         Left $ CannotResolve cid errMsg
 

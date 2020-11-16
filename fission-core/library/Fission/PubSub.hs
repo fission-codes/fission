@@ -14,17 +14,19 @@ listen ::
   , m `Raises` String
   , FromJSON msg
   )
-  => m msg
-listen = do
-  bs <- receive
+  => Connection m
+  -> m msg
+listen conn = do
+  bs <- receiveLBS conn
   ensure $ eitherDecode bs
 
 broadcast ::
   ( MonadPubSub m
-  , MonadRaise        m
+  , MonadRaise  m
   , m `Raises` String
   , ToJSON msg
   )
-  => msg
+  => Connection m
+  -> msg
   -> m ()
-broadcast msg = send $ toJSON msg
+broadcast conn msg = sendLBS conn $ encode msg

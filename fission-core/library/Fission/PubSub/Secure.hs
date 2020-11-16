@@ -4,50 +4,37 @@ module Fission.PubSub.Secure
   ( secureBroadcast
   , secureListen
   , module Fission.PubSub.Secure.Class
+  , module Fission.PubSub.Secure.SecureConnection
   ) where
 
 import           Fission.Prelude
 
 import           Fission.PubSub
 import           Fission.PubSub.Secure.Class
+import           Fission.PubSub.Secure.SecureConnection
 
 secureBroadcast ::
-  ( MonadPubSubSecure m
+  ( MonadPubSubSecure m cipher
   , MonadRaise        m
   , m `Raises` String
   , ToJSON msg
+  , ToJSON (SecurePayload m cipher msg)
   )
-  => msg
+  => SecureConnection m cipher
+  -> msg
   -> m ()
-secureBroadcast msg = broadcast $ toPayload msg
+secureBroadcast SecureConnection {..} msg =
+  broadcast conn =<< toSecurePayload sessionKey msg
 
 secureListen ::
-  ( MonadPubSubSecure m
+  ( MonadPubSubSecure m cipher
   , MonadRaise        m
   , m `Raises` String
   , FromJSON msg
+  , FromJSON (SecurePayload m cipher msg)
   )
-  => m msg
-secureListen = do
-  payload <- listen
-  ensure $ fromPayload payload
-
-
--- toSecure ::
---   ( MonadRandom m
---   , MonadPubSubSecure m
---   , MonadRaise  m
---   , m `Raises` CryptoError
---   , ToJSON msg
---   )
---   => Symmetric.Key AES256
---   -> msg
---   -> m (Payload msg)
--- toSecure aesKey msg = do
---   Symmetric.genIV >>= \case
---     Nothing ->
---       undefined -- FIXME better error
---
---     Just iv -> do
---       secretMessage <- ensure $ Symmetric.encrypt aesKey iv msg
---       return $ Payload {..}
+  => SecureConnection m cipher
+  -> m msg
+secureListen SecureConnection {..} = do
+  payload <- listen conn
+  ensureM $ fromSecurePayload sessionKey payload
