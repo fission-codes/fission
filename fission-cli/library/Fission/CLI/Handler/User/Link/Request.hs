@@ -26,7 +26,6 @@ import qualified Fission.CLI.Display.Error                 as CLI.Error
 
 import qualified Fission.CLI.Linking.Request               as Linking
 
-
 import           Crypto.Error
 import qualified Crypto.PubKey.RSA.Types                   as RSA
 import           Crypto.Random.Types
@@ -85,7 +84,7 @@ requestRoot username = do
   sk        <- Key.Store.fetch    (Proxy @SigningKey)
   pk        <- Key.Store.toPublic (Proxy @SigningKey) sk
 
-  undefined -- Linking.requestFrom targetDID (DID Key $ Ed25519PublicKey pk)
+  undefined -- FIXME Linking.requestFrom targetDID (DID Key $ Ed25519PublicKey pk)
 
 getDIDByUsername ::
   ( MonadIO     m

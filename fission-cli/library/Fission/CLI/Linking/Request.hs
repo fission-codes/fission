@@ -8,10 +8,14 @@ import           Servant.Client.Core
 import           Fission.Prelude
 
 import           Fission.Authorization.Potency.Types
+
+import           Fission.User.DID.NameService.Class        as DID
 import           Fission.User.DID.Types
 
 import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Symmetric                     as Symmetric
+
+import qualified Fission.WNFS.Access                       as WNFS
 
 import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
 import           Fission.Web.Auth.Token.JWT                as JWT
@@ -37,7 +41,8 @@ requestFrom ::
   , JWT.Resolver      m
   , MonadPubSubSecure m (Symmetric.Key AES256)
   , MonadPubSubSecure m RSA.PrivateKey
-  , MonadRescue       m
+  , MonadNameService  m
+  , MonadRescue m
   , m `Raises` String
   , m `Raises` JWT.Error
   , m `Raises` UCAN.Resolver.Error
@@ -45,10 +50,12 @@ requestFrom ::
   , FromJSON (AESPayload m Token)
   , FromJSON (RSAPayload m (Symmetric.Key AES256))
   )
-  => DID
+  => Username
   -> DID
   -> m ()
-requestFrom targetDID myDID =
+requestFrom username myDID = do
+  targetDID <- ensureM $ DID.getByUsername username
+
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     aesKey <- secureConnection conn () \rsaConn@SecureConnection {key} ->
       reattempt 10 do
@@ -76,7 +83,7 @@ requestFrom targetDID myDID =
       UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
       if sender == targetDID
-        then storeUCAN rawContent
+        then WNFS.login username rootAES rawContent
         else raise "no ucan" -- FIXME
 
   where
@@ -113,8 +120,3 @@ validateProof Bearer.Token {..} myDID targetDID sessionAES = do
         _ ->
           raise "No session key fact" -- FIXME
 
-storeUCAN :: MonadIO m => UCAN.RawContent -> m ()
-storeUCAN = undefined
-
-storeWNFSKeyFor :: Monad m => DID -> FilePath -> Symmetric.Key AES256 -> m ()
-storeWNFSKeyFor did path aes = undefined
