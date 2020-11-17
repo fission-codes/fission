@@ -11,6 +11,7 @@ import           Fission.Authorization.Potency.Types
 
 import           Fission.User.DID.NameService.Class        as DID
 import           Fission.User.DID.Types
+import           Fission.User.Username.Types
 
 import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Symmetric                     as Symmetric
@@ -46,6 +47,7 @@ requestFrom ::
   , m `Raises` String
   , m `Raises` JWT.Error
   , m `Raises` UCAN.Resolver.Error
+  , m `Raises` NotFound DID
   , ToJSON   (AESPayload m PIN.PIN) -- FIXME can make cleaner with a constraint alias on pubsubsecure
   , FromJSON (AESPayload m Token)
   , FromJSON (RSAPayload m (Symmetric.Key AES256))
@@ -55,6 +57,10 @@ requestFrom ::
   -> m ()
 requestFrom username myDID = do
   targetDID <- ensureM $ DID.getByUsername username
+
+  let
+    topic   = PubSub.Topic $ textDisplay targetDID
+    baseURL = BaseUrl Https "runfission.net" 443 "/user/link" -- FIXME check env
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     aesKey <- secureConnection conn () \rsaConn@SecureConnection {key} ->
@@ -82,13 +88,11 @@ requestFrom username myDID = do
       ensureM $ UCAN.check myDID rawContent jwt
       UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
-      if sender == targetDID
-        then WNFS.login username rootAES rawContent
-        else raise "no ucan" -- FIXME
+      let rootAES = undefined -- FIXME need to send this across — adjust WP
 
-  where
-    topic   = PubSub.Topic $ textDisplay targetDID
-    baseURL = BaseUrl Https "runfission.net" 443 "/user/link"
+      if sender == targetDID
+        then WNFS.login username myDID rootAES rawContent
+        else raise "no ucan" -- FIXME
 
 validateProof ::
   ( MonadIO      m
