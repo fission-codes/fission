@@ -7,6 +7,8 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
+import           Fission.Error.Types
+
 import           Fission.Authorization.Potency.Types
 
 import           Fission.User.DID.NameService.Class        as DID
@@ -17,6 +19,9 @@ import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Symmetric                     as Symmetric
 
 import qualified Fission.WNFS.Access                       as WNFS
+
+import qualified Fission.WNFS.Access.Mutation.Store.Class  as WNFS.Mutation
+import qualified Fission.WNFS.Access.Query.Store.Class     as WNFS.Query
 
 import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
 import           Fission.Web.Auth.Token.JWT                as JWT
@@ -40,6 +45,9 @@ requestFrom ::
   , MonadIO           m
   , MonadTime         m
   , JWT.Resolver      m
+  , WNFS.Mutation.Store m
+  , WNFS.Query.Store    m
+  , MonadNameService    m
   , MonadPubSubSecure m (Symmetric.Key AES256)
   , MonadPubSubSecure m RSA.PrivateKey
   , MonadNameService  m
@@ -84,14 +92,12 @@ requestFrom username myDID = do
 
     -- STEP 6
     reattempt 100 do
-      Bearer.Token {..} <- secureListen aesConn
-      ensureM $ UCAN.check myDID rawContent jwt
+      LinkData {..} <- secureListen aesConn
+      ensureM $ UCAN.check myDID ucanRaw ucanJWT
       UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
-      let rootAES = undefined -- FIXME need to send this across — adjust WP
-
       if sender == targetDID
-        then WNFS.login username myDID rootAES rawContent
+        then WNFS.login username myDID readKey rawContent
         else raise "no ucan" -- FIXME
 
 validateProof ::
