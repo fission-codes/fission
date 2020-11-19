@@ -4,6 +4,8 @@ module Fission.CLI.Environment.Path
   , globalIPFSRepo
   , globalTmpDir
   , globalKeyDir
+  , globalUCANDir
+  , globalWNFSDir
   ) where
 
 import qualified Network.IPFS.BinPath.Types    as IPFS
@@ -37,3 +39,13 @@ globalKeyDir :: MonadEnvironment m => m FilePath
 globalKeyDir = do
   dir <- getGlobalPath
   return $ dir </> "key"
+
+globalUCANDir :: MonadEnvironment m => m FilePath
+globalUCANDir = do
+  dir <- getGlobalPath
+  return $ dir </> "ucan"
+
+globalWNFSDir :: MonadEnvironment m => m FilePath
+globalWNFSDir = do
+  dir <- getGlobalPath
+  return $ dir </> "wnfs"

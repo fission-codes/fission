@@ -1,5 +1,3 @@
--- FIXME remove ambiguous types by making (probably) Errors injective
-{-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.CLI.Types
@@ -7,13 +5,24 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
+import qualified Fission.Web.Auth.Token.JWT                 as UCAN
+
+import           Fission.User.Username.Types
+
+
+import qualified Data.Bits                                  as Bits
+import qualified Data.ByteString.Char8                      as BS8
+
+import qualified RIO.ByteString                             as BS
+
 import           Crypto.Cipher.AES                          (AES256)
 import           Crypto.Error
 import           Crypto.Hash.Algorithms
 import qualified Crypto.PubKey.RSA.OAEP                     as RSA.OAEP
 import qualified Crypto.PubKey.RSA.Types                    as RSA
 import           Crypto.Random.Types
-import           Data.ByteArray
+import           Data.ByteArray                             hiding (all, and,
+                                                             length, or)
 import qualified Fission.Key.Symmetric.AES256.Payload.Types as AES
 import qualified Fission.PubSub.DM.Channel.Types            as DM
 import           Fission.PubSub.Secure.Class
@@ -30,7 +39,12 @@ import qualified Crypto.PubKey.Ed25519                      as Ed25519
 import           Crypto.Random
 
 
+import           Fission.CLI.File
+
+
+
 import qualified Data.Yaml                                  as YAML
+import qualified Fission.CLI.YAML                           as YAML
 
 import           Control.Monad.Base
 import           Control.Monad.Catch                        as Catch
@@ -38,13 +52,14 @@ import           Control.Monad.Catch                        as Catch
 import qualified RIO.ByteString.Lazy                        as Lazy
 import           RIO.Directory
 import           RIO.FilePath
+import qualified RIO.List                                   as List
+import qualified RIO.Map                                    as Map
 import qualified RIO.Text                                   as Text
 
 import qualified Network.DNS                                as DNS
 import           Network.HTTP.Client                        as HTTP hiding
                                                                      (Proxy)
 import           Network.IPFS                               as IPFS
--- import           Network.IPFS.Process                      as IPFS
 import qualified Network.IPFS.Process.Error                 as Process
 import           Network.IPFS.Types                         as IPFS
 
@@ -85,6 +100,12 @@ import           Fission.CLI.Environment.Path
 import qualified Fission.IPFS.PubSub.Subscription           as IPFS.PubSub
 
 import           Fission.Web.Auth.Token.JWT.Resolver.Error
+
+
+import qualified Fission.WNFS.Access.Mutation.Store.Class   as WNFS.Mutation
+import qualified Fission.WNFS.Access.Query.Store.Class      as WNFS.Query
+
+
 
 import           Fission.Internal.Orphanage.BaseUrl         ()
 import           Fission.Internal.Orphanage.ClientError     ()
@@ -153,6 +174,92 @@ instance HasLogFunc cfg => MonadLogger (FissionCLI errs cfg) where
     FissionCLI (RescueT (Right <$> monadLoggerLog loc src lvl msg))
 
 instance
+  ( YAML.ParseException `IsMember` errs
+  , NotFound FilePath   `IsMember` errs
+  , String              `IsMember` errs
+  , Display (OpenUnion errs )
+  , HasLogFunc cfg
+  )
+  => WNFS.Mutation.Store (FissionCLI errs cfg) where
+  getByCID (CID rawCID) = do
+    ucanDir <- globalUCANDir
+
+    let ucanPath = ucanDir </> Text.unpack (rawCID <> ".ucan.jwt")
+
+    attempt (YAML.readFile ucanPath) >>= \case
+      Left  _    -> return $ Left NotFound
+      Right ucan -> return $ Right ucan
+
+  getCIDsFor (Username nameTxt) path = do
+    wnfsDir <- globalWNFSDir
+
+    let
+      wnfsUserDir   = wnfsDir     </> Text.unpack nameTxt
+      ucanIndexPath = wnfsUserDir </> "ucan_map.yaml"
+
+    attempt (YAML.readFile ucanIndexPath) >>= \case
+      Left  _         -> return mempty
+      Right ucanIndex -> return (Map.filterWithKey matcher ucanIndex)
+
+    where
+      matcher keyPath _ =
+        -- LOL because LISP, why not? :P
+        or [ keyPath == "*"
+           , pathSegments `List.isPrefixOf` splitPath keyPath
+           , and [ length path == length keyPath
+                 , bitwiseSuperset (BS8.pack keyPath)
+                 ]
+           ]
+
+      bitwiseSuperset :: ByteString -> Bool
+      bitwiseSuperset pathBS2 =
+        all (== True) $ BS.zipWith (\x y -> x Bits..&. y == x) pathBS pathBS2
+
+      pathBS :: ByteString
+      pathBS = BS8.pack path
+
+      pathSegments :: [FilePath]
+      pathSegments = splitPath path
+
+  insert (Username nameTxt) (RawContent rawUCAN) = do
+    ucanDir <- globalUCANDir
+    wnfsDir <- globalWNFSDir
+
+    UCAN.JWT {claims = UCAN.Claims {resource}} <- ensure $ eitherDecodeStrict $ encodeUtf8 rawUCAN
+
+    let
+      ucanFilename = show (Crypto.hash (encodeUtf8 rawUCAN) :: Digest SHA3_256) <> ".ucan.jwt"
+      ucanFilePath = ucanDir </> ucanFilename
+
+      wnfsUserDir   = wnfsDir     </> Text.unpack nameTxt
+      ucanIndexPath = wnfsUserDir </> "ucan_map.yaml"
+
+      pathInWNFS = resource
+      newEntry   = Map.singleton pathInWNFS ucanFilePath
+
+    newIndex <- attempt (YAML.readFile ucanIndexPath) >>= \case
+                  Left  _        -> return newEntry
+                  Right oldIndex -> return $ Map.union newEntry oldIndex
+
+    ucanFilePath  `forceWrite`     encodeUtf8 rawUCAN
+    ucanIndexPath `YAML.writeFile` newIndex
+
+instance WNFS.Query.Store (FissionCLI errs cfg) where
+  -- insert :: Username -> FilePath -> Symmetric.Key AES256 -> m ()
+  insert username path key = do
+    undefined
+    -- 1. Upsert ./wnfs/boris/read.json with...
+    -- 2. k/v toString(filepath) => AESkey
+
+ --  lookup :: -- FIXME maybe lookup the map itslef, and simply leave to helper functions to pull the right stuff outr
+ --       Username
+ --    -> FilePath
+ --    -> m (Either (NotFound (Symmetric.Key AES256)) (Symmetric.Key AES256))
+
+--   , globalUCANDir
+--   , globalWNFSDir
+
+instance
   ( Contains errs errs
   , Display (OpenUnion errs)
   , IsMember SomeException errs
@@ -214,6 +321,7 @@ instance
     liftIO (WS.receiveDataMessage conn) >>= \case
       WS.Text   lbs _ -> return lbs
       WS.Binary lbs   -> return lbs
+
 
 instance
   ( HasLogFunc cfg
@@ -342,7 +450,7 @@ instance
   , HasField' "fissionURL" cfg BaseUrl
   , HasLogFunc             cfg
   )
-  =>  MonadWebAuth (FissionCLI errs cfg) Token where
+  => MonadWebAuth (FissionCLI errs cfg) Token where
   getAuth = do
     now       <- currentTime
     sk        <- getAuth

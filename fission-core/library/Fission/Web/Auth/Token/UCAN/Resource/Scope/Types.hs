@@ -6,7 +6,7 @@ data Scope subset
   = Complete
   | Subset subset
   | None
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 instance Arbitrary subset => Arbitrary (Scope subset) where
   arbitrary =
@@ -25,3 +25,21 @@ instance FromJSON sub => FromJSON (Scope sub) where
   parseJSON (String "*") = pure Complete
   parseJSON Null         = pure None
   parseJSON subset       = Subset <$> parseJSON subset
+
+instance ToJSON a => ToJSONKey (Scope a) where
+  toJSONKey = ToJSONKeyValue f g
+    where
+      f = \case
+        Complete -> String "*"
+        Subset a -> toJSON a
+        None     -> Null
+
+      g = \case
+        Complete -> toEncoding $ String "*"
+        Subset a -> toEncoding a
+        None     -> toEncoding Null
+
+instance FromJSON a => FromJSONKey (Scope a) where
+  fromJSONKey = FromJSONKeyValue \case
+    String "*" -> return Complete
+    val        -> parseJSON val

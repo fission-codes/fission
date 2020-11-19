@@ -1,5 +1,8 @@
 module Fission.WNFS.Access.Mutation.Store.Class (Store (..)) where
 
+import           Network.IPFS.CID.Types
+import           RIO.Map
+
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
@@ -12,13 +15,6 @@ import qualified Fission.Authorization.Potency.Types              as WNFS
 import qualified Fission.WNFS.Access.Mutation.Authorization.Types as WNFS
 
 class Monad m => Store m where
-  lookup ::
-       Username     -- ^ Registered user
-    -> FilePath     -- ^ File path or bare namefilter
-    -> WNFS.Potency -- ^ Minimum potency requested
-    -> m (Either (NotFound WNFS.Authorization) WNFS.Authorization)
-
-  insert :: Username -> UCAN.RawContent -> m ()
-
--- FIXME add to rescue:
--- foo :: Maybe a -> (err :: * -> *) -> Either (err a) a
+  insert     :: Username -> UCAN.RawContent -> m ()
+  getCIDsFor :: Username -> FilePath -> m (Map FilePath CID)
+  getByCID   :: CID -> m (Either (NotFound UCAN.JWT) UCAN.JWT)

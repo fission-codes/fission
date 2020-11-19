@@ -12,7 +12,7 @@ data Resource
   -- ^ Primary URL for an App
   | RegisteredDomain  (Scope DomainName)
   -- ^ Any domain name to which we have DNS access
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 instance Arbitrary Resource where
   arbitrary =

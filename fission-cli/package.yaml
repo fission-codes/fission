@@ -65,7 +65,6 @@ default-extensions:
   - NumericUnderscores
   - OverloadedStrings
   - OverloadedLabels
-  - OverloadedLists
   - PostfixOperators
   - RankNTypes
   - RecordWildCards

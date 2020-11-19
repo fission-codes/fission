@@ -36,6 +36,7 @@ import           Fission.PubSub                            as PubSub
 import           Fission.PubSub.Secure                     as PubSub.Secure
 
 import qualified Fission.CLI.Linking.PIN                   as PIN
+import           Fission.CLI.Linking.Types
 
 type AESPayload m expected = SecurePayload m (Symmetric.Key AES256) expected
 type RSAPayload m expected = SecurePayload m RSA.PrivateKey expected
@@ -56,8 +57,10 @@ requestFrom ::
   , m `Raises` JWT.Error
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` NotFound DID
+  , m `Raises` ActionNotAuthorized UCAN.JWT -- FIXME shoudl be more contextual
   , ToJSON   (AESPayload m PIN.PIN) -- FIXME can make cleaner with a constraint alias on pubsubsecure
   , FromJSON (AESPayload m Token)
+  , FromJSON (AESPayload m LinkData)
   , FromJSON (RSAPayload m (Symmetric.Key AES256))
   )
   => Username
@@ -94,11 +97,11 @@ requestFrom username myDID = do
     reattempt 100 do
       LinkData {..} <- secureListen aesConn
       ensureM $ UCAN.check myDID ucanRaw ucanJWT
-      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
+      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
 
       if sender == targetDID
-        then WNFS.login username myDID readKey rawContent
-        else raise "no ucan" -- FIXME
+        then WNFS.login username myDID readKey ucanRaw
+        else raise "unauthorized" -- FIXME
 
 validateProof ::
   ( MonadIO      m
