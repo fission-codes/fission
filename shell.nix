@@ -2,7 +2,7 @@ let
   sources  = import ./nix/sources.nix;
   pkgs     = import sources.nixpkgs  {};
   unstable = import sources.unstable {};
-  hinotify = if pkgs.stdenv.isDarwin then pkgs.hfsevents else pkgs.haskellPackages.hinotify;
+  hinotify = if pkgs.stdenv.isDarwin then pkgs.haskellPackages.hfsevents else pkgs.haskellPackages.hinotify;
 in
 
 pkgs.mkShell {
