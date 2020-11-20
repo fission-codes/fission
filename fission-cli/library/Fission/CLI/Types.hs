@@ -177,10 +177,19 @@ instance
   ( YAML.ParseException `IsMember` errs
   , NotFound FilePath   `IsMember` errs
   , String              `IsMember` errs
-  , Display (OpenUnion errs )
+  , Display (OpenUnion errs)
   , HasLogFunc cfg
   )
   => WNFS.Mutation.Store (FissionCLI errs cfg) where
+  getRootKey targetUsername = do
+    mainConfig <- Env.absPath
+    Env {..}   <- YAML.readFile mainConfig
+    signingKey <- File.read signingKeyPath -- FIXME
+
+    if username == targetUsername
+      then return $ Right signingKey
+      else return $ Left NotFound
+
   getByCID (CID rawCID) = do
     ucanDir <- globalUCANDir
 
@@ -203,7 +212,7 @@ instance
 
     where
       matcher keyPath _ =
-        -- LOL because LISP, why not? :P
+        -- LOL sure let's make it a LISP, why not? :P
         or [ keyPath == "*"
            , pathSegments `List.isPrefixOf` splitPath keyPath
            , and [ length path == length keyPath
@@ -234,8 +243,7 @@ instance
       wnfsUserDir   = wnfsDir     </> Text.unpack nameTxt
       ucanIndexPath = wnfsUserDir </> "ucan_map.yaml"
 
-      pathInWNFS = resource
-      newEntry   = Map.singleton pathInWNFS ucanFilePath
+      newEntry = Map.singleton resource ucanFilePath
 
     newIndex <- attempt (YAML.readFile ucanIndexPath) >>= \case
                   Left  _        -> return newEntry
@@ -244,20 +252,33 @@ instance
     ucanFilePath  `forceWrite`     encodeUtf8 rawUCAN
     ucanIndexPath `YAML.writeFile` newIndex
 
-instance WNFS.Query.Store (FissionCLI errs cfg) where
-  -- insert :: Username -> FilePath -> Symmetric.Key AES256 -> m ()
-  insert username path key = do
-    undefined
-    -- 1. Upsert ./wnfs/boris/read.json with...
-    -- 2. k/v toString(filepath) => AESkey
+instance
+  ( YAML.ParseException `IsMember` errs
+  , NotFound FilePath   `IsMember` errs
+  , String              `IsMember` errs
+  , Display (OpenUnion errs)
+  , HasLogFunc cfg
+  )
+  =>  WNFS.Query.Store (FissionCLI errs cfg) where
+  insert (Username nameTxt) path key = do
+    wnfsDir <- globalWNFSDir
 
- --  lookup :: -- FIXME maybe lookup the map itslef, and simply leave to helper functions to pull the right stuff outr
- --       Username
- --    -> FilePath
- --    -> m (Either (NotFound (Symmetric.Key AES256)) (Symmetric.Key AES256))
+    let
+      readIndexPath = wnfsDir </> Text.unpack nameTxt </> "read_map.yaml"
+      newEntry      = Map.singleton path key
 
---   , globalUCANDir
---   , globalWNFSDir
+    newIndex <- attempt (YAML.readFile readIndexPath) >>= \case
+                  Left  _        -> return newEntry
+                  Right oldIndex -> return $ Map.union newEntry oldIndex
+
+    readIndexPath `YAML.writeFile` newIndex
+
+  getKeysFor (Username nameTxt) = do
+    wnfsDir <- globalWNFSDir
+    let readIndexPath = wnfsDir </> Text.unpack nameTxt </> "read_map.yaml"
+    attempt (YAML.readFile readIndexPath) >>= \case
+      Left  _         -> return mempty
+      Right readIndex -> return readIndex
 
 instance
   ( Contains errs errs

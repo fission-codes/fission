@@ -58,8 +58,7 @@ login username machineDID readKey rawUCAN@(UCAN.RawContent ucanTxt) = do
   targetDID <- ensureM $ DID.getByUsername username
   JWT {claims = Claims {sender}} <- ensureM $ JWT.getRoot writeUCAN
 
-  when (sender == targetDID) do
-    raise "InvalidUser" -- FIXME! Better error
+  unless (sender == targetDID) $ raise "InvalidUser" -- FIXME! Better error
 
   -- NOTE This will need to check a BUNCH more on UCAN 0.5
   case (resource, potency) of
@@ -69,3 +68,5 @@ login username machineDID readKey rawUCAN@(UCAN.RawContent ucanTxt) = do
 
     _ ->
       raise "Bad resource" -- FIXME better error
+
+-- signup username machineDID readKey = do

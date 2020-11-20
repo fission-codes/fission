@@ -5,12 +5,14 @@ module Fission.Error.NotFound.Types (NotFound (..)) where
 import qualified RIO.ByteString.Lazy                       as Lazy
 import           RIO.FilePath
 
+import           Crypto.Cipher.AES                         (AES256)
 import qualified Crypto.PubKey.Ed25519                     as Ed25519
 
 import qualified Network.IPFS.Types                        as IPFS
 import           Servant
 
 import qualified Fission.AWS.Zone.Types                    as AWS
+import           Fission.Key.Symmetric.Types               as Symmetric
 import           Fission.Models
 import           Fission.Prelude
 import           Fission.URL
@@ -68,3 +70,6 @@ instance Display (NotFound Ed25519.SecretKey) where
 
 instance Display (NotFound Relay.ChannelIn) where
   display _ = "Unable to find matching link relay channel"
+
+instance Display (NotFound (Symmetric.Key AES256)) where
+  display _ = "Unable to find AES256 key"
