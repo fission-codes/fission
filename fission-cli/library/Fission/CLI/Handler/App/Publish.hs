@@ -11,7 +11,6 @@ import           RIO.Directory
 import           Network.HTTP.Types.Status
 
 import           Network.IPFS
-import qualified Network.IPFS.Add                as IPFS
 import           Network.IPFS.CID.Types
 
 import qualified Fission.Internal.UTF8           as UTF8
@@ -105,8 +104,8 @@ handleTreeChanges ::
   -> WatchManager
   -> FilePath -- ^ Build dir
   -> IO StopListening
-handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
-  FS.watchTree watchMgr dir (\_ -> True) \_ -> runner do
+handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDir =
+  FS.watchTree watchMgr absDir (\_ -> True) \_ -> runner do
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
 
@@ -114,7 +113,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr dir =
       void $ swapMVar timeCache now
       threadDelay Time.dohertyMicroSeconds
 
-      IPFS.addDir [] dir >>= \case
+      CLI.IPFS.Add.dir absDir >>= \case
         Left err ->
           CLI.Error.put' err
 
