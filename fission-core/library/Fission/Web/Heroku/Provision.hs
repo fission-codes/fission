@@ -45,7 +45,7 @@ create ::
   )
   => ServerT API m
 create Request {uuid, region} = do
-  let username = Username . Text.pack $ UUID.toString uuid
+  username      <- Web.Err.ensure . mkUsername . Text.pack $ UUID.toString uuid
   now           <- getCurrentTime
   secret        <- Random.alphaNum 50
   userID        <- Web.Err.ensureM $ User.createWithHeroku uuid region username (Password secret) now

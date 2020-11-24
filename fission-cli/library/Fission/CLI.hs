@@ -20,6 +20,7 @@ import qualified Fission.CLI.IPFS.Daemon                        as IPFS.Daemon
 import qualified Fission.CLI.Meta                               as Meta
 
 import           Fission.User.DID.Types
+import qualified Fission.User.Username.Error                    as Username
 
 import           Fission.CLI.Environment                        as Env
 import qualified Fission.CLI.Environment.OS                     as OS
@@ -46,6 +47,7 @@ type Errs
   ': AlreadyExists Ed25519.SecretKey
   ': OS.Unsupported
   ': ClientError
+  ': Username.Invalid
   ': App.Errs
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())

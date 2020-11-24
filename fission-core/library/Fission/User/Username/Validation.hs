@@ -1,73 +1,63 @@
 -- | Username validation
 
 module Fission.User.Username.Validation
-  ( check
-  , isValid
+  ( isValid
   , isUsernameChar
   ) where
 
-import qualified Data.Char                   as Char
-import qualified RIO.Text                    as Text
+import qualified Data.Char       as Char
+import qualified RIO.Text        as Text
 
 import           Fission.Prelude
-
-import           Fission.User.Username.Error
-import           Fission.User.Username.Types
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 
-check :: Username -> Either Invalid Username
-check username =
-  if isValid username
-    then Right username
-    else Left Invalid
-
 -- | Confirm that a username is valid
 --
--- >>> isValid (Username "simple")
+-- >>> isValid "simple"
 -- True
 --
--- >>> isValid (Username "happy-name")
+-- >>> isValid "happy-name"
 -- True
 --
 -- Blocklisted words are not allowed
 --
--- >>> isValid (Username "recovery")
+-- >>> isValid "recovery"
 -- False
 --
 -- They're not case sensitive
 --
--- >>> isValid (Username "reCovErY")
+-- >>> isValid "reCovErY"
 -- False
 --
 -- Nor are various characters
 --
--- >>> isValid (Username "under_score")
+-- >>> isValid "under_score"
 -- False
 --
--- >>> isValid (Username "plus+plus")
+-- >>> isValid "plus+plus"
 -- False
 --
--- >>> isValid (Username "-startswith")
+-- >>> isValid "-startswith"
 -- False
 --
--- >>> isValid (Username "endswith-")
+-- >>> isValid "endswith-"
 -- False
 --
--- >>> isValid (Username "with.space")
+-- >>> isValid "with.space"
 -- False
 --
--- >>> isValid (Username "with.dot")
+-- >>> isValid "with.dot"
 -- False
 --
--- >>> isValid (Username "has.two.dots")
+-- >>> isValid "has.two.dots"
 -- False
 --
--- >>> isValid (Username "name&with#chars")
+-- >>> isValid "name&with#chars"
 -- False
-isValid :: Username -> Bool
-isValid (Username rawUsername) =
+isValid :: Text -> Bool
+isValid rawUsername =
   all (== True) preds
   where
     preds :: [Bool]
