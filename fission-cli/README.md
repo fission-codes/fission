@@ -12,10 +12,6 @@ Seamlessly deploy websites and store secure user data
 ### MacOS
 
 ```shell
-# IPFS on MacOS, otherwise https://docs.ipfs.io/introduction/install/
-brew install ipfs
-brew services start ipfs
-
 brew install fission-suite/fission/fission-cli
 ```
 
