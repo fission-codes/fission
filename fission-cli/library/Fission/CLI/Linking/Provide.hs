@@ -15,6 +15,9 @@ import           Fission.Prelude
 import qualified Fission.Internal.Base64.URL                      as B64.URL
 import qualified Fission.Internal.UTF8                            as UTF8
 
+import           Fission.Error.NotFound.Types
+import qualified Fission.Web.Auth.Token.JWT                       as UCAN
+
 import qualified Fission.Key                                      as Key
 import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Symmetric                            as Symmetric
@@ -28,6 +31,7 @@ import           Fission.Key.Asymmetric.Algorithm.Types           as Key
 
 import           Fission.Challenge.Types
 import           Fission.User.DID.Types                           as DID
+import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token.JWT                       as JWT
 import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types      as JWT.Typ
@@ -41,6 +45,10 @@ import           Fission.CLI.Linking.Status.Types
 import qualified Fission.CLI.Linking.Status.Types                 as Linking
 import qualified Fission.CLI.Prompt                               as CLI.Prompt
 
+import           Fission.User.DID.NameService.Class               as DID
+
+import           Fission.WNFS.Access.Mutation.Store               as Mutation
+
 type AESPayload m expected = SecurePayload m (Symmetric.Key AES256) expected
 type DMPayload  m expected = SecurePayload m DM.Channel expected
 type RSAPayload m expected = SecurePayload m RSA.PrivateKey expected
@@ -51,10 +59,14 @@ listenToLinkRequests ::
   , MonadLogger       m
   , MonadKeyStore     m ExchangeKey
   , MonadEnvironment  m
+  , MonadNameService  m
+  , Mutation.Store    m
   , MonadPubSubSecure m (Symmetric.Key AES256)
   , MonadPubSubSecure m DM.Channel
   , MonadCleanup      m
   , m `Raises` String
+  , m `Raises` NotFound UCAN.JWT
+  , m `Raises` NotFound DID
   , m `Raises` Error
   , m `Raises` Linking.Status -- FIXME only the Denied makes sense
 
@@ -65,22 +77,19 @@ listenToLinkRequests ::
   , FromJSON (AESPayload m Challenge)
   , FromJSON (AESPayload m DID)
   )
-  => DID
+  => Username
   -> m ()
-listenToLinkRequests targetDID = do
-  -- FIXME If root device, plz check first
+listenToLinkRequests username  = do
   machineSK  <- KeyStore.fetch    (Proxy @SigningKey)
   machinePK  <- KeyStore.toPublic (Proxy @SigningKey) machineSK
 
-  exchangeSK <- KeyStore.fetch (Proxy @ExchangeKey)
+  targetDID <- ensureM $ DID.getByUsername username
+  proof     <- Mutation.getRootProof username
 
   let
     machineDID = DID Key (Ed25519PublicKey machinePK)
-    rootDID    = machineDID -- FIXME
-    proof      = undefined --FIXME
-
-    topic   = PubSub.Topic $ textDisplay targetDID
-    baseURL = BaseUrl Https "runfission.net" 443 "/user/link"
+    topic      = PubSub.Topic $ textDisplay targetDID
+    baseURL    = BaseUrl Https "runfission.net" 443 "/user/link"
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     reqDID@(DID Key reqPK) <- listen conn
@@ -95,8 +104,7 @@ listenToLinkRequests targetDID = do
         now <- currentTime
 
         let
-          fromEdSK     = undefined -- FIXME
-          sessionProof = authenticateSessionKey reqDID fromEdSK proof key now
+          sessionProof = authenticateSessionKey reqDID machineSK proof key now
 
         secureBroadcast aesConn sessionProof
 

@@ -184,7 +184,7 @@ instance
   => WNFS.Mutation.Store (FissionCLI errs cfg) where
   getRootKey targetUsername = do
     Env {..} <- Env.get
-    sk       <- Key.Store.fetch (Proxy @SigningKey)
+    sk       <- Key.Store.fetch $ Proxy @SigningKey
 
     if username == targetUsername
       then return $ Right sk
@@ -196,8 +196,13 @@ instance
     let ucanPath = ucanDir </> Text.unpack (rawCID <> ".ucan.jwt")
 
     attempt (YAML.readFile ucanPath) >>= \case
-      Left  _    -> return $ Left NotFound
-      Right ucan -> return $ Right ucan
+      Left  _ ->
+        return $ Left NotFound
+
+      Right raw ->
+        case eitherDecode raw of
+          Left  _    -> return $ Left NotFound
+          Right ucan -> return $ Right (RawContent (decodeUtf8Lenient $ Lazy.toStrict raw), ucan)
 
   getCIDsFor (Username nameTxt) path = do
     wnfsDir <- globalWNFSDir
@@ -238,7 +243,7 @@ instance
 
     let
       ucanFilename = show (Crypto.hash (encodeUtf8 rawUCAN) :: Digest SHA3_256) <> ".ucan.jwt"
-      ucanFilePath = ucanDir </> ucanFilename
+      ucanFilePath = ucanDir </> (ucanFilename <> ".ucan.jwt")
 
       wnfsUserDir   = wnfsDir     </> Text.unpack nameTxt
       ucanIndexPath = wnfsUserDir </> "ucan_map.yaml"
