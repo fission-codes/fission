@@ -94,7 +94,7 @@ import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT                     as JWT
 
 import qualified Fission.CLI.Display.Loader                 as CLI
-import           Fission.CLI.Environment
+import           Fission.CLI.Environment                    as Env
 import           Fission.CLI.Environment.Path
 
 import qualified Fission.IPFS.PubSub.Subscription           as IPFS.PubSub
@@ -177,17 +177,17 @@ instance
   ( YAML.ParseException `IsMember` errs
   , NotFound FilePath   `IsMember` errs
   , String              `IsMember` errs
+  , Key.Store.Error     `IsMember` errs
   , Display (OpenUnion errs)
   , HasLogFunc cfg
   )
   => WNFS.Mutation.Store (FissionCLI errs cfg) where
   getRootKey targetUsername = do
-    mainConfig <- Env.absPath
-    Env {..}   <- YAML.readFile mainConfig
-    signingKey <- File.read signingKeyPath -- FIXME
+    Env {..} <- Env.get
+    sk       <- Key.Store.fetch (Proxy @SigningKey)
 
     if username == targetUsername
-      then return $ Right signingKey
+      then return $ Right sk
       else return $ Left NotFound
 
   getByCID (CID rawCID) = do
