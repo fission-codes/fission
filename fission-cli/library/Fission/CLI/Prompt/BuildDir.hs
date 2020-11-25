@@ -26,7 +26,7 @@ prompt ::
 prompt relPath = do
   fallback <- colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
     fallback <- maybe "." identity <$> guess relPath
-    UTF8.putText $ "👷 Build directory (" <> Text.pack fallback <> "): "
+    UTF8.putText $ "👷 Choose build directory (" <> Text.pack fallback <> "): "
     return fallback
 
   BS.getLine >>= \case
