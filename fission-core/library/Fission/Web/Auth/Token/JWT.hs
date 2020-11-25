@@ -13,7 +13,6 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.RawContent
   ) where
 
--- import qualified Fission.IPFS.PubSub.Session.Key.Types            as Session
 import           Crypto.Cipher.AES                                (AES256)
 import qualified Fission.Key.Symmetric.Types                      as Symmetric
 

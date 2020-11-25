@@ -86,8 +86,6 @@ import           Fission.CLI.Key.Store                          as Key
 import qualified Fission.CLI.Handler.User.Link.Request          as Link
 import qualified Fission.CLI.Handler.User.Register              as User
 
-import qualified Fission.IPFS.PubSub.Session.Key.Types          as Session
-import qualified Fission.IPFS.PubSub.Session.Payload            as Session
 import           Fission.Web.Auth.Token.JWT                     as JWT
 import qualified Fission.Web.Auth.Token.JWT                     as UCAN
 import qualified Fission.Web.Auth.Token.JWT.Error               as JWT

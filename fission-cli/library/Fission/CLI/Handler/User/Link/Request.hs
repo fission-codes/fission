@@ -51,17 +51,8 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
 import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
 import qualified Fission.Web.Auth.Token.UCAN               as UCAN
 
-import qualified Fission.IPFS.PubSub.Session.Key.Types     as Session
-import qualified Fission.IPFS.PubSub.Session.Payload       as Session
-
-import qualified Fission.IPFS.PubSub.Subscription          as Sub
-import qualified Fission.IPFS.PubSub.Subscription          as IPFS.PubSub.Subscription
-import           Fission.IPFS.PubSub.Topic
-
 import           Fission.CLI.Key.Store                     as KeyStore
 import qualified Fission.CLI.Linking.PIN                   as PIN
-
-import qualified Fission.IPFS.PubSub.Publish               as Publish
 
 import           Fission.CLI.Environment.Class
 

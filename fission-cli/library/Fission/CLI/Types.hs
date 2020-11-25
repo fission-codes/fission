@@ -97,15 +97,10 @@ import qualified Fission.CLI.Display.Loader                 as CLI
 import           Fission.CLI.Environment                    as Env
 import           Fission.CLI.Environment.Path
 
-import qualified Fission.IPFS.PubSub.Subscription           as IPFS.PubSub
-
 import           Fission.Web.Auth.Token.JWT.Resolver.Error
-
 
 import qualified Fission.WNFS.Access.Mutation.Store.Class   as WNFS.Mutation
 import qualified Fission.WNFS.Access.Query.Store.Class      as WNFS.Query
-
-
 
 import           Fission.Internal.Orphanage.BaseUrl         ()
 import           Fission.Internal.Orphanage.ClientError     ()
@@ -655,44 +650,6 @@ instance
         case eitherDecodeStrict resolvedBS of
           Left  _   -> Left $ InvalidJWT resolvedBS
           Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
-
-instance forall errs cfg a .
-  ( HasField' "httpManager"   cfg HTTP.Manager
-  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
-  , HasLogFunc                cfg
-  , Show          (OpenUnion errs)
-  , Display       (OpenUnion errs)
-  , SomeException `IsMember` errs
-  , ClientError   `IsMember` errs
-  , FromJSON  a
-  )
-  => FissionCLI errs cfg `IPFS.PubSub.SubscribesTo` a where
-  subscribeWithQueue topic tq = do
-    logDebug $ "Subscribing to IPFS pubsub topic: "<> textDisplay topic
-    void IPFS.Daemon.runDaemon
-
-    manager <- asks $ getField @"httpManager"
-    url     <- parseBaseUrl "http://127.0.0.1:10235/" -- FIXME extract port to common location
-    cfg     <- ask
-
-    liftIO $ async do
-      void $ runFissionCLI cfg do
-        attempt (runInner cfg manager url) >>= \case
-          Left err -> logDebug $ "Async IPFS pubsub error: " <> show err
-          Right () -> return ()
-
-    where
-      runInner ::
-           cfg
-        -> Manager
-        -> BaseUrl
-        -> FissionCLI errs cfg ()
-      runInner cfg manager url =
-        IPFS.PubSub.runMessageStream (mkClientEnv manager url) topic tq \errStr ->
-          void . runFissionCLI cfg $ logInnerErr errStr
-
-      logInnerErr :: String -> FissionCLI '[] cfg ()
-      logInnerErr errStr = logDebug $ "Async IPFS pubsub error:" <> errStr
 
 instance
   ( HasLogFunc cfg
