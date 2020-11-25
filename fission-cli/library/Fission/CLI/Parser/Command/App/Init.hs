@@ -60,7 +60,7 @@ parser = do
 
   return Options {..}
 
-mayBuild:: ReadM (Maybe FilePath)
+mayBuild :: ReadM (Maybe FilePath)
 mayBuild = do
   raw <- str
   pure case raw of
