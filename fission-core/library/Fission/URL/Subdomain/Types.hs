@@ -1,10 +1,10 @@
 module Fission.URL.Subdomain.Types (Subdomain (..)) where
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy         as Lazy
+import qualified RIO.Text                    as Text
 
-import           Database.Persist.Postgresql hiding (get)
 import           Data.Swagger                hiding (get)
+import           Database.Persist.Postgresql hiding (get)
 
 import           Servant
 
@@ -25,7 +25,7 @@ instance Semigroup Subdomain where
 
 instance FromJSON Subdomain where
   parseJSON = withText "AWS.Subdomain" \txt ->
-    Subdomain <$> parseJSON (String txt)
+    return $ Subdomain txt
 
 instance ToJSON Subdomain where
   toJSON (Subdomain sub) = String sub

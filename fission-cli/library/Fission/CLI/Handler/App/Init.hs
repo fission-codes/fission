@@ -62,8 +62,14 @@ appInit appDir mayBuildDir' maySubdomain = do
     Right appURL -> do
       logDebug $ "Created app " <> textDisplay appURL
 
-      guess <- BuildDir.prompt appDir
-      App.Env.create appURL $ fromMaybe guess mayBuildDir'
+      case mayBuildDir' of
+        Nothing ->  do
+          guess <- BuildDir.prompt appDir
+          App.Env.create appURL $ fromMaybe guess mayBuildDir'
+
+        Just dir -> do
+          logDebug $ "BuildDir passed from flag: " <> dir
+          App.Env.create appURL dir
 
       CLI.Success.putOk $ "App initialized as " <> textDisplay appURL
 
