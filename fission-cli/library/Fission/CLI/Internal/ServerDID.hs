@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Fission.CLI.Internal.ServerDID (fallback) where
 
 import           Fission.Prelude

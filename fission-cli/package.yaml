@@ -1,19 +1,21 @@
 name: fission-cli
-version: '2.9.3.0'
-category: API
+version: '2.9.3.1'
+category: CLI
 author:
   - Brooklyn Zelenka
   - Daniel Holmgren
   - Steven Vandevelde
+  - James Walker
 maintainer:
   - brooklyn@fission.codes
   - daniel@fission.codes
   - steven@fission.codes
+  - james@fission.codes
 copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission
-tested-with: GHC==8.8.3
+tested-with: GHC==8.8.4
 extra-source-files:
   - README.md
 
