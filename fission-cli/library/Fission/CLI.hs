@@ -101,8 +101,8 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
         Version _ ->
           logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
 
-        Setup Setup.Options {forceOS} ->
-          Setup.setup forceOS fissionURL
+        Setup Setup.Options {forceOS, maybeUsername, maybeEmail} ->
+          Setup.setup forceOS fissionURL maybeUsername maybeEmail
 
         App subCmd ->
           App.interpret baseCfg subCmd
@@ -110,7 +110,7 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
         User subCmd ->
           case subCmd of
             Register Register.Options {maybeUsername, maybeEmail} ->
-              Handler.register maybeUsername maybeEmail
+              void $ Handler.register maybeUsername maybeEmail
             WhoAmI   _ -> Handler.whoami
 
 finalizeDID ::

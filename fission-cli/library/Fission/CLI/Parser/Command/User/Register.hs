@@ -26,6 +26,7 @@ parser = do
   verboseFlag <- Verbose.parser
 
   maybeUsername <- option username $ mconcat
+
     [ help "The username to register"
     --------
     , long "username"
@@ -51,12 +52,12 @@ username :: ReadM (Maybe Username)
 username = do
   raw <- str
   pure case raw of
-    ""       -> Nothing
-    username -> Just username
+    ""   -> Nothing
+    name -> Just name
 
 email :: ReadM (Maybe Email)
 email = do
   raw <- str
   pure case raw of
-    ""    -> Nothing
-    email -> Just email
+    ""   -> Nothing
+    mail -> Just mail

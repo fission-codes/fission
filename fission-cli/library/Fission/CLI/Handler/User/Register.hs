@@ -92,7 +92,11 @@ createAccount maybeUsername maybeEmail = do
       ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
     Just uname ->
       return uname
-  email    <- Email <$> Prompt.reaskNotEmpty' "Email: "
+  email    <- case maybeEmail of
+    Nothing ->
+      Email <$> Prompt.reaskNotEmpty' "Email: "
+    Just mail ->
+      return mail
 
   let
     form = Registration
