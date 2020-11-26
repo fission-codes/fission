@@ -3,23 +3,22 @@
 module Fission.Internal.Orphanage.Ed25519.Signature () where
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519       as Ed25519
 
-import qualified Data.ByteString.Base64.URL as BS.B64.URL
- 
+import qualified Data.ByteString.Base64.URL  as BS.B64.URL
+
 import           Fission.Prelude
 
+import qualified Fission.Internal.Base64     as Base64
+import qualified Fission.Internal.Base64.URL as Base64.URL
 import qualified Fission.Internal.Crypto     as Crypto
 import qualified Fission.Internal.UTF8       as UTF8
-import qualified Fission.Internal.Base64.URL as Base64.URL
-import qualified Fission.Internal.Base64     as Base64
 
 instance Display Ed25519.Signature where
   textDisplay sig =
     sig
       |> Base64.toByteString
-      |> BS.B64.URL.encodeUnpadded
-      |> decodeUtf8Lenient
+      |> BS.B64.URL.encodeBase64Unpadded
       -- Initial human readable text
       |> UTF8.stripOptionalPrefix "Signature \""
       |> UTF8.stripOptionalPrefix "\""

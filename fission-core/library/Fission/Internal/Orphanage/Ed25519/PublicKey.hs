@@ -3,17 +3,17 @@
 module Fission.Internal.Orphanage.Ed25519.PublicKey () where
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519  as Ed25519
+import qualified Crypto.PubKey.Ed25519                        as Ed25519
 
-import qualified Data.ByteString.Base64 as BS64
-import qualified RIO.Text               as Text
+import qualified Data.ByteString.Base64                       as BS64
+import qualified RIO.Text                                     as Text
 
 import           Servant.API
 
-import           Fission.Prelude
+import qualified Fission.Internal.Base64                      as B64
 import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
-import qualified Fission.Internal.Base64 as B64
- 
+import           Fission.Prelude
+
 instance Display Ed25519.PublicKey where
   textDisplay = decodeUtf8Lenient . B64.toB64ByteString
 
@@ -22,7 +22,7 @@ instance ToHttpApiData Ed25519.PublicKey where
 
 instance FromHttpApiData Ed25519.PublicKey where
   parseUrlPiece txt =
-    case Ed25519.publicKey . BS64.decodeLenient $ encodeUtf8 txt of
+    case Ed25519.publicKey . BS64.decodeBase64Lenient $ encodeUtf8 txt of
       CryptoPassed pk -> Right pk
       err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err) <> " / " <> txt
 

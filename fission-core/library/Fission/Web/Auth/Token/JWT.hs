@@ -44,12 +44,12 @@ import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
 
 import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
+import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 import           Fission.Web.Auth.Token.JWT.Signature             as Signature
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-import qualified Fission.Web.Auth.Token.JWT.RawContent            as JWT
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 -- Reexports
 
@@ -57,8 +57,8 @@ import           Fission.Web.Auth.Token.JWT.RawContent
 
 -- Orphans
 
-import           Fission.Internal.Orphanage.CID ()
-import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import           Fission.Internal.Orphanage.CID                   ()
+import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
@@ -84,7 +84,7 @@ instance Arbitrary JWT where
 
     let
       claims = claims' {sender = DID Key pk}
-   
+
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
         Right edSK -> Right $ signEd25519 header claims edSK
@@ -103,7 +103,7 @@ instance ToJSON JWT where
           |> encode
           |> Lazy.toStrict
           |> UTF8.stripQuotesBS
-          |> BS.B64.URL.encode
+          |> BS.B64.URL.encodeBase64'
           |> UTF8.stripPadding
 
 instance FromJSON JWT where
@@ -118,7 +118,7 @@ instance FromJSON JWT where
       _ ->
         fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
     where
-      jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
+      jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeBase64Lenient . encodeUtf8
 
 ------------
 -- Claims --

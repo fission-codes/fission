@@ -112,7 +112,7 @@ dependencies:
   - asn1-encoding
   - asn1-types
   - base58string
-  - base64-bytestring
+  - base64 #-bytestring
   - binary
   - bytestring
   - generic-lens

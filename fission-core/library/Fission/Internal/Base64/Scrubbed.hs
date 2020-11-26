@@ -5,13 +5,13 @@ module Fission.Internal.Base64.Scrubbed
   , scrubB64
 
   -- * Reexports
- 
+
   , module Data.ByteString.Base64
   ) where
 
-import qualified RIO.ByteString         as BS
-import qualified Data.ByteString.Base64 as BS64
 import qualified Data.ByteArray         as BA
+import qualified Data.ByteString.Base64 as BS64
+import qualified RIO.ByteString         as BS
 
 import           Fission.Prelude
 
@@ -21,7 +21,7 @@ import           Data.ByteString.Base64
 
 -- | Scrub incoming base64-encoded bytes
 scrubB64 :: ByteString -> BA.ScrubbedBytes
-scrubB64 = scrub . BS64.decodeLenient
+scrubB64 = scrub . BS64.decodeBase64Lenient
 
 scrub :: ByteString -> BA.ScrubbedBytes
 scrub = BA.pack . BS.unpack
