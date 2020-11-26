@@ -34,6 +34,7 @@ import           Fission.CLI.Parser                             as CLI
 import           Fission.CLI.Parser.Command.Setup.Types         as Setup
 import           Fission.CLI.Parser.Command.Types
 import           Fission.CLI.Parser.Command.User.Types
+import           Fission.CLI.Parser.Command.User.Register.Types as Register
 import           Fission.CLI.Parser.Types                       as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
@@ -108,7 +109,8 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
 
         User subCmd ->
           case subCmd of
-            Register _ -> void Handler.register
+            Register Register.Options {maybeUsername, maybeEmail} ->
+              Handler.register maybeUsername maybeEmail
             WhoAmI   _ -> Handler.whoami
 
 finalizeDID ::

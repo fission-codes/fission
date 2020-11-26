@@ -63,7 +63,7 @@ setup ::
   -> m ()
 setup maybeOS fissionURL = do
   Key.create
-  username <- User.register
+  username <- User.register Nothing Nothing
 
   UTF8.putText "Setting default config..."
   Env.init username fissionURL

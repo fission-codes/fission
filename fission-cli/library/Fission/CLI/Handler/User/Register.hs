@@ -51,15 +51,17 @@ register ::
   , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
   )
-  => m Username
-register =
+  => Maybe Username
+  -> Maybe Email
+  -> m Username
+register maybeUsername maybeEmail =
   attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
     Right username -> do
       CLI.Success.alreadyLoggedInAs $ textDisplay username
       return username
 
     Left _ ->
-      createAccount
+      createAccount maybeUsername maybeEmail
 
 createAccount ::
   ( MonadIO          m
@@ -81,9 +83,15 @@ createAccount ::
   , m `Raises` Username.Invalid
   , Show (OpenUnion (Errors m))
   )
-  => m Username
-createAccount = do
-  username <- ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
+  => Maybe Username
+  -> Maybe Email
+  -> m Username
+createAccount maybeUsername maybeEmail = do
+  username <- case maybeUsername of
+    Nothing ->
+      ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
+    Just uname ->
+      return uname
   email    <- Email <$> Prompt.reaskNotEmpty' "Email: "
 
   let
@@ -129,4 +137,4 @@ createAccount = do
       CLI.Error.put err $
         errMsg <> " Please try again or contact Fission support at https://fission.codes"
 
-      createAccount
+      createAccount maybeUsername maybeEmail
