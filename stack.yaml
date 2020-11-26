@@ -8,18 +8,14 @@ packages:
 
 extra-deps:
   - alex-3.2.5
-    # - base64-bytestring-1.1.0.0
   - cryptostore-0.2.1.0
   - happy-1.20.0
-    # - happy-1.19.12
   - hfsevents-0.1.6
-    # - hspec-wai-json-0.10.1
   - ipfs-1.1.5.1
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.2.1 # FIXME explore 0.3.0
   - servant-quickcheck-0.0.10.0
-    # - tasty-rerun-1.1.17
   - text-time-0.3.1
 
   # For ip-1.7.2
