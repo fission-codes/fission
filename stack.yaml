@@ -1,5 +1,5 @@
 resolver:    lts-16.23
-allow-newer: true
+allow-newer: true # for servant-quickcheck
 
 packages:
   - fission-cli
