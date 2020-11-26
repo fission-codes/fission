@@ -1,10 +1,9 @@
-resolver: lts-16.23
+resolver:    lts-16.23
+allow-newer: true
 
 packages:
   - fission-cli
   - fission-core
-
-    # allow-newer: true
 
 extra-deps:
   - alex-3.2.5
@@ -14,7 +13,7 @@ extra-deps:
   - ipfs-1.1.5.1
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
-  - rescue-0.2.1 # FIXME explore 0.3.0
+  - rescue-0.2.1 # FIXME explore 0.3.0, or switch to checked-exceptions
   - servant-quickcheck-0.0.10.0
   - text-time-0.3.1
 
