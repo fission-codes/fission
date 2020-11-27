@@ -88,11 +88,11 @@ createAccount ::
   -> m Username
 createAccount maybeUsername maybeEmail = do
   username <- case maybeUsername of
-    Nothing -> ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
+    Nothing    -> ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
     Just uname -> return uname
 
   email <- case maybeEmail of
-    Nothing -> Email <$> Prompt.reaskNotEmpty' "Email: "
+    Nothing   -> Email <$> Prompt.reaskNotEmpty' "Email: "
     Just mail -> return mail
 
   let
