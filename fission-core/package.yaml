@@ -244,21 +244,12 @@ tests:
       - fission-core
       - QuickCheck
       - quickcheck-instances
-      # - servant-quickcheck
       - tasty
       - tasty-hunit
       - tasty-hspec
       - tasty-smallcheck
       - tasty-rerun
       - transformers
-
-#   fission-core-lint:
-#     main: Main.hs
-#     source-dirs: lint
-#     dependencies:
-#       - base
-#       - hlint
-#       - rio
 
 benchmarks:
   fission-core-benchmark:

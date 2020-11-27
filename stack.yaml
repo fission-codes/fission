@@ -13,7 +13,6 @@ extra-deps:
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.2.1 # FIXME explore 0.3.0, or switch to checked-exceptions
-  # - servant-quickcheck-0.0.10.0
   - text-time-0.3.1
 
   # For ip-1.7.2
