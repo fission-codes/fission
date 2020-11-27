@@ -18,7 +18,6 @@ import           Fission.Models
 
 import qualified Fission.User                                     as User
 
-import qualified Fission.User.Username.Error                      as Username
 import           Fission.User.Username.Types                      as Username
 
 import           Fission.Web.Error                                as Web.Err
@@ -88,6 +87,6 @@ checkUser (BasicAuthData rawUsername password) =
 
 parseBasic :: Auth.Basic.Token -> Either Auth.Error BasicAuthData
 parseBasic (Auth.Basic.Token token) =
-  case Ch.split ':' (Base64.decodeLenient token) of
+  case Ch.split ':' (Base64.decodeBase64Lenient token) of
     [un,pw] -> Right $ BasicAuthData un pw
     _       -> Left Auth.NoToken

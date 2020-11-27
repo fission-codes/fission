@@ -41,6 +41,7 @@ import           Fission.CLI.Parser.Verbose.Types
 import qualified Fission.CLI.App                                as App
 import           Fission.CLI.Types
 
+import qualified Fission.CLI.Internal.ServerDID                 as ServerDID
 import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
 type Errs
@@ -57,7 +58,6 @@ cli = do
 
   let
     VerboseFlag isVerbose = getter cmd
-    Right fallbackDID = eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\""
 
     ipfsURL     = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
     ipfsTimeout = IPFS.Timeout 3600
@@ -75,7 +75,7 @@ cli = do
   logOptions    <- logOptionsHandle stderr isVerbose
 
   withLogFunc logOptions \logFunc -> do
-    finalizeDID fissionDID Base.Config {serverDID = fallbackDID, ..} >>= \case
+    finalizeDID fissionDID Base.Config {serverDID = ServerDID.fallback, ..} >>= \case
       Right serverDID -> interpret Base.Config {..} fissionURL cmd
       Left  err       -> return . Left $ include err
 
