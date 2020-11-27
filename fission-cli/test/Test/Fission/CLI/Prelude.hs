@@ -7,7 +7,7 @@ module Test.Fission.CLI.Prelude
   , module Test.Tasty.Hspec
   , module Test.Hspec.Wai
   , module Test.QuickCheck
-  , module Servant.QuickCheck
+  -- , module Servant.QuickCheck
 
   --
   , bodyMatches
@@ -18,7 +18,7 @@ module Test.Fission.CLI.Prelude
 
 import qualified Network.HTTP.Types         as HTTP
 
-import           Servant.QuickCheck
+-- import           Servant.QuickCheck
 
 import           Test.Tasty                 (TestTree, defaultMain, testGroup)
 import           Test.Tasty.Hspec

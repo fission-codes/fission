@@ -175,7 +175,7 @@ tests:
       - lens-aeson
       - QuickCheck
       - quickcheck-instances
-      - servant-quickcheck
+      # - servant-quickcheck
       - yaml
 
   fission-cli-test:
@@ -197,7 +197,7 @@ tests:
       - fission-core
       - QuickCheck
       - quickcheck-instances
-      - servant-quickcheck
+      # - servant-quickcheck
       - tasty
       - tasty-hunit
       - tasty-hspec

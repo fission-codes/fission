@@ -61,13 +61,6 @@ packages:
   original:
     hackage: rescue-0.2.1
 - completed:
-    hackage: servant-quickcheck-0.0.10.0@sha256:1d5849d703c2487752f8fc7391cca7c998ee24f54ca0bb72d238bf99b64ac667,3755
-    pantry-tree:
-      size: 976
-      sha256: 37dab60111c71d011fc4964e9a8b4b05ac544bc0ba8155e895518680066c2adb
-  original:
-    hackage: servant-quickcheck-0.0.10.0
-- completed:
     hackage: text-time-0.3.1@sha256:c4301ea47bcb72deb60b0be25cf6f6b693a34a862ea9a8e9bc8b9a750e0857e9,1757
     pantry-tree:
       size: 638
