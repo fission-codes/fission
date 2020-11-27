@@ -1,6 +1,5 @@
 module Fission.StatusCode.Types (StatusCode (..)) where
 
-import           Control.Lens        ((%~))
 import           Data.Has
 import           Network.AWS.Route53
 import           RIO
@@ -19,7 +18,6 @@ instance Has StatusCode ChangeResourceRecordSetsResponse where
 instance Has StatusCode ListResourceRecordSetsResponse where
   getter res = StatusCode $ res ^. lrrsrsResponseStatus
   modifier updater resp = resp & lrrsrsResponseStatus %~ mkInnerUpdater updater
-
 
 mkInnerUpdater :: (StatusCode -> StatusCode) -> (Int -> Int)
 mkInnerUpdater updater = unStatusCode . updater . StatusCode
