@@ -34,6 +34,7 @@ import           Fission.CLI.Parser                             as CLI
 import           Fission.CLI.Parser.Command.Setup.Types         as Setup
 import           Fission.CLI.Parser.Command.Types
 import           Fission.CLI.Parser.Command.User.Types
+import           Fission.CLI.Parser.Command.User.Register.Types as Register
 import           Fission.CLI.Parser.Types                       as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
@@ -100,15 +101,16 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
         Version _ ->
           logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
 
-        Setup Setup.Options {forceOS} ->
-          Setup.setup forceOS fissionURL
+        Setup Setup.Options {forceOS, maybeUsername, maybeEmail} ->
+          Setup.setup forceOS fissionURL maybeUsername maybeEmail
 
         App subCmd ->
           App.interpret baseCfg subCmd
 
         User subCmd ->
           case subCmd of
-            Register _ -> void Handler.register
+            Register Register.Options {maybeUsername, maybeEmail} ->
+              void $ Handler.register maybeUsername maybeEmail
             WhoAmI   _ -> Handler.whoami
 
 finalizeDID ::
