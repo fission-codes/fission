@@ -87,7 +87,7 @@ listenToLinkRequests username  = do
   proof     <- Mutation.getRootProof username
 
   let
-    machineDID = DID Key (Ed25519PublicKey machinePK)
+    -- machineDID = DID Key (Ed25519PublicKey machinePK)
     topic      = PubSub.Topic $ textDisplay targetDID
     baseURL    = BaseUrl Https "runfission.net" 443 "/user/link"
 

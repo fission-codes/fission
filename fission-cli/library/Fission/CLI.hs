@@ -39,6 +39,7 @@ import           Fission.CLI.Parser.Verbose.Types
 
 import qualified Fission.CLI.App                                as App
 import           Fission.CLI.Types
+import qualified Fission.CLI.User                               as User
 
 import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
@@ -84,6 +85,9 @@ import qualified Fission.CLI.IPFS.Executable                    as Executable
 import           Fission.CLI.Key.Store                          as Key
 
 import qualified Fission.CLI.Handler.User.Link.Request          as Link
+
+import qualified Fission.CLI.Parser.Command.User.Login.Types    as Login
+
 import qualified Fission.CLI.Handler.User.Register              as User
 
 import           Fission.Web.Auth.Token.JWT                     as JWT
@@ -117,6 +121,7 @@ type Errs
   ': JWT.Error
   ': UCAN.Resolver.Error
   ': Key.Error
+  ': ActionNotAuthorized JWT
   -- App
   ': App.Errs
 
@@ -180,9 +185,7 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
           App.interpret baseCfg subCmd
 
         User subCmd ->
-          case subCmd of
-            Register _ -> void Handler.register
-            WhoAmI   _ -> Handler.whoami
+          User.interpret baseCfg subCmd
 
   -- FIXME remove when you have better erroro rtyes
 instance Display String where

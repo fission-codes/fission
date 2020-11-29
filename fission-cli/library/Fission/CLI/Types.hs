@@ -102,6 +102,8 @@ import           Fission.Web.Auth.Token.JWT.Resolver.Error
 import qualified Fission.WNFS.Access.Mutation.Store.Class   as WNFS.Mutation
 import qualified Fission.WNFS.Access.Query.Store.Class      as WNFS.Query
 
+import           Fission.User.DID.NameService.Class
+
 import           Fission.Internal.Orphanage.BaseUrl         ()
 import           Fission.Internal.Orphanage.ClientError     ()
 import           Fission.Internal.Orphanage.DNS.DNSError    ()
@@ -279,6 +281,24 @@ instance
     attempt (YAML.readFile readIndexPath) >>= \case
       Left  _         -> return mempty
       Right readIndex -> return readIndex
+
+instance MonadNameService (FissionCLI errs cfg) where
+  getByUsername (Username rawUsername) = do
+    logDebug $ "Fetching DID for " <> rawUsername
+
+    rs <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+
+    liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
+      Left errs -> do
+        logDebug $ "Unable to find DID for: " <> rawUsername
+        return $ Left NotFound
+
+      Right listBS ->
+        return $ Right listBS -- FIXME Brooke you're here! [BS] -> DID
+
+    where
+      url = "_did." <> encodeUtf8 rawUsername <> ".fissionuser.net" -- FIXME environment
+                                           -- FIXME ^^^^^^^ make contextual
 
 instance
   ( Contains errs errs

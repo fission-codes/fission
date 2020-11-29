@@ -1,5 +1,4 @@
--- FIXME Delete module, now lives in the handler directly
-module Fission.CLI.Linking.Request (requestFrom) where
+module Fission.CLI.Handler.User.Login (login) where
 
 import           Crypto.Cipher.AES                         (AES256)
 import qualified Crypto.PubKey.RSA.Types                   as RSA
@@ -42,7 +41,7 @@ import           Fission.CLI.Linking.Types
 type AESPayload m expected = SecurePayload m (Symmetric.Key AES256) expected
 type RSAPayload m expected = SecurePayload m RSA.PrivateKey expected
 
-requestFrom ::
+login ::
   ( MonadLogger       m
   , MonadIO           m
   , MonadTime         m
@@ -65,9 +64,9 @@ requestFrom ::
   , FromJSON (RSAPayload m (Symmetric.Key AES256))
   )
   => Username
-  -> DID
   -> m ()
-requestFrom username myDID = do
+login username = do
+  myDID     <- undefined -- FIXME
   targetDID <- ensureM $ DID.getByUsername username
 
   let
@@ -118,7 +117,7 @@ validateProof ::
   -> Symmetric.Key AES256
   -> m UCAN.JWT
 validateProof Bearer.Token {..} myDID targetDID sessionAES = do
-  ensureM $ UCAN.check myDID rawContent jwt
+  _ <- ensureM $ UCAN.check myDID rawContent jwt
 
   case (jwt |> claims |> potency) == AuthNOnly of
     False ->
@@ -133,4 +132,3 @@ validateProof Bearer.Token {..} myDID targetDID sessionAES = do
 
         _ ->
           raise "No session key fact" -- FIXME
-
