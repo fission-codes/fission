@@ -1,24 +1,40 @@
 module Fission.CLI.Release (checkLatestRelease) where
 
+import qualified System.Console.ANSI                    as ANSI
+
 import           Fission.Prelude
+
+import qualified Fission.CLI.Meta                       as Meta
+import           Fission.CLI.Display.Text
+import qualified Fission.Internal.UTF8                  as UTF8
+import           Fission.SemVer.Types
 
 import           GitHub (github')
 import qualified GitHub
-import           GitHub.Data.Releases                           as Releases
+import           GitHub.Data.Releases                   as Releases
 
-checkLatestVersion ::
-  ( MonadLogger m
-  , MonadIO     m
+checkLatestRelease ::
+  ( MonadLogger  m
+  , MonadIO      m
+  , MonadCleanup m
   )
   => m ()
 checkLatestRelease = do
   -- check "last checked" timestamp to see if we need to check again
-  logInfo @Text "Checking for newer versions..."
+  logDebug @Text "Checking for newer versions..."
 
   possibleVersion <- liftIO $ github' GitHub.latestReleaseR "fission-suite" "fission"
   case possibleVersion of
     Left  _ -> return () -- just ignore errors here.
-    Right latestVersion -> do
-      -- check latest version against current version from Meta.package
-      logInfo $ "latest version is: " <> Releases.releaseTagName latestVersion
-      return ()
+    Right latestRelease -> do
+      let
+        currentVersion = getSemVer $ Meta.version =<< Meta.package
+        latestVersion  = getSemVer $ Just (Releases.releaseTagName latestRelease)
+      if currentVersion < latestVersion
+        then colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
+          UTF8.putText $ "⚠️  A new version of Fission CLI is available: "
+          UTF8.putText $ Releases.releaseTagName latestRelease <> " (aka '" <> Releases.releaseName latestRelease <> "')\n"
+        else return ()
+
+getSemVer :: Maybe Text -> Maybe SemVer
+getSemVer maybeVersion = decode $ encode maybeVersion

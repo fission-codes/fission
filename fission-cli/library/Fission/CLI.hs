@@ -99,7 +99,7 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
     dispatch = do
       logDebug . Text.pack $ show cmd
 
-      checkLatestVersion
+      checkLatestRelease
 
       case cmd of
         Version _ ->
