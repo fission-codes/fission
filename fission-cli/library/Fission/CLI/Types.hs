@@ -385,9 +385,12 @@ instance
     liftIO . WS.sendDataMessage conn $ WS.Binary msg
 
   receiveLBS conn = do
-    liftIO (WS.receiveDataMessage conn) >>= \case
+    lbs <- liftIO (WS.receiveDataMessage conn) >>= \case
       WS.Text   lbs _ -> return lbs
       WS.Binary lbs   -> return lbs
+
+    logDebug $ "Received message over websockets: " <> lbs
+    return lbs
 
 instance
   ( HasLogFunc cfg

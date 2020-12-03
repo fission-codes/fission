@@ -111,9 +111,8 @@ login username = do
     baseURL = BaseUrl Https "runfission.net" 443 "/user/link" -- FIXME check env
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
-    logDebug @Text "WS pubsub"
     aesKey <- secureConnection conn () \rsaConn@SecureConnection {key} -> do
-      logDebug @Text "RSA channel"
+      logDebug @Text "Opening RSA pubsub channel"
       reattempt 10 do
         broadcast conn $ DID Key (RSAPublicKey $ RSA.private_pub key) -- STEP 2
 
