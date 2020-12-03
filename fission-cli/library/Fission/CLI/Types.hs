@@ -374,10 +374,8 @@ instance
   connect url@BaseUrl {..} (Topic rawTopic) withConn = do
     logDebug $ "Connecting to websocket pubsub at: " <> show url <> " with " <> Text.unpack rawTopic
     control \runInBase -> do
-      void . runInBase $ logDebug $ show url
+      void . runInBase . logDebug $ "Websocket connecting at: " <> show url
       WSS.runSecureClient baseUrlHost (fromIntegral baseUrlPort) (baseUrlPath <> "/" <> Text.unpack rawTopic) \conn -> -- ("/" <> Text.unpack rawTopic) \conn ->
-      -- WSS.runSecureClient "runfission.net" 443 "/user/link/did:key:zStEksDrxkwYmpzqBdAQjjx1PRbHG3fq4ChGeJcYUYU44a4CBUExTTjeCbop6Uur" \conn -> -- ("/" <> Text.unpack rawTopic) \conn ->
-      -- WS.runClient baseUrlHost baseUrlPort "/user/link/did:key:zStEksDrxkwYmpzqBdAQjjx1PRbH3fq4ChGeJcYUYU44a4CBUExTTjeCbop6UurG" \conn -> -- ("/" <> Text.unpack rawTopic) \conn ->
         runInBase do
           logDebug @Text "Websocket pubsub connected"
           withConn conn
