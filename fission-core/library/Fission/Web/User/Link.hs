@@ -21,10 +21,12 @@ type API
 
 socket ::
   ( MonadIO         m
+  , MonadLogger     m
   , MonadRelayStore m
   )
   => ServerT API m
 socket did conn = do
+  logDebug $ "Connected to user link for " <> textDisplay did
   storeVar <- getStoreVar
   (sentBufferVar, chanIn, chanOut) <- atomicallyM $ setupSTM did storeVar
 

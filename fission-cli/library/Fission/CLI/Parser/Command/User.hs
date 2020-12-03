@@ -10,6 +10,7 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
+import qualified Fission.CLI.Parser.Command.User.Login    as Login
 import qualified Fission.CLI.Parser.Command.User.Register as Register
 import           Fission.CLI.Parser.Command.User.Types
 import qualified Fission.CLI.Parser.Command.User.WhoAmI   as WhoAmI
@@ -27,6 +28,7 @@ parser =
   hsubparser $ mconcat
     [ command "whoami"   $ fmap WhoAmI   WhoAmI.parserWithInfo
     , command "register" $ fmap Register Register.parserWithInfo
+    , command "login"    $ fmap Login    Login.parserWithInfo
     ]
 
 fallback :: Parser Options

@@ -82,6 +82,7 @@ type Errs
      , DNSError
      , NotFound DID
      , AlreadyExists Ed25519.SecretKey
+     -- , AlreadyExists DID
 
 
      , YAML.ParseException

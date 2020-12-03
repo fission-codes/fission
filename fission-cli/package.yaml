@@ -136,6 +136,8 @@ dependencies:
   - servant-client
   - servant-client-core
   - websockets
+  # - wss-client
+  - wuss
 
   ## Fission ##
   - fission-core

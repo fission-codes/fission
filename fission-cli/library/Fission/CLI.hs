@@ -113,6 +113,7 @@ type Errs
   ': NotFound DID
   ': AlreadyExists Ed25519.SecretKey
   ': NotFound DID
+  -- ': AlreadyExists DID -- FIXME LOL can be much better
   ': DNS.DNSError
   ': CryptoError
   ': IPFS.Process.Error

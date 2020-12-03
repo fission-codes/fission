@@ -95,6 +95,13 @@ packages:
       sha256: 086572dbcc5663ab43f658634dcb3b08cc595690fba0a92387eeb7aa72651d6f
   original:
     hackage: text-time-0.2.0
+- completed:
+    hackage: wss-client-0.3.0.0@sha256:0c4170c5331ead61fe326e9f4789bcec6cc66ea6268fca6c0dba48be5abeaeaf,1985
+    pantry-tree:
+      size: 457
+      sha256: 7e25dc1799bbfa8f90e623e27a02809f26bf46e29a051a9fc58619eb007e81cb
+  original:
+    hackage: wss-client-0.3.0.0
 snapshots:
 - completed:
     size: 493124

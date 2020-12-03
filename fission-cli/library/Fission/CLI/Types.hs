@@ -5,8 +5,11 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
+import qualified RIO.NonEmpty                               as NonEmpty
+
 import qualified Fission.Web.Auth.Token.JWT                 as UCAN
 
+import qualified Fission.DNS                                as DNS
 import           Fission.User.Username.Types
 
 
@@ -27,16 +30,18 @@ import qualified Fission.Key.Symmetric.AES256.Payload.Types as AES
 import qualified Fission.PubSub.DM.Channel.Types            as DM
 import           Fission.PubSub.Secure.Class
 import           Fission.Security.EncryptedWith.Types
-import qualified OpenSSL.RSA                                as OpenSSL
+-- import qualified OpenSSL.RSA                                as OpenSSL
 
 import qualified Fission.Key.Symmetric                      as Symmetric
 import           Fission.PubSub.Class
 import           Fission.Web.Auth.Token.JWT.Resolver.Class  as JWT
 import qualified Network.WebSockets                         as WS
+import qualified Network.WebSockets.Client                  as WS
+import qualified Wuss                                       as WSS
 
 import           Crypto.Hash                                as Crypto
 import qualified Crypto.PubKey.Ed25519                      as Ed25519
-import           Crypto.Random
+-- import           Crypto.Random
 
 
 import           Fission.CLI.File
@@ -282,23 +287,41 @@ instance
       Left  _         -> return mempty
       Right readIndex -> return readIndex
 
-instance MonadNameService (FissionCLI errs cfg) where
+instance HasLogFunc cfg => MonadNameService (FissionCLI errs cfg) where
   getByUsername (Username rawUsername) = do
     logDebug $ "Fetching DID for " <> rawUsername
 
+    -- FIXME uuugh this is all uglier than it needs to be
     rs <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
 
     liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
-      Left errs -> do
-        logDebug $ "Unable to find DID for: " <> rawUsername
-        return $ Left NotFound
+      Left _ ->
+        notFound
 
-      Right listBS ->
-        return $ Right listBS -- FIXME Brooke you're here! [BS] -> DID
+      Right listBS -> do
+        logInfo $ "Got raw DID response: " <> show listBS
+        case NonEmpty.nonEmpty (decodeUtf8Lenient <$> listBS) of
+          Nothing ->
+            notFound
+
+          Just segments -> do
+            let rawDID = DNS.mergeSegments segments
+            logInfo $ "Raw DID: " <> rawDID
+            case decode $ encode rawDID  of
+              Nothing  -> do
+                logDebug @Text ">>>>>>>>>>>>>><<<<<<<<<<<"
+                notFound
+              Just did -> do
+                logDebug @Text "happy happy"
+                return $ Right did
 
     where
       url = "_did." <> encodeUtf8 rawUsername <> ".fissionuser.net" -- FIXME environment
                                            -- FIXME ^^^^^^^ make contextual
+
+      notFound = do
+        logDebug $ "Unable to find DID for: " <> rawUsername
+        return . Left $ NotFound @DID
 
 instance
   ( Contains errs errs
@@ -348,21 +371,24 @@ instance
   => MonadPubSub (FissionCLI errs cfg) where
   type Connection (FissionCLI errs cfg) = WS.Connection
 
-  connect BaseUrl {..} (Topic rawTopic) withConn =
-    control \runInBase ->
-      WS.runClient baseUrlHost baseUrlPort path \conn ->
-        runInBase $ withConn conn
-    where
-      path = baseUrlPath <> "/" <> Text.unpack rawTopic
+  connect url@BaseUrl {..} (Topic rawTopic) withConn = do
+    logDebug $ "Connecting to websocket pubsub at: " <> show url <> " with " <> Text.unpack rawTopic
+    control \runInBase -> do
+      void . runInBase $ logDebug @Text "Control"
+      WSS.runSecureClient "runfission.net" 443 "/user/link/did:key:zStEksDrxkwYmpzqBdAQjjx1PRbHG3fq4ChGeJcYUYU44a4CBUExTTjeCbop6Uur" \conn -> -- ("/" <> Text.unpack rawTopic) \conn ->
+      -- WS.runClient baseUrlHost baseUrlPort "/user/link/did:key:zStEksDrxkwYmpzqBdAQjjx1PRbH3fq4ChGeJcYUYU44a4CBUExTTjeCbop6UurG" \conn -> -- ("/" <> Text.unpack rawTopic) \conn ->
+        runInBase do
+          logDebug @Text "Websocket pubsub connected"
+          withConn conn
 
-  sendLBS conn msg =
+  sendLBS conn msg = do
+    logDebug $ "Sending over pubsub: " <> msg
     liftIO . WS.sendDataMessage conn $ WS.Binary msg
 
   receiveLBS conn = do
     liftIO (WS.receiveDataMessage conn) >>= \case
       WS.Text   lbs _ -> return lbs
       WS.Binary lbs   -> return lbs
-
 
 instance
   ( HasLogFunc cfg
@@ -418,10 +444,14 @@ instance
       clearBS = Lazy.toStrict $ encode msg
       pk      = RSA.private_pub sk
 
+    logDebug @Text "RSA encrypting pubusb message"
     cipherBS <- ensureM $ RSA.OAEP.encrypt oaepParams pk clearBS
+    logDebug $ "Resulting ciphertext: " <> cipherBS
     return . EncryptedPayload $ Lazy.fromStrict cipherBS
 
-  fromSecurePayload sk (EncryptedPayload msg) =
+  fromSecurePayload sk (EncryptedPayload msg) = do
+    logDebug $ "Attempting to decode RSA pubsub payload: " <> msg
+
     RSA.OAEP.decryptSafer oaepParams sk (Lazy.toStrict msg) >>= \case
       Left err -> do
         logDebug $ "Unable to decrypt message via RSA: " <> msg
