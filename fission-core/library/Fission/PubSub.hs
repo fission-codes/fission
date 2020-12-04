@@ -1,16 +1,23 @@
 module Fission.PubSub
-  ( listen
-  , broadcast
+  ( listenJSON
+  , listenRaw
+  , broadcastJSON
+  , broadcastRaw
   , module Fission.PubSub.Class
   , module Fission.PubSub.Topic.Types
   ) where
+
+import qualified Data.Binary.Builder        as Binary
+import qualified RIO.ByteString.Lazy        as Lazy
+
+import           Servant.API
 
 import           Fission.Prelude
 
 import           Fission.PubSub.Class
 import           Fission.PubSub.Topic.Types
 
-listen ::
+listenJSON ::
   ( MonadPubSub m
   , MonadRaise  m
   , m `Raises` String
@@ -18,15 +25,37 @@ listen ::
   )
   => Connection m
   -> m msg
-listen conn = do
-  bs <- receiveLBS conn
-  ensure $ eitherDecode bs
+listenJSON conn = do
+  lbs <- receiveLBS conn
+  ensure $ eitherDecode lbs
 
-broadcast ::
+listenRaw ::
+  ( MonadPubSub m
+  , MonadRaise  m
+  , m `Raises` Text
+  , FromHttpApiData msg
+  )
+  => Connection m
+  -> m msg
+listenRaw conn = do
+  lbs <- receiveLBS conn
+  ensure . parseHeader $ Lazy.toStrict lbs
+
+broadcastJSON ::
   ( MonadPubSub m
   , ToJSON msg
   )
   => Connection m
   -> msg
   -> m ()
-broadcast conn msg = sendLBS conn $ encode msg
+broadcastJSON conn msg = sendLBS conn $ encode msg
+
+broadcastRaw ::
+  ( MonadPubSub m
+  , ToHttpApiData msg
+  )
+  => Connection m
+  -> msg
+  -> m ()
+broadcastRaw conn msg =
+  sendLBS conn . Binary.toLazyByteString $ toEncodedUrlPiece msg

@@ -1,8 +1,8 @@
 -- |
 
 module Fission.PubSub.Secure
-  ( secureBroadcast
-  , secureListen
+  ( secureBroadcastJSON
+  , secureListenJSON
   , module Fission.PubSub.Secure.Class
   , module Fission.PubSub.Secure.SecureConnection
   ) where
@@ -13,23 +13,24 @@ import           Fission.PubSub
 import           Fission.PubSub.Secure.Class
 import           Fission.PubSub.Secure.SecureConnection
 
-secureListen ::
+secureListenJSON ::
   ( MonadPubSubSecure m cipher
   , MonadLogger       m
   , MonadRescue       m
   , m `Raises` String
   , FromJSON msg
   , FromJSON (SecurePayload m cipher msg)
+  , Display  (SecurePayload m cipher msg)
   )
   => SecureConnection m cipher
   -> m msg
-secureListen SecureConnection {..} =
+secureListenJSON SecureConnection {..} =
   reattempt 100 do
-    payload <- listen conn
-    logDebug @Text "Got raw encrypted payload"
+    payload <- listenJSON conn
+    logDebug $ "Got raw encrypted payload: " <> textDisplay payload
     ensureM $ fromSecurePayload key payload
 
-secureBroadcast ::
+secureBroadcastJSON ::
   ( MonadPubSubSecure m cipher
   , ToJSON msg
   , ToJSON (SecurePayload m cipher msg)
@@ -37,5 +38,5 @@ secureBroadcast ::
   => SecureConnection m cipher
   -> msg
   -> m ()
-secureBroadcast SecureConnection {..} msg =
-  broadcast conn =<< toSecurePayload key msg
+secureBroadcastJSON SecureConnection {..} msg =
+  broadcastJSON conn =<< toSecurePayload key msg

@@ -299,21 +299,17 @@ instance HasLogFunc cfg => MonadNameService (FissionCLI errs cfg) where
         notFound
 
       Right listBS -> do
-        logInfo $ "Got raw DID response: " <> show listBS
+        logDebug $ "Got raw DID response: " <> show listBS
         case NonEmpty.nonEmpty (decodeUtf8Lenient <$> listBS) of
           Nothing ->
             notFound
 
           Just segments -> do
             let rawDID = DNS.mergeSegments segments
-            logInfo $ "Raw DID: " <> rawDID
+            logDebug $ "Raw DID: " <> rawDID
             case decode $ encode rawDID  of
-              Nothing  -> do
-                logDebug @Text ">>>>>>>>>>>>>><<<<<<<<<<<"
-                notFound
-              Just did -> do
-                logDebug @Text "happy happy"
-                return $ Right did
+              Nothing  -> notFound
+              Just did -> return $ Right did
 
     where
       url = "_did." <> encodeUtf8 rawUsername <> ".fissionuser.net" -- FIXME environment
@@ -371,14 +367,24 @@ instance
   => MonadPubSub (FissionCLI errs cfg) where
   type Connection (FissionCLI errs cfg) = WS.Connection
 
-  connect url@BaseUrl {..} (Topic rawTopic) withConn = do
-    logDebug $ "Connecting to websocket pubsub at: " <> show url <> " with " <> Text.unpack rawTopic
+  connect BaseUrl {..} (Topic rawTopic) withConn = do
+    logDebug $ mconcat
+      [ "Websocket connecting at: "
+      , show baseUrlHost
+      , ":"
+      , show port
+      , path
+      ]
+
     control \runInBase -> do
-      void . runInBase . logDebug $ "Websocket connecting at: " <> show url
-      WSS.runSecureClient baseUrlHost (fromIntegral baseUrlPort) (baseUrlPath <> "/" <> Text.unpack rawTopic) \conn -> -- ("/" <> Text.unpack rawTopic) \conn ->
+      WSS.runSecureClient baseUrlHost port path \conn ->
         runInBase do
           logDebug @Text "Websocket pubsub connected"
           withConn conn
+
+    where
+      port = fromIntegral baseUrlPort
+      path = baseUrlPath <> "/" <> Text.unpack rawTopic
 
   sendLBS conn msg = do
     logDebug $ "Sending over pubsub: " <> msg

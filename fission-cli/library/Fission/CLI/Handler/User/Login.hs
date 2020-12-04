@@ -89,8 +89,11 @@ login ::
   , m `Raises` ActionNotAuthorized UCAN.JWT -- FIXME shoudl be more contextual
   , ToJSON   (AESPayload m PIN.PIN) -- FIXME can make cleaner with a constraint alias on pubsubsecure
   , FromJSON (AESPayload m Bearer.Token)
+  , Display (AESPayload m Bearer.Token)
   , FromJSON (AESPayload m LinkData)
+  , Display (AESPayload m LinkData)
   , FromJSON (RSAPayload m (Symmetric.Key AES256))
+  , Display  (RSAPayload m (Symmetric.Key AES256))
   )
   => Username
   -> m ()
@@ -114,12 +117,12 @@ login username = do
     aesKey <- secureConnection conn () \rsaConn@SecureConnection {key} -> do
       logDebug @Text "Opening RSA pubsub channel"
       reattempt 10 do
-        broadcast conn $ DID Key (RSAPublicKey $ RSA.private_pub key) -- STEP 2
+        broadcastRaw conn $ DID Key (RSAPublicKey $ RSA.private_pub key) -- STEP 2
 
         reattempt 10 do
           -- STEP 3
-          aesKey      <- secureListen rsaConn
-          bearerToken <- secureListen SecureConnection {conn, key = aesKey}-- sessionKey
+          aesKey      <- secureListenJSON rsaConn
+          bearerToken <- secureListenJSON SecureConnection {conn, key = aesKey}-- sessionKey
 
           -- STEP 4
           validateProof bearerToken targetDID myDID aesKey
@@ -129,11 +132,11 @@ login username = do
 
     -- Step 5
     pin <- PIN.create
-    secureBroadcast aesConn pin
+    secureBroadcastJSON aesConn pin
 
     -- STEP 6
     reattempt 100 do
-      LinkData {..} <- secureListen aesConn
+      LinkData {..} <- secureListenJSON aesConn
       ensureM $ UCAN.check myDID ucanRaw ucanJWT
       UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
 
@@ -170,3 +173,9 @@ validateProof Bearer.Token {..} myDID targetDID sessionAES = do
 
         _ ->
           raise "No session key fact" -- FIXME
+
+newtype Throwaway = Throwaway DID
+  deriving newtype (Eq, Show, Display)
+
+instance ToJSON Throwaway where
+  toJSON (Throwaway did) = Null -- String "TEMPORARY_EXCHANGE_KEY" --  object ["didThrowaway" .= did]
