@@ -1,5 +1,6 @@
 module Fission.CLI.Release (checkLatestRelease) where
 
+import           Data.Versions
 import qualified System.Console.ANSI                    as ANSI
 
 import           Fission.Prelude
@@ -7,7 +8,6 @@ import           Fission.Prelude
 import qualified Fission.CLI.Meta                       as Meta
 import           Fission.CLI.Display.Text
 import qualified Fission.Internal.UTF8                  as UTF8
-import           Fission.SemVer.Types
 
 import           GitHub (github')
 import qualified GitHub
@@ -28,13 +28,19 @@ checkLatestRelease = do
     Left  _ -> return () -- just ignore errors here.
     Right latestRelease -> do
       let
-        currentVersion = getSemVer $ Meta.version =<< Meta.package
-        latestVersion  = getSemVer $ Just (Releases.releaseTagName latestRelease)
+        currentVersion = getVersion $ Meta.version =<< Meta.package
+        latestVersion  = getVersion $ Just (Releases.releaseTagName latestRelease)
       if currentVersion < latestVersion
         then colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
           UTF8.putText $ "⚠️  A new version of Fission CLI is available: "
           UTF8.putText $ Releases.releaseTagName latestRelease <> " (aka '" <> Releases.releaseName latestRelease <> "')\n"
-        else return ()
+        else return () -- no new version
 
-getSemVer :: Maybe Text -> Maybe SemVer
-getSemVer maybeVersion = decode $ encode maybeVersion
+getVersion :: Maybe Text -> Maybe Versioning
+getVersion maybeVersion =
+  case maybeVersion of
+    Nothing -> Nothing
+    Just v  ->
+      case versioning v of
+        Left _ -> Nothing
+        Right version -> return version

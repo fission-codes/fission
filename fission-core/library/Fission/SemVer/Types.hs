@@ -9,7 +9,6 @@ data SemVer = SemVer
   { major :: !Word8
   , minor :: !Word8
   , patch :: !Word8
-  , tick  :: !Word8
   } deriving Eq
 
 instance Show SemVer where
@@ -30,7 +29,6 @@ instance Arbitrary SemVer where
     major <- arbitrary
     minor <- arbitrary
     patch <- arbitrary
-    tick  <- arbitrary
     return SemVer {..}
 
 instance ToJSON SemVer where
@@ -39,6 +37,5 @@ instance ToJSON SemVer where
 instance FromJSON SemVer where
   parseJSON = withText "SemVer" \txt ->
     case readMaybe . Text.unpack <$> Text.split (== '.') txt of
-      [Just major, Just minor, Just patch]            -> return SemVer {tick = 0, ..}
-      [Just major, Just minor, Just patch, Just tick] -> return SemVer {..}
+      [Just major, Just minor, Just patch] -> return SemVer {..}
       _ -> fail $ show txt <> " is not a properly formatted semver"

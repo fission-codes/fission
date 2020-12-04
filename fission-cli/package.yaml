@@ -107,6 +107,7 @@ dependencies:
   - bytestring
   - memory
   - utf8-string
+  - versions
   - yaml
 
   ## Error Handling ##
