@@ -19,7 +19,6 @@ pkgs.mkShell {
     hinotify
 
     # Haskell
-    unstable.ghc
     unstable.ghcid
     unstable.stack
     unstable.stylish-haskell
