@@ -1,7 +1,25 @@
 module Fission.CLI.Handler.User.Login (login) where
 
-import           Crypto.Cipher.AES                         (AES256)
-import qualified Crypto.PubKey.RSA.Types                   as RSA
+import           Crypto.Error                               as Crypto
+import qualified Data.ByteString.Base64                     as Base64
+import qualified Fission.Internal.Base64                    as B64
+import qualified Fission.Internal.Base64.URL                as B64.URL
+import           Fission.Security.EncryptedWith.Types
+
+import qualified Data.ByteString.Char8                      as C8
+
+import           Crypto.Cipher.AES                          (AES256)
+import           Crypto.Cipher.Types
+import           Crypto.Hash.Algorithms
+import           Data.ByteArray                             hiding (all, and,
+                                                             length, or)
+
+import qualified RIO.ByteString.Lazy                        as Lazy
+import qualified RIO.Text                                   as Text
+
+import           Crypto.Cipher.AES                          (AES256)
+import qualified Crypto.PubKey.RSA.OAEP                     as RSA.OAEP
+import qualified Crypto.PubKey.RSA.Types                    as RSA
 import           Crypto.Random
 
 import           Fission.CLI.Environment.Class
@@ -14,46 +32,48 @@ import           Fission.Error.Types
 
 import           Fission.Authorization.Potency.Types
 
-import           Fission.User.DID.NameService.Class        as DID
+import           Fission.User.DID.NameService.Class         as DID
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
 import           Fission.CLI.Key.Store.Types
-import qualified Fission.User.Username.Types               as User
-import qualified Fission.Web.Client.User                   as User
+import qualified Fission.User.Username.Types                as User
+import qualified Fission.Web.Client.User                    as User
 
-import qualified Fission.CLI.Key.Store                     as Key.Store
+import qualified Fission.CLI.Key.Store                      as Key.Store
 import           Fission.Web.Client
 
 import           Fission.Key.Asymmetric.Public.Types
-import qualified Fission.Key.Symmetric                     as Symmetric
+import qualified Fission.Key.Symmetric                      as Symmetric
 
-import qualified Fission.WNFS.Access                       as WNFS
+import qualified Fission.WNFS.Access                        as WNFS
 
-import qualified Fission.WNFS.Access.Mutation.Store.Class  as WNFS.Mutation
-import qualified Fission.WNFS.Access.Query.Store.Class     as WNFS.Query
+import qualified Fission.WNFS.Access.Mutation.Store.Class   as WNFS.Mutation
+import qualified Fission.WNFS.Access.Query.Store.Class      as WNFS.Query
 
-import           Fission.Web.Auth.Token.Bearer.Types       as Bearer
-import           Fission.Web.Auth.Token.JWT                as JWT
-import qualified Fission.Web.Auth.Token.JWT                as UCAN
-import qualified Fission.Web.Auth.Token.JWT.Error          as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Class as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
-import qualified Fission.Web.Auth.Token.JWT.Validation     as UCAN
-import qualified Fission.Web.Auth.Token.UCAN               as UCAN
+import           Fission.Web.Auth.Token.Bearer.Types        as Bearer
+import           Fission.Web.Auth.Token.JWT                 as JWT
+import qualified Fission.Web.Auth.Token.JWT                 as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Error           as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Class  as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error  as UCAN.Resolver
+import qualified Fission.Web.Auth.Token.JWT.Validation      as UCAN
+import qualified Fission.Web.Auth.Token.UCAN                as UCAN
 
 -- import           Fission.Error.AlreadyExists.Types
 
-import           Fission.PubSub                            as PubSub
-import           Fission.PubSub.Secure                     as PubSub.Secure
+import           Fission.PubSub                             as PubSub
+import           Fission.PubSub.Secure                      as PubSub.Secure
 
-import qualified Fission.CLI.Linking.PIN                   as PIN
+import qualified Fission.CLI.Linking.PIN                    as PIN
 import           Fission.CLI.Linking.Types
 
-import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import qualified Crypto.PubKey.Ed25519                      as Ed25519
 import           Fission.Authorization.ServerDID
-import           Fission.CLI.Display.Success               as CLI.Success
-import           Fission.Web.Auth.Token                    as Auth
+import           Fission.CLI.Display.Success                as CLI.Success
+import           Fission.Web.Auth.Token                     as Auth
+
+import           Fission.Key.Symmetric.AES256.Payload.Types
 
 type AESPayload m expected = SecurePayload m (Symmetric.Key AES256) expected
 type RSAPayload m expected = SecurePayload m RSA.PrivateKey expected
@@ -80,6 +100,8 @@ login ::
   , MonadWebClient m
   , MonadCleanup m
   , m `Raises` String
+  , m `Raises` RSA.Error
+  , m `Raises` CryptoError
   , m `Raises` JWT.Error
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` NotFound DID
@@ -121,28 +143,72 @@ login username = do
 
         reattempt 10 do
           -- STEP 3
-          aesKey      <- secureListenJSON rsaConn
-          bearerToken <- secureListenJSON SecureConnection {conn, key = aesKey}-- sessionKey
+          JoinedTransfer {iv, sessionKey, msg} <- listenJSON conn
+          -- let sessionBS = B64.toB64ByteString $ encodeUtf8 sessionKey
+          let sessionBS = Base64.decodeLenient $ encodeUtf8 sessionKey
+          -- let sessionTxt = Text.dropWhileEnd (== '=') sessionKey
+          logDebug $ show sessionBS
 
-          -- STEP 4
-          validateProof bearerToken targetDID myDID aesKey
-          return aesKey
+          sessionKeyActual <- ensureM $ RSA.OAEP.decryptSafer oaepParams key sessionBS
+          logDebug $ sessionKeyActual
+          payload <- ensure $ Symmetric.decrypt (Symmetric.Key sessionKeyActual) iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ encodeUtf8 msg)
+          -- logDebug $ show iv
+          -- logDebug $ show sessionKey
+          logDebug $ "payload: " <> decodeUtf8Lenient payload
 
-    let aesConn = SecureConnection {conn, key = aesKey}
+          let foo = Base64.encode payload
+          logDebug $ show foo
 
-    -- Step 5
-    pin <- PIN.create
-    secureBroadcastJSON aesConn pin
+          ucan :: JWT <- ensure $ eitherDecodeStrict foo
+          logDebug $ show ucan
+          return ()
+    return ()
 
-    -- STEP 6
-    reattempt 100 do
-      LinkData {..} <- secureListenJSON aesConn
-      ensureM $ UCAN.check myDID ucanRaw ucanJWT
-      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
+   --        -- aesKey      <- secureListenJSON rsaConn
+   --        bearerToken <- secureListenJSON SecureConnection {conn, key = aesKey}-- sessionKey
 
-      if sender == targetDID
-        then WNFS.login username myDID readKey ucanRaw
-        else raise "unauthorized" -- FIXME
+   --        -- STEP 4
+   --        validateProof bearerToken targetDID myDID aesKey
+   --        return aesKey
+
+   --  let aesConn = SecureConnection {conn, key = aesKey}
+
+   --  -- Step 5
+   --  pin <- PIN.create
+   --  secureBroadcastJSON aesConn pin
+
+   --  -- STEP 6
+   --  reattempt 100 do
+   --    LinkData {..} <- secureListenJSON aesConn
+   --    ensureM $ UCAN.check myDID ucanRaw ucanJWT
+   --    UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
+
+   --    if sender == targetDID
+   --      then WNFS.login username myDID readKey ucanRaw
+   --      else raise "unauthorized" -- FIXME
+
+data JoinedTransfer = JoinedTransfer
+  { sessionKey :: !Text -- (Symmetric.Key AES256)
+  , iv         :: !(IV AES256)
+  , msg        :: !Text
+  }
+
+instance FromJSON JoinedTransfer where
+  parseJSON = withObject "JoinedTransfer" \obj -> do
+    sessionKey <- obj .: "sessionKey"
+    msg        <- obj .: "msg"
+    ivTxt      <- obj .: "iv"
+
+    case makeIV $ encodeUtf8 ivTxt of
+      Nothing -> fail "Invalid (IV AES256)"
+      Just iv -> return JoinedTransfer {..}
+
+oaepParams ::
+  ( ByteArray       output
+  , ByteArrayAccess seed
+  )
+  => RSA.OAEP.OAEPParams SHA256 seed output
+oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 
 validateProof ::
   ( MonadIO      m

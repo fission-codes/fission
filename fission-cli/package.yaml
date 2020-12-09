@@ -107,6 +107,7 @@ dependencies:
 
   ## Data ##
   - aeson
+  - base64-bytestring
   - binary
   - bytestring
   - memory
