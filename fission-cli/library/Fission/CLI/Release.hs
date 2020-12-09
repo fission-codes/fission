@@ -27,21 +27,23 @@ checkLatestRelease ::
   , MonadEnvironment m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  , Display (OpenUnion (Errors m))
+  , Show (OpenUnion (Errors m))
   )
   => m ()
 checkLatestRelease = do
   attempt Env.get >>= \case
     Left  err -> CLI.Error.put err "Unable to parse config"
     Right Env {updateChecked} -> do
-      now            <- currentTime
-      nextUpdateTime <- addUTCTime 86400 updateChecked
+      now <- currentTime
+      let
+        nextUpdateTime = addUTCTime 86400 updateChecked
       unless (now < nextUpdateTime) do
         logDebug @Text "Checking for newer versions..."
         possibleVersion <- liftIO $ github' GitHub.latestReleaseR "fission-suite" "fission"
         case possibleVersion of
           Left  _ -> return () -- just ignore errors here.
           Right latestRelease -> do
+            Env.update \env -> env {updateChecked = now}
             let
               currentVersion = getVersion $ Meta.version =<< Meta.package
               latestVersion  = getVersion $ Just (Releases.releaseTagName latestRelease)
