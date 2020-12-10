@@ -77,6 +77,7 @@ init username fissionURL = do
         , signingKeyPath
         , serverDID
         , username
+        , updateChecked  = fromSeconds 0
         }
 
 -- | Gets hierarchical environment by recursing through file system

@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.9.3.1'
+version: '2.9.4.0'
 category: CLI
 author:
   - Brooklyn Zelenka
@@ -107,6 +107,7 @@ dependencies:
   - bytestring
   - memory
   - utf8-string
+  - versions
   - yaml
 
   ## Error Handling ##
@@ -124,6 +125,7 @@ dependencies:
 
   ## Web ##
   - dns
+  - github
   - http-client
   - http-client-tls
   - http-types

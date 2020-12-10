@@ -12,6 +12,7 @@ import           Servant.Client.Core
 import qualified Network.IPFS.Timeout.Types                     as IPFS
 import qualified Network.IPFS.URL.Types                         as IPFS
 
+
 import           Fission.Prelude
 
 import           Fission.Error
@@ -29,6 +30,7 @@ import qualified Fission.CLI.Base.Types                         as Base
 import qualified Fission.CLI.Handler                            as Handler
 
 import qualified Fission.CLI.Handler.Setup                      as Setup
+import           Fission.CLI.Release
 
 import           Fission.CLI.Parser                             as CLI
 import           Fission.CLI.Parser.Command.Setup.Types         as Setup
@@ -97,6 +99,8 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
     dispatch = do
       logDebug . Text.pack $ show cmd
 
+      checkLatestRelease
+
       case cmd of
         Version _ ->
           logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
@@ -126,3 +130,4 @@ finalizeDID Nothing baseCfg@Base.Config {fissionURL} =
     attempt Env.get >>= \case
       Right Env {serverDID} -> return serverDID
       Left  _               -> Env.fetchServerDID fissionURL
+

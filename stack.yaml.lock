@@ -12,12 +12,26 @@ packages:
   original:
     hackage: alex-3.2.5
 - completed:
+    hackage: binary-instances-1.0.1@sha256:56bb2da1268415901d6ea3f46535b88b89459d7926fbfcca027e25e069ea6f2b,2647
+    pantry-tree:
+      size: 1035
+      sha256: 05d4c1e47e9550160fd0ebc97de6d5c2ed5b70afdf3aebf79b111bfe52f09b83
+  original:
+    hackage: binary-instances-1.0.1
+- completed:
     hackage: cryptostore-0.2.1.0@sha256:9896e2984f36a1c8790f057fd5ce3da4cbcaf8aa73eb2d9277916886978c5b19,3881
     pantry-tree:
       size: 8596
       sha256: e392f8dded050690140636b81433fb350bd87dd21643dde9a2f0aa344cf038e5
   original:
     hackage: cryptostore-0.2.1.0
+- completed:
+    hackage: github-0.26@sha256:a9d4046325c3eb28cdc7bef2c3f5bb213328caeae0b7dce6f51de655f0bffaa1,7162
+    pantry-tree:
+      size: 7511
+      sha256: b71aab2984b268030c9e2617043575681134c1fe60dffbd5596e659c0a3e9aec
+  original:
+    hackage: github-0.26
 - completed:
     hackage: happy-1.20.0@sha256:f99e612b29d68d784d7e193943a13466f0923de69452a2585081491efed0436b,5709
     pantry-tree:
