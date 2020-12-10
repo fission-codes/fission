@@ -32,32 +32,33 @@ checkLatestRelease ::
   => m ()
 checkLatestRelease = do
   attempt Env.get >>= \case
-    Left  err -> CLI.Error.put err "Unable to parse config"
+    Left  err ->
+      CLI.Error.put err "Unable to parse config"
+
     Right Env {updateChecked} -> do
       now <- currentTime
       let
         nextUpdateTime = addUTCTime 86400 updateChecked
       unless (now < nextUpdateTime) do
         logDebug @Text "Checking for newer versions..."
-        possibleVersion <- liftIO $ github' GitHub.latestReleaseR "fission-suite" "fission"
-        case possibleVersion of
-          Left  _ -> return () -- just ignore errors here.
+
+        liftIO (github' GitHub.latestReleaseR "fission-suite" "fission") >>= \case
+          Left err ->
+            logDebug $ show err
+
           Right latestRelease -> do
             Env.update \env -> env {updateChecked = now}
             let
               currentVersion = getVersion $ Meta.version =<< Meta.package
               latestVersion  = getVersion $ Just (Releases.releaseTagName latestRelease)
-            if currentVersion < latestVersion
-              then colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
-                UTF8.putText $ "⚠️  A new version of Fission CLI is available: "
-                UTF8.putText $ Releases.releaseTagName latestRelease <> " (aka '" <> Releases.releaseName latestRelease <> "')\n"
-              else return () -- no new version
+            when (currentVersion < latestVersion) do
+              colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
+                UTF8.putText "⚠️  A new version of Fission CLI is available: "
+                UTF8.putTextLn $ Releases.releaseTagName latestRelease <> " (aka '" <> Releases.releaseName latestRelease <> "')"
 
 getVersion :: Maybe Text -> Maybe Versioning
-getVersion maybeVersion =
-  case maybeVersion of
-    Nothing -> Nothing
-    Just v  ->
-      case versioning v of
-        Left _ -> Nothing
-        Right v' -> return v'
+getVersion Nothing = Nothing
+getVersion (Just verTxt) =
+  case versioning verTxt of
+    Left _  -> Nothing
+    Right v -> return v
