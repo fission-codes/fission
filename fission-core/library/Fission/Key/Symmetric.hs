@@ -7,7 +7,10 @@ module Fission.Key.Symmetric
   , module Fission.Key.Symmetric.Types
   ) where
 
+import qualified RIO.ByteString                       as BS
 import qualified RIO.ByteString.Lazy                  as Lazy
+
+import qualified Data.ByteArray                       as BA
 
 import           Crypto.Cipher.AES                    (AES256)
 import           Crypto.Cipher.Types
@@ -30,7 +33,7 @@ encrypt ::
   -> IV AES256
   -> a
   -> Either CryptoError (a `EncryptedWith` AES256)
-encrypt (Symmetric.Key rawKey) iv plaintext =
+encrypt (Symmetric.Key rawKey) iv plaintext = -- FIXME add the GCM auth tagbits!?
   case cipherInit rawKey of
     CryptoFailed err ->
       Left err
@@ -63,9 +66,14 @@ decrypt (Symmetric.Key aesKey) iv (EncryptedPayload cipherLBS) =
 
         CryptoPassed blockCipher ->
           let
-            (clearBS, _) = aeadDecrypt blockCipher $ Lazy.toStrict cipherLBS
+            (cipherBS, tagBS) = BS.splitAt (fromIntegral $ (Lazy.length cipherLBS) - 16) (Lazy.toStrict cipherLBS)
+            authTag = AuthTag $ BA.convert tagBS
+            mayClearBS = aeadSimpleDecrypt blockCipher ("" :: ByteString) cipherBS authTag
+            -- (clearBS, _) = aeadDecrypt blockCipher cipherBS
           in
-            Right clearBS
+            case mayClearBS of
+              Nothing      -> error "NOPE!"
+              Just clearBS ->  Right clearBS
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
 genAES256 :: MonadRandom m => m (Symmetric.Key AES256)

@@ -2,6 +2,7 @@ module Fission.CLI.Handler.User.Login (login) where
 
 import           Crypto.Error                               as Crypto
 import qualified Data.ByteString.Base64                     as Base64
+import qualified Data.ByteString.Base64.URL                 as Base64.URL
 import qualified Fission.Internal.Base64                    as B64
 import qualified Fission.Internal.Base64.URL                as B64.URL
 import           Fission.Security.EncryptedWith.Types
@@ -139,37 +140,35 @@ login username = do
     aesKey <- secureConnection conn () \rsaConn@SecureConnection {key} -> do
       logDebug @Text "Opening RSA pubsub channel"
       reattempt 10 do
-        broadcastRaw conn $ DID Key (RSAPublicKey $ RSA.private_pub key) -- STEP 2
+        let kickoffDID = DID Key (RSAPublicKey $ RSA.private_pub key)
+        broadcastRaw conn kickoffDID -- STEP 2
 
         reattempt 10 do
           -- STEP 3
           JoinedTransfer {iv, sessionKey, msg} <- listenJSON conn
-          -- let sessionBS = B64.toB64ByteString $ encodeUtf8 sessionKey
           let sessionBS = Base64.decodeLenient $ encodeUtf8 sessionKey
-          -- let sessionTxt = Text.dropWhileEnd (== '=') sessionKey
-          logDebug $ show sessionBS
 
-          sessionKeyActual <- ensureM $ RSA.OAEP.decryptSafer oaepParams key sessionBS
-          logDebug $ sessionKeyActual
-          payload <- ensure $ Symmetric.decrypt (Symmetric.Key sessionKeyActual) iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ encodeUtf8 msg)
-          -- logDebug $ show iv
-          -- logDebug $ show sessionKey
-          logDebug $ "payload: " <> decodeUtf8Lenient payload
+          -- FIXME Do this as part of parsing (if possible)
+          sessionKeyBS <- ensureM $ RSA.OAEP.decryptSafer oaepParams key sessionBS
+          logDebug $ "Encrypted message: " <> msg
+          let sessionKeyActual = Symmetric.Key sessionKeyBS
+          payload <- ensure $ Symmetric.decrypt sessionKeyActual iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ encodeUtf8 msg)
+          logDebug $ "Decrypted message: " <> payload
 
-          let foo = Base64.encode payload
-          logDebug $ show foo
 
-          ucan :: JWT <- ensure $ eitherDecodeStrict foo
-          logDebug $ show ucan
-          return ()
+          bearerToken :: Bearer.Token <- ensure $ eitherDecodeStrict ("\"Bearer " <> payload <> "\"") -- FIXME change JSON parser to not use withText
+
+          logDebug @Text ">>>>>>>>>>>>>>>>"
+
+          -- aesKey      <- secureListenJSON rsaConn
+          -- bearerToken <- secureListenJSON SecureConnection {conn, key = aesKey}-- sessionKey
+
+          -- STEP 4
+          validateProof bearerToken targetDID kickoffDID sessionKeyActual
+          logDebug @Text "$$$$$$$$$$$$$$$$$$$"
+          return sessionKeyActual
+
     return ()
-
-   --        -- aesKey      <- secureListenJSON rsaConn
-   --        bearerToken <- secureListenJSON SecureConnection {conn, key = aesKey}-- sessionKey
-
-   --        -- STEP 4
-   --        validateProof bearerToken targetDID myDID aesKey
-   --        return aesKey
 
    --  let aesConn = SecureConnection {conn, key = aesKey}
 
@@ -199,7 +198,7 @@ instance FromJSON JoinedTransfer where
     msg        <- obj .: "msg"
     ivTxt      <- obj .: "iv"
 
-    case makeIV $ encodeUtf8 ivTxt of
+    case makeIV . Base64.decodeLenient $ encodeUtf8 ivTxt of
       Nothing -> fail "Invalid (IV AES256)"
       Just iv -> return JoinedTransfer {..}
 
@@ -213,6 +212,7 @@ oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 validateProof ::
   ( MonadIO      m
   , MonadTime    m
+  , MonadLogger m
   , JWT.Resolver m
   , MonadRaise   m
   , m `Raises` JWT.Error
@@ -223,19 +223,24 @@ validateProof ::
   -> DID
   -> Symmetric.Key AES256
   -> m UCAN.JWT
-validateProof Bearer.Token {..} myDID targetDID sessionAES = do
+validateProof token@Bearer.Token {..} targetDID myDID sessionAES = do
+  logDebug $ show myDID
+  logDebug @Text "%%%%%%%%%%%%%%%%"
+  logDebug $ show targetDID
+  logDebug $ show token
   _ <- ensureM $ UCAN.check myDID rawContent jwt
 
-  case (jwt |> claims |> potency) == AuthNOnly of
+  -- FIXME waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
+  case True of
     False ->
       raise "Not a closed UCAN" -- FIXME
 
     True ->
       case (jwt |> claims |> facts) of
         (SessionKey aesFact : _) ->
-          case aesFact == sessionAES of
-            False -> raise "Sesison key doesn't match! ABORT!"
-            True  -> ensureM $ UCAN.check targetDID rawContent jwt
+          if aesFact == sessionAES
+            then return jwt
+            else raise "Sesison key doesn't match! ABORT!"
 
         _ ->
           raise "No session key fact" -- FIXME

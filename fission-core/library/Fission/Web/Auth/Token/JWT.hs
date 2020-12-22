@@ -14,6 +14,7 @@ module Fission.Web.Auth.Token.JWT
   ) where
 
 import           Crypto.Cipher.AES                                (AES256)
+import qualified Data.ByteString.Base64                           as Base64
 import qualified Fission.Key.Symmetric.Types                      as Symmetric
 
 
@@ -153,11 +154,14 @@ instance ToJSON Fact where
     SessionKey key -> toJSON key
 
 instance FromJSON Fact where
-  parseJSON jsn = do
-    parseSessionKey jsn <|> parseUnknown jsn <|> fail "Unable to parse Fact"
+  parseJSON jsn =
+    parseSessionKey jsn <|> parseUnknown jsn <|> fail "Unable to parse UCAN.Fact"
     where
-      parseUnknown = withText "Fact.Unkown" \txt -> return $ Unknown txt
-      parseSessionKey obj = SessionKey <$> parseJSON obj
+      parseUnknown obj = return $ Unknown (Text.pack $ show obj)-- withText "UCAN.Fact.Unknown" \txt -> return $ Unknown txt
+      parseSessionKey = withObject "UCAN.Fact SessionKey" \obj -> do
+        rawKey <- obj .: "sessionKey"
+        key    <- parseJSON $ String rawKey
+        return $ SessionKey key
 
 ------------
 -- Claims --
