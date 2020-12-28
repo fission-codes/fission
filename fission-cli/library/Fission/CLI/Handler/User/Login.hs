@@ -111,6 +111,7 @@ login ::
   -- , m `Raises` AlreadyExists DID
   , m `Raises` ActionNotAuthorized UCAN.JWT -- FIXME shoudl be more contextual
   , ToJSON   (AESPayload m PIN.PIN) -- FIXME can make cleaner with a constraint alias on pubsubsecure
+  , ToJSON   (AESPayload m Text) -- FIXME can make cleaner with a constraint alias on pubsubsecure
   , FromJSON (AESPayload m Bearer.Token)
   , Display (AESPayload m Bearer.Token)
   , FromJSON (AESPayload m LinkData)
@@ -158,33 +159,37 @@ login username = do
 
           bearerToken :: Bearer.Token <- ensure $ eitherDecodeStrict ("\"Bearer " <> payload <> "\"") -- FIXME change JSON parser to not use withText
 
-          logDebug @Text ">>>>>>>>>>>>>>>>"
-
+          -- NOTE @expede -- It's been about a week, but I believe that these are taken care of above
           -- aesKey      <- secureListenJSON rsaConn
           -- bearerToken <- secureListenJSON SecureConnection {conn, key = aesKey}-- sessionKey
 
           -- STEP 4
           validateProof bearerToken targetDID kickoffDID sessionKeyActual
-          logDebug @Text "$$$$$$$$$$$$$$$$$$$"
           return sessionKeyActual
 
-    return ()
+    let aesConn = SecureConnection {conn, key = aesKey}
 
-   --  let aesConn = SecureConnection {conn, key = aesKey}
+    -- Step 5
+    iv <- Symmetric.genIV >>= \case
+      Nothing -> raise "NOPE bad IV"
+      Just iv -> return iv
 
-   --  -- Step 5
-   --  pin <- PIN.create
-   --  secureBroadcastJSON aesConn pin
+    pin@(PIN.PIN pTXT) <- PIN.create
+    logDebug $ "PIN TEXT: " <> pTXT
+    -- EncryptedPayload payloadLBS :: (PIN.PIN `EncryptedWith` AES256) <- ensure $ Symmetric.encrypt aesKey iv pin
+    -- broadcastRaw conn (payloadLBS)
 
-   --  -- STEP 6
-   --  reattempt 100 do
-   --    LinkData {..} <- secureListenJSON aesConn
-   --    ensureM $ UCAN.check myDID ucanRaw ucanJWT
-   --    UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
+    secureBroadcastJSON aesConn ("hi" :: Text) -- pin
 
-   --    if sender == targetDID
-   --      then WNFS.login username myDID readKey ucanRaw
-   --      else raise "unauthorized" -- FIXME
+    -- STEP 6
+    reattempt 100 do
+      LinkData {..} <- secureListenJSON aesConn
+      ensureM $ UCAN.check myDID ucanRaw ucanJWT
+      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
+
+      if sender == targetDID
+        then WNFS.login username myDID readKey ucanRaw
+        else raise "unauthorized" -- FIXME
 
 data JoinedTransfer = JoinedTransfer
   { sessionKey :: !Text -- (Symmetric.Key AES256)

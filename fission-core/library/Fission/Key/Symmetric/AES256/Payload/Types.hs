@@ -1,6 +1,8 @@
 module Fission.Key.Symmetric.AES256.Payload.Types (Payload (..)) where
 
 import           Data.ByteArray                       as ByteArray
+import qualified Data.ByteString.Base64               as Base64
+import qualified RIO.ByteString.Lazy                  as Lazy
 import qualified RIO.Text                             as Text
 
 import           Crypto.Cipher.AES                    (AES256)
@@ -28,10 +30,11 @@ instance Display (Payload expected) where
 instance Show (Payload expected) where
   show = Text.unpack . textDisplay
 
+-- FIXME maybe use a wrapper to base64 encode everything?
 instance ToJSON (Payload expected) where
   toJSON Payload {..} =
-    object [ "secretMessage" .= secretMessage
-           , "iv"            .= (decodeUtf8Lenient $ ByteArray.convert iv)
+    object [ "secretMessage" .= (decodeUtf8Lenient . Base64.encode . Lazy.toStrict $ cipherLBS secretMessage)
+           , "iv"            .= (decodeUtf8Lenient . Base64.encode $ ByteArray.convert iv)
            ]
 
 instance FromJSON (Payload expected) where
@@ -39,6 +42,7 @@ instance FromJSON (Payload expected) where
     secretMessage <- obj .: "secretMessage"
     ivTxt         <- obj .: "iv"
 
+    -- FIXME do we need to base64 decode the IV??? Doesn't seem so
     case makeIV $ encodeUtf8 ivTxt of
       Nothing -> fail "Invalid (IV AES256)"
       Just iv -> return Payload {..}

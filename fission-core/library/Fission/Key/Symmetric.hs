@@ -45,9 +45,13 @@ encrypt (Symmetric.Key rawKey) iv plaintext = -- FIXME add the GCM auth tagbits!
 
         CryptoPassed blockCipher ->
           let
-            (cipherBS, _) = aeadEncrypt blockCipher . Lazy.toStrict $ encode plaintext
+            -- (cipherBS, _) = aeadEncrypt blockCipher . Lazy.toStrict $ encode plaintext
+            -- FIXME NOTE TO SELF: should auth tag be random?
+            (authTag, cipherBS) = aeadSimpleEncrypt blockCipher ("" :: ByteString) ("hello world" :: ByteString) 16
+            -- (AuthTag rawAuthTag, cipherBA) = aeadSimpleEncrypt blockCipher ("" :: ByteString) (Lazy.toStrict $ encode plaintext) 16
           in
-            Right . EncryptedPayload $ Lazy.fromStrict cipherBS
+            -- Right . EncryptedPayload $ Lazy.fromStrict (cipherBS)
+            Right . EncryptedPayload $ Lazy.fromStrict (cipherBS <> (BA.convert authTag))
 
 decrypt ::
      Symmetric.Key AES256

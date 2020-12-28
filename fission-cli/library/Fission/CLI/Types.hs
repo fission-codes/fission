@@ -518,7 +518,10 @@ instance
         undefined -- FIXME better error
 
       Just iv -> do
+        logDebug $ "SECURE MSG: " <> show (encode msg)
         secretMessage <- ensure $ Symmetric.encrypt sessionKey iv msg
+        logDebug $ "SECRET: " <> show secretMessage
+        logDebug $ "SECRETb64: " <> textDisplay secretMessage
         return $ AES.Payload {..}
 
 instance

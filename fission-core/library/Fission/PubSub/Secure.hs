@@ -32,11 +32,14 @@ secureListenJSON SecureConnection {..} =
 
 secureBroadcastJSON ::
   ( MonadPubSubSecure m cipher
+  , MonadLogger m
+  , Show msg
   , ToJSON msg
   , ToJSON (SecurePayload m cipher msg)
   )
   => SecureConnection m cipher
   -> msg
   -> m ()
-secureBroadcastJSON SecureConnection {..} msg =
+secureBroadcastJSON SecureConnection {..} msg = do
+  logDebug $ "SECURE MSG PRE: " <> show msg
   broadcastJSON conn =<< toSecurePayload key msg
