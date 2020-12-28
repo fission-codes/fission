@@ -111,6 +111,7 @@ login ::
   -- , m `Raises` AlreadyExists DID
   , m `Raises` ActionNotAuthorized UCAN.JWT -- FIXME shoudl be more contextual
   , ToJSON   (AESPayload m PIN.PIN) -- FIXME can make cleaner with a constraint alias on pubsubsecure
+  , ToJSON   (AESPayload m PINStep) -- FIXME can make cleaner with a constraint alias on pubsubsecure
   , ToJSON   (AESPayload m Text) -- FIXME can make cleaner with a constraint alias on pubsubsecure
   , FromJSON (AESPayload m Bearer.Token)
   , Display (AESPayload m Bearer.Token)
@@ -179,7 +180,7 @@ login username = do
     -- EncryptedPayload payloadLBS :: (PIN.PIN `EncryptedWith` AES256) <- ensure $ Symmetric.encrypt aesKey iv pin
     -- broadcastRaw conn (payloadLBS)
 
-    secureBroadcastJSON aesConn ("hi" :: Text) -- pin
+    secureBroadcastJSON aesConn $ PINStep myDID [0..5]
 
     -- STEP 6
     reattempt 100 do
@@ -255,3 +256,16 @@ newtype Throwaway = Throwaway DID
 
 instance ToJSON Throwaway where
   toJSON (Throwaway did) = Null -- String "TEMPORARY_EXCHANGE_KEY" --  object ["didThrowaway" .= did]
+
+
+data PINStep = PINStep
+  { did :: !DID
+  , pin :: ![Int]
+  }
+  deriving (Show)
+
+instance ToJSON PINStep where
+  toJSON PINStep {did, pin} =
+    object [ "did" .= did
+           , "pin" .= pin
+           ]

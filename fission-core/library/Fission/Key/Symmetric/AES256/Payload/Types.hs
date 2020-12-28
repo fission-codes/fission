@@ -33,13 +33,15 @@ instance Show (Payload expected) where
 -- FIXME maybe use a wrapper to base64 encode everything?
 instance ToJSON (Payload expected) where
   toJSON Payload {..} =
-    object [ "secretMessage" .= (decodeUtf8Lenient . Base64.encode . Lazy.toStrict $ cipherLBS secretMessage)
+    object [ "msg" .= (decodeUtf8Lenient . Base64.encode . Lazy.toStrict $ cipherLBS secretMessage)
+    -- object [ "secretMessage" .= (decodeUtf8Lenient . Base64.encode . Lazy.toStrict $ cipherLBS secretMessage)
            , "iv"            .= (decodeUtf8Lenient . Base64.encode $ ByteArray.convert iv)
            ]
 
 instance FromJSON (Payload expected) where
   parseJSON = withObject "SessionPayload" \obj -> do
-    secretMessage <- obj .: "secretMessage"
+    secretMessage <- obj .: "msg"
+    -- secretMessage <- obj .: "secretMessage"
     ivTxt         <- obj .: "iv"
 
     -- FIXME do we need to base64 decode the IV??? Doesn't seem so
