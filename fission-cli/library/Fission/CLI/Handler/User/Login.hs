@@ -15,6 +15,8 @@ import           Crypto.Hash.Algorithms
 import           Data.ByteArray                             hiding (all, and,
                                                              length, or)
 
+import qualified Fission.Internal.UTF8                      as UTF8
+
 import qualified RIO.ByteString.Lazy                        as Lazy
 import qualified RIO.Text                                   as Text
 
@@ -175,21 +177,38 @@ login username = do
       Nothing -> raise "NOPE bad IV"
       Just iv -> return iv
 
-    pin@(PIN.PIN pTXT) <- PIN.create
-    logDebug $ "PIN TEXT: " <> pTXT
+    -- pin@(PIN.PIN pTXT) <- PIN.create
+    -- logDebug $ "PIN TEXT: " <> pTXT
+
     -- EncryptedPayload payloadLBS :: (PIN.PIN `EncryptedWith` AES256) <- ensure $ Symmetric.encrypt aesKey iv pin
     -- broadcastRaw conn (payloadLBS)
 
-    secureBroadcastJSON aesConn $ PINStep myDID [0..5]
+    a <- liftIO $ generate arbitrary
+    b <- liftIO $ generate arbitrary
+    c <- liftIO $ generate arbitrary
+    d <- liftIO $ generate arbitrary
+    e <- liftIO $ generate arbitrary
+    f <- liftIO $ generate arbitrary
+
+    let pin = PINStep myDID (a, b, c, d, e, f) -- FIXME
+
+    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pin
+    secureBroadcastJSON aesConn pin
 
     -- STEP 6
     reattempt 100 do
-      LinkData {..} <- secureListenJSON aesConn
-      ensureM $ UCAN.check myDID ucanRaw ucanJWT
-      UCAN.JWT {claims = UCAN.Claims {sender}} <- ensureM $ UCAN.getRoot ucanJWT
+      -- ld@LinkData {..} <- secureListenJSON aesConn
+      Payload  {secretMessage, iv} <- listenJSON conn
+      msgBS <- ensure $ Symmetric.decrypt aesKey iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ Lazy.toStrict $ cipherLBS secretMessage)
+      LinkData {..} <- ensure $ eitherDecodeStrict msgBS
+      logDebug $ show ucanRaw
+      -- FIXME getting invalid signature from FE; confirmed with JWT.io
+      -- ensureM $ UCAN.check myDID ucanRaw ucanJWT
+      localUCAN@UCAN.JWT {claims = UCAN.Claims {sender}, sig} <- ensureM $ UCAN.getRoot ucanJWT
+      logDebug $ show localUCAN
 
       if sender == targetDID
-        then WNFS.login username myDID readKey ucanRaw
+        then WNFS.login username myDID readKey ucanRaw sig
         else raise "unauthorized" -- FIXME
 
 data JoinedTransfer = JoinedTransfer
@@ -260,9 +279,18 @@ instance ToJSON Throwaway where
 
 data PINStep = PINStep
   { did :: !DID
-  , pin :: ![Int]
+  , pin :: !(Digit, Digit, Digit, Digit, Digit, Digit)
   }
   deriving (Show)
+
+newtype Digit = Digit Natural
+  deriving newtype (Show, Eq, Ord, Display, ToJSON, FromJSON)
+
+instance Arbitrary Digit where
+  arbitrary = Digit <$> elements [0..9]
+
+instance Display PINStep where
+  display PINStep {..} = "PINStep{" <> display did <> ", " <>  "}"
 
 instance ToJSON PINStep where
   toJSON PINStep {did, pin} =

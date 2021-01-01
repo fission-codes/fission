@@ -1,13 +1,14 @@
 module Fission.Web.Auth.Token.JWT.Signature.Types (Signature (..)) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519                            as Ed25519
 
 import           Data.ByteArray
 
-import           Fission.Prelude hiding (length)
+import           Fission.Prelude                                  hiding
+                                                                   (length)
 
+import           Fission.Internal.Orphanage.Ed25519.Signature     ()
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
-import           Fission.Internal.Orphanage.Ed25519.Signature ()
 
 data Signature
   = Ed25519 Ed25519.Signature

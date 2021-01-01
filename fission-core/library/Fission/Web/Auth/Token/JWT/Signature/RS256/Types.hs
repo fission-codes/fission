@@ -1,9 +1,9 @@
 module Fission.Web.Auth.Token.JWT.Signature.RS256.Types (Signature (..)) where
 
-import qualified Data.ByteString.Base64.URL as B64.URL
 import           Data.ByteArray
+import qualified Data.ByteString.Base64.URL as B64.URL
 
-import           Fission.Prelude hiding (length)
+import           Fission.Prelude            hiding (length)
 
 newtype Signature = Signature { unSignature :: ByteString }
   deriving (Eq, Show)

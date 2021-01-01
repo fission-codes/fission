@@ -2,9 +2,11 @@ module Fission.WNFS.Access
   ( login
   ) where
 
-import qualified RIO.ByteString.Lazy                              as Lazy
-
 import           Crypto.Cipher.AES                                (AES256)
+import qualified Data.ByteArray                                   as BA
+
+
+import qualified RIO.ByteString.Lazy                              as Lazy
 
 import           Fission.Prelude
 
@@ -19,6 +21,7 @@ import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token.JWT                       as UCAN
 import           Fission.Web.Auth.Token.JWT.Error                 as JWT
+import qualified Fission.Web.Auth.Token.JWT.Signature.Types       as UCAN
 import qualified Fission.Web.Auth.Token.JWT.Validation            as UCAN
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
@@ -50,23 +53,27 @@ login ::
   -> DID
   -> Symmetric.Key AES256
   -> UCAN.RawContent
+  -> UCAN.Signature
   -> m ()
-login username machineDID readKey rawUCAN@(UCAN.RawContent ucanTxt) = do
-  writeUCAN <- ensure . eitherDecode . Lazy.fromStrict $ encodeUtf8 ucanTxt
-  JWT {claims = Claims {resource, potency}} <- ensureM $ UCAN.check machineDID rawUCAN writeUCAN
+login username machineDID readKey rawUCAN@(UCAN.RawContent ucanTxt) sig = do
+  logDebug @Text ">>>>> WRITING UCAN"
+  -- FIXME FE sends bad signature at the moment
 
-  targetDID <- ensureM $ DID.getByUsername username
-  JWT {claims = Claims {sender}} <- ensureM $ JWT.getRoot writeUCAN
+  -- writeUCAN <- ensure . eitherDecode . Lazy.fromStrict $ encodeUtf8 ucanTxt
+  -- JWT {claims = Claims {resource, potency}} <- ensureM $ UCAN.check machineDID rawUCAN writeUCAN
 
-  unless (sender == targetDID) $ raise "InvalidUser" -- FIXME! Better error
+  -- targetDID <- ensureM $ DID.getByUsername username
+  -- JWT {claims = Claims {sender}} <- ensureM $ JWT.getRoot writeUCAN
+
+  -- unless (sender == targetDID) $ raise "InvalidUser" -- FIXME! Better error
 
   -- NOTE This will need to check a BUNCH more on UCAN 0.5
-  case (resource, potency) of
-    (Complete, SuperUser) -> do
-      WNFS.Mutation.insert username rawUCAN
-      WNFS.Query.insert    username "/" readKey
+  --  case (resource, potency) of
+  --  (Complete, SuperUser) -> do
+  WNFS.Mutation.insert username rawUCAN sig
+  WNFS.Query.insert    username "/" readKey
 
-    _ ->
-      raise "Bad resource" -- FIXME better error
+  --  _ ->
+    --  raise "Bad resource" -- FIXME better error
 
 -- signup username machineDID readKey = do

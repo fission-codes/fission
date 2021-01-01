@@ -237,11 +237,13 @@ instance
       pathSegments :: [FilePath]
       pathSegments = splitPath path
 
-  insert (Username nameTxt) (RawContent rawUCAN) = do
+  insert (Username nameTxt) (RawContent rawUCAN) sig = do
+    logDebug $ "Writing to UCAN store for " <> nameTxt
+
     ucanDir <- globalUCANDir
     wnfsDir <- globalWNFSDir
 
-    UCAN.JWT {claims = UCAN.Claims {resource}} <- ensure $ eitherDecodeStrict $ encodeUtf8 rawUCAN
+    UCAN.JWT {claims = UCAN.Claims {resource}} <- ensure . eitherDecodeStrict $ encodeUtf8 rawUCAN
 
     let
       ucanFilename = show (Crypto.hash (encodeUtf8 rawUCAN) :: Digest SHA3_256) <> ".ucan.jwt"
@@ -256,7 +258,7 @@ instance
                   Left  _        -> return newEntry
                   Right oldIndex -> return $ Map.union newEntry oldIndex
 
-    ucanFilePath  `forceWrite`     encodeUtf8 rawUCAN
+    ucanFilePath  `forceWrite`     (encodeUtf8 rawUCAN <> "." <> convert sig)
     ucanIndexPath `YAML.writeFile` newIndex
 
 instance
@@ -268,6 +270,7 @@ instance
   )
   =>  WNFS.Query.Store (FissionCLI errs cfg) where
   insert (Username nameTxt) path key = do
+    logDebug $ "Writing to WNFS read key store for " <> nameTxt
     wnfsDir <- globalWNFSDir
 
     let
