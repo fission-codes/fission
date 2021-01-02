@@ -1,14 +1,14 @@
 module Fission.SemVer.Types (SemVer (..)) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text        as Text
 
 import           Fission.Prelude
 
 -- | Semver broken out by part
 data SemVer = SemVer
-  { major :: !Word8
-  , minor :: !Word8
-  , patch :: !Word8
+  { major :: Word8
+  , minor :: Word8
+  , patch :: Word8
   } deriving Eq
 
 instance Show SemVer where

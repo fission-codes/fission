@@ -7,9 +7,9 @@ import           Fission.URL
 -- | This is the part that actually gets written to disk.
 --   'Environment' is constructed virtually from layers of 'Env's.
 data Env = Env
-  { ipfsIgnored :: ![Text]
-  , appURL      :: !URL
-  , buildDir    :: !FilePath
+  { ipfsIgnored :: [Text]
+  , appURL      :: URL
+  , buildDir    :: FilePath
   }
 
 instance ToJSON Env where

@@ -1,20 +1,20 @@
 -- | Server config
 module Fission.Environment.Server.Types (Environment (..)) where
 
+import qualified Fission.AWS.Types                as AWS
 import           Fission.Prelude
-import qualified Fission.AWS.Types as AWS
- 
-import qualified Fission.Web.Types                as Web
+
 import qualified Fission.Web.Log.Sentry.DSN.Types as Sentry
+import qualified Fission.Web.Types                as Web
 
 -- | Configuration for the web application
 data Environment = Environment
-  { host         :: !Web.Host           -- ^ Web app's host
-  , port         :: !Web.Port           -- ^ Web app's port
-  , isTLS        :: !Bool               -- ^ Run over TLS
-  , pretty       :: !Bool               -- ^ Pretty-print requests
-  , sentryDSN    :: !(Maybe Sentry.DSN) -- ^ Sentry DSN key
-  , serverZoneID :: !AWS.ZoneID         -- ^ Hosted Zone of this server (runfission.com at time of writing)
+  { host         :: Web.Host         -- ^ Web app's host
+  , port         :: Web.Port         -- ^ Web app's port
+  , isTLS        :: Bool             -- ^ Run over TLS
+  , pretty       :: Bool             -- ^ Pretty-print requests
+  , sentryDSN    :: Maybe Sentry.DSN -- ^ Sentry DSN key
+  , serverZoneID :: AWS.ZoneID       -- ^ Hosted Zone of this server (runfission.com at time of writing)
   } deriving Show
 
 instance FromJSON Environment where

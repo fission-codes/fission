@@ -9,11 +9,11 @@ import           Fission.CLI.Parser.Verbose.Types
 
 -- | Arguments, flags & switches for the `app init` command
 data Options = Options
-  { appDir       :: !FilePath
-  , buildDir     :: !(Maybe FilePath)
-  , maySubdomain :: !(Maybe URL.Subdomain)
-  , ipfsCfg      :: !IPFS.Config
-  , verboseFlag  :: !VerboseFlag -- ^ Verbose flag
+  { appDir       :: FilePath
+  , buildDir     :: Maybe FilePath
+  , maySubdomain :: Maybe URL.Subdomain
+  , ipfsCfg      :: IPFS.Config
+  , verboseFlag  :: VerboseFlag -- ^ Verbose flag
   } deriving (Show, Eq)
 
 instance Has VerboseFlag Options where

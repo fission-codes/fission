@@ -63,9 +63,9 @@ import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
 data JWT = JWT
-  { header :: !Header
-  , claims :: !Claims
-  , sig    :: !Signature.Signature
+  { header :: Header
+  , claims :: Claims
+  , sig    :: Signature.Signature
   } deriving (Show, Eq)
 
 instance Arbitrary JWT where
@@ -126,15 +126,15 @@ instance FromJSON JWT where
 
 data Claims = Claims
   -- Dramatis Personae
-  { sender   :: !DID
-  , receiver :: !DID
+  { sender   :: DID
+  , receiver :: DID
   -- Authorization Target
-  , resource :: !(Scope Resource)
-  , potency  :: !Potency
-  , proof    :: !Proof
+  , resource :: Scope Resource
+  , potency  :: Potency
+  , proof    :: Proof
   -- Temporal Bounds
-  , exp      :: !UTCTime
-  , nbf      :: !UTCTime
+  , exp      :: UTCTime
+  , nbf      :: UTCTime
   } deriving Show
 
 instance Display Claims where

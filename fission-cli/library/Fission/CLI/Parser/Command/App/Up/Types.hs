@@ -7,12 +7,12 @@ import           Fission.CLI.Parser.Verbose.Types
 import           Fission.CLI.Parser.Watch.Types
 
 data Options = Options
-  { watch       :: !WatchFlag
-  , updateDNS   :: !Bool
-  , updateData  :: !Bool
-  , filePath    :: !FilePath
-  , ipfsCfg     :: !IPFS.Config
-  , verboseFlag :: !VerboseFlag -- ^ Verbose flag
+  { watch       :: WatchFlag
+  , updateDNS   :: Bool
+  , updateData  :: Bool
+  , filePath    :: FilePath
+  , ipfsCfg     :: IPFS.Config
+  , verboseFlag :: VerboseFlag -- ^ Verbose flag
   } deriving (Show, Eq)
 
 instance Has VerboseFlag Options where

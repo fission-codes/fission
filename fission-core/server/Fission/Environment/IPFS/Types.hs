@@ -5,11 +5,11 @@ import           Fission.Prelude
 import qualified Network.IPFS.Types as IPFS
 
 data Environment = Environment
-  { url        :: !IPFS.URL     -- ^ IPFS client URL (may be remote)
-  , timeout    :: !IPFS.Timeout -- ^ IPFS timeout in seconds
-  , binPath    :: !IPFS.BinPath -- ^ Path to local IPFS binary
-  , gateway    :: !IPFS.Gateway -- ^ Domain Name of IPFS Gateway
-  , remotePeer :: !IPFS.Peer    -- ^ Remote Peer to connect to
+  { url        :: IPFS.URL     -- ^ IPFS client URL (may be remote)
+  , timeout    :: IPFS.Timeout -- ^ IPFS timeout in seconds
+  , binPath    :: IPFS.BinPath -- ^ Path to local IPFS binary
+  , gateway    :: IPFS.Gateway -- ^ Domain Name of IPFS Gateway
+  , remotePeer :: IPFS.Peer    -- ^ Remote Peer to connect to
   } deriving Show
 
 instance FromJSON Environment where

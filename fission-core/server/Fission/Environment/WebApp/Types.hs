@@ -3,15 +3,15 @@ module Fission.Environment.WebApp.Types (Environment (..)) where
 
 import           Network.IPFS.CID.Types
 
+import qualified Fission.AWS.Types      as AWS
 import           Fission.Prelude
-import qualified Fission.AWS.Types as AWS
-import           Fission.URL.Types as URL
+import           Fission.URL.Types      as URL
 
 data Environment = Environment
-  { baseAppDomain  :: !URL.DomainName -- ^ Default domain name
-  , baseAppZoneID  :: !AWS.ZoneID
-  , appPlaceholder :: !CID            -- ^ Initial CID
-  , liveDriveURL   :: !URL
+  { baseAppDomain  :: URL.DomainName -- ^ Default domain name
+  , baseAppZoneID  :: AWS.ZoneID
+  , appPlaceholder :: CID            -- ^ Initial CID
+  , liveDriveURL   :: URL
   } deriving Show
 
 instance FromJSON Environment where

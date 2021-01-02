@@ -8,10 +8,10 @@ import           Fission.Prelude
 
 data Environment
   = Environment
-      { accessKey   :: !AWS.AccessKey -- ^ Access Key
-      , secretKey   :: !AWS.SecretKey -- ^ Secret Key
-      , baseZoneID  :: !AWS.ZoneID    -- ^ Hosted Zone of
-      , mockRoute53 :: !AWS.MockRoute53
+      { accessKey   :: AWS.AccessKey -- ^ Access Key
+      , secretKey   :: AWS.SecretKey -- ^ Secret Key
+      , baseZoneID  :: AWS.ZoneID    -- ^ Hosted Zone of
+      , mockRoute53 :: AWS.MockRoute53
       }
   deriving Eq
 

@@ -8,9 +8,9 @@ import           Fission.User.Password.Types
 import           Fission.User.Username.Types
 
 data Registration = Registration
-  { username :: !Username
-  , email    :: !Email
-  , password :: !(Maybe Password)
+  { username :: Username
+  , email    :: Email
+  , password :: Maybe Password
   }
 
 instance Arbitrary Registration where

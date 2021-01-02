@@ -1,64 +1,64 @@
 -- | Configuration types
 module Fission.Config.Types (Config (..)) where
 
-import qualified Network.HTTP.Client as HTTP
+import qualified Network.HTTP.Client                    as HTTP
 import           Network.IPFS.CID.Types
 
-import qualified Network.AWS.Auth   as AWS
-import qualified Network.IPFS.Types as IPFS
+import qualified Network.AWS.Auth                       as AWS
+import qualified Network.IPFS.Types                     as IPFS
 
 import           Data.Pool
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql                   (SqlBackend)
 
 import           Fission.User.DID.Types
 
-import           Fission.Prelude
 import qualified Fission.Platform.Heroku.ID.Types       as Heroku
 import qualified Fission.Platform.Heroku.Password.Types as Heroku
+import           Fission.Prelude
 
-import qualified Fission.AWS.Types as AWS
-import           Fission.URL.Types as URL
+import qualified Fission.AWS.Types                      as AWS
+import           Fission.URL.Types                      as URL
 import           Fission.Web.Types
 
-import qualified Fission.Email.SendInBlue.Types as SIB
+import qualified Fission.Email.SendInBlue.Types         as SIB
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { processCtx     :: !ProcessContext
-  , logFunc        :: !LogFunc
+  { processCtx     :: ProcessContext
+  , logFunc        :: LogFunc
   --
-  , httpManager    :: !HTTP.Manager
-  , tlsManager     :: !HTTP.Manager
-  , dbPool         :: !(Pool SqlBackend)
+  , httpManager    :: HTTP.Manager
+  , tlsManager     :: HTTP.Manager
+  , dbPool         :: Pool SqlBackend
   --
-  , ipfsPath       :: !IPFS.BinPath
-  , ipfsURL        :: !IPFS.URL
-  , ipfsRemotePeer :: !IPFS.Peer
-  , ipfsTimeout    :: !IPFS.Timeout
+  , ipfsPath       :: IPFS.BinPath
+  , ipfsURL        :: IPFS.URL
+  , ipfsRemotePeer :: IPFS.Peer
+  , ipfsTimeout    :: IPFS.Timeout
   --
-  , herokuID       :: !Heroku.ID
-  , herokuPassword :: !Heroku.Password
+  , herokuID       :: Heroku.ID
+  , herokuPassword :: Heroku.Password
   --
-  , awsAccessKey   :: !AWS.AccessKey
-  , awsSecretKey   :: !AWS.SecretKey
-  , awsMockRoute53 :: !AWS.MockRoute53
+  , awsAccessKey   :: AWS.AccessKey
+  , awsSecretKey   :: AWS.SecretKey
+  , awsMockRoute53 :: AWS.MockRoute53
   --
-  , baseAppDomain  :: !URL.DomainName
-  , baseAppZoneID  :: !AWS.ZoneID
-  , appPlaceholder :: !CID
+  , baseAppDomain  :: URL.DomainName
+  , baseAppZoneID  :: AWS.ZoneID
+  , appPlaceholder :: CID
   --
-  , userRootDomain :: !URL.DomainName
-  , userZoneID     :: !AWS.ZoneID
-  , defaultDataCID :: !CID
+  , userRootDomain :: URL.DomainName
+  , userZoneID     :: AWS.ZoneID
+  , defaultDataCID :: CID
   --
-  , sibApiKey      :: !SIB.ApiKey
-  , sibUrl         :: !Host
-  , sibTemplateId  :: !SIB.TemplateId
+  , sibApiKey      :: SIB.ApiKey
+  , sibUrl         :: Host
+  , sibTemplateId  :: SIB.TemplateId
   --
-  , host           :: !Host
-  , fissionDID     :: !DID
-  , serverZoneID   :: !AWS.ZoneID
-  , liveDriveURL   :: !URL
+  , host           :: Host
+  , fissionDID     :: DID
+  , serverZoneID   :: AWS.ZoneID
+  , liveDriveURL   :: URL
   }
 
 instance Show Config where

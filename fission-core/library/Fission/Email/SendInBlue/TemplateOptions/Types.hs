@@ -1,4 +1,4 @@
-module Fission.Email.SendInBlue.TemplateOptions.Types (TemplateOptions(..)) where 
+module Fission.Email.SendInBlue.TemplateOptions.Types (TemplateOptions(..)) where
 
 import           Fission.Prelude
 
@@ -7,9 +7,9 @@ import           Servant.Client
 
 
 data TemplateOptions = TemplateOptions
-  { verifyLink :: !BaseUrl 
-  , username   :: !Username 
-  } 
+  { verifyLink :: BaseUrl
+  , username   :: Username
+  }
 
 instance ToJSON TemplateOptions where
   toJSON TemplateOptions { verifyLink, username } =

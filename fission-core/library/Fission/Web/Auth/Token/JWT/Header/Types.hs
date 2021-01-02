@@ -17,10 +17,10 @@ import           Fission.Web.Auth.Token.JWT.Header.Cty.Types
 import           Fission.Web.Auth.Token.JWT.Header.Typ.Types
 
 data Header = Header
-  { typ :: !Typ         -- ^ Standard JWT '"typ"' field
-  , alg :: !Algorithm   -- ^ Standard JWT '"alg"' field
-  , cty :: !(Maybe Cty) -- ^ Standard JWT '"cty"' field. Set to '"JWT"' if there's a recursive JWT in the claims
-  , uav :: !SemVer      -- ^ UCAN Version, mainly to state assumptions
+  { typ :: Typ       -- ^ Standard JWT '"typ"' field
+  , alg :: Algorithm -- ^ Standard JWT '"alg"' field
+  , cty :: Maybe Cty -- ^ Standard JWT '"cty"' field. Set to '"JWT"' if there's a recursive JWT in the claims
+  , uav :: SemVer    -- ^ UCAN Version, mainly to state assumptions
   } deriving (Show, Eq)
 
 instance Arbitrary Header where
