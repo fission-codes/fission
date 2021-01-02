@@ -6,11 +6,11 @@ module Fission.Web.User.DataRoot.Update
 import           Database.Esqueleto
 import           Servant
 
-import           Fission.Prelude
 import           Fission.Authorization
+import           Fission.Prelude
 
-import           Fission.Web.Error as Web.Error
-import qualified Fission.User as User
+import qualified Fission.User           as User
+import           Fission.Web.Error      as Web.Error
 
 import           Network.IPFS.CID.Types
 
@@ -19,7 +19,7 @@ type API
   =  Summary "Update data root"
   :> Description "Set/update currently authenticated user's file system content"
   :> Capture "newCID" CID
-  :> PatchNoContent '[PlainText, OctetStream, JSON] NoContent
+  :> PatchNoContent
 
 server ::
   ( MonadLogger     m

@@ -121,7 +121,7 @@ instance MonadAWS Fission where
     runResourceT $ runAWS env awsAction
 
 instance MonadRoute53 Fission where
-  clear recordType url@URL {..} (ZoneID zoneTxt) = do
+  clear recordType url (ZoneID zoneTxt) = do
     logDebug $ "Clearing DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -155,7 +155,7 @@ instance MonadRoute53 Fission where
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
-  set recType url@URL {..} (ZoneID zoneTxt) contents ttl = do
+  set recType url (ZoneID zoneTxt) contents ttl = do
     logDebug $ "Updating DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
