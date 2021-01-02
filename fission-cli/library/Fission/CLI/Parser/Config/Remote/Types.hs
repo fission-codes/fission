@@ -7,6 +7,6 @@ import           Fission.Prelude
 import           Fission.User.DID.Types
 
 data RemoteConfig = RemoteConfig
-  { target :: !BaseUrl     -- ^ Which remote peer / server to use
-  , mayDID :: !(Maybe DID) -- ^ Cached remote DID
+  { target :: BaseUrl   -- ^ Which remote peer / server to use
+  , mayDID :: Maybe DID -- ^ Cached remote DID
   } deriving (Show, Eq)

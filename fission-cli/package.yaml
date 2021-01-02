@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.9.4.0'
+version: '2.9.4.1'
 category: CLI
 author:
   - Brooklyn Zelenka
@@ -73,6 +73,7 @@ default-extensions:
   - RecordWildCards
   - ScopedTypeVariables
   - StandaloneDeriving
+  - StrictData
   - TupleSections
   - TypeApplications
   - TypeFamilies
