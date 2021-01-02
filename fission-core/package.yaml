@@ -201,7 +201,7 @@ executables:
       - raven-haskell
       - wai-logger
     ghc-options:
-      - -threaded
+      - -fthreaded
       - -flate-specialise
       - -rtsopts
       - -with-rtsopts=-N

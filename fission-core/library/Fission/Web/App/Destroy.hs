@@ -10,14 +10,14 @@ module Fission.Web.App.Destroy
 import           Database.Esqueleto
 import           Servant
 
-import           Fission.Prelude
 import           Fission.Authorization
+import           Fission.Prelude
 
 import           Fission.Models
 import           Fission.URL.Types
 
 import qualified Fission.App.Destroyer.Class as App
-import qualified Fission.Web.Error as Web.Error
+import qualified Fission.Web.Error           as Web.Error
 
 type API = ByURLAPI :<|> ByIdAPI
 
@@ -26,13 +26,13 @@ type ByURLAPI
   :> Description "Destroy app by any associated URL"
   :> "associated"
   :> Capture "url" URL
-  :> DeleteNoContent '[JSON] NoContent
+  :> DeleteNoContent
 
 type ByIdAPI
   =  Summary "Destroy app by ID"
   :> Description "Destroy app by its ID"
   :> Capture "appId" AppId
-  :> DeleteNoContent '[JSON] NoContent
+  :> DeleteNoContent
 
 server ::
   ( MonadTime     m

@@ -3,23 +3,23 @@ module Fission.Web.Heroku.Deprovision
   , destroy
   ) where
 
-import           RIO.List ((\\))
+import           RIO.List                                   ((\\))
 
 import           Data.UUID
 import           Database.Esqueleto
 
 import           Network.IPFS
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Pin as IPFS.Pin
+import qualified Network.IPFS.Pin                           as IPFS.Pin
 
 import           Servant
 
-import           Fission.Prelude
 import           Fission.Models
+import           Fission.Prelude
 
-import qualified Fission.User                  as User
-import qualified Fission.LoosePin              as LoosePin
-import qualified Fission.Platform.Heroku.AddOn as Heroku.AddOn
+import qualified Fission.LoosePin                           as LoosePin
+import qualified Fission.Platform.Heroku.AddOn              as Heroku.AddOn
+import qualified Fission.User                               as User
 
 import qualified Fission.Web.Heroku.MIME.VendorJSONv3.Types as Heroku
 
@@ -27,7 +27,7 @@ type API
   =  Summary "Deprovision"
   :> Description "Deprovision a Heroku add-on (for the Heroku partner service only)"
   :> Capture "addon_id" UUID
-  :> DeleteNoContent '[Heroku.VendorJSONv3] NoContent
+  :> Delete '[Heroku.VendorJSONv3] NoContent
 
 destroy ::
   ( MonadRemoteIPFS          m

@@ -69,7 +69,7 @@ import           Network.IPFS.Internal.Orphanage.Utf8Builder ()
 import           Data.Aeson                                  hiding (Options)
 import           Data.Bifunctor                              (bimap)
 import           Data.Bool
-import           Data.Has
+import           Data.Has  hiding (Lens)
 import           Data.Maybe
 import           Data.WorldPeace
 
