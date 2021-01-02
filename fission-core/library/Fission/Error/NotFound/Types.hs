@@ -2,20 +2,17 @@
 
 module Fission.Error.NotFound.Types (NotFound (..)) where
 
-import qualified RIO.ByteString.Lazy     as Lazy
+import qualified RIO.ByteString.Lazy    as Lazy
 import           RIO.FilePath
 
-import qualified Crypto.PubKey.Ed25519   as Ed25519
+import qualified Crypto.PubKey.Ed25519  as Ed25519
 
-import qualified Network.IPFS.Types      as IPFS
+import qualified Network.IPFS.Types     as IPFS
 import           Servant
 
-import qualified Fission.AWS.Zone.Types  as AWS
-import           Fission.Models
 import           Fission.Prelude
 import           Fission.URL
 import           Fission.User.DID.Types
-import           Fission.Web.Error.Class
 
 data NotFound entity
   = NotFound
@@ -24,40 +21,14 @@ data NotFound entity
            , Exception
            )
 
-instance Display (NotFound entity) => ToServerError (NotFound entity) where
-  toServerError err = err404 { errBody }
-    where
-      errBody = Lazy.fromStrict . encodeUtf8 $ textDisplay err
-
-instance Display (NotFound User) where
-  display _ = "User not found"
-
 instance Display (NotFound DID) where
   display _ = "Unable to find DID"
-
-instance Display (NotFound UserChallenge) where
-  display _ = "Challenge not found"
-
-instance Display (NotFound LoosePin) where
-  display _ = "Loose pin not found"
-
-instance Display (NotFound Domain) where
-  display _ = "Domain not found in system"
 
 instance Display (NotFound URL) where
   display _ = "URL not found in system"
 
 instance Display (NotFound FilePath) where
   display _ = "Cannot find file"
-
-instance Display (NotFound App) where
-  display _ = "App not found"
-
-instance Display (NotFound AppDomain) where
-  display _ = "App/Domain relation not found"
-
-instance Display (NotFound AWS.ZoneID) where
-  display _ = "AWS.ZoneID not found"
 
 instance Display (NotFound [IPFS.Peer]) where
   display _ = "Unable to find IPFS peers"

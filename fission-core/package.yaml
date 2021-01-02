@@ -1,5 +1,5 @@
 name: fission-core
-version: '2.9.0.1'
+version: '3.0.0.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -15,7 +15,7 @@ copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission
-tested-with: GHC==8.8.4
+tested-with: GHC==8.10.3
 extra-source-files:
   - README.md
 
@@ -192,24 +192,6 @@ dependencies:
 
 library:
   source-dirs: library
-
-executables:
-  fission-server:
-    main: Main.hs
-    source-dirs: server
-    dependencies:
-      - fission-core
-      - raven-haskell
-      - wai-logger
-    ghc-options:
-      - -threaded
-      - -flate-specialise
-      - -rtsopts
-      - -with-rtsopts=-N
-      - -with-rtsopts=-T
-      - -optc-ffast-math
-      - -optc-O3
-      - -O2
 
 tests:
   fission-core-doctest:

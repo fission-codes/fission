@@ -1,9 +1,7 @@
+-- FIXME rename tyo InvalidURL
 module Fission.URL.Errors (InvalidURL (..)) where
 
-import Servant.Server
-
-import Fission.Prelude
-import Fission.Web.Error.Class
+import           Fission.Prelude
 
 data InvalidURL = InvalidURL
   deriving (Eq, Show)
@@ -11,5 +9,3 @@ data InvalidURL = InvalidURL
 instance Display InvalidURL where
   textDisplay _ = "Invalid URL"
 
-instance ToServerError InvalidURL where
-  toServerError err = err422 { errBody = displayLazyBS err }

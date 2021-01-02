@@ -3,18 +3,14 @@ module Fission.Error.ActionNotAuthorized.Types (ActionNotAuthorized (..)) where
 import           Servant
 
 import           Fission.Prelude
-import           Fission.Web.Error.Class
-import           Fission.Models
+import           Fission.User.DID.Types
 
 data ActionNotAuthorized entity
-  = ActionNotAuthorized UserId
+  = ActionNotAuthorized DID
   deriving ( Show
            , Eq
            , Exception
            )
 
 instance Display (ActionNotAuthorized entity) where
-  display (ActionNotAuthorized userId) = "Action not authorized for user " <> display userId
-
-instance ToServerError (ActionNotAuthorized entity) where
-  toServerError _ = err401
+  display (ActionNotAuthorized did) = "Action not authorized for user " <> display did

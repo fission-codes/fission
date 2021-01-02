@@ -1,0 +1,270 @@
+name: fission-web-server
+version: '1.0.0.0'
+category: API
+author:
+  - Brooklyn Zelenka
+  - Daniel Holmgren
+  - Steven Vandevelde
+  - James Walker
+maintainer:
+  - brooklyn@fission.codes
+  - daniel@fission.codes
+  - steven@fission.codes
+  - james@fission.codes
+copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
+license: AGPL-3.0-or-later
+license-file: LICENSE
+github: fission-suite/fission
+tested-with: GHC==8.10.3
+extra-source-files:
+  - README.md
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Warn about too much
+  - -Wredundant-constraints
+  # Prettier Development
+  - -fhide-source-paths
+
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DuplicateRecordFields
+  - EmptyDataDecls
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - LiberalTypeSynonyms
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - NumericUnderscores
+  - OverloadedStrings
+  - OverloadedLabels
+  - OverloadedLists
+  - PostfixOperators
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+  - TemplateHaskell
+  - TypeOperators
+  - ViewPatterns
+
+dependencies:
+  ## Base ##
+  - base
+  - flow
+  - rio
+  - rio-orphans
+
+  ## Capabilties ##
+  - data-default-class
+  - data-has
+  - monad-logger
+  - monad-time
+  - mtl
+  - resource-pool
+  - unliftio
+
+  ## Command Line ##
+  - envy
+
+  ## Cryptography ##
+  - bcrypt
+  - cryptonite
+  - cryptostore
+  - pem
+  - RSA
+
+  ## Data ##
+  - aeson
+  - aeson-casing
+  - ansi-terminal
+  - asn1-encoding
+  - asn1-types
+  - base58string
+  - base64 #-bytestring
+  - binary
+  - bytestring
+  - generic-lens
+  - lens
+  - lens-aeson
+  - memory
+  - scientific
+  - QuickCheck
+  - quickcheck-instances
+  - random-bytestring
+  - regex-compat
+  - text
+  - text-time
+  - time
+  - uuid
+  - uuid-types
+  - vector
+  - word8
+  - world-peace
+  - utf8-string
+  - vault
+  - yaml
+
+  ## Database ##
+  - esqueleto
+  - persistent
+  - persistent-postgresql
+  - persistent-template
+
+  ## Error Handling ##
+  - exceptions
+  - rescue
+
+  ## Fission
+  - fission-core
+
+  ## File System ##
+  - file-embed
+  - filepath
+  - Glob
+  - path-pieces
+
+  ## Formatting ##
+  - pretty-simple
+
+  ## Infrastructure ##
+  - amazonka
+  - amazonka-core
+  - amazonka-route53
+
+  ## Web ##
+  - dns
+  - http-client
+  - http-client-tls
+  - http-media
+  - http-types
+  - ipfs
+  - mime-types
+  - network-uri
+  - servant
+  - servant-auth-server
+  - servant-auth-swagger
+  - servant-client
+  - servant-client-core
+  - servant-server
+  - servant-swagger
+  - servant-swagger-ui
+  - servant-swagger-ui-redoc
+  - swagger2
+  - wai
+  - wai-cors
+  - wai-extra
+  - wai-logger
+  - warp
+  - warp-tls
+  - x509
+
+library:
+  source-dirs: library
+
+executables:
+  server:
+    main: Main.hs
+    source-dirs: server
+    dependencies:
+      - fission-core
+      - fission-web-server
+      - raven-haskell
+      - wai-logger
+    ghc-options:
+      - -threaded
+      - -flate-specialise
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -with-rtsopts=-T
+      - -optc-ffast-math
+      - -optc-O3
+      - -O2
+
+tests:
+  fission-web-server-doctest:
+    main: Main.hs
+    source-dirs: doctest
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - directory
+      - directory-tree
+      - doctest
+      - Glob
+      - lens-aeson
+      - yaml
+
+  fission-web-server-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - hspec
+      - hspec-core
+      - hspec-expectations
+      - hspec-wai
+      - hspec-wai-json
+      - fission-web-server
+      - QuickCheck
+      - quickcheck-instances
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
+      - transformers
+
+benchmarks:
+  fission-web-server-benchmark:
+    main: Main.hs
+    source-dirs: benchmark
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -O2
+    dependencies:
+      - criterion
+      - fission-web-server
