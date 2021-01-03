@@ -57,7 +57,7 @@ import           Fission.Web.Auth.Token.JWT.RawContent
 
 -- Orphans
 
-import           Fission.Internal.Orphanage.CID                   ()
+-- import           Fission.Internal.Orphanage.CID                   ()
 import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,

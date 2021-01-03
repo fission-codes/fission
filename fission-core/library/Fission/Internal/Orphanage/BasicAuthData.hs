@@ -2,16 +2,18 @@
 
 module Fission.Internal.Orphanage.BasicAuthData () where
 
-import Servant
-import Data.Swagger
+import           Data.Swagger
+import qualified RIO.ByteString.Lazy                   as Lazy
+import           Servant.API
 
-import Fission.Prelude
-import Fission.Internal.Orphanage.ByteString.Lazy ()
+import           Fission.Prelude
+
+import           Fission.Internal.Orphanage.ByteString ()
 
 instance ToJSON BasicAuthData where
   toJSON (BasicAuthData username password) =
-    Object [ ("username", String <| decodeUtf8Lenient username)
-           , ("password", String <| decodeUtf8Lenient password)
+    Object [ ("username", String $ decodeUtf8Lenient username)
+           , ("password", String $ decodeUtf8Lenient password)
            ]
 
 instance FromJSON BasicAuthData where
@@ -19,12 +21,12 @@ instance FromJSON BasicAuthData where
     basicAuthUsername <- obj .: "username"
     basicAuthPassword <- obj .: "password"
 
-    return <| BasicAuthData {..}
+    return BasicAuthData {..}
 
 instance ToSchema BasicAuthData where
   declareNamedSchema _ = do
-    username' <- declareSchemaRef <| Proxy @Text
-    password' <- declareSchemaRef <| Proxy @Text
+    username' <- declareSchemaRef $ Proxy @Text
+    password' <- declareSchemaRef $ Proxy @Text
 
     mempty
       |> type_      ?~ SwaggerObject

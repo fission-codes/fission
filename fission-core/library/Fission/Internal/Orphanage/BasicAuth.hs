@@ -3,7 +3,7 @@
 module Fission.Internal.Orphanage.BasicAuth () where
 
 import           Data.Swagger
-import           Servant
+import           Servant.API
 import           Servant.Swagger
 
 import           Fission.Prelude

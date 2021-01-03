@@ -5,17 +5,17 @@ module Fission.URL.Types
   , module Fission.URL.Path.Types
   ) where
 
-import           Data.Swagger hiding (URL)
-import           Servant
+import           Data.Swagger                 hiding (URL)
+import           Servant.API
 
-import qualified RIO.List as List
-import qualified RIO.Text as Text
+import qualified RIO.List                     as List
+import qualified RIO.Text                     as Text
 
 import           Fission.Prelude
 
 import           Fission.URL.DomainName.Types
-import           Fission.URL.Subdomain.Types
 import           Fission.URL.Path.Types
+import           Fission.URL.Subdomain.Types
 
 data URL = URL
   { domainName :: DomainName
@@ -76,7 +76,7 @@ instance ToJSON URL where
       DomainName domain = domainName
 
       normalizedSubdomain = case subdomain of
-        Nothing -> ""
+        Nothing              -> ""
         Just (Subdomain sub) -> sub <> "."
 
 instance FromJSON URL where

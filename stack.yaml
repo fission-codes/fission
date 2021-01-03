@@ -5,6 +5,8 @@ allow-newer: true
 packages:
   - fission-cli
   - fission-core
+  - fission-web-client
+  - fission-web-server
 
 extra-deps:
   - alex-3.2.5

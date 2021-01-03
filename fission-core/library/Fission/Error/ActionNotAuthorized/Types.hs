@@ -1,6 +1,6 @@
 module Fission.Error.ActionNotAuthorized.Types (ActionNotAuthorized (..)) where
 
-import           Servant
+import           Servant.API
 
 import           Fission.Prelude
 import           Fission.User.DID.Types

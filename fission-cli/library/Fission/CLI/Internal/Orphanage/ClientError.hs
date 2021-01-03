@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.ClientError () where
+-- FIXME move to web-client
+module Fission.CLI.Internal.Orphanage.ClientError () where
 
 import           RIO
 import           Servant.Client

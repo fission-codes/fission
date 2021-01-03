@@ -2,9 +2,6 @@
 
 module Fission.Error.AlreadyExists.Types (AlreadyExists (..)) where
 
-import qualified Crypto.PubKey.Ed25519 as Ed25519
-import           Servant
-
 import           Fission.Prelude
 
 data AlreadyExists entity

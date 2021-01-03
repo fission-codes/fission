@@ -2,13 +2,13 @@
 
 module Fission.CLI.Meta
   ( package
-  , module Fission.Internal.Meta.Package
+  -- , module Fission.Internal.Meta.Package
   ) where
 
 import           Data.FileEmbed
 
-import           Fission.Internal.Meta.Package hiding (package)
+-- import           Fission.Internal.Meta.Package hiding (package)
 import           Fission.Prelude
 
-package :: Maybe Package
-package = fromContents $(embedFile "./package.yaml")
+package :: Maybe Int -- Package
+package = undefined -- fromContents $(embedFile "./package.yaml")

@@ -1,12 +1,12 @@
 module Fission.URL.Subdomain.Types (Subdomain (..)) where
 
-import qualified RIO.ByteString.Lazy         as Lazy
-import qualified RIO.Text                    as Text
+import qualified RIO.ByteString.Lazy  as Lazy
+import qualified RIO.Text             as Text
 
-import           Data.Swagger                hiding (get)
-import           Database.Persist.Postgresql hiding (get)
+import           Data.Swagger         hiding (get)
+import           Database.Persist.Sql hiding (get)
 
-import           Servant
+import           Servant.API
 
 import           Fission.Prelude
 

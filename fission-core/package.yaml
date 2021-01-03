@@ -90,19 +90,19 @@ dependencies:
   - rio-orphans
 
   ## Capabilties ##
-  - data-default-class
+  #- data-default-class
   - data-has
   - monad-logger
   - monad-time
-  - mtl
-  - resource-pool
-  - unliftio
+  #- mtl
+  #- resource-pool
+  #- unliftio
 
   ## Command Line ##
   - envy
 
   ## Cryptography ##
-  - bcrypt
+  #- bcrypt
   - cryptonite
   - cryptostore
   - pem
@@ -111,83 +111,83 @@ dependencies:
   ## Data ##
   - aeson
   - aeson-casing
-  - ansi-terminal
+  #- ansi-terminal
   - asn1-encoding
   - asn1-types
   - base58string
-  - base64 #-bytestring
+  - base64
   - binary
   - bytestring
   - generic-lens
   - lens
-  - lens-aeson
+  #- lens-aeson
   - memory
-  - scientific
+  #- scientific
   - QuickCheck
   - quickcheck-instances
   - random-bytestring
-  - regex-compat
-  - text
-  - text-time
+  #- regex-compat
+  #- text
+  #- text-time
   - time
   - uuid
-  - uuid-types
-  - vector
+  #- uuid-types
+  #- vector
   - word8
   - world-peace
-  - utf8-string
-  - vault
+  #- utf8-string
+  #- vault
   - yaml
 
   ## Database ##
   - esqueleto
   - persistent
-  - persistent-postgresql
-  - persistent-template
+  #- persistent-postgresql
+  #- persistent-template
 
   ## Error Handling ##
   - exceptions
   - rescue
 
   ## File System ##
-  - file-embed
-  - filepath
+  #- file-embed
+  #- filepath
   - Glob
-  - path-pieces
+  #- path-pieces
 
   ## Formatting ##
-  - pretty-simple
+  #- pretty-simple
 
   ## Infrastructure ##
-  - amazonka
-  - amazonka-core
-  - amazonka-route53
+  #- amazonka
+  #- amazonka-core
+  #- amazonka-route53
 
   ## Web ##
   - dns
-  - http-client
-  - http-client-tls
-  - http-media
-  - http-types
+  #- http-client
+  #- http-client-tls
+  #- http-media
+  #- http-types
   - ipfs
   - mime-types
-  - network-uri
+  #- network-uri
   - servant
-  - servant-auth-server
-  - servant-auth-swagger
-  - servant-client
-  - servant-client-core
-  - servant-server
+  #- servant-auth-server
+  #- servant-auth-swagger
+  #- servant-client
+  #- servant-client-core
+  #- servant-server
   - servant-swagger
-  - servant-swagger-ui
-  - servant-swagger-ui-redoc
+  #- servant-swagger-ui
+  #- servant-swagger-ui-redoc
   - swagger2
-  - wai
-  - wai-cors
-  - wai-extra
-  - wai-logger
-  - warp
-  - warp-tls
+  #- wai
+  #- wai-cors
+  #- wai-extra
+  #- wai-logger
+  #- warp
+  #- warp-tls
   - x509
 
 library:
