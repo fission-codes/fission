@@ -17,6 +17,9 @@ data Env = Env
   , serverDID      :: !DID
   , signingKeyPath :: !FilePath
   , username       :: !Username
+
+  -- Releases
+  , updateChecked  :: !UTCTime
   }
 
 instance ToJSON Env where
@@ -26,6 +29,7 @@ instance ToJSON Env where
     , "server_did"       .= serverDID
     , "signing_key_path" .= signingKeyPath
     , "username"         .= username
+    , "update_checked"   .= updateChecked
     ]
 
 instance FromJSON Env where
@@ -35,5 +39,6 @@ instance FromJSON Env where
     serverDID      <- obj .:  "server_did"
     signingKeyPath <- obj .:  "signing_key_path"
     username       <- obj .:  "username"
+    updateChecked  <- obj .:? "update_checked" .!= fromSeconds 0
 
     return Env {..}

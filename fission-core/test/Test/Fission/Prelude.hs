@@ -7,7 +7,6 @@ module Test.Fission.Prelude
   , module Test.Tasty.Hspec
   , module Test.Hspec.Wai
   , module Test.QuickCheck
-  , module Servant.QuickCheck
 
   --
   , bodyMatches
@@ -16,21 +15,19 @@ module Test.Fission.Prelude
   , shouldHaveRun
   ) where
 
-import qualified Network.HTTP.Types as HTTP
+import qualified Network.HTTP.Types         as HTTP
 
-import           Servant.QuickCheck
-
-import           Test.Tasty (TestTree, testGroup, defaultMain)
+import           Test.Tasty                 (TestTree, defaultMain, testGroup)
 import           Test.Tasty.Hspec
 
 import           Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
-import           Test.Hspec.Wai hiding (pending, pendingWith)
+import           Test.Hspec.Wai             hiding (pending, pendingWith)
 
-import           Test.QuickCheck hiding (Result (..))
-import           Test.QuickCheck.Instances ()
+import           Test.QuickCheck            hiding (Result (..))
+import           Test.QuickCheck.Instances  ()
 
 import           Fission.Internal.Mock
-import           Fission.Prelude hiding (Result (..), log)
+import           Fission.Prelude            hiding (Result (..), log)
 
 -- | Prop test with description
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()

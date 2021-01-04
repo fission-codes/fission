@@ -12,6 +12,7 @@ import           Servant.Client.Core
 import qualified Network.IPFS.Timeout.Types                     as IPFS
 import qualified Network.IPFS.URL.Types                         as IPFS
 
+
 import           Fission.Prelude
 
 import           Fission.Error
@@ -29,17 +30,20 @@ import qualified Fission.CLI.Base.Types                         as Base
 import qualified Fission.CLI.Handler                            as Handler
 
 import qualified Fission.CLI.Handler.Setup                      as Setup
+import           Fission.CLI.Release
 
 import           Fission.CLI.Parser                             as CLI
 import           Fission.CLI.Parser.Command.Setup.Types         as Setup
 import           Fission.CLI.Parser.Command.Types
 import           Fission.CLI.Parser.Command.User.Types
+import           Fission.CLI.Parser.Command.User.Register.Types as Register
 import           Fission.CLI.Parser.Types                       as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
 import qualified Fission.CLI.App                                as App
 import           Fission.CLI.Types
 
+import qualified Fission.CLI.Internal.ServerDID                 as ServerDID
 import           Fission.Internal.Orphanage.Yaml.ParseException ()
 
 type Errs
@@ -56,7 +60,6 @@ cli = do
 
   let
     VerboseFlag isVerbose = getter cmd
-    Right fallbackDID = eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\""
 
     ipfsURL     = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
     ipfsTimeout = IPFS.Timeout 3600
@@ -74,7 +77,7 @@ cli = do
   logOptions    <- logOptionsHandle stderr isVerbose
 
   withLogFunc logOptions \logFunc -> do
-    finalizeDID fissionDID Base.Config {serverDID = fallbackDID, ..} >>= \case
+    finalizeDID fissionDID Base.Config {serverDID = ServerDID.fallback, ..} >>= \case
       Right serverDID -> interpret Base.Config {..} fissionURL cmd
       Left  err       -> return . Left $ include err
 
@@ -96,19 +99,22 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
     dispatch = do
       logDebug . Text.pack $ show cmd
 
+      checkLatestRelease
+
       case cmd of
         Version _ ->
           logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
 
-        Setup Setup.Options {forceOS} ->
-          Setup.setup forceOS fissionURL
+        Setup Setup.Options {forceOS, maybeUsername, maybeEmail} ->
+          Setup.setup forceOS fissionURL maybeUsername maybeEmail
 
         App subCmd ->
           App.interpret baseCfg subCmd
 
         User subCmd ->
           case subCmd of
-            Register _ -> void Handler.register
+            Register Register.Options {maybeUsername, maybeEmail} ->
+              void $ Handler.register maybeUsername maybeEmail
             WhoAmI   _ -> Handler.whoami
 
 finalizeDID ::
@@ -124,3 +130,4 @@ finalizeDID Nothing baseCfg@Base.Config {fissionURL} =
     attempt Env.get >>= \case
       Right Env {serverDID} -> return serverDID
       Left  _               -> Env.fetchServerDID fissionURL
+

@@ -28,6 +28,8 @@ import qualified Fission.CLI.Key.Store             as Key
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.CLI.Handler.User.Register as User
+import           Fission.User.Username.Types
+import           Fission.User.Email.Types
 import           Fission.Error
 import           Fission.Web.Auth.Token
 import           Fission.Web.Client                as Client
@@ -60,10 +62,12 @@ setup ::
   )
   => Maybe OS.Supported
   -> BaseUrl
+  -> Maybe Username
+  -> Maybe Email
   -> m ()
-setup maybeOS fissionURL = do
+setup maybeOS fissionURL maybeUsername maybeEmail = do
   Key.create
-  username <- User.register
+  username <- User.register maybeUsername maybeEmail
 
   UTF8.putText "Setting default config..."
   Env.init username fissionURL

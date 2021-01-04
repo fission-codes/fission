@@ -49,8 +49,7 @@ module Fission.Prelude
   , noop
   ) where
 
-import           Control.Lens                                ((%~), (.~), (?~),
-                                                              (^?))
+import           Control.Lens                                ((?~))
 import           Control.Monad.Logger                        (LogLevel (..),
                                                               LogSource,
                                                               MonadLogger (..),
