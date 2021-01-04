@@ -137,6 +137,7 @@ dependencies:
 
   ## Fission ##
   - fission-core
+  - fission-web-api
 
 library:
   source-dirs: library

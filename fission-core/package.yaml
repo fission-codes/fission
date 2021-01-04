@@ -150,7 +150,7 @@ dependencies:
   - rescue
 
   ## File System ##
-  #- file-embed
+  - file-embed
   #- filepath
   - Glob
   #- path-pieces

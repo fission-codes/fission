@@ -107,6 +107,7 @@ dependencies:
   #- network-uri
   - servant
   - servant-auth-server
+  - servant-client-core
   #- servant-auth-swagger
   #- servant-swagger
 

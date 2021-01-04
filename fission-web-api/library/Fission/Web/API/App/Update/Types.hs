@@ -18,4 +18,4 @@ type Update
   :> Capture     "New CID"   IPFS.CID
   :> QueryParam  "copy-data" Bool
   --
-  :> PatchAccepted '[JSON] NoContent
+  :> PatchAccepted '[JSON] ()

@@ -6,16 +6,19 @@ import qualified Data.Yaml                       as YAML
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 
 import           Network.HTTP.Types.Status
-import           Servant.Client.Core
+import           Servant.API                     hiding (IsMember)
+import           Servant.Client
 
 import           Fission.Prelude
+
+import           Fission.Web.API.User.Types
 
 import           Fission.Error.NotFound.Types
 import qualified Fission.Internal.UTF8           as UTF8
 
 import           Fission.Authorization.ServerDID
 
-import           Fission.Web.Auth.Token
+import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client              as Client
 import qualified Fission.Web.Client.User         as User
 
@@ -44,7 +47,7 @@ whoami ::
   )
   => m ()
 whoami = do
-  attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
+  attempt (sendRequestM $ attachAuth whoami') >>= \case
     Right username -> do
       CLI.Success.currentlyLoggedInAs $ textDisplay username
       Env.update \env -> env {username}
@@ -67,3 +70,5 @@ whoami = do
               _                 -> "Invalid content type."
 
       UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."
+
+create :<|> whoami' :<|> verify :<|> email :<|> did :<|> exchangeKeys :<|> dataRoot :<|> passwordReset = client $ Proxy @User

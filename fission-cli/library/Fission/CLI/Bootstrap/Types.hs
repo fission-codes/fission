@@ -8,8 +8,8 @@ import           Fission.Prelude
 
 import           Fission.Web.Client.HTTP.Class
 
-import           Fission.CLI.Internal.Orphanage.BaseUrl     ()
 import           Fission.CLI.Internal.Orphanage.ClientError ()
+import           Fission.Internal.Orphanage.BaseUrl         ()
 
 newtype BootstrapT cfg m a = BootstrapT { runBootstrapT :: m a }
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadLogger)

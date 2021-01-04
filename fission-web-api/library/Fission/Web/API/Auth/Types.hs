@@ -7,6 +7,10 @@ module Fission.Web.API.Auth.Types
 import           Servant.API                       (BasicAuth)
 import           Servant.API.Experimental.Auth
 
+-- FIXME
+import           Fission.Web.Auth.Token.Types
+import           Servant.Client.Core
+
 import           Fission.Web.API.Heroku.Auth.Types as Heroku
 
 -- | Authorization check for the Heroku Addon API
@@ -24,4 +28,4 @@ type HigherOrder = AuthProtect "higher-order"
 
 -- FIXME
 -- type instance AuthServerData (AuthProtect "higher-order") = Authorization
--- type instance AuthClientData (AuthProtect "higher-order") = Token
+type instance AuthClientData (AuthProtect "higher-order") = Token

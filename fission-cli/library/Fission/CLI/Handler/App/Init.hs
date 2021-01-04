@@ -1,31 +1,31 @@
 -- | Initialize a new Fission app in an existing directory
 module Fission.CLI.Handler.App.Init (appInit) where
 
-import qualified Crypto.PubKey.Ed25519                  as Ed25519
-import qualified System.Console.ANSI                    as ANSI
+import qualified Crypto.PubKey.Ed25519                      as Ed25519
+import qualified System.Console.ANSI                        as ANSI
 
-import qualified Servant.Client                         as Servant
+import qualified Servant.Client                             as Servant
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                  as UTF8
+import qualified Fission.Internal.UTF8                      as UTF8
 
 import           Fission.Authorization.ServerDID
-import           Fission.URL                            as URL
+import           Fission.URL                                as URL
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
-import           Fission.Web.Client.App                 as App
+import           Fission.Web.Client.App                     as App
 
 import           Fission.CLI.Display.Text
 
-import qualified Fission.CLI.Display.Error              as CLI.Error
-import qualified Fission.CLI.Display.Success            as CLI.Success
+import qualified Fission.CLI.Display.Error                  as CLI.Error
+import qualified Fission.CLI.Display.Success                as CLI.Success
 
-import qualified Fission.CLI.App.Environment            as App.Env
-import qualified Fission.CLI.Prompt.BuildDir            as BuildDir
+import qualified Fission.CLI.App.Environment                as App.Env
+import qualified Fission.CLI.Prompt.BuildDir                as BuildDir
 
-import           Fission.Internal.Orphanage.ClientError ()
+import           Fission.CLI.Internal.Orphanage.ClientError ()
 
 -- | Sync the current working directory to the server over IPFS
 appInit ::
@@ -53,7 +53,7 @@ appInit ::
 appInit appDir mayBuildDir' maySubdomain = do
   logDebug @Text "appInit"
 
-  attempt (sendRequestM $ authClient (Proxy @App.Create) `withPayload` maySubdomain) >>= \case
+  attempt (sendRequestM $ attachAuth App.create `withPayload` maySubdomain) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err
