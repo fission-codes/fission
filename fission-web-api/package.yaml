@@ -1,0 +1,114 @@
+name: fission-web-api
+version: '1.0.0.0'
+category: API
+author:
+  - Brooklyn Zelenka
+  - Daniel Holmgren
+  - Steven Vandevelde
+  - James Walker
+maintainer:
+  - brooklyn@fission.codes
+  - daniel@fission.codes
+  - steven@fission.codes
+  - james@fission.codes
+copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
+license: AGPL-3.0-or-later
+license-file: LICENSE
+github: fission-suite/fission
+tested-with: GHC==8.10.3
+extra-source-files:
+  - README.md
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Warn about too much
+  - -Wredundant-constraints
+  # Prettier Development
+  - -fhide-source-paths
+
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DuplicateRecordFields
+  - EmptyDataDecls
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - LiberalTypeSynonyms
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - NumericUnderscores
+  - OverloadedStrings
+  - OverloadedLabels
+  - OverloadedLists
+  - PostfixOperators
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+  - TemplateHaskell
+  - TypeOperators
+  - ViewPatterns
+
+dependencies:
+  ## Base ##
+  - base
+  - rio
+
+  ## Crypto ##
+  - cryptonite
+
+  ## Data ##
+  - uuid
+
+  ## Fission
+  - fission-core
+
+  ## Web ##
+  #- dns
+  #- http-client
+  #- http-client-tls
+  - http-media
+  #- http-types
+  - ipfs
+  #- mime-types
+  #- network-uri
+  - servant
+  - servant-auth-server
+  #- servant-auth-swagger
+  #- servant-swagger
+
+library:
+  source-dirs: library

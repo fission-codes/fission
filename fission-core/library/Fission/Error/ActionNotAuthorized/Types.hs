@@ -1,8 +1,7 @@
 module Fission.Error.ActionNotAuthorized.Types (ActionNotAuthorized (..)) where
 
-import           Servant.API
-
 import           Fission.Prelude
+
 import           Fission.User.DID.Types
 
 data ActionNotAuthorized entity

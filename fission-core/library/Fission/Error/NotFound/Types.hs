@@ -2,13 +2,11 @@
 
 module Fission.Error.NotFound.Types (NotFound (..)) where
 
-import qualified RIO.ByteString.Lazy    as Lazy
 import           RIO.FilePath
 
 import qualified Crypto.PubKey.Ed25519  as Ed25519
 
 import qualified Network.IPFS.Types     as IPFS
-import           Servant.API
 
 import           Fission.Prelude
 import           Fission.URL

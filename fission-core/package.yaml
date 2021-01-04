@@ -176,7 +176,7 @@ dependencies:
   #- servant-auth-server
   #- servant-auth-swagger
   #- servant-client
-  #- servant-client-core
+  - servant-client-core
   #- servant-server
   - servant-swagger
   #- servant-swagger-ui

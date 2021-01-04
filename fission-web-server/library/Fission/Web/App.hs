@@ -19,12 +19,6 @@ import qualified Fission.Web.App.Destroy    as Destroy
 import qualified Fission.Web.App.Index      as Index
 import qualified Fission.Web.App.Update     as Update
 
-type API
-  =    Index.API
-  :<|> Create.API
-  :<|> Update.API
-  :<|> Destroy.API
-
 server ::
   ( App.Domain.Initializer  m
   , App.CRUD                m

@@ -3,7 +3,6 @@
 module Fission.Internal.Orphanage.BasicAuthData () where
 
 import           Data.Swagger
-import qualified RIO.ByteString.Lazy                   as Lazy
 import           Servant.API
 
 import           Fission.Prelude

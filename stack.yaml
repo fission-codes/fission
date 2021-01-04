@@ -5,7 +5,7 @@ allow-newer: true
 packages:
   - fission-cli
   - fission-core
-  - fission-web-client
+  - fission-web-api
   - fission-web-server
 
 extra-deps:
