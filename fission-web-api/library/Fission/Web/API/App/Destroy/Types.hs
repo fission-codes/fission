@@ -13,20 +13,20 @@ import qualified Fission.Web.API.Auth.Types as Auth
 type Destroy = ByURL :<|> ById
 
 type ByURL
-  =  Auth.HigherOrder
-  --
-  :> Summary "Destroy app by URL"
+  =  Summary "Destroy app by URL"
   :> Description "Destroy app by any associated URL"
   --
   :> "associated"
   :> Capture "url" URL
+  --
+  :> Auth.HigherOrder
   :> DeleteNoContent
 
 type ById
-  =  Auth.HigherOrder
-  --
-  :> Summary "Destroy app by ID"
+  =  Summary "Destroy app by ID"
   :> Description "Destroy app by its ID"
   --
   :> Capture "appId" Natural
+  --
+  :> Auth.HigherOrder
   :> DeleteNoContent

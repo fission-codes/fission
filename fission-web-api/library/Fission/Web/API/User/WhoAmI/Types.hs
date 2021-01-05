@@ -9,9 +9,8 @@ import qualified Fission.Web.API.Auth.Types  as Auth
 type WhoAmI = "whoami" :> Check
 
 type Check
-  =  Auth.HigherOrder
-  --
-  :> Summary "Get username"
+  =  Summary "Get username"
   :> Description "Get username registered to currently authenticated user"
   --
+  :> Auth.HigherOrder
   :> Get '[PlainText, JSON] Username

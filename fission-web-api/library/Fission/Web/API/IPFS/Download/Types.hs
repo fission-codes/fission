@@ -12,6 +12,7 @@ type ViaPath
   :> Description "Download a file by its CID"
   --
   :> Capture "cid" IPFS.CID
+  --
   :> Get '[OctetStream, PlainText] File.Serialized
 
 type ViaQuery
@@ -19,4 +20,5 @@ type ViaQuery
   :> Description "Download a file by its CID"
   --
   :> QueryParam "cid" IPFS.CID
+  --
   :> Get '[OctetStream, PlainText] File.Serialized

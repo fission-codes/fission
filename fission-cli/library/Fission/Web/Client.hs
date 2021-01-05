@@ -1,5 +1,6 @@
 module Fission.Web.Client
   ( sendRequestM
+  , sendAuthedRequest
   , withPayload
   , attachAuth -- authClient
   , module Fission.Web.Client.Auth
@@ -22,31 +23,38 @@ import           Fission.Web.Client.JWT
 sendRequestM ::
   ( MonadWebClient m
   , MonadRaise     m
-  ,  m `Raises` ClientError
+  , m `Raises` ClientError
   )
   => m (ClientM a)
   -> m a
 sendRequestM clientAction = ensureM (sendRequest =<< clientAction)
 
+sendAuthedRequest ::
+  ( MonadIO        m
+  , MonadTime      m
+  , MonadWebClient m
+  , ServerDID      m
+  , MonadWebAuth   m (AuthClientData a)
+  , MonadWebAuth   m Ed25519.SecretKey
+  , MonadRaise     m
+  , m `Raises` ClientError
+  )
+  => (AuthenticatedRequest a -> ClientM a)
+  -> m a
+sendAuthedRequest req = sendRequestM $ fmap req attachAuth
+
 attachAuth ::
   ( MonadIO      m
   , MonadTime    m
-  , MonadLogger  m
   , ServerDID    m
   , MonadWebAuth m (AuthClientData a)
   , MonadWebAuth m Ed25519.SecretKey
-  -- , HasClient ClientM api
-  -- , Client    ClientM api ~ (AuthenticatedRequest a -> f b)
   )
-  => (AuthenticatedRequest a -> f b) -- Client ClientM api-- Proxy api
-  -> m (f b)
-attachAuth req = do
+  => m (AuthenticatedRequest a) -- (Client ClientM api)
+attachAuth = do
   auth    <- getAuth
   authReq <- mkAuthReq
-
-  logDebug @Text "Sending web request"
-
-  return . req $ mkAuthenticatedRequest auth \_ath -> authReq
+  return $ mkAuthenticatedRequest auth \_ath -> authReq
 
 infixl 1 `withPayload`
 withPayload :: Functor f => f (a -> b) -> a -> f b

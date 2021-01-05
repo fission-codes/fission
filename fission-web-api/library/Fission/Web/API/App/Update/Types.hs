@@ -9,13 +9,12 @@ import           Fission.Web.API.Prelude
 import qualified Fission.Web.API.Auth.Types as Auth
 
 type Update
-  =  Auth.HigherOrder
-  --
-  :> Summary     "Set app content"
+  =  Summary     "Set app content"
   :> Description "Update the content (CID) for an app"
   --
-  :> Capture     "App URL"   URL
-  :> Capture     "New CID"   IPFS.CID
-  :> QueryParam  "copy-data" Bool
+  :> Capture    "App URL"   URL
+  :> Capture    "New CID"   IPFS.CID
+  :> QueryParam "copy-data" Bool
   --
+  :> Auth.HigherOrder
   :> PatchAccepted '[JSON] ()

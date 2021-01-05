@@ -38,7 +38,7 @@ update ::
 update cid@(CID hash) = do
   logDebug $ "Updating DNS to " <> display hash
 
-  attempt (sendRequestM $ attachAuth dnsSet `withPayload` cid) >>= \case
+  attempt (sendAuthedRequest $ dnsSet cid) >>= \case
     Right domainName -> do
       CLI.Success.dnsUpdated $ URL domainName Nothing
       return domainName

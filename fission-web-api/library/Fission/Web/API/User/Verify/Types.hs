@@ -7,9 +7,8 @@ import qualified Fission.Web.API.Auth.Types as Auth
 type Verify = "verify" :> Check
 
 type Check
-  =  Auth.HigherOrder
-  --
-  :> Summary "Validate auth"
-  --
+  =  Summary "Validate auth"
   :> Description "DEPRECATED ⛔ Verify user auth -- prefer /user/whoami"
+  --
+  :> Auth.HigherOrder
   :> Get '[JSON] Bool

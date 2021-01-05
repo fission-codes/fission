@@ -7,11 +7,11 @@ import           Fission.Web.API.Prelude
 import qualified Fission.Web.API.Auth.Types as Auth
 
 type Destroy
-  =  Auth.HigherOrder
-  --
-  :> Summary "Unpin CID"
+  =  Summary "Unpin CID"
   :> Description "DEPRECATED ⛔ Unpin an otherwise unassociated CID"
   --
   :> Capture "cid" IPFS.CID
+  --
+  :> Auth.HigherOrder
   :> DeleteAccepted '[PlainText, OctetStream] NoContent
 

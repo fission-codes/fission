@@ -7,9 +7,8 @@ import           Fission.Web.API.Prelude
 import qualified Fission.Web.API.Auth.Types as Auth
 
 type AllForUser
-  =  Auth.HigherOrder
-  --
-  :> Summary "CID Index"
+  =  Summary "CID Index"
   :> Description "List of all of your pinned CIDs (not associated with your personal file system or apps)"
   --
+  :> Auth.HigherOrder
   :> Get '[JSON, PlainText] [IPFS.CID]

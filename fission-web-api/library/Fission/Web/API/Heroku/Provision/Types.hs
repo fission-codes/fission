@@ -9,10 +9,10 @@ import qualified Fission.Web.API.Auth.Types                      as Auth
 import qualified Fission.Web.API.Heroku.MIME.VendorJSONv3.Types  as Heroku
 
 type Provision
-  =  Auth.HerokuAddOnAPI
-  --
-  :> Summary "Provision"
+  =  Summary "Provision"
   :> Description "Provision a new Heroku add-on (for the Heroku partner service only)"
   --
-  :> ReqBody '[JSON]                Heroku.Request
-  :> Post    '[Heroku.VendorJSONv3] Heroku.Provision
+  :> ReqBody '[JSON] Heroku.Request
+  --
+  :> Auth.HerokuAddOnAPI
+  :> Post '[Heroku.VendorJSONv3] Heroku.Provision

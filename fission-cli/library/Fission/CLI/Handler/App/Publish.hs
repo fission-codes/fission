@@ -13,8 +13,6 @@ import           Network.HTTP.Types.Status
 import           Network.IPFS
 import           Network.IPFS.CID.Types
 
-import           Servant.Client
-
 import qualified Fission.Internal.UTF8           as UTF8
 import           Fission.Prelude
 import qualified Fission.Time                    as Time
@@ -49,7 +47,7 @@ publish ::
   , ServerDID      m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  , m `Raises` ClientError
+ -- , m `Raises` ClientError
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   )
@@ -71,8 +69,8 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
       logDebug $ "Starting single IPFS add locally of " <> displayShow absBuildPath
 
       CLI.IPFS.Add.dir absBuildPath >>= putErrOr \cid@(CID hash) -> do
-        cl  <- Client.attachAuth App.update
-        let req = cl appURL cid (Just updateData)
+        -- cl  <- Client.attachAuth App.update
+        req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
 
         retryOnStatus [status502] 100 req >>= \case
           Left err ->
@@ -129,8 +127,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDi
             UTF8.putText "\n"
 ---            req <- App.mkUpdateReq appURL cid copyFilesFlag
 
-            cl  <- Client.attachAuth App.update
-            let req = cl appURL cid (Just copyFilesFlag)
+            req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth
 
             retryOnStatus [status502] 100 req >>= \case
               Left err -> CLI.Error.put err "Server unable to sync data"

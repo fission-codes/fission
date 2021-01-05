@@ -47,7 +47,7 @@ whoami ::
   )
   => m ()
 whoami = do
-  attempt (sendRequestM $ attachAuth whoami') >>= \case
+  sendAuthedRequest whoami' >>= \case
     Right username -> do
       CLI.Success.currentlyLoggedInAs $ textDisplay username
       Env.update \env -> env {username}
@@ -71,4 +71,4 @@ whoami = do
 
       UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."
 
-create :<|> whoami' :<|> verify :<|> email :<|> did :<|> exchangeKeys :<|> dataRoot :<|> passwordReset = client $ Proxy @User
+(createWithDID :<|> createWithPassword ) :<|> whoami :<|> verify :<|> email :<|> did :<|> exchangeKeys :<|> dataRoot :<|> passwordReset = client $ Proxy @User

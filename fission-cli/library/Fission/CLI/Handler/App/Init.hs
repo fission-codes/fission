@@ -4,11 +4,13 @@ module Fission.CLI.Handler.App.Init (appInit) where
 import qualified Crypto.PubKey.Ed25519                      as Ed25519
 import qualified System.Console.ANSI                        as ANSI
 
+import           Servant.API
 import qualified Servant.Client                             as Servant
 
 import           Fission.Prelude
 
 import qualified Fission.Internal.UTF8                      as UTF8
+import           Fission.Web.API.App.Types
 
 import           Fission.Authorization.ServerDID
 import           Fission.URL                                as URL
@@ -53,7 +55,7 @@ appInit ::
 appInit appDir mayBuildDir' maySubdomain = do
   logDebug @Text "appInit"
 
-  attempt (sendRequestM $ attachAuth App.create `withPayload` maySubdomain) >>= \case
+  attempt (sendAuthedRequest $ create' maySubdomain) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err
@@ -91,3 +93,5 @@ appInit appDir mayBuildDir' maySubdomain = do
         UTF8.putText $ "https://ipfs.runfission.com/ipns/" <> textDisplay appURL <> "\n"
 
       return ()
+
+index :<|> create' :<|> update :<|> destroy = Servant.client $ Proxy @App

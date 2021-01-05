@@ -13,17 +13,17 @@ import qualified Fission.Web.API.Auth.Types      as Auth
 type Create = CreateWithDID :<|> CreateWithPassword
 
 type CreateWithDID
-  =  Auth.RegisterDID
-  --
-  :> Summary "Create user with DID and UCAN proof"
+  =  Summary "Create user with DID and UCAN proof"
   :> Description "Register a new user (must auth with user-controlled DID)"
   --
-  :> ReqBody    '[JSON] User.Registration
+  :> ReqBody '[JSON] User.Registration
+  --
+  :> Auth.RegisterDID
   :> PutCreated '[JSON] NoContent
 
 type CreateWithPassword
   =  Summary "Create user with password"
   :> Description "DEPRECATED ⛔ Register a new user (must auth with user-controlled DID)"
   --
-  :> ReqBody     '[JSON] User.Registration
+  :> ReqBody '[JSON] User.Registration
   :> PostCreated '[JSON] ()

@@ -7,11 +7,10 @@ import           Fission.Web.API.Prelude
 import qualified Fission.Web.API.Auth.Types as Auth
 
 type Create
-  =  Auth.HigherOrder
-  --
-  :> Summary "Create app"
+  =  Summary "Create app"
   :> Description "Creates a new app, assigns an initial subdomain, and sets an asset placeholder"
   --
   :> QueryParam "subdomain" Subdomain
   --
+  :> Auth.HigherOrder
   :> PostAccepted '[JSON] URL

@@ -15,19 +15,19 @@ type ExchangeKeys = "exchange" :> "keys" :> API
 type API = Add :<|> Remove
 
 type Add
-  =  Auth.HigherOrder
-  --
-  :> Summary "Add Public Exchange Key"
+  =  Summary "Add Public Exchange Key"
   :> Description "Add a key to the currently authenticated user's root list of public exchange keys"
   --
   :> Capture "did" RSA.PublicKey
+  --
+  :> Auth.HigherOrder
   :> Put     '[JSON] (NonEmpty RSA.PublicKey)
 
 type Remove
-  =  Auth.HigherOrder
-  --
-  :> Summary "Remove Public Exchange Key"
+  =  Summary "Remove Public Exchange Key"
   :> Description "Remove a key from the currently authenticated user's root list of public exchange keys"
   --
   :> Capture "did" RSA.PublicKey
+  --
+  :> Auth.HigherOrder
   :> Delete  '[JSON] [RSA.PublicKey]

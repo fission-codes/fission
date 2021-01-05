@@ -10,4 +10,5 @@ type Check
   =  Summary "Email verification"
   --
   :> Capture "Challenge" Challenge
+  --
   :> GetNoContent

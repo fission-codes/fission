@@ -10,11 +10,10 @@ import qualified Fission.Web.API.Auth.Types        as Auth
 type Reset = "reset_password" :> API
 
 type API
-  =  Auth.HigherOrder
-  --
-  :> Summary "Reset password"
+  =  Summary "Reset password"
   :> Description "DEPRECATED ⛔ Reset password"
   --
   :> ReqBody '[JSON] User.Password.Reset
   --
+  :> Auth.HigherOrder
   :> Put     '[JSON] User.Password
