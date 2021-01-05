@@ -97,20 +97,12 @@ dependencies:
   - fission-core
 
   ## Web ##
-  #- dns
-  #- http-client
-  #- http-client-tls
   - http-media
-  #- http-types
   - ipfs
-  #- mime-types
-  #- network-uri
   - servant
   - servant-auth #-server
   - servant-client
   - servant-client-core
-  #- servant-auth-swagger
-  #- servant-swagger
 
 library:
   source-dirs: library

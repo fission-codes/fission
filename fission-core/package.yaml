@@ -90,19 +90,14 @@ dependencies:
   - rio-orphans
 
   ## Capabilties ##
-  #- data-default-class
   - data-has
   - monad-logger
   - monad-time
-  #- mtl
-  #- resource-pool
-  #- unliftio
 
   ## Command Line ##
   - envy
 
   ## Cryptography ##
-  #- bcrypt
   - cryptonite
   - cryptostore
   - pem
@@ -111,7 +106,6 @@ dependencies:
   ## Data ##
   - aeson
   - aeson-casing
-  #- ansi-terminal
   - asn1-encoding
   - asn1-types
   - base58string
@@ -120,30 +114,19 @@ dependencies:
   - bytestring
   - generic-lens
   - lens
-  #- lens-aeson
   - memory
-  #- scientific
   - QuickCheck
   - quickcheck-instances
   - random-bytestring
-  #- regex-compat
-  #- text
-  #- text-time
   - time
   - uuid
-  #- uuid-types
-  #- vector
   - word8
   - world-peace
-  #- utf8-string
-  #- vault
   - yaml
 
   ## Database ##
   - esqueleto
   - persistent
-  #- persistent-postgresql
-  #- persistent-template
 
   ## Error Handling ##
   - exceptions
@@ -151,43 +134,16 @@ dependencies:
 
   ## File System ##
   - file-embed
-  #- filepath
   - Glob
-  #- path-pieces
-
-  ## Formatting ##
-  #- pretty-simple
-
-  ## Infrastructure ##
-  #- amazonka
-  #- amazonka-core
-  #- amazonka-route53
 
   ## Web ##
   - dns
-  #- http-client
-  #- http-client-tls
-  #- http-media
-  #- http-types
   - ipfs
   - mime-types
-  #- network-uri
   - servant
-  #- servant-auth-server
-  #- servant-auth-swagger
-  #- servant-client
   - servant-client-core
-  #- servant-server
   - servant-swagger
-  #- servant-swagger-ui
-  #- servant-swagger-ui-redoc
   - swagger2
-  #- wai
-  #- wai-cors
-  #- wai-extra
-  #- wai-logger
-  #- warp
-  #- warp-tls
   - x509
 
 library:
