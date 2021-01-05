@@ -4,12 +4,12 @@ module Fission.Web.API.Auth.Types
   , HigherOrder
   ) where
 
-import           Servant.API                       (BasicAuth)
 import           Servant.API.Experimental.Auth
-
--- FIXME
-import           Fission.Web.Auth.Token.Types
 import           Servant.Client.Core
+
+import           Fission.Web.Auth.Token.Types
+
+import           Fission.Web.API.Prelude
 
 import           Fission.Web.API.Heroku.Auth.Types as Heroku
 

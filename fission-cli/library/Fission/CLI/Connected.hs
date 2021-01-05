@@ -23,8 +23,8 @@ import qualified Fission.IPFS.Error.Types        as IPFS
 import qualified Fission.Key                     as Key
 import           Fission.User.DID.Types
 
+import qualified Fission.Web.API.User.Client     as User
 import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as User
 
 import           Fission.CLI.Connected.Types
 import qualified Fission.CLI.Context             as Context
@@ -152,7 +152,7 @@ mkConnected inCfg ipfsTimeout =
 
           Context.run cfg do
             logDebug @Text "Attempting user verification"
-            attempt (sendRequestM . authClient $ Proxy @User.Verify) >>= \case
+            attempt (sendAuthedRequest User.verify) >>= \case
               Left err -> do
                 CLI.Error.put err "Not registered. Please run: fission user register"
                 raise NotRegistered

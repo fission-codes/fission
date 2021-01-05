@@ -106,7 +106,8 @@ dependencies:
   #- mime-types
   #- network-uri
   - servant
-  - servant-auth-server
+  - servant-auth #-server
+  - servant-client
   - servant-client-core
   #- servant-auth-swagger
   #- servant-swagger

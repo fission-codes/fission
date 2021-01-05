@@ -5,17 +5,20 @@ module Fission.URL.Types
   , module Fission.URL.Path.Types
   ) where
 
-import           Data.Swagger                 hiding (URL)
+import           Data.Swagger                      hiding (URL)
 import           Servant.API
 
-import qualified RIO.List                     as List
-import qualified RIO.Text                     as Text
+import qualified RIO.List                          as List
+import qualified RIO.Text                          as Text
 
 import           Fission.Prelude
 
 import           Fission.URL.DomainName.Types
 import           Fission.URL.Path.Types
 import           Fission.URL.Subdomain.Types
+
+
+import           Fission.Error.AlreadyExists.Types
 
 data URL = URL
   { domainName :: DomainName
@@ -31,6 +34,9 @@ instance Arbitrary URL where
 instance Display URL where
   display (URL domain Nothing)    = display domain
   display (URL domain (Just sub)) = display sub <> "." <> display domain
+
+instance Display (AlreadyExists URL) where
+  display _ = "URL already exists"
 
 instance Show URL where
   show = Text.unpack . textDisplay
