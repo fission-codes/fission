@@ -23,13 +23,16 @@ ghc-options:
   - -Wall
   - -Wcompat
   - -Widentities
+
   # Warn about too little
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
   - -Wmissing-export-lists
   - -Wpartial-fields
+
   # Warn about too much
   - -Wredundant-constraints
+
   # Prettier Development
   - -fhide-source-paths
 
@@ -137,7 +140,7 @@ dependencies:
 
   ## Fission ##
   - fission-core
-  - fission-web-api
+  - fission-web-client
 
 library:
   source-dirs: library
@@ -201,21 +204,12 @@ tests:
       - fission-core
       - QuickCheck
       - quickcheck-instances
-      # - servant-quickcheck
       - tasty
       - tasty-hunit
       - tasty-hspec
       - tasty-smallcheck
       - tasty-rerun
       - transformers
-
-#   fission-cli-lint:
-#     main: Main.hs
-#     source-dirs: lint
-#     dependencies:
-#       - base
-#       - hlint
-#       - rio
 
 benchmarks:
   fission-cli-benchmark:

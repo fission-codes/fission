@@ -13,7 +13,7 @@ import           Fission.URL                     as URL
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
 
-import           Fission.Web.API.DNS.Types
+import qualified Fission.Web.Client.DNS          as DNS
 
 import           Fission.CLI.Display.Error       as CLI.Error
 import           Fission.CLI.Display.Success     as CLI.Success
@@ -38,7 +38,7 @@ update ::
 update cid@(CID hash) = do
   logDebug $ "Updating DNS to " <> display hash
 
-  attempt (sendAuthedRequest $ dnsSet cid) >>= \case
+  attempt (sendAuthedRequest $ DNS.set cid) >>= \case
     Right domainName -> do
       CLI.Success.dnsUpdated $ URL domainName Nothing
       return domainName
@@ -47,5 +47,3 @@ update cid@(CID hash) = do
       CLI.Error.put' err
       raise err
 
--- FIXME move
-dnsSet = client $ Proxy @DNS

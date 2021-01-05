@@ -13,8 +13,12 @@ import           Network.HTTP.Types.Status
 import           Network.IPFS
 import           Network.IPFS.CID.Types
 
-import qualified Fission.Internal.UTF8           as UTF8
 import           Fission.Prelude
+
+import qualified Fission.Web.Client.App          as App
+
+import qualified Fission.Internal.UTF8           as UTF8
+
 import qualified Fission.Time                    as Time
 import           Fission.URL
 
@@ -23,7 +27,6 @@ import           Fission.Error.NotFound.Types
 import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.Client              as Client
-import           Fission.Web.Client.App          as App
 import           Fission.Web.Client.Error
 
 import           Fission.CLI.Display.Error
@@ -69,7 +72,6 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
       logDebug $ "Starting single IPFS add locally of " <> displayShow absBuildPath
 
       CLI.IPFS.Add.dir absBuildPath >>= putErrOr \cid@(CID hash) -> do
-        -- cl  <- Client.attachAuth App.update
         req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
 
         retryOnStatus [status502] 100 req >>= \case

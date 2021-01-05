@@ -18,11 +18,10 @@ import           Servant.Client
 import           Fission.Prelude
 
 import qualified Fission.Internal.UTF8       as UTF8
-
 import           Fission.IPFS.Error.Types    as IPFS
-
 import           Fission.Web.Client
-import           Fission.Web.Client.Peers    as Peers
+
+import           Fission.CLI.IPFS.Peers      as Peers
 
 -- | Connect to the Fission IPFS network with a set amount of retries
 swarmConnectWithRetry ::

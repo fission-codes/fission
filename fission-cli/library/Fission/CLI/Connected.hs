@@ -23,8 +23,8 @@ import qualified Fission.IPFS.Error.Types        as IPFS
 import qualified Fission.Key                     as Key
 import           Fission.User.DID.Types
 
-import qualified Fission.Web.API.User.Client     as User
 import           Fission.Web.Client              as Client
+import qualified Fission.Web.Client.User         as User
 
 import           Fission.CLI.Connected.Types
 import qualified Fission.CLI.Context             as Context

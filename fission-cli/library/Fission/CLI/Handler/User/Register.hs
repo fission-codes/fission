@@ -6,13 +6,9 @@ import           Crypto.Random
 
 import           Network.DNS
 import           Network.HTTP.Types.Status
-import           Servant.API                     hiding (IsMember)
 import           Servant.Client
-import           Servant.Client.Core
 
 import           Fission.Prelude
-
-import           Fission.Web.API.User.Types
 
 import           Fission.Error
 import qualified Fission.Key                     as Key
@@ -59,7 +55,7 @@ register ::
   -> Maybe Email
   -> m Username
 register maybeUsername maybeEmail = do
-  attempt (sendAuthedRequest whoami) >>= \case
+  attempt (sendAuthedRequest User.whoami) >>= \case
     Right username -> do
       CLI.Success.alreadyLoggedInAs $ textDisplay username
       return username
@@ -106,7 +102,7 @@ createAccount maybeUsername maybeEmail = do
       , password = Nothing
       }
 
-  attempt (sendAuthedRequest $ createWithDID form) >>= \case
+  attempt (sendAuthedRequest $ User.createWithDID form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
       return username
@@ -144,4 +140,3 @@ createAccount maybeUsername maybeEmail = do
 
       createAccount maybeUsername maybeEmail
 
-(createWithDID :<|> createWithPassword ) :<|> whoami :<|> verify :<|> email :<|> did :<|> exchangeKeys :<|> dataRoot :<|> passwordReset = client $ Proxy @User

@@ -1,33 +1,27 @@
 -- | Initialize a new Fission app in an existing directory
 module Fission.CLI.Handler.App.Init (appInit) where
 
-import qualified Crypto.PubKey.Ed25519                      as Ed25519
-import qualified System.Console.ANSI                        as ANSI
-
-import           Servant.API
-import qualified Servant.Client                             as Servant
+import qualified Crypto.PubKey.Ed25519           as Ed25519
+import qualified System.Console.ANSI             as ANSI
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                      as UTF8
-import           Fission.Web.API.App.Types
+import qualified Fission.Internal.UTF8           as UTF8
+import qualified Fission.Web.Client.App          as App
 
 import           Fission.Authorization.ServerDID
-import           Fission.URL                                as URL
+import           Fission.URL                     as URL
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
-import           Fission.Web.Client.App                     as App
 
 import           Fission.CLI.Display.Text
 
-import qualified Fission.CLI.Display.Error                  as CLI.Error
-import qualified Fission.CLI.Display.Success                as CLI.Success
+import qualified Fission.CLI.Display.Error       as CLI.Error
+import qualified Fission.CLI.Display.Success     as CLI.Success
 
-import qualified Fission.CLI.App.Environment                as App.Env
-import qualified Fission.CLI.Prompt.BuildDir                as BuildDir
-
-import           Fission.CLI.Internal.Orphanage.ClientError ()
+import qualified Fission.CLI.App.Environment     as App.Env
+import qualified Fission.CLI.Prompt.BuildDir     as BuildDir
 
 -- | Sync the current working directory to the server over IPFS
 appInit ::
@@ -39,7 +33,7 @@ appInit ::
   , ServerDID      m
 
   , MonadCleanup   m
-  , m `Raises` Servant.ClientError
+  , m `Raises` ClientError
 
   , Contains (Errors m) (Errors m)
   , Display  (OpenUnion (Errors m))
@@ -55,7 +49,7 @@ appInit ::
 appInit appDir mayBuildDir' maySubdomain = do
   logDebug @Text "appInit"
 
-  attempt (sendAuthedRequest (createApp maySubdomain)) >>= \case -- maySubdomain)) >>= \case
+  attempt (sendAuthedRequest (App.create maySubdomain)) >>= \case -- maySubdomain)) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err
@@ -93,5 +87,3 @@ appInit appDir mayBuildDir' maySubdomain = do
         UTF8.putText $ "https://ipfs.runfission.com/ipns/" <> textDisplay appURL <> "\n"
 
       return ()
-
-index :<|> createApp :<|> update :<|> destroy = Servant.client $ Proxy @App

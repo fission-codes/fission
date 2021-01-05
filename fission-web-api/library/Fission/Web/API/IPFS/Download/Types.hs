@@ -1,4 +1,8 @@
-module Fission.Web.API.IPFS.Download.Types (Download) where
+module Fission.Web.API.IPFS.Download.Types
+  ( Download
+  , ViaQuery
+  , ViaPath
+  ) where
 
 import qualified Network.IPFS.CID.Types  as IPFS
 import qualified Network.IPFS.File.Types as File
