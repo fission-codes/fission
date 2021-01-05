@@ -59,7 +59,7 @@ register ::
   -> Maybe Email
   -> m Username
 register maybeUsername maybeEmail = do
-  attempt (sendRequestM $ attachAuth whoami) >>= \case
+  attempt (sendAuthedRequest whoami) >>= \case
     Right username -> do
       CLI.Success.alreadyLoggedInAs $ textDisplay username
       return username
@@ -106,7 +106,7 @@ createAccount maybeUsername maybeEmail = do
       , password = Nothing
       }
 
-  attempt (sendRequestM $ attachAuth create `withPayload` form) >>= \case
+  attempt (sendAuthedRequest $ createWithDID form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
       return username

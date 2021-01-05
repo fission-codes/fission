@@ -21,7 +21,7 @@ type RegisterDID = AuthProtect "register-did"
 
 -- FIXME
 -- type instance AuthServerData (AuthProtect "register-did") = DID
--- type instance AuthClientData (AuthProtect "register-did") = Token
+type instance AuthClientData (AuthProtect "register-did") = Token
 
 -- | Higher order auth that encompasses Basic & JWT auth
 type HigherOrder = AuthProtect "higher-order"

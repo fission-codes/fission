@@ -1,3 +1,5 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 module Fission.Web.Client
   ( sendRequestM
   , sendAuthedRequest
@@ -34,23 +36,25 @@ sendAuthedRequest ::
   , MonadTime      m
   , MonadWebClient m
   , ServerDID      m
-  , MonadWebAuth   m (AuthClientData a)
+  , MonadWebAuth   m (AuthClientData auth)
   , MonadWebAuth   m Ed25519.SecretKey
   , MonadRaise     m
   , m `Raises` ClientError
   )
-  => (AuthenticatedRequest a -> ClientM a)
+  => (AuthenticatedRequest auth -> ClientM a)
   -> m a
-sendAuthedRequest req = sendRequestM $ fmap req attachAuth
+sendAuthedRequest req = do
+  auth <- attachAuth
+  ensureM $ sendRequest $ req auth
 
 attachAuth ::
   ( MonadIO      m
   , MonadTime    m
   , ServerDID    m
-  , MonadWebAuth m (AuthClientData a)
+  , MonadWebAuth m (AuthClientData auth)
   , MonadWebAuth m Ed25519.SecretKey
   )
-  => m (AuthenticatedRequest a) -- (Client ClientM api)
+  => m (AuthenticatedRequest auth) -- (Client ClientM api)
 attachAuth = do
   auth    <- getAuth
   authReq <- mkAuthReq

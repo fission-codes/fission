@@ -55,7 +55,7 @@ appInit ::
 appInit appDir mayBuildDir' maySubdomain = do
   logDebug @Text "appInit"
 
-  attempt (sendAuthedRequest $ create' maySubdomain) >>= \case
+  attempt (sendAuthedRequest (createApp maySubdomain)) >>= \case -- maySubdomain)) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err
@@ -94,4 +94,4 @@ appInit appDir mayBuildDir' maySubdomain = do
 
       return ()
 
-index :<|> create' :<|> update :<|> destroy = Servant.client $ Proxy @App
+index :<|> createApp :<|> update :<|> destroy = Servant.client $ Proxy @App
