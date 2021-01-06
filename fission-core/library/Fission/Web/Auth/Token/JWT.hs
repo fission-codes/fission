@@ -51,14 +51,11 @@ import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
+import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
+
 -- Reexports
 
 import           Fission.Web.Auth.Token.JWT.RawContent
-
--- Orphans
-
--- import           Fission.Internal.Orphanage.CID                   ()
-import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case

@@ -21,7 +21,7 @@ type Add
   :> Capture "did" RSA.PublicKey
   --
   :> Auth.HigherOrder
-  :> Put     '[JSON] (NonEmpty RSA.PublicKey)
+  :> Put '[JSON] (NonEmpty RSA.PublicKey)
 
 type Remove
   =  Summary "Remove Public Exchange Key"

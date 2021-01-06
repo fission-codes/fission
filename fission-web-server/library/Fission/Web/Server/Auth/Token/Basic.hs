@@ -4,8 +4,8 @@ module Fission.Web.Server.Auth.Token.Basic
   , parseBasic
   ) where
 
-import qualified Data.ByteString.Base64                                  as Base64
-import qualified Data.ByteString.Char8                                   as Ch
+import qualified Data.ByteString.Base64                           as Base64
+import qualified Data.ByteString.Char8                            as Ch
 
 import           Crypto.BCrypt
 import           Database.Esqueleto
@@ -13,18 +13,20 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
-import           Fission.User.Username.Types                             as Username
+import           Fission.Authorization.Potency.Types
+import           Fission.User.Username.Types                      as Username
 
-import           Fission.Web.Server.Error                                as Web.Err
+import qualified Fission.Web.Auth.Token.Basic.Types               as Auth.Basic
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+
+import           Fission.Web.Server.Error                         as Web.Err
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
-import qualified Fission.Web.Server.User                                 as User
+import qualified Fission.Web.Server.User                          as User
 
-import qualified Fission.Web.Server.Auth.Error                           as Auth
-import qualified Fission.Web.Server.Auth.Token.Basic.Types               as Auth.Basic
+import qualified Fission.Web.Server.Auth.Error                    as Auth
+import           Fission.Web.Server.Authorization.Types
 
-import           Fission.Web.Server.Auth.Token.UCAN.Resource.Scope.Types
 
 handler ::
   ( MonadIO          m

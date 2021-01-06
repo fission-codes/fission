@@ -1,24 +1,27 @@
 module Fission.Web.Server.Handler.Heroku.Deprovision (destroy) where
 
-import           RIO.List                                          ((\\))
+import           RIO.List                                 ((\\))
 
 import           Data.UUID
 import           Database.Esqueleto
 
 import           Network.IPFS
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Pin                                  as IPFS.Pin
+import qualified Network.IPFS.Pin                         as IPFS.Pin
 
 import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Server.LoosePin                       as LoosePin
-import           Fission.Web.Server.Models
-import qualified Fission.Web.Server.User                           as User
+import           Fission.Web.API.Heroku.Auth.Types        as Heroku
+import qualified Fission.Web.API.Heroku.Deprovision.Types as API.Heroku
 
-import qualified Fission.Web.Server.Heroku.AddOn                   as Heroku.AddOn
-import qualified Fission.Web.Server.Heroku.MIME.VendorJSONv3.Types as Heroku
+import qualified Fission.Web.Server.LoosePin              as LoosePin
+import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
+import qualified Fission.Web.Server.User                  as User
+
+import qualified Fission.Web.Server.Heroku.AddOn          as Heroku.AddOn
 
 destroy ::
   ( MonadRemoteIPFS          m
@@ -33,8 +36,8 @@ destroy ::
   , Heroku.AddOn.Retriever t
   , Heroku.AddOn.Destroyer t
   )
-  => ServerT API m
-destroy uuid' = do
+  => ServerT API.Heroku.Deprovision m
+destroy uuid' Heroku.Auth {} = do
   toUnpin <- runDB (deleteAssociatedWith uuid')
 
   forM_ toUnpin \cid ->

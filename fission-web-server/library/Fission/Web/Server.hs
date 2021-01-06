@@ -12,7 +12,6 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.IPFS.DNSLink                              as DNSLink
 import           Fission.IPFS.Linked
 
 import           Fission.Web.Handler
@@ -22,7 +21,6 @@ import qualified Fission.App                                       as App
 import qualified Fission.App.Content                               as App.Content
 import qualified Fission.App.Domain                                as App.Domain
 
-import qualified Fission.LoosePin                                  as LoosePin
 import qualified Fission.Platform.Heroku.AddOn                     as Heroku.AddOn
 import qualified Fission.User                                      as User
 
@@ -39,6 +37,9 @@ import qualified Fission.Web.Server.Handler.IPFS                   as IPFS
 import qualified Fission.Web.Server.Handler.Ping                   as Ping
 import qualified Fission.Web.Server.Handler.Swagger                as Web.Swagger
 import qualified Fission.Web.Server.User                           as User
+
+import           Fission.Web.Server.IPFS.DNSLink                   as DNSLink
+import qualified Fission.Web.Server.LoosePin                       as LoosePin
 
 import           Fission.Web.Server.Config.Types
 import           Fission.Web.Server.Types

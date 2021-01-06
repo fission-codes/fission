@@ -5,24 +5,17 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
+import qualified Fission.User.Password.Reset.Types         as User.Password
 
-import qualified Fission.Web.API.User.Password                as User.Password
+import qualified Fission.Web.API.User.Password.Reset.Types as API.Password
 
-import qualified Fission.Web.Server.Error                     as Web.Err
-import qualified Fission.Web.Server.User                      as User
-import qualified Fission.Web.Server.User.Password.Reset.Types as User.Password
+import           Fission.Web.Server.Authorization.Types
+import qualified Fission.Web.Server.Error                  as Web.Err
+import qualified Fission.Web.Server.User                   as User
+import qualified Fission.Web.Server.User.Password          as User.Password
 
-handler ::
-  ( MonadThrow    m
-  , MonadLogger   m
-  , MonadTime     m
-  , MonadIO       m
-  , User.Modifier m
-  )
-  => Authorization
-  -> ServerT API m
-handler Authorization {about = Entity userId _} User.Password.Reset { maybePassword } = do
+handler :: (MonadThrow m, MonadLogger m, MonadTime m, MonadIO m, User.Modifier m) => ServerT API.Password.Reset m
+handler User.Password.Reset { maybePassword } Authorization {about = Entity userId _} = do
   now      <- currentTime
   password <- maybe User.Password.random pure maybePassword
 

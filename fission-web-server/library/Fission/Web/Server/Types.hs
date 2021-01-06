@@ -5,85 +5,89 @@ module Fission.Web.Server.Types
 
 import           Control.Monad.Catch
 
-import qualified RIO.ByteString.Lazy                   as Lazy
-import           RIO.NonEmpty                          as NonEmpty
-import qualified RIO.Text                              as Text
+import qualified RIO.ByteString.Lazy                       as Lazy
+import           RIO.NonEmpty                              as NonEmpty
+import qualified RIO.Text                                  as Text
 
-import           Database.Esqueleto                    as SQL hiding ((<&>))
+import           Database.Esqueleto                        as SQL hiding ((<&>))
 
 import           Servant.Client
 import           Servant.Server.Experimental.Auth
 
-import           Network.AWS                           as AWS hiding (Request)
+import           Network.AWS                               as AWS hiding
+                                                                   (Request)
 import           Network.AWS.Route53
 
-import qualified Network.IPFS                          as IPFS
-import qualified Network.IPFS.Peer                     as Peer
-import qualified Network.IPFS.Pin                      as IPFS.Pin
-import qualified Network.IPFS.Process                  as IPFS
-import qualified Network.IPFS.Process.Error            as IPFS.Process
-import qualified Network.IPFS.Stat                     as IPFS.Stat
-import qualified Network.IPFS.Types                    as IPFS
+import qualified Network.IPFS                              as IPFS
+import qualified Network.IPFS.Peer                         as Peer
+import qualified Network.IPFS.Pin                          as IPFS.Pin
+import qualified Network.IPFS.Process                      as IPFS
+import qualified Network.IPFS.Process.Error                as IPFS.Process
+import qualified Network.IPFS.Stat                         as IPFS.Stat
+import qualified Network.IPFS.Types                        as IPFS
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                 as UTF8
+import qualified Fission.Internal.UTF8                     as UTF8
 
-import           Fission.Error                         as Error
+import           Fission.Error                             as Error
 import           Fission.Web.Server.AWS
-import           Fission.Web.Server.AWS.Types          as AWS
+import           Fission.Web.Server.AWS.Types              as AWS
 import           Fission.Web.Server.Models
 
-import           Fission.DNS                           as DNS
-import           Fission.URL                           as URL
+import qualified Fission.Web.Server.DID.Publicize.Class    as Server.DID.Publicize
+import           Fission.Web.Server.Host.Types
 
-import qualified Fission.Web.Server.App                as App
-import qualified Fission.Web.Server.App.Destroyer      as App.Destroyer
-import           Fission.Web.Server.IPFS.DNSLink       as DNSLink
-import           Fission.Web.Server.WNFS               as WNFS
+import           Fission.DNS                               as DNS
+import           Fission.URL                               as URL
 
-import qualified Fission.Web.Error                     as Web.Error
-import           Fission.Web.Types
+import qualified Fission.Web.Server.App                    as App
+import qualified Fission.Web.Server.App.Destroyer          as App.Destroyer
+import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
+import           Fission.Web.Server.WNFS                   as WNFS
 
+import qualified Fission.Web.Server.Error                  as Web.Error
 
-import           Fission.IPFS.Linked
-import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
+import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
+import           Fission.Web.Server.IPFS.Linked
 
-import           Fission.Authorization.Types
-import           Fission.AWS                           as AWS
-import           Fission.AWS.Route53                   as Route53
+import           Fission.Web.Server.Authorization.Types
+import           Fission.Web.Server.AWS                    as AWS
+import           Fission.Web.Server.AWS.Route53            as Route53
 
-import           Fission.Platform.Heroku.Types         as Heroku
+import           Fission.Web.Server.Heroku.Types           as Heroku
 
-import           Fission.Web.Auth                      as Auth
-import qualified Fission.Web.Auth.DID                  as Auth.DID
-import qualified Fission.Web.Auth.Token                as Auth.Token
+import           Fission.Web.Server.Auth                   as Auth
+import qualified Fission.Web.Server.Auth.DID               as Auth.DID
+import qualified Fission.Web.Server.Auth.Token             as Auth.Token
 
-import           Fission.Web.Handler
-import           Fission.Web.Server.Reflective         as Reflective
+import           Fission.Web.Server.Handler
+import           Fission.Web.Server.Reflective             as Reflective
 
-import qualified Fission.User                          as User
-import           Fission.User.Creator.Class
-import           Fission.User.DID                      as DID
-import qualified Fission.User.Modifier.Class           as User.Modifier
-import qualified Fission.User.Password                 as Password
+import           Fission.User.DID                          as DID
+import qualified Fission.Web.Server.User                   as User
+import           Fission.Web.Server.User.Creator.Class
+import qualified Fission.Web.Server.User.Modifier.Class    as User.Modifier
+import qualified Fission.Web.Server.User.Password          as Password
 
-import qualified Fission.Key                           as Key
+import qualified Fission.Key                               as Key
 
-import           Fission.Web.Auth.Token.Basic.Class
-import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+import           Fission.Web.Server.MonadDB
+
+import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver       as JWT
+import           Fission.Web.Server.Auth.Token.Basic.Class
 
 import           Fission.Authorization.ServerDID.Class
 
-import           Fission.App.Content                   as App.Content
-import           Fission.App.Domain                    as App.Domain
+import           Fission.Web.Server.App.Content            as App.Content
+import           Fission.Web.Server.App.Domain             as App.Domain
 
-import           Fission.Challenge                     as Challenge
-import qualified Fission.Email                         as Email
-import           Fission.Email.Class
+import           Fission.Web.Server.Challenge              as Challenge
+import qualified Fission.Web.Server.Email                  as Email
+import           Fission.Web.Server.Email.Class
 
-import qualified Fission.Domain                        as Domain
+import qualified Fission.Web.Server.Domain                 as Domain
 
 import           Fission.Web.Server.Config.Types
 
@@ -109,7 +113,7 @@ instance MonadTime Server where
 instance MonadReflectiveServer Server where
   getHost = asks host
 
-instance MonadDB (Transaction Fission) Server where
+instance MonadDB (Transaction Server) Server where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
@@ -360,7 +364,7 @@ instance JWT.Resolver Server where
 instance ServerDID Server where
   getServerDID = asks fissionDID
 
-instance PublicizeServerDID Server where
+instance Server.DID.Publicize Server where
   publicize = do
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -630,7 +634,7 @@ instance MonadEmail Server where
 
     liftIO $ runClientM (Email.sendEmail apiKey emailData) env
 
-pullFromDNS :: [URL] -> Fission (Either App.Destroyer.Errors' [URL])
+pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do
   domainsAndZoneIDs <- runDB . select $ from \domain -> do
     where_ $ domain ^. DomainDomainName `in_` valList (URL.domainName <$> urls)
@@ -648,7 +652,7 @@ pullFromDNS urls = do
          [(DomainName, ZoneID)]            -- ^ Hosted zone map
       -> Either App.Destroyer.Errors' [URL] -- ^ Accumulator
       -> URL                               -- ^ Focus
-      -> Fission (Either App.Destroyer.Errors' [URL])
+      -> Server (Either App.Destroyer.Errors' [URL])
 
     folder _ (Left err) _ =
       return $ Left err
@@ -665,11 +669,11 @@ pullFromDNS urls = do
             Right _  -> Right (url : accs)
 
 runUserUpdate ::
-     Transaction Fission (Either User.Modifier.Errors' a)
+     Transaction Server (Either User.Modifier.Errors' a)
   -> (a -> Text)
   -> UserId
   -> Text
-  -> Fission (Either User.Modifier.Errors' a)
+  -> Server (Either User.Modifier.Errors' a)
 runUserUpdate updateDB dbValToTxt uID subdomain =
   runDB updateDB >>= \case
     Left err ->

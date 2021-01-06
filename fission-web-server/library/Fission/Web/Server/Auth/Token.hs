@@ -9,16 +9,20 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import           Fission.Authorization
-import qualified Fission.User                               as User
+import           Fission.Authorization.ServerDID.Class
 
-import qualified Fission.Web.Server.Auth.Error              as Auth
-import qualified Fission.Web.Server.Auth.Token.Basic        as Basic
-import qualified Fission.Web.Server.Auth.Token.UCAN         as UCAN
-import qualified Fission.Web.Server.Error                   as Web.Error
+import qualified Fission.Web.Auth.Token.JWT.Resolver    as JWT
 
-import qualified Fission.Web.Server.Auth.Token.JWT.Resolver as JWT
+import qualified Fission.Web.Server.Auth.Error          as Auth
+import qualified Fission.Web.Server.Auth.Token.Basic    as Basic
 import           Fission.Web.Server.Auth.Token.Types
+import qualified Fission.Web.Server.Auth.Token.UCAN     as UCAN
+
+import           Fission.Web.Server.Authorization.Types
+
+import qualified Fission.Web.Server.Error               as Web.Error
+import           Fission.Web.Server.MonadDB
+import qualified Fission.Web.Server.User                as User
 
 -- | Higher order auth handler
 --   Uses basic auth for "Basic" tokens

@@ -3,30 +3,29 @@ module Fission.Web.Server.User.Creator.Class
   , Errors'
   ) where
 
-import           Data.UUID                             (UUID)
+import           Data.UUID                               (UUID)
 import           Servant
 
-import qualified Network.IPFS.Add.Error                as IPFS.Pin
-import qualified Network.IPFS.Get.Error                as IPFS.Stat
+import qualified Network.IPFS.Add.Error                  as IPFS.Pin
+import qualified Network.IPFS.Get.Error                  as IPFS.Stat
 
 import           Fission.Prelude
 
-import           Fission.Error                         as Error
-
-import           Fission.Key                           as Key
+import           Fission.Error                           as Error
+import           Fission.Key                             as Key
+import qualified Fission.Platform.Heroku.Region.Types    as Heroku
 import           Fission.URL
 
-import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
-import qualified Fission.Platform.Heroku.Region.Types  as Heroku
+import           Fission.User.Email.Types
+import           Fission.User.Username                   as Username
 
 import           Fission.Web.Server.Models
 
-import qualified Fission.Web.Server.App.Domain         as App.Domain
+import qualified Fission.Web.Server.App.Domain           as App.Domain
+import qualified Fission.Web.Server.Heroku.AddOn.Creator as Heroku.AddOn
 
-import qualified Fission.Web.Server.User.Creator.Error as User
-import           Fission.Web.Server.User.Password      as Password
-import           Fission.Web.Server.User.Types
-import qualified Fission.Web.Server.User.Username      as Username
+import qualified Fission.Web.Server.User.Creator.Error   as User
+import           Fission.Web.Server.User.Password        as Password
 
 type Errors' = OpenUnion
   '[ ActionNotAuthorized App

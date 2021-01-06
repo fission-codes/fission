@@ -1,6 +1,6 @@
 module Fission.Authorization.ServerDID.Class
   ( ServerDID          (..)
---   , PublicizeServerDID (..)
+ --   , PublicizeServerDID (..)
   ) where
 
 import           Fission.Prelude

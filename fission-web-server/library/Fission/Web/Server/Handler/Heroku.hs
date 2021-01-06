@@ -5,13 +5,13 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Server.LoosePin           as LoosePin
+import qualified Fission.Web.Server.Heroku.AddOn               as Heroku.AddOn
+import qualified Fission.Web.Server.LoosePin                   as LoosePin
 import           Fission.Web.Server.Reflective
-import qualified Fission.Web.Server.User               as User
+import qualified Fission.Web.Server.User                       as User
 
-import qualified Fission.Web.Server.Heroku.AddOn       as Heroku.AddOn
-import qualified Fission.Web.Server.Heroku.Deprovision as Deprovision
-import qualified Fission.Web.Server.Heroku.Provision   as Provision
+import qualified Fission.Web.Server.Handler.Heroku.Deprovision as Deprovision
+import qualified Fission.Web.Server.Handler.Heroku.Provision   as Provision
 
 handler ::
   ( MonadReflectiveServer    m

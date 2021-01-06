@@ -11,28 +11,28 @@ import qualified Network.IPFS.Types                               as IPFS
 import           Servant
 import           Servant.Server.Experimental.Auth
 
-import qualified Fission.Platform.Heroku.Auth.Types               as Heroku
 import           Fission.Prelude
 
+import           Fission.Authorization.Potency.Types
+import           Fission.URL.Types                                as URL
 import           Fission.User.DID.Types
 
-import           Fission.Authorization.Potency.Types
-import           Fission.Authorization.Types
+import           Fission.Internal.Fixture.Key.Ed25519             as Fixture.Ed25519
+import           Fission.Internal.Fixture.Time                    as Fixture
+
+import qualified Fission.Web.API.Heroku.Auth.Types                as Heroku
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import           Fission.URL.Types                                as URL
-
 import           Fission.Web.Server.Fixture.Entity                as Fixture
-import           Fission.Web.Server.Fixture.Key.Ed25519           as Fixture.Ed25519
-import           Fission.Web.Server.Fixture.Time                  as Fixture
 import           Fission.Web.Server.Fixture.User                  as Fixture
 
+import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.Mock.Config.Types
 
-import           Fission.Web.Server.Orphanage.CID                 ()
-import           Fission.Web.Server.Orphanage.Serilaized          ()
+import           Fission.Internal.Orphanage.Serilaized            ()
+import           Fission.Web.Server.Internal.Orphanage.CID        ()
 
 defaultConfig :: Config
 defaultConfig = Config

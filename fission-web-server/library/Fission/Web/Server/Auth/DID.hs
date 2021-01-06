@@ -4,18 +4,18 @@ import           Network.Wai
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Server.Auth.Error                as Auth
-import qualified Fission.Web.Server.Error                     as Web.Error
-
-import qualified Fission.Web.Server.Auth.Token                as Token
-import qualified Fission.Web.Server.Auth.Token.Bearer.Types   as Bearer
-
-import           Fission.Web.Server.Auth.Token.JWT            as JWT
-import           Fission.Web.Server.Auth.Token.JWT.Resolver   as JWT
-import qualified Fission.Web.Server.Auth.Token.JWT.Validation as JWT
-
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
+
+import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
+import           Fission.Web.Auth.Token.JWT            as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver   as JWT
+import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
+
+import qualified Fission.Web.Server.Auth.Error         as Auth
+import qualified Fission.Web.Server.Error              as Web.Error
+
+import qualified Fission.Web.Server.Auth.Token         as Token
 
 -- | Auth handler for registering DIDs
 -- Ensures properly formatted token but *does not check against DB*

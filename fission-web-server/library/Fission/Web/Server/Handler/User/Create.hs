@@ -9,11 +9,15 @@ import           Fission.Prelude
 
 import           Fission.User.DID.Types
 
+import qualified Fission.Web.API.User.Create.Types          as API.User
+
 import qualified Fission.Web.Server.Challenge.Creator.Class as Challenge
 import           Fission.Web.Server.Email
 import           Fission.Web.Server.Error                   as Web.Err
 import           Fission.Web.Server.IPFS.DNSLink            as DNSLink
 import qualified Fission.Web.Server.User                    as User
+
+import           Fission.Web.Server.Auth.Types              ()
 
 withDID ::
   ( MonadDNSLink      m
@@ -23,11 +27,10 @@ withDID ::
   , User.Creator      m
   , Challenge.Creator m
   )
-  => DID
-  -> ServerT API m
-withDID DID {..} User.Registration {username, email} = do
-  now <- currentTime
-  userId <- Web.Err.ensureM $ User.create username publicKey email now
+  => ServerT API.User.CreateWithDID m
+withDID User.Registration {username, email} DID {..} = do
+  now       <- currentTime
+  userId    <- Web.Err.ensureM $ User.create username publicKey email now
   challenge <- Web.Err.ensureM $ Challenge.create userId
 
   sendVerificationEmail (Recipient email username) challenge >>= \case
@@ -45,7 +48,7 @@ withPassword ::
   , User.Creator      m
   , Challenge.Creator m
   )
-  => ServerT PasswordAPI m
+  => ServerT API.User.CreateWithPassword m
 withPassword User.Registration {password = Nothing} =
   Web.Err.throw err422 { errBody = "Missing password" }
 

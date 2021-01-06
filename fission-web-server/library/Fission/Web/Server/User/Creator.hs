@@ -7,30 +7,31 @@ module Fission.Web.Server.User.Creator
   ) where
 
 
-import           Data.UUID                             (UUID)
-import           Database.Esqueleto                    hiding ((<&>))
+import           Data.UUID                               (UUID)
+import           Database.Esqueleto                      hiding ((<&>))
 
 import           Network.IPFS.Bytes.Types
 import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Error                         as Error
-import           Fission.Key                           as Key
+import           Fission.Error                           as Error
+import           Fission.Key                             as Key
+import           Fission.User.Email.Types
 
-import qualified Fission.Platform.Heroku.AddOn.Creator as Heroku.AddOn
-import qualified Fission.Platform.Heroku.Region.Types  as Heroku
+import qualified Fission.Platform.Heroku.Region.Types    as Heroku
+
+import qualified Fission.Web.Server.App.Content          as App.Content
+import qualified Fission.Web.Server.Heroku.AddOn.Creator as Heroku.AddOn
 
 import           Fission.Web.Server.Models
-
-import qualified Fission.Web.Server.User.Creator.Error as User
-import           Fission.Web.Server.User.Password      as Password
-import           Fission.Web.Server.User.Types
-
-import qualified Fission.Web.Server.App.Content        as App.Content
+import           Fission.Web.Server.MonadDB
 
 import           Fission.Web.Server.User.Creator.Class
 import           Fission.Web.Server.User.Creator.Error
+import qualified Fission.Web.Server.User.Creator.Error   as User
+import           Fission.Web.Server.User.Password        as Password
+import           Fission.Web.Server.User.Types
 
 createDB ::
      MonadIO m
