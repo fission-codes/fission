@@ -14,10 +14,10 @@ tests =
     describe "GET /ping" do
       with pingServer do
         it "is always be successful" do
-          get "/" `shouldRespondWith` 200
+          get "/ping" `shouldRespondWith` 200
 
         it "contains the text 'pong'" do
-          get "/" `shouldRespondWith` 200
+          get "/ping" `shouldRespondWith` 200
             { matchBody = MatchBody . bodyMatches $ String "pong" }
 
 pingServer :: IO Application
