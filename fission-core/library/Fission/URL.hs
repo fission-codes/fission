@@ -4,19 +4,19 @@ module Fission.URL
   , module Fission.URL.DomainName
   , module Fission.URL.Subdomain
   , module Fission.URL.Types
-  , module Fission.URL.Errors
   ) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text                       as Text
 
 import           Fission.Prelude
- 
+
+import           Fission.Error.InvalidURL.Types
+
 -- Reexport
 
-import           Fission.URL.Errors
-import           Fission.URL.Types
 import           Fission.URL.DomainName
 import           Fission.URL.Subdomain
+import           Fission.URL.Types
 
 prefix' :: Subdomain -> URL -> URL
 prefix' moreSub url@URL {..} = url { subdomain = Just moreSub <> subdomain }

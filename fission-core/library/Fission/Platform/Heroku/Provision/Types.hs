@@ -1,21 +1,19 @@
 module Fission.Platform.Heroku.Provision.Types (Provision (..)) where
 
-import           Data.Swagger hiding (name)
-import           Database.Persist.Sql
+import           Data.Swagger                    hiding (name)
 
-import           Network.IPFS.Types as IPFS
-import qualified Servant.Client as Client
+import           Network.IPFS.Types              as IPFS
+import qualified Servant.Client.Core             as Client
 
-import          Test.QuickCheck
-import          Test.QuickCheck.Instances ()
+import           Test.QuickCheck
+import           Test.QuickCheck.Instances       ()
 
-import           Fission.Models
 import           Fission.Prelude
 
-import qualified Fission.User.Provision.Types  as User
 import           Fission.Security.Types
+import qualified Fission.User.Provision.Types    as User
 
-import Fission.Internal.Orphanage.Peer ()
+import           Fission.Internal.Orphanage.Peer ()
 
 {-| Response Parameters
 
@@ -44,7 +42,7 @@ From Heroku
 -}
 
 data Provision = Provision
-  { id      :: UserId         -- ^ User ID
+  { id      :: Natural         -- ^ User ID
   , config  :: User.Provision -- ^ Heroku env var payload
   , peers   :: [IPFS.Peer]    -- ^ IPFS peer list
   , message :: Text           -- ^ A helpful human-readable message
@@ -79,10 +77,10 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    uId       <- declareSchemaRef <| Proxy @UserId
-    usrCfg    <- declareSchemaRef <| Proxy @User.Provision
-    ipfsPeers <- declareSchemaRef <| Proxy @[IPFS.Peer]
-    txt       <- declareSchemaRef <| Proxy @Text
+    uId       <- declareSchemaRef $ Proxy @Natural
+    usrCfg    <- declareSchemaRef $ Proxy @User.Provision
+    ipfsPeers <- declareSchemaRef $ Proxy @[IPFS.Peer]
+    txt       <- declareSchemaRef $ Proxy @Text
 
     mempty
       |> description ?~ "Provisioned user login information"
@@ -99,7 +97,7 @@ instance ToSchema Provision where
       |> pure
     where
       provisionEx = Provision
-        { id      = toSqlKey 4213
+        { id      = 4213
         , config  = cfgEx
         , peers  = [IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
         , message = "Provisioned successfully"

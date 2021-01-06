@@ -3,9 +3,9 @@
 module Fission.Key.Asymmetric.Algorithm.Types (Algorithm (..)) where
 
 import           Data.Swagger
-import           Database.Persist.Postgresql
+import           Database.Persist.Sql
 
-import qualified RIO.Text as Text
+import qualified RIO.Text             as Text
 
 import           Fission.Prelude
 

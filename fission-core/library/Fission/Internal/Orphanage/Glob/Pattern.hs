@@ -2,13 +2,13 @@
 
 module Fission.Internal.Orphanage.Glob.Pattern () where
 
-import Fission.Prelude
+import           Fission.Prelude
 
-import qualified Data.Text as T
+import qualified RIO.Text             as Text
 import qualified System.FilePath.Glob as Glob
 
 instance ToJSON Glob.Pattern where
-  toJSON = String . T.pack . Glob.decompile
+  toJSON = String . Text.pack . Glob.decompile
 
 instance FromJSON Glob.Pattern where
   parseJSON = withText "Glob.Pattern" \txt ->

@@ -1,8 +1,8 @@
 module Fission.User.Password.Types (Password (..)) where
 
-import Data.Swagger
+import           Data.Swagger
 
-import Fission.Prelude
+import           Fission.Prelude
 
 newtype Password = Password { password :: Text }
   deriving          ( Eq

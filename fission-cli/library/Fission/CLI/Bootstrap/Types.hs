@@ -1,15 +1,15 @@
 -- | Overrides for when still bootstrapping the system
 module Fission.CLI.Bootstrap.Types (BootstrapT (..)) where
 
-import           Network.IPFS                           as IPFS
+import           Network.IPFS                                      as IPFS
 import           Servant.Client
 
 import           Fission.Prelude
 
 import           Fission.Web.Client.HTTP.Class
 
-import           Fission.Internal.Orphanage.BaseUrl     ()
-import           Fission.Internal.Orphanage.ClientError ()
+import           Fission.Internal.Orphanage.BaseUrl                ()
+import           Fission.Web.Client.Internal.Orphanage.ClientError ()
 
 newtype BootstrapT cfg m a = BootstrapT { runBootstrapT :: m a }
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadLogger)

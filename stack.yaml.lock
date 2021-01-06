@@ -19,40 +19,33 @@ packages:
   original:
     hackage: amazonka-1.6.1
 - completed:
+    hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
+    pantry-tree:
+      size: 332
+      sha256: a7ec2c54fddfa417ee2467f1131b1d83ad43cc29ddfd4b98869fc924e4b5e980
+  original:
+    hackage: servant-auth-0.4.0.0
+- completed:
     hackage: servant-auth-server-0.4.6.0@sha256:b411b44f4252e91e5da2455d71a7113c8b5b8ff2d943d19b2ddedcfcf0392351,5111
     pantry-tree:
       size: 1376
       sha256: 8cd29612112546a02085e2cb30dd5a72ea46ed81e644195c589d0b26652279cb
   original:
-    hackage: servant-auth-server-0.4.6.0@sha256:b411b44f4252e91e5da2455d71a7113c8b5b8ff2d943d19b2ddedcfcf0392351,5111
+    hackage: servant-auth-server-0.4.6.0
 - completed:
     hackage: servant-auth-swagger-0.2.10.1@sha256:6d5f1a4594c922fa8baccb0344de91108d57d1228ec5911723fce4340c27d129,2821
     pantry-tree:
       size: 408
       sha256: b4b12628d1e2ad82c2eb5f09b4074414646104dabad87693b539a109938c5a41
   original:
-    hackage: servant-auth-swagger-0.2.10.1@sha256:6d5f1a4594c922fa8baccb0344de91108d57d1228ec5911723fce4340c27d129,2821
+    hackage: servant-auth-swagger-0.2.10.1
 - completed:
     hackage: servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
     pantry-tree:
       size: 381
       sha256: c66e48f90cd9e6beda31ecfa8b2761c02ff3a4b6373638578202048e8c7cf6a1
   original:
-    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
-- completed:
-    hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
-    pantry-tree:
-      size: 332
-      sha256: a7ec2c54fddfa417ee2467f1131b1d83ad43cc29ddfd4b98869fc924e4b5e980
-  original:
-    hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
-- completed:
-    hackage: unliftio-core-0.1.2.0@sha256:7f9b48adef8e36da0202e6e70a733a5e210263ed4177c93e47a4b3f89694194b,1081
-    pantry-tree:
-      size: 328
-      sha256: 72be5813b35ba78db99459fb73a553a58b95a393005fdffb96eec3c1244f90c4
-  original:
-    hackage: unliftio-core-0.1.2.0@sha256:7f9b48adef8e36da0202e6e70a733a5e210263ed4177c93e47a4b3f89694194b,1081
+    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3
 - completed:
     hackage: binary-instances-1.0.1@sha256:56bb2da1268415901d6ea3f46535b88b89459d7926fbfcca027e25e069ea6f2b,2647
     pantry-tree:
@@ -67,13 +60,6 @@ packages:
       sha256: e392f8dded050690140636b81433fb350bd87dd21643dde9a2f0aa344cf038e5
   original:
     hackage: cryptostore-0.2.1.0
-- completed:
-    hackage: github-0.26@sha256:a9d4046325c3eb28cdc7bef2c3f5bb213328caeae0b7dce6f51de655f0bffaa1,7162
-    pantry-tree:
-      size: 7511
-      sha256: b71aab2984b268030c9e2617043575681134c1fe60dffbd5596e659c0a3e9aec
-  original:
-    hackage: github-0.26
 - completed:
     hackage: happy-1.20.0@sha256:f99e612b29d68d784d7e193943a13466f0923de69452a2585081491efed0436b,5709
     pantry-tree:
@@ -123,6 +109,13 @@ packages:
       sha256: 0f3cc12775c099769901af4708a4ac04cdc9cbca8b22747be0c82c9c916d7e24
   original:
     hackage: text-time-0.3.1
+- completed:
+    hackage: unliftio-core-0.1.2.0@sha256:7f9b48adef8e36da0202e6e70a733a5e210263ed4177c93e47a4b3f89694194b,1081
+    pantry-tree:
+      size: 328
+      sha256: 72be5813b35ba78db99459fb73a553a58b95a393005fdffb96eec3c1244f90c4
+  original:
+    hackage: unliftio-core-0.1.2.0
 - completed:
     hackage: ip-1.7.2@sha256:2148bbc7b5e66ea7273b6014bb30483cc656b2cd4e53efaf165c2223bdbbeb46,3742
     pantry-tree:
@@ -195,7 +188,7 @@ packages:
     hackage: tuples-0.1.0.0
 snapshots:
 - completed:
-    size: 560077
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/2.yaml
-    sha256: 17102883e69416f4f36ce1616819e0a1468537ca1d1ddd1f9e03539950c6ed2b
-  original: nightly-2021-01-02
+    size: 562051
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/5.yaml
+    sha256: be105362ec57d665ea17fa574ab195c49bb1f9a5bd9016174ef83cd368fba253
+  original: nightly-2021-01-05

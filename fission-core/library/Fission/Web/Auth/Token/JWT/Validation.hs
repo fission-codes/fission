@@ -16,7 +16,8 @@ import           Fission.Prelude
 import           Fission.SemVer.Types
 
 import           Fission.Key                                      as Key
-import qualified Fission.User                                     as User
+-- FIXME rename user.did to did
+import qualified Fission.User.DID                                 as User
 
 import           Fission.Authorization.ServerDID.Class
 

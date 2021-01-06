@@ -28,10 +28,10 @@ import qualified Fission.CLI.Key.Store             as Key
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.CLI.Handler.User.Register as User
-import           Fission.User.Username.Types
-import           Fission.User.Email.Types
 import           Fission.Error
-import           Fission.Web.Auth.Token
+import           Fission.User.Email.Types
+import           Fission.User.Username.Types
+import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                as Client
 
 setup ::

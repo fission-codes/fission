@@ -6,7 +6,7 @@ import qualified Data.Yaml                       as YAML
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 
 import           Network.HTTP.Types.Status
-import           Servant.Client.Core
+import           Servant.Client
 
 import           Fission.Prelude
 
@@ -15,7 +15,7 @@ import qualified Fission.Internal.UTF8           as UTF8
 
 import           Fission.Authorization.ServerDID
 
-import           Fission.Web.Auth.Token
+import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client              as Client
 import qualified Fission.Web.Client.User         as User
 
@@ -44,7 +44,7 @@ whoami ::
   )
   => m ()
 whoami = do
-  attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
+  attempt (sendAuthedRequest User.whoami) >>= \case
     Right username -> do
       CLI.Success.currentlyLoggedInAs $ textDisplay username
       Env.update \env -> env {username}

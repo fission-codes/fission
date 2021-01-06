@@ -2,10 +2,10 @@
 
 module Fission.Internal.Orphanage.BaseUrl () where
 
-import qualified RIO.Text        as Text
+import qualified RIO.Text            as Text
 
 import           Data.Swagger
-import           Servant.Client  as Client
+import           Servant.Client.Core as Client
 
 import           Fission.Prelude
 
@@ -14,7 +14,7 @@ instance Display BaseUrl where
 
 instance Arbitrary BaseUrl where
   arbitrary = do
-    baseUrlScheme <- oneof <| pure <$> [Client.Http, Client.Https]
+    baseUrlScheme <- oneof $ pure <$> [Client.Http, Client.Https]
     baseUrlHost   <- arbitrary
     baseUrlPort   <- arbitrary
     baseUrlPath   <- arbitrary

@@ -23,13 +23,16 @@ ghc-options:
   - -Wall
   - -Wcompat
   - -Widentities
+
   # Warn about too little
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
   - -Wmissing-export-lists
   - -Wpartial-fields
+
   # Warn about too much
   - -Wredundant-constraints
+
   # Prettier Development
   - -fhide-source-paths
 
@@ -137,6 +140,7 @@ dependencies:
 
   ## Fission ##
   - fission-core
+  - fission-web-client
 
 library:
   source-dirs: library
@@ -144,7 +148,7 @@ library:
 executables:
   fission:
     main: Main.hs
-    source-dirs: exe
+    source-dirs: cli
     dependencies:
       - fission-cli
     ghc-options:
@@ -159,62 +163,6 @@ executables:
     # uncomment to build a static binary on Linux
     # cc-options: -static
     # ld-options: -static -pthread
-
-tests:
-  fission-cli-doctest:
-    main: Main.hs
-    source-dirs: doctest
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - directory
-      - directory-tree
-      - doctest
-      - fission-cli
-      - fission-core
-      - Glob
-      - lens-aeson
-      - QuickCheck
-      - quickcheck-instances
-      # - servant-quickcheck
-      - yaml
-
-  fission-cli-test:
-    main: Main.hs
-    source-dirs:
-      - library
-      - test
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - hspec
-      - hspec-core
-      - hspec-expectations
-      - hspec-wai
-      - hspec-wai-json
-      - fission-cli
-      - fission-core
-      - QuickCheck
-      - quickcheck-instances
-      # - servant-quickcheck
-      - tasty
-      - tasty-hunit
-      - tasty-hspec
-      - tasty-smallcheck
-      - tasty-rerun
-      - transformers
-
-#   fission-cli-lint:
-#     main: Main.hs
-#     source-dirs: lint
-#     dependencies:
-#       - base
-#       - hlint
-#       - rio
 
 benchmarks:
   fission-cli-benchmark:

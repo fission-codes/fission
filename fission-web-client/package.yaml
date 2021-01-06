@@ -1,0 +1,109 @@
+name: fission-web-client
+version: '1.0.0.0'
+category: Client
+author:
+  - Brooklyn Zelenka
+  - Daniel Holmgren
+  - Steven Vandevelde
+  - James Walker
+maintainer:
+  - brooklyn@fission.codes
+  - daniel@fission.codes
+  - steven@fission.codes
+  - james@fission.codes
+copyright: © 2020 Fission Internet Software Services for Open Networks Inc.
+license: AGPL-3.0-or-later
+license-file: LICENSE
+github: fission-suite/fission
+tested-with: GHC==8.8.4
+extra-source-files:
+  - README.md
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+
+  # Warn about too much
+  - -Wredundant-constraints
+
+  # Prettier Development
+  - -fhide-source-paths
+
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DuplicateRecordFields
+  - EmptyDataDecls
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - LiberalTypeSynonyms
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - NumericUnderscores
+  - OverloadedStrings
+  - OverloadedLabels
+  - OverloadedLists
+  - PostfixOperators
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+  - TypeOperators
+  - ViewPatterns
+
+dependencies:
+  ## Base ##
+  - base
+  - rio
+
+  ## Cryptogrpahy ##
+  - cryptonite
+
+  ## Web ##
+  - http-client
+  - http-client-tls
+  - http-types
+  - ipfs
+  - servant
+  - servant-client
+  - servant-client-core
+
+  ## Fission ##
+  - fission-core
+  - fission-web-api
+
+library:
+  source-dirs: library

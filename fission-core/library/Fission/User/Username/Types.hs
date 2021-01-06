@@ -7,7 +7,7 @@ import           Database.Persist.Class
 import           Database.Persist.Sql
 
 import           Data.Swagger
-import           Servant
+import           Servant.API
 
 import qualified RIO.ByteString.Lazy              as Lazy
 import qualified RIO.Text                         as Text

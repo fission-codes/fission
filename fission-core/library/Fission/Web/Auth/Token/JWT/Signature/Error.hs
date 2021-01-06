@@ -1,9 +1,7 @@
+-- FIXME make a UCAN project
 module Fission.Web.Auth.Token.JWT.Signature.Error (Error (..)) where
 
-import           Servant.Server
-
 import           Fission.Prelude
-import           Fission.Web.Error.Class
 
 data Error
   = InvalidPublicKey
@@ -17,5 +15,3 @@ instance Display Error where
     InvalidSignature      -> "Signature improperly formatted"
     SignatureDoesNotMatch -> "Signature does not match content"
 
-instance ToServerError Error where
-  toServerError err = err422 { errBody = displayLazyBS err }

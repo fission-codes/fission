@@ -1,16 +1,15 @@
 module Fission.User.Email.Types (Email (..)) where
 
 import           Database.Persist.Class
-import           Database.Persist.Types
 import           Database.Persist.Sql
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy        as Lazy
+import qualified RIO.Text                   as Text
 
 import qualified Network.IPFS.Internal.UTF8 as UTF8
 
 import           Data.Swagger
-import           Servant
+import           Servant.API
 
 import           Fission.Prelude
 

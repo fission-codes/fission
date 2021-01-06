@@ -1,22 +1,23 @@
-resolver: nightly-2021-01-02
+resolver: nightly-2021-01-05
 
 allow-newer: true
 
 packages:
   - fission-cli
   - fission-core
+  - fission-web-api
+  - fission-web-client
+  - fission-web-server
 
 extra-deps:
   - alex-3.2.5
   - amazonka-1.6.1
-  - servant-auth-server-0.4.6.0@sha256:b411b44f4252e91e5da2455d71a7113c8b5b8ff2d943d19b2ddedcfcf0392351,5111
-  - servant-auth-swagger-0.2.10.1@sha256:6d5f1a4594c922fa8baccb0344de91108d57d1228ec5911723fce4340c27d129,2821
-  - servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
-  - servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
-  - unliftio-core-0.1.2.0@sha256:7f9b48adef8e36da0202e6e70a733a5e210263ed4177c93e47a4b3f89694194b,1081
+  - servant-auth-0.4.0.0
+  - servant-auth-server-0.4.6.0
+  - servant-auth-swagger-0.2.10.1
+  - servant-swagger-ui-redoc-0.3.3.1.22.3
   - binary-instances-1.0.1
   - cryptostore-0.2.1.0
-  - github-0.26
   - happy-1.20.0
   - hfsevents-0.1.6
   - ipfs-1.1.5.1
@@ -24,6 +25,7 @@ extra-deps:
   - raven-haskell-0.1.4.0
   - rescue-0.2.1 # FIXME explore 0.3.0, or switch to checked-exceptions
   - text-time-0.3.1
+  - unliftio-core-0.1.2.0
 
   # For ip-1.7.2
   - ip-1.7.2

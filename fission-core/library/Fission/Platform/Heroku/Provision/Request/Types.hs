@@ -1,11 +1,11 @@
 module Fission.Platform.Heroku.Provision.Request.Types (Request (..)) where
 
-import           Data.UUID as UUID
-import           Data.Swagger hiding (name)
+import           Data.Swagger                         hiding (name)
+import           Data.UUID                            as UUID
 
-import           Fission.Prelude
 import qualified Fission.Plan.Types                   as Plan
 import qualified Fission.Platform.Heroku.Region.Types as Heroku
+import           Fission.Prelude
 
 data Request = Request
   { callbackUrl :: Text          -- ^ The URL which should be used to retrieve updated information about the add-on and the app which owns it.
@@ -48,10 +48,10 @@ instance FromJSON Request where
 
 instance ToSchema Request where
   declareNamedSchema _ = do
-    planSchema   <- declareSchemaRef <| Proxy @Plan.Tier
-    regionSchema <- declareSchemaRef <| Proxy @Heroku.Region
-    stringSchema <- declareSchemaRef <| Proxy @String
-    uuidSchema   <- declareSchemaRef <| Proxy @UUID
+    planSchema   <- declareSchemaRef $ Proxy @Plan.Tier
+    regionSchema <- declareSchemaRef $ Proxy @Heroku.Region
+    stringSchema <- declareSchemaRef $ Proxy @String
+    uuidSchema   <- declareSchemaRef $ Proxy @UUID
 
     mempty
       |> example ?~ toJSON Request
@@ -59,7 +59,7 @@ instance ToSchema Request where
                       , name        = "my-awesome-app"
                       , plan        = Plan.Free
                       , region      = Heroku.Tokyo
-                      , uuid        = fromJust <| UUID.fromString "0cebfcfe-93c9-11e9-bc42-526af7764f64"
+                      , uuid        = fromJust $ UUID.fromString "0cebfcfe-93c9-11e9-bc42-526af7764f64"
                       }
       |> required .~ [ "callbackUrl"
                      , "name"

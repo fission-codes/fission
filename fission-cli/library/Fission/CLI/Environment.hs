@@ -30,12 +30,11 @@ import           Fission.Error.NotFound.Types
 
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
-
 import           Fission.Web.Client
-import           Fission.Web.Client.Peers      as Peers
 
 import qualified Fission.CLI.Display.Error     as CLI.Error
 import           Fission.CLI.Environment.Path  as Path
+import           Fission.CLI.IPFS.Peers        as Peers
 import qualified Fission.CLI.YAML              as YAML
 
 -- Reexports

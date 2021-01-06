@@ -24,7 +24,7 @@ module Fission.Prelude
 
   , module Fission.Internal.Log
   , module Fission.Internal.Time
-  , module Fission.Internal.MonadDB
+  -- , module Fission.Internal.MonadDB
 
   , module Flow
 
@@ -33,7 +33,7 @@ module Fission.Prelude
   , module RIO.Time
   , module Test.QuickCheck
 
-  , module Web.PathPieces
+  -- , module Web.PathPieces
 
   , Entity (..)
   , headMaybe
@@ -69,7 +69,7 @@ import           Network.IPFS.Internal.Orphanage.Utf8Builder ()
 import           Data.Aeson                                  hiding (Options)
 import           Data.Bifunctor                              (bimap)
 import           Data.Bool
-import           Data.Has  hiding (Lens)
+import           Data.Has                                    hiding (Lens)
 import           Data.Maybe
 import           Data.WorldPeace
 
@@ -106,10 +106,10 @@ import           Test.QuickCheck                             hiding
                                                               (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
-import           Web.PathPieces
+-- import           Web.PathPieces
 
 import           Fission.Internal.Log
-import           Fission.Internal.MonadDB
+-- import           Fission.Internal.MonadDB
 import           Fission.Internal.Orphanage.OpenUnion        ()
 import           Fission.Internal.Time
 import           Fission.Internal.UTF8                       (displayLazyBS,
