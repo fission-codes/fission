@@ -4,10 +4,10 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization
-import           Fission.User.Username.Types
+import qualified Fission.Web.API.User.WhoAmI.Types      as API
 
+import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.Models
 
-handler :: Monad m => Authorization -> ServerT API m
+handler :: Monad m => ServerT API.WhoAmI m
 handler Authorization {about = Entity _ User { userUsername }} = return userUsername

@@ -12,14 +12,16 @@ import           Database.Persist.Sql                      (SqlBackend)
 
 import           Fission.Prelude
 
+import           Fission.URL.Types                         as URL
 import           Fission.User.DID.Types
+
+import           Fission.Web.Server.Host.Types
 
 import qualified Fission.Web.Server.Heroku.ID.Types        as Heroku
 import qualified Fission.Web.Server.Heroku.Password.Types  as Heroku
 
 import qualified Fission.Web.Server.AWS.Types              as AWS
-import           Fission.Web.Server.Types
-import           Fission.Web.Server.URL.Types              as URL
+-- import           Fission.Web.Server.Types
 
 import qualified Fission.Web.Server.Email.SendInBlue.Types as SIB
 

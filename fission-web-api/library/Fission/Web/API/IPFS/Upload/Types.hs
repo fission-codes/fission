@@ -14,4 +14,4 @@ type Upload
   :> ReqBody '[PlainText, OctetStream] File.Serialized
   --
   :> Auth.HigherOrder
-  :> Post    '[PlainText, OctetStream] IPFS.CID
+  :> Post '[PlainText, OctetStream] IPFS.CID

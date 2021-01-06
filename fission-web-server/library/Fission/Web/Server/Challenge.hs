@@ -5,16 +5,15 @@ module Fission.Web.Server.Challenge
   , verificationLink
   ) where
 
-import           Fission.Web.Server.Challenge.Creator.Class
-import           Fission.Web.Server.Challenge.Types
-import           Fission.Web.Server.Challenge.Verifier.Class
-
-import           Fission.Prelude
 import           Servant                                     hiding (route)
 
-import qualified Fission.Internal.API                        as API
-import qualified Fission.Web.Routes                          as Web
-import qualified Fission.Web.User                            as User
+import           Fission.Prelude
+
+import           Fission.Challenge.Types
+
+import           Fission.Web.Server.Challenge.Creator.Class
+import           Fission.Web.Server.Challenge.Verifier.Class
+import qualified Fission.Web.Server.User                     as User
 
 verificationLink :: Challenge -> Text
 verificationLink challenge =

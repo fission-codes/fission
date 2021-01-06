@@ -24,6 +24,7 @@ import           Fission.Security.Types
 import           Fission.Error
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 import           Fission.Web.Server.User.Modifier.Class
 
 updatePasswordDB ::

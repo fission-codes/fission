@@ -9,12 +9,13 @@ import           Database.Esqueleto                  (Checkmark (..),
 import           Fission.Prelude
 
 import           Fission.Error                       as Error
-import           Fission.Ownership
 import           Fission.URL
 
 import qualified Fission.Web.Server.App.Domain.Error as AppDomain
 import qualified Fission.Web.Server.App.Retriever    as App
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
+import           Fission.Web.Server.Ownership
 
 type Errors' = OpenUnion
   '[ AppDomain.AlreadyAssociated
@@ -41,7 +42,7 @@ instance MonadIO m => Associator (Transaction m) where
       Right (Entity _ app) ->
         case isOwnedBy userId app of
           False ->
-            return . Error.openLeft $ ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID -- userId
 
           True -> do
             insert_ AssociateAppDomainEvent

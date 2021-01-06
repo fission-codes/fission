@@ -4,10 +4,11 @@ import           Database.Persist
 
 import           Fission.Prelude
 
-import           Fission.Error                      as Error
+import           Fission.Challenge.Types
+import           Fission.Error                    as Error
 
-import           Fission.Web.Server.Challenge.Types
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 
 class Monad m => Verifier m where
   verify :: Challenge -> m (Either (NotFound UserChallenge) ())

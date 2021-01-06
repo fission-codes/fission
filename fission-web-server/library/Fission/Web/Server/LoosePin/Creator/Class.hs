@@ -2,12 +2,13 @@
 module Fission.Web.Server.LoosePin.Creator.Class (Creator (..)) where
 
 import           Database.Esqueleto
-import           Network.IPFS.CID.Types    as IPFS.CID
-import           RIO.List                  ((\\))
+import           Network.IPFS.CID.Types           as IPFS.CID
+import           RIO.List                         ((\\))
 
 import           Fission.Prelude
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 
 -- | Actions for creating new @LoosePin@s
 class Monad m => Creator m where
@@ -26,7 +27,7 @@ instance MonadIO m => Creator (Transaction m) where
       }
 
   createMany userId hashes now = do
-    existingCIDs <- select <| from \loosePin -> do
+    existingCIDs <- select $ from \loosePin -> do
       where_ (loosePin ^. LoosePinCid `in_` valList hashes)
       return (loosePin ^. LoosePinCid)
 

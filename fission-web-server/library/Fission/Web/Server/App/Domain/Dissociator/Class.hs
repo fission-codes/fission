@@ -8,10 +8,11 @@ import           Database.Esqueleto
 import           Fission.Prelude
 
 import           Fission.Error                       as Error
-import           Fission.Ownership
 import           Fission.URL
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
+import           Fission.Web.Server.Ownership
 
 import           Fission.Web.Server.App.Domain.Error as Domain
 import qualified Fission.Web.Server.App.Retriever    as App
@@ -35,12 +36,12 @@ instance MonadIO m => Dissociator (Transaction m) where
   dissociate userId appId domainName maySubdomain now =
     App.byId userId appId >>= \case
       Left err ->
-        return <| Error.relaxedLeft err
+        return $ Error.relaxedLeft err
 
       Right app ->
         case isOwnedBy userId app of
           False ->
-            return . Error.openLeft <| ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID -- userId
 
           True -> do
             insert_ DissociateAppDomainEvent
@@ -50,11 +51,11 @@ instance MonadIO m => Dissociator (Transaction m) where
               , dissociateAppDomainEventInsertedAt = now
               }
 
-            howMany <- deleteCount <| from \appDomain ->
-              where_ <|  appDomain ^. AppDomainAppId      ==. val appId
+            howMany <- deleteCount $ from \appDomain ->
+              where_ $   appDomain ^. AppDomainAppId      ==. val appId
                      &&. appDomain ^. AppDomainDomainName ==. val domainName
                      &&. appDomain ^. AppDomainSubdomain  ==. val maySubdomain
 
             return case howMany of
-              0 -> Error.openLeft <| Domain.NotRegisteredToApp appId domainName maySubdomain
+              0 -> Error.openLeft $ Domain.NotRegisteredToApp appId domainName maySubdomain
               _ -> ok

@@ -4,13 +4,13 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Web.Server.Challenge.Types
 import qualified Fission.Web.Server.Challenge.Verifier.Class as Challenge
-
 import           Fission.Web.Server.Error                    as Web.Err
 import           Fission.Web.Server.Redirect
 
-hanlder :: (MonadThrow m, MonadLogger m, Challenge.Verifier m) => ServerT API m
+import qualified Fission.Web.API.User.Email.Verify.Types     as API.Email
+
+handler :: (MonadThrow m, MonadLogger m, Challenge.Verifier m) => ServerT API.Email.Verify m
 handler challenge =
   Challenge.verify challenge >>= \case
     Left _ ->

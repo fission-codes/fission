@@ -2,11 +2,12 @@
 module Fission.Web.Server.LoosePin.Destroyer.Class (Destroyer (..)) where
 
 import           Database.Esqueleto
-import           Network.IPFS.CID.Types    as IPFS.CID
+import           Network.IPFS.CID.Types           as IPFS.CID
 
 import           Fission.Prelude
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 
 -- | Actions for destroying @LoosePin@s
 class Monad m => Destroyer m where
@@ -18,11 +19,11 @@ class Monad m => Destroyer m where
 
 instance MonadIO m => Destroyer (Transaction m) where
   destroyMany userId userCidIds =
-    delete <| from \pin ->
-      where_ <| pin ^. LoosePinId `in_` valList userCidIds
+    delete $ from \pin ->
+      where_ $ pin ^. LoosePinId `in_` valList userCidIds
             &&. pin ^. LoosePinOwnerId ==. val userId
 
   destroy userId cid =
-    delete <| from \pin ->
-      where_ <| pin ^. LoosePinCid     ==. val cid
+    delete $ from \pin ->
+      where_ $ pin ^. LoosePinCid     ==. val cid
             &&. pin ^. LoosePinOwnerId ==. val userId

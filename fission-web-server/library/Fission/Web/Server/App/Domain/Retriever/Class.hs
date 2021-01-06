@@ -8,10 +8,11 @@ import qualified Database.Persist                       as P
 
 import           Fission.Prelude                        hiding (on)
 
+import           Fission.Error
 import           Fission.URL
 
-import           Fission.Web.Server.Error
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
 
 import qualified Fission.Web.Server.App.Retriever.Class as App
 

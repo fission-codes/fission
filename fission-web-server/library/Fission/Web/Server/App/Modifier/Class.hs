@@ -11,9 +11,9 @@ import           Servant.Server
 
 import           Fission.Prelude           hiding (on)
 
+import           Fission.Error             as Error
 import           Fission.URL
 
-import           Fission.Web.Server.Error  as Error
 import           Fission.Web.Server.Models
 
 type Errors' = OpenUnion

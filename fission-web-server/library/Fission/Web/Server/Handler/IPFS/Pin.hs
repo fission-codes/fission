@@ -8,16 +8,18 @@ import           Database.Esqueleto
 import           Servant
 
 import           Network.IPFS
-import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Pin                       as IPFS.Pin
 
 import           Fission.Prelude
 
-import           Fission.Web.Server.Authorization.Types
-import           Fission.Web.Server.Models
+import qualified Fission.Web.API.IPFS.Pin.Create.Types  as API.IPFS.Pin
+import qualified Fission.Web.API.IPFS.Pin.Destroy.Types as API.IPFS.Pin
+import qualified Fission.Web.API.IPFS.Pin.Types         as API.IPFS
 
+import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.Error               as Web.Err
 import qualified Fission.Web.Server.LoosePin            as LoosePin
+import           Fission.Web.Server.MonadDB
 
 handler ::
   ( MonadRemoteIPFS      m
@@ -29,9 +31,8 @@ handler ::
   , LoosePin.Retriever t
   , LoosePin.Destroyer t
   )
-  => Authorization
-  -> ServerT API m
-handler Authorization {about = Entity userId _} = pin userId :<|> unpin userId
+  => ServerT API.IPFS.Pin m
+handler = pin :<|> unpin
 
 pin ::
   ( MonadRemoteIPFS    m
@@ -41,9 +42,8 @@ pin ::
   , MonadDB          t m
   , LoosePin.Creator t
   )
-  => UserId
-  -> ServerT PinAPI m
-pin userId cid = IPFS.Pin.add cid >>= \case
+  => ServerT API.IPFS.Pin.Create m
+pin cid Authorization {about = Entity userId _} = IPFS.Pin.add cid >>= \case
   Left err -> Web.Err.throw err
   Right _  -> do
     runDBNow $ LoosePin.create userId cid
@@ -57,9 +57,8 @@ unpin ::
   , LoosePin.Retriever t
   , LoosePin.Destroyer t
   )
-  => UserId
-  -> ServerT UnpinAPI m
-unpin userId cid = do
+  => ServerT API.IPFS.Pin.Destroy m
+unpin cid Authorization {about = Entity userId _} = do
   remaining <- runDB do
     LoosePin.destroy userId cid
     LoosePin.getByCids [cid]

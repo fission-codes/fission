@@ -10,10 +10,10 @@ import           Servant
 import           Fission.Prelude
 
 import           Fission.Authorization
-import qualified Fission.User              as User
 
 import qualified Fission.Web.Server.Error  as Web.Error
 import           Fission.Web.Server.Models
+import qualified Fission.Web.Server.User   as User
 
 handler ::
   ( MonadTime     m

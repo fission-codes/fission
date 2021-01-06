@@ -14,6 +14,7 @@ import           Fission.Prelude
 import           Fission.URL.Subdomain.Types
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
 
 import           Fission.Web.Server.App.Content       as AppCID
 import           Fission.Web.Server.App.Creator.Class as App

@@ -1,6 +1,6 @@
 module Fission.Web.Server.App.Domain.Error
-  ( NotRegisteredT.Web.Server.App (..)
-  , AlreadyAssociated      (..)
+  ( NotRegisteredToApp (..)
+  , AlreadyAssociated  (..)
   ) where
 
 import           Servant.Server

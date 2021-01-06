@@ -14,11 +14,12 @@ import           Servant
 import           Fission.Prelude
 
 import           Fission.Authorization
-import qualified Fission.User                                            as User
 import           Fission.User.Username.Types                             as Username
 
 import           Fission.Web.Server.Error                                as Web.Err
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
+import qualified Fission.Web.Server.User                                 as User
 
 import qualified Fission.Web.Server.Auth.Error                           as Auth
 import qualified Fission.Web.Server.Auth.Token.Basic.Types               as Auth.Basic

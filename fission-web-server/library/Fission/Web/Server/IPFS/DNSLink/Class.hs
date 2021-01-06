@@ -8,12 +8,12 @@ import           Servant
 
 import           Fission.Prelude                      hiding (set)
 
+import           Fission.Error.Types
 import           Fission.URL
 
 import           Fission.Web.Server.AWS.Route53.Class
 import           Fission.Web.Server.AWS.Types         as AWS
 
-import           Fission.Web.Server.Error.Types
 import           Fission.Web.Server.Models
 
 type Errors' = OpenUnion

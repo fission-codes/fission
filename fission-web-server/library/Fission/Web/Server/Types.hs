@@ -25,22 +25,22 @@ import qualified Network.IPFS.Process.Error            as IPFS.Process
 import qualified Network.IPFS.Stat                     as IPFS.Stat
 import qualified Network.IPFS.Types                    as IPFS
 
-import           Fission.Config.Types
-import qualified Fission.Internal.UTF8                 as UTF8
 import           Fission.Prelude
 
-import           Fission.AWS
-import           Fission.AWS.Types                     as AWS
+import qualified Fission.Internal.UTF8                 as UTF8
+
 import           Fission.Error                         as Error
+import           Fission.Web.Server.AWS
+import           Fission.Web.Server.AWS.Types          as AWS
 import           Fission.Web.Server.Models
 
 import           Fission.DNS                           as DNS
 import           Fission.URL                           as URL
 
-import qualified Fission.App                           as App
-import qualified Fission.App.Destroyer                 as App.Destroyer
-import           Fission.IPFS.DNSLink                  as DNSLink
-import           Fission.WNFS                          as WNFS
+import qualified Fission.Web.Server.App                as App
+import qualified Fission.Web.Server.App.Destroyer      as App.Destroyer
+import           Fission.Web.Server.IPFS.DNSLink       as DNSLink
+import           Fission.Web.Server.WNFS               as WNFS
 
 import qualified Fission.Web.Error                     as Web.Error
 import           Fission.Web.Types
@@ -84,6 +84,8 @@ import qualified Fission.Email                         as Email
 import           Fission.Email.Class
 
 import qualified Fission.Domain                        as Domain
+
+import           Fission.Web.Server.Config.Types
 
 -- | The top-level app type
 newtype Server a = Server { unServer :: RIO Config a }

@@ -9,6 +9,7 @@ import           Fission.Error.Types
 import           Fission.Platform.Heroku.Region.Types
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 
 class Monad m => Creator m where
   create :: UUID -> Region -> UTCTime -> m (Either (AlreadyExists HerokuAddOn) HerokuAddOnId)

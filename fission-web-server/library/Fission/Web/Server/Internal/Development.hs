@@ -17,24 +17,21 @@ import qualified Network.HTTP.Client.TLS                                    as H
 
 import qualified Network.IPFS.Types                                         as IPFS
 
-import           Fission
 import           Fission.Prelude
 
-import qualified Fission.AWS.Types                                          as AWS
-import           Fission.Web.Types
+import           Fission.Internal.Fixture.Key.Ed25519                       as Fixture.Ed25519
+import           Fission.URL.Types
+import           Fission.User.DID.Types
 
 import qualified Fission.Web.API.Heroku.ID.Types                            as Hku
 import qualified Fission.Web.API.Heroku.Password.Types                      as Hku
 
+import           Fission.Web.Server
+import qualified Fission.Web.Server.AWS.Types                               as AWS
+import qualified Fission.Web.Server.Email.SendInBlue.Types                  as SIB
 import           Fission.Web.Server.Storage.PostgreSQL
 import           Fission.Web.Server.Storage.PostgreSQL.ConnectionInfo.Types
-
-import           Fission.URL.Types
-import           Fission.User.DID.Types
-
-import qualified Fission.Web.Server.Email.SendInBlue.Types                  as SIB
-
-import           Fission.Internal.Fixture.Key.Ed25519                       as Fixture.Ed25519
+import           Fission.Web.Server.Types
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -45,7 +42,7 @@ import           Fission.Internal.Fixture.Key.Ed25519                       as F
      > runOne Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
-runOne :: Fission a -> IO a
+runOne :: Server a -> IO a
 runOne action = do
   logOptions <- logOptionsHandle stdout True
   processCtx  <- mkDefaultProcessContext
@@ -82,7 +79,7 @@ run ::
   -> ProcessContext
   -> HTTP.Manager
   -> HTTP.Manager
-  -> Fission a
+  -> Server a
   -> IO a
 run logFunc dbPool processCtx httpManager tlsManager action =
   runFission config do

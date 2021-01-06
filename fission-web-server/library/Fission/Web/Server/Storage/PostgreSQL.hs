@@ -15,6 +15,7 @@ import           Database.Persist.Postgresql                                (wit
 import           Fission.Prelude
 
 import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 
 import           Fission.Web.Server.Storage.PostgreSQL.ConnectionInfo.Types
 import           Fission.Web.Server.Storage.PostgreSQL.PoolSize.Types

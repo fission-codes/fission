@@ -4,11 +4,12 @@ import           Database.Esqueleto
 
 import           Fission.Prelude
 
-import qualified Fission.Random                     as Random
+import           Fission.Challenge.Types
+import           Fission.Error.Types
+import qualified Fission.Random                   as Random
 
-import           Fission.Web.Server.Challenge.Types
-import           Fission.Web.Server.Error.Types
-import           Fission.Web.Server.Models          as Models
+import           Fission.Web.Server.Models        as Models
+import           Fission.Web.Server.MonadDB.Types
 
 class Monad m => Creator m where
   create :: UserId -> m (Either (AlreadyExists UserChallenge) Challenge)

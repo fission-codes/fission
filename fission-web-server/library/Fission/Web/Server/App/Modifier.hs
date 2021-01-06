@@ -11,13 +11,13 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude                       hiding (on)
 
+import           Fission.Error                         as Error
 import           Fission.URL
 
-import           Fission.Web.Server.Error              as Error
-import           Fission.Web.Server.Models
-import           Fission.Web.Server.Ownership
-
 import           Fission.Web.Server.App.Modifier.Class
+import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB
+import           Fission.Web.Server.Ownership
 
 setCidDB ::
      MonadIO m
@@ -54,4 +54,4 @@ setCidDB userId URL {..} newCID size _copyFlag now = do
               return $ Right appId
 
             else
-              return . Error.openLeft $ ActionNotAuthorized @App userId
+            return . Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID -- userId

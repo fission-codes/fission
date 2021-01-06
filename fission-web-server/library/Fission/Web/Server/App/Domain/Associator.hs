@@ -9,9 +9,8 @@ import           Fission.Prelude
 
 import           Fission.URL.Types
 
-import           Fission.Web.Server.Models
-
 import qualified Fission.Web.Server.App.Domain.Initializer      as AppDomain
+import           Fission.Web.Server.Models
 
 -- Re-export
 

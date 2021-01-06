@@ -4,12 +4,13 @@ import           Database.Persist
 
 import           Fission.Prelude
 
-import qualified Fission.Key                            as Key
+import qualified Fission.Key                      as Key
+
+import           Fission.User.Email.Types
+import           Fission.User.Username.Types
 
 import           Fission.Web.Server.Models
-
-import           Fission.Web.Server.User.Email.Types
-import           Fission.Web.Server.User.Username.Types
+import           Fission.Web.Server.MonadDB.Types
 
 class Monad m => Retriever m where
   getById            :: UserId        -> m (Maybe (Entity User))

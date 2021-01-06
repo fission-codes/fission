@@ -4,7 +4,7 @@ import           Data.List.NonEmpty              as NonEmpty
 
 import           Network.IPFS
 import           Network.IPFS.Peer               as IPFS.Peer
-import qualified Network.IPFS.Types              as IPFS
+-- import qualified Network.IPFS.Types              as IPFS
 
 import           Servant
 

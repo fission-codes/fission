@@ -6,15 +6,17 @@ import           Network.IPFS
 import qualified Network.IPFS.Add                       as IPFS
 import           Network.IPFS.File.Types                as File
 import qualified Network.IPFS.Pin                       as IPFS.Pin
-import qualified Network.IPFS.Types                     as IPFS
 
 import           Servant
 
 import           Fission.Prelude
 
+import qualified Fission.Web.API.IPFS.Upload.Types      as API.IPFS
+
 import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.Error               as Web.Err
 import           Fission.Web.Server.LoosePin.Creator    as LoosePin
+import           Fission.Web.Server.MonadDB
 
 add ::
   ( MonadLocalIPFS     m
@@ -25,9 +27,8 @@ add ::
   , MonadDB          t m
   , LoosePin.Creator t
   )
-  => Authorization
-  -> ServerT API m
-add Authorization {about = Entity userId _} (Serialized rawData) =
+  => ServerT API.IPFS.Upload m
+add (Serialized rawData) Authorization {about = Entity userId _} =
   IPFS.addRaw rawData >>= \case
     Right newCID ->
       IPFS.Pin.add newCID >>= \case

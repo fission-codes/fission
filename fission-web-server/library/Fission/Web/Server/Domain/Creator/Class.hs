@@ -1,13 +1,14 @@
 module Fission.Web.Server.Domain.Creator.Class (Creator (..)) where
 
-import qualified Database.Persist                        as Persist
+import qualified Database.Persist                  as Persist
 
 import           Fission.Prelude
 
-import           Fission.Web.Server.Models
+import           Fission.URL.DomainName.Types
 
 import           Fission.Web.Server.AWS.Zone.Types
-import           Fission.Web.Server.URL.DomainName.Types
+import           Fission.Web.Server.Models
+import           Fission.Web.Server.MonadDB.Types
 
 -- | Domain registration / creation
 class Monad m => Creator m where

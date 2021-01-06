@@ -140,6 +140,7 @@ dependencies:
   - dns
   - ipfs
   - mime-types
+  - path-pieces
   - servant
   - servant-client-core
   - servant-swagger

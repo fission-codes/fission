@@ -42,16 +42,15 @@ import           Fission.Web.Auth.Class
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.Reflective.Class
 
+import           Fission.Web.Auth.Token.Basic.Class
 import qualified Fission.Web.Types                     as Web
 
-import           Fission.Web.Auth.Token.Basic.Class
+import qualified Fission.Web.API.Heroku.Auth.Types     as Heroku
 
-import           Fission.AWS
-import qualified Fission.Platform.Heroku.Auth.Types    as Heroku
-
-import           Fission.LoosePin                      as LoosePin
-import           Fission.Platform.Heroku.AddOn         as Heroku.AddOn
-import           Fission.User                          as User
+import           Fission.Web.Server.AWS
+import           Fission.Web.Server.Heroku.AddOn       as Heroku.AddOn
+import           Fission.Web.Server.LoosePin           as LoosePin
+import           Fission.Web.Server.User               as User
 
 -- Reexport
 

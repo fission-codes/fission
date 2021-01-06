@@ -7,15 +7,13 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.User                    as User
 import           Fission.User.DID.Types
 
-import qualified Fission.Challenge.Creator.Class as Challenge
-
-import           Fission.Email
-
-import           Fission.Web.Server.Error        as Web.Err
-import           Fission.Web.Server.IPFS.DNSLink as DNSLink
+import qualified Fission.Web.Server.Challenge.Creator.Class as Challenge
+import           Fission.Web.Server.Email
+import           Fission.Web.Server.Error                   as Web.Err
+import           Fission.Web.Server.IPFS.DNSLink            as DNSLink
+import qualified Fission.Web.Server.User                    as User
 
 withDID ::
   ( MonadDNSLink      m

@@ -8,6 +8,7 @@ import           Data.Swagger         hiding (get, host)
 import           Database.Persist.Sql hiding (get)
 
 import           Servant.API
+import           Web.PathPieces
 
 import           Fission.Prelude
 
@@ -20,7 +21,7 @@ newtype DomainName = DomainName { get :: Text }
                     , Ord
                     )
   deriving newtype  ( IsString
-                    -- , PathPiece
+                    , PathPiece
                     )
 
 instance Arbitrary DomainName where

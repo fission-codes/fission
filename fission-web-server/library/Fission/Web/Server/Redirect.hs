@@ -8,5 +8,5 @@ import           Fission.Prelude
 redirect ::
      MonadThrow m
   => ByteString
-  -> m ()
+  -> m NoContent
 redirect location = throwM err301 { errHeaders = [("Location", location)] }

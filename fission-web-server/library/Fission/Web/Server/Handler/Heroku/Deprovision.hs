@@ -13,12 +13,12 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.LoosePin                                  as LoosePin
-import qualified Fission.User                                      as User
+import qualified Fission.Web.Server.LoosePin                       as LoosePin
+import           Fission.Web.Server.Models
+import qualified Fission.Web.Server.User                           as User
 
 import qualified Fission.Web.Server.Heroku.AddOn                   as Heroku.AddOn
 import qualified Fission.Web.Server.Heroku.MIME.VendorJSONv3.Types as Heroku
-import           Fission.Web.Server.Models
 
 destroy ::
   ( MonadRemoteIPFS          m

@@ -2,13 +2,13 @@ module Fission.Web.Server.Mock.Config.Types (Config (..)) where
 
 import           Network.AWS.Route53
 
-import           Network.IPFS.Client.Pin               as Network.Pin
-import           Network.IPFS.File.Types               as File
-import           Network.IPFS.Process.Error            as Process
-import qualified Network.IPFS.Types                    as IPFS
+import           Network.IPFS.Client.Pin                as Network.Pin
+import           Network.IPFS.File.Types                as File
+import           Network.IPFS.Process.Error             as Process
+import qualified Network.IPFS.Types                     as IPFS
 
 import           Database.Esqueleto
-import           Network.Wai                           as Wai
+import           Network.Wai                            as Wai
 
 import           Servant
 import           Servant.Client
@@ -16,13 +16,13 @@ import           Servant.Server.Experimental.Auth
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Types
-import qualified Fission.AWS.Types                     as AWS
-import qualified Fission.Platform.Heroku.Auth.Types    as Heroku
-import           Fission.URL                           as URL
+import           Fission.URL                            as URL
 import           Fission.User.DID.Types
+import qualified Fission.Web.API.Heroku.Auth.Types      as Heroku
 
-import qualified Fission.Web.Server.IPFS.DNSLink.Class as DNSLink
+import           Fission.Web.Server.Authorization.Types
+import qualified Fission.Web.Server.AWS.Types           as AWS
+import qualified Fission.Web.Server.IPFS.DNSLink.Class  as DNSLink
 import           Fission.Web.Server.Models
 
 data Config = Config

@@ -5,17 +5,20 @@ module Fission.Web.Server.Authorization.Types
   , Heroku (..)
   ) where
 
-import qualified RIO.Text                                                as Text
+import qualified RIO.Text                                         as Text
+
+import           Servant.API
+import           Servant.Server.Experimental.Auth
 
 import           Fission.Prelude
 
+import           Fission.Authorization.Potency.Types
 import           Fission.User.DID
 
-import           Fission.Web.Server.Models
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import           Fission.Web.Server.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Server.Auth.Token.UCAN.Resource.Types
-import           Fission.Web.Server.Authorization.Potency.Types
+import           Fission.Web.Server.Models
 
 data Heroku = Heroku
   deriving (Show, Eq)
@@ -30,3 +33,5 @@ data Authorization = Authorization
 
 instance Display Authorization where
   textDisplay = Text.pack . show
+
+type instance AuthServerData (AuthProtect "higher-order") = Authorization
