@@ -6,13 +6,15 @@ module Fission.Web.Server.IPFS.DNSLink.Class
 import           Network.IPFS.CID.Types
 import           Servant
 
-import           Fission.Prelude                      hiding (set)
+import           Fission.Prelude                                    hiding (set)
 
 import           Fission.Error.Types
 import           Fission.URL
 
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
+
 import           Fission.Web.Server.AWS.Route53.Class
-import           Fission.Web.Server.AWS.Types         as AWS
+import           Fission.Web.Server.AWS.Types                       as AWS
 
 import           Fission.Web.Server.Models
 

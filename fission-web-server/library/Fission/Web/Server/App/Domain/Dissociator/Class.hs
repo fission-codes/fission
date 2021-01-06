@@ -7,15 +7,16 @@ import           Database.Esqueleto
 
 import           Fission.Prelude
 
-import           Fission.Error                       as Error
+import           Fission.Error                                      as Error
 import           Fission.URL
 
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Ownership
 
-import           Fission.Web.Server.App.Domain.Error as Domain
-import qualified Fission.Web.Server.App.Retriever    as App
+import           Fission.Web.Server.App.Domain.Error                as Domain
+import qualified Fission.Web.Server.App.Retriever                   as App
 
 type Errors' = OpenUnion
   '[ Domain.NotRegisteredToApp
@@ -41,7 +42,7 @@ instance MonadIO m => Dissociator (Transaction m) where
       Right app ->
         case isOwnedBy userId app of
           False ->
-            return . Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID -- userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId
 
           True -> do
             insert_ DissociateAppDomainEvent

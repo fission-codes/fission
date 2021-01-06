@@ -2,10 +2,11 @@ module Fission.Web.Server.User.Destroyer.Class (Destroyer (..)) where
 
 import           Database.Esqueleto
 
-import           Fission.Prelude                  hiding (Value, set)
+import           Fission.Prelude                                    hiding
+                                                                     (Value,
+                                                                     set)
 
-import           Fission.Error                    as Error
-
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB.Types
 
@@ -33,4 +34,4 @@ instance MonadIO m => Destroyer (Transaction m) where
         return ok
 
       else
-        return . Left $ ActionNotAuthorized undefined -- FIXME make DID: requestorId
+        return . Left $ ActionNotAuthorized requestorId

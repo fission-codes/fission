@@ -3,18 +3,20 @@ module Fission.Web.Server.App.Domain.Retriever.Class
   , Errors'
   ) where
 
-import           Database.Esqueleto                     hiding ((<&>))
-import qualified Database.Persist                       as P
+import           Database.Esqueleto                                 hiding
+                                                                     ((<&>))
+import qualified Database.Persist                                   as P
 
-import           Fission.Prelude                        hiding (on)
+import           Fission.Prelude                                    hiding (on)
 
 import           Fission.Error
 import           Fission.URL
 
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 
-import qualified Fission.Web.Server.App.Retriever.Class as App
+import qualified Fission.Web.Server.App.Retriever.Class             as App
 
 type Errors' = OpenUnion
   '[ NotFound            AppDomain

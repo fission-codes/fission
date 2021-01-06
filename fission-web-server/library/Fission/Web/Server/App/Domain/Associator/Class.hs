@@ -3,16 +3,18 @@ module Fission.Web.Server.App.Domain.Associator.Class
   , Errors'
   ) where
 
-import           Database.Esqueleto                  (Checkmark (..),
-                                                      insertUnique, insert_)
+import           Database.Esqueleto                                 (Checkmark (..),
+                                                                     insertUnique,
+                                                                     insert_)
 
 import           Fission.Prelude
 
-import           Fission.Error                       as Error
+import           Fission.Error                                      as Error
 import           Fission.URL
 
-import qualified Fission.Web.Server.App.Domain.Error as AppDomain
-import qualified Fission.Web.Server.App.Retriever    as App
+import qualified Fission.Web.Server.App.Domain.Error                as AppDomain
+import qualified Fission.Web.Server.App.Retriever                   as App
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Ownership
@@ -42,7 +44,7 @@ instance MonadIO m => Associator (Transaction m) where
       Right (Entity _ app) ->
         case isOwnedBy userId app of
           False ->
-            return . Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID -- userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId
 
           True -> do
             insert_ AssociateAppDomainEvent

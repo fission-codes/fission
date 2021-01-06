@@ -3,17 +3,18 @@ module Fission.Web.Server.App.Modifier.Class
   , Errors'
   ) where
 
-import qualified Network.IPFS.Add.Error    as IPFS.Pin
+import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Get.Error    as IPFS.Stat
+import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
 import           Servant.Server
 
-import           Fission.Prelude           hiding (on)
+import           Fission.Prelude                                    hiding (on)
 
-import           Fission.Error             as Error
+import           Fission.Error                                      as Error
 import           Fission.URL
 
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 
 type Errors' = OpenUnion

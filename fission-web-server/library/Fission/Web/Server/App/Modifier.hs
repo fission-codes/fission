@@ -4,17 +4,18 @@ module Fission.Web.Server.App.Modifier
   ) where
 
 
-import           Database.Persist                      as Persist
+import           Database.Persist                                   as Persist
 
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
-import           Fission.Prelude                       hiding (on)
+import           Fission.Prelude                                    hiding (on)
 
-import           Fission.Error                         as Error
+import           Fission.Error                                      as Error
 import           Fission.URL
 
 import           Fission.Web.Server.App.Modifier.Class
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Ownership
@@ -54,4 +55,4 @@ setCidDB userId URL {..} newCID size _copyFlag now = do
               return $ Right appId
 
             else
-            return . Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID -- userId
+            return . Error.openLeft $ ActionNotAuthorized @App userId

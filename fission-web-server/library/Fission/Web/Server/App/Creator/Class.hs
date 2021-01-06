@@ -6,16 +6,17 @@ module Fission.Web.Server.App.Creator.Class
 import           Servant
 
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Get.Error        as IPFS.Stat
+import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
 import           Fission.Prelude
 
-import           Fission.Error                 as Error
+import           Fission.Error                                      as Error
 import           Fission.URL
 
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 
-import qualified Fission.Web.Server.App.Domain as App.Domain
+import qualified Fission.Web.Server.App.Domain                      as App.Domain
 
 type Errors' = OpenUnion
   '[ ServerError

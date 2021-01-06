@@ -2,36 +2,37 @@
 
 module Fission.Web.Server.Error.Class (ToServerError (..)) where
 
-import qualified RIO.ByteString.Lazy                        as Lazy
+import qualified RIO.ByteString.Lazy                                as Lazy
 
-import           Servant.Server                             as Server
+import           Servant.Server                                     as Server
 
-import qualified Network.IPFS.Error                         as IPFS
+import qualified Network.IPFS.Error                                 as IPFS
 import           Network.IPFS.Types
 
-import qualified Network.IPFS.Add.Error                     as Add
-import qualified Network.IPFS.Get.Error                     as Get
-import qualified Network.IPFS.Peer.Error                    as Peer
+import qualified Network.IPFS.Add.Error                             as Add
+import qualified Network.IPFS.Get.Error                             as Get
+import qualified Network.IPFS.Peer.Error                            as Peer
 
 import           Fission.Prelude
 
-import qualified Fission.User.Username.Error                as Username
+import qualified Fission.User.Username.Error                        as Username
 
-import           Fission.Error.ActionNotAuthorized.Types
 import           Fission.Error.AlreadyExists.Types
 import           Fission.Error.InvalidURL.Types
 import           Fission.Error.NotFound.Types
 
-import           Fission.Web.Auth.Error                     as Web.Auth
+import           Fission.Web.Auth.Error                             as Web.Auth
 
-import           Fission.Web.Auth.Token.JWT.Claims.Error    as JWT.Claims
-import           Fission.Web.Auth.Token.JWT.Error           as JWT
-import           Fission.Web.Auth.Token.JWT.Header.Error    as JWT.Header
-import           Fission.Web.Auth.Token.JWT.Proof.Error     as JWT.Proof
-import           Fission.Web.Auth.Token.JWT.Resolver.Error  as JWT.Resolver
-import           Fission.Web.Auth.Token.JWT.Signature.Error as JWT.Signature
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 
-import qualified Fission.Web.Server.Error.Message           as Error
+import           Fission.Web.Auth.Token.JWT.Claims.Error            as JWT.Claims
+import           Fission.Web.Auth.Token.JWT.Error                   as JWT
+import           Fission.Web.Auth.Token.JWT.Header.Error            as JWT.Header
+import           Fission.Web.Auth.Token.JWT.Proof.Error             as JWT.Proof
+import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resolver
+import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
+
+import qualified Fission.Web.Server.Error.Message                   as Error
 
 class ToServerError err where
   toServerError :: err -> ServerError

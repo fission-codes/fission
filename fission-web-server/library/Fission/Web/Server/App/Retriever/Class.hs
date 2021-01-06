@@ -1,11 +1,14 @@
 module Fission.Web.Server.App.Retriever.Class (Retriever (..)) where
 
-import           Database.Esqueleto           hiding ((<&>))
+import           Database.Esqueleto                                 hiding
+                                                                     ((<&>))
 
-import           Fission.Prelude              hiding (on)
+import           Fission.Prelude                                    hiding (on)
 
-import           Fission.Error                as Error
+import           Fission.Error                                      as Error
 import           Fission.URL
+
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
@@ -30,7 +33,7 @@ instance MonadIO m => Retriever (Transaction m) where
       Just app ->
         if isOwnedBy userId app
           then Right app
-          else openLeft $ ActionNotAuthorized @App undefined -- FIXME DID-- userId
+          else openLeft $ ActionNotAuthorized @App userId
 
   ownedBy userId =
     select $ from \app -> do
@@ -61,4 +64,4 @@ instance MonadIO m => Retriever (Transaction m) where
           (app : _) ->
             if isOwnedBy userId app
               then Right app
-              else Error.openLeft $ ActionNotAuthorized @App undefined -- FIXME DID-- userId
+              else Error.openLeft $ ActionNotAuthorized @App userId

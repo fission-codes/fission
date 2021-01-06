@@ -3,22 +3,23 @@ module Fission.Web.Server.User.Modifier.Class
   , Errors'
   ) where
 
-import qualified Crypto.PubKey.RSA                as RSA
+import qualified Crypto.PubKey.RSA                                  as RSA
 
 import           Servant.Server
 
-import qualified Network.IPFS.Add.Error           as IPFS.Pin
+import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Get.Error           as IPFS.Stat
+import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
 import           Fission.Prelude
 
 import           Fission.Error
-import qualified Fission.Key                      as Key
+import qualified Fission.Key                                        as Key
 import           Fission.URL
 
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
-import           Fission.Web.Server.User.Password as Password
+import           Fission.Web.Server.User.Password                   as Password
 
 type Errors' = OpenUnion
   '[ NotFound User
