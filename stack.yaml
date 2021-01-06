@@ -1,5 +1,7 @@
 resolver: nightly-2021-01-05
 
+allow-newer: true
+
 packages:
   - fission-cli
   - fission-core
