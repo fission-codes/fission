@@ -38,9 +38,9 @@ import qualified RIO.Text                  as Text
 -- >>> :set -XOverloadedStrings
 -- >>> import Test.QuickCheck
 -- >>> import Test.QuickCheck.Instances ()
--- >>> import qualified Data.Text as Text
 -- >>> import qualified RIO.ByteString      as Strict
 -- >>> import qualified RIO.ByteString.Lazy as Lazy
+-- >>> import qualified RIO.Text            as Text
 
 class Textable a where
   encode :: a -> Either UnicodeException Text

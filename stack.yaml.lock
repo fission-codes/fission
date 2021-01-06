@@ -188,7 +188,7 @@ packages:
     hackage: tuples-0.1.0.0
 snapshots:
 - completed:
-    size: 561608
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/4.yaml
-    sha256: 9e4955cc970d208fceb3a250a92535696d8463c39fa192df765552d61724266f
-  original: nightly-2021-01-04
+    size: 562051
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/5.yaml
+    sha256: be105362ec57d665ea17fa574ab195c49bb1f9a5bd9016174ef83cd368fba253
+  original: nightly-2021-01-05
