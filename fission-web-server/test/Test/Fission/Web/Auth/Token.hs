@@ -7,13 +7,14 @@ import           Network.Wai.Internal
 
 import qualified RIO.ByteString                     as Strict
 
-import           Fission.Web.Auth.Error
+import           Fission.Internal.Fixture.Bearer
 
-import qualified Fission.Web.Auth.Token             as Token
 import qualified Fission.Web.Auth.Token.Basic.Types as Basic
 import           Fission.Web.Auth.Token.Types
+-- import qualified Fission.Web.Auth.Token.Types    as Token
 
-import           Fission.Internal.Fixture.Bearer
+import           Fission.Web.Server.Auth.Error
+import qualified Fission.Web.Server.Auth.Token      as Token
 
 import           Test.Fission.Prelude
 
@@ -38,7 +39,7 @@ tests =
       let authed = Wai.defaultRequest {requestHeaders = [("authorization", "Basic 12345")]}
 
       it "parses the token" do
-        Token.get authed `shouldBe` Right (Basic $ Basic.Token "12345")
+        Token.get authed `shouldBe` Right (Token.Basic $ Basic.Token "12345")
 
     -- describe "Bearer token" do
     --   let jsonJWT = encodeUtf8 jsonRSA2048
