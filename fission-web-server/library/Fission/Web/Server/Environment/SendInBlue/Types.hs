@@ -4,7 +4,7 @@ module Fission.Web.Server.Environment.SendInBlue.Types (Environment (..)) where
 import           Fission.Prelude
 
 import qualified Fission.Web.Server.Email.SendInBlue.Types as SIB
-import qualified Fission.Web.Server.Types                  as Web
+import qualified Fission.Web.Server.Host.Types             as Web
 
 data Environment = Environment
   { sibApiKey     :: SIB.ApiKey     -- ^ API Key for SendInBlue

@@ -1,6 +1,6 @@
 module Fission.Web.Server.Types
   ( Server (..)
-  , module Fission.Config.Types
+  , module Fission.Web.Server.Config.Types
   ) where
 
 import           Control.Monad.Catch
@@ -35,7 +35,7 @@ import           Fission.Web.Server.AWS
 import           Fission.Web.Server.AWS.Types              as AWS
 import           Fission.Web.Server.Models
 
-import qualified Fission.Web.Server.DID.Publicize.Class    as Server.DID.Publicize
+import qualified Fission.Web.Server.DID.Publicize.Class    as Server.DID
 import           Fission.Web.Server.Host.Types
 
 import           Fission.DNS                               as DNS
@@ -105,7 +105,7 @@ newtype Server a = Server { unServer :: RIO Config a }
                    )
 
 instance MonadLogger Server where
-  monadLoggerLog loc src lvl msg = Fission $ monadLoggerLog loc src lvl msg
+  monadLoggerLog loc src lvl msg = Server $ monadLoggerLog loc src lvl msg
 
 instance MonadTime Server where
   currentTime = liftIO getCurrentTime

@@ -1,4 +1,4 @@
-module Fission.Web.Server.Handler.User.UpdatePublicKey (handler) where
+module Fission.Web.Server.Handler.User.DID (handler) where
 
 import           Servant
 

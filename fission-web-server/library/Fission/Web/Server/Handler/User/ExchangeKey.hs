@@ -1,4 +1,4 @@
-module Fission.Web.Server.Handler.User.UpdateExchangeKeys
+module Fission.Web.Server.Handler.User.ExchangeKey
   ( handler
   , addKey
   , removeKey

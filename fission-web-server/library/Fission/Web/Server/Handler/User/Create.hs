@@ -1,5 +1,6 @@
 module Fission.Web.Server.Handler.User.Create
-  ( withDID
+  ( create
+  , withDID
   , withPassword
   ) where
 
@@ -18,6 +19,17 @@ import           Fission.Web.Server.IPFS.DNSLink            as DNSLink
 import qualified Fission.Web.Server.User                    as User
 
 import           Fission.Web.Server.Auth.Types              ()
+
+create ::
+  ( MonadDNSLink      m
+  , MonadLogger       m
+  , MonadTime         m
+  , MonadEmail        m
+  , User.Creator      m
+  , Challenge.Creator m
+  )
+  => ServerT API.User.Create m
+create = withDID :<|> withPassword
 
 withDID ::
   ( MonadDNSLink      m

@@ -11,11 +11,11 @@ import           Control.Monad.Catch
 import           Control.Monad.Trans.AWS
 import           Control.Monad.Writer
 
-import           Database.Esqueleto                     as Database
+import           Database.Esqueleto                        as Database
 
 import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
-import qualified Network.IPFS.Types                     as IPFS
+import qualified Network.IPFS.Types                        as IPFS
 
 import           Network.AWS
 
@@ -24,32 +24,35 @@ import           Servant.Server
 
 import           Fission.Prelude
 
--- import           Fission.Fixture                        as Fixture
+import qualified Fission.Internal.Fixture.Time             as Fixture
 import           Fission.URL
+import           Fission.User.DID.Types
 
 import           Fission.Web.Server.Authorization.Types
-import           Fission.Web.Server.Mock.Config.Types   as Mock
-import           Fission.Web.Server.Mock.Effect         as Effect
+import           Fission.Web.Server.Mock.Config.Types      as Mock
+import           Fission.Web.Server.Mock.Effect            as Effect
 import           Fission.Web.Server.Mock.Session.Types
 
 import           Fission.Web.Server.IPFS.DNSLink.Class
 import           Fission.Web.Server.IPFS.Linked.Class
 
-import           Fission.User.DID.Types
-
 import           Fission.Web.Server.Auth.Class
+import qualified Fission.Web.Server.Host.Types             as Web
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.Reflective.Class
 
-import           Fission.Web.Auth.Token.Basic.Class
-import qualified Fission.Web.Server.Types               as Web
+import           Fission.Web.Server.Auth.Token.Basic.Class
 
-import qualified Fission.Web.API.Heroku.Auth.Types      as Heroku
+import qualified Fission.Web.API.Heroku.Auth.Types         as Heroku
 
 import           Fission.Web.Server.AWS
-import           Fission.Web.Server.Heroku.AddOn        as Heroku.AddOn
-import           Fission.Web.Server.LoosePin            as LoosePin
-import           Fission.Web.Server.User                as User
+import           Fission.Web.Server.Heroku.AddOn           as Heroku.AddOn
+import           Fission.Web.Server.LoosePin               as LoosePin
+import           Fission.Web.Server.MonadDB
+import           Fission.Web.Server.User                   as User
+
+import qualified Fission.Web.Server.Fixture.Entity         as Fixture
+import qualified Fission.Web.Server.Fixture.User           as Fixture
 
 -- Reexport
 

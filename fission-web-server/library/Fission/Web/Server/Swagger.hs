@@ -20,22 +20,20 @@ import qualified Fission.Web.API.User.Types                          as API
 
 import qualified Fission.Web.API.Types                               as Fission
 
-
 import qualified Fission.Web.Server.Host.Types                       as Web
+import qualified Fission.Web.Server.Swagger.Types                    as Swagger
 
 import           Fission.Web.Server.Internal.Orphanage.BasicAuth     ()
 import           Fission.Web.Server.Internal.Orphanage.BasicAuthData ()
 import           Fission.Web.Server.Internal.Orphanage.HigherOrder   ()
 import           Fission.Web.Server.Internal.Orphanage.RegisterDid   ()
 
-type API = SwaggerSchemaUI "docs" "docs.json"
-
-handler :: (forall a . Handler a -> m a) -> Web.Host -> ServerT API m
+handler :: (forall a . Handler a -> m a) -> Web.Host -> ServerT Swagger.API m
 handler fromHandler appHost =
   appHost
     |> docs
     |> redocSchemaUIServer
-    |> hoistServer (Proxy @API) fromHandler
+    |> hoistServer (Proxy @Swagger.API) fromHandler
 
 docs :: Web.Host -> Swagger
 docs host' =

@@ -8,30 +8,31 @@ module Fission.Web.Server.Internal.Development
   ) where
 
 import           Data.Pool
-import           Database.Persist.Sql                                       (SqlBackend)
+import           Database.Persist.Sql                      (SqlBackend)
 
 import           Servant.Client
 
-import qualified Network.HTTP.Client                                        as HTTP
-import qualified Network.HTTP.Client.TLS                                    as HTTP
+import qualified Network.HTTP.Client                       as HTTP
+import qualified Network.HTTP.Client.TLS                   as HTTP
 
-import qualified Network.IPFS.Types                                         as IPFS
+import qualified Network.IPFS.Types                        as IPFS
 
 import           Fission.Prelude
 
-import           Fission.Internal.Fixture.Key.Ed25519                       as Fixture.Ed25519
+import           Fission.Internal.Fixture.Key.Ed25519      as Fixture.Ed25519
 import           Fission.URL.Types
 import           Fission.User.DID.Types
 
-import qualified Fission.Web.API.Heroku.ID.Types                            as Hku
-import qualified Fission.Web.API.Heroku.Password.Types                      as Hku
-
 import           Fission.Web.Server
-import qualified Fission.Web.Server.AWS.Types                               as AWS
-import qualified Fission.Web.Server.Email.SendInBlue.Types                  as SIB
-import           Fission.Web.Server.Storage.PostgreSQL
-import           Fission.Web.Server.Storage.PostgreSQL.ConnectionInfo.Types
+import qualified Fission.Web.Server.AWS.Types              as AWS
+import qualified Fission.Web.Server.Email.SendInBlue.Types as SIB
+import           Fission.Web.Server.Host.Types
 import           Fission.Web.Server.Types
+
+import qualified Fission.Web.Server.Heroku.ID.Types        as Hku
+import qualified Fission.Web.Server.Heroku.Password.Types  as Hku
+
+import           Fission.Web.Server.Storage.PostgreSQL
 
 {- | Setup a config, run an action in it, and tear down the config.
      Great for quick one-offs, but anything with heavy setup
@@ -44,7 +45,7 @@ import           Fission.Web.Server.Types
 -}
 runOne :: Server a -> IO a
 runOne action = do
-  logOptions <- logOptionsHandle stdout True
+  logOptions  <- logOptionsHandle stdout True
   processCtx  <- mkDefaultProcessContext
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
   tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
@@ -82,7 +83,7 @@ run ::
   -> Server a
   -> IO a
 run logFunc dbPool processCtx httpManager tlsManager action =
-  runFission config do
+  runServer config do
     logDebug $ textShow config
     action
   where
@@ -134,7 +135,7 @@ run logFunc dbPool processCtx httpManager tlsManager action =
      > (logFunc, ) <- newLogFunc $ setLogUseTime True logOptions
      >
      > let cfg = mkConfig dbPool processCtx httpManager logFunc
-     > let run' = runFission cfg
+     > let run' = runServer cfg
      >
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
@@ -144,7 +145,7 @@ run logFunc dbPool processCtx httpManager tlsManager action =
 
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
-     > let run' = runFission cfg { ipfsPath = "~/Downloads/ipfs" }
+     > let run' = runServer cfg { ipfsPath = "~/Downloads/ipfs" }
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}
@@ -200,7 +201,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
      == Example Use
 
      > (cfg, ) <- mkConfig'
-     > let run' = runFission cfg
+     > let run' = runServer cfg
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
      >
@@ -210,7 +211,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
      If you need to overwrite any fields: use record update syntax, or the 'Config' lenses.
 
      > (cfg, ) <- mkConfig'
-     > let run' = runFission cfg { ipfsPath = "~/Downloads/ipfs" }
+     > let run' = runServer cfg { ipfsPath = "~/Downloads/ipfs" }
      > run' Network.IPFS.Peer.all
      > -- Right ["/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"]
 -}

@@ -12,46 +12,48 @@ import           Servant
 
 import           Fission.Prelude
 
-import           Fission.IPFS.Linked
+import qualified Fission.Web.API.Types                  as Fission
 
-import           Fission.Web.Handler
-import           Fission.Web.Server.Reflective
+import qualified Fission.Web.Server.Auth                as Auth
+import qualified Fission.Web.Server.Challenge           as Challenge
+import           Fission.Web.Server.Email
+import qualified Fission.Web.Server.Swagger             as Web.Swagger
+import qualified Fission.Web.Server.User                as User
+import           Fission.Web.Server.WNFS
 
-import qualified Fission.App                                       as App
-import qualified Fission.App.Content                               as App.Content
-import qualified Fission.App.Domain                                as App.Domain
+import qualified Fission.Web.Server.Handler.App         as App
+import qualified Fission.Web.Server.Handler.DNS         as DNS
+import qualified Fission.Web.Server.Handler.Heroku      as Heroku
+import qualified Fission.Web.Server.Handler.IPFS        as IPFS
+import qualified Fission.Web.Server.Handler.Ping        as Ping
+import qualified Fission.Web.Server.Handler.User        as User
+import qualified Fission.Web.Server.Heroku.AddOn        as Heroku.AddOn
+import qualified Fission.Web.Server.Swagger.Types       as Swagger
 
-import qualified Fission.Platform.Heroku.AddOn                     as Heroku.AddOn
-import qualified Fission.User                                      as User
+import           Fission.Web.Server.IPFS.DNSLink        as DNSLink
+import qualified Fission.Web.Server.LoosePin            as LoosePin
 
-import           Fission.WNFS
-
-import qualified Fission.Challenge                                 as Challenge
-import           Fission.Email
-
-import qualified Fission.Web.Server.Handler.App                    as App
-import qualified Fission.Web.Server.Handler.Auth                   as Auth
-import qualified Fission.Web.Server.Handler.DNS                    as DNS
-import qualified Fission.Web.Server.Handler.Heroku                 as Heroku
-import qualified Fission.Web.Server.Handler.IPFS                   as IPFS
-import qualified Fission.Web.Server.Handler.Ping                   as Ping
-import qualified Fission.Web.Server.Handler.Swagger                as Web.Swagger
-import qualified Fission.Web.Server.User                           as User
-
-import           Fission.Web.Server.IPFS.DNSLink                   as DNSLink
-import qualified Fission.Web.Server.LoosePin                       as LoosePin
+import qualified Fission.Web.Server.App                 as App
+import qualified Fission.Web.Server.App.Content         as App.Content
+import qualified Fission.Web.Server.App.Domain          as App.Domain
 
 import           Fission.Web.Server.Config.Types
-import           Fission.Web.Server.Types
+import           Fission.Web.Server.Types               as Fission
 
-import           Fission.Web.Server.Internal.Orphanage.OctetStream ()
-import           Fission.Web.Server.Internal.Orphanage.PlainText   ()
+import           Fission.Web.Server.Handler
+import qualified Fission.Web.Server.Host.Types          as Web
+import           Fission.Web.Server.IPFS.Linked
+import           Fission.Web.Server.MonadDB
+import           Fission.Web.Server.Reflective
+
+import           Fission.Internal.Orphanage.OctetStream ()
+import           Fission.Internal.Orphanage.PlainText   ()
 
 -- | Top level web API type. Handled by 'server'.
-type API = Web.Swagger.API :<|> Web.API
+type API = Swagger.API :<|> Fission.API
 
 -- | Run actions described by a @Fission@ type
-runServer :: MonadIO m => cfg -> Server a -> m a
+runServer :: MonadIO m => Config -> Fission.Server a -> m a
 runServer cfg actions = runRIO cfg $ unServer actions
 
 app ::
@@ -121,7 +123,7 @@ server ::
   )
   => Web.Host
   -> ServerT API m
-server appHost = Web.Swagger.server fromHandler appHost
+server appHost = Web.Swagger.handler fromHandler appHost
             :<|> bizServer
 
 bizServer ::
@@ -150,10 +152,10 @@ bizServer ::
   , App.Retriever           t
   , App.Domain.Retriever    t
   )
-  => ServerT Web.API m
-bizServer = IPFS.server
-       :<|> App.server
-       :<|> (\_ -> Heroku.server)
-       :<|> User.server
-       :<|> pure Ping.pong
-       :<|> DNS.server
+  => ServerT Fission.API m
+bizServer = IPFS.handler
+       :<|> App.handler
+       :<|> Heroku.handler
+       :<|> User.handler
+       :<|> Ping.handler
+       :<|> DNS.handler

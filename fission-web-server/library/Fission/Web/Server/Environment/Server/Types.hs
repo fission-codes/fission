@@ -3,9 +3,9 @@ module Fission.Web.Server.Environment.Server.Types (Environment (..)) where
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Server.AWS.Types            as AWS
-import qualified Fission.Web.Server.Log.Sentry.DSN.Types as Sentry
-import qualified Fission.Web.Server.Types                as Web
+import qualified Fission.Web.Server.AWS.Types        as AWS
+import qualified Fission.Web.Server.Host.Types       as Web
+import qualified Fission.Web.Server.Sentry.DSN.Types as Sentry
 
 -- | Configuration for the web application
 data Environment = Environment

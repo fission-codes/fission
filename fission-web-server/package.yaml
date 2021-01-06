@@ -1,5 +1,5 @@
 name: fission-web-server
-version: '1.0.0.0'
+version: '2.9.2.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -176,6 +176,7 @@ dependencies:
   - ipfs
   - mime-types
   - network-uri
+  - raven-haskell
   - servant
   - servant-auth-server
   - servant-auth-swagger
