@@ -218,21 +218,6 @@ executables:
       - -O2
 
 tests:
-  fission-web-server-doctest:
-    main: Main.hs
-    source-dirs: doctest
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - directory
-      - directory-tree
-      - doctest
-      - Glob
-      - lens-aeson
-      - yaml
-
   fission-web-server-test:
     main: Main.hs
     source-dirs:
