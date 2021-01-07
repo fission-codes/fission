@@ -6,14 +6,16 @@ module Fission.CLI.Prompt
   , reaskWithError
   ) where
 
-import qualified Data.List      as List
-import           RIO.ByteString as BS hiding (map, pack)
+import qualified Data.List             as List
+import           RIO.ByteString        as BS hiding (map, pack)
 
-import           Fission.Prelude
 import qualified Fission.Internal.UTF8 as UTF8
+import           Fission.Prelude
 
 reaskWithError ::
-  ( MonadIO m, MonadLogger m )
+  ( MonadIO     m
+  , MonadLogger m
+  )
   => Text
   -> (ByteString -> Bool)
   -> m ()
@@ -43,8 +45,8 @@ reaskNotEmpty' prompt = do
   case decodeUtf8' resp of
     Right txt ->
       return txt
-     
-    Left _ -> do 
+
+    Left _ -> do
       UTF8.putTextLn "🔣 Oops, we couldn't read your input. Try again!"
       reaskNotEmpty' prompt
 
@@ -56,7 +58,7 @@ ynTest :: ByteString -> Bool
 ynTest resp = isYes resp || isNo resp
 
 isYes :: ByteString -> Bool
-isYes resp = List.elem resp (["y", "Y", "yes", "Yes"] :: [ByteString])
+isYes resp = List.elem resp (["y", "Y", "yes", "Yes", "YES"] :: [ByteString])
 
 isNo :: ByteString -> Bool
-isNo resp = List.elem resp (["n", "N", "no", "No"] :: [ByteString])
+isNo resp = List.elem resp (["n", "N", "no", "No", "NO"] :: [ByteString])

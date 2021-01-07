@@ -9,6 +9,5 @@ data Remote
   = Production
   | Staging
   | Development
-  | FullMock
-  | Custom !BaseUrl
+  | Custom BaseUrl
   deriving (Show, Eq)

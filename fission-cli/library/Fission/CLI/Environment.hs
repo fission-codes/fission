@@ -28,13 +28,14 @@ import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
 
-import           Fission.User.DID.Types
-import           Fission.User.Username.Types
 import           Fission.Web.Client
 
+import           Fission.User.DID.Types
+import           Fission.User.Username.Types
+
 import qualified Fission.CLI.Display.Error     as CLI.Error
-import           Fission.CLI.Environment.Path  as Path
 import           Fission.CLI.IPFS.Peers        as Peers
+import           Fission.CLI.Key.Store         as KeyStore
 import qualified Fission.CLI.YAML              as YAML
 
 -- Reexports
@@ -48,11 +49,13 @@ init ::
   , MonadEnvironment m
   , MonadLogger      m
   , MonadWebClient   m
+  , MonadKeyStore    m SigningKey
 
   , MonadCleanup m
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError
   , m `Raises` NotFound DID
+
   , Show (OpenUnion (Errors m))
   )
   => Username
@@ -68,7 +71,7 @@ init username fissionURL = do
     Right nonEmptyPeers -> do
       serverDID      <- fetchServerDID fissionURL
       envPath        <- absPath
-      signingKeyPath <- Path.getSigningKeyPath
+      signingKeyPath <- KeyStore.getPath $ Proxy @SigningKey
 
       envPath `YAML.writeFile` Env
         { peers          = NonEmpty.toList nonEmptyPeers
@@ -153,15 +156,15 @@ absPath = do
 
 fetchServerDID ::
   ( MonadIO     m
-  , MonadRaise  m
   , MonadLogger m
+  , MonadRaise  m
   , m `Raises` DNS.DNSError
   , m `Raises` NotFound DID
   )
   => BaseUrl
   -> m DID
 fetchServerDID fissionURL = do
-  rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+  rs <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
   let url = BS8.pack $ "_did." <> baseUrlHost fissionURL
 
   logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url

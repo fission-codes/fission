@@ -104,7 +104,7 @@ import           RIO                                         hiding (Handler,
                                                               (^.))
 
 import           Test.QuickCheck                             hiding
-                                                              (Result (..))
+                                                             (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
 import           Fission.Internal.Log

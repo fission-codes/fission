@@ -17,12 +17,12 @@ import qualified Fission.CLI.Parser.Command.Version     as Version
 
 parser :: Parser Options
 parser = do
-  cmd    <- shortcuts <|> subCommands <|> version
-  config <- Remote.parser
+  cmd               <- shortcuts <|> subCommands <|> version
+  cfg <- Remote.parser
 
   -- NOTE GHC 8.10.3 doesn't like the wildcard. Use wildcards again later.
-  pure Options { fissionDID = Remote.mayDID config
-               , fissionURL = Remote.target config
+  pure Options { fissionDID = Remote.mayDID cfg
+               , remote     = Remote.remote cfg
                , cmd
                }
 

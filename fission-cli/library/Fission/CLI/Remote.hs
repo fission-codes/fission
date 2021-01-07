@@ -1,11 +1,15 @@
 module Fission.CLI.Remote
-  ( fromText
+  ( getRemoteURL
+  , getRemoteBaseUrl
+  --
+  , fromText
   , toBaseUrl
   -- * Known environments
   , production
   , staging
   , development
   -- * Reexports
+  , module Fission.CLI.Remote.Class
   , module Fission.CLI.Remote.Types
   )  where
 
@@ -14,7 +18,19 @@ import           Servant.Client.Core
 
 import           Fission.Prelude
 
+import qualified Fission.URL              as URL
+import           Fission.URL.Types
+
+import           Fission.CLI.Remote.Class
 import           Fission.CLI.Remote.Types
+
+getRemoteBaseUrl :: MonadRemote m => m BaseUrl
+getRemoteBaseUrl = toBaseUrl <$> getRemote
+
+getRemoteURL :: MonadRemote m => m URL
+getRemoteURL = toURL <$> getRemote
+
+--
 
 fromText :: Text -> Maybe Remote
 fromText txt =
@@ -27,17 +43,19 @@ fromText txt =
     "development" -> pure Development
     "dev"         -> pure Development
 
-    "mock"        -> pure FullMock
-
     custom        -> Custom <$> parseBaseUrl (Text.unpack custom)
 
-toBaseUrl :: Remote -> Maybe BaseUrl
+toBaseUrl :: Remote -> BaseUrl
 toBaseUrl = \case
-  Production  -> Just production
-  Staging     -> Just staging
-  Development -> Just development
-  FullMock    -> Nothing
-  Custom url  -> Just url
+  Production  -> production
+  Staging     -> staging
+  Development -> development
+  Custom url  -> url
+
+toURL :: Remote -> URL
+toURL = URL.fromBaseUrl . toBaseUrl
+
+--
 
 production :: BaseUrl
 production = BaseUrl Https "runfission.com" 443  ""

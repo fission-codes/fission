@@ -7,12 +7,13 @@ module Fission.CLI.Display.Success
   , alreadyLoggedInAs
   ) where
 
-import qualified System.Console.ANSI      as ANSI
+import qualified System.Console.ANSI         as ANSI
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8    as UTF8
+import qualified Fission.Internal.UTF8       as UTF8
 import           Fission.URL
+import           Fission.User.Username.Types
 
 import           Fission.CLI.Display.Text
 
@@ -32,8 +33,8 @@ dnsUpdated domain = do
 currentlyLoggedInAs :: (MonadIO m, MonadCleanup m) => Text -> m ()
 currentlyLoggedInAs = loggedInAs "Currently logged in as: "
 
-alreadyLoggedInAs :: (MonadIO m, MonadCleanup m) => Text -> m ()
-alreadyLoggedInAs = loggedInAs "Already logged in as: "
+alreadyLoggedInAs :: (MonadIO m, MonadCleanup m) => Username -> m ()
+alreadyLoggedInAs username = loggedInAs "Already logged in as: " (textDisplay username)
 
 loggedInAs :: (MonadIO m, MonadCleanup m) => Text -> Text -> m ()
 loggedInAs msg username = do

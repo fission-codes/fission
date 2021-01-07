@@ -1,6 +1,6 @@
 resolver: nightly-2021-01-20
 
-allow-newer: true
+# allow-newer: true
 
 packages:
   - fission-cli
@@ -29,6 +29,7 @@ extra-deps:
   - servant-websockets-2.0.0
   - text-time-0.3.1
   - unliftio-core-0.1.2.0
+    #   - unliftio-core-0.2.0.1
 
   # For ip-1.7.2
   - ip-1.7.2

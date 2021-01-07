@@ -5,11 +5,12 @@ import qualified Crypto.PubKey.Ed25519   as Ed25519
 
 import           Network.HTTP.Client     as HTTP
 import           Network.IPFS.Types      as IPFS
-import           Servant.Client
 
 import           Fission.Prelude         hiding (mask, uninterruptibleMask)
 
 import           Fission.User.DID.Types
+
+import           Fission.CLI.Remote
 
 data Config = Config
   { httpManager   :: HTTP.Manager
@@ -17,7 +18,7 @@ data Config = Config
   , cliDID        :: DID
   , serverDID     :: DID
   -- TODO link systems, ucanLink     :: !JWT
-  , fissionURL    :: BaseUrl
+  , remote        :: Remote
   , logFunc       :: LogFunc
   , processCtx    :: ProcessContext
   , ipfsTimeout   :: IPFS.Timeout

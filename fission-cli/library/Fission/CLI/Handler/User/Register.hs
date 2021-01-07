@@ -11,7 +11,7 @@ import           Servant.Client
 import           Fission.Prelude
 
 import           Fission.Error
-import qualified Fission.Key                     as Key
+import           Fission.Key.Error               as Key
 
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
@@ -29,6 +29,7 @@ import           Fission.CLI.Display.Error       as CLI.Error
 import           Fission.CLI.Display.Success     as CLI.Success
 
 import           Fission.CLI.Environment         as Env
+import           Fission.CLI.Key.Store           as KeyStore
 import qualified Fission.CLI.Prompt              as Prompt
 
 register ::
@@ -40,13 +41,15 @@ register ::
   , MonadRandom      m
   , ServerDID        m
   , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
+  , MonadWebAuth     m (SecretKey SigningKey)
+
   , MonadCleanup     m
   , m `Raises` ClientError
   , m `Raises` DNSError
   , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
+  , m `Raises` Key.Error
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
@@ -55,16 +58,16 @@ register ::
   => Maybe Username
   -> Maybe Email
   -> m Username
-register maybeUsername maybeEmail = do
+register maybeUsername maybeEmail =
   attempt (sendAuthedRequest User.whoami) >>= \case
     Right username -> do
-      CLI.Success.alreadyLoggedInAs $ textDisplay username
+      CLI.Success.alreadyLoggedInAs username
       return username
 
     Left _ ->
       createAccount maybeUsername maybeEmail
 
-createAccount ::
+createAccount :: forall m .
   ( MonadIO          m
   , MonadLogger      m
   , MonadEnvironment m
@@ -74,16 +77,17 @@ createAccount ::
   , MonadRandom      m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
+
   , MonadCleanup     m
-  , IsMember ClientError (Errors m)
-  , IsMember Key.Error   (Errors m)
   , m `Raises` ClientError
   , m `Raises` DNSError
   , m `Raises` NotFound DID
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
+  , m `Raises` Key.Error
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
+  , ClientError `IsMember` Errors m
   )
   => Maybe Username
   -> Maybe Email
@@ -97,11 +101,15 @@ createAccount maybeUsername maybeEmail = do
     Nothing   -> Email <$> Prompt.reaskNotEmpty' "Email: "
     Just mail -> return mail
 
+  exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
+  exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
+
   let
     form = Registration
       { username
       , email
-      , password = Nothing
+      , password   = Nothing
+      , exchangePK = Just exchangePK
       }
 
   attempt (sendAuthedRequest $ User.createWithDID form) >>= \case
