@@ -161,7 +161,7 @@ stripNBS n bs =
     >>> stripN 0 "b"
     "b"
 
-    prop> stripN n (Text.center (3 + fromIntegral n * 2) '_' "o.O") == "o.O"
+    prop> \n -> stripN n (Text.center (3 + fromIntegral n * 2) '_' "o.O") == "o.O"
 
 -}
 stripN :: Natural -> Text -> Text
@@ -178,13 +178,11 @@ putText = Strict.putStr . encodeUtf8
 putTextLn :: MonadIO m => Text -> m ()
 putTextLn txt = putText $ txt <> "\n"
 
-{-| Wrap text with some other piece of text.
-
-    prop> Text.head (wrapIn "|" s) == '|'
-    prop> Text.last (wrapIn "|" s) == '|'
-    prop> Text.length (wrapIn "|" s) == (Text.length s) + 2
-
--}
+-- | Wrap text with some other piece of text.
+--
+-- prop> \s -> Text.take    1 (wrapIn "|" s) == "|"
+-- prop> \s -> Text.takeEnd 1 (wrapIn "|" s) == "|"
+-- prop> \s -> Text.length    (wrapIn "|" s) == (Text.length s) + 2
 wrapIn :: Text -> Text -> Text
 wrapIn wrapper txt = wrapper <> txt <> wrapper
 
