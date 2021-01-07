@@ -1,0 +1,6 @@
+cradle:
+  stack:
+    stackYaml: "./stack.yaml"
+    components:
+    - path: "./fission-core/library"
+      component: "fission-core:lib"

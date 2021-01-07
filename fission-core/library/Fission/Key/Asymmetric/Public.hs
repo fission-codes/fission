@@ -1,9 +1,20 @@
 module Fission.Key.Asymmetric.Public (genRSA2048) where
 
+import qualified RIO.ByteString.Lazy                        as Lazy
+import           RIO.FilePath                               ((</>))
+
+import           Data.Binary                                as Binary
+import           Data.ByteArray                             as ByteArray
+
+import           Crypto.Error
+import qualified Crypto.PubKey.Ed25519                      as Ed25519
 import qualified Crypto.PubKey.RSA                          as RSA
+import           Crypto.Random.Types
 import qualified OpenSSL.RSA                                as OpenSSL
 
 import           Fission.Prelude
+
+import           Fission.Key.Error                          as Key
 
 import           Fission.Internal.Orphanage.RSA2048.Private ()
 

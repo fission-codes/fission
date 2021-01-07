@@ -38,6 +38,7 @@ checkLatestRelease = do
       now <- currentTime
       let
         nextUpdateTime = addUTCTime 86400 updateChecked
+
       unless (now < nextUpdateTime) do
         logDebug @Text "Checking for newer versions..."
 

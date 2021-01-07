@@ -1,6 +1,7 @@
 module Fission.CLI.Key.Store
   ( create
   , forceCreate
+  , fetch
   , delete
   , persist
   , exists
@@ -9,22 +10,20 @@ module Fission.CLI.Key.Store
   -- * Reexport
 
   , module Fission.Key.Error
+
+  , module Fission.CLI.Key.Store.Class
+  , module Fission.CLI.Key.Store.Types
   ) where
 
-import           RIO.Directory
-
-import qualified Crypto.PubKey.Curve25519         as Curve25519
-import           Crypto.Random
-
 import qualified Data.ByteArray                   as ByteArray
+import           RIO.Directory
 
 import           Fission.Prelude
 
-import           Fission.CLI.Environment
-import           Fission.CLI.Environment.Path     as Path
-import           Fission.CLI.File
-
 import           Fission.Key.Error                as Key
+
+import           Fission.CLI.File
+import qualified Fission.CLI.Key.Store.Class      as KeyStore
 
 import qualified Fission.Internal.Base64          as B64
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
@@ -33,69 +32,79 @@ import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 import           Fission.Key.Error
 
+import           Fission.CLI.Key.Store.Class
+import           Fission.CLI.Key.Store.Types
+
 create ::
-  ( MonadIO          m
-  , MonadRandom      m
-  , MonadLogger      m
-  , MonadEnvironment m
-  , MonadRaise       m
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
+  , MonadRaise    m
   , m `Raises` Key.Error
   )
-  => m ()
-create = exists >>= \case
-  True  -> raise Key.AlreadyExists
-  False -> forceCreate
+  => Proxy key
+  -> m ()
+create keyRole =
+  exists keyRole >>= \case
+    True  -> raise Key.AlreadyExists
+    False -> forceCreate keyRole
 
 forceCreate ::
-  ( MonadIO          m
-  , MonadRandom      m
-  , MonadLogger      m
-  , MonadEnvironment m
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
   )
-  => m ()
-forceCreate = persist =<< Curve25519.generateSecretKey
-
-delete ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  )
-  => m ()
-delete = exists >>= \case
-  False -> return ()
-  True  -> removeFile =<< Path.getSigningKeyPath
+  => Proxy key
+  -> m ()
+forceCreate keyRole = persist keyRole =<< KeyStore.generate keyRole
 
 persist ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  , MonadLogger      m
-  , ByteArray.ByteArrayAccess a
+  ( MonadIO       m
+  , MonadLogger   m
+  , MonadKeyStore m key
   )
-  => a
+  => Proxy     key
+  -> SecretKey key
   -> m ()
-persist key = do
-  path <- Path.getSigningKeyPath
+persist keyRole key = do
+  path <- KeyStore.getPath keyRole
   forceWrite path $ B64.toByteString key
 
-getAsBytes ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  , MonadRaise       m
+fetch ::
+  ( MonadIO       m
+  , MonadKeyStore m key
+  , MonadRaise    m
   , m `Raises` Key.Error
   )
-  => m ByteArray.ScrubbedBytes
-getAsBytes =
-  exists >>= \case
+  => Proxy key
+  -> m (SecretKey key)
+fetch keyRole = do
+  scrubbed <- getAsBytes keyRole
+  ensureM $ parse keyRole scrubbed
+
+getAsBytes ::
+  ( MonadIO       m
+  , MonadKeyStore m key
+  , MonadRaise    m
+  , m `Raises` Key.Error
+  )
+  => Proxy key
+  -> m ByteArray.ScrubbedBytes
+getAsBytes keyRole =
+  exists keyRole >>= \case
     False ->
       raise Key.DoesNotExist
 
     True -> do
-      path <- Path.getSigningKeyPath
+      path <- KeyStore.getPath keyRole
       bs   <- readFileBinary path
       return $ B64.Scrubbed.scrub bs
 
-exists ::
-  ( MonadIO          m
-  , MonadEnvironment m
-  )
-  => m Bool
-exists = doesFileExist =<< Path.getSigningKeyPath
+exists :: (MonadIO m, MonadKeyStore m key) => Proxy key -> m Bool
+exists keyRole = doesFileExist =<< KeyStore.getPath keyRole
+
+delete :: (MonadIO m, MonadKeyStore m key) => Proxy key -> m ()
+delete keyRole =
+  exists keyRole >>= \case
+    False -> return ()
+    True  -> removeFile =<< KeyStore.getPath keyRole

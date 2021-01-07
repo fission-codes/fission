@@ -13,7 +13,6 @@ import qualified Network.HTTP.Client             as HTTP
 import           Network.IPFS.Local.Class
 import qualified Network.IPFS.Timeout.Types      as IPFS
 import qualified Network.IPFS.Types              as IPFS
-import           Servant.Client
 
 import           Fission.Prelude
 
@@ -29,10 +28,10 @@ import qualified Fission.Web.Client.User         as User
 import           Fission.CLI.Connected.Types
 import qualified Fission.CLI.Context             as Context
 import           Fission.CLI.Error.Types
+import           Fission.CLI.Remote
 import           Fission.CLI.Types
 
-import qualified Fission.CLI.Key.Ed25519         as Ed25519
-import qualified Fission.CLI.Key.Store           as Key.Store
+import           Fission.CLI.Key.Store           as Key.Store
 
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Environment         as Environment
@@ -57,8 +56,8 @@ run ::
 
   , HasLogFunc                inCfg
   , HasProcessContext         inCfg
-  , HasField' "fissionURL"    inCfg BaseUrl
   , HasField' "httpManager"   inCfg HTTP.Manager
+  , HasField' "remote"        inCfg Remote
   , HasField' "ipfsDaemonVar" inCfg (MVar (Process () () ()))
   )
   => inCfg
@@ -92,7 +91,8 @@ type LiftErrs =
    ]
 
 mkConnected ::
-  ( ServerDID (FissionCLI errs inCfg)
+  ( ServerDID   (FissionCLI errs inCfg)
+  , MonadRemote (FissionCLI errs inCfg)
 
   , IsMember YAML.ParseException errs
   , Contains errs        errs
@@ -103,15 +103,15 @@ mkConnected ::
 
   , HasLogFunc                inCfg
   , HasProcessContext         inCfg
-  , HasField' "fissionURL"    inCfg BaseUrl
+
   , HasField' "httpManager"   inCfg HTTP.Manager
   , HasField' "ipfsDaemonVar" inCfg (MVar (Process () () ()))
   )
   => inCfg
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
   -> FissionCLI errs inCfg Config
-mkConnected inCfg ipfsTimeout =
-  attempt (Key.Store.getAsBytes >>= Ed25519.parseSecretKey) >>= \case
+mkConnected inCfg ipfsTimeout = do
+  attempt (Key.Store.fetch $ Proxy @SigningKey) >>= \case
     Left _err -> do
       CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile
@@ -120,6 +120,8 @@ mkConnected inCfg ipfsTimeout =
       logDebug @Text "Ed25519 key loaded"
 
       serverDID  <- getServerDID
+      remote     <- getRemote
+
       config     <- Environment.get
       maybePeers <- Environment.getOrRetrievePeers config
 
@@ -144,11 +146,7 @@ mkConnected inCfg ipfsTimeout =
               , method    = Key
               }
 
-            cfg = Config
-              { fissionURL  = getField @"fissionURL"  inCfg
-              , httpManager = getField @"httpManager" inCfg
-              , ..
-              }
+            cfg = Config { httpManager = getField @"httpManager" inCfg, ..}
 
           Context.run cfg do
             logDebug @Text "Attempting user verification"

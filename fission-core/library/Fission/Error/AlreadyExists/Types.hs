@@ -13,3 +13,4 @@ data AlreadyExists entity
 
 instance Display (AlreadyExists Ed25519.SecretKey) where
   display _ = "Ed25519 secret key already exists"
+
