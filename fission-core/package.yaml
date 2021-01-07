@@ -162,7 +162,6 @@ tests:
       - directory
       - directory-tree
       - doctest
-      - fission-core
       - Glob
       - lens-aeson
       - QuickCheck
