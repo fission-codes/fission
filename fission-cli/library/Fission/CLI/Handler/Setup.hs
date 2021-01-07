@@ -5,8 +5,6 @@ import           Data.Type.List
 import           Crypto.Cipher.AES                 (AES256)
 import           Crypto.Error                      as Crypto
 
-import qualified RIO.ByteString                    as BS
-
 import           Network.IPFS
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error        as IPFS.Process
@@ -24,9 +22,8 @@ import           Fission.Key.IV.Error              as IV
 import qualified Fission.Key.Symmetric.Types       as Symmetric
 
 import           Fission.User.DID.Types
-import qualified Fission.User.Username.Error       as Username
-
 import           Fission.User.Email.Types
+import qualified Fission.User.Username.Error       as Username
 import           Fission.User.Username.Types
 
 import           Fission.Web.Client                as Client
@@ -34,10 +31,16 @@ import           Fission.Web.Client.HTTP.Class
 
 import           Fission.CLI.Environment           as Env
 import qualified Fission.CLI.Environment.OS        as OS
+import           Fission.CLI.Remote
+
+import qualified Fission.CLI.User                  as User
 
 import qualified Fission.CLI.Display.Success       as Display
 import qualified Fission.CLI.IPFS.Executable       as Executable
+import qualified Fission.CLI.Prompt                as Prompt
+
 import           Fission.CLI.Key.Store             as Key
+import           Fission.CLI.Key.Store             as Key.Store
 
 import qualified Fission.CLI.Handler.User.Login    as Login
 import qualified Fission.CLI.Handler.User.Login    as User
@@ -83,7 +86,7 @@ type SetupConstraints m =
   , User.LoginConstraints m
   )
 
-setup :: forall m .
+setup ::
   SetupConstraints m
   => Maybe OS.Supported
   -> BaseUrl
@@ -91,28 +94,29 @@ setup :: forall m .
   -> Maybe Email
   -> m ()
 setup maybeOS fissionURL maybeUsername maybeEmail = do
-  Key.create $ Proxy @SigningKey
-  Key.create $ Proxy @ExchangeKey
+  void . Key.Store.create $ Proxy @SigningKey
+  void . Key.Store.create $ Proxy @ExchangeKey
 
-  UTF8.putText "Installing dependencies..."
+  UTF8.putText "📥 Installing dependencies..."
   Executable.place maybeOS
 
-  -- FIXME FIXME FIXME
-  UTF8.putText "👤 If you have an existing account, enter the username. [Enter for new account]: "
-  username <- getUsername =<< BS.getLine
+  attempt User.ensureNotLoggedIn >>= \case
+    Left _ ->
+      noop
 
-  UTF8.putText "Setting default config..."
-  Env.init username fissionURL Nothing
+    Right () ->  do
+      username <- do
+        hasAccount <- Prompt.reaskYN "Do you have an existing account? [Y/n]:"
+        case hasAccount of
+          False ->
+            User.register maybeUsername maybeEmail
 
-  Display.putOk "Done"
+          True -> do
+            signingSK <- Key.Store.fetch $ Proxy @SigningKey
+            rootURL   <- getRemoteBaseUrl
+            Login.consume signingSK rootURL
 
-  where
-    getUsername :: ByteString -> m Username
-    getUsername "" = do
-      logDebug @Text "Setting up new account"
-      User.register maybeUsername maybeEmail
+      UTF8.putText "🏗️  Setting default config..."
+      Env.init username fissionURL Nothing
 
-    getUsername usernameBS = do
-      uName <- ensure . mkUsername $ decodeUtf8Lenient usernameBS
-      -- FIXME User.login
-      return uName
+  Display.putOk "🙌 Done! Welcome to Fisison ✨"

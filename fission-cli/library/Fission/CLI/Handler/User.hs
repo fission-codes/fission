@@ -12,6 +12,7 @@ import qualified Crypto.PubKey.Ed25519                          as Ed25519
 import qualified Crypto.PubKey.RSA.Types                        as RSA
 
 import           Network.DNS
+import qualified Network.IPFS.Add.Error                         as IPFS.Add
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error                     as IPFS.Process
 import qualified Network.IPFS.Types                             as IPFS
@@ -83,6 +84,7 @@ type Errs
 
      , IPFS.UnableToConnect
      , IPFS.Process.Error
+     , IPFS.Add.Error
      ] ++ Login.Errs
 
 interpret :: forall errs .
@@ -97,8 +99,9 @@ interpret cmd = do
   logDebug @Text "App interpreter"
 
   case cmd of
-    Login _ ->
+    Login _ -> do
       Handler.login
+      return ()
 
     Register Register.Options {..} -> do
       Handler.register maybeUsername maybeEmail

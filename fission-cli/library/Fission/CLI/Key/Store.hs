@@ -26,7 +26,7 @@ import qualified Fission.CLI.Key.Store.Class      as KeyStore
 import qualified Fission.Internal.Base64          as B64
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
--- Reexports
+-- 🔁 Reexports
 
 import           Fission.CLI.Key.Store.Class
 import           Fission.CLI.Key.Store.Types

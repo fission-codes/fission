@@ -21,7 +21,7 @@ reaskWithError ::
   -> m ()
   -> m ByteString
 reaskWithError prompt check showError = do
-  UTF8.putText prompt
+  UTF8.putText (prompt <> " ")
   resp <- getLine
   if check resp
     then

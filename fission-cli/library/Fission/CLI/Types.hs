@@ -32,6 +32,8 @@ import qualified Network.DNS                                       as DNS
 import qualified Network.HTTP.Client                               as HTTP
 
 import           Network.IPFS                                      as IPFS
+import qualified Network.IPFS.Add                                  as IPFS
+import qualified Network.IPFS.Add.Error                            as IPFS.Add
 import qualified Network.IPFS.Process.Error                        as Process
 import           Network.IPFS.Types                                as IPFS
 
@@ -42,8 +44,7 @@ import           Servant.Client
 
 import qualified Turtle
 
-import           Fission.Prelude                                   hiding (mask,
-                                                                    uninterruptibleMask)
+import           Fission.Prelude                                   hiding (mask, uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.DNS                                       as DNS
@@ -234,6 +235,7 @@ instance
   , NotFound FilePath   `IsMember` errs
   , Process.Error       `IsMember` errs
   , SomeException       `IsMember` errs
+  , IPFS.Add.Error       `IsMember` errs
   , Contains errs errs
   , HasLogFunc cfg
   , HasField' "ipfsTimeout"   cfg IPFS.Timeout
@@ -242,14 +244,11 @@ instance
   , Display (OpenUnion errs)
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
-  insert token = do
+  insert token@Bearer.Token {jwt} = do
+    logDebug @Text "Adding UCAN to store"
     storePath <- ucanStorePath
     store     <- WebNative.Mutation.Auth.getAll
-
-    cidBS <- ensureM $ IPFS.runLocal ["add", "-Q"] (Lazy.fromStrict . encodeUtf8 $ textDisplay token)
-
-    let
-      cid = CID . decodeUtf8Lenient $ Lazy.toStrict cidBS
+    (_, cid)  <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
 
     store
       |> Map.insert cid token
@@ -274,6 +273,8 @@ instance
   )
   => WebNative.FileSystem.Auth.MonadStore (FissionCLI errs cfg) where
   set did subGraphRoot aesKey = do
+    logDebug $ "Storing AES key for " <> display did <> " @ " <> displayShow subGraphRoot
+
     storePath                             <- wnfsKeyStorePath
     WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
@@ -285,6 +286,8 @@ instance
     storePath `YAML.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
 
   getAllMatching did subGraphRoot = do
+    logDebug $ "Looking up AES key for " <> display did <> " @ " <> displayShow subGraphRoot
+
     storePath                             <- wnfsKeyStorePath
     WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
@@ -308,6 +311,7 @@ instance
   , JWT.Resolver.Error         `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
   , NotFound JWT               `IsMember` errs
+  , IPFS.Add.Error             `IsMember` errs
   , Contains errs errs
 
   , HasField' "ipfsTimeout"   cfg IPFS.Timeout
@@ -638,7 +642,7 @@ instance
   connect BaseUrl {..} (Topic rawTopic) withConn = do
     logDebug $ mconcat
       [ "Websocket connecting at: "
-      , show baseUrlHost
+      , baseUrlHost
       , ":"
       , show port
       , path
@@ -652,13 +656,14 @@ instance
 
     where
       port = fromIntegral baseUrlPort
-      path = baseUrlPath <> "/" <> Text.unpack rawTopic
+      path = baseUrlPath <> "/user/link/" <> Text.unpack rawTopic
 
   sendLBS conn msg = do
     logDebug $ "Sending over pubsub: " <> msg
     liftIO . WS.sendDataMessage conn $ WS.Binary msg
 
   receiveLBS conn = do
+    logDebug @Text "Listening for pubsub-over-websockets message..."
     lbs <- liftIO (WS.receiveDataMessage conn) >>= \case
       WS.Text   lbs _ -> return lbs
       WS.Binary lbs   -> return lbs

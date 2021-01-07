@@ -10,6 +10,7 @@ import qualified Data.Yaml                                 as YAML
 import qualified RIO.NonEmpty                              as NonEmpty
 
 import qualified Network.HTTP.Client                       as HTTP
+import qualified Network.IPFS.Add.Error                    as IPFS.Add
 import           Network.IPFS.Local.Class
 import qualified Network.IPFS.Process.Error                as IPFS.Process
 import qualified Network.IPFS.Timeout.Types                as IPFS
@@ -59,6 +60,7 @@ run ::
   , JWT.Resolver.Error   `IsMember` errs
   , NotFound JWT         `IsMember` errs
   , IPFS.UnableToConnect `IsMember` errs
+  , IPFS.Add.Error       `IsMember` errs
 
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
@@ -105,6 +107,7 @@ mkConnected ::
 
   , YAML.ParseException `IsMember` errs
   , IPFS.Process.Error  `IsMember` errs
+  , IPFS.Add.Error      `IsMember` errs
   , JWT.Resolver.Error  `IsMember` errs
   , NotFound JWT        `IsMember` errs
 

@@ -83,6 +83,8 @@ createAccount ::
   -> Maybe Email
   -> m Username
 createAccount maybeUsername maybeEmail = do
+  logDebug @Text "🆔 Setting up new account"
+
   username <- case maybeUsername of
     Nothing    -> ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
     Just uname -> return uname

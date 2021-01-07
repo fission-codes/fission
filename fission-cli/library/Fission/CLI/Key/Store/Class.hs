@@ -10,7 +10,6 @@ import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519                        as Ed25519
 import qualified Crypto.PubKey.RSA                            as RSA
 import           Crypto.Random.Types
-import qualified OpenSSL.RSA                                  as OpenSSL
 
 import           Fission.Prelude
 

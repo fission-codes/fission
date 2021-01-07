@@ -8,6 +8,7 @@ import qualified Data.Yaml                                 as YAML
 import           Servant.Client.Core
 
 import qualified Network.DNS                               as DNS
+import qualified Network.IPFS.Add.Error                    as IPFS.Add
 import qualified Network.IPFS.Process.Error                as IPFS.Process
 import qualified Network.IPFS.Types                        as IPFS
 
@@ -44,6 +45,7 @@ type Errs =
   '[ SomeException
    , IPFS.UnableToConnect
    , IPFS.Process.Error
+   , IPFS.Add.Error
    , ClientError
    , Key.Error
    , NotRegistered
@@ -88,8 +90,8 @@ interpret baseCfg cmd = do
           raise $ AlreadyExists @URL
 
         Left errs -> do
-          case openUnionMatch errs of
-            Just (_ :: NotFound FilePath) -> do
+          case openUnionMatch @(NotFound FilePath) errs of
+            Just _ -> do
               logDebug @Text "Setting up new app"
               run' $ Handler.appInit appDir buildDir mayAppName
 

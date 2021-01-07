@@ -1,4 +1,4 @@
-module Fission.CLI.WebNative.FileSystem.Auth.Store.Types where
+module Fission.CLI.WebNative.FileSystem.Auth.Store.Types (Store (..)) where
 
 import           Crypto.Cipher.AES           (AES256)
 

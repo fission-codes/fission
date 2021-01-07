@@ -4,7 +4,6 @@ import           Fission.Prelude
 
 import           Fission.User.DID.Types
 
-import           Fission.CLI.Digit.Types
 import           Fission.CLI.PIN.Types
 
 -- | Used in linking flow

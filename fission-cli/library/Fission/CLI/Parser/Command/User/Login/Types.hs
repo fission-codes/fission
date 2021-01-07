@@ -8,7 +8,7 @@ import           Fission.CLI.Parser.Verbose.Types
 
 data Options = Options
   { verboseFlag :: VerboseFlag -- ^ Verbose flag
-  -- , username    :: Username
+  -- , username    :: Username -- FIXME
   } deriving (Show, Eq)
 
 -- FIXME use composition instead of ad hoc subtyping

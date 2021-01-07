@@ -18,6 +18,7 @@ import           Fission.CLI.Display.Success     as CLI.Success
 ensureNotLoggedIn ::
   ( MonadIO        m
   , MonadTime      m
+  , MonadLogger    m
   , MonadWebClient m
   , ServerDID      m
   , MonadWebAuth   m Auth.Token
@@ -27,11 +28,12 @@ ensureNotLoggedIn ::
   , m `Raises` AlreadyExists DID
   )
   => m ()
-ensureNotLoggedIn =
+ensureNotLoggedIn = do
   attempt (sendAuthedRequest User.whoami) >>= \case
     Right username -> do
+      logDebug @Text "😁 Already logged in"
       CLI.Success.alreadyLoggedInAs username
       raise $ AlreadyExists @DID
 
-    Left _ ->
+    Left _ -> do
       return ()

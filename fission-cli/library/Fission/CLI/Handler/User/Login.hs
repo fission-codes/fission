@@ -109,7 +109,7 @@ type LoginConstraints m =
   , ProducerConstraints m
   )
 
-login :: LoginConstraints m => m ()
+login :: LoginConstraints m => m Username
 login = do
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   rootURL   <- getRemoteBaseUrl
@@ -122,9 +122,9 @@ login = do
       consume signingSK baseURL
 
     Left err ->
-      case openUnionMatch err of
-        Nothing                       -> raise err
-        Just (_ :: AlreadyExists DID) -> produce signingSK baseURL
+      case openUnionMatch @(AlreadyExists DID) err of
+        Nothing -> raise err
+        Just _  -> produce signingSK baseURL
 
 type ConsumerConstraints m =
   ( MonadIO          m
@@ -160,7 +160,7 @@ type ConsumerConstraints m =
   , Display (SecurePayload (Symmetric.Key AES256) User.Link.Payload)
   )
 
-consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> m ()
+consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> m Username
 consume signingSK baseURL = do
   username  <- ensure . mkUsername =<< reaskNotEmpty' "Please enter you username: "
   targetDID <- ensureM $ DID.getByUsername username
@@ -224,6 +224,8 @@ consume signingSK baseURL = do
 
       Env.init username baseURL (Just cid)
 
+  return username
+
 type ProducerConstraints m =
   ( MonadIO          m
   , MonadTime        m
@@ -262,7 +264,7 @@ type ProducerConstraints m =
   , Display (SecurePayload (Symmetric.Key AES256) PIN.Payload)
   )
 
-produce :: ProducerConstraints m => Ed25519.SecretKey -> BaseUrl -> m ()
+produce :: ProducerConstraints m => Ed25519.SecretKey -> BaseUrl -> m Username
 produce signingSK baseURL = do
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
   rootProof <- Bearer.toProof <$> WebNative.Mutation.Store.getRootUCAN
@@ -314,3 +316,5 @@ produce signingSK baseURL = do
             aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 
     UTF8.putTextLn "Login to other device successful 👍"
+
+  return username
