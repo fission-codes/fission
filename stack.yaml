@@ -1,14 +1,23 @@
-resolver: lts-16.23
+resolver: nightly-2021-01-05
+
+allow-newer: true
 
 packages:
   - fission-cli
   - fission-core
+  - fission-web-api
+  - fission-web-client
+  - fission-web-server
 
 extra-deps:
   - alex-3.2.5
+  - amazonka-1.6.1
+  - servant-auth-0.4.0.0
+  - servant-auth-server-0.4.6.0
+  - servant-auth-swagger-0.2.10.1
+  - servant-swagger-ui-redoc-0.3.3.1.22.3
   - binary-instances-1.0.1
   - cryptostore-0.2.1.0
-  - github-0.26
   - happy-1.20.0
   - hfsevents-0.1.6
   - ipfs-1.1.5.1
@@ -16,6 +25,7 @@ extra-deps:
   - raven-haskell-0.1.4.0
   - rescue-0.2.1 # FIXME explore 0.3.0, or switch to checked-exceptions
   - text-time-0.3.1
+  - unliftio-core-0.1.2.0
 
   # For ip-1.7.2
   - ip-1.7.2

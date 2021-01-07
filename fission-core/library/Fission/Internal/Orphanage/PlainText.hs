@@ -4,7 +4,7 @@ module Fission.Internal.Orphanage.PlainText () where
 
 import           Data.List.NonEmpty  as NonEmpty
 import qualified RIO.ByteString.Lazy as Lazy
-import           Servant
+import           Servant.API
 
 import           Fission.Prelude
 

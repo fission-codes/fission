@@ -4,9 +4,9 @@ module Fission.Internal.Orphanage.OctetStream () where
 
 import           Data.List.NonEmpty  as NonEmpty
 import qualified RIO.ByteString.Lazy as Lazy
-import           Servant
+import           Servant.API
 
-import Fission.Prelude
+import           Fission.Prelude
 
 instance MimeRender OctetStream a => MimeRender OctetStream [a] where
   mimeRender proxy values = "["<> meat <>"]"

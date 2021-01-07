@@ -1,13 +1,14 @@
 module Fission.URL.DomainName.Types (DomainName (..)) where
 
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Char            as Char
-import qualified RIO.Text            as Text
+import qualified RIO.ByteString.Lazy  as Lazy
+import qualified RIO.Char             as Char
+import qualified RIO.Text             as Text
 
-import           Database.Persist.Postgresql hiding (get)
-import           Data.Swagger                hiding (get, host)
+import           Data.Swagger         hiding (get, host)
+import           Database.Persist.Sql hiding (get)
 
-import           Servant
+import           Servant.API
+import           Web.PathPieces
 
 import           Fission.Prelude
 

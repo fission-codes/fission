@@ -2,22 +2,22 @@
 
 module Fission.Internal.Orphanage.RSA2048.Public () where
 
-import qualified Crypto.PubKey.RSA           as RSA
-import qualified Crypto.Store.X509           as X509
+import qualified Crypto.PubKey.RSA        as RSA
+import qualified Crypto.Store.X509        as X509
 
-import qualified Data.ASN1.BinaryEncoding    as ASN1
-import qualified Data.ASN1.Encoding          as ASN1
-import qualified Data.ASN1.Types             as ASN1
+import qualified Data.ASN1.BinaryEncoding as ASN1
+import qualified Data.ASN1.Encoding       as ASN1
+import qualified Data.ASN1.Types          as ASN1
 
-import qualified Data.PEM                    as PEM
+import qualified Data.PEM                 as PEM
 
-import qualified Data.ByteString.Base64      as BS64
-import qualified Data.X509                   as X509
+import qualified Data.ByteString.Base64   as BS64
+import qualified Data.X509                as X509
 
 import           Data.Swagger
-import           Database.Persist.Postgresql
+import           Database.Persist
 
-import qualified RIO.Text                    as Text
+import qualified RIO.Text                 as Text
 
 import           Servant.API
 

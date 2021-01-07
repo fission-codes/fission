@@ -12,18 +12,18 @@ import           Fission.Prelude         hiding (mask, uninterruptibleMask)
 import           Fission.User.DID.Types
 
 data Config = Config
-  { httpManager   :: !HTTP.Manager
-  , secretKey     :: !Ed25519.SecretKey
-  , cliDID        :: !DID
-  , serverDID     :: !DID
+  { httpManager   :: HTTP.Manager
+  , secretKey     :: Ed25519.SecretKey
+  , cliDID        :: DID
+  , serverDID     :: DID
   -- TODO link systems, ucanLink     :: !JWT
-  , fissionURL    :: !BaseUrl
-  , logFunc       :: !LogFunc
-  , processCtx    :: !ProcessContext
-  , ipfsTimeout   :: !IPFS.Timeout
-  , peers         :: !(NonEmpty IPFS.Peer)
-  , ignoredFiles  :: ![Text] -- ^ Directly for ipfsignore -- passing through verbatim.
-  , ipfsDaemonVar :: !(MVar (Process () () ()))
+  , fissionURL    :: BaseUrl
+  , logFunc       :: LogFunc
+  , processCtx    :: ProcessContext
+  , ipfsTimeout   :: IPFS.Timeout
+  , peers         :: NonEmpty IPFS.Peer
+  , ignoredFiles  :: [Text] -- ^ Directly for ipfsignore -- passing through verbatim.
+  , ipfsDaemonVar :: MVar (Process () () ())
   }
   deriving Generic
 

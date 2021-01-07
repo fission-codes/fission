@@ -6,13 +6,13 @@ module Fission.Random
   ) where
 
 import qualified Data.ByteString.Random as BS
-import qualified RIO.ByteString         as BS
-
-import           Fission.Internal.URL
-import           Data.Text              as Text
 import           Data.Word8
 
-import Fission.Prelude
+import qualified RIO.ByteString         as BS
+import           RIO.Text               as Text
+
+import           Fission.Internal.URL
+import           Fission.Prelude
 
 -- | Generate random alphanumeric @Text@ with a given length
 alphaNum :: MonadIO m => Natural -> m Text

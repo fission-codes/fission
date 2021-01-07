@@ -1,20 +1,20 @@
 module Fission.Key.Asymmetric.Public.Types (Public (..)) where
 
-import qualified Crypto.PubKey.Ed25519 as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA     as Crypto.RSA
+import qualified Crypto.PubKey.Ed25519                        as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA                            as Crypto.RSA
 
 import           Data.Swagger
-import           Database.Persist.Postgresql
+import           Database.Persist.Sql
 
-import qualified RIO.Text as Text
+import qualified RIO.Text                                     as Text
 import           Servant.API
 
-import           Fission.Prelude hiding (length)
- 
-import           Fission.Internal.RSA2048.Pair.Types as Pair
+import           Fission.Prelude                              hiding (length)
 
-import           Fission.Internal.Orphanage.RSA2048.Public    ()
+import           Fission.Internal.RSA2048.Pair.Types          as Pair
+
 import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
+import           Fission.Internal.Orphanage.RSA2048.Public    ()
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey
@@ -61,7 +61,7 @@ instance PersistField Public where
 
   fromPersistValue (PersistText txt) =
     parseUrlPiece txt
-   
+
   fromPersistValue other =
     Left $ "Invalid Persistent PK: " <> Text.pack (show other)
 

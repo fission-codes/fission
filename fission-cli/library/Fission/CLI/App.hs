@@ -17,7 +17,6 @@ import qualified Fission.Internal.UTF8                   as UTF8
 import           Fission.CLI.Types
 import           Fission.Error
 import qualified Fission.Key                             as Key
-import           Fission.Models
 import           Fission.User.DID.Types
 
 import qualified Fission.IPFS.Error.Types                as IPFS
@@ -44,7 +43,7 @@ type Errs =
    , Key.Error
    , NotRegistered
    , NoKeyFile
-   , AlreadyExists App
+   , AlreadyExists URL
    , DNS.DNSError
    , NotFound DID
    , NotFound URL
@@ -80,8 +79,8 @@ interpret baseCfg cmd = do
       attempt App.Env.read >>= \case
         Right Env {appURL} -> do
           UTF8.putTextLn $ "App already set up at " <> textDisplay appURL
-          logDebug . textDisplay $ AlreadyExists @App
-          raise $ AlreadyExists @App
+          logDebug . textDisplay $ AlreadyExists @URL
+          raise $ AlreadyExists @URL
 
         Left errs -> do
           case openUnionMatch errs of

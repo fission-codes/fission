@@ -14,8 +14,8 @@ import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 
 data Token = Token
-  { jwt        :: !JWT            -- ^ The actual token
-  , rawContent :: !JWT.RawContent -- ^ Primarily to pass in to the verifier
+  { jwt        :: JWT            -- ^ The actual token
+  , rawContent :: JWT.RawContent -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
 

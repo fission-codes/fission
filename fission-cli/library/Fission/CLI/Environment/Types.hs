@@ -10,16 +10,16 @@ import           Fission.User.Username.Types
 -- | "Global" environment
 data Env = Env
   -- IPFS
-  { peers          :: ![IPFS.Peer]
-  , ignored        :: ![Text] -- ^ Passing through verbatim for ipfsignore
+  { peers          :: [IPFS.Peer]
+  , ignored        :: [Text] -- ^ Passing through verbatim for ipfsignore
 
   -- IDs
-  , serverDID      :: !DID
-  , signingKeyPath :: !FilePath
-  , username       :: !Username
+  , serverDID      :: DID
+  , signingKeyPath :: FilePath
+  , username       :: Username
 
   -- Releases
-  , updateChecked  :: !UTCTime
+  , updateChecked  :: UTCTime
   }
 
 instance ToJSON Env where

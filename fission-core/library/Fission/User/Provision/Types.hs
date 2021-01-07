@@ -1,11 +1,12 @@
 module Fission.User.Provision.Types (Provision (..)) where
 
-import           Data.Swagger as Swagger hiding (url)
-import qualified Servant.Client as Client
+import           Data.Swagger                       as Swagger hiding (url)
+import qualified Servant.Client.Core                as Client
 
 import           Fission.Prelude
 import           Fission.Security
 import           Fission.User.Username.Types
+
 import           Fission.Internal.Orphanage.BaseUrl ()
 
 data Provision = Provision
@@ -40,9 +41,9 @@ instance ToJSON Provision where
 
 instance ToSchema Provision where
   declareNamedSchema _ = do
-    url'      <- declareSchemaRef <| Proxy @Client.BaseUrl
-    username' <- declareSchemaRef <| Proxy @Text
-    password' <- declareSchemaRef <| Proxy @Secret
+    url'      <- declareSchemaRef $ Proxy @Client.BaseUrl
+    username' <- declareSchemaRef $ Proxy @Text
+    password' <- declareSchemaRef $ Proxy @Secret
 
     mempty
       |> type_      ?~ SwaggerObject

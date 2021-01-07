@@ -6,7 +6,7 @@ import           Crypto.Random
 
 import           Network.DNS
 import           Network.HTTP.Types.Status
-import           Servant.Client.Core
+import           Servant.Client
 
 import           Fission.Prelude
 
@@ -17,7 +17,7 @@ import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
-import           Fission.Web.Auth.Token
+import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client              as Client
 import qualified Fission.Web.Client.User         as User
 
@@ -54,8 +54,8 @@ register ::
   => Maybe Username
   -> Maybe Email
   -> m Username
-register maybeUsername maybeEmail =
-  attempt (sendRequestM . authClient $ Proxy @User.WhoAmI) >>= \case
+register maybeUsername maybeEmail = do
+  attempt (sendAuthedRequest User.whoami) >>= \case
     Right username -> do
       CLI.Success.alreadyLoggedInAs $ textDisplay username
       return username
@@ -102,7 +102,7 @@ createAccount maybeUsername maybeEmail = do
       , password = Nothing
       }
 
-  attempt (sendRequestM $ authClient (Proxy @User.Register) `withPayload` form) >>= \case
+  attempt (sendAuthedRequest $ User.createWithDID form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
       return username
@@ -139,3 +139,4 @@ createAccount maybeUsername maybeEmail = do
         errMsg <> " Please try again or contact Fission support at https://fission.codes"
 
       createAccount maybeUsername maybeEmail
+

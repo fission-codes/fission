@@ -13,14 +13,14 @@ import           Fission.User.DID.Types
 
 -- | The configuration used for the CLI application
 data Config = Config
-  { httpManager   :: !HTTP.Manager
-  , fissionURL    :: !BaseUrl
-  , ipfsTimeout   :: !IPFS.Timeout
-  , ipfsURL       :: !IPFS.URL
-  , serverDID     :: !DID
-  , logFunc       :: !LogFunc
-  , processCtx    :: !ProcessContext
-  , ipfsDaemonVar :: !(MVar (Process () () ()))
+  { httpManager   :: HTTP.Manager
+  , fissionURL    :: BaseUrl
+  , ipfsTimeout   :: IPFS.Timeout
+  , ipfsURL       :: IPFS.URL
+  , serverDID     :: DID
+  , logFunc       :: LogFunc
+  , processCtx    :: ProcessContext
+  , ipfsDaemonVar :: MVar (Process () () ())
   }
   deriving Generic
 

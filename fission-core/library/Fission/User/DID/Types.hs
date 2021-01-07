@@ -64,8 +64,8 @@ Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQ
 
 -}
 data DID = DID
-  { method    :: !Method
-  , publicKey :: !Key.Public
+  { method    :: Method
+  , publicKey :: Key.Public
   } deriving (Show, Eq)
 
 instance Arbitrary DID where

@@ -5,7 +5,7 @@ import           Fission.Prelude
 import           Fission.CLI.Parser.Verbose.Types
 
 data Options = Options
-  { verboseFlag :: !VerboseFlag
+  { verboseFlag :: VerboseFlag
   } deriving (Show, Eq)
 
 instance Has VerboseFlag Options where

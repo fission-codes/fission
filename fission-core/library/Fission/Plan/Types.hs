@@ -1,12 +1,12 @@
 -- | User payment plans
 module Fission.Plan.Types (Tier (..)) where
 
-import RIO.Text as Text
+import           RIO.Text          as Text
 
-import Data.Aeson.Casing
-import Data.Swagger      as Swagger
+import           Data.Aeson.Casing
+import           Data.Swagger      as Swagger
 
-import Fission.Prelude
+import           Fission.Prelude
 
 data Tier
   = Test
@@ -33,14 +33,14 @@ instance FromJSON Tier where
       "Free" -> pure Free
       "free" -> pure Free
 
-      other  -> cantParse other
+      other  -> can'tParse other
 
-  parseJSON other = cantParse other
+  parseJSON other = can'tParse other
 
 instance ToSchema Tier where
   declareNamedSchema =
     genericDeclareNamedSchema $ defaultSchemaOptions
       { Swagger.constructorTagModifier = camelCase }
 
-cantParse :: (MonadFail m, Show a) => a -> m b
-cantParse other = fail $ "Unable to parse " <> show other
+can'tParse :: (MonadFail m, Show a) => a -> m b
+can'tParse other = fail $ "Unable to parse " <> show other

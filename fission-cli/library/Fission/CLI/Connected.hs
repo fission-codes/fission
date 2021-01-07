@@ -152,7 +152,7 @@ mkConnected inCfg ipfsTimeout =
 
           Context.run cfg do
             logDebug @Text "Attempting user verification"
-            attempt (sendRequestM . authClient $ Proxy @User.Verify) >>= \case
+            attempt (sendAuthedRequest User.verify) >>= \case
               Left err -> do
                 CLI.Error.put err "Not registered. Please run: fission user register"
                 raise NotRegistered

@@ -13,17 +13,20 @@ import           Network.HTTP.Types.Status
 import           Network.IPFS
 import           Network.IPFS.CID.Types
 
-import qualified Fission.Internal.UTF8           as UTF8
 import           Fission.Prelude
+
+import qualified Fission.Web.Client.App          as App
+
+import qualified Fission.Internal.UTF8           as UTF8
+
 import qualified Fission.Time                    as Time
 import           Fission.URL
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
-import           Fission.Web.Auth.Token
+import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.Client              as Client
-import           Fission.Web.Client.App          as App
 import           Fission.Web.Client.Error
 
 import           Fission.CLI.Display.Error
@@ -47,6 +50,7 @@ publish ::
   , ServerDID      m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
+ -- , m `Raises` ClientError
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   )
@@ -68,9 +72,9 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
       logDebug $ "Starting single IPFS add locally of " <> displayShow absBuildPath
 
       CLI.IPFS.Add.dir absBuildPath >>= putErrOr \cid@(CID hash) -> do
-        req <- App.mkUpdateReq appURL cid updateData
+        req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
 
-        retryOnStatus [status502, status504] 100 req >>= \case
+        retryOnStatus [status502] 100 req >>= \case
           Left err ->
             CLI.Error.put err "Server unable to sync data"
 
@@ -123,8 +127,11 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDi
 
           unless (oldHash == newHash) do
             UTF8.putText "\n"
-            req <- App.mkUpdateReq appURL cid copyFilesFlag
-            retryOnStatus [status502, status504] 100 req >>= \case
+---            req <- App.mkUpdateReq appURL cid copyFilesFlag
+
+            req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth
+
+            retryOnStatus [status502] 100 req >>= \case
               Left err -> CLI.Error.put err "Server unable to sync data"
               Right _  -> success appURL
 

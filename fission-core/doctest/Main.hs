@@ -1,17 +1,17 @@
 module Main (main) where
 
 import           RIO
-import qualified RIO.List as List
+import qualified RIO.List                  as List
 
 import           Data.Aeson.Lens
 import           Data.Yaml
 
 import           System.Directory
 import           System.Directory.Tree
-import           System.FilePath.Glob (glob)
+import           System.FilePath.Glob      (glob)
 
-import           Test.DocTest (doctest)
-import           Test.QuickCheck ()
+import           Test.DocTest              (doctest)
+import           Test.QuickCheck           ()
 import           Test.QuickCheck.Instances ()
 
 main :: IO ()

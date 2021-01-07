@@ -51,21 +51,18 @@ import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
+import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
+
 -- Reexports
 
 import           Fission.Web.Auth.Token.JWT.RawContent
 
--- Orphans
-
-import           Fission.Internal.Orphanage.CID                   ()
-import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
-
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
 data JWT = JWT
-  { header :: !Header
-  , claims :: !Claims
-  , sig    :: !Signature.Signature
+  { header :: Header
+  , claims :: Claims
+  , sig    :: Signature.Signature
   } deriving (Show, Eq)
 
 instance Arbitrary JWT where
@@ -126,15 +123,15 @@ instance FromJSON JWT where
 
 data Claims = Claims
   -- Dramatis Personae
-  { sender   :: !DID
-  , receiver :: !DID
+  { sender   :: DID
+  , receiver :: DID
   -- Authorization Target
-  , resource :: !(Scope Resource)
-  , potency  :: !Potency
-  , proof    :: !Proof
+  , resource :: Scope Resource
+  , potency  :: Potency
+  , proof    :: Proof
   -- Temporal Bounds
-  , exp      :: !UTCTime
-  , nbf      :: !UTCTime
+  , exp      :: UTCTime
+  , nbf      :: UTCTime
   } deriving Show
 
 instance Display Claims where
