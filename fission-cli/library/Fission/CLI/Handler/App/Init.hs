@@ -23,6 +23,10 @@ import qualified Fission.CLI.Display.Success     as CLI.Success
 import qualified Fission.CLI.App.Environment     as App.Env
 import qualified Fission.CLI.Prompt.BuildDir     as BuildDir
 
+type Errs = '[
+  ClientError
+]
+
 -- | Sync the current working directory to the server over IPFS
 appInit ::
   ( MonadIO        m
@@ -45,7 +49,7 @@ appInit ::
   => FilePath
   -> Maybe FilePath
   -> Maybe URL.Subdomain
-  -> m ()
+  -> m (Either (OpenUnion Errs) ())
 appInit appDir mayBuildDir' maySubdomain = do
   logDebug @Text "appInit"
 

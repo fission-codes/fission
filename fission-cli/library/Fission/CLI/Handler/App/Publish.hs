@@ -37,6 +37,11 @@ import qualified Fission.CLI.IPFS.Add            as CLI.IPFS.Add
 import           Fission.CLI.App.Environment     as App
 import           Fission.CLI.Parser.Watch.Types
 
+type Errs = '[ ClientError
+             , NotFound FilePath
+             , YAML.ParseException
+             ]
+
 -- | Sync the current working directory to the server over IPFS
 publish ::
   ( MonadIO        m
@@ -50,7 +55,7 @@ publish ::
   , ServerDID      m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
- -- , m `Raises` ClientError
+  , m `Raises` ClientError
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   )
@@ -60,7 +65,7 @@ publish ::
   -> FilePath
   -> Bool
   -> Bool
-  -> m ()
+  -> m (Either (OpenUnion Errs) ())
 publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
   attempt (App.readFrom appPath) >>= \case
     Left err -> do
@@ -75,13 +80,14 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
         req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
 
         retryOnStatus [status502] 100 req >>= \case
-          Left err ->
+          Left err -> do
             CLI.Error.put err "Server unable to sync data"
+            raise err
 
           Right _ ->
             case watchFlag of
               WatchFlag False ->
-                success appURL
+                Just $ success appURL
 
               WatchFlag True ->
                 liftIO $ FS.withManager \watchMgr -> do

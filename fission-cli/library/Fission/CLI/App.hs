@@ -86,8 +86,7 @@ interpret baseCfg cmd = do
           case openUnionMatch errs of
             Just (_ :: NotFound FilePath) -> do
               logDebug @Text "Setting up new app"
-              _ <- run' $ Handler.appInit appDir buildDir maySubdomain
-              return ()
+              run' $ Handler.appInit appDir buildDir maySubdomain
 
             Nothing -> do
               logError @Text "Problem setting up new app"
@@ -95,13 +94,15 @@ interpret baseCfg cmd = do
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let
-        run' :: MonadIO m => FissionCLI errs Connected.Config a -> m ()
-        run' = void . Connected.run baseCfg timeoutSeconds
+        run' :: MonadIO m => FissionCLI errs Connected.Config a 
+          -> m (Either (OpenUnion errs) a)
+        run' = Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
         Right Env {appURL} ->
           run' $ Handler.publish watch run' appURL filePath updateDNS updateData
 
-        Left _ ->
+        Left _ -> do 
           CLI.Error.put (NotFound @URL)
             "You have not set up an app. Please run `fission app register`"
+          raise $ NotFound @URL
