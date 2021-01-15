@@ -50,6 +50,7 @@ register ::
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
+  , Contains (Errors m) (Errors m)
   )
   => Maybe Username
   -> Maybe Email
@@ -82,6 +83,7 @@ createAccount ::
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
   , Show (OpenUnion (Errors m))
+  , Contains (Errors m) (Errors m)
   )
   => Maybe Username
   -> Maybe Email
@@ -137,6 +139,4 @@ createAccount maybeUsername maybeEmail = do
 
       CLI.Error.put err $
         errMsg <> " Please try again or contact Fission support at https://fission.codes"
-        -- raise err
-
-      createAccount maybeUsername maybeEmail
+      raise err
