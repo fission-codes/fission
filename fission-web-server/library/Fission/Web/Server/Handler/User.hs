@@ -22,6 +22,7 @@ import qualified Fission.Web.Server.Handler.User.DataRoot       as DataRoot
 import qualified Fission.Web.Server.Handler.User.DID            as DID
 import qualified Fission.Web.Server.Handler.User.ExchangeKey    as ExchangeKey
 import qualified Fission.Web.Server.Handler.User.Password.Reset as Password.Reset
+import qualified Fission.Web.Server.Handler.User.ResendEmail    as ResendEmail
 import qualified Fission.Web.Server.Handler.User.Verify         as Verify
 import qualified Fission.Web.Server.Handler.User.VerifyEmail    as VerifyEmail
 import qualified Fission.Web.Server.Handler.User.WhoAmI         as WhoAmI
@@ -42,7 +43,7 @@ handler ::
 handler = Create.create
      :<|> WhoAmI.handler
      :<|> Verify.handler
-     :<|> VerifyEmail.handler
+     :<|> (VerifyEmail.handler:<|> ResendEmail.handler)
      :<|> DID.handler
      :<|> ExchangeKey.handler
      :<|> DataRoot.handler
