@@ -101,9 +101,8 @@ interpret baseCfg cmd = do
         runIO = void . Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
-        Right Env {appURL} -> do
-          let han :: (FissionCLI errs Connected.Config ()) = Handler.publish watch runIO appURL filePath updateDNS updateData
-          run' han
+        Right Env {appURL} ->
+          run' $ Handler.publish watch runIO appURL filePath updateDNS updateData
 
         Left _ -> do
           CLI.Error.put (NotFound @URL) "You have not set up an app. Please run `fission app register`"
