@@ -9,6 +9,7 @@ import           System.FSNotify                 as FS
 import           RIO.Directory
 
 import           Network.HTTP.Types.Status
+import qualified Network.IPFS.Process.Error      as IPFS.Process
 
 import           Network.IPFS
 import           Network.IPFS.CID.Types
@@ -29,18 +30,12 @@ import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client              as Client
 import           Fission.Web.Client.Error
 
-import           Fission.CLI.Display.Error
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
 import qualified Fission.CLI.IPFS.Add            as CLI.IPFS.Add
 
 import           Fission.CLI.App.Environment     as App
 import           Fission.CLI.Parser.Watch.Types
-
-type Errs = '[ ClientError
-             , NotFound FilePath
-             , YAML.ParseException
-             ]
 
 -- | Sync the current working directory to the server over IPFS
 publish ::
@@ -56,6 +51,7 @@ publish ::
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   , m `Raises` ClientError
+  , m `Raises` IPFS.Process.Error
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   )
@@ -65,8 +61,8 @@ publish ::
   -> FilePath
   -> Bool
   -> Bool
-  -> m (Either (OpenUnion Errs) ())
-publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
+  -> m ()
+publish watchFlag runner appURL appPath _updateDNS updateData = -- FIXME updateDNS
   attempt (App.readFrom appPath) >>= \case
     Left err -> do
       CLI.Error.put err "App not set up. Please double check your path, or run `fission app register`"
@@ -76,25 +72,30 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
       absBuildPath <- liftIO $ makeAbsolute buildDir
       logDebug $ "Starting single IPFS add locally of " <> displayShow absBuildPath
 
-      CLI.IPFS.Add.dir absBuildPath >>= putErrOr \cid@(CID hash) -> do
-        req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
+      CLI.IPFS.Add.dir absBuildPath >>= \case
+        Left err -> do
+          CLI.Error.put' err
+          raise err
 
-        retryOnStatus [status502] 100 req >>= \case
-          Left err -> do
-            CLI.Error.put err "Server unable to sync data"
-            raise err
+        Right cid@(CID hash) -> do
+          req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
 
-          Right _ ->
-            case watchFlag of
-              WatchFlag False ->
-                Just $ success appURL
+          retryOnStatus [status502] 100 req >>= \case
+            Left err -> do
+              CLI.Error.put err "Server unable to sync data"
+              raise err
 
-              WatchFlag True ->
-                liftIO $ FS.withManager \watchMgr -> do
-                  hashCache <- newMVar hash
-                  timeCache <- newMVar =<< getCurrentTime
-                  void $ handleTreeChanges runner appURL updateData timeCache hashCache watchMgr absBuildPath
-                  forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+            Right _ ->
+              case watchFlag of
+                WatchFlag False ->
+                  success appURL
+
+                WatchFlag True ->
+                  liftIO $ FS.withManager \watchMgr -> do
+                    hashCache <- newMVar hash
+                    timeCache <- newMVar =<< getCurrentTime
+                    void $ handleTreeChanges runner appURL updateData timeCache hashCache watchMgr absBuildPath
+                    forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
 
 handleTreeChanges ::
   ( MonadIO        m

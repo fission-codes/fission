@@ -35,8 +35,8 @@ import           Fission.CLI.Release
 import           Fission.CLI.Parser                             as CLI
 import           Fission.CLI.Parser.Command.Setup.Types         as Setup
 import           Fission.CLI.Parser.Command.Types
-import           Fission.CLI.Parser.Command.User.Types
 import           Fission.CLI.Parser.Command.User.Register.Types as Register
+import           Fission.CLI.Parser.Command.User.Types
 import           Fission.CLI.Parser.Types                       as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
@@ -115,7 +115,9 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
           case subCmd of
             Register Register.Options {maybeUsername, maybeEmail} ->
               void $ Handler.register maybeUsername maybeEmail
-            WhoAmI   _ -> Handler.whoami
+
+            WhoAmI _ ->
+              Handler.whoami
 
 finalizeDID ::
   MonadIO m
