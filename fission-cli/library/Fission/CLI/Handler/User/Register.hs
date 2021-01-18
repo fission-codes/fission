@@ -31,9 +31,6 @@ import           Fission.CLI.Display.Success     as CLI.Success
 import           Fission.CLI.Environment         as Env
 import qualified Fission.CLI.Prompt              as Prompt
 
-type Errs = '[ ClientError
-             , Username.Invalid
-             ]
 register ::
   ( MonadIO          m
   , MonadLogger      m
@@ -53,15 +50,16 @@ register ::
   , IsMember ClientError (Errors m)
   , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
+  , Contains (Errors m) (Errors m)
   )
   => Maybe Username
   -> Maybe Email
-  -> m (Either (OpenUnion Errs) Username)
+  -> m Username
 register maybeUsername maybeEmail = do
   attempt (sendAuthedRequest User.whoami) >>= \case
     Right username -> do
       CLI.Success.alreadyLoggedInAs $ textDisplay username
-      Just username
+      return username
 
     Left _ ->
       createAccount maybeUsername maybeEmail
@@ -85,10 +83,11 @@ createAccount ::
   , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
   , Show (OpenUnion (Errors m))
+  , Contains (Errors m) (Errors m)
   )
   => Maybe Username
   -> Maybe Email
-  -> m (Either (OpenUnion Errs) Username)
+  -> m Username
 createAccount maybeUsername maybeEmail = do
   username <- case maybeUsername of
     Nothing    -> ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
@@ -108,7 +107,7 @@ createAccount maybeUsername maybeEmail = do
   attempt (sendAuthedRequest $ User.createWithDID form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
-      Just username
+      return username
 
     Left err -> do
       let
@@ -140,6 +139,4 @@ createAccount maybeUsername maybeEmail = do
 
       CLI.Error.put err $
         errMsg <> " Please try again or contact Fission support at https://fission.codes"
-        raise err
-      -- createAccount maybeUsername maybeEmail
-
+      raise err
