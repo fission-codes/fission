@@ -636,7 +636,8 @@ instance MonadEmail Server where
         , params = Email.TemplateOptions verifyUrl name
         }
 
-    liftIO $ runClientM (Email.sendEmail apiKey emailData) env
+    mapLeft Email.CouldNotSend <$>
+      liftIO (runClientM (Email.sendEmail apiKey emailData) env)
 
 pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do

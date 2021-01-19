@@ -27,9 +27,5 @@ handler Authorization { about = Entity _ User { userEmail = Nothing } } =
 
 handler Authorization { about = Entity userId User { userUsername = username, userEmail = Just email } } = do
   challenge <- Web.Err.ensureM $ Challenge.retrieve userId
-
-  sendVerificationEmail (Recipient email username) challenge >>= \case
-    Left _ ->
-      Web.Err.throw err500 { errBody = "Could not send verification email" }
-    Right _ ->
-      return NoContent
+  Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
+  return NoContent
