@@ -1,4 +1,4 @@
-module Fission.Web.Server.Handler.User.ResendEmail (handler) where
+module Fission.Web.Server.Handler.User.Email.Resend (handler) where
 
 import           Servant
 
