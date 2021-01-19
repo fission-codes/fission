@@ -41,6 +41,7 @@ whoami ::
   , Show    (OpenUnion (Errors m))
   , Display (OpenUnion (Errors m))
   , IsMember ClientError (Errors m)
+  , Contains (Errors m) (Errors m)
   )
   => m ()
 whoami = do
@@ -67,3 +68,4 @@ whoami = do
               _                 -> "Invalid content type."
 
       UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."
+      raise err

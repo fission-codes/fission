@@ -8,6 +8,7 @@ import qualified Data.Yaml                               as YAML
 import           Servant.Client.Core
 
 import qualified Network.DNS                             as DNS
+import qualified Network.IPFS.Process.Error              as IPFS.Process
 import qualified Network.IPFS.Types                      as IPFS
 
 import           Fission.Prelude
@@ -39,6 +40,7 @@ import qualified Fission.CLI.Parser.Config.IPFS          as IPFS
 type Errs =
   '[ SomeException
    , IPFS.UnableToConnect
+   , IPFS.Process.Error
    , ClientError
    , Key.Error
    , NotRegistered
@@ -71,10 +73,8 @@ interpret baseCfg cmd = do
 
     Init App.Init.Options {appDir, buildDir, maySubdomain, ipfsCfg = IPFS.Config {..}} -> do
       let
-        run' ::
-             FissionCLI errs Connected.Config a
-          -> FissionCLI errs Base.Config (Either (OpenUnion errs) a)
-        run' = Connected.run baseCfg timeoutSeconds
+        run' :: FissionCLI errs Connected.Config () -> FissionCLI errs Base.Config ()
+        run' = ensureM . Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
         Right Env {appURL} -> do
@@ -86,8 +86,7 @@ interpret baseCfg cmd = do
           case openUnionMatch errs of
             Just (_ :: NotFound FilePath) -> do
               logDebug @Text "Setting up new app"
-              _ <- run' $ Handler.appInit appDir buildDir maySubdomain
-              return ()
+              run' $ Handler.appInit appDir buildDir maySubdomain
 
             Nothing -> do
               logError @Text "Problem setting up new app"
@@ -95,13 +94,16 @@ interpret baseCfg cmd = do
 
     Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let
-        run' :: MonadIO m => FissionCLI errs Connected.Config a -> m ()
-        run' = void . Connected.run baseCfg timeoutSeconds
+        run' :: FissionCLI errs Connected.Config () -> FissionCLI errs Base.Config ()
+        run' = ensureM . Connected.run baseCfg timeoutSeconds
+
+        runIO :: FissionCLI errs Connected.Config a -> IO ()
+        runIO = void . Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
         Right Env {appURL} ->
-          run' $ Handler.publish watch run' appURL filePath updateDNS updateData
+          run' $ Handler.publish watch runIO appURL filePath updateDNS updateData
 
-        Left _ ->
-          CLI.Error.put (NotFound @URL)
-            "You have not set up an app. Please run `fission app register`"
+        Left _ -> do
+          CLI.Error.put (NotFound @URL) "You have not set up an app. Please run `fission app register`"
+          raise $ NotFound @URL

@@ -59,6 +59,7 @@ setup ::
   , IsMember ClientError (Errors m)
   , IsMember Key.Error (Errors m)
   , Show (OpenUnion (Errors m))
+  , Errors m `Contains` Errors m
   )
   => Maybe OS.Supported
   -> BaseUrl
