@@ -10,6 +10,7 @@ import           Fission.Web.Server.IPFS.DNSLink.Class          as DNSLink
 import           Fission.Web.Server.WNFS.Class
 
 import qualified Fission.Web.Server.Challenge.Creator.Class     as Challenge
+import qualified Fission.Web.Server.Challenge.Retriever.Class   as Challenge
 import qualified Fission.Web.Server.Challenge.Verifier.Class    as Challenge
 
 import qualified Fission.Web.Server.App.Domain                  as App.Domain
@@ -32,6 +33,7 @@ handler ::
   , User.Creator           m
   , User.Modifier          m
   , Challenge.Creator      m
+  , Challenge.Retriever    m
   , Challenge.Verifier     m
   , MonadWNFS              m
   , MonadTime              m

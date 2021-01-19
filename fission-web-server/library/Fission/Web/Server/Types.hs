@@ -610,6 +610,10 @@ instance Challenge.Creator Server where
   create email =
     runDB $ Challenge.create email
 
+instance Challenge.Retriever Server where
+  retrieve userId =
+    runDB $ Challenge.retrieve userId
+
 instance Challenge.Verifier Server where
   verify challenge =
     runDB $ Challenge.verify challenge
