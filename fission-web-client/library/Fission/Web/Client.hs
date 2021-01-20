@@ -10,7 +10,7 @@ module Fission.Web.Client
   , module Fission.Web.Client.Class
   ) where
 
-import qualified Crypto.PubKey.Ed25519                             as Ed25519
+import qualified Crypto.PubKey.Ed25519                  as Ed25519
 
 import           Servant.Client
 import           Servant.Client.Core
@@ -23,7 +23,7 @@ import           Fission.Web.Client.Auth
 import           Fission.Web.Client.Class
 import           Fission.Web.Client.JWT
 
-import           Fission.Web.Client.Internal.Orphanage.ClientError ()
+import           Fission.Internal.Orphanage.ClientError ()
 
 sendRequestM ::
   ( MonadWebClient m
@@ -35,8 +35,8 @@ sendRequestM ::
 sendRequestM clientAction = ensureM (sendRequest =<< clientAction)
 
 sendAuthedRequest ::
-  ( MonadIO        m
-  , MonadTime      m
+  -- ( MonadIO        m
+  ( MonadTime      m
   , MonadWebClient m
   , ServerDID      m
   , MonadWebAuth   m (AuthClientData auth)
@@ -51,8 +51,8 @@ sendAuthedRequest req = do
   ensureM $ sendRequest $ req auth
 
 attachAuth ::
-  ( MonadIO      m
-  , MonadTime    m
+  -- ( MonadIO      m
+  ( MonadTime    m
   , ServerDID    m
   , MonadWebAuth m (AuthClientData auth)
   , MonadWebAuth m Ed25519.SecretKey

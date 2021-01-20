@@ -27,6 +27,7 @@ import           Fission.Web.Server
 import qualified Fission.Web.Server.AWS.Types              as AWS
 import qualified Fission.Web.Server.Email.SendInBlue.Types as SIB
 import           Fission.Web.Server.Host.Types
+import qualified Fission.Web.Server.Relay.Store.Types      as Relay
 import           Fission.Web.Server.Types
 
 import qualified Fission.Web.Server.Heroku.ID.Types        as Hku
@@ -82,13 +83,15 @@ run ::
   -> HTTP.Manager
   -> Server a
   -> IO a
-run logFunc dbPool processCtx httpManager tlsManager action =
+run logFunc dbPool processCtx httpManager tlsManager action = do
+  linkRelayStoreVar <- atomically $ newTVar mempty
+  let config = Config {..}
+
   runServer config do
     logDebug $ textShow config
     action
-  where
-    config = Config {..}
 
+  where
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
 
@@ -155,8 +158,9 @@ mkConfig ::
   -> HTTP.Manager
   -> HTTP.Manager
   -> LogFunc
+  -> TVar Relay.Store
   -> Config
-mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
+mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Config {..}
   where
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just "drive")
@@ -217,15 +221,16 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc = Config {..}
 -}
 mkConfig' :: IO (Config, IO ())
 mkConfig' = do
-  processCtx  <- mkDefaultProcessContext
-  httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-  tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
+  processCtx        <- mkDefaultProcessContext
+  httpManager       <- HTTP.newManager HTTP.defaultManagerSettings
+  tlsManager        <- HTTP.newManager HTTP.tlsManagerSettings
+  linkRelayStoreVar <- atomically $ newTVar mempty
 
   -- A bit dirty; doesn't directly handle teardown
   (logFunc, close) <- newLogFunc . setLogUseTime True =<< logOptionsHandle stdout True
 
   withDBPool logFunc connectionInfo (PoolSize 4) \dbPool -> do
-    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc
+    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar
     return (cfg, close)
 
 connectionInfo :: ConnectionInfo

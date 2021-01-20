@@ -2,6 +2,8 @@
 module Fission.Prelude
   ( module Control.Lens
 
+  , module Control.Monad.Trans.Control
+
   , module Control.Monad.Logger
   , module Control.Monad.Time
 
@@ -57,6 +59,8 @@ import           Control.Monad.Logger                        (LogLevel (..),
                                                               logWithoutLoc)
 import           Control.Monad.Time
 
+import           Control.Monad.Trans.Control
+
 import           Control.Monad.Cleanup
 import           Control.Monad.Raise
 import           Control.Monad.Rescue
@@ -103,13 +107,10 @@ import           RIO                                         hiding (Handler,
                                                               (^.))
 
 import           Test.QuickCheck                             hiding
-                                                              (Result (..))
+                                                             (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
--- import           Web.PathPieces
-
 import           Fission.Internal.Log
--- import           Fission.Internal.MonadDB
 import           Fission.Internal.Orphanage.OpenUnion        ()
 import           Fission.Internal.Time
 import           Fission.Internal.UTF8                       (displayLazyBS,

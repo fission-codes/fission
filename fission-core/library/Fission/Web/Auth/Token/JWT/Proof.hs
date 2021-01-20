@@ -3,21 +3,23 @@ module Fission.Web.Auth.Token.JWT.Proof
   , signaturesMatch
   , resourceInSubset
   , potencyInSubset
+  , containsFact
 
   -- * Reexport
 
   , module Fission.Web.Auth.Token.JWT.Proof.Error
   ) where
 
-import qualified RIO.List as List
+import qualified RIO.List                                         as List
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT             as JWT
+import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.JWT.Proof.Error
+import           Fission.Web.Auth.Token.JWT.Types                 as JWT
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 delegatedInBounds :: JWT -> JWT -> Either Error JWT
 delegatedInBounds  jwt prfJWT = do
@@ -60,3 +62,13 @@ timeInSubset jwt prfJWT =
   where
     startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
     expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)
+
+containsFact :: JWT -> ([Fact] -> Either Error ()) -> Either Error JWT
+containsFact jwt factChecker =
+  jwt
+    |> claims
+    |> facts
+    |> factChecker
+    |> \case
+        Left err -> Left err
+        Right () -> Right jwt

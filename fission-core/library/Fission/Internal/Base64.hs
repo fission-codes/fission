@@ -11,7 +11,7 @@ import qualified RIO.ByteString         as BS
 import           Fission.Prelude
 
 toB64ByteString :: BA.ByteArrayAccess a => a -> ByteString
-toB64ByteString = BS64.encodeBase64' . toByteString
+toB64ByteString = BS64.encode . toByteString
 
 toByteString :: BA.ByteArrayAccess a => a -> ByteString
 toByteString = BS.pack . BA.unpack

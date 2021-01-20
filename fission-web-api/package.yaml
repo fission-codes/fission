@@ -100,7 +100,7 @@ dependencies:
   - http-media
   - ipfs
   - servant
-  - servant-auth #-server
+  - servant-auth
   - servant-client
   - servant-client-core
 

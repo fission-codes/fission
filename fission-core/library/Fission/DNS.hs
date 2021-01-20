@@ -1,21 +1,23 @@
-module Fission.DNS (splitRecord) where
+module Fission.DNS
+  ( splitRecord
+  , mergeSegments
+  ) where
+
+import qualified RIO.List        as List
+import           RIO.NonEmpty    as NonEmpty
+import qualified RIO.Text        as Text
 
 import           Fission.Prelude
 
-import           RIO.NonEmpty
-import qualified RIO.Text as Text
-import qualified RIO.List as List
-
-
--- if less than 256 bytes, return normal. 
+-- if less than 256 bytes, return normal.
 -- if larger, split into chunks & prefix with a 3-char decimal prefix  & semicolon delimiter ("001;")
 splitRecord :: Text -> NonEmpty Text
-splitRecord txt = 
+splitRecord txt =
   if Text.length txt <= txtRecordLimit
-    then 
+    then
       pure txt
 
-    else 
+    else
       fromMaybe (pure "") $ nonEmpty records
       where
         indexed = List.zip [0..] $ Text.chunksOf (txtRecordLimit - 4) txt
@@ -23,10 +25,28 @@ splitRecord txt =
 
 
 joinIndexed :: (Integer, Text) -> Text
-joinIndexed (index, txt) =  
+joinIndexed (index, txt) =
   paddingIndex <> ";" <> txt
   where
     paddingIndex = Text.takeEnd 3 (Text.replicate 2 "0" <> textDisplay index)
 
 txtRecordLimit :: Int
 txtRecordLimit = 255
+
+-- NOTE a bit information lossy, could be improved
+mergeSegments :: NonEmpty Text -> Text
+mergeSegments txts =
+  txts
+    |> fmap toIndexed
+    |> NonEmpty.sortBy (\(x, _) (y, _) -> compare x y)
+    |> foldr (\(_, txt) acc -> txt <> acc) ""
+
+toIndexed :: Text -> (Natural, Text)
+toIndexed txt =
+  case (delim, readMaybe (Text.unpack num)) of
+    (";", Just idx) -> (idx, body)
+    _               -> (0,   txt)
+
+  where
+    (rawIndex, body)  = Text.splitAt 4 txt
+    (num,      delim) = Text.splitAt 3 rawIndex

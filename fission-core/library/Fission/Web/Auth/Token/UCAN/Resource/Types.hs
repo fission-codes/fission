@@ -1,7 +1,7 @@
 module Fission.Web.Auth.Token.UCAN.Resource.Types (Resource (..)) where
 
 import           Fission.Prelude
- 
+
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
@@ -12,7 +12,7 @@ data Resource
   -- ^ Primary URL for an App
   | RegisteredDomain  (Scope DomainName)
   -- ^ Any domain name to which we have DNS access
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 instance Arbitrary Resource where
   arbitrary =

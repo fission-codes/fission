@@ -1,4 +1,3 @@
--- FIXME move to web-client
 module Fission.Web.Client.JWT
   ( mkAuthReq
   , ucan
@@ -34,13 +33,7 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Client.Auth
 
 -- NOTE Probably can be changed to `hoistClientMonad` at call site
-mkAuthReq ::
-  ( MonadIO      m
-  , MonadTime    m
-  , ServerDID    m
-  , MonadWebAuth m Ed25519.SecretKey
-  )
-  => m (Request -> Request)
+mkAuthReq :: (MonadTime m, ServerDID m, MonadWebAuth m Ed25519.SecretKey) => m (Request -> Request)
 mkAuthReq = do
   now        <- currentTime
   fissionDID <- getServerDID
@@ -80,6 +73,7 @@ ucan now fissionDID sk proof = JWT {..}
       , potency  = AppendOnly
       , resource = Subset (FissionFileSystem "/")
       , proof    = proof
+      , facts    = []
 
       -- Accounting for clock drift
       , nbf      = addUTCTime (secondsToNominalDiffTime (-30)) now

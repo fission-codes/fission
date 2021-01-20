@@ -17,51 +17,53 @@ import           Fission.User.DID.Types
 
 import           Fission.Web.Server.Host.Types
 
+import qualified Fission.Web.Server.AWS.Types              as AWS
+
 import qualified Fission.Web.Server.Heroku.ID.Types        as Heroku
 import qualified Fission.Web.Server.Heroku.Password.Types  as Heroku
 
-import qualified Fission.Web.Server.AWS.Types              as AWS
--- import           Fission.Web.Server.Types
-
 import qualified Fission.Web.Server.Email.SendInBlue.Types as SIB
+import qualified Fission.Web.Server.Relay.Store.Types      as Relay
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { processCtx     :: ProcessContext
-  , logFunc        :: LogFunc
+  { processCtx        :: ProcessContext
+  , logFunc           :: LogFunc
   --
-  , httpManager    :: HTTP.Manager
-  , tlsManager     :: HTTP.Manager
-  , dbPool         :: Pool SqlBackend
+  , httpManager       :: HTTP.Manager
+  , tlsManager        :: HTTP.Manager
+  , dbPool            :: Pool SqlBackend
   --
-  , ipfsPath       :: IPFS.BinPath
-  , ipfsURL        :: IPFS.URL
-  , ipfsRemotePeer :: IPFS.Peer
-  , ipfsTimeout    :: IPFS.Timeout
+  , ipfsPath          :: IPFS.BinPath
+  , ipfsURL           :: IPFS.URL
+  , ipfsRemotePeer    :: IPFS.Peer
+  , ipfsTimeout       :: IPFS.Timeout
   --
-  , herokuID       :: Heroku.ID
-  , herokuPassword :: Heroku.Password
+  , herokuID          :: Heroku.ID
+  , herokuPassword    :: Heroku.Password
   --
-  , awsAccessKey   :: AWS.AccessKey
-  , awsSecretKey   :: AWS.SecretKey
-  , awsMockRoute53 :: AWS.MockRoute53
+  , awsAccessKey      :: AWS.AccessKey
+  , awsSecretKey      :: AWS.SecretKey
+  , awsMockRoute53    :: AWS.MockRoute53
   --
-  , baseAppDomain  :: URL.DomainName
-  , baseAppZoneID  :: AWS.ZoneID
-  , appPlaceholder :: CID
+  , baseAppDomain     :: URL.DomainName
+  , baseAppZoneID     :: AWS.ZoneID
+  , appPlaceholder    :: CID
   --
-  , userRootDomain :: URL.DomainName
-  , userZoneID     :: AWS.ZoneID
-  , defaultDataCID :: CID
+  , userRootDomain    :: URL.DomainName
+  , userZoneID        :: AWS.ZoneID
+  , defaultDataCID    :: CID
   --
-  , sibApiKey      :: SIB.ApiKey
-  , sibUrl         :: Host
-  , sibTemplateId  :: SIB.TemplateId
+  , sibApiKey         :: SIB.ApiKey
+  , sibUrl            :: Host
+  , sibTemplateId     :: SIB.TemplateId
   --
-  , host           :: Host
-  , fissionDID     :: DID
-  , serverZoneID   :: AWS.ZoneID
-  , liveDriveURL   :: URL
+  , host              :: Host
+  , fissionDID        :: DID
+  , serverZoneID      :: AWS.ZoneID
+  , liveDriveURL      :: URL
+  --
+  , linkRelayStoreVar :: TVar Relay.Store
   }
 
 instance Show Config where
@@ -102,6 +104,8 @@ instance Show Config where
     , "  fissionDID        = " <> show fissionDID
     , "  serverZoneID      = " <> show serverZoneID
     , "  liveDriveURL      = " <> show liveDriveURL
+    --
+    , "  linkRelayStoreVar = **SOME RELAY STORE TVAR**"
     , "}"
     ]
 

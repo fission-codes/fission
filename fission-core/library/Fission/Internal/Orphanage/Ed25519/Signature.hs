@@ -18,7 +18,8 @@ instance Display Ed25519.Signature where
   textDisplay sig =
     sig
       |> Base64.toByteString
-      |> BS.B64.URL.encodeBase64Unpadded
+      |> BS.B64.URL.encodeUnpadded
+      |> decodeUtf8Lenient
       -- Initial human readable text
       |> UTF8.stripOptionalPrefix "Signature \""
       |> UTF8.stripOptionalPrefix "\""

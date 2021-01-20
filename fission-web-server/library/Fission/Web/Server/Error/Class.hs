@@ -4,6 +4,7 @@ module Fission.Web.Server.Error.Class (ToServerError (..)) where
 
 import qualified RIO.ByteString.Lazy                                as Lazy
 
+import           Servant.Client                                     (ClientError (..))
 import           Servant.Server                                     as Server
 
 import qualified Network.IPFS.Error                                 as IPFS
@@ -33,6 +34,8 @@ import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resol
 import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
 
 import qualified Fission.Web.Server.Error.Message                   as Error
+
+import           Fission.Internal.Orphanage.ClientError             ()
 
 class ToServerError err where
   toServerError :: err -> ServerError
@@ -77,7 +80,7 @@ instance ToServerError Int where
     504 -> err504
     505 -> err505
 
-    n -> error (show n <> " is not an error status code")
+    n   -> error (show n <> " is not an error status code")
 
 instance ToServerError IPFS.Error where
   toServerError = \case
@@ -128,6 +131,9 @@ instance Display (AlreadyExists entity) => ToServerError (AlreadyExists entity) 
 instance ToServerError (ActionNotAuthorized entity) where
   toServerError _ = err401
 
+instance ToServerError ClientError where
+  toServerError err = err502 { errBody = displayLazyBS err }
+
 instance ToServerError InvalidURL where
   toServerError err = err422 { errBody = displayLazyBS err }
 
@@ -162,6 +168,7 @@ instance ToServerError JWT.Proof.Error where
     ScopeOutOfBounds      -> err401 { errBody = displayLazyBS ScopeOutOfBounds      }
     PotencyEscelation     -> err401 { errBody = displayLazyBS PotencyEscelation     }
     TimeNotSubset         -> err422 { errBody = displayLazyBS TimeNotSubset         }
+    MissingExpectedFact   -> err422 { errBody = displayLazyBS MissingExpectedFact   }
     InvalidSignatureChain -> err422 { errBody = displayLazyBS InvalidSignatureChain }
 
 instance ToServerError JWT.Claims.Error where

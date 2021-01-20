@@ -4,19 +4,25 @@ module Fission.User.DID.Types
   , module Fission.User.DID.Method.Types
   ) where
 
-import qualified Data.Aeson.Types              as JSON
+import qualified Data.Aeson.Types                  as JSON
+import           Data.Swagger
 
-import           Data.Base58String.Bitcoin     as BS58.BTC
-import           Data.Binary                   hiding (encode)
-import qualified Data.ByteString.Base64        as BS64
+import           Data.Base58String.Bitcoin         as BS58.BTC
+import           Data.Binary                       hiding (encode)
+import qualified Data.ByteString.Base64            as BS64
+import           Data.Hashable                     (Hashable (..))
 
-import qualified RIO.ByteString                as BS
-import qualified RIO.Text                      as Text
+import qualified RIO.ByteString                    as BS
+import qualified RIO.Text                          as Text
 
-import qualified Fission.Internal.UTF8         as UTF8
+import           Servant.API
+
 import           Fission.Prelude
 
-import           Fission.Key                   as Key
+import qualified Fission.Internal.UTF8             as UTF8
+
+import           Fission.Error.AlreadyExists.Types
+import           Fission.Key                       as Key
 import           Fission.User.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
@@ -75,6 +81,21 @@ instance Arbitrary DID where
 
     return DID {..}
 
+instance Hashable DID where
+  hashWithSalt salt did = hashWithSalt salt $ textDisplay did
+
+instance ToParamSchema DID where
+  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+
+instance ToHttpApiData DID where
+  toUrlPiece = textDisplay
+
+instance FromHttpApiData DID where
+  parseUrlPiece txt =
+    case eitherDecodeStrict ("\"" <> encodeUtf8 txt <> "\"") of
+      Left  err -> Left $ Text.pack err
+      Right val -> Right val
+
 instance Display DID where -- NOTE `pk` here is base2, not base58
   textDisplay (DID method pk) = header <> UTF8.toBase58Text (BS.pack multicodecW8)
     where
@@ -85,7 +106,7 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 =
         case pk of
           Ed25519PublicKey ed  -> [0xed, 0x01] <> BS.unpack (encodeUtf8 (textDisplay ed))
-          RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeBase64Lenient . encodeUtf8 $ textDisplay rsa)
+          RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
                                {-   ^     ^     ^
                                     |     |     |
                                     |    "expect 373 Bytes", encoded in the mixed-endian format
@@ -107,12 +128,15 @@ instance FromJSON DID where
             Ed25519PublicKey <$> parseKeyW8s (BS.pack edKeyW8s)
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-            RSAPublicKey <$> parseKeyW8s (BS64.encodeBase64' $ BS.pack rsaKeyW8s)
+            RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
 
           nope ->
-            fail . show . BS64.encodeBase64 $ BS.pack nope <> " is not an acceptable did:key"
+            fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
         return $ DID Key pk
+
+instance Display (AlreadyExists DID) where
+  display _ = "DID already exists / account already created"
 
 parseKeyW8s :: FromJSON a => ByteString -> JSON.Parser a
 parseKeyW8s = parseJSON . toJSON . decodeUtf8Lenient

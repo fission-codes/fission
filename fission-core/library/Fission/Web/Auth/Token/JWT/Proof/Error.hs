@@ -9,6 +9,7 @@ data Error
   | ScopeOutOfBounds
   | PotencyEscelation
   | TimeNotSubset
+  | MissingExpectedFact
   | ResolverError JWT.Resolver.Error
   deriving (Show, Eq, Exception)
 
@@ -18,4 +19,5 @@ instance Display Error where
     ScopeOutOfBounds      -> "Path scope not in delegated rights"
     PotencyEscelation     -> "Potency escelation"
     TimeNotSubset         -> "Time bounds are not a subset"
+    MissingExpectedFact   -> "Expected fact not present"
     ResolverError resErr  -> "Unable to resolve CID proof: " <> display resErr

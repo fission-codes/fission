@@ -30,8 +30,9 @@ handler ::
   -> m DID
 handler req =
   case Token.get req of
-    Right (Token.Bearer token@(Bearer.Token jwt rawContent)) ->
-      JWT.check rawContent jwt >>= \case
+    Right (Token.Bearer token@(Bearer.Token jwt rawContent)) -> do
+      serverDID <- getServerDID
+      JWT.check serverDID rawContent jwt >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> textDisplay token
           Web.Error.throw err

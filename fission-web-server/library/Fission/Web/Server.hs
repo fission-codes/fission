@@ -41,16 +41,21 @@ import           Fission.Web.Server.Config.Types
 import           Fission.Web.Server.Types               as Fission
 
 import           Fission.Web.Server.Handler
+import qualified Fission.Web.Server.Handler.Relay       as Relay
+import           Fission.Web.Server.Handler.Relay.Types
+
 import qualified Fission.Web.Server.Host.Types          as Web
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Reflective
+import           Fission.Web.Server.Relay.Store.Class
 
 import           Fission.Internal.Orphanage.OctetStream ()
 import           Fission.Internal.Orphanage.PlainText   ()
 
 -- | Top level web API type. Handled by 'server'.
-type API = Swagger.API :<|> Fission.API
+type API    = Swagger.API :<|> Fission.API :<|> LinkWS
+type LinkWS = "user" :> "link" :> RelayWS
 
 -- | Run actions described by a @Fission@ type
 runServer :: MonadIO m => Config -> Fission.Server a -> m a
@@ -61,6 +66,7 @@ app ::
   , App.Content.Initializer   m
   , App.CRUD                  m
   , MonadReflectiveServer     m
+  , MonadRelayStore           m
   , MonadLinkedIPFS           m
   , MonadRemoteIPFS           m
   , MonadLocalIPFS            m
@@ -101,6 +107,7 @@ server ::
   , App.Content.Initializer   m
   , App.CRUD                  m
   , MonadReflectiveServer     m
+  , MonadRelayStore           m
   , MonadLinkedIPFS           m
   , MonadRemoteIPFS           m
   , MonadLocalIPFS            m
@@ -125,8 +132,10 @@ server ::
   )
   => Web.Host
   -> ServerT API m
-server appHost = Web.Swagger.handler fromHandler appHost
-            :<|> bizServer
+server appHost
+  =    Web.Swagger.handler fromHandler appHost
+  :<|> bizServer
+  :<|> Relay.relay
 
 bizServer ::
   ( App.Domain.Initializer    m

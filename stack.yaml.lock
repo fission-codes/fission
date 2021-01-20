@@ -19,34 +19,6 @@ packages:
   original:
     hackage: amazonka-1.6.1
 - completed:
-    hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
-    pantry-tree:
-      size: 332
-      sha256: a7ec2c54fddfa417ee2467f1131b1d83ad43cc29ddfd4b98869fc924e4b5e980
-  original:
-    hackage: servant-auth-0.4.0.0
-- completed:
-    hackage: servant-auth-server-0.4.6.0@sha256:b411b44f4252e91e5da2455d71a7113c8b5b8ff2d943d19b2ddedcfcf0392351,5111
-    pantry-tree:
-      size: 1376
-      sha256: 8cd29612112546a02085e2cb30dd5a72ea46ed81e644195c589d0b26652279cb
-  original:
-    hackage: servant-auth-server-0.4.6.0
-- completed:
-    hackage: servant-auth-swagger-0.2.10.1@sha256:6d5f1a4594c922fa8baccb0344de91108d57d1228ec5911723fce4340c27d129,2821
-    pantry-tree:
-      size: 408
-      sha256: b4b12628d1e2ad82c2eb5f09b4074414646104dabad87693b539a109938c5a41
-  original:
-    hackage: servant-auth-swagger-0.2.10.1
-- completed:
-    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
-    pantry-tree:
-      size: 381
-      sha256: c66e48f90cd9e6beda31ecfa8b2761c02ff3a4b6373638578202048e8c7cf6a1
-  original:
-    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3
-- completed:
     hackage: binary-instances-1.0.1@sha256:56bb2da1268415901d6ea3f46535b88b89459d7926fbfcca027e25e069ea6f2b,2647
     pantry-tree:
       size: 1035
@@ -54,12 +26,26 @@ packages:
   original:
     hackage: binary-instances-1.0.1
 - completed:
+    hackage: constraints-deriving-1.1.1.1@sha256:40a239cc58e3d1978590a780736144351d95f0f56232523ade5e145bda1213bb,4064
+    pantry-tree:
+      size: 3134
+      sha256: 401fb63192f1dcb03402def7f4ef05e6da9f001fc7b8024f0fd460680ce75089
+  original:
+    hackage: constraints-deriving-1.1.1.1
+- completed:
     hackage: cryptostore-0.2.1.0@sha256:9896e2984f36a1c8790f057fd5ce3da4cbcaf8aa73eb2d9277916886978c5b19,3881
     pantry-tree:
       size: 8596
       sha256: e392f8dded050690140636b81433fb350bd87dd21643dde9a2f0aa344cf038e5
   original:
     hackage: cryptostore-0.2.1.0
+- completed:
+    hackage: dimensions-2.1.0.0@sha256:c598a801f4ef24d13065a8f6a91b2b0d8f0668623bd4f7a866fa0606fe8b9885,2263
+    pantry-tree:
+      size: 1303
+      sha256: 9ca9bd767a26d86249f85ddeb3df58d3bb1b56b6a1007203d0f2cb34ccedf427
+  original:
+    hackage: dimensions-2.1.0.0
 - completed:
     hackage: happy-1.20.0@sha256:f99e612b29d68d784d7e193943a13466f0923de69452a2585081491efed0436b,5709
     pantry-tree:
@@ -102,6 +88,41 @@ packages:
       sha256: 722f36197e88f77cdb39357e6683607f35810ba3cfbf9c007490df81250f5f2b
   original:
     hackage: rescue-0.2.1
+- completed:
+    hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
+    pantry-tree:
+      size: 332
+      sha256: a7ec2c54fddfa417ee2467f1131b1d83ad43cc29ddfd4b98869fc924e4b5e980
+  original:
+    hackage: servant-auth-0.4.0.0
+- completed:
+    hackage: servant-auth-server-0.4.6.0@sha256:b411b44f4252e91e5da2455d71a7113c8b5b8ff2d943d19b2ddedcfcf0392351,5111
+    pantry-tree:
+      size: 1376
+      sha256: 8cd29612112546a02085e2cb30dd5a72ea46ed81e644195c589d0b26652279cb
+  original:
+    hackage: servant-auth-server-0.4.6.0
+- completed:
+    hackage: servant-auth-swagger-0.2.10.1@sha256:6d5f1a4594c922fa8baccb0344de91108d57d1228ec5911723fce4340c27d129,2821
+    pantry-tree:
+      size: 408
+      sha256: b4b12628d1e2ad82c2eb5f09b4074414646104dabad87693b539a109938c5a41
+  original:
+    hackage: servant-auth-swagger-0.2.10.1
+- completed:
+    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
+    pantry-tree:
+      size: 381
+      sha256: c66e48f90cd9e6beda31ecfa8b2761c02ff3a4b6373638578202048e8c7cf6a1
+  original:
+    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3
+- completed:
+    hackage: servant-websockets-2.0.0@sha256:6e9e3600bced90fd52ed3d1bf632205cb21479075b20d6637153cc4567000234,2253
+    pantry-tree:
+      size: 523
+      sha256: 085c6620bff7671bef1d969652a349271c3703fbf10dd753cb63ee1cd700bca5
+  original:
+    hackage: servant-websockets-2.0.0
 - completed:
     hackage: text-time-0.3.1@sha256:c4301ea47bcb72deb60b0be25cf6f6b693a34a862ea9a8e9bc8b9a750e0857e9,1757
     pantry-tree:
@@ -188,7 +209,7 @@ packages:
     hackage: tuples-0.1.0.0
 snapshots:
 - completed:
-    size: 562051
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/5.yaml
-    sha256: be105362ec57d665ea17fa574ab195c49bb1f9a5bd9016174ef83cd368fba253
-  original: nightly-2021-01-05
+    size: 562473
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/16.yaml
+    sha256: 64ef5ec1f5bc4bcd52b250f5b0c0c5f517a16c3e57a6baec0dd9742658a245b5
+  original: nightly-2021-01-16
