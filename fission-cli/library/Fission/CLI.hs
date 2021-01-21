@@ -56,7 +56,7 @@ type Errs
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
-  Parser.Options {fissionDID, fissionURL, cmd} <- liftIO $ execParser CLI.parserWithInfo
+  Parser.Options {fissionDID, fissionURL, cmd} <- liftIO $ customExecParser (prefs showHelpOnError) CLI.parserWithInfo
 
   let
     VerboseFlag isVerbose = getter cmd
