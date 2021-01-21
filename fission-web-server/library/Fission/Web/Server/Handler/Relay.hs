@@ -7,7 +7,7 @@
 
   +----------Handler.Relay----------+
   |                                 |
-  | Client ---[WebSocket]--- Server |
+  | Client<---[WebSocket]--->Server |
   |                                 |
   +---------------------------------+
 
@@ -22,7 +22,23 @@
   It also creates a per-user sent-message buffer to avoid sending messages to themselves.
   This variable is kept in the "sendBufferVar".
 
-  When something comes in over this user's websocket connection, we add its hash
+
+                               Internal Channels
+                                     (TChans)
+
+                             +---------[Msg]----> Outbound_C ---> WS.send(Client_C, Msg)
+          External Channel   |
+            (WebSocket)      +---------[Msg]----> Outbound_B ---> WS.send(Client_B, Msg)
+                             |
+  Client_A ----[Msg]---> Inbound_A ----[Msg]----> Outbound_A ---X (noop)
+                             |                        ^
+                      [Push hash(Msg)]                |
+                             |                        |
+                             V                        |
+                     sentBufferVar_A ----[Has Msg]----+
+
+
+When something comes in over this user's websocket connection, we add its hash
   to our sent message buffer, and push it through the channel. It appears for everyone
   listening to the other side(s) of this pipe. If the sender also gets this message,
   they remove it from the set (garbage collection) and noop. Everyone else pushes this
