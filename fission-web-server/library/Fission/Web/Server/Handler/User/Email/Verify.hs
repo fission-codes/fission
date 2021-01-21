@@ -1,4 +1,4 @@
-module Fission.Web.Server.Handler.User.VerifyEmail (handler) where
+module Fission.Web.Server.Handler.User.Email.Verify (handler) where
 
 import           Servant
 

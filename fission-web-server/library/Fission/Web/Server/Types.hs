@@ -610,6 +610,10 @@ instance Challenge.Creator Server where
   create email =
     runDB $ Challenge.create email
 
+instance Challenge.Retriever Server where
+  retrieve userId =
+    runDB $ Challenge.retrieve userId
+
 instance Challenge.Verifier Server where
   verify challenge =
     runDB $ Challenge.verify challenge
@@ -632,7 +636,8 @@ instance MonadEmail Server where
         , params = Email.TemplateOptions verifyUrl name
         }
 
-    liftIO $ runClientM (Email.sendEmail apiKey emailData) env
+    mapLeft Email.CouldNotSend <$>
+      liftIO (runClientM (Email.sendEmail apiKey emailData) env)
 
 pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do

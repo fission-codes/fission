@@ -71,6 +71,7 @@ app ::
   , MonadEmail                m
   , User.CRUD                 m
   , Challenge.Creator         m
+  , Challenge.Retriever       m
   , Challenge.Verifier        m
   , MonadDB                 t m
   , MonadLogger             t
@@ -110,6 +111,7 @@ server ::
   , MonadEmail                m
   , User.CRUD                 m
   , Challenge.Creator         m
+  , Challenge.Retriever       m
   , Challenge.Verifier        m
   , MonadDB                 t m
   , MonadLogger             t
@@ -141,6 +143,7 @@ bizServer ::
   , MonadEmail                m
   , User.CRUD                 m
   , Challenge.Creator         m
+  , Challenge.Retriever       m
   , Challenge.Verifier        m
   , MonadDB                 t m
   , MonadLogger             t

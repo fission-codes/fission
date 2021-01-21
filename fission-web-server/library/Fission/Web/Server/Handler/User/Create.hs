@@ -44,13 +44,8 @@ withDID User.Registration {username, email} DID {..} = do
   now       <- currentTime
   userId    <- Web.Err.ensureM $ User.create username publicKey email now
   challenge <- Web.Err.ensureM $ Challenge.create userId
-
-  sendVerificationEmail (Recipient email username) challenge >>= \case
-    Left _ ->
-      Web.Err.throw err500 { errBody = "Could not send verification email" }
-
-    Right _ ->
-      return NoContent
+  Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
+  return NoContent
 
 withPassword ::
   ( MonadDNSLink      m
@@ -68,9 +63,5 @@ withPassword User.Registration {username, password = Just pass, email} = do
   now <- currentTime
   userId <- Web.Err.ensureM $ User.createWithPassword username pass email now
   challenge <- Web.Err.ensureM $ Challenge.create userId
-
-  sendVerificationEmail (Recipient email username) challenge >>= \case
-    Left _ ->
-      Web.Err.throw err500 { errBody = "Could not send verification email" }
-    Right _ ->
-      return ()
+  Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
+  return ()
