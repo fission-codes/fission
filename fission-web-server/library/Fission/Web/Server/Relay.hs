@@ -68,7 +68,6 @@ outbound conn (ChannelOut chanOut) sentBufferVar = do
         else
           return $ Just msg
 
-    -- FIXME siwtch to monadpubsub
     case result of
       Nothing  -> noop
       Just msg -> WS.sendDataMessage conn msg

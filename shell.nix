@@ -15,6 +15,7 @@ pkgs.mkShell {
     # Data
     pkgs.ipfs
     pkgs.haskellPackages.postgresql-libpq
+    pkgs.openssl
     pkgs.postgresql
 
     hinotify

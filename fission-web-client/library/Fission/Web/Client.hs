@@ -35,7 +35,6 @@ sendRequestM ::
 sendRequestM clientAction = ensureM (sendRequest =<< clientAction)
 
 sendAuthedRequest ::
-  -- ( MonadIO        m
   ( MonadTime      m
   , MonadWebClient m
   , ServerDID      m
@@ -51,7 +50,6 @@ sendAuthedRequest req = do
   ensureM $ sendRequest $ req auth
 
 attachAuth ::
-  -- ( MonadIO      m
   ( MonadTime    m
   , ServerDID    m
   , MonadWebAuth m (AuthClientData auth)
