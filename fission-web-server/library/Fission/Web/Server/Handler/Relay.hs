@@ -38,7 +38,7 @@
                      sentBufferVar_A ----[Has Msg]----+
 
 
-When something comes in over this user's websocket connection, we add its hash
+  When something comes in over this user's websocket connection, we add its hash
   to our sent message buffer, and push it through the channel. It appears for everyone
   listening to the other side(s) of this pipe. If the sender also gets this message,
   they remove it from the set (garbage collection) and noop. Everyone else pushes this
