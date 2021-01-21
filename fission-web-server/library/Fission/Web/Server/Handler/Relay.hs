@@ -13,6 +13,8 @@
 
   The internal message routing happens separate from this websocket connection.
 
+  Then in an async process, we do all of the internal message distribution.
+
   'Relay.setup' grabs the intrenal server channel for the specifid topic (the DID).
   If one didn't exist, it creates an empty one. You now have a producer ("inwards")
   end of a pipe, and a consumer ("outwards") end of a pipe. You push new messages
@@ -21,6 +23,38 @@
 
   It also creates a per-user sent-message buffer to avoid sending messages to themselves.
   This variable is kept in the "sendBufferVar".
+
+
+  +-----------------[Server.Relay.inbound]---------------+
+  |                                                      |
+  |             WebSocket                                |
+  |  Client_A ----[Msg]----> inbound_A ---[Msg]---> chan |
+  |                             |                     |  |
+  |                     [Push hash(Msg)]              |  |
+  |                             |                     |  |
+  |                             V                     |  |
+  |                        sentBuffer_A               |  |
+  |                                                   |  |
+  +---------------------------------------------------|--+
+                                                      |
+  +----------------[Server.Relay.outbound]------------|--+
+  |                                                   |  |
+  |            WebSocket                              V  |
+  | Client_B <---[Msg]---- outbound_B <---[Msg]---- chan |
+  |                            ^                         |
+  |                            |                         |
+  |                     [Has hash(Msg)?]                 |
+  |                            |                         |
+  |                      sentBuffer_B                    |
+  |                                                      |
+  +------------------------------------------------------+
+
+
+  When something comes in over this user's websocket connection, we add its hash
+  to our sent message buffer, and push it through the channel. It appears for everyone
+  listening to the other side(s) of this pipe. If the sender also gets this message,
+  they remove it from the set (garbage collection) and noop. Everyone else pushes this
+  message through their websocket to the client.
 
 
                                Internal Channels      +----[No Msg]---- sendBuffer_C
@@ -37,12 +71,6 @@
                              V                        |
                      sentBufferVar_A ----[Has Msg]----+
 
-
-  When something comes in over this user's websocket connection, we add its hash
-  to our sent message buffer, and push it through the channel. It appears for everyone
-  listening to the other side(s) of this pipe. If the sender also gets this message,
-  they remove it from the set (garbage collection) and noop. Everyone else pushes this
-  message through their websocket to the client.
 
 -}
 module Fission.Web.Server.Handler.Relay (relay) where
