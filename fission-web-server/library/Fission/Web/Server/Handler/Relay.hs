@@ -23,9 +23,9 @@
   This variable is kept in the "sendBufferVar".
 
 
-                               Internal Channels
-                                     (TChans)
-
+                               Internal Channels      +----[No Msg]---- sendBuffer_C
+                                     (TChans)         |
+                                                      V
                              +---------[Msg]----> Outbound_C ---> WS.send(Client_C, Msg)
           External Channel   |
             (WebSocket)      +---------[Msg]----> Outbound_B ---> WS.send(Client_B, Msg)
