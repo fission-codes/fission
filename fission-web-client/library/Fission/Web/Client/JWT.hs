@@ -9,7 +9,7 @@ import qualified RIO.Text                                         as Text
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
 
 import           Servant.API                                      hiding
-                                                                   (addHeader)
+                                                                  (addHeader)
 import           Servant.Client.Core
 
 import           Fission.Prelude
@@ -71,7 +71,7 @@ ucan now fissionDID sk proof = JWT {..}
       , receiver = fissionDID
 
       , potency  = AppendOnly
-      , resource = Subset (FissionFileSystem "/")
+      , resource = Just (Subset (FissionFileSystem "/"))
       , proof    = proof
       , facts    = []
 
