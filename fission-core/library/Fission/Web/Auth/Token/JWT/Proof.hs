@@ -37,7 +37,7 @@ signaturesMatch jwt prfJWT =
 resourceInSubset :: JWT -> JWT -> Either Error JWT
 resourceInSubset jwt prfJWT =
   case ((jwt |> claims |> resource), (prfJWT |> claims |> resource)) of
-    (Subset (FissionFileSystem path), Subset (FissionFileSystem proofPath)) ->
+    (Just (Subset (FissionFileSystem path)), Just (Subset (FissionFileSystem proofPath))) ->
       if path `List.isPrefixOf` proofPath -- NOTE `List` because FilePath ~ String
         then Right jwt
         else Left ScopeOutOfBounds

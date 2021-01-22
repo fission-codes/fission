@@ -7,18 +7,20 @@ import           Fission.Error.NotFound.Types
 import           Fission.Authorization.ServerDID
 import           Fission.User.DID.Types
 
-import           Fission.Web.Auth.Token.JWT             as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver    as Proof
-import qualified Fission.Web.Auth.Token.JWT.Validation  as JWT
+import           Fission.Web.Auth.Token.JWT                         as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver                as Proof
+import qualified Fission.Web.Auth.Token.JWT.Validation              as JWT
 
-import qualified Fission.Web.Auth.Token.Bearer.Types    as Bearer
-import           Fission.Web.Auth.Token.JWT.Resolver    as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types                as Bearer
+import           Fission.Web.Auth.Token.JWT.Resolver                as JWT
 
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Server.Authorization.Types
-import qualified Fission.Web.Server.Error               as Web.Error
+import qualified Fission.Web.Server.Error                           as Web.Error
+import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
-import qualified Fission.Web.Server.User.Retriever      as User
+import qualified Fission.Web.Server.User.Retriever                  as User
 
 -- | Auth handler for delegated auth
 -- Ensures properly formatted token *and does check against DB*
@@ -54,5 +56,13 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} =
 
     Right JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} ->
       runDB (User.getByPublicKey pk) >>= \case
-        Just about -> return Authorization {sender = Right sender, ..}
-        Nothing    -> Web.Error.throw $ NotFound @User
+        Nothing ->
+          Web.Error.throw $ NotFound @User
+
+        Just about@(Entity userId _) ->
+          case resource of
+            Nothing  -> Web.Error.throw $ ActionNotAuthorized @Resource userId
+            Just res -> return Authorization { sender   = Right sender
+                                             , resource = res
+                                             , ..
+                                             }

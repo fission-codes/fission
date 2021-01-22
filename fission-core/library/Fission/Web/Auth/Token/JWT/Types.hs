@@ -127,7 +127,7 @@ data Claims = Claims
   { sender   :: DID
   , receiver :: DID
   -- Authorization Target
-  , resource :: Scope Resource
+  , resource :: Maybe (Scope Resource)
   , potency  :: Potency
   , proof    :: Proof
   -- 0.3.1
@@ -193,7 +193,7 @@ instance FromJSON Claims where
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
     --
-    resource <- obj .:  "rsc"
+    resource <- obj .:  "rsc" .!= Nothing
     potency  <- obj .:? "ptc" .!= AuthNOnly
     proof    <- obj .:? "prf" .!= RootCredential
     facts    <- obj .:? "fct" .!= []
