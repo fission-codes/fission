@@ -9,11 +9,13 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.curl
     pkgs.gnumake
+    unstable.niv
     pkgs.zlib
 
     # Data
     pkgs.ipfs
     pkgs.haskellPackages.postgresql-libpq
+    pkgs.openssl
     pkgs.postgresql
 
     hinotify
@@ -22,5 +24,8 @@ pkgs.mkShell {
     unstable.ghcid
     unstable.stack
     unstable.stylish-haskell
+    unstable.haskellPackages.hie-bios
+    unstable.haskell-language-server
+    unstable.haskellPackages.implicit-hie
   ];
 }

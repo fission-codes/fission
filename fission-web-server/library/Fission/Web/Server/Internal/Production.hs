@@ -28,8 +28,8 @@ import           Fission.Prelude
 import           Fission.Internal.App
 import           Fission.User.DID.Types
 
-import qualified Fission.Web.Server.Types                        as Fission.Server
 import qualified Fission.Web.Server.Types                        as Fission
+import qualified Fission.Web.Server.Types                        as Fission.Server
 
 import qualified Fission.Web.Server.DID.Publicize.Class          as ServerDID
 import           Fission.Web.Server.Domain                       as Domain
@@ -51,15 +51,15 @@ import qualified Fission.Web.Server.Heroku.ID.Types              as Hku
 import qualified Fission.Web.Server.Heroku.Password.Types        as Hku
 import qualified Fission.Web.Server.Sentry                       as Sentry
 
-import qualified Fission.Web.Server.Environment.Auth.Types       as Auth
 import qualified Fission.Web.Server.Environment.AWS.Types        as AWS
+import qualified Fission.Web.Server.Environment.Auth.Types       as Auth
 import           Fission.Web.Server.Environment.IPFS.Types       as IPFS
 import qualified Fission.Web.Server.Environment.SendInBlue.Types as SendInBlue
 import qualified Fission.Web.Server.Environment.Server.Types     as Server
 import qualified Fission.Web.Server.Environment.Storage.Types    as Storage
 import           Fission.Web.Server.Environment.Types
-import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
 import qualified Fission.Web.Server.Environment.WNFS.Types       as WNFS
+import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
 
 runInProdSimple :: Fission.Server () -> IO ()
 runInProdSimple action = runInProd \_ _ -> action
@@ -115,7 +115,8 @@ runInProd action = do
       runner       = runSettings' $ mkSettings logFunc port
       logFunc      = baseLogger <> condSentryLogger
 
-    withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool ->
+    withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
+      linkRelayStoreVar <- atomically $ newTVar mempty
       Fission.Server.runServer Fission.Server.Config {..} $ action condDebug runner
 
 start :: (Application -> Application) -> (Application -> IO ()) -> Fission.Server ()

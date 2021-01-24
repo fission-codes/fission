@@ -13,13 +13,10 @@ import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25
 import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
 
 import           Fission.Prelude
-import           Fission.SemVer.Types
 
 import           Fission.Key                                      as Key
--- FIXME rename user.did to did
-import qualified Fission.User.DID                                 as User
-
-import           Fission.Authorization.ServerDID.Class
+import           Fission.SemVer.Types
+import           Fission.User.DID                                 as User
 
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 
@@ -27,37 +24,34 @@ import           Fission.Web.Auth.Token.JWT.Claims.Error
 import           Fission.Web.Auth.Token.JWT.Header.Error
 import           Fission.Web.Auth.Token.JWT.Signature.Error
 
+import           Fission.Web.Auth.Token.JWT.Error                 as JWT
 import           Fission.Web.Auth.Token.JWT.Proof                 as JWT.Proof
+import           Fission.Web.Auth.Token.JWT.Types                 as JWT
 
 import qualified Fission.Web.Auth.Token.JWT.Signature.RS256.Types as RS256
 import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
 
-import           Fission.Web.Auth.Token.JWT                       as JWT
-import           Fission.Web.Auth.Token.JWT.Error                 as JWT
-
 check ::
   ( Proof.Resolver m
-  , ServerDID      m
   , MonadTime      m
   )
-  => JWT.RawContent
+  => DID
+  -> JWT.RawContent
   -> JWT
   -> m (Either JWT.Error JWT)
-check rawContent jwt = do
+check receiverDID rawContent jwt = do
   now <- currentTime
   case checkTime now jwt of
     Left err ->
       return $ Left err
 
     Right _  ->
-      checkReceiver jwt >>= \case
+      case checkReceiver receiverDID jwt of
         Left  err -> return $ Left err
         Right _   -> check' rawContent jwt now
 
 check' ::
-  ( ServerDID      m
-  , Proof.Resolver m
-  )
+  Proof.Resolver m
   => JWT.RawContent
   -> JWT
   -> UTCTime
@@ -67,18 +61,14 @@ check' raw jwt now =
     Left  err -> return $ Left err
     Right _   -> checkProof now jwt
 
-pureChecks ::
-     JWT.RawContent
-  -> JWT
-  -> Either JWT.Error JWT
+pureChecks :: JWT.RawContent -> JWT -> Either JWT.Error JWT
 pureChecks raw jwt = do
   _ <- checkVersion  jwt
   checkSignature raw jwt
 
-checkReceiver :: ServerDID m => JWT -> m (Either JWT.Error JWT)
-checkReceiver jwt@JWT {claims = JWT.Claims {receiver}} = do
-  serverDID <- getServerDID
-  return if receiver == serverDID
+checkReceiver :: DID -> JWT -> Either JWT.Error JWT
+checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} = do
+  if receiver == recipientDID
     then Right jwt
     else Left $ ClaimsError IncorrectReceiver
 
@@ -88,13 +78,7 @@ checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
     then Right jwt
     else Left $ JWT.HeaderError UnsupportedVersion
 
-checkProof ::
-  ( ServerDID      m
-  , Proof.Resolver m
-  )
-  => UTCTime
-  -> JWT
-  -> m (Either JWT.Error JWT)
+checkProof :: Proof.Resolver m => UTCTime -> JWT -> m (Either JWT.Error JWT)
 checkProof now jwt@JWT {claims = Claims {proof}} =
   case proof of
     RootCredential ->
@@ -122,7 +106,7 @@ checkProof now jwt@JWT {claims = Claims {proof}} =
           Right _  -> Right jwt
 
 checkTime :: UTCTime -> JWT -> Either JWT.Error JWT
-checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} = do
+checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} =
   if | now > exp -> Left $ JWT.ClaimsError Expired
      | now < nbf -> Left $ JWT.ClaimsError TooEarly
      | otherwise -> Right jwt

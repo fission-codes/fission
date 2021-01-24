@@ -2,6 +2,8 @@
 
 module Fission.Internal.Orphanage.RSA2048.Public () where
 
+import qualified System.IO.Unsafe         as Unsafe
+
 import qualified Crypto.PubKey.RSA        as RSA
 import qualified Crypto.Store.X509        as X509
 
@@ -23,6 +25,11 @@ import           Servant.API
 
 import           Fission.Prelude
 
+instance Arbitrary RSA.PublicKey where
+  arbitrary = do
+    exp <- elements [3, 5, 17, 257, 65537]
+    return . fst . Unsafe.unsafePerformIO $ RSA.generate 2048 exp
+
 instance Display RSA.PublicKey where
   textDisplay pk =
     X509.PubKeyRSA pk
@@ -39,7 +46,7 @@ instance ToHttpApiData RSA.PublicKey where
 
 instance FromHttpApiData RSA.PublicKey where
   parseUrlPiece txt =
-    case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeBase64Lenient $ encodeUtf8 txt) of
+    case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
       Right (Right (X509.PubKeyRSA pk, _)) -> Right pk
       err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
 

@@ -1,12 +1,16 @@
 module Fission.URL
   ( prefix'
   , zeroOrOneSubdomain
+  , toBaseUrl
+  , fromBaseUrl
   , module Fission.URL.DomainName
   , module Fission.URL.Subdomain
   , module Fission.URL.Types
   ) where
 
 import qualified RIO.Text                       as Text
+
+import           Servant.Client.Core.BaseUrl
 
 import           Fission.Prelude
 
@@ -27,3 +31,17 @@ zeroOrOneSubdomain url =
     [sub, domain, tld] -> Right $ URL (DomainName $ domain <> "." <> tld) (Just $ Subdomain sub)
     [domain, tld]      -> Right $ URL (DomainName $ domain <> "." <> tld) Nothing
     _ -> Left InvalidURL
+
+fromBaseUrl :: BaseUrl -> URL
+fromBaseUrl BaseUrl {..} =
+    URL { domainName = DomainName $ Text.pack baseUrlHost
+        , subdomain  = Nothing
+        }
+
+toBaseUrl :: Scheme -> URL -> Int -> BaseUrl
+toBaseUrl scheme url port =
+  BaseUrl { baseUrlScheme = scheme
+          , baseUrlHost   = show url
+          , baseUrlPort   = port
+          , baseUrlPath   = ""
+          }

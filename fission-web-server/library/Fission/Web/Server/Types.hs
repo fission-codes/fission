@@ -15,7 +15,7 @@ import           Servant.Client
 import           Servant.Server.Experimental.Auth
 
 import           Network.AWS                               as AWS hiding
-                                                                   (Request)
+                                                                  (Request)
 import           Network.AWS.Route53
 
 import qualified Network.IPFS                              as IPFS
@@ -51,9 +51,9 @@ import qualified Fission.Web.Server.Error                  as Web.Error
 import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
 import           Fission.Web.Server.IPFS.Linked
 
-import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.AWS                    as AWS
 import           Fission.Web.Server.AWS.Route53            as Route53
+import           Fission.Web.Server.Authorization.Types
 
 import           Fission.Web.Server.Heroku.Types           as Heroku
 
@@ -76,7 +76,6 @@ import           Fission.Web.Server.MonadDB
 
 import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver       as JWT
-import           Fission.Web.Server.Auth.Token.Basic.Class
 
 import           Fission.Authorization.ServerDID.Class
 
@@ -84,10 +83,12 @@ import           Fission.Web.Server.App.Content            as App.Content
 import           Fission.Web.Server.App.Domain             as App.Domain
 
 import           Fission.Web.Server.Challenge              as Challenge
+import qualified Fission.Web.Server.Domain                 as Domain
 import qualified Fission.Web.Server.Email                  as Email
 import           Fission.Web.Server.Email.Class
 
-import qualified Fission.Web.Server.Domain                 as Domain
+import           Fission.Web.Server.Auth.Token.Basic.Class
+import           Fission.Web.Server.Relay.Store.Class
 
 import           Fission.Web.Server.Config.Types
 
@@ -117,6 +118,9 @@ instance MonadDB (Transaction Server) Server where
   runDB transaction = do
     pool <- asks dbPool
     SQL.runSqlPool transaction pool
+
+instance MonadRelayStore Server where
+  getStoreVar = asks linkRelayStoreVar
 
 instance MonadAWS Server where
   liftAWS awsAction = do

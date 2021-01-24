@@ -1,4 +1,3 @@
--- FIXME make a UCAN project
 module Fission.Web.Auth.Token.JWT.Signature.Error (Error (..)) where
 
 import           Fission.Prelude

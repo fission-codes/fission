@@ -1,5 +1,5 @@
 name: fission-core
-version: '3.0.0.0'
+version: '3.1.0.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -91,6 +91,7 @@ dependencies:
 
   ## Capabilties ##
   - data-has
+  - monad-control
   - monad-logger
   - monad-time
 
@@ -100,6 +101,7 @@ dependencies:
   ## Cryptography ##
   - cryptonite
   - cryptostore
+  - HsOpenSSL
   - pem
   - RSA
 
@@ -109,10 +111,11 @@ dependencies:
   - asn1-encoding
   - asn1-types
   - base58string
-  - base64
+  - base64-bytestring
   - binary
   - bytestring
   - generic-lens
+  - hashable
   - lens
   - memory
   - QuickCheck

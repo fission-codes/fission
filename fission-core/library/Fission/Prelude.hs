@@ -2,6 +2,8 @@
 module Fission.Prelude
   ( module Control.Lens
 
+  , module Control.Monad.Trans.Control
+
   , module Control.Monad.Logger
   , module Control.Monad.Time
 
@@ -24,7 +26,6 @@ module Fission.Prelude
 
   , module Fission.Internal.Log
   , module Fission.Internal.Time
-  -- , module Fission.Internal.MonadDB
 
   , module Flow
 
@@ -32,8 +33,6 @@ module Fission.Prelude
   , module RIO.Process
   , module RIO.Time
   , module Test.QuickCheck
-
-  -- , module Web.PathPieces
 
   , Entity (..)
   , headMaybe
@@ -56,6 +55,8 @@ import           Control.Monad.Logger                        (LogLevel (..),
                                                               ToLogStr (..),
                                                               logWithoutLoc)
 import           Control.Monad.Time
+
+import           Control.Monad.Trans.Control
 
 import           Control.Monad.Cleanup
 import           Control.Monad.Raise
@@ -106,10 +107,7 @@ import           Test.QuickCheck                             hiding
                                                               (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
--- import           Web.PathPieces
-
 import           Fission.Internal.Log
--- import           Fission.Internal.MonadDB
 import           Fission.Internal.Orphanage.OpenUnion        ()
 import           Fission.Internal.Time
 import           Fission.Internal.UTF8                       (displayLazyBS,

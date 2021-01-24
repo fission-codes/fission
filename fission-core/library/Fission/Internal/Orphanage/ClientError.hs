@@ -1,9 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Web.Client.Internal.Orphanage.ClientError () where
+module Fission.Internal.Orphanage.ClientError () where
 
 import           RIO
-import           Servant.Client
+
+import           Servant.Client.Core
 
 instance Display ClientError where
   display = displayShow

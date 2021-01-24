@@ -25,11 +25,14 @@ data URL = URL
   , subdomain  :: Maybe Subdomain
   }
 
+instance Arbitrary URL where
+  arbitrary = URL <$> arbitrary <*> arbitrary
+
 instance Eq URL where
   urlA == urlB = textDisplay urlA == textDisplay urlB
 
-instance Arbitrary URL where
-  arbitrary = URL <$> arbitrary <*> arbitrary
+instance Ord URL where
+  urlA `compare` urlB = textDisplay urlA `compare` textDisplay urlB
 
 instance Display URL where
   display (URL domain Nothing)    = display domain

@@ -1,5 +1,5 @@
 name: fission-web-server
-version: '2.9.2.0'
+version: '2.10.0.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -90,53 +90,33 @@ dependencies:
   - rio-orphans
 
   ## Capabilties ##
-  - data-default-class
   - data-has
   - monad-logger
   - monad-time
   - mtl
   - resource-pool
-  - unliftio
 
-  ## Command Line ##
-  - envy
+  ## Concurrency ##
+  - stm
 
   ## Cryptography ##
   - bcrypt
   - cryptonite
-  - cryptostore
-  - pem
-  - RSA
 
   ## Data ##
   - aeson
   - aeson-casing
-  - ansi-terminal
-  - asn1-encoding
-  - asn1-types
-  - base58string
-  - base64 #-bytestring
-  - binary
+  - base64-bytestring
   - bytestring
   - generic-lens
   - lens
   - lens-aeson
-  - memory
-  - scientific
   - QuickCheck
   - quickcheck-instances
-  - random-bytestring
-  - regex-compat
   - text
-  - text-time
   - time
   - uuid
-  - uuid-types
   - vector
-  - word8
-  - world-peace
-  - utf8-string
-  - vault
   - yaml
 
   ## Database ##
@@ -155,8 +135,6 @@ dependencies:
 
   ## File System ##
   - file-embed
-  - filepath
-  - Glob
   - path-pieces
 
   ## Formatting ##
@@ -168,14 +146,11 @@ dependencies:
   - amazonka-route53
 
   ## Web ##
-  - dns
   - http-client
   - http-client-tls
   - http-media
   - http-types
   - ipfs
-  - mime-types
-  - network-uri
   - raven-haskell
   - servant
   - servant-auth-server
@@ -184,8 +159,8 @@ dependencies:
   - servant-client-core
   - servant-server
   - servant-swagger
-  - servant-swagger-ui
   - servant-swagger-ui-redoc
+  - servant-websockets
   - swagger2
   - wai
   - wai-cors
@@ -193,7 +168,7 @@ dependencies:
   - wai-logger
   - warp
   - warp-tls
-  - x509
+  - websockets
 
 library:
   source-dirs: library

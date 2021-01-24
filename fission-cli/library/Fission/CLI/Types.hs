@@ -5,64 +5,65 @@ module Fission.CLI.Types
   , runFissionCLI
   ) where
 
-import           Crypto.Hash                                       as Crypto
-import qualified Crypto.PubKey.Ed25519                             as Ed25519
+import           Crypto.Hash                             as Crypto
+import qualified Crypto.PubKey.Ed25519                   as Ed25519
 import           Crypto.Random
 
-import qualified Data.Yaml                                         as YAML
+import qualified Data.Yaml                               as YAML
 
-import           Control.Monad.Catch                               as Catch
+import           Control.Monad.Catch                     as Catch
 
-import qualified RIO.ByteString.Lazy                               as Lazy
+import qualified RIO.ByteString.Lazy                     as Lazy
 import           RIO.Directory
 import           RIO.FilePath
-import qualified RIO.Text                                          as Text
+import qualified RIO.Text                                as Text
 
-import qualified Network.DNS                                       as DNS
-import           Network.HTTP.Client                               as HTTP
-import           Network.IPFS                                      as IPFS
-import qualified Network.IPFS.Process.Error                        as Process
-import           Network.IPFS.Types                                as IPFS
+import qualified Network.DNS                             as DNS
+import           Network.HTTP.Client                     as HTTP
+import           Network.IPFS                            as IPFS
+import qualified Network.IPFS.Process.Error              as Process
+import           Network.IPFS.Types                      as IPFS
 
 import           Servant.Client
 
 import qualified Turtle
 
-import           Fission.Prelude                                   hiding (mask, uninterruptibleMask)
+import           Fission.Prelude                         hiding (mask,
+                                                          uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-import qualified Fission.Key.Error                                 as Key
+import qualified Fission.Key.Error                       as Key
 import           Fission.User.DID.Types
 import           Fission.Web.Client.HTTP.Class
 
-import qualified Fission.CLI.Base.Types                            as Base
+import qualified Fission.CLI.Base.Types                  as Base
 import           Fission.CLI.Bootstrap
-import qualified Fission.CLI.Connected.Types                       as Connected
+import qualified Fission.CLI.Connected.Types             as Connected
 
-import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
-import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
+import           Fission.CLI.IPFS.Daemon                 as IPFS.Daemon
+import           Fission.CLI.IPFS.Ignore                 as IPFS.Ignore
 
-import           Fission.CLI.Key.Ed25519                           as Ed25519
-import           Fission.CLI.Key.Store                             as Key.Store
+import           Fission.CLI.Key.Ed25519                 as Ed25519
+import           Fission.CLI.Key.Store                   as Key.Store
 
-import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
-import           Fission.Web.Auth.Token.JWT                        as JWT
+import qualified Fission.Web.Auth.Token.Bearer.Types     as Bearer
+import           Fission.Web.Auth.Token.JWT              as JWT
 import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.JWT                            as JWT
+import qualified Fission.Web.Client.JWT                  as JWT
 
-import qualified Fission.CLI.Display.Loader                        as CLI
+import qualified Fission.CLI.Display.Loader              as CLI
 import           Fission.CLI.Environment
 import           Fission.CLI.Environment.Path
 
-import           Fission.Internal.Orphanage.BaseUrl                ()
-import           Fission.Internal.Orphanage.DNS.DNSError           ()
-import           Fission.Internal.Orphanage.OpenUnion              ()
+import           Fission.Internal.Orphanage.BaseUrl      ()
+import           Fission.Internal.Orphanage.DNS.DNSError ()
+import           Fission.Internal.Orphanage.OpenUnion    ()
 
-import           Fission.Web.Client.Internal.Orphanage.ClientError ()
+import           Fission.Internal.Orphanage.ClientError  ()
 
 newtype FissionCLI errs cfg a = FissionCLI
   { unFissionCLI :: RescueT errs (RIO cfg) a }
