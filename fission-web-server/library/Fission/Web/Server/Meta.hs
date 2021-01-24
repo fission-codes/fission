@@ -1,6 +1,6 @@
 module Fission.Web.Server.Meta
   ( package
-  , module Fission.Internal.Meta.Package
+  , module Fission.Internal.Meta.Package.Types
   ) where
 
 import           Data.FileEmbed
