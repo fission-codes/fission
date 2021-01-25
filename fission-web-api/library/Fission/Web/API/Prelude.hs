@@ -7,4 +7,3 @@ module Fission.Web.API.Prelude
 import           RIO
 import           Servant.API
 import           Servant.Client
-
