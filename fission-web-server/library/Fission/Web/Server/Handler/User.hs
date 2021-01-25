@@ -19,8 +19,8 @@ import qualified Fission.Web.Server.User.Creator.Class          as User
 import qualified Fission.Web.Server.User.Modifier.Class         as User
 
 import qualified Fission.Web.Server.Handler.User.Create         as Create
-import qualified Fission.Web.Server.Handler.User.DID            as DID
 import qualified Fission.Web.Server.Handler.User.DataRoot       as DataRoot
+import qualified Fission.Web.Server.Handler.User.DID            as DID
 import qualified Fission.Web.Server.Handler.User.Email          as Email
 import qualified Fission.Web.Server.Handler.User.ExchangeKey    as ExchangeKey
 import qualified Fission.Web.Server.Handler.User.Password.Reset as Password.Reset
