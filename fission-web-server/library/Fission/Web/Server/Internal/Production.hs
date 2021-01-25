@@ -86,10 +86,10 @@ runInProd action = do
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
 
-    ipfsPath       = env |> ipfs |> binPath
-    ipfsURL        = env |> ipfs |> url
-    ipfsRemotePeer = env |> ipfs |> remotePeer
-    ipfsTimeout    = env |> ipfs |> IPFS.timeout
+    ipfsPath        = env |> ipfs |> binPath
+    ipfsURL         = env |> ipfs |> url
+    ipfsRemotePeers = env |> ipfs |> remotePeers
+    ipfsTimeout     = env |> ipfs |> IPFS.timeout
 
     awsAccessKey   = accessKey
     awsSecretKey   = secretKey
