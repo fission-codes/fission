@@ -29,7 +29,7 @@ import qualified Fission.CLI.Environment.OS                         as OS
 
 import qualified Fission.CLI.Base.Types                             as Base
 
-import qualified Fission.CLI.Handler                                as Handler
+-- import qualified Fission.CLI.Handler                                as Handler
 import qualified Fission.CLI.Handler.Setup                          as Setup
 
 import           Fission.CLI.Release
@@ -38,14 +38,15 @@ import qualified Fission.CLI.Remote                                 as Remote
 import           Fission.CLI.Parser                                 as CLI
 import           Fission.CLI.Parser.Command.Setup.Types             as Setup
 import           Fission.CLI.Parser.Command.Types
-import           Fission.CLI.Parser.Command.User.Register.Types     as Register
-import           Fission.CLI.Parser.Command.User.Types
+-- import           Fission.CLI.Parser.Command.User.Register.Types     as Register
+-- import           Fission.CLI.Parser.Command.User.Types
 import           Fission.CLI.Parser.Types                           as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
 import qualified Fission.CLI.App                                    as App
 import           Fission.CLI.Types
-import qualified Fission.CLI.User                                   as User
+
+import qualified Fission.CLI.Handler.User                           as User
 
 import qualified Fission.CLI.Internal.ServerDID                     as ServerDID
 

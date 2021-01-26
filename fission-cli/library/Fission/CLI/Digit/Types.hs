@@ -1,9 +1,11 @@
 module Fission.CLI.Digit.Types (Digit (..)) where
 
 import           Data.Scientific
-import           Prelude         (Enum (..))
+import           Prelude             (Enum (..))
 
-import           Fission.Prelude hiding (Enum)
+import           Fission.Prelude     hiding (Enum)
+
+import           Fission.Emoji.Class
 
 data Digit
   = Zero
@@ -63,3 +65,16 @@ instance FromJSON Digit where
         if int >= 0 && int <= 10
           then pure $ toEnum int
           else fail "PIN elements must be single digits"
+
+instance ToEmoji Digit where
+  toEmoji = \case
+    Zero  -> "0️⃣"
+    One   -> "1️⃣"
+    Two   -> "2️⃣"
+    Three -> "3️⃣"
+    Four  -> "4️⃣"
+    Five  -> "5️⃣"
+    Six   -> "6️⃣"
+    Seven -> "7️⃣"
+    Eight -> "8️⃣"
+    Nine  -> "9️⃣"
