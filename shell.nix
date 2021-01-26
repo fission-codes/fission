@@ -16,6 +16,10 @@ pkgs.mkShell {
     pkgs.gnumake
     unstable.niv
 
+    pkgs.ncurses
+    pkgs.ncurses.dev.out
+    pkgs.ncurses.out
+
     pkgs.lzma.dev   
     pkgs.lzma.out
 
@@ -42,8 +46,8 @@ pkgs.mkShell {
 
   shellHook = ''
     export LANG=C.UTF8
-
+  
     echo "Welcome to the"
-    ${pkgs.figlet}/bin/figlet "Fission Project Shell" | lolcat -a -s 50
+    ${pkgs.figlet}/bin/figlet "Fission Shell" | lolcat -a -s 50
   '';
 }
