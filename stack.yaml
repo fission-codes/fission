@@ -1,6 +1,6 @@
-resolver: nightly-2021-01-20
+resolver: lts-17.0
 
-# allow-newer: true
+allow-newer: true
 
 packages:
   - fission-cli
@@ -10,9 +10,8 @@ packages:
   - fission-web-server
 
 extra-deps:
-  - alex-3.2.5
+  - alex-3.2.6
   - amazonka-1.6.1
-  - binary-instances-1.0.1
   - constraints-deriving-1.1.1.1
   - cryptostore-0.2.1.0
   - dimensions-2.1.0.0
@@ -29,17 +28,15 @@ extra-deps:
   - servant-websockets-2.0.0
   - text-time-0.3.1
   - unliftio-core-0.1.2.0
-    #   - unliftio-core-0.2.0.1
 
-  # For ip-1.7.2
-  - ip-1.7.2
-  - bytebuild-0.3.6.0
-  - byteslice-0.2.4.0
+  # For ipfs-1.1.5.1
+  - ip-1.7.3
+  - bytebuild-0.3.7.0
+  - byteslice-0.2.5.0
   - bytesmith-0.3.7.0
   - contiguous-0.5.1
   - natural-arithmetic-0.1.2.0
   - primitive-offset-0.2.0.0
-  - primitive-unlifted-0.1.3.0
   - run-st-0.1.1.0
   - tuples-0.1.0.0
 

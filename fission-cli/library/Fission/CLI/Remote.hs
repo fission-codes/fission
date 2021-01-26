@@ -1,6 +1,7 @@
 module Fission.CLI.Remote
   ( getRemoteURL
   , getRemoteBaseUrl
+  , getNameService
   --
   , fromText
   , toBaseUrl
@@ -30,6 +31,9 @@ getRemoteBaseUrl = toBaseUrl <$> getRemote
 getRemoteURL :: MonadRemote m => m URL
 getRemoteURL = toURL <$> getRemote
 
+getNameService :: MonadRemote m => m URL
+getNameService = toNameService <$> getRemote
+
 --
 
 fromText :: Text -> Maybe Remote
@@ -54,6 +58,15 @@ toBaseUrl = \case
 
 toURL :: Remote -> URL
 toURL = URL.fromBaseUrl . toBaseUrl
+
+--
+
+toNameService :: Remote -> URL
+toNameService = \case
+  Production  -> URL "fission.name"    Nothing
+  Staging     -> URL "fissionuser.net" Nothing
+  Development -> URL "localhost"       Nothing
+  Custom url  -> URL.fromBaseUrl url
 
 --
 

@@ -45,7 +45,7 @@ import           Fission.CLI.Key.Store             as Key
 
 import qualified Fission.CLI.Handler.User.Register as User
 
-setup ::
+setup :: forall m .
   ( MonadIO          m
   , MonadEnvironment m
   , MonadWebClient   m
@@ -69,6 +69,8 @@ setup ::
   , m `Raises` Username.Invalid
 
   , IsMember ClientError (Errors m)
+  , IsMember Key.Error   (Errors m)
+
   , Show (OpenUnion (Errors m))
   , Errors m `Contains` Errors m
   )
@@ -93,6 +95,7 @@ setup maybeOS fissionURL maybeUsername maybeEmail = do
   Display.putOk "Done"
 
   where
+    getUsername :: ByteString -> m Username
     getUsername "" = do
       logDebug @Text "Setting up new account"
       User.register maybeUsername maybeEmail

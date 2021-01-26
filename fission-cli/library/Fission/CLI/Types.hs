@@ -342,10 +342,10 @@ instance (HasLogFunc cfg, HasField' "remote" cfg Remote) => MonadNameService (Fi
   getByUsername username = do
     logDebug $ "Fetching DID for " <> display username
 
-    rs        <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
-    remoteURL <- getRemoteURL
+    rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+    nameURL <- getNameService
 
-    let url = toDNS username remoteURL
+    let url = toDNS username nameURL
 
     liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
       Left _ ->
@@ -588,11 +588,14 @@ instance forall errs cfg msg .
     undefined -- FIXME
 
   fromSecurePayload rsaSK PubSub.Handshake {iv, sessionKey = EncryptedPayload keyInRSA, msg = tokenInAES} = do
+    logDebug @Text "Decrypting RSA-secured PubSub.Session payload (Handshake)"
     RSA.OAEP.decryptSafer oaepParams rsaSK (Lazy.toStrict keyInRSA) >>= \case
       Left rsaError ->
         return . Left $ CannotDecryptRSA rsaError
 
       Right symmetricKeyActual -> do
+        logDebug @Text "Decrypted session key successfully"
+
         let
           sessionKey = Symmetric.Key symmetricKeyActual
 
@@ -600,8 +603,9 @@ instance forall errs cfg msg .
           Left cryptoError ->
             return . Left $ CannotDecrypt cryptoError
 
-          Right bs ->
-            case eitherDecodeStrict bs of
+          Right bs -> do
+            logDebug $ "Decrypted still-serialized brearer token: " <> bs
+            case eitherDecode $ encode ("Bearer " <> decodeUtf8Lenient bs) of
               Left err          -> return . Left $ UnableToDeserialize err
               Right bearerToken -> return $ Right PubSub.Session {..}
 

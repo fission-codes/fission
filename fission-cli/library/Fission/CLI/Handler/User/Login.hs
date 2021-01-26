@@ -153,7 +153,7 @@ login ::
   => Username
   -> m ()
 login username = do
-  ensureNotLoggedIn
+  -- FIXME ensureNotLoggedIn
 
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
@@ -165,22 +165,23 @@ login username = do
     baseURL = BaseUrl Https "runfission.net" 443 "/user/link" -- FIXME check env
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
+    logDebug @Text "🤝 Device linking handshake: Step 1"
     aesConn <- secure conn () \rsaConn@Secure.Connection {key} -> reattempt 10 do
       let
         sessionDID = DID Key (RSAPublicKey $ RSA.private_pub key)
 
-      -- Handshake step 2
+      logDebug @Text "🤝 Device linking handshake: Step 2"
       broadcastRaw conn sessionDID
 
       reattempt 10 do
-        -- Handshake step 3
+        logDebug @Text "🤝 Device linking handshake: Step 3"
         PubSub.Session
           { bearerToken = Bearer.Token {jwt, rawContent}
           , sessionKey
           } <- secureListenJSON rsaConn
 
-        -- Handshake step 4
-        ensureM $ UCAN.check myDID rawContent jwt
+        logDebug @Text "🤝 Device linking handshake: Step 4"
+        ensureM $ UCAN.check sessionDID rawContent jwt
         -- FIXME waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
         ensure $ UCAN.containsFact jwt \facts ->
           if any (== SessionKey sessionKey) facts
@@ -190,15 +191,15 @@ login username = do
         return Secure.Connection {conn, key = sessionKey}
 
     -- Step 5
-    pin' <- PIN.create
-    let
-      pinStep = PINStep myDID pin'
+    logDebug @Text "🤝 Device linking handshake: Step 5"
+    pin <- PINStep myDID <$> PIN.create
 
-    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pin'
-    secureBroadcastJSON aesConn pinStep
+    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pin
+    secureBroadcastJSON aesConn pin
 
     -- STEP 6
     reattempt 100 do
+      logDebug @Text "🤝 Device linking handshake: Step 6"
       -- ld@LinkData {..} <- secureListenJSON aesConn
       -- AES.Payload  {secretMessage, iv} <- listenJSON conn
       -- msgBS <- ensure $ Symmetric.decrypt aesKey iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ Lazy.toStrict $ cipherLBS secretMessage)

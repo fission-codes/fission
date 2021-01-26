@@ -67,5 +67,5 @@ whoami = do
               DecodeFailure _ _ -> "Trouble decoding the registration response."
               _                 -> "Invalid content type."
 
-      UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.ssh/fission` and try again."
+      UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.config/fission/key/machine.ed25519` and try again."
       raise err

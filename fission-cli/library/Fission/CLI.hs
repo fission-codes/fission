@@ -29,7 +29,9 @@ import qualified Fission.CLI.Environment.OS                         as OS
 
 import qualified Fission.CLI.Base.Types                             as Base
 
+import qualified Fission.CLI.Handler                                as Handler
 import qualified Fission.CLI.Handler.Setup                          as Setup
+
 import           Fission.CLI.Release
 import qualified Fission.CLI.Remote                                 as Remote
 
@@ -63,7 +65,7 @@ type BaseErrs
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
-  Parser.Options {fissionDID, fissionURL, cmd} <- liftIO $ customExecParser (prefs showHelpOnError) CLI.parserWithInfo
+  Parser.Options {fissionDID, remote, cmd} <- liftIO $ customExecParser (prefs showHelpOnError) CLI.parserWithInfo
 
   let
     VerboseFlag isVerbose = getter cmd
@@ -114,12 +116,7 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
           App.interpret baseCfg subCmd
 
         User subCmd ->
-          case subCmd of
-            Register Register.Options {maybeUsername, maybeEmail} ->
-              void $ Handler.register maybeUsername maybeEmail
-
-            WhoAmI _ ->
-              Handler.whoami
+          User.interpret baseCfg subCmd
 
 finalizeDID :: MonadIO m => Maybe DID -> Base.Config -> m (Either (OpenUnion Errs) DID)
 finalizeDID (Just did) _ =
