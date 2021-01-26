@@ -21,3 +21,23 @@ fission-web-client   fission-web-server
           |
     fission-cli
 ```
+
+### `fission-core`
+
+Core data types, helper functions, `Fission.Prelude`
+
+### `fission-web-api`
+
+Declarative definitions of our web API. The contract between the web client and server.
+
+### `fission-web-client`
+
+Web client functions, classes, helper functions
+
+### `fission-cli`
+
+CLI interface to our service
+
+### `fission-server`
+
+Web server, database, 3rd party integrations
