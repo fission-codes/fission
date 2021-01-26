@@ -7,4 +7,37 @@
 
 Seamlessly deploy websites and store secure user data
 
-This project can build multiple binaries. Please refer to the README for the specific package (e.g. fission-cli, fission-core).
+This project can build multiple binaries. Please refer to the README for the specific package (e.g. fission-cli, fission-core). Here is how the projects are related to each other:
+
+```
+           fission-core
+                 ^
+                 |
+          fission-web-api
+          ^             ^
+          |             |
+fission-web-client   fission-web-server
+          ^
+          |
+    fission-cli
+```
+
+### `fission-core`
+
+Core data types, helper functions, `Fission.Prelude`
+
+### `fission-web-api`
+
+Declarative definitions of our web API. The contract between the web client and server.
+
+### `fission-web-client`
+
+Web client functions, classes, helper functions
+
+### `fission-cli`
+
+CLI interface to our service
+
+### `fission-server`
+
+Web server, database, 3rd party integrations

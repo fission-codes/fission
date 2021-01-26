@@ -1,4 +1,4 @@
-# Fission Core
+# Fission Web Server
 
 ![Continuous Integration](https://github.com/fission-suite/fission/workflows/Continuous%20Integration/badge.svg)
 ![License](https://img.shields.io/github/license/fission-suite/fission)

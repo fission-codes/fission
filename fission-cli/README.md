@@ -20,16 +20,15 @@ Or to build from source:
 ```shell
 # Dependencies
 brew install stack
-brew install postgresql
 
 # Go to the Fission repo
 cd $FISSION_REPO
 
 # Build & install
-stack install --no-nix fission-cli:fission
+stack install fission-cli:fission
 
 # Build only
-stack build --no-nix fission-cli:fission 
+stack build fission-cli:fission 
 ```
 
 Once you've built the CLI, it is installed in `~/.local/bin/fission`. If you already have an existing fission key in `~/.ssh`, copy it as follows:
@@ -45,8 +44,6 @@ Now run `fission setup` to install the Fission-controlled IPFS node.
 Grab the latest binary for your operating system from our [release page](https://github.com/fission-suite/fission/releases).
 
 You'll find the most up to date instructions for [installation](https://guide.fission.codes/hosting/installation) and [getting started](https://guide.fission.codes/hosting/getting-started) in our [Guide](https://guide.fission.codes).
-
-If using Linux, install `libpq-dev`
 
 ### Seamless Deployments
 Deployments are just one step: `fission app publish`
@@ -70,12 +67,9 @@ If you'd like to redeploy everytime you change a file, use `fission app publish 
 
 Install [Haskell Stack](https://docs.haskellstack.org/en/stable/README/#how-to-install).
 
-Install PostgreSQL database.
-
 On MacOS with Homebrew:
 
 `brew install stack`
-`brew install postgresql`
 
 ### Build
 
