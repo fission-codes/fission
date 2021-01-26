@@ -28,7 +28,10 @@ import qualified Fission.Internal.Base64.URL                       as B64.URL
 import qualified Fission.Internal.UTF8                             as UTF8
 
 import           Fission.Error.Types
+
 import qualified Fission.JSON                                      as JSON
+
+import           Fission.Emoji.Class
 
 import           Fission.Key.EncryptedWith.Types
 import           Fission.Key.IV.Error                              as IV
@@ -73,30 +76,12 @@ import qualified Fission.CLI.PubSub.Secure.Payload.Error           as SecurePayl
 import qualified Fission.CLI.PubSub.Secure.Session.Handshake.Types as Session
 import qualified Fission.CLI.PubSub.Secure.Session.Types           as PubSub
 
-import           Fission.CLI.Digit
+import           Fission.CLI.Digit.Types
 
--- import qualified Fission.Web.Auth.Token.UCAN                as UCAN
+import qualified Fission.CLI.PIN.Payload.Types                     as PIN
 
--- import           Fission.Error.AlreadyExists.Types
-
--- import           Fission.PubSub                             as PubSub
--- import           Fission.PubSub.Secure                      as PubSub.Secure
-
--- import qualified Fission.WNFS.Access                        as WNFS
-
--- import qualified Fission.WNFS.Access.Mutation.Store.Class   as WNFS.Mutation
--- import qualified Fission.WNFS.Access.Query.Store.Class      as WNFS.Query
-
-
--- import qualified Fission.CLI.Linking.PIN                    as PIN
--- import           Fission.CLI.Linking.Types
-
--- import           Fission.Web.Auth.Token                     as Auth
-
--- import           Fission.Key.Symmetric.AES256.Payload.Types
-
-
--- import           Fission.Web.Server.Error.ActionNotAuthorized.Types
+import qualified Fission.CLI.User                                  as User
+import qualified Fission.CLI.User.Link.Payload.Types               as User.Link
 
 type Errs =
   '[ AlreadyExists DID
@@ -124,8 +109,8 @@ login ::
   , MonadNameService    m
   , MonadPubSub m
 
-  , MonadSecured m (Symmetric.Key AES256) PINStep
-  , MonadSecured m (Symmetric.Key AES256) LinkData
+  , MonadSecured m (Symmetric.Key AES256) PIN.Payload
+  , MonadSecured m (Symmetric.Key AES256) User.Link.Payload
   , MonadSecured m RSA.PrivateKey PubSub.Session
 
   , MonadPubSubSecure m RSA.PrivateKey
@@ -156,7 +141,7 @@ login ::
   => Username
   -> m ()
 login username = do
-  -- FIXME ensureNotLoggedIn
+  -- FIXME User.ensureNotLoggedIn
 
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
@@ -194,86 +179,20 @@ login username = do
         return Secure.Connection {conn, key = sessionKey}
 
     logDebug @Text "🤝 Device linking handshake: Step 5"
-    pinStep <- PINStep myDID <$> PIN.create
+    pinStep <- PIN.Payload myDID <$> PIN.create
 
-    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pinStep
+    UTF8.putTextLn $ "Confirmation code: " <> toEmoji pinStep
     secureBroadcastJSON aesConn pinStep
 
     reattempt 100 do
       logDebug @Text "🤝 Device linking handshake: Step 6"
-      LinkData
+      User.Link.Payload
         { bearer = Bearer.Token {jwt, rawContent}
         , readKey
         } <- secureListenJSON aesConn
 
       ensureM $ UCAN.check myDID rawContent jwt
       localUCAN <- ensureM $ UCAN.getRoot jwt
+
       -- FIXME WNFS.login username myDID readKey ucanRaw sig
-      return ()
-
-data PINStep = PINStep
-  { did :: DID
-  , pin :: PIN
-  }
-  deriving (Show)
-
-instance Display PINStep where
-  textDisplay PINStep {pin = PIN {..}} = toEmojiSeq [a, b, c, d, e, f] -- FIXME not sure about this
-
-instance ToJSON PINStep where
-  toJSON PINStep {did, pin} =
-    object [ "did" .= did
-           , "pin" .= pin
-           ]
-
-instance FromJSON PINStep where
-  parseJSON = withObject "PINStep" \obj -> do
-    did <- obj .: "did"
-    pin <- obj .: "pin"
-    return PINStep {..}
-
-data LinkData = LinkData
-  { readKey :: Symmetric.Key AES256
-  , bearer  :: Bearer.Token
-  }
-  deriving Eq
-
-instance ToJSON LinkData where
-  toJSON LinkData {readKey, bearer = Bearer.Token {rawContent}} =
-    object [ "readKey" .= readKey
-           , "ucan"    .= rawContent
-           ]
-
-instance FromJSON LinkData where
-  parseJSON = withObject "LinkData" \obj -> do
-    readKey <- obj .: "readKey"
-    -- ucanRaw <- obj .: "ucan"
-    -- ucanJWT <- obj .: "ucan" -- Yes, twice
-    rawUCAN :: Text <-  obj .: "ucan"
-    bearer <- parseJSON $ String ("bearer " <> rawUCAN)
-    -- -- case eitherDecode $ encode ("bearer " <> rawUCAN) of
-      --Left err     -> fail err
-      -- Right bearer -> return LinkData {..}
-    return LinkData {..}
-
--- FIXME move to better module
-ensureNotLoggedIn ::
-  ( MonadIO        m
-  , MonadTime      m
-  , MonadWebClient m
-  , ServerDID      m
-  , MonadWebAuth   m Auth.Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , MonadCleanup   m
-  , m `Raises` ClientError
-  , m `Raises` AlreadyExists DID
-  )
-  => m ()
-ensureNotLoggedIn =
-  attempt (sendAuthedRequest User.whoami) >>= \case
-    Right username -> do
-      CLI.Success.alreadyLoggedInAs username
-      raise $ AlreadyExists @DID
-
-    Left _ ->
       return ()
