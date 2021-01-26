@@ -55,7 +55,6 @@ instance FromJSON Handshake where
 
     ivTxt <- obj .: "iv"
 
-    -- FIXME do we need to base64 decode the IV??? Doesn't seem so
     case makeIV . Base64.decodeLenient $ encodeUtf8 ivTxt of
       Nothing -> fail "Invalid (IV AES256)"
       Just iv -> return Handshake { iv

@@ -67,7 +67,7 @@ register maybeUsername maybeEmail =
     Left _ ->
       createAccount maybeUsername maybeEmail
 
-createAccount :: forall m .
+createAccount ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadEnvironment m
