@@ -21,9 +21,8 @@ instance ToJSON Payload where
 
 instance FromJSON Payload where
   parseJSON = withObject "Payload" \obj -> do
-    readKey         <- obj .: "readKey"
-    rawUCAN :: Text <- obj .: "ucan"
-
-    bearer <- parseJSON $ String ("bearer " <> rawUCAN)
+    readKey <- obj .: "readKey"
+    rawUCAN <- obj .: "ucan"
+    bearer  <- parseJSON $ String ("bearer " <> rawUCAN)
 
     return Payload {..}

@@ -49,10 +49,8 @@ instance FromJSON (Payload expected) where
     encMsg :: expected `EncryptedWith` Symmetric.Key AES256 <- obj .: "msg"
     ivTxt <- obj .: "iv"
 
-    let
-      secretMessage = EncryptedWith.fromBase64 encMsg
+    let secretMessage = EncryptedWith.fromBase64 encMsg
 
-    -- FIXME do we need to base64 decode the IV??? Doesn't seem so
     case makeIV . Base64.decodeLenient $ encodeUtf8 ivTxt of
       Nothing -> fail "Invalid (IV AES256)"
       Just iv -> return Payload {..}

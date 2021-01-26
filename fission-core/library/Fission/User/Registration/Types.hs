@@ -16,7 +16,7 @@ data Registration = Registration
   { username   :: Username
   , email      :: Email
   , password   :: Maybe Password
-  , exchangePK :: !(Maybe RSA.PublicKey)
+  , exchangePK :: Maybe RSA.PublicKey
   }
 
 instance Arbitrary Registration where
