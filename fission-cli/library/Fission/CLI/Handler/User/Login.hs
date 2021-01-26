@@ -73,6 +73,8 @@ import qualified Fission.CLI.PubSub.Secure.Payload.Error           as SecurePayl
 import qualified Fission.CLI.PubSub.Secure.Session.Handshake.Types as Session
 import qualified Fission.CLI.PubSub.Secure.Session.Types           as PubSub
 
+import           Fission.CLI.Digit
+
 -- import qualified Fission.Web.Auth.Token.UCAN                as UCAN
 
 -- import           Fission.Error.AlreadyExists.Types
@@ -123,6 +125,7 @@ login ::
   , MonadPubSub m
 
   , MonadSecured m (Symmetric.Key AES256) PINStep
+  , MonadSecured m (Symmetric.Key AES256) LinkData
   , MonadSecured m RSA.PrivateKey PubSub.Session
 
   , MonadPubSubSecure m RSA.PrivateKey
@@ -190,37 +193,30 @@ login username = do
 
         return Secure.Connection {conn, key = sessionKey}
 
-    -- Step 5
     logDebug @Text "🤝 Device linking handshake: Step 5"
-    pin <- PINStep myDID <$> PIN.create
+    pinStep <- PINStep myDID <$> PIN.create
 
-    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pin
-    secureBroadcastJSON aesConn pin
+    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pinStep
+    secureBroadcastJSON aesConn pinStep
 
-    -- STEP 6
     reattempt 100 do
       logDebug @Text "🤝 Device linking handshake: Step 6"
-      -- ld@LinkData {..} <- secureListenJSON aesConn
+      ld@LinkData {..} <- secureListenJSON aesConn
       -- AES.Payload  {secretMessage, iv} <- listenJSON conn
       -- msgBS <- ensure $ Symmetric.decrypt aesKey iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ Lazy.toStrict $ cipherLBS secretMessage)
       -- FIXME LinkData {..} <- ensure $ eitherDecodeStrict msgBS
-      let ucanRaw = undefined
+      -- let ucanRaw = undefined
       -- logDebug $ show -- FIXME ucanRaw
       -- FIXME getting invalid signature from FE; confirmed with JWT.io
       -- ensureM $ UCAN.check myDID ucanRaw ucanJWT
-      let ucanJWT = undefined
+      -- let ucanJWT = undefined
+      logDebug @Text ">>>>>>>>>>>>> LINKDATA CHECKS OUT"
       localUCAN@UCAN.JWT {claims = UCAN.Claims {sender}, sig} <- ensureM $ UCAN.getRoot ucanJWT
       logDebug $ show localUCAN
 
       if sender == targetDID
         then undefined -- FIXME WNFS.login username myDID readKey ucanRaw sig
         else undefined -- FIXME raise "unauthorized" -- FIXME
-
--- newtype Throwaway = Throwaway DID
---   deriving newtype (Eq, Show, Display)
---
--- instance ToJSON Throwaway where
---   toJSON (Throwaway did) = Null -- String "TEMPORARY_EXCHANGE_KEY" --  object ["didThrowaway" .= did]
 
 data PINStep = PINStep
   { did :: DID
@@ -229,7 +225,7 @@ data PINStep = PINStep
   deriving (Show)
 
 instance Display PINStep where
-  display PINStep {..} = "PINStep{" <> display did <> ", " <>  "}"
+  textDisplay PINStep {pin = PIN {..}} = toEmojiSeq [a, b, c, d, e, f] -- FIXME not sure about this
 
 instance ToJSON PINStep where
   toJSON PINStep {did, pin} =
@@ -243,6 +239,26 @@ instance FromJSON PINStep where
     did <- obj .: "did"
     pin <- obj .: "pin"
     return PINStep {..}
+
+data LinkData = LinkData
+  { readKey :: Symmetric.Key AES256
+  , ucanRaw :: UCAN.RawContent
+  , ucanJWT :: UCAN.JWT
+  }
+  deriving Eq
+
+instance ToJSON LinkData where
+  toJSON LinkData {..} =
+    object [ "readKey" .= readKey
+           , "ucan"    .= ucanRaw
+           ]
+
+instance FromJSON LinkData where
+  parseJSON = withObject "LinkData" \obj -> do
+    readKey <- obj .: "readKey"
+    ucanRaw <- obj .: "ucan"
+    ucanJWT <- obj .: "ucan" -- Yes, twice
+    return LinkData {..}
 
 -- type instance SecurePayload (Symmetric.Key AES256) PINStep = () -- FIXME
 

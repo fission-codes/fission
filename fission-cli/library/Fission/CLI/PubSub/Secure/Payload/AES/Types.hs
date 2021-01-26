@@ -37,8 +37,8 @@ instance Show (Payload expected) where
 
 instance ToJSON (Payload msg) where
   toJSON Payload {..} =
-    object [ "iv"            .= encodedIV
-           , "secretMessage" .= encodedMsg
+    object [ "iv"  .= encodedIV
+           , "msg" .= encodedMsg
            ]
     where
       encodedIV  = decodeUtf8Lenient . Base64.encode $ ByteArray.convert iv
@@ -47,7 +47,6 @@ instance ToJSON (Payload msg) where
 instance FromJSON (Payload expected) where
   parseJSON = withObject "SessionPayload" \obj -> do
     encMsg :: expected `EncryptedWith` Symmetric.Key AES256 <- obj .: "msg"
-    -- secretMessage <- obj .: "secretMessage" -- FIXME???
     ivTxt <- obj .: "iv"
 
     let
