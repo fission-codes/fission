@@ -201,22 +201,15 @@ login username = do
 
     reattempt 100 do
       logDebug @Text "🤝 Device linking handshake: Step 6"
-      ld@LinkData {..} <- secureListenJSON aesConn
-      -- AES.Payload  {secretMessage, iv} <- listenJSON conn
-      -- msgBS <- ensure $ Symmetric.decrypt aesKey iv (EncryptedPayload $ Lazy.fromStrict $ Base64.decodeLenient $ Lazy.toStrict $ cipherLBS secretMessage)
-      -- FIXME LinkData {..} <- ensure $ eitherDecodeStrict msgBS
-      -- let ucanRaw = undefined
-      -- logDebug $ show -- FIXME ucanRaw
-      -- FIXME getting invalid signature from FE; confirmed with JWT.io
-      -- ensureM $ UCAN.check myDID ucanRaw ucanJWT
-      -- let ucanJWT = undefined
-      logDebug @Text ">>>>>>>>>>>>> LINKDATA CHECKS OUT"
-      localUCAN@UCAN.JWT {claims = UCAN.Claims {sender}, sig} <- ensureM $ UCAN.getRoot ucanJWT
-      logDebug $ show localUCAN
+      LinkData
+        { bearer = Bearer.Token {jwt, rawContent}
+        , readKey
+        } <- secureListenJSON aesConn
 
-      if sender == targetDID
-        then undefined -- FIXME WNFS.login username myDID readKey ucanRaw sig
-        else undefined -- FIXME raise "unauthorized" -- FIXME
+      ensureM $ UCAN.check myDID rawContent jwt
+      localUCAN <- ensureM $ UCAN.getRoot jwt
+      -- FIXME WNFS.login username myDID readKey ucanRaw sig
+      return ()
 
 data PINStep = PINStep
   { did :: DID
@@ -235,32 +228,33 @@ instance ToJSON PINStep where
 
 instance FromJSON PINStep where
   parseJSON = withObject "PINStep" \obj -> do
-    -- FIXME double check
     did <- obj .: "did"
     pin <- obj .: "pin"
     return PINStep {..}
 
 data LinkData = LinkData
   { readKey :: Symmetric.Key AES256
-  , ucanRaw :: UCAN.RawContent
-  , ucanJWT :: UCAN.JWT
+  , bearer  :: Bearer.Token
   }
   deriving Eq
 
 instance ToJSON LinkData where
-  toJSON LinkData {..} =
+  toJSON LinkData {readKey, bearer = Bearer.Token {rawContent}} =
     object [ "readKey" .= readKey
-           , "ucan"    .= ucanRaw
+           , "ucan"    .= rawContent
            ]
 
 instance FromJSON LinkData where
   parseJSON = withObject "LinkData" \obj -> do
     readKey <- obj .: "readKey"
-    ucanRaw <- obj .: "ucan"
-    ucanJWT <- obj .: "ucan" -- Yes, twice
+    -- ucanRaw <- obj .: "ucan"
+    -- ucanJWT <- obj .: "ucan" -- Yes, twice
+    rawUCAN :: Text <-  obj .: "ucan"
+    bearer <- parseJSON $ String ("bearer " <> rawUCAN)
+    -- -- case eitherDecode $ encode ("bearer " <> rawUCAN) of
+      --Left err     -> fail err
+      -- Right bearer -> return LinkData {..}
     return LinkData {..}
-
--- type instance SecurePayload (Symmetric.Key AES256) PINStep = () -- FIXME
 
 -- FIXME move to better module
 ensureNotLoggedIn ::
