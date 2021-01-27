@@ -11,6 +11,7 @@ data Environment = Environment
   , binPath     :: IPFS.BinPath       -- ^ Path to local IPFS binary
   , gateway     :: IPFS.Gateway       -- ^ Domain Name of IPFS Gateway
   , remotePeers :: NonEmpty IPFS.Peer -- ^ Remote Peer to connect to
+  , clusterUrl  :: IPFS.URL           -- ^ IPFS Cluster client URL (may be remote)
   } deriving Show
 
 instance FromJSON Environment where
@@ -20,5 +21,6 @@ instance FromJSON Environment where
     gateway     <- obj .:? "gateway" .!= "ipfs.runfission.com"
     url         <- obj .:  "url" >>= parseJSON . String
     remotePeers <- obj .:  "remotePeers"
+    clusterUrl  <- obj .:  "clusterUrl" >>= parseJSON . String
 
     return Environment {..}

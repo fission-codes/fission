@@ -38,6 +38,7 @@ data Config = Config
   , ipfsURL           :: IPFS.URL
   , ipfsRemotePeers   :: NonEmpty IPFS.Peer
   , ipfsTimeout       :: IPFS.Timeout
+  , clusterURL        :: IPFS.URL
   --
   , herokuID          :: Heroku.ID
   , herokuPassword    :: Heroku.Password
@@ -80,6 +81,7 @@ instance Show Config where
     , "  ipfsURL           = " <> show ipfsURL
     , "  ipfsRemotePeers   = " <> show ipfsRemotePeers
     , "  ipfsTimeout       = " <> show ipfsTimeout
+    , "  clusterURL        = " <> show clusterURL
     --
     , "  herokuID          = " <> show herokuID
     , "  herokuPassword    = " <> show herokuPassword

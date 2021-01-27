@@ -90,6 +90,7 @@ runInProd action = do
     ipfsURL         = env |> ipfs |> url
     ipfsRemotePeers = env |> ipfs |> remotePeers
     ipfsTimeout     = env |> ipfs |> IPFS.timeout
+    clusterURL      = env |> ipfs |> clusterUrl
 
     awsAccessKey   = accessKey
     awsSecretKey   = secretKey
