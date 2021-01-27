@@ -3,48 +3,47 @@ let
   pkgs     = import sources.nixpkgs  {};
   unstable = import sources.unstable {};
   hinotify = if pkgs.stdenv.isDarwin then pkgs.haskellPackages.hfsevents else pkgs.haskellPackages.hinotify;
+  ghc      = pkgs.ghc;
 in
 
-pkgs.mkShell {
-  nativeBuildInputs = [pkgs.pkg-config];
-
+pkgs.haskell.lib.buildStackProject {
+  inherit ghc;
+  name = "Fisson";
   buildInputs = [
-    pkgs.figlet
-    pkgs.lolcat
-
-    pkgs.curl
+    # Basics
     pkgs.gnumake
     unstable.niv
 
-    pkgs.ncurses
+    # Crypto
+    pkgs.openssl.dev
+    # pkgs.openssl.out
+
+    # CLI
     pkgs.ncurses.dev.out
-    pkgs.ncurses.out
-
-    pkgs.lzma.dev   
-    pkgs.lzma.out
-
-    # pkgs.zlib.dev
-    # pkgs.zlib.out
 
     # Data
     pkgs.ipfs
     pkgs.haskellPackages.postgresql-libpq
-    pkgs.openssl.dev
-    pkgs.openssl.out
+    pkgs.lzma.dev   
+    pkgs.lzma.out
     pkgs.postgresql
 
     hinotify
 
-    # Haskell
+    # Haskell Tooling
     unstable.ghcid
     unstable.stack
     unstable.stylish-haskell
     unstable.haskellPackages.hie-bios
     unstable.haskell-language-server
     unstable.haskellPackages.implicit-hie
+
+    # Fun
+    pkgs.figlet
+    pkgs.lolcat
   ];
 
-  shellHook = ''
+   shellHook = ''
     export LANG=C.UTF8
   
     echo "Welcome to the"
