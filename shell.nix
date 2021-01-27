@@ -19,7 +19,7 @@ pkgs.haskell.lib.buildStackProject {
     # pkgs.openssl.out
 
     # CLI
-    pkgs.ncurses.dev.out
+    pkgs.ncurses.dev #.out
 
     # Data
     pkgs.ipfs

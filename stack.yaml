@@ -43,5 +43,6 @@ extra-deps:
   - tuples-0.1.0.0
 
 nix:
-  enable: true
+  enable:     true
+  pure:       true
   shell-file: shell.nix
