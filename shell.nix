@@ -6,7 +6,7 @@ let
   ghc      = pkgs.ghc;
 in
 
-pkgs.haskell.lib.buildStackProject {
+unstable.haskell.lib.buildStackProject {
   inherit ghc;
   name = "Fisson";
   buildInputs = [
@@ -16,27 +16,29 @@ pkgs.haskell.lib.buildStackProject {
 
     # Crypto
     pkgs.openssl.dev
-    # pkgs.openssl.out
+    pkgs.openssl.out
 
     # CLI
-    pkgs.ncurses.dev #.out
+    pkgs.ncurses.dev.out
 
     # Data
     pkgs.ipfs
     pkgs.haskellPackages.postgresql-libpq
     pkgs.lzma.dev   
     pkgs.lzma.out
+    pkgs.zlib.dev
+    pkgs.zlib.out
     pkgs.postgresql
 
     hinotify
 
     # Haskell Tooling
-    unstable.ghcid
-    unstable.stack
-    unstable.stylish-haskell
-    unstable.haskellPackages.hie-bios
-    unstable.haskell-language-server
-    unstable.haskellPackages.implicit-hie
+    # unstable.ghcid
+    # unstable.stack
+    # unstable.stylish-haskell
+    # unstable.haskellPackages.hie-bios
+    # unstable.haskell-language-server
+    # unstable.haskellPackages.implicit-hie
 
     # Fun
     pkgs.figlet
