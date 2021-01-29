@@ -296,7 +296,7 @@ instance MonadDNSLink Server where
       dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
 
 instance MonadLinkedIPFS Server where
-  getLinkedPeers = pure <$> asks ipfsRemotePeer
+  getLinkedPeers = asks ipfsRemotePeers
 
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
@@ -320,7 +320,7 @@ instance IPFS.MonadLocalIPFS Server where
 
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
-    peerID       <- asks ipfsRemotePeer
+    peerID       <- head <$> asks ipfsRemotePeers
     IPFS.URL url <- asks ipfsURL
     manager      <- asks httpManager
 

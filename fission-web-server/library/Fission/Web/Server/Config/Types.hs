@@ -36,7 +36,7 @@ data Config = Config
   --
   , ipfsPath          :: IPFS.BinPath
   , ipfsURL           :: IPFS.URL
-  , ipfsRemotePeer    :: IPFS.Peer
+  , ipfsRemotePeers   :: NonEmpty IPFS.Peer
   , ipfsTimeout       :: IPFS.Timeout
   --
   , herokuID          :: Heroku.ID
@@ -78,7 +78,7 @@ instance Show Config where
     --
     , "  ipfsPath          = " <> show ipfsPath
     , "  ipfsURL           = " <> show ipfsURL
-    , "  ipfsRemotePeer    = " <> show ipfsRemotePeer
+    , "  ipfsRemotePeers   = " <> show ipfsRemotePeers
     , "  ipfsTimeout       = " <> show ipfsTimeout
     --
     , "  herokuID          = " <> show herokuID
