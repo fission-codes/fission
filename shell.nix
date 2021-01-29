@@ -60,12 +60,20 @@ in
 unstable.haskell.lib.buildStackProject {
   inherit ghc;
   name = "Fisson";
-  nativeBuildInputs = deps.common ++ deps.crypto ++ deps.cli ++ deps.data ++ deps.macos ++ deps.haskell ++ deps.fun;
+  nativeBuildInputs = builtins.concatLists [
+    deps.common 
+    deps.crypto
+    deps.cli
+    deps.data
+    deps.macos
+    deps.haskell 
+    deps.fun
+  ];
 
   shellHook = ''
     export LANG=C.UTF8
   
-    echo "Welcome to the..."
-    ${pkgs.figlet}/bin/figlet "Glorious Fission Dev Environment" | lolcat -a -s 50
+    echo "🌈✨ Welcome to the glorious... "
+    ${pkgs.figlet}/bin/figlet "Fission Build Env" | lolcat -a -s 50
   '';
 }
