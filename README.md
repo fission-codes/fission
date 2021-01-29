@@ -41,3 +41,18 @@ CLI interface to our service
 ### `fission-server`
 
 Web server, database, 3rd party integrations
+
+# Building
+
+Fission is built inside of a pure Nix shell via the [Stack integration](https://docs.haskellstack.org/en/stable/nix_integration/). This means that you _should_ only need to type `stack build` to do a complete build of all packages.
+
+Unfortunately, the Stack integration doesn't play well with [`lorri`](https://github.com/target/lorri). If you've run `lorri` recently, you will either need to build with `--no-nix` or unset the `STACK_IN_NIX_SHELL` environment variable.
+
+```bash
+# bash or zsh
+unset STACK_IN_NIX_SHELL
+```
+
+```fish
+set -e STACK_IN_NIX_SHELL
+```
