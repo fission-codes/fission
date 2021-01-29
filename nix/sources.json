@@ -1,4 +1,16 @@
 {
+    "darwin": {
+        "branch": "nixpkgs-20.09-darwin",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "46f46a0fa84d8b0c69eb404b4c6831b476c2673b",
+        "sha256": "1qab7wqr5hjj51xwrq8xqf4n8f12mfz01wqwvhsf4g420h45mb0c",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/46f46a0fa84d8b0c69eb404b4c6831b476c2673b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "niv": {
         "branch": "master",
         "description": "Easy dependency management for Nix projects",
