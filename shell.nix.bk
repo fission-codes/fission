@@ -2,17 +2,14 @@ let
   sources  = import ./nix/sources.nix;
   pkgs     = import sources.nixpkgs  {};
   unstable = import sources.unstable {};
-  hinotify = if pkgs.stdenv.isDarwin then pkgs.haskellPackages.hfsevents else pkgs.haskellPackages.hinotify;
-  ghc      = unstable.ghc;
 in
 
-# unstable.mkShell {
-unstable.haskell.lib.buildStackProject {
-  inherit ghc;
+unstable.mkShell {
   name = "Fisson";
   nativeBuildInputs = [
     # Basics
     pkgs.gnumake
+    pkgs.pkg-config
     unstable.niv
 
     # Crypto
@@ -31,8 +28,6 @@ unstable.haskell.lib.buildStackProject {
     pkgs.zlib.dev
     pkgs.zlib.out
     pkgs.postgresql
-
-    hinotify
 
     # Haskell Tooling
     # unstable.ghcid
