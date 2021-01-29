@@ -3,13 +3,14 @@ let
   pkgs     = import sources.nixpkgs  {};
   unstable = import sources.unstable {};
   hinotify = if pkgs.stdenv.isDarwin then pkgs.haskellPackages.hfsevents else pkgs.haskellPackages.hinotify;
-  ghc      = pkgs.ghc;
+  ghc      = unstable.ghc;
 in
 
+# unstable.mkShell {
 unstable.haskell.lib.buildStackProject {
   inherit ghc;
   name = "Fisson";
-  buildInputs = [
+  nativeBuildInputs = [
     # Basics
     pkgs.gnumake
     unstable.niv
@@ -34,7 +35,8 @@ unstable.haskell.lib.buildStackProject {
 
     # Haskell Tooling
     # unstable.ghcid
-    # unstable.stack
+    unstable.ghc
+    unstable.stack
     # unstable.stylish-haskell
     # unstable.haskellPackages.hie-bios
     # unstable.haskell-language-server
@@ -45,7 +47,7 @@ unstable.haskell.lib.buildStackProject {
     pkgs.lolcat
   ];
 
-   shellHook = ''
+  shellHook = ''
     export LANG=C.UTF8
   
     echo "Welcome to the"

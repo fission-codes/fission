@@ -44,5 +44,5 @@ extra-deps:
 
 nix:
   enable:     true
-  pure:       false # true
+  pure:       true
   shell-file: shell.nix
