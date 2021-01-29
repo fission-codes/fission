@@ -32,13 +32,13 @@ let
     ];
 
     haskell = [
-      # unstable.ghcid
+      unstable.ghcid
       unstable.ghc
       unstable.stack
-      # unstable.stylish-haskell
-      # unstable.haskellPackages.hie-bios
-      # unstable.haskell-language-server
-      # unstable.haskellPackages.implicit-hie
+      unstable.stylish-haskell
+      unstable.haskellPackages.hie-bios
+      unstable.haskell-language-server
+      unstable.haskellPackages.implicit-hie
     ];
 
     fun = [
