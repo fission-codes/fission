@@ -8,7 +8,12 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os:
+        - ubuntu-20.04
+        - ubuntu-18.04
+        - ubuntu-16.04
+        - macos-11.0
+        - macos-10.15
 
     runs-on: ${{ matrix.os }}
 
@@ -43,6 +48,6 @@ jobs:
         path: ./.stack-work/dist
         key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}
 
-    - name: Test
+    - name: 🧪 Test
       run: |
         stack test --no-terminal
