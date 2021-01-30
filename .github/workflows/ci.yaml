@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os:
-        #- ubuntu-20.04
+        - ubuntu-20.04
         - ubuntu-18.04
         #- ubuntu-16.04
         # - macos-11.0
@@ -51,3 +51,14 @@ jobs:
     - name: 🧪 Test
       run: |
         stack test --no-terminal
+
+    - name: 🔑 Test Cache Key
+      id: test_cache_key
+      run: echo ::set-output name=key::$(md5sum stack.yaml.lock | awk '{print $1}{print "tests"}')
+
+    - name: 💾 Cache Artifacts
+      id: cache_arts
+      uses: actions/cache@v1
+      with:
+        path: ./.stack-work/dist
+        key: ${{ matrix.os }}-${{ steps.art_cache_key.outputs.key }}

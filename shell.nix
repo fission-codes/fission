@@ -8,7 +8,16 @@ let
   pkgs     = if darwin.stdenv.isDarwin then darwin else nixos;
   ghc      = unstable.ghc;
 
+  rest-docs = pkgs.writeScriptBin "rest-docs" ''
+    #!${pkgs.stdenv.shell}
+    open https://runfission.com/docs
+  '';
+
   deps = {
+    projectScripts = [
+      rest-docs
+    ];
+
     common = [ 
       pkgs.gnumake
       unstable.niv
@@ -68,6 +77,7 @@ unstable.haskell.lib.buildStackProject {
     deps.macos
     deps.haskell 
     deps.fun
+    deps.projectScripts
   ];
 
   shellHook = ''
@@ -77,3 +87,4 @@ unstable.haskell.lib.buildStackProject {
     ${pkgs.figlet}/bin/figlet "Fission Build Env" | lolcat -a -s 50
   '';
 }
+
