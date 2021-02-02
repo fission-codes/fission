@@ -48,6 +48,7 @@ jobs:
 
     - name: 🧪 Test
       run: |
+        stack update
         stack test --no-terminal
 
     #- name: 🔑 Test Cache Key
