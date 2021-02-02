@@ -1,4 +1,4 @@
-resolver: lts-17.0
+resolver: lts-17.1
 
 allow-newer: true
 
@@ -27,7 +27,7 @@ extra-deps:
   - servant-swagger-ui-redoc-0.3.3.1.22.3
   - servant-websockets-2.0.0
   - text-time-0.3.1
-  - unliftio-core-0.1.2.0
+  #- unliftio-core-0.1.2.0
 
   # For ipfs-1.1.5.1
   - ip-1.7.3

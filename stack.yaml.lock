@@ -124,13 +124,6 @@ packages:
   original:
     hackage: text-time-0.3.1
 - completed:
-    hackage: unliftio-core-0.1.2.0@sha256:7f9b48adef8e36da0202e6e70a733a5e210263ed4177c93e47a4b3f89694194b,1081
-    pantry-tree:
-      size: 328
-      sha256: 72be5813b35ba78db99459fb73a553a58b95a393005fdffb96eec3c1244f90c4
-  original:
-    hackage: unliftio-core-0.1.2.0
-- completed:
     hackage: ip-1.7.3@sha256:b2557931d271927898a57fae6883486bae29291ea09a6680fd9a176f45016205,3742
     pantry-tree:
       size: 1437
@@ -195,7 +188,7 @@ packages:
     hackage: tuples-0.1.0.0
 snapshots:
 - completed:
-    size: 563100
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/0.yaml
-    sha256: e93a85871577ea3423d5f3454b2b6bd37c2c2123c79faf511dfb64f5b49a9f8b
-  original: lts-17.0
+    size: 563098
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/1.yaml
+    sha256: 395775c03e66a4286f134d50346b0b6f1432131cf542886252984b4cfa5fef69
+  original: lts-17.1
