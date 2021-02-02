@@ -76,6 +76,9 @@ import qualified Fission.CLI.PubSub.Secure.Payload.Error           as SecurePayl
 import qualified Fission.CLI.PubSub.Secure.Session.Handshake.Types as Session
 import qualified Fission.CLI.PubSub.Secure.Session.Types           as PubSub
 
+import qualified Fission.CLI.WebNative.FileSystem.Auth.Store       as WebNative.FileSystem.Auth.Store
+import qualified Fission.CLI.WebNative.Mutation.Auth.Store         as WebNative.Mutation.Store
+
 import           Fission.CLI.Digit.Types
 
 import qualified Fission.CLI.PIN.Payload.Types                     as PIN
@@ -192,7 +195,11 @@ login username = do
         } <- secureListenJSON aesConn
 
       ensureM $ UCAN.check myDID rawContent jwt
-      localUCAN <- ensureM $ UCAN.getRoot jwt
+      localUCAN@JWT {claims = JWT.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
-      -- FIXME WNFS.login username myDID readKey ucanRaw sig
-      return ()
+      unless (sender == targetDID) do
+        raise PROBLEM -- FIXME
+
+      -- Persist credentials
+      WebNative.Mutation.Store.insert ucanRaw
+      WebNative.FileSystem.Auth.Store.set targetDID "/" readKey

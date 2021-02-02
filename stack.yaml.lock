@@ -124,6 +124,13 @@ packages:
   original:
     hackage: text-time-0.3.1
 - completed:
+    hackage: unliftio-core-0.1.2.0@sha256:7f9b48adef8e36da0202e6e70a733a5e210263ed4177c93e47a4b3f89694194b,1081
+    pantry-tree:
+      size: 328
+      sha256: 72be5813b35ba78db99459fb73a553a58b95a393005fdffb96eec3c1244f90c4
+  original:
+    hackage: unliftio-core-0.1.2.0
+- completed:
     hackage: ip-1.7.3@sha256:b2557931d271927898a57fae6883486bae29291ea09a6680fd9a176f45016205,3742
     pantry-tree:
       size: 1437
