@@ -1,3 +1,4 @@
+-- FIXME can be moved
 module Fission.CLI.WNFS.Access.Mutation.Authorization.Types (Authorization (..)) where
 
 import qualified Crypto.PubKey.Ed25519      as Ed25519
