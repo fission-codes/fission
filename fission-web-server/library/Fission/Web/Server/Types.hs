@@ -313,7 +313,6 @@ instance MonadIPFSPinner Server where
 
       Just (IPFS.URL url) -> do
         manager      <- asks httpManager
-
         let 
           query = Cluster.pinClient cid
           env = mkClientEnv manager url
