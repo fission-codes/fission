@@ -113,7 +113,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     ipfsURL         = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsTimeout     = IPFS.Timeout 3600
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
-    clusterURL      = IPFS.URL $ BaseUrl Http "localhost" 9094 ""
+    clusterURL      = Nothing
 
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
@@ -178,7 +178,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Co
     ipfsURL         = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout     = IPFS.Timeout 3600
-    clusterURL      = IPFS.URL $ BaseUrl Http "localhost" 9094 ""
+    clusterURL      = Nothing
 
     baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
     userZoneID     = AWS.ZoneID "USER_ZONE_ID"

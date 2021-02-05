@@ -38,7 +38,7 @@ data Config = Config
   , ipfsURL           :: IPFS.URL
   , ipfsRemotePeers   :: NonEmpty IPFS.Peer
   , ipfsTimeout       :: IPFS.Timeout
-  , clusterURL        :: IPFS.URL
+  , clusterURL        :: Maybe IPFS.URL
   --
   , herokuID          :: Heroku.ID
   , herokuPassword    :: Heroku.Password

@@ -20,6 +20,7 @@ import           Network.AWS.Route53
 
 import qualified Network.IPFS                              as IPFS
 import qualified Network.IPFS.Peer                         as Peer
+import qualified Network.IPFS.Pin                          as IPFS.Pin
 import qualified Network.IPFS.Process                      as IPFS
 import qualified Network.IPFS.Process.Error                as IPFS.Process
 import qualified Network.IPFS.Stat                         as IPFS.Stat
@@ -50,6 +51,7 @@ import qualified Fission.Web.Server.Error                  as Web.Error
 import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
 
 import           Fission.Web.Server.IPFS.Cluster           as Cluster
+import           Fission.Web.Server.IPFS.Pinner            as IPFS.Pinner
 import           Fission.Web.Server.IPFS.Linked
 
 import           Fission.Web.Server.AWS                    as AWS
@@ -299,22 +301,32 @@ instance MonadDNSLink Server where
 instance MonadLinkedIPFS Server where
   getLinkedPeers = asks ipfsRemotePeers
 
-instance MonadIPFSCluster Server where
-  pin cid = do
-    IPFS.URL url <- asks clusterURL
-    manager      <- asks httpManager
+instance MonadIPFSPinner Server where
+  pin cid = 
+    asks clusterURL >>= \case
+      Nothing -> 
+        IPFS.Pin.add cid >>= \case
+          Left err -> 
+            return $ Error.openLeft err
+          Right _ -> 
+            return $ Right ()
 
-    let 
-      query = Cluster.pinClient cid
-      env = mkClientEnv manager url
-    
-    (liftIO $ runClientM query env) >>= \case
-      Left err -> do
-        formattedErr <- Cluster.parseClientError err
-        return $ Left formattedErr
+      Just (IPFS.URL url) -> do
+        manager      <- asks httpManager
 
-      Right _ -> 
-        return $ Right ()
+        let 
+          query = Cluster.pinClient cid
+          env = mkClientEnv manager url
+        
+        (liftIO $ runClientM query env) >>= \case
+          Left err -> do
+            formattedErr <- Cluster.parseClientError err
+            return $ Error.openLeft formattedErr
+
+          Right _ -> 
+            return $ Right ()
+
+
 
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
@@ -521,9 +533,9 @@ instance User.Modifier Server where
             return $ Error.openLeft err
 
           Right size -> do
-            Cluster.pin newCID >>= \case
+            IPFS.Pinner.pin newCID >>= \case
               Left err ->
-                return $ Error.openLeft err
+                return $ Error.relaxedLeft err
 
               Right _ -> do
                 zoneID <- asks userZoneID
@@ -592,9 +604,9 @@ instance App.Modifier Server where
               Right Domain {domainZoneId} -> do
                 result <- if copyFiles
                             then
-                              Cluster.pin newCID >>= \case
+                              IPFS.Pinner.pin newCID >>= \case
                                 Right _  -> return ok
-                                Left err -> return $ openLeft err
+                                Left err -> return $ Error.relaxedLeft err
                             else
                               return ok
 
