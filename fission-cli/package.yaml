@@ -85,6 +85,7 @@ default-extensions:
   - ViewPatterns
 
 dependencies:
+  - gtk3
   ## Base ##
   - base
   - rio

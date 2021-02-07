@@ -1,13 +1,19 @@
 module Fission.CLI.WebNative.Mutation.Auth.Store
   ( getBy
-  , module Fission.CLU.WebNative.Mutation.Auth.Store.Class
+  , module Fission.CLI.WebNative.Mutation.Auth.Store.Class
   ) where
 
 import           Fission.Prelude
 
 import           Fission.CLI.WebNative.Mutation.Auth.Store.Class
+import           Fission.Web.Auth.Token.JWT                       as JWT
+import           Fission.Web.Auth.Token.JWT                       as UCAN
+import           Fission.Web.Auth.Token.UCAN.Resource.Types       as UCAN
 
-getBy :: MonadStore m => (UCAN.Resource -> Bool) -> m (Either (NotFound UCAN) UCAN)
+import           Fission.Error.NotFound.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+
+getBy :: MonadStore m => (UCAN.Resource -> Bool) -> m (Either (NotFound JWT) JWT)
 getBy matcher = do
   ucans <- getAll
   case filter normalizedMatcher ucans of

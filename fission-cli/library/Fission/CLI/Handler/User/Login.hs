@@ -188,18 +188,19 @@ login username = do
     secureBroadcastJSON aesConn pinStep
 
     reattempt 100 do
-      logDebug @Text "🤝 Device linking handshake: Step 6"
-      User.Link.Payload
-        { bearer = Bearer.Token {jwt, rawContent}
-        , readKey
-        } <- secureListenJSON aesConn
+      return ()
+      --  logDebug @Text "🤝 Device linking handshake: Step 6"
+     --  User.Link.Payload
+     --    { bearer = Bearer.Token {jwt, rawContent}
+     --    , readKey
+     --    } <- secureListenJSON aesConn
 
-      ensureM $ UCAN.check myDID rawContent jwt
-      localUCAN@JWT {claims = JWT.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
+     --  ensureM $ UCAN.check myDID rawContent jwt
+     --  localUCAN@JWT {claims = JWT.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
-      unless (sender == targetDID) do
-        raise PROBLEM -- FIXME
+     --  unless (sender == targetDID) do
+     --    return ()-- raise PROBLEM -- FIXME
 
       -- Persist credentials
-      WebNative.Mutation.Store.insert ucanRaw
-      WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
+      -- WebNative.Mutation.Store.insert ucanRaw
+      -- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey

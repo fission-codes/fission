@@ -5,7 +5,8 @@ import           Crypto.Cipher.AES           (AES256)
 import           Fission.Prelude
 
 import qualified Fission.Key.Symmetric.Types as Symmetric
+import           Fission.Web.Auth.Token.JWT
 
 class Monad m => MonadStore m where
-  insert :: UCAN -> m ()
-  getAll :: m [UCAN]
+  insert :: JWT -> m ()
+  getAll :: m [JWT]

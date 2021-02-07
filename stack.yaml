@@ -15,6 +15,7 @@ extra-deps:
   - constraints-deriving-1.1.1.1
   - cryptostore-0.2.1.0
   - dimensions-2.1.0.0
+  - gtk3-0.15.5
   - happy-1.20.0
   - hfsevents-0.1.6
   - ipfs-1.1.5.1
@@ -39,6 +40,12 @@ extra-deps:
   - primitive-offset-0.2.0.0
   - run-st-0.1.1.0
   - tuples-0.1.0.0
+
+  - cairo-0.13.8.1@sha256:1938aaeb5d3504678d995774dfe870f6b66cbd43d336b692fa8779b23b2b67a9,4075
+  - gio-0.13.8.1@sha256:7404841eefdfffb50c2b5f63879ffe4bf40fb5ddf90a7f633494eca0e23150a5,3136
+  - glib-0.13.8.1@sha256:42670daf0c85309281e08ba8559df75daa2e3be642e79fdfa781bef5e59658b0,3156
+  - gtk2hs-buildtools-0.13.8.0@sha256:132f38155fc677430a47ea750918973161c876fb6f281d342ac2f07eb99229ce,5238
+  - pango-0.13.8.1@sha256:877b121c0bf87c96d3619effae6751ecfd74b7f7f3227cf3fde012597aed5ed9,3917
 
 nix:
   enable:     true

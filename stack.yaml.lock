@@ -40,6 +40,13 @@ packages:
   original:
     hackage: dimensions-2.1.0.0
 - completed:
+    hackage: gtk3-0.15.5@sha256:e036fe5df496fbefff9e1bc029358ba198b4b73bb4677d3f58e59ee6ec03766a,19511
+    pantry-tree:
+      size: 21251
+      sha256: 1b7740c0cfc23f0c74bd3bdfc5b5a7fe9699a37e27f0c6ccde0ae7e83d513aa6
+  original:
+    hackage: gtk3-0.15.5
+- completed:
     hackage: happy-1.20.0@sha256:f99e612b29d68d784d7e193943a13466f0923de69452a2585081491efed0436b,5709
     pantry-tree:
       size: 8749
@@ -193,6 +200,41 @@ packages:
       sha256: 57009cc671ed8e43738be3bf7b1392461ad086083df633a2f4f9c7206a14a79c
   original:
     hackage: tuples-0.1.0.0
+- completed:
+    hackage: cairo-0.13.8.1@sha256:1938aaeb5d3504678d995774dfe870f6b66cbd43d336b692fa8779b23b2b67a9,4075
+    pantry-tree:
+      size: 2830
+      sha256: 8f6344da4c578a4dd3a49c333e2158b695bfae32a74d34a76bbc6e531b70c95c
+  original:
+    hackage: cairo-0.13.8.1@sha256:1938aaeb5d3504678d995774dfe870f6b66cbd43d336b692fa8779b23b2b67a9,4075
+- completed:
+    hackage: gio-0.13.8.1@sha256:7404841eefdfffb50c2b5f63879ffe4bf40fb5ddf90a7f633494eca0e23150a5,3136
+    pantry-tree:
+      size: 2036
+      sha256: aaaf68e5b95f7ac53e60e55552bb0919597bd4002ebdf45fbd580cbc1c71f487
+  original:
+    hackage: gio-0.13.8.1@sha256:7404841eefdfffb50c2b5f63879ffe4bf40fb5ddf90a7f633494eca0e23150a5,3136
+- completed:
+    hackage: glib-0.13.8.1@sha256:42670daf0c85309281e08ba8559df75daa2e3be642e79fdfa781bef5e59658b0,3156
+    pantry-tree:
+      size: 1625
+      sha256: 1167575db8823b7a9f5fbaebdbc0ea5cef54301e442754ec256ba9371bd388e7
+  original:
+    hackage: glib-0.13.8.1@sha256:42670daf0c85309281e08ba8559df75daa2e3be642e79fdfa781bef5e59658b0,3156
+- completed:
+    hackage: gtk2hs-buildtools-0.13.8.0@sha256:132f38155fc677430a47ea750918973161c876fb6f281d342ac2f07eb99229ce,5238
+    pantry-tree:
+      size: 3588
+      sha256: 4552e3c0f2ef0f16285c38898d7e2b6aeea67d4e37cd203b0c82f70592096c45
+  original:
+    hackage: gtk2hs-buildtools-0.13.8.0@sha256:132f38155fc677430a47ea750918973161c876fb6f281d342ac2f07eb99229ce,5238
+- completed:
+    hackage: pango-0.13.8.1@sha256:877b121c0bf87c96d3619effae6751ecfd74b7f7f3227cf3fde012597aed5ed9,3917
+    pantry-tree:
+      size: 1506
+      sha256: eec456a3d16f1a9305196a86a7c49a6f2cfe1b041a50b02059dc4898a07a3bd9
+  original:
+    hackage: pango-0.13.8.1@sha256:877b121c0bf87c96d3619effae6751ecfd74b7f7f3227cf3fde012597aed5ed9,3917
 snapshots:
 - completed:
     size: 563098

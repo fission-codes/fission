@@ -51,6 +51,9 @@ let
         [ unstable.darwin.apple_sdk.frameworks.CoreServices
           unstable.darwin.apple_sdk.frameworks.Foundation
           unstable.darwin.apple_sdk.frameworks.Cocoa
+          # UI
+          unstable.gnome3.gobject-introspection
+          unstable.gnome3.gtk
         ]
       else 
         [];
