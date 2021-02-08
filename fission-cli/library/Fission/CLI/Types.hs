@@ -22,6 +22,8 @@ import           Control.Monad.Catch                               as Catch
 import qualified RIO.ByteString.Lazy                               as Lazy
 import           RIO.Directory
 import           RIO.FilePath
+import qualified RIO.List                                          as List
+import           RIO.Map                                           as Map
 import qualified RIO.NonEmpty                                      as NonEmpty
 import qualified RIO.Set                                           as Set
 import qualified RIO.Text                                          as Text
@@ -64,8 +66,8 @@ import qualified Fission.CLI.YAML                                  as YAML
 import           Fission.CLI.Key.Ed25519                           as Ed25519
 import           Fission.CLI.Key.Store                             as Key.Store
 
-import qualified Fission.CLI.WebNative.FileSystem.Auth.Store.Class as WebNative.FileSystem.Auth
-import qualified Fission.CLI.WebNative.Mutation.Auth.Store         as WebNative.Mutation.Auth
+import qualified Fission.CLI.WebNative.FileSystem.Auth             as WebNative.FileSystem.Auth
+import qualified Fission.CLI.WebNative.Mutation.Auth               as WebNative.Mutation.Auth
 
 import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
 import           Fission.Web.Auth.Token.JWT                        as JWT
@@ -224,14 +226,16 @@ instance
     return did
 
 instance
-  ( YAML.ParseException `IsMember` errs
+  ( HasLogFunc cfg
+  , YAML.ParseException `IsMember` errs
   , NotFound FilePath   `IsMember` errs
+  , Display (OpenUnion errs)
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
   insert token = do
     storePath <- ucanStorePath
     store     <- WebNative.Mutation.Auth.getAll
-    YAML.writeFile storePath (Set.insert token store)
+    storePath `YAML.writeFile` Set.insert token store
 
   getAll = do
     storePath <- ucanStorePath
@@ -240,6 +244,38 @@ instance
 ucanStorePath = do
   ucanDir <- globalUCANDir
   return (ucanDir </> "store.yaml")
+
+-- FIXME Fission.CLI.WebNative.FileSystem.Auth.Store.Class
+instance
+  ( HasLogFunc cfg
+  , YAML.ParseException `IsMember` errs
+  , NotFound FilePath   `IsMember` errs
+  , Display (OpenUnion errs)
+  )
+  => WebNative.FileSystem.Auth.MonadStore (FissionCLI errs cfg) where
+  set did subGraphRoot aesKey = do
+    storePath                             <- wnfsKeyStorePath
+    WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
+
+    let
+      oldDIDStore    = fromMaybe mempty (store !? did)
+      newDIDStore    = Map.insert subGraphRoot aesKey oldDIDStore
+      newGlobalStore = Map.insert did newDIDStore store
+
+    storePath `YAML.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
+
+  getAllMatching did subGraphRoot = do
+    storePath                             <- wnfsKeyStorePath
+    WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
+
+    (store !? did)
+      |> fromMaybe mempty
+      |> Map.filterWithKey (\path _ -> path `List.isPrefixOf` subGraphRoot)
+      |> pure
+
+wnfsKeyStorePath = do
+  wnfsDir <- globalWNFSDir
+  return (wnfsDir </> "store.yaml")
 
 instance
   ( IsMember Key.Error errs
