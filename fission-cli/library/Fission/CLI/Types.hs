@@ -23,6 +23,7 @@ import qualified RIO.ByteString.Lazy                               as Lazy
 import           RIO.Directory
 import           RIO.FilePath
 import qualified RIO.NonEmpty                                      as NonEmpty
+import qualified RIO.Set                                           as Set
 import qualified RIO.Text                                          as Text
 
 import qualified Network.DNS                                       as DNS
@@ -58,8 +59,13 @@ import qualified Fission.CLI.Connected.Types                       as Connected
 import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
 import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
 
+import qualified Fission.CLI.YAML                                  as YAML
+
 import           Fission.CLI.Key.Ed25519                           as Ed25519
 import           Fission.CLI.Key.Store                             as Key.Store
+
+import qualified Fission.CLI.WebNative.FileSystem.Auth.Store.Class as WebNative.FileSystem.Auth
+import qualified Fission.CLI.WebNative.Mutation.Auth.Store         as WebNative.Mutation.Auth
 
 import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
 import           Fission.Web.Auth.Token.JWT                        as JWT
@@ -216,6 +222,24 @@ instance
     did <- asks Base.serverDID
     logDebug $ "Loaded Server DID: " <> textDisplay did
     return did
+
+instance
+  ( YAML.ParseException `IsMember` errs
+  , NotFound FilePath   `IsMember` errs
+  )
+  => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
+  insert token = do
+    storePath <- ucanStorePath
+    store     <- WebNative.Mutation.Auth.getAll
+    YAML.writeFile storePath (Set.insert token store)
+
+  getAll = do
+    storePath <- ucanStorePath
+    YAML.readFile storePath
+
+ucanStorePath = do
+  ucanDir <- globalUCANDir
+  return (ucanDir </> "store.yaml")
 
 instance
   ( IsMember Key.Error errs

@@ -74,6 +74,10 @@ data DID = DID
   , publicKey :: Key.Public
   } deriving (Show, Eq)
 
+-- For FromJSON
+instance Ord DID where
+  a `compare` b = textDisplay a `compare` textDisplay b
+
 instance Arbitrary DID where
   arbitrary = do
     publicKey <- arbitrary
@@ -137,6 +141,12 @@ instance FromJSON DID where
 
 instance Display (AlreadyExists DID) where
   display _ = "DID already exists / account already created"
+
+instance ToJSONKey DID where
+  toJSONKey = JSON.toJSONKeyText textDisplay
+
+instance FromJSONKey DID where
+  fromJSONKey = FromJSONKeyValue parseJSON
 
 parseKeyW8s :: FromJSON a => ByteString -> JSON.Parser a
 parseKeyW8s = parseJSON . toJSON . decodeUtf8Lenient

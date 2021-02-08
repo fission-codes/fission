@@ -7,8 +7,9 @@ import           Servant.API
 import qualified RIO.ByteString.Lazy                   as Lazy
 import qualified RIO.Text                              as Text
 
-import qualified Fission.Internal.Base64.URL           as B64.URL
 import           Fission.Prelude
+
+import qualified Fission.Internal.Base64.URL           as B64.URL
 
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 import           Fission.Web.Auth.Token.JWT.Types
@@ -18,6 +19,9 @@ data Token = Token
   , rawContent :: JWT.RawContent -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
+
+instance Ord Token where
+  a `compare` b = textDisplay a `compare` textDisplay b
 
 instance Arbitrary Token where
   arbitrary = do

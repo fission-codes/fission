@@ -107,8 +107,10 @@ login ::
   , MonadTime         m
   , JWT.Resolver      m
   , ServerDID m
-  -- , WNFS.Mutation.Store m
-  -- , WNFS.Query.Store    m
+
+  , WebNative.FileSystem.Auth.Store.MonadStore m
+  , WebNative.Mutation.Store.MonadStore        m
+
   , MonadNameService    m
   , MonadPubSub m
 
@@ -122,10 +124,10 @@ login ::
   , MonadWebAuth m Auth.Token
   , MonadWebAuth m Ed25519.SecretKey
 
-  , MonadRandom m
+  , MonadRandom      m
   , MonadEnvironment m
-  , MonadNameService  m
-  , MonadWebClient m
+  , MonadNameService m
+  , MonadWebClient   m
 
   , MonadCleanup m
   , m `Raises` AlreadyExists DID
@@ -144,7 +146,7 @@ login ::
   => Username
   -> m ()
 login username = do
-  -- FIXME User.ensureNotLoggedIn
+  -- FIXME User.ensureNotLoggedIn / switch on login vs provide
 
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
@@ -190,7 +192,7 @@ login username = do
     reattempt 100 do
       logDebug @Text "🤝 Device linking handshake: Step 6"
       User.Link.Payload
-        { bearer = Bearer.Token {jwt, rawContent}
+        { bearer = bearer@Bearer.Token {jwt = jwt@JWT{sig}, rawContent}
         , readKey
         } <- secureListenJSON aesConn
 
@@ -198,8 +200,8 @@ login username = do
       localUCAN@JWT {claims = JWT.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
 
       unless (sender == targetDID) do
-        raise PROBLEM -- FIXME
+        raise $ JWT.ClaimsError JWT.Claims.IncorrectSender
 
       -- Persist credentials
-      WebNative.Mutation.Store.insert ucanRaw
+      WebNative.Mutation.Store.insert bearer
       WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
