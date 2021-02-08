@@ -117,7 +117,7 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
           App.interpret baseCfg subCmd
 
         User subCmd ->
-          User.interpret baseCfg subCmd
+          User.interpret subCmd
 
 finalizeDID :: MonadIO m => Maybe DID -> Base.Config -> m (Either (OpenUnion Errs) DID)
 finalizeDID (Just did) _ =

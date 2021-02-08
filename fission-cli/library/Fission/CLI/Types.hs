@@ -286,11 +286,12 @@ instance
 
   , ServerDID   (FissionCLI errs cfg)
   )
-  =>  MonadWebAuth (FissionCLI errs cfg) Token where
+  => MonadWebAuth (FissionCLI errs cfg) Token where
   getAuth = do
     now       <- currentTime
-    sk        <- getAuth
     serverDID <- getServerDID
+    sk        <- getAuth
+    result    <- WebNative.Mutation.Auth.getBy \scopedResource -> scopedResource == Complete -- TODO simple for now
 
     let
       jwt =
