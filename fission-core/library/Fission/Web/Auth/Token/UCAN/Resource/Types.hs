@@ -31,9 +31,12 @@ instance ToJSON Resource where
 
 instance FromJSON Resource where
   parseJSON = withObject "Resource" \obj -> do
-    fs  <- fmap FissionFileSystem <$> obj .:? "wnfs"
-    app <- fmap FissionApp        <$> obj .:? "app"
-    url <- fmap RegisteredDomain  <$> obj .:? "domain"
+    wnfs   <- fmap FissionFileSystem <$> obj .:? "wnfs"
+    floofs <- fmap FissionFileSystem <$> obj .:? "floofs" -- keep around floofs for backward-compatibility
+    app    <- fmap FissionApp        <$> obj .:? "app"
+    url    <- fmap RegisteredDomain  <$> obj .:? "domain"
+
+    let fs = maybe floofs Just wnfs -- fallback to floofs if UCAN does not include wnfs
 
     case fs <|> app <|> url of
       Just parsed -> return parsed
