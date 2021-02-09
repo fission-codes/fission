@@ -31,11 +31,12 @@ instance ToJSON Resource where
 
 instance FromJSON Resource where
   parseJSON = withObject "Resource" \obj -> do
-    fs  <- fmap FissionFileSystem <$> obj .:? "wnfs"
-    app <- fmap FissionApp        <$> obj .:? "app"
-    url <- fmap RegisteredDomain  <$> obj .:? "domain"
+    wnfs   <- fmap FissionFileSystem <$> obj .:? "wnfs"
+    floofs <- fmap FissionFileSystem <$> obj .:? "floofs" -- keep around floofs for backward-compatibility
+    app    <- fmap FissionApp        <$> obj .:? "app"
+    url    <- fmap RegisteredDomain  <$> obj .:? "domain"
 
-    case fs <|> app <|> url of
+    case wnfs <|> floofs <|> app <|> url of
       Just parsed -> return parsed
       Nothing     -> fail "Does not match any known Fission resource"
 
