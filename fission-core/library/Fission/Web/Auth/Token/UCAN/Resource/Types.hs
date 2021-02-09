@@ -36,9 +36,7 @@ instance FromJSON Resource where
     app    <- fmap FissionApp        <$> obj .:? "app"
     url    <- fmap RegisteredDomain  <$> obj .:? "domain"
 
-    let fs = maybe floofs Just wnfs -- fallback to floofs if UCAN does not include wnfs
-
-    case fs <|> app <|> url of
+    case wnfs <|> floofs <|> app <|> url of
       Just parsed -> return parsed
       Nothing     -> fail "Does not match any known Fission resource"
 
