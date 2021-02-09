@@ -323,7 +323,7 @@ instance MonadIPFSPinner Server where
             return $ Error.openLeft formattedErr
 
           Right _ -> 
-            return $ Right ()
+            return ok
 
 
 
