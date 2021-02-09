@@ -69,6 +69,10 @@ import           Fission.CLI.Key.Store                             as Key.Store
 import qualified Fission.CLI.WebNative.FileSystem.Auth             as WebNative.FileSystem.Auth
 import qualified Fission.CLI.WebNative.Mutation.Auth               as WebNative.Mutation.Auth
 
+import qualified Fission.CLI.Display.Loader                        as CLI
+import           Fission.CLI.Environment                           as Env
+import           Fission.CLI.Environment.Path
+
 import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
 import           Fission.Web.Auth.Token.JWT                        as JWT
 
@@ -86,17 +90,15 @@ import           Fission.Web.Client.HTTP.Class
 
 import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
 import           Fission.Web.Auth.Token.JWT                        as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver.Class         as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver.Error
+import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver               as JWT.Resolver
 import           Fission.Web.Auth.Token.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import           Fission.Web.Client
 import qualified Fission.Web.Client.JWT                            as JWT
 
-import qualified Fission.CLI.Display.Loader                        as CLI
-import           Fission.CLI.Environment
-import           Fission.CLI.Environment.Path
-
+import           Fission.CLI.Internal.Orphanage.CID                ()
 import           Fission.Internal.Orphanage.BaseUrl                ()
 import           Fission.Internal.Orphanage.DNS.DNSError           ()
 import           Fission.Internal.Orphanage.OpenUnion              ()
@@ -226,16 +228,30 @@ instance
     return did
 
 instance
-  ( HasLogFunc cfg
-  , YAML.ParseException `IsMember` errs
+  ( YAML.ParseException `IsMember` errs
   , NotFound FilePath   `IsMember` errs
+  , Process.Error       `IsMember` errs
+  , SomeException       `IsMember` errs
+  , Contains errs errs
+  , HasLogFunc cfg
+  , HasField' "ipfsTimeout"   cfg IPFS.Timeout
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
+  , MonadIPFSIgnore (FissionCLI errs cfg)
   , Display (OpenUnion errs)
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
   insert token = do
     storePath <- ucanStorePath
     store     <- WebNative.Mutation.Auth.getAll
-    storePath `YAML.writeFile` Set.insert token store
+
+    cidBS <- ensureM $ IPFS.runLocal ["add", "-Q"] (Lazy.fromStrict . encodeUtf8 $ textDisplay token)
+
+    let
+      cid = CID . decodeUtf8Lenient $ Lazy.toStrict cidBS
+
+    store
+      |> Map.insert cid token
+      |> YAML.writeFile storePath
 
   getAll = do
     storePath <- ucanStorePath
@@ -278,24 +294,46 @@ wnfsKeyStorePath = do
   return (wnfsDir </> "store.yaml")
 
 instance
-  ( IsMember Key.Error errs
-  , IsMember (NotFound Ed25519.SecretKey) errs
+  ( Key.Error                  `IsMember` errs
+  , YAML.ParseException        `IsMember` errs
+  , NotFound FilePath          `IsMember` errs
+  , Process.Error              `IsMember` errs
+  , SomeException              `IsMember` errs
+  , JWT.Resolver.Error         `IsMember` errs
+  , NotFound Ed25519.SecretKey `IsMember` errs
+  , NotFound JWT               `IsMember` errs
+  , Contains errs errs
+
+  , HasField' "ipfsTimeout"   cfg IPFS.Timeout
+  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
 
   , Display (OpenUnion errs)
   , HasLogFunc cfg
 
-  , ServerDID   (FissionCLI errs cfg)
+  , MonadIPFSIgnore (FissionCLI errs cfg)
+  , ServerDID       (FissionCLI errs cfg)
   )
   => MonadWebAuth (FissionCLI errs cfg) Token where
   getAuth = do
     now       <- currentTime
     serverDID <- getServerDID
     sk        <- getAuth
-    result    <- WebNative.Mutation.Auth.getBy \scopedResource -> scopedResource == Complete -- TODO simple for now
+
+    Env {rootProof} <- Env.get
+
+    proof <- case rootProof of
+               Nothing ->
+                 return RootCredential
+
+               Just cid -> do
+                 store <- WebNative.Mutation.Auth.getAll
+                 case store !? cid of
+                   Nothing                -> raise $ NotFound @JWT
+                   Just Bearer.Token {..} -> return $ Nested rawContent jwt
 
     let
       jwt =
-        JWT.ucan now serverDID sk RootCredential
+        JWT.ucan now serverDID sk proof
 
       rawContent =
         jwt

@@ -69,7 +69,7 @@ setup :: forall m .
   , m `Raises` Username.Invalid
 
   , IsMember ClientError (Errors m)
-  , IsMember Key.Error   (Errors m)
+ -- , IsMember Key.Error   (Errors m)
 
   , Show (OpenUnion (Errors m))
   , Errors m `Contains` Errors m
@@ -90,7 +90,7 @@ setup maybeOS fissionURL maybeUsername maybeEmail = do
   username <- getUsername =<< BS.getLine
 
   UTF8.putText "Setting default config..."
-  Env.init username fissionURL
+  Env.init username fissionURL Nothing
 
   Display.putOk "Done"
 

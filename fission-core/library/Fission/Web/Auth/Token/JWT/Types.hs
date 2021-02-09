@@ -30,15 +30,16 @@ import           Network.IPFS.CID.Types
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
 
-import qualified Fission.Internal.Base64.URL                      as B64.URL
 import           Fission.Prelude
 
-import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
-
-import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
-import qualified Fission.Internal.UTF8                            as UTF8
+import           Fission.Error.NotFound.Types
 
 import           Fission.Key                                      as Key
+import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
+
+import qualified Fission.Internal.Base64.URL                      as B64.URL
+import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
+import qualified Fission.Internal.UTF8                            as UTF8
 
 import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
@@ -117,6 +118,9 @@ instance FromJSON JWT where
         fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
     where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
+
+instance Display (NotFound JWT) where
+  display _ = "Unable to find UCAN"
 
 ------------
 -- Claims --

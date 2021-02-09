@@ -5,38 +5,42 @@ module Fission.CLI.Connected
   , module Fission.CLI.Connected.Types
   ) where
 
-import qualified Crypto.PubKey.Ed25519           as Ed25519
-import qualified Data.Yaml                       as YAML
-import qualified RIO.NonEmpty                    as NonEmpty
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import qualified Data.Yaml                                 as YAML
+import qualified RIO.NonEmpty                              as NonEmpty
 
-import qualified Network.HTTP.Client             as HTTP
+import qualified Network.HTTP.Client                       as HTTP
 import           Network.IPFS.Local.Class
-import qualified Network.IPFS.Timeout.Types      as IPFS
-import qualified Network.IPFS.Types              as IPFS
+import qualified Network.IPFS.Process.Error                as IPFS.Process
+import qualified Network.IPFS.Timeout.Types                as IPFS
+import qualified Network.IPFS.Types                        as IPFS
 
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
-import qualified Fission.IPFS.Error.Types        as IPFS
-import qualified Fission.Key                     as Key
+import qualified Fission.IPFS.Error.Types                  as IPFS
+import qualified Fission.Key                               as Key
 import           Fission.User.DID.Types
 
-import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as User
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as JWT.Resolver
+import           Fission.Web.Auth.Token.JWT.Types
+
+import           Fission.Web.Client                        as Client
+import qualified Fission.Web.Client.User                   as User
 
 import           Fission.CLI.Connected.Types
-import qualified Fission.CLI.Context             as Context
+import qualified Fission.CLI.Context                       as Context
 import           Fission.CLI.Error.Types
 import           Fission.CLI.Remote
 import           Fission.CLI.Types
 
-import           Fission.CLI.Key.Store           as Key.Store
+import           Fission.CLI.Key.Store                     as Key.Store
 
-import qualified Fission.CLI.Display.Error       as CLI.Error
-import qualified Fission.CLI.Environment         as Environment
-import           Fission.CLI.Environment.Types   as Environment
-import qualified Fission.CLI.IPFS.Connect        as Connect
+import qualified Fission.CLI.Display.Error                 as CLI.Error
+import qualified Fission.CLI.Environment                   as Environment
+import           Fission.CLI.Environment.Types             as Environment
+import qualified Fission.CLI.IPFS.Connect                  as Connect
 
 -- | Ensure we have a local config file with the appropriate data
 --
@@ -49,8 +53,13 @@ run ::
 
   , Contains errs     errs
   , Contains LiftErrs errs
-  , IsMember YAML.ParseException  errs
-  , IsMember IPFS.UnableToConnect errs
+
+  , YAML.ParseException  `IsMember` errs
+  , IPFS.Process.Error   `IsMember` errs
+  , JWT.Resolver.Error   `IsMember` errs
+  , NotFound JWT         `IsMember` errs
+  , IPFS.UnableToConnect `IsMember` errs
+
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
 
@@ -94,7 +103,11 @@ mkConnected ::
   ( ServerDID   (FissionCLI errs inCfg)
   , MonadRemote (FissionCLI errs inCfg)
 
-  , IsMember YAML.ParseException errs
+  , YAML.ParseException `IsMember` errs
+  , IPFS.Process.Error  `IsMember` errs
+  , JWT.Resolver.Error  `IsMember` errs
+  , NotFound JWT        `IsMember` errs
+
   , Contains errs        errs
   , Contains LiftErrs    errs
 

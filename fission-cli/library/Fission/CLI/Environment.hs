@@ -22,6 +22,7 @@ import           RIO.FilePath
 import qualified Network.DNS                   as DNS
 import           Servant.Client
 
+import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Types            as IPFS
 
 import           Fission.Prelude
@@ -60,8 +61,9 @@ init ::
   )
   => Username
   -> BaseUrl
+  -> Maybe CID
   -> m ()
-init username fissionURL = do
+init username fissionURL rootProof = do
   logDebug @Text "Initializing config file"
 
   attempt Peers.getPeers >>= \case
@@ -76,10 +78,8 @@ init username fissionURL = do
       envPath `YAML.writeFile` Env
         { peers          = NonEmpty.toList nonEmptyPeers
         , ignored        = []
-        , signingKeyPath
-        , serverDID
-        , username
         , updateChecked  = fromSeconds 0
+        , ..
         }
 
 -- | Gets hierarchical environment by recursing through file system

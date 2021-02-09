@@ -51,7 +51,7 @@ register ::
   , m `Raises` Username.Invalid
   , m `Raises` Key.Error
   , IsMember ClientError (Errors m)
-  , IsMember Key.Error   (Errors m)
+ -- , IsMember Key.Error   (Errors m)
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   )
@@ -80,9 +80,9 @@ createAccount ::
 
   , MonadCleanup     m
   , m `Raises` ClientError
-  , m `Raises` DNSError
-  , m `Raises` NotFound DID
-  , m `Raises` AlreadyExists Ed25519.SecretKey
+ --  , m `Raises` DNSError
+ --  , m `Raises` NotFound DID
+ --  , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
   , m `Raises` Key.Error
   , Show (OpenUnion (Errors m))

@@ -3,15 +3,18 @@ module Fission.CLI.WebNative.Mutation.Auth.Store
   , module Fission.CLI.WebNative.Mutation.Auth.Store.Class
   ) where
 
-import qualified RIO.Set                                          as Set
+import qualified RIO.Map                                          as Map
 
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import qualified Fission.JSON                                     as JSON
+import           Fission.User.DID.Types
+
+import           Fission.Web.Auth.Token.JWT                       as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT
+import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT.Resolver
 
 import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
-import           Fission.Web.Auth.Token.JWT                       as JWT
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types       as UCAN
 
@@ -22,7 +25,7 @@ getBy :: forall m.
   , JWT.Resolver m
   , MonadLogger  m
   , MonadRaise   m
-  , m `Raises` JSON.Error
+  , m `Raises` JWT.Resolver.Error
   )
   => DID
   -> (Scope UCAN.Resource -> Bool)
@@ -30,16 +33,14 @@ getBy :: forall m.
 getBy did matcher = do
   bearerTokens <- getAll
 
-  case Set.toList $ Set.filter normalizedMatcher bearerTokens of
+  filterM normalizedMatcher (Map.elems bearerTokens) >>= \case
     []           -> return $ Left NotFound
     (bearer : _) -> return $ Right bearer
 
   where
-    -- FIXME BROOKE notes for tomorrow
-    -- Resolve root UCAN to a specific DID because of MonadWebAuth (i.e. need access to linked root UCAN)
     normalizedMatcher :: Bearer.Token -> m Bool
     normalizedMatcher Bearer.Token {jwt = jwt@JWT {claims = JWT.Claims {resource}}} = do
-      JWT {claims = JWT.Claims {sender}} <- JWT.getRoot jwt
+      JWT {claims = JWT.Claims {sender}} <- ensureM $ JWT.getRoot jwt
       if sender == did
         then
           case resource of

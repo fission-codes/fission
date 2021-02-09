@@ -2,14 +2,18 @@
 module Fission.Web.Auth.Token.Bearer.Types (Token (..)) where
 
 import           Data.Aeson.Types
-import           Servant.API
+import qualified Data.ByteArray                        as BA
+import           Data.Hashable
 
 import qualified RIO.ByteString.Lazy                   as Lazy
 import qualified RIO.Text                              as Text
 
+import           Servant.API
+
 import           Fission.Prelude
 
 import qualified Fission.Internal.Base64.URL           as B64.URL
+import           Fission.Security
 
 import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
 import           Fission.Web.Auth.Token.JWT.Types
