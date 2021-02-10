@@ -97,7 +97,7 @@ instance MimeUnrender PlainText Username where
   mimeUnrender _proxy bs =
     case decodeUtf8' $ Lazy.toStrict bs of
       Left unicodeErr ->
-        Left mconcat
+        Left $ mconcat
           [ "Username "
           , show bs
           , " contains invalid non-unicode character(s): "
