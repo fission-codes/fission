@@ -31,6 +31,11 @@ import           Fission.Prelude
 -- >>> isValid "reCovErY"
 -- False
 --
+-- They can't contain uppercase characters at all
+--
+-- >>> isValid "hElLoWoRlD"
+-- False
+--
 -- Nor are various characters
 --
 -- >>> isValid "under_score"
@@ -57,15 +62,18 @@ import           Fission.Prelude
 -- >>> isValid "name&with#chars"
 -- False
 isValid :: Text -> Bool
-isValid rawUsername =
+isValid username =
   all (== True) preds
   where
     preds :: [Bool]
     preds = [ okChars
+            , not blank
             , not startsWithHyphen
             , not endsWithHyphen
             , not inBlocklist
             ]
+
+    blank = Text.null username
 
     inBlocklist = elem username blocklist
     okChars     = Text.all isUsernameChar username
@@ -73,12 +81,9 @@ isValid rawUsername =
     startsWithHyphen = Text.isPrefixOf "-" username
     endsWithHyphen   = Text.isSuffixOf "-" username
 
-    username = Text.toLower rawUsername
-
 isUsernameChar :: Char -> Bool
 isUsernameChar c =
-     Char.isAsciiUpper c
-  || Char.isAsciiLower c
+     Char.isAsciiLower c
   || Char.isDigit      c
   || c == '-'
 

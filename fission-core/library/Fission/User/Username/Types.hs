@@ -36,7 +36,11 @@ mkUsername txt =
     normalized = Text.toLower txt
 
 instance Arbitrary Username where
-  arbitrary = Username <$> arbitrary
+  arbitrary = do
+    txt <- arbitrary
+    case mkUsername $ Text.filter isUsernameChar txt of
+      Left _      -> arbitrary
+      Right uName -> return uName
 
 instance ToParamSchema Username where
   toParamSchema _ = mempty |> type_ ?~ SwaggerString
@@ -47,8 +51,18 @@ instance ToHttpApiData Username where
 instance PersistField Username where
   toPersistValue (Username un) = PersistText un
   fromPersistValue = \case
-    PersistText un -> Right (Username un)
-    other          -> Left ("Invalid Persistent Username: " <> Text.pack (show other))
+    input@(PersistText txt) ->
+      -- NOTE this may break against old DB records, but we really should keep this strict
+      -- I'd rather fail fast so know about it so we can fix it ~expede
+      case mkUsername txt of
+        Left _      -> Left $ errMsg input
+        Right uName -> Right uName
+
+    other ->
+      Left $ errMsg other
+
+    where
+      errMsg input = "Invalid Persistent Username: " <> Text.pack (show input)
 
 instance PersistFieldSql Username where
   sqlType _pxy = SqlString
@@ -57,10 +71,16 @@ instance ToJSON Username where
   toJSON (Username username) = String username
 
 instance FromJSON Username where
-  parseJSON = withText "Username" \txt -> return (Username txt)
+  parseJSON = withText "Username" \txt ->
+    case mkUsername txt of
+      Left _      -> fail . Text.unpack $ "Invalid username: " <> txt
+      Right uName -> return uName
 
 instance FromHttpApiData Username where
-  parseUrlPiece = Right . Username
+  parseUrlPiece txt =
+    case mkUsername txt of
+      Left _err   -> Left $ "Invalid usrename: " <> txt
+      Right uName -> Right uName
 
 instance ToSchema Username where
   declareNamedSchema _ =
@@ -75,7 +95,16 @@ instance MimeRender PlainText Username where
 
 instance MimeUnrender PlainText Username where
   mimeUnrender _proxy bs =
-    bs
-      |> Lazy.toStrict
-      |> decodeUtf8'
-      |> bimap show Username
+    case decodeUtf8' $ Lazy.toStrict bs of
+      Left unicodeErr ->
+        Left $ mconcat
+          [ "Username "
+          , show bs
+          , " contains invalid non-unicode character(s): "
+          , show unicodeErr
+          ]
+
+      Right txt ->
+        case mkUsername txt  of
+          Left  _err  -> Left . show $ "Invalid username: " <> bs
+          Right uName -> Right uName
