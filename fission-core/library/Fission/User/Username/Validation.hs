@@ -62,7 +62,7 @@ import           Fission.Prelude
 -- >>> isValid "name&with#chars"
 -- False
 isValid :: Text -> Bool
-isValid rawUsername =
+isValid username =
   all (== True) preds
   where
     preds :: [Bool]
@@ -80,8 +80,6 @@ isValid rawUsername =
 
     startsWithHyphen = Text.isPrefixOf "-" username
     endsWithHyphen   = Text.isSuffixOf "-" username
-
-    username = Text.toLower rawUsername
 
 isUsernameChar :: Char -> Bool
 isUsernameChar c =
