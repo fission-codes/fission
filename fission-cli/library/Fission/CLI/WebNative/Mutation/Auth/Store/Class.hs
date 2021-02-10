@@ -8,5 +8,5 @@ import           Fission.Prelude
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 
 class Monad m => MonadStore m where
-  insert :: Bearer.Token -> m ()
+  insert :: Bearer.Token -> m CID
   getAll :: m (Map CID Bearer.Token)

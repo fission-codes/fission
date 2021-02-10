@@ -45,7 +45,6 @@ instance FromJSON Env where
     signingKeyPath <- obj .:  "signing_key_path"
     username       <- obj .:  "username"
     rootProof      <- obj .:? "root_proof"
-    accountChecked <- obj .:? "account_checked" .!= fromSeconds 0
     updateChecked  <- obj .:? "update_checked"  .!= fromSeconds 0
 
     return Env {..}

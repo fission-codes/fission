@@ -19,6 +19,7 @@ import           Crypto.Random
 -- import qualified RIO.ByteString.Lazy                               as Lazy
 -- import qualified RIO.Text                                          as Text
 
+import qualified Network.DNS                                 as DNS
 import           Servant.Client.Core
 
 import           Fission.Prelude
@@ -45,7 +46,8 @@ import           Fission.User.Username.Types                 as User
 
 import           Fission.Web.Auth.Token.JWT.Fact.Types
 import qualified Fission.Web.Auth.Token.JWT.Proof            as UCAN
--- import           Fission.Web.Client
+
+import           Fission.Web.Client
 -- import qualified Fission.Web.Client.User                           as User
 
 import           Fission.Key.Asymmetric.Public.Types
@@ -63,7 +65,9 @@ import qualified Fission.Web.Auth.Token.JWT.Validation       as UCAN
 -- import qualified Fission.Web.Auth.Token.Types                as Auth
 
 -- import           Fission.CLI.Display.Success                       as CLI.Success
-import           Fission.CLI.Environment.Class
+import           Fission.CLI.Environment                     as Env
+import           Fission.CLI.Remote
+
 import qualified Fission.CLI.Key.Store                       as Key.Store
 import           Fission.CLI.Key.Store.Types
 import           Fission.CLI.PIN                             as PIN
@@ -103,8 +107,10 @@ type Errs =
 
 login ::
   ( MonadLogger       m
-  , MonadIO           m
+  , MonadRemote       m
   , MonadTime         m
+  , MonadIO           m
+
   , JWT.Resolver      m
  -- , ServerDID m
 
@@ -124,16 +130,16 @@ login ::
   -- , MonadWebAuth m Auth.Token
   -- , MonadWebAuth m Ed25519.SecretKey
 
-  , Display (SecurePayload (Symmetric.Key AES256) User.Link.Payload)
 
   , MonadRandom      m
   , MonadEnvironment m
   , MonadNameService m
-  -- , MonadWebClient   m
+  , MonadWebClient   m
 
   , MonadCleanup m
  --  , m `Raises` AlreadyExists DID
-  -- , m `Raises` ClientError
+  , m `Raises` ClientError
+  , m `Raises` DNS.DNSError
   -- , m `Raises` CryptoError
   -- , m `Raises` IV.GenError
   , m `Raises` JSON.Error
@@ -144,6 +150,9 @@ login ::
   -- , m `Raises` RSA.Error
   , m `Raises` SecurePayload.Error
   , m `Raises` UCAN.Resolver.Error
+
+  , Show (OpenUnion (Errors m))
+  , Display (SecurePayload (Symmetric.Key AES256) User.Link.Payload)
   )
   => Username
   -> m ()
@@ -154,10 +163,13 @@ login username = do
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
   targetDID <- ensureM $ DID.getByUsername username
 
+  rootURL <- getRemoteBaseUrl
+
   let
     myDID   = DID Key (Ed25519PublicKey signingPK)
     topic   = PubSub.Topic $ textDisplay targetDID
-    baseURL = BaseUrl Https "runfission.net" 443 "/user/link" -- FIXME check env
+    baseURL = rootURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink
+                                                   --      since that would cause a dependency on fission-web-server
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1"
@@ -205,6 +217,7 @@ login username = do
         raise $ JWT.ClaimsError JWT.Claims.IncorrectSender
 
       -- Persist credentials
-      WebNative.Mutation.Store.insert bearer
-      WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
-      -- FIXME set username & UCAN pointer in config
+      _   <- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
+      cid <- WebNative.Mutation.Store.insert bearer
+
+      Env.init username baseURL (Just cid)

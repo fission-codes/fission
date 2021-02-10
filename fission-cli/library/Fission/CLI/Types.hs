@@ -253,6 +253,8 @@ instance
       |> Map.insert cid token
       |> YAML.writeFile storePath
 
+    return cid
+
   getAll = do
     storePath <- ucanStorePath
     YAML.readFile storePath
