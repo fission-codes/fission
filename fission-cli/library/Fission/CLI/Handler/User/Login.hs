@@ -105,7 +105,9 @@ type Errs =
    , UCAN.Resolver.Error
    ]
 
-login ::
+login = undefined -- FIXME
+
+consume ::
   ( MonadLogger       m
   , MonadRemote       m
   , MonadTime         m
@@ -122,9 +124,9 @@ login ::
 
   , MonadSecured m (Symmetric.Key AES256) PIN.Payload
   , MonadSecured m (Symmetric.Key AES256) User.Link.Payload
-  , MonadSecured m RSA.PrivateKey PubSub.Session
+  , MonadSecured m (RSA.PublicKey, RSA.PrivateKey) PubSub.Session
 
-  , MonadPubSubSecure m RSA.PrivateKey
+  , MonadPubSubSecure m (RSA.PublicKey, RSA.PrivateKey)
   --, MonadPubSubSecure m (Symmetric.Key AES256)
 
   -- , MonadWebAuth m Auth.Token
@@ -156,9 +158,10 @@ login ::
   )
   => Username
   -> m ()
-login username = do
-  -- FIXME User.ensureNotLoggedIn / switch on login vs provide
+consume username = do
+  -- FIXME User.ensureNotLoggedIn -- TODO switch on login vs provide
 
+  -- vvv TODO THIS SECTION SHOULD MOVE TO THE COMMON BIT
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
   targetDID <- ensureM $ DID.getByUsername username
@@ -170,12 +173,14 @@ login username = do
     topic   = PubSub.Topic $ textDisplay targetDID
     baseURL = rootURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink
                                                    --      since that would cause a dependency on fission-web-server
+  -- ^^^ END TODO
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1"
-    aesConn <- secure conn () \rsaConn@Secure.Connection {key} -> reattempt 10 do
+    aesConn <- secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       let
-        sessionDID = DID Key (RSAPublicKey $ RSA.private_pub key)
+        Secure.Connection {key = (pk, sk)} = rsaConn
+        sessionDID = DID Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
       broadcastRaw conn sessionDID
@@ -220,4 +225,8 @@ login username = do
       _   <- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
       cid <- WebNative.Mutation.Store.insert bearer
 
+      -- Set up local env
       Env.init username baseURL (Just cid)
+
+provide = do
+  undefined

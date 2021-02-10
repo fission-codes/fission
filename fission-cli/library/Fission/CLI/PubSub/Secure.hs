@@ -33,7 +33,7 @@ secureListenJSON ::
   => Secure.Connection m cipher
   -> m msg
 secureListenJSON Secure.Connection {..} =
-  reattempt 100 do -- FIXME reply with something if fails
+  reattempt 100 do
     payload <- listenJSON conn
     logDebug $ "Got raw encrypted payload: " <> textDisplay payload
     ensureM $ fromSecurePayload key payload

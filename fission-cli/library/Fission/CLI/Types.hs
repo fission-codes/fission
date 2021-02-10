@@ -263,7 +263,6 @@ ucanStorePath = do
   ucanDir <- globalUCANDir
   return (ucanDir </> "store.yaml")
 
--- FIXME Fission.CLI.WebNative.FileSystem.Auth.Store.Class
 instance
   ( HasLogFunc cfg
   , YAML.ParseException `IsMember` errs
@@ -354,7 +353,7 @@ instance
   , Display (OpenUnion errs)
   , HasLogFunc cfg
   )
-  => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where -- FIXME switch to MonadKeyStore => MonadWebAuth
+  => MonadWebAuth (FissionCLI errs cfg) Ed25519.SecretKey where
   getAuth = do
     attempt (getAsBytes $ Proxy @SigningKey) >>= \case
       Right raw -> ensureM $ Key.Store.parse (Proxy @SigningKey) raw
@@ -675,20 +674,33 @@ instance
   , Contains errs errs
   , Display (OpenUnion errs)
   )
-  => MonadPubSubSecure (FissionCLI errs cfg) RSA.PrivateKey where
-  genSessionKey () = Asymmetric.genRSA2048
+  => MonadPubSubSecure (FissionCLI errs cfg) (RSA.PublicKey, RSA.PrivateKey) where
+  genSessionKey () = do
+    sk <- Asymmetric.genRSA2048
+    return (RSA.private_pub sk, sk)
 
 instance forall errs cfg msg .
   ( HasLogFunc cfg
   , IV.GenError `IsMember` errs
   , CryptoError `IsMember` errs
+  , RSA.Error   `IsMember` errs
   , Display (OpenUnion errs)
   )
-  => MonadSecured (FissionCLI errs cfg) RSA.PrivateKey PubSub.Session where
-  toSecurePayload rsaPK PubSub.Session {bearerToken, sessionKey} = -- do
-    undefined -- FIXME
+  => MonadSecured (FissionCLI errs cfg) (RSA.PublicKey, RSA.PrivateKey) PubSub.Session where
+  toSecurePayload (rsaPK, _) PubSub.Session {bearerToken, sessionKey = sessionKey@(Symmetric.Key aesClear)} = do
+    logDebug @Text "Encrypting RSA-secured PubSub.Session payload (Handshake)"
 
-  fromSecurePayload rsaSK PubSub.Handshake {iv, sessionKey = EncryptedPayload keyInRSA, msg = tokenInAES} = do
+    encryptedBS <- ensureM $ RSA.OAEP.encrypt oaepParams rsaPK aesClear
+
+    iv  <- ensureM Symmetric.genIV
+    msg <- ensure $ Symmetric.encrypt sessionKey iv bearerToken
+
+    return PubSub.Handshake { msg
+                            , iv
+                            , sessionKey = EncryptedPayload $ Lazy.fromStrict encryptedBS
+                            }
+
+  fromSecurePayload (_, rsaSK) PubSub.Handshake {iv, sessionKey = EncryptedPayload keyInRSA, msg = tokenInAES} = do
     logDebug @Text "Decrypting RSA-secured PubSub.Session payload (Handshake)"
     RSA.OAEP.decryptSafer oaepParams rsaSK (Lazy.toStrict keyInRSA) >>= \case
       Left rsaError ->

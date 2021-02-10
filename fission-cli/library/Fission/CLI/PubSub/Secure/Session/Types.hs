@@ -17,4 +17,4 @@ data Session = Session
   }
   deriving Eq
 
-type instance SecurePayload RSA.PrivateKey Session = Handshake
+type instance SecurePayload (RSA.PublicKey, RSA.PrivateKey) Session = Handshake

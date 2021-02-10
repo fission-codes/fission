@@ -6,4 +6,4 @@ import           Data.Kind
 
 type family GenData cipher :: Type
 
-type instance GenData RSA.PrivateKey = ()
+type instance GenData (RSA.PublicKey, RSA.PrivateKey) = ()
