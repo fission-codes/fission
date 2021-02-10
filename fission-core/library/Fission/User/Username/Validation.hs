@@ -80,8 +80,7 @@ isValid rawUsername =
 
 isUsernameChar :: Char -> Bool
 isUsernameChar c =
-     Char.isAsciiUpper c
-  || Char.isAsciiLower c
+     Char.isAsciiLower c
   || Char.isDigit      c
   || c == '-'
 
