@@ -31,6 +31,11 @@ import           Fission.Prelude
 -- >>> isValid "reCovErY"
 -- False
 --
+-- They can't contain uppercase characters at all
+--
+-- >>> "hElLoWoRlD"
+-- False
+--
 -- Nor are various characters
 --
 -- >>> isValid "under_score"
