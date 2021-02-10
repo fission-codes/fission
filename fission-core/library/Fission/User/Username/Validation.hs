@@ -62,10 +62,13 @@ isValid rawUsername =
   where
     preds :: [Bool]
     preds = [ okChars
+            , not blank
             , not startsWithHyphen
             , not endsWithHyphen
             , not inBlocklist
             ]
+
+    blank = Text.null username
 
     inBlocklist = elem username blocklist
     okChars     = Text.all isUsernameChar username
