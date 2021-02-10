@@ -33,7 +33,7 @@ import           Fission.Prelude
 --
 -- They can't contain uppercase characters at all
 --
--- >>> "hElLoWoRlD"
+-- >>> isValid "hElLoWoRlD"
 -- False
 --
 -- Nor are various characters
