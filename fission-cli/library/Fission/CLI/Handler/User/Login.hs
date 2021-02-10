@@ -105,7 +105,8 @@ type Errs =
    , UCAN.Resolver.Error
    ]
 
-login = undefined -- FIXME
+login = do
+  undefined -- FIXME
 
 consume ::
   ( MonadLogger       m
@@ -229,4 +230,50 @@ consume username = do
       Env.init username baseURL (Just cid)
 
 provide = do
-  undefined
+  signingSK <- Key.Store.fetch $ Proxy @SigningKey
+  signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
+  targetDID <- ensureM $ DID.getByUsername username
+
+  rootURL <- getRemoteBaseUrl
+
+  let
+    myDID   = DID Key (Ed25519PublicKey signingPK)
+    topic   = PubSub.Topic $ textDisplay targetDID
+    baseURL = rootURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink
+                                                   --      since that would cause a dependency on fission-web-server
+
+  PubSub.connect baseURL topic \conn -> reattempt 10 do
+    logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"
+    secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
+      let
+        Secure.Connection {key = (pk, sk)} = rsaConn
+        sessionDID = DID Key (RSAPublicKey pk)
+
+      logDebug @Text "🤝 Device linking handshake: Step 2"
+      requestorTempDID <- listenRaw conn
+
+      reattempt 10 do
+        logDebug @Text "🤝 Device linking handshake: Step 3"
+        let bearerToken = undefined  -- FIXME
+        let sessionKey = undefined  -- FIXME
+        let aesConn = undefined  -- FIXME
+        secureBroadcastJSON rsaConn PubSub.Session {sessionKey, bearerToken}
+
+      logDebug @Text "🤝 Device linking handshake: Step 4 (noop)"
+
+      logDebug @Text "🤝 Device linking handshake: Step 5"
+      pinStep <- secureListenJSON aesConn
+      UTF8.putTextLn $ "Confirmation code: " <> toEmoji pinStep
+      -- FIXME get agreement "Y/N"
+
+      reattempt 100 do
+        logDebug @Text "🤝 Device linking handshake: Step 6"
+
+        readKey <- WebNative.FileSystem.Auth.Store.getMostPrivileged targetDID "/"
+        proof   <- WebNative.Mutation.Store.getBy bearer
+
+        let bearer = undefined -- FIXME
+
+        secureBroadcastJSON aesConn User.Link.Payload {bearer, readKey}
+
+    UTF8.putTextLn "Success!" -- FIXME better message
