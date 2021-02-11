@@ -9,7 +9,7 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
-import qualified Fission.URL                               as URL
+import qualified Fission.App.Name                          as App
 
 import           Fission.CLI.Parser.Command.App.Init.Types
 import qualified Fission.CLI.Parser.Config.IPFS            as IPFS
@@ -48,7 +48,7 @@ parser = do
     , short   'b'
     ]
 
-  maySubdomain <- option subdomain $ mconcat
+  mayAppName <- option appName $ mconcat
     [ help    "Optional app name"
     -----------
     , long    "name"
@@ -67,9 +67,13 @@ mayBuild = do
     ""   -> Nothing
     path -> Just path
 
-subdomain :: ReadM (Maybe URL.Subdomain)
-subdomain = do
-  txt <- str
-  pure case txt of
-    ""  -> Nothing
-    sub -> Just (URL.Subdomain sub)
+appName :: ReadM (Maybe App.Name)
+appName =
+  str >>= \case
+    ""  ->
+      return Nothing
+
+    sub ->
+      case App.mkName sub of
+        Left _     -> fail "Not a valid app name"
+        Right name -> return $ Just name

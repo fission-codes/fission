@@ -71,7 +71,7 @@ interpret baseCfg cmd = do
     Info (App.Info.Options _) ->
       Handler.appInfo
 
-    Init App.Init.Options {appDir, buildDir, maySubdomain, ipfsCfg = IPFS.Config {..}} -> do
+    Init App.Init.Options {appDir, buildDir, mayAppName, ipfsCfg = IPFS.Config {..}} -> do
       let
         run' :: FissionCLI errs Connected.Config () -> FissionCLI errs Base.Config ()
         run' = ensureM . Connected.run baseCfg timeoutSeconds
@@ -86,7 +86,7 @@ interpret baseCfg cmd = do
           case openUnionMatch errs of
             Just (_ :: NotFound FilePath) -> do
               logDebug @Text "Setting up new app"
-              run' $ Handler.appInit appDir buildDir maySubdomain
+              run' $ Handler.appInit appDir buildDir mayAppName
 
             Nothing -> do
               logError @Text "Problem setting up new app"

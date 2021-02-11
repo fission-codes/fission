@@ -5,6 +5,7 @@ import           Servant
 
 import           Fission.Prelude
 
+import qualified Fission.App.Name                       as App.Name
 import           Fission.URL
 
 import qualified Fission.Web.API.App.Create.Types       as API.App
@@ -27,7 +28,7 @@ create ::
   , MonadDNSLink           m
   )
   => ServerT API.App.Create m
-create maySubdomain Authorization {about = Entity userId _} = do
+create mayAppName Authorization {about = Entity userId _} = do
   now            <- currentTime
   (_, subdomain) <- Web.Error.ensureM $ App.createWithPlaceholder userId maySubdomain now
   defaultDomain  <- App.Domain.initial
@@ -36,3 +37,7 @@ create maySubdomain Authorization {about = Entity userId _} = do
     { domainName = defaultDomain
     , subdomain  = Just subdomain
     }
+
+  where
+    maySubdomain :: Maybe Subdomain
+    maySubdomain = App.Name.toSubdomain <$> mayAppName
