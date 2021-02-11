@@ -1,9 +1,13 @@
 module Fission.CLI.WebNative.Mutation.Auth.Store
   ( getBy
+  , getUserProof
   , module Fission.CLI.WebNative.Mutation.Auth.Store.Class
   ) where
 
-import qualified RIO.Map                                          as Map
+import qualified Data.Yaml                                        as YAML
+import           RIO.Map                                          as Map
+
+import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
@@ -18,16 +22,25 @@ import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types       as UCAN
 
+import           Fission.CLI.Environment                          as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store.Class
 
-getRoot = do
+getUserProof ::
+  ( MonadIO          m
+  , MonadStore       m
+  , MonadLogger      m
+  , MonadEnvironment m
+  , MonadRaise       m
+  , m `Raises` NotFound CID
+  , m `Raises` NotFound FilePath
+  , m `Raises` YAML.ParseException
+  )
+  => m (Maybe Bearer.Token) -- NOTE You may be root, hence Maybe
+getUserProof = do
   Env {rootProof} <- Env.get
   store           <- getAll
-  cid             <- ensure $ fromJust Boom rootProof
-
-  case store ?! cid of
-    Nothing    -> raise $ NotFound @Bearer.Token
-    Just token -> rteurn token
+  cid             <- maybe (raise $ NotFound @CID) pure rootProof
+  return (store !? cid)
 
 getBy :: forall m.
   ( MonadStore   m
@@ -44,8 +57,8 @@ getBy did matcher = do
   bearerTokens <- getAll
 
   filterM normalizedMatcher (Map.elems bearerTokens) >>= \case
-    []           -> raise NotFound
-    (bearer : _) -> return bearer
+    []          -> raise $ NotFound @Bearer.Token
+    (token : _) -> return token
 
   where
     normalizedMatcher :: Bearer.Token -> m Bool

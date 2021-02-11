@@ -64,6 +64,8 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver.Error   as UCAN.Resolver
 import qualified Fission.Web.Auth.Token.JWT.Validation       as UCAN
 -- import qualified Fission.Web.Auth.Token.Types                as Auth
 
+import           Fission.Web.Client.JWT                      (ucan)
+
 -- import           Fission.CLI.Display.Success                       as CLI.Success
 import           Fission.CLI.Environment                     as Env
 import           Fission.CLI.Remote
@@ -230,19 +232,33 @@ consume username = do
       Env.init username baseURL (Just cid)
 
 provide = do
-  signingSK <- Key.Store.fetch $ Proxy @SigningKey
-  signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
+  signingSK    <- Key.Store.fetch $ Proxy @SigningKey
+  signingPK    <- Key.Store.toPublic (Proxy @SigningKey) signingSK
+  remoteURL    <- getRemoteBaseUrl
+  mayProofUCAN <- WebNative.Mutation.Store.getUserProof
 
-  -- FIXME swap out for using root proof directly
-  targetDID <- ensureM $ DID.getByUsername username
+  let rootProof =
+        -- FIXME worth extracting
+    case mayProofUCAN of
+      Nothing                             -> RootCredential
+      Just Bearer.Token {jwt, rawContent} -> Nested rawContent jwt -- FIXME extract conversion
 
-  rootURL <- getRemoteBaseUrl
+  rootDID      <-
+    -- FIXME Probably worth extracting
+    case rootProof of
+      RootCredential ->
+        return $ DID Key (Ed25519PublicKey signingPK)
+
+      Just (Nested _ jwt) -> do
+        JWT {claims = JWT.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
+        return sender
+
+  (_, wnfsKey) <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
 
   let
-    myDID   = DID Key (Ed25519PublicKey signingPK)
-    topic   = PubSub.Topic $ textDisplay targetDID
-    baseURL = rootURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink
-                                                   --      since that would cause a dependency on fission-web-server
+    topic   = PubSub.Topic $ textDisplay rootDID
+    baseURL = remoteURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink
+                                                     --      since that would cause a dependency on fission-web-server
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"
     secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
@@ -252,12 +268,13 @@ provide = do
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
       requestorTempDID <- listenRaw conn
-      fsKey <- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
-       -- FIXME getRootProof
-      -- proof <- WebNative.Mutation.Store.getBy bearer -- FIXME lookup root proof
 
       reattempt 10 do
         logDebug @Text "🤝 Device linking handshake: Step 3"
+        -- FIXME extract
+        now <- getCurrentTime
+        ucan now requestorTempDID sk proof
+
         let bearerToken = undefined  -- FIXME
         let sessionKey = undefined  -- FIXME
         let aesConn = undefined  -- FIXME

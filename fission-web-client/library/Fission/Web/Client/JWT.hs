@@ -56,29 +56,29 @@ mkAuthReq = do
 
   return \req -> addHeader "Authorization" encoded req
 
-ucan :: UTCTime -> DID -> Ed25519.SecretKey -> Proof -> JWT
-ucan now fissionDID sk proof = JWT {..}
+ucan' :: UTCTime -> DID -> Ed25519.SecretKey -> Prood -> JWT
+ucan' now fissionDID k proof =
+  where
+    facts = []
+    potency  = AppendOnly
+    resource = Just (Subset (FissionFileSystem "/"))
+
+    -- Accounting for clock drift
+    begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
+    expiry = addUTCTime (secondsToNominalDiffTime   30)  now
+
+mkUCAN :: UTCTime -> DID -> Ed25519.SecretKey -> Proof -> JWT
+mkUCAN now receiver senderSK nbf exp facts resource potency proof =
+  JWT {..}
   where
     sig = JWT.Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
 
-    senderDID = DID
+    sender = DID
       { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic sk
       , method    = DID.Key
       }
 
-    claims = JWT.Claims
-      { sender   = senderDID
-      , receiver = fissionDID
-
-      , potency  = AppendOnly
-      , resource = Just (Subset (FissionFileSystem "/"))
-      , proof    = proof
-      , facts    = []
-
-      -- Accounting for clock drift
-      , nbf      = addUTCTime (secondsToNominalDiffTime (-30)) now
-      , exp      = addUTCTime (secondsToNominalDiffTime   30)  now
-      }
+    claims = JWT.Claims {..}
 
     header = JWT.Header
       { typ = JWT.Typ.JWT
