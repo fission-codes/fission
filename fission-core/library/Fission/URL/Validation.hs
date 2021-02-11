@@ -1,4 +1,4 @@
--- | Username validation
+-- | Raw validation
 module Fission.URL.Validation
   ( isValid
   , isURLChar
@@ -14,7 +14,7 @@ import qualified Fission.Security as Security
 -- $setup
 -- >>> :set -XOverloadedStrings
 
--- | Confirm that a username is valid
+-- | Confirm that a raw is valid
 --
 -- >>> isValid "simple"
 -- True
@@ -63,7 +63,7 @@ import qualified Fission.Security as Security
 -- >>> isValid "name&with#chars"
 -- False
 isValid :: Text -> Bool
-isValid username =
+isValid txt =
   all (== True) preds
   where
     preds :: [Bool]
@@ -74,17 +74,16 @@ isValid username =
             , not inBlocklist
             ]
 
-    blank = Text.null username
+    blank = Text.null txt
 
-    inBlocklist = elem username Security.blocklist
-    okChars     = Text.all isURLChar username
+    inBlocklist = elem txt Security.blocklist
+    okChars     = Text.all isURLChar txt
 
-    startsWithHyphen = Text.isPrefixOf "-" username
-    endsWithHyphen   = Text.isSuffixOf "-" username
+    startsWithHyphen = Text.isPrefixOf "-" txt
+    endsWithHyphen   = Text.isSuffixOf "-" txt
 
 isURLChar :: Char -> Bool
 isURLChar c =
      Char.isAsciiLower c
   || Char.isDigit      c
   || c == '-'
-
