@@ -1,4 +1,4 @@
-module Fission.App.Name.Error where
+module Fission.App.Name.Error (Invalid (..)) where
 
 import           Fission.Prelude
 
