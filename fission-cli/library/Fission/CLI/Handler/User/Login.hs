@@ -232,6 +232,8 @@ consume username = do
 provide = do
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
+
+  -- FIXME swap out for using root proof directly
   targetDID <- ensureM $ DID.getByUsername username
 
   rootURL <- getRemoteBaseUrl
@@ -241,7 +243,6 @@ provide = do
     topic   = PubSub.Topic $ textDisplay targetDID
     baseURL = rootURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink
                                                    --      since that would cause a dependency on fission-web-server
-
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"
     secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
@@ -251,6 +252,9 @@ provide = do
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
       requestorTempDID <- listenRaw conn
+      fsKey <- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
+       -- FIXME getRootProof
+      -- proof <- WebNative.Mutation.Store.getBy bearer -- FIXME lookup root proof
 
       reattempt 10 do
         logDebug @Text "🤝 Device linking handshake: Step 3"
