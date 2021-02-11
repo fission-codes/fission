@@ -43,7 +43,7 @@ instance ToParamSchema Name where
 instance FromHttpApiData Name where
   parseUrlPiece txt =
     case mkName txt of
-      Left _err  -> Left $ "Invalid usrename: " <> txt
+      Left _err  -> Left $ "Invalid app name: " <> txt
       Right name -> Right name
 
 instance ToHttpApiData Name where
