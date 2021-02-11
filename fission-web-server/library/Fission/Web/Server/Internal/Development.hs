@@ -93,7 +93,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
 
   where
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
-    liveDriveURL = URL "fission.codes" (Just "drive")
+    liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
@@ -164,7 +164,7 @@ mkConfig ::
 mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Config {..}
   where
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
-    liveDriveURL = URL "fission.codes" (Just "drive")
+    liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"

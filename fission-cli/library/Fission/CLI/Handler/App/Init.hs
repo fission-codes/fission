@@ -6,11 +6,11 @@ import qualified System.Console.ANSI             as ANSI
 
 import           Fission.Prelude
 
+import           Fission.Authorization.ServerDID
 import qualified Fission.Internal.UTF8           as UTF8
 import qualified Fission.Web.Client.App          as App
 
-import           Fission.Authorization.ServerDID
-import           Fission.URL                     as URL
+import qualified Fission.App.Name                as App
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
@@ -44,12 +44,12 @@ appInit ::
   )
   => FilePath
   -> Maybe FilePath
-  -> Maybe URL.Subdomain
+  -> Maybe App.Name
   -> m ()
-appInit appDir mayBuildDir' maySubdomain = do
+appInit appDir mayBuildDir' mayAppName = do
   logDebug @Text "appInit"
 
-  attempt (sendAuthedRequest (App.create maySubdomain)) >>= \case -- maySubdomain)) >>= \case
+  attempt (sendAuthedRequest $ App.create mayAppName) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err

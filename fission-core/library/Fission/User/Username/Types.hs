@@ -9,15 +9,15 @@ import           Database.Persist.Sql
 import           Data.Swagger
 import           Servant.API
 
-import qualified RIO.ByteString.Lazy              as Lazy
-import qualified RIO.Text                         as Text
+import qualified RIO.ByteString.Lazy         as Lazy
+import qualified RIO.Text                    as Text
 
-import qualified Network.IPFS.Internal.UTF8       as UTF8
+import qualified Network.IPFS.Internal.UTF8  as UTF8
 
 import           Fission.Prelude
 
+import           Fission.URL.Validation
 import           Fission.User.Username.Error
-import           Fission.User.Username.Validation
 
 newtype Username = Username { username :: Text }
   deriving newtype ( Show
@@ -38,7 +38,7 @@ mkUsername txt =
 instance Arbitrary Username where
   arbitrary = do
     txt <- arbitrary
-    case mkUsername $ Text.filter isUsernameChar txt of
+    case mkUsername $ Text.filter isURLChar txt of
       Left _      -> arbitrary
       Right uName -> return uName
 
