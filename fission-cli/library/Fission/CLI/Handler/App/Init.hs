@@ -49,7 +49,7 @@ appInit ::
 appInit appDir mayBuildDir' mayAppName = do
   logDebug @Text "appInit"
 
-  attempt (sendAuthedRequest (App.create mayAppName)) >>= \case -- maySubdomain)) >>= \case
+  attempt (sendAuthedRequest $ App.create mayAppName) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err
