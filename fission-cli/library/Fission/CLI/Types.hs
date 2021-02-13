@@ -25,7 +25,7 @@ import           RIO.FilePath
 import qualified RIO.List                                          as List
 import           RIO.Map                                           as Map
 import qualified RIO.NonEmpty                                      as NonEmpty
-import qualified RIO.Set                                           as Set
+-- import qualified RIO.Set                                           as Set
 import qualified RIO.Text                                          as Text
 
 import qualified Network.DNS                                       as DNS
@@ -63,7 +63,7 @@ import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignor
 
 import qualified Fission.CLI.YAML                                  as YAML
 
-import           Fission.CLI.Key.Ed25519                           as Ed25519
+-- import           Fission.CLI.Key.Ed25519                           as Ed25519
 import           Fission.CLI.Key.Store                             as Key.Store
 
 import qualified Fission.CLI.WebNative.FileSystem.Auth             as WebNative.FileSystem.Auth
@@ -78,25 +78,27 @@ import           Fission.Web.Auth.Token.JWT                        as JWT
 
 import qualified Fission.Key.Asymmetric.Public                     as Asymmetric
 import           Fission.Key.EncryptedWith.Types
-import qualified Fission.Key.Error                                 as Key
+-- import qualified Fission.Key.Error                                 as Key
 import qualified Fission.Key.IV.Error                              as IV
 import qualified Fission.Key.Symmetric                             as Symmetric
 
 import           Fission.User.DID.NameService.Class                as DID
-import           Fission.User.DID.Types
+-- import           Fission.User.DID.Types
 import           Fission.User.Username
 
-import           Fission.Web.Client.HTTP.Class
+-- import           Fission.Web.Client.HTTP.Class
 
-import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
-import           Fission.Web.Auth.Token.JWT                        as JWT
+-- import qualified Fission.Web.Auth.Token.JWT                        as JWT
+
+-- import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
+-- import           Fission.Web.Auth.Token.JWT                        as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
 import qualified Fission.Web.Auth.Token.JWT.Resolver               as JWT.Resolver
 import           Fission.Web.Auth.Token.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+-- import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.JWT                            as JWT
+-- import qualified Fission.Web.Client.JWT                            as JWT
 
 import           Fission.CLI.Internal.Orphanage.CID                ()
 import           Fission.Internal.Orphanage.BaseUrl                ()
@@ -105,14 +107,14 @@ import           Fission.Internal.Orphanage.OpenUnion              ()
 
 import           Fission.Internal.Orphanage.ClientError            ()
 
-import qualified Fission.CLI.Base.Types                            as Base
-import           Fission.CLI.Bootstrap
-import qualified Fission.CLI.Connected.Types                       as Connected
+-- import qualified Fission.CLI.Base.Types                            as Base
+-- import           Fission.CLI.Bootstrap
+-- import qualified Fission.CLI.Connected.Types                       as Connected
 
-import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
-import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
+-- import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
+-- import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
 
-import           Fission.CLI.Key.Store                             as Key.Store
+-- import           Fission.CLI.Key.Store                             as Key.Store
 import           Fission.CLI.PubSub
 import           Fission.CLI.Remote
 
@@ -259,6 +261,7 @@ instance
     storePath <- ucanStorePath
     YAML.readFile storePath
 
+ucanStorePath :: MonadEnvironment m => m FilePath
 ucanStorePath = do
   ucanDir <- globalUCANDir
   return (ucanDir </> "store.yaml")
@@ -290,6 +293,8 @@ instance
       |> Map.filterWithKey (\path _ -> path `List.isPrefixOf` subGraphRoot)
       |> pure
 
+-- FIXME move to env module
+wnfsKeyStorePath :: MonadEnvironment m => m FilePath
 wnfsKeyStorePath = do
   wnfsDir <- globalWNFSDir
   return (wnfsDir </> "store.yaml")
@@ -334,7 +339,7 @@ instance
 
     let
       jwt =
-        JWT.ucan now serverDID sk proof
+        JWT.simpleWNFS now serverDID sk [] proof -- FIXME generalize
 
       rawContent =
         jwt
@@ -679,7 +684,7 @@ instance
     sk <- Asymmetric.genRSA2048
     return (RSA.private_pub sk, sk)
 
-instance forall errs cfg msg .
+instance forall errs cfg .
   ( HasLogFunc cfg
   , IV.GenError `IsMember` errs
   , CryptoError `IsMember` errs

@@ -53,7 +53,7 @@ import           Fission.Web.Client
 import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Symmetric                       as Symmetric
 
-import           Fission.Web.Auth.Token.Bearer.Types         as Bearer
+import           Fission.Web.Auth.Token.Bearer               as Bearer
 import           Fission.Web.Auth.Token.JWT                  as JWT
 import qualified Fission.Web.Auth.Token.JWT                  as UCAN
 import qualified Fission.Web.Auth.Token.JWT.Claims.Error     as JWT.Claims
@@ -64,11 +64,13 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver.Error   as UCAN.Resolver
 import qualified Fission.Web.Auth.Token.JWT.Validation       as UCAN
 -- import qualified Fission.Web.Auth.Token.Types                as Auth
 
-import           Fission.Web.Client.JWT                      (ucan)
+import           Fission.Web.Auth.Token.JWT
 
 -- import           Fission.CLI.Display.Success                       as CLI.Success
 import           Fission.CLI.Environment                     as Env
 import           Fission.CLI.Remote
+
+import           Fission.CLI.Prompt
 
 import qualified Fission.CLI.Key.Store                       as Key.Store
 import           Fission.CLI.Key.Store.Types
@@ -237,22 +239,10 @@ provide = do
   remoteURL    <- getRemoteBaseUrl
   mayProofUCAN <- WebNative.Mutation.Store.getUserProof
 
-  let rootProof =
-        -- FIXME worth extracting
-    case mayProofUCAN of
-      Nothing                             -> RootCredential
-      Just Bearer.Token {jwt, rawContent} -> Nested rawContent jwt -- FIXME extract conversion
+  let
+    rootProof = Bearer.toProof mayProofUCAN
 
-  rootDID      <-
-    -- FIXME Probably worth extracting
-    case rootProof of
-      RootCredential ->
-        return $ DID Key (Ed25519PublicKey signingPK)
-
-      Just (Nested _ jwt) -> do
-        JWT {claims = JWT.Claims {sender}} <- ensureM $ UCAN.getRoot jwt
-        return sender
-
+  rootDID      <- getRootDID signingPK rootProof
   (_, wnfsKey) <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
 
   let
@@ -271,30 +261,35 @@ provide = do
 
       reattempt 10 do
         logDebug @Text "🤝 Device linking handshake: Step 3"
-        -- FIXME extract
-        now <- getCurrentTime
-        ucan now requestorTempDID sk proof
 
-        let bearerToken = undefined  -- FIXME
-        let sessionKey = undefined  -- FIXME
-        let aesConn = undefined  -- FIXME
-        secureBroadcastJSON rsaConn PubSub.Session {sessionKey, bearerToken}
+        secure conn () \aesConn@Secure.Connection {key = sessionKey} -> do
+          now <- getCurrentTime
 
-      logDebug @Text "🤝 Device linking handshake: Step 4 (noop)"
+          let
+            handshakeJWT = simpleWNFS now requestorTempDID sk [SessionKey sessionKey] proof
 
-      logDebug @Text "🤝 Device linking handshake: Step 5"
-      pinStep <- secureListenJSON aesConn
-      UTF8.putTextLn $ "Confirmation code: " <> toEmoji pinStep
-      -- FIXME get agreement "Y/N"
+          rsaConn `secureBroadcastJSON` PubSub.Session { sessionKey
+                                                       , bearerToken = handshakeJWT
+                                                       }
 
-      reattempt 100 do
-        logDebug @Text "🤝 Device linking handshake: Step 6"
+          logDebug @Text "🤝 Device linking handshake: Step 4 (noop)"
 
-        readKey <- WebNative.FileSystem.Auth.Store.getMostPrivileged targetDID "/"
-        proof   <- WebNative.Mutation.Store.getBy bearer
+          logDebug @Text "🤝 Device linking handshake: Step 5"
+          pinStep@(PIN.Payload requestorDID pin) <- secureListenJSON aesConn
 
-        let bearer = undefined -- FIXME
+          confirmation <- reaskYN ("Does this code match your second device? " <> toEmoji pinStep)
+          unless confirmation $ error "Broekd" -- FIXME $ raise DoesNotMatch
 
-        secureBroadcastJSON aesConn User.Link.Payload {bearer, readKey}
+          reattempt 100 do
+            logDebug @Text "🤝 Device linking handshake: Step 6"
+
+            readKey <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
+            proof   <- WebNative.Mutation.Store.getBy bearer -- FIXME just get it from direct ref
+
+            let
+              jwt = mkUCAN now
+              bearer = undefined -- FIXME
+
+            aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 
     UTF8.putTextLn "Success!" -- FIXME better message

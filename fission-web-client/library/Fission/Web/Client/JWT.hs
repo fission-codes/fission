@@ -1,39 +1,29 @@
-module Fission.Web.Client.JWT
-  ( mkAuthReq
-  , ucan
-  ) where
+module Fission.Web.Client.JWT (mkAuthReq) where
 
-import qualified RIO.ByteString.Lazy                              as Lazy
-import qualified RIO.Text                                         as Text
+import qualified RIO.ByteString.Lazy                 as Lazy
+import qualified RIO.Text                            as Text
 
-import qualified Crypto.PubKey.Ed25519                            as Ed25519
+import qualified Crypto.PubKey.Ed25519               as Ed25519
 
-import           Servant.API                                      hiding
-                                                                  (addHeader)
+import           Servant.API                         hiding (addHeader)
 import           Servant.Client.Core
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.Base64.URL                      as B64.URL
+import           Fission.Authorization               as Authorization
 
-import qualified Fission.Key                                      as Key
-import           Fission.User.DID                                 as DID
-
-import           Fission.Authorization                            as Authorization
-import           Fission.Key.Asymmetric.Algorithm.Types           as Key
-
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
-
-import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
-import           Fission.Web.Auth.Token.JWT                       as JWT
-import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types      as JWT.Typ
-import qualified Fission.Web.Auth.Token.JWT.Signature.Types       as JWT.Signature
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import           Fission.Web.Auth.Token.JWT          as JWT
 
 import           Fission.Web.Client.Auth
 
 -- NOTE Probably can be changed to `hoistClientMonad` at call site
-mkAuthReq :: (MonadTime m, ServerDID m, MonadWebAuth m Ed25519.SecretKey) => m (Request -> Request)
+mkAuthReq ::
+  ( MonadTime m
+  , ServerDID m
+  , MonadWebAuth m Ed25519.SecretKey
+  )
+  => m (Request -> Request)
 mkAuthReq = do
   now        <- currentTime
   fissionDID <- getServerDID
@@ -41,7 +31,7 @@ mkAuthReq = do
 
   let
     jwt =
-      ucan now fissionDID sk RootCredential
+      JWT.simpleWNFS now fissionDID sk [] RootCredential
 
     raw =
       jwt
@@ -55,34 +45,3 @@ mkAuthReq = do
       toUrlPiece $ Bearer.Token jwt (JWT.contentOf raw)
 
   return \req -> addHeader "Authorization" encoded req
-
-ucan' :: UTCTime -> DID -> Ed25519.SecretKey -> Prood -> JWT
-ucan' now fissionDID k proof =
-  where
-    facts = []
-    potency  = AppendOnly
-    resource = Just (Subset (FissionFileSystem "/"))
-
-    -- Accounting for clock drift
-    begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
-    expiry = addUTCTime (secondsToNominalDiffTime   30)  now
-
-mkUCAN :: UTCTime -> DID -> Ed25519.SecretKey -> Proof -> JWT
-mkUCAN now receiver senderSK nbf exp facts resource potency proof =
-  JWT {..}
-  where
-    sig = JWT.Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
-
-    sender = DID
-      { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic sk
-      , method    = DID.Key
-      }
-
-    claims = JWT.Claims {..}
-
-    header = JWT.Header
-      { typ = JWT.Typ.JWT
-      , alg = Key.Ed25519
-      , cty = Nothing
-      , uav = Authorization.latestVersion
-      }

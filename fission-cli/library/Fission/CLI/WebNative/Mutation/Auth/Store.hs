@@ -45,7 +45,6 @@ getUserProof = do
 getBy :: forall m.
   ( MonadStore   m
   , JWT.Resolver m
-  , MonadLogger  m
   , MonadRaise   m
   , m `Raises` JWT.Resolver.Error
   , m `Raises` NotFound Bearer.Token
