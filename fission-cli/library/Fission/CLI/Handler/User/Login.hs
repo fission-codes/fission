@@ -251,10 +251,10 @@ provide = do
                                                      --      since that would cause a dependency on fission-web-server
   PubSub.connect baseURL topic \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"
+    -- FIXME text: providing/listening for $username
     secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       let
         Secure.Connection {key = (pk, sk)} = rsaConn
-        sessionDID = DID Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
       requestorTempDID <- listenRaw conn
@@ -277,18 +277,20 @@ provide = do
           logDebug @Text "🤝 Device linking handshake: Step 5"
           pinStep@(PIN.Payload requestorDID pin) <- secureListenJSON aesConn
 
-          confirmation <- reaskYN ("Does this code match your second device? " <> toEmoji pinStep)
-          unless confirmation $ error "Broekd" -- FIXME $ raise DoesNotMatch
+          pinOK <- reaskYN ("Does this code match your second device? " <> toEmoji pinStep)
+          unless pinOK $ error "Broekd" -- FIXME $ raise DoesNotMatch
 
           reattempt 100 do
             logDebug @Text "🤝 Device linking handshake: Step 6"
 
             readKey <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
-            proof   <- WebNative.Mutation.Store.getBy bearer -- FIXME just get it from direct ref
+            proof   <- WebNative.Mutation.Store.getUserProof
 
             let
-              jwt = mkUCAN now
-              bearer = undefined -- FIXME
+              bearer = Bearer.fromJWT $ delegateSuperUser requestorDID sk proof now
+
+            accessOK <- reaskYN ("Grant access to:") -- FIXME put pretty printer right on bearer
+            unless accessOK $ error "Broekd" -- FIXME $ raise DeniedByUser
 
             aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 

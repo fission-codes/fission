@@ -2,6 +2,7 @@ module Fission.Web.Auth.Token.JWT
   ( getRoot
   , getRootDID
   , mkUCAN
+  , delegateSuperUser
   , simpleWNFS
   , module Fission.Web.Auth.Token.JWT.Types
   ) where
@@ -87,6 +88,13 @@ simpleWNFS now fissionDID sk facts proof =
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
 
+delegateSuperUser :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> JWT
+delegateSuperUser targetDID sk proof now =
+  mkUCAN targetDID sk start expire [] (Just Complete) SuperUser proof
+  where
+    start  = addUTCTime (secondsToNominalDiffTime (-30)) now
+    expire = addUTCTime (nominalDay * 365 * 255)         now
+
 mkUCAN ::
      DID
   -> Ed25519.SecretKey
@@ -97,8 +105,7 @@ mkUCAN ::
   -> Potency
   -> Proof
   -> JWT
-mkUCAN receiver senderSK nbf exp facts resource potency proof =
-  JWT {..}
+mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT {..}
   where
     sig = JWT.Signature.Ed25519 . Key.signWith senderSK . encodeUtf8 $ B64.URL.encodeJWT header claims
 

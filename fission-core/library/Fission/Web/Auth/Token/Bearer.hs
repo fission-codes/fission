@@ -1,16 +1,25 @@
 module Fission.Web.Auth.Token.Bearer
-  ( toProof
+  ( fromJWT
+  , toProof
   -- * Reexports
   , module Fission.Web.Auth.Token.Bearer.Types
   ) where
 
+import qualified RIO.ByteString.Lazy                 as Lazy
+
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT          (Proof (..))
+import           Fission.Web.Auth.Token.JWT
 
 -- Reexport
 
 import           Fission.Web.Auth.Token.Bearer.Types
+
+fromJWT :: JWT -> Token
+fromJWT jwt =
+  Token { jwt
+        , rawContent = contentOf . decodeUtf8Lenient . Lazy.toStrict $ encode jwt
+        }
 
 toProof :: Maybe Token -> Proof
 toProof Nothing           = RootCredential
