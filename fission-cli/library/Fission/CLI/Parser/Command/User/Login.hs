@@ -23,11 +23,11 @@ parser :: Parser Options
 parser = do
   verboseFlag <- Verbose.parser
 
-  username <- option str $ mconcat
-    [ help  "Username"
-    ---
-    , long  "username"
-    , short 'u'
-    ]
+--   username <- option str $ mconcat
+--     [ help  "Username"
+--     ---
+--     , long  "username"
+--     , short 'u'
+--     ]
 
   pure Options {..}

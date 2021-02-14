@@ -4,13 +4,13 @@ module Fission.Web.Auth.Token.JWT
   , mkUCAN
   , delegateSuperUser
   , simpleWNFS
+  , prettyPrintGrants
   , module Fission.Web.Auth.Token.JWT.Types
+  , module Fission.Web.Auth.Token.JWT.Error
   ) where
 
--- import qualified RIO.ByteString.Lazy                              as Lazy
--- import qualified RIO.Text                                         as Text
-
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
+import qualified RIO.Text                                         as Text
 
 import           Fission.Prelude
 
@@ -26,11 +26,8 @@ import qualified Fission.Key.Asymmetric.Public.Types              as Asymmetric
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
--- import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
 import           Fission.Web.Auth.Token.JWT.Fact.Types
 import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types      as JWT.Typ
--- import qualified Fission.Web.Auth.Token.JWT.Proof                 as JWT.Proof
--- import           Fission.Web.Auth.Token.JWT.Resolver              as JWT.Resolver
 import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT
 import qualified Fission.Web.Auth.Token.JWT.Resolver.Class        as Proof
 import qualified Fission.Web.Auth.Token.JWT.Resolver.Error        as Resolver
@@ -40,6 +37,7 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 -- Reexports
 
+import           Fission.Web.Auth.Token.JWT.Error
 import           Fission.Web.Auth.Token.JWT.Types
 
 getRoot :: JWT.Resolver m => JWT -> m (Either Resolver.Error JWT)
@@ -78,8 +76,8 @@ getRootDID fallbackPK = \case
 
 -- FIXME may be able to move to inside the web client or CLI
 simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
-simpleWNFS now fissionDID sk facts proof =
-  mkUCAN fissionDID sk begin expiry facts resource potency proof
+simpleWNFS now receiverDID sk facts proof =
+  mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
     potency  = AppendOnly
     resource = Just (Subset (FissionFileSystem "/"))
@@ -122,3 +120,25 @@ mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT {..}
       , cty = Nothing
       , uav = Authorization.latestVersion
       }
+
+prettyPrintGrants :: JWT -> Text
+prettyPrintGrants JWT {claims = JWT.Claims {..}} =
+  mconcat
+    [ textDisplay potency
+    , " "
+    , humanizedResource
+    , ", from "
+    , toHumanTime nbf
+    , " until "
+    , toHumanTime exp
+    ]
+
+  where
+    toHumanTime utcTime =
+      Text.pack $ formatTime defaultTimeLocale rfc822DateFormat utcTime
+
+    humanizedResource =
+      case resource of
+        Nothing           -> "no resources"
+        Just Complete     -> "all resources"
+        Just (Subset res) -> textDisplay res

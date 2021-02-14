@@ -2,6 +2,7 @@ module Fission.CLI.PubSub.Secure
   ( secureBroadcastJSON
   , secureListenJSON
   , module Fission.CLI.PubSub.Secure.Class
+  , module Fission.CLI.PubSub.Secure.Payload
   , module Fission.CLI.PubSub.Secure.Connection
   ) where
 
@@ -18,6 +19,7 @@ import           Fission.CLI.PubSub.Secure.Payload    as Secure.Payload
 -- Reexports
 
 import           Fission.CLI.PubSub.Secure.Connection
+import           Fission.CLI.PubSub.Secure.Payload
 
 secureListenJSON ::
   ( MonadLogger  m

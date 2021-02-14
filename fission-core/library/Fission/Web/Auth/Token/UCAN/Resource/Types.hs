@@ -1,5 +1,7 @@
 module Fission.Web.Auth.Token.UCAN.Resource.Types (Resource (..)) where
 
+import qualified RIO.Text                                         as Text
+
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
@@ -22,6 +24,16 @@ instance Arbitrary Resource where
       , FissionApp        <$> arbitrary
       , RegisteredDomain  <$> arbitrary
       ]
+
+instance Display Resource where
+  textDisplay = \case
+    FissionFileSystem path            -> "WNFS at "     <> Text.pack path
+
+    FissionApp        Complete        -> "all apps"
+    FissionApp        (Subset url)    -> "app at "      <> textDisplay url
+
+    RegisteredDomain  Complete        -> "all domains names"
+    RegisteredDomain  (Subset domain) -> "domain name " <> textDisplay domain
 
 instance ToJSON Resource where
   toJSON = \case

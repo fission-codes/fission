@@ -2,7 +2,6 @@ module Fission.CLI.PIN.Payload.Types (Payload (..)) where
 
 import           Fission.Prelude
 
-import           Fission.Emoji.Class
 import           Fission.User.DID.Types
 
 import           Fission.CLI.Digit.Types
@@ -14,9 +13,6 @@ data Payload = Payload
   , pin :: PIN
   }
   deriving (Eq, Show)
-
-instance ToEmoji Payload where
-  toEmoji Payload {pin = PIN {..}} = toEmoji ([a, b, c, d, e, f] :: [Digit])
 
 instance ToJSON Payload where
   toJSON Payload {did, pin} =

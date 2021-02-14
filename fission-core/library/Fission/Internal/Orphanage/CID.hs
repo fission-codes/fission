@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.CLI.Internal.Orphanage.CID () where
+module Fission.Internal.Orphanage.CID () where
 
 import           Data.Aeson
 import qualified Data.Aeson.Types       as JSON
@@ -14,4 +14,3 @@ instance ToJSONKey CID where
 
 instance FromJSONKey CID where
   fromJSONKey = FromJSONKeyValue parseJSON
-

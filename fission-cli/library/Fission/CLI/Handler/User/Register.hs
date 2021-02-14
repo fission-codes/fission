@@ -4,17 +4,13 @@ module Fission.CLI.Handler.User.Register (register) where
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           Crypto.Random
 
-import           Network.DNS
 import           Network.HTTP.Types.Status
 import           Servant.Client
 
 import           Fission.Prelude
 
-import           Fission.Error
-import           Fission.Key.Error               as Key
-
 import           Fission.Authorization.ServerDID
-import           Fission.User.DID.Types
+import           Fission.Key.Error               as Key
 import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token.Types
@@ -45,13 +41,10 @@ register ::
 
   , MonadCleanup     m
   , m `Raises` ClientError
-  , m `Raises` DNSError
-  , m `Raises` NotFound DID
-  , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
   , m `Raises` Key.Error
-  , IsMember ClientError (Errors m)
- -- , IsMember Key.Error   (Errors m)
+
+  , ClientError `IsMember` Errors m
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   )

@@ -100,8 +100,8 @@ import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
 -- import qualified Fission.Web.Client.JWT                            as JWT
 
-import           Fission.CLI.Internal.Orphanage.CID                ()
 import           Fission.Internal.Orphanage.BaseUrl                ()
+import           Fission.Internal.Orphanage.CID                    ()
 import           Fission.Internal.Orphanage.DNS.DNSError           ()
 import           Fission.Internal.Orphanage.OpenUnion              ()
 

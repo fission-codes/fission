@@ -1,6 +1,6 @@
 module Fission.CLI.WebNative.Mutation.Auth.Store
   ( getBy
-  , getUserProof
+  , getRootUCAN
   , module Fission.CLI.WebNative.Mutation.Auth.Store.Class
   ) where
 
@@ -25,7 +25,7 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Types       as UCAN
 import           Fission.CLI.Environment                          as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store.Class
 
-getUserProof ::
+getRootUCAN ::
   ( MonadIO          m
   , MonadStore       m
   , MonadLogger      m
@@ -36,7 +36,7 @@ getUserProof ::
   , m `Raises` YAML.ParseException
   )
   => m (Maybe Bearer.Token) -- NOTE You may be root, hence Maybe
-getUserProof = do
+getRootUCAN = do
   Env {rootProof} <- Env.get
   store           <- getAll
   cid             <- maybe (raise $ NotFound @CID) pure rootProof

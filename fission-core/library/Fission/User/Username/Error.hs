@@ -1,5 +1,4 @@
 -- | Username errors
-
 module Fission.User.Username.Error (Invalid (..)) where
 
 import           Fission.Prelude

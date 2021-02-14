@@ -7,9 +7,8 @@ module Fission.Error
   , module Fission.Error.Types
   ) where
 
-import Fission.Prelude hiding (fromMaybe, ok)
-import Fission.Error.Types
-
+import           Fission.Error.Types
+import           Fission.Prelude     hiding (fromMaybe, ok)
 
 openLeft :: IsMember err errs => err -> Either (OpenUnion errs) a
 openLeft err = Left (openUnionLift err)

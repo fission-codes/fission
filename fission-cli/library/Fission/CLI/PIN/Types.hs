@@ -5,6 +5,9 @@ import qualified RIO.Vector              as Vector
 
 import           Fission.Prelude
 
+import           Fission.Emoji.Class
+import           Fission.Error.Types
+
 import           Fission.CLI.Digit.Types
 
 data PIN = PIN
@@ -32,6 +35,9 @@ instance Display PIN where
     where
       meat = Text.intercalate ", " $ fmap textDisplay [a, b, c, d, e, f]
 
+instance ToEmoji PIN where
+  toEmoji PIN {..} = toEmoji ([a, b, c, d, e, f] :: [Digit])
+
 instance ToJSON PIN where
   toJSON PIN {..} = Array $ fmap toJSON [a, b, c, d, e, f]
 
@@ -50,3 +56,6 @@ instance FromJSON PIN where
 
       _ ->
         fail $ "Unexpected PIN length: got " <> (show $ Vector.length vec) <> ", but should be 6"
+
+instance Display (Mismatch PIN) where
+  display _ = "PIN codes do not match"

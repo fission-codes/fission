@@ -9,8 +9,6 @@ module Fission.CLI.Key.Store
 
   -- * Reexport
 
-  , module Fission.Key.Error
-
   , module Fission.CLI.Key.Store.Class
   , module Fission.CLI.Key.Store.Types
   ) where
@@ -29,8 +27,6 @@ import qualified Fission.Internal.Base64          as B64
 import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 -- Reexports
-
-import           Fission.Key.Error
 
 import           Fission.CLI.Key.Store.Class
 import           Fission.CLI.Key.Store.Types

@@ -8,9 +8,10 @@ import           Fission.CLI.Parser.Verbose.Types
 
 data Options = Options
   { verboseFlag :: VerboseFlag -- ^ Verbose flag
-  , username    :: Username
+  -- , username    :: Username
   } deriving (Show, Eq)
 
+-- FIXME use composition instead of ad hoc subtyping
 instance Has VerboseFlag Options where
   hasLens = lens verboseFlag \opts newFlag ->
     opts {verboseFlag = newFlag }
