@@ -73,9 +73,6 @@ createAccount ::
 
   , MonadCleanup     m
   , m `Raises` ClientError
- --  , m `Raises` DNSError
- --  , m `Raises` NotFound DID
- --  , m `Raises` AlreadyExists Ed25519.SecretKey
   , m `Raises` Username.Invalid
   , m `Raises` Key.Error
   , Show (OpenUnion (Errors m))
