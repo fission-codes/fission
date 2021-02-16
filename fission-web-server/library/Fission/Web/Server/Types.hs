@@ -330,6 +330,7 @@ instance MonadIPFSPinner Server where
     where
       checkPin = (client $ Proxy @Cluster.StatusAPI) cid
       runPin   = (client $ Proxy @Cluster.PinAPI)    cid
+      pause    = threadDelay 250_000 -- microseconds
 
       clusterCheckPin env =
         liftIO (runClientM checkPin env) >>= \case
@@ -342,8 +343,15 @@ instance MonadIPFSPinner Server where
               Cluster.FailedWith errTxt ->
                 return . Error.openLeft $ Cluster.UnknownPinErr errTxt
 
+              Cluster.Unexpected errTxt ->
+                return . Error.openLeft $ Cluster.UnknownPinErr errTxt
+
+              Cluster.Queued -> do
+                pause
+                clusterCheckPin env
+
               Cluster.Pinning -> do
-                threadDelay 250_000 -- microseconds
+                pause
                 clusterCheckPin env
 
               Cluster.Pinned ->

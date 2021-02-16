@@ -2,19 +2,14 @@ module Fission.Web.Server.IPFS.Cluster.Client -- FIXME .Types
   ( API
   , PinAPI
   , StatusAPI
-  --  , pinClient
   ) where
 
 -- 🌐
 
 import qualified Network.IPFS.CID.Types                                  as IPFS
-
 import           Servant
-import           Servant.Client
 
 -- ⚛️
-
-import           Fission.Prelude
 
 import qualified Fission.Web.Server.IPFS.Cluster.Pin.Global.Status.Types as Cluster
 
