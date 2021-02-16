@@ -3,14 +3,13 @@ module Fission.Web.Server.IPFS.Cluster.Error.Types
   , Error (..)
   ) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 newtype ErrorBody = ErrorBody {message :: String}
   deriving Show
 
 instance Display ErrorBody where
   display = displayShow
-
 
 instance FromJSON ErrorBody where
   parseJSON = withObject "ErrorBody" \obj -> do
