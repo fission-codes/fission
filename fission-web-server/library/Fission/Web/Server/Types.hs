@@ -343,7 +343,7 @@ instance MonadIPFSPinner Server where
               Cluster.FailedWith errTxt ->
                 return . Error.openLeft $ Cluster.UnknownPinErr errTxt
 
-              Cluster.Unexpected errTxt ->
+              Cluster.Inconsistent errTxt ->
                 return . Error.openLeft $ Cluster.UnknownPinErr errTxt
 
               Cluster.Queued -> do
