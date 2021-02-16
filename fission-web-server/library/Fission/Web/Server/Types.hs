@@ -462,7 +462,7 @@ instance Server.DID.Publicize Server where
             let status' = view crrsrsResponseStatus resp
             if status' < 300
               then ok
-              else Left $ Web.Error.toServerError status
+              else Left $ Web.Error.toServerError status'
 
 instance User.Retriever Server where
   getById            userId   = runDB $ User.getById userId
