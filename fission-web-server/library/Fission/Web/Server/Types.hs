@@ -459,8 +459,8 @@ instance Server.DID.Publicize Server where
             Left err
 
           Right resp -> do
-            let status = view crrsrsResponseStatus resp
-            if status < 300
+            let status' = view crrsrsResponseStatus resp
+            if status' < 300
               then ok
               else Left $ Web.Error.toServerError status
 
