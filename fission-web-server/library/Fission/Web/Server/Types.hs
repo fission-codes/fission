@@ -328,8 +328,8 @@ instance MonadIPFSPinner Server where
             clusterCheckPin env
 
     where
-      checkPin = (client $ Proxy @Cluster.StatusAPI) cid
-      runPin   = (client $ Proxy @Cluster.PinAPI)    cid
+      checkPin = Cluster.status cid
+      runPin   = Cluster.pin    cid
       pause    = threadDelay 250_000 -- microseconds
 
       clusterCheckPin env =
@@ -338,8 +338,8 @@ instance MonadIPFSPinner Server where
             formattedErr <- Cluster.parseClientError err
             return $ Error.openLeft formattedErr
 
-          Right (Cluster.GlobalPinStatus status) ->
-            case status of
+          Right (Cluster.GlobalPinStatus pinStatus) ->
+            case pinStatus of
               Cluster.FailedWith errTxt ->
                 return . Error.openLeft $ Cluster.UnknownPinErr errTxt
 
@@ -347,10 +347,12 @@ instance MonadIPFSPinner Server where
                 return . Error.openLeft $ Cluster.UnknownPinErr errTxt
 
               Cluster.Queued -> do
+                logDebug $ display cid <> " is queued on cluster, retrying..."
                 pause
                 clusterCheckPin env
 
               Cluster.Pinning -> do
+                logDebug $ display cid <> " is still being pinned on cluster, retrying..."
                 pause
                 clusterCheckPin env
 
