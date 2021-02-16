@@ -8,12 +8,24 @@ import           Fission.Prelude
 import           Servant
 import           Servant.Client
 
-import qualified Network.IPFS.CID.Types as IPFS
+
+import qualified Fission.Web.Server.IPFS.Cluster.Types as Cluster
+import qualified Network.IPFS.CID.Types                as IPFS
 
 type API
+  =    PinAPI
+  :<|> StatusAPI
+
+type PinAPI
   = "pins"
   :> Capture "cid" IPFS.CID
   :> PostNoContent
 
-pinClient :: IPFS.CID -> ClientM NoContent
-pinClient = client $ Proxy @API
+type StatusAPI
+  = "pins"
+  :> Capture "cid" IPFS.CID
+  :> '[JSON] Cluster.StatusResp
+
+pinClient    :: IPFS.CID -> ClientM NoContent
+statusClient :: IPFS.CID -> ClientM Clsuter.StatusResp
+pinClient :<|> statusClietn= client $ Proxy @API
