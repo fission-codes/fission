@@ -3,7 +3,7 @@ module Fission.Time
   , dohertyMicroSeconds
   ) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 -- | The Doherty theshold in seconds
 doherty :: NominalDiffTime
@@ -11,4 +11,4 @@ doherty = 0.4
 
 -- | The Doherty threshold in µs
 dohertyMicroSeconds :: Int
-dohertyMicroSeconds = 400000
+dohertyMicroSeconds = 400_000
