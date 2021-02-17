@@ -12,6 +12,7 @@ import           Fission.Web.Server.IPFS.Cluster.Pin.Status.Lifecycle.Types
 data Status
   = Normal Lifecycle
   | Failed Error
+  deriving (Show, Eq)
 
 instance FromJSON Status where
   parseJSON = withObject "Cluster.Pin.Status" \obj -> do
