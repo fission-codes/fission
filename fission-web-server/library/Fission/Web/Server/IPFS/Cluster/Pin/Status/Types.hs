@@ -16,9 +16,12 @@ data Status
 
 instance FromJSON Status where
   parseJSON = withObject "Cluster.Pin.Status" \obj -> do
-    lifecycle <- obj .:? "status"
-    pinError  <- obj .:  "error"
+    let
+      getStatus = Right <$> obj .: "status"
+      getError  = Left  <$> obj .: "error"
 
-    case lifecycle of
-      Just lc -> return $ Normal lc
-      Nothing -> return $ Failed pinError
+    statusOrError <- getStatus <|> getError
+
+    case statusOrError of
+      Right lc -> return $ Normal lc
+      Left err -> return $ Failed err
