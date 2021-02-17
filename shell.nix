@@ -1,12 +1,18 @@
 let
   sources  = import ./nix/sources.nix;
+  commands = import ./nix/commands.nix;
 
   nixos    = import sources.nixpkgs  {};
   darwin   = import sources.darwin   {};
   unstable = import sources.unstable {};
 
-  pkgs     = if darwin.stdenv.isDarwin then darwin else nixos;
-  ghc      = unstable.ghc;
+  pkgs  = if darwin.stdenv.isDarwin then darwin else nixos;
+  tasks = commands {
+    inherit pkgs;
+    inherit unstable;
+  };
+
+  ghc = unstable.ghc;
 
   deps = {
     common = [ 
@@ -68,6 +74,7 @@ unstable.haskell.lib.buildStackProject {
     deps.macos
     deps.haskell 
     deps.fun
+    tasks
   ];
 
   shellHook = ''
