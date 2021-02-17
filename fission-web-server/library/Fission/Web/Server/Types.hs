@@ -371,7 +371,8 @@ instance MonadIPFSPinner Server where
                         clusterPin expireAt (nextBackoff backoffMicroSeconds) env
 
                       -- First past the post strategy
-                      Cluster.Normal Cluster.PinComplete ->
+                      Cluster.Normal Cluster.PinComplete -> do
+                        logDebug $ "At least one cluster node replicated " <> display cid
                         return ok
 
 instance IPFS.MonadLocalIPFS Server where
