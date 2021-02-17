@@ -3,7 +3,7 @@ module Fission.Web.Server.IPFS.Cluster.Error.Types
   , Error (..)
   ) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 newtype ErrorBody = ErrorBody {message :: String}
   deriving Show
@@ -11,16 +11,16 @@ newtype ErrorBody = ErrorBody {message :: String}
 instance Display ErrorBody where
   display = displayShow
 
-
 instance FromJSON ErrorBody where
   parseJSON = withObject "ErrorBody" \obj -> do
-    message    <- obj .: "message"
+    message <- obj .: "message"
     return ErrorBody {..}
 
 data Error
   = ClusterDaemonErr Text
   | UnknownPinErr    Text
   | UnexpectedOutput Text
+  | ClusterTimeout
   deriving ( Exception
            , Eq
            , Generic
@@ -30,6 +30,7 @@ data Error
 
 instance Display Error where
   display = \case
-    ClusterDaemonErr txt -> "Cluster Daemon error: " <> display txt
+    ClusterDaemonErr txt -> "Cluster Daemon error: "           <> display txt
     UnknownPinErr    txt -> "Unknown IPFS Cluster pin error: " <> display txt
     UnexpectedOutput txt -> "Unexpected IPFS Cluster output: " <> display txt
+    ClusterTimeout       -> "Cluster timed out"

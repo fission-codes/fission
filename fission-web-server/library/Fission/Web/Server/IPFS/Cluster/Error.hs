@@ -3,11 +3,13 @@ module Fission.Web.Server.IPFS.Cluster.Error
   , parseClientError
   ) where
 
-import           Fission.Prelude
 import           Servant.Client
 
-import           Fission.Internal.Orphanage.ClientError      ()
+import           Fission.Prelude
+
 import           Fission.Web.Server.IPFS.Cluster.Error.Types
+
+import           Fission.Internal.Orphanage.ClientError      ()
 
 -- | Parse and Log the Servant Client Error returned from the IPFS Daemon
 parseClientError :: MonadLogger m => ClientError -> m Error

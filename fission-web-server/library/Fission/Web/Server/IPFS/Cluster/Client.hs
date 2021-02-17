@@ -1,19 +1,39 @@
 module Fission.Web.Server.IPFS.Cluster.Client
-  ( API
-  , pinClient
+  ( pin
+  , status
+  , PinAPI
+  , StatusAPI
   ) where
 
-import           Fission.Prelude
+-- 🌐
+
+import qualified Network.IPFS.CID.Types                                  as IPFS
 
 import           Servant
 import           Servant.Client
 
-import qualified Network.IPFS.CID.Types as IPFS
+-- ⚛️
 
-type API
+import           Fission.Prelude
+
+import qualified Fission.Web.Server.IPFS.Cluster.Pin.Global.Status.Types as Cluster
+
+-- 🔺
+
+type PinAPI
   = "pins"
   :> Capture "cid" IPFS.CID
   :> PostNoContent
 
-pinClient :: IPFS.CID -> ClientM NoContent
-pinClient = client $ Proxy @API
+type StatusAPI
+  = "pins"
+  :> Capture "cid" IPFS.CID
+  :> Get '[JSON] Cluster.GlobalPinStatus
+
+-- ⚙️
+
+pin :: IPFS.CID -> ClientM NoContent
+pin = client $ Proxy @PinAPI
+
+status :: IPFS.CID -> ClientM Cluster.GlobalPinStatus
+status = client $ Proxy @StatusAPI
