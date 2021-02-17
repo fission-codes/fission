@@ -13,13 +13,14 @@ instance Display ErrorBody where
 
 instance FromJSON ErrorBody where
   parseJSON = withObject "ErrorBody" \obj -> do
-    message    <- obj .: "message"
+    message <- obj .: "message"
     return ErrorBody {..}
 
 data Error
   = ClusterDaemonErr Text
   | UnknownPinErr    Text
   | UnexpectedOutput Text
+  | ClusterTimeout
   deriving ( Exception
            , Eq
            , Generic
@@ -29,6 +30,7 @@ data Error
 
 instance Display Error where
   display = \case
-    ClusterDaemonErr txt -> "Cluster Daemon error: " <> display txt
+    ClusterDaemonErr txt -> "Cluster Daemon error: "           <> display txt
     UnknownPinErr    txt -> "Unknown IPFS Cluster pin error: " <> display txt
     UnexpectedOutput txt -> "Unexpected IPFS Cluster output: " <> display txt
+    ClusterTimeout       -> "Cluster timed out"

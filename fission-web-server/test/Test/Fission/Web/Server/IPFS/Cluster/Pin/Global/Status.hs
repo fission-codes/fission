@@ -3,12 +3,22 @@ module Test.Fission.Web.Server.IPFS.Cluster.Pin.Global.Status (tests) where
 import qualified RIO.ByteString.Lazy                               as Lazy
 
 import           Fission.Web.Server.IPFS.Cluster.Pin.Global.Status
+import           Fission.Web.Server.IPFS.Cluster.Pin.Status.Error
+import           Fission.Web.Server.IPFS.Cluster.Pin.Status.Types
 
 import           Test.Fission.Prelude
 
 tests :: IO TestTree
 tests =
   testSpec "Cluster Status" do
+    describe "progress" do
+      describe "one PinCompleted" do
+        let
+          subject = GlobalPinStatus [Queued, PinComplete, Queued, Pinning] [FailedWith "nope"]
+
+        it "returns the completed pin" do
+          progress subject `shouldBe` Normal PinComplete
+
     describe "Real world example" do
       it "Deserializes" do
         let

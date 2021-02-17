@@ -123,6 +123,7 @@ instance ToServerError Cluster.Error where
     Cluster.ClusterDaemonErr msg -> err502 { errBody = "IPFS Cluster Error: " <> displayLazyBS msg}
     Cluster.UnknownPinErr    _   -> err502 { errBody = "Unknown IPFS Cluster pin error" }
     Cluster.UnexpectedOutput _   -> err502 { errBody = "Unexpected IPFS Cluster result" }
+    Cluster.ClusterTimeout       -> err504 { errBody = displayLazyBS Cluster.ClusterTimeout }
 
 instance ToServerError IPFS.Linearization where
   toServerError _ = err500 { errBody = "Unable to linearize IPFS result" }

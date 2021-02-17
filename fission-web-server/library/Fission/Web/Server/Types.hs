@@ -314,8 +314,15 @@ instance MonadIPFSPinner Server where
           Right _   -> return ok
 
       Just (IPFS.URL url) -> do
-        manager <- asks httpManager
-        clusterPin dohertyMicroSeconds (mkClientEnv manager url)
+        IPFS.Timeout secs <- asks ipfsTimeout
+        manager           <- asks httpManager
+        started           <- getCurrentTime
+
+        let
+          timeout' = secondsToNominalDiffTime $ fromIntegral secs
+          expireAt = addUTCTime timeout' started
+
+        clusterPin expireAt dohertyMicroSeconds (mkClientEnv manager url)
 
     where
       checkPin = Cluster.status cid
@@ -324,42 +331,48 @@ instance MonadIPFSPinner Server where
       nextBackoff :: Int -> Int
       nextBackoff us = min 5_000_000 (floor (fromIntegral us * 1.15 :: Double))
 
-      clusterPin backoffMicroSeconds env =
-        liftIO (runClientM runPin env) >>= \case
-          Left err -> do
-            formattedErr <- Cluster.parseClientError err
-            return $ Error.openLeft formattedErr
+      clusterPin expireAt backoffMicroSeconds env = do
+        now <- getCurrentTime
+        if now >= expireAt
+          then
+            return $ Error.openLeft Cluster.ClusterTimeout
 
-          Right _ ->
-            liftIO (runClientM checkPin env) >>= \case
+          else
+            liftIO (runClientM runPin env) >>= \case
               Left err -> do
                 formattedErr <- Cluster.parseClientError err
                 return $ Error.openLeft formattedErr
 
-              Right (state@Cluster.GlobalPinStatus {errs}) -> do
-                unless (null errs) do
-                  logError $ "Cluster errors: " <> display errs
+              Right _ ->
+                liftIO (runClientM checkPin env) >>= \case
+                  Left err -> do
+                    formattedErr <- Cluster.parseClientError err
+                    return $ Error.openLeft formattedErr
 
-                case Cluster.progress state of
-                  Cluster.Failed err@(Cluster.FailedWith _) ->
-                    return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
+                  Right (state@Cluster.GlobalPinStatus {errs}) -> do
+                    unless (null errs) do
+                      logError $ "Cluster errors: " <> display errs
 
-                  Cluster.Failed err@(Cluster.Inconsistent _) ->
-                    return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
+                    case Cluster.progress state of
+                      Cluster.Failed err@(Cluster.FailedWith _) ->
+                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
 
-                  Cluster.Normal Cluster.Queued -> do
-                    logDebug $ display cid <> " is queued on cluster, retrying..."
-                    threadDelay backoffMicroSeconds
-                    clusterPin (nextBackoff backoffMicroSeconds) env
+                      Cluster.Failed err@(Cluster.Inconsistent _) ->
+                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
 
-                  Cluster.Normal Cluster.Pinning -> do
-                    logDebug $ display cid <> " is still being pinned on cluster, retrying..."
-                    threadDelay backoffMicroSeconds
-                    clusterPin (nextBackoff backoffMicroSeconds) env
+                      Cluster.Normal Cluster.Queued -> do
+                        logDebug $ display cid <> " is queued on cluster, retrying..."
+                        threadDelay backoffMicroSeconds
+                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
 
-                  -- First past the post strategy
-                  Cluster.Normal Cluster.PinComplete ->
-                    return ok
+                      Cluster.Normal Cluster.Pinning -> do
+                        logDebug $ display cid <> " is still being pinned on cluster, retrying..."
+                        threadDelay backoffMicroSeconds
+                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
+
+                      -- First past the post strategy
+                      Cluster.Normal Cluster.PinComplete ->
+                        return ok
 
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
