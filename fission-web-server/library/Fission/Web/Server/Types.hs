@@ -22,7 +22,7 @@ import           Servant.Server.Experimental.Auth
 import qualified Servant.Types.SourceT                     as Stream
 
 import           Network.AWS                               as AWS hiding
-                                                                   (Request,
+                                                                  (Request,
                                                                    Seconds)
 import           Network.AWS.Route53
 
@@ -65,9 +65,9 @@ import           Fission.Web.Server.IPFS.Linked
 import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
 import           Fission.Web.Server.Heroku.Types           as Heroku
 
-import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.AWS                    as AWS
 import           Fission.Web.Server.AWS.Route53            as Route53
+import           Fission.Web.Server.Authorization.Types
 
 import           Fission.Web.Server.Auth                   as Auth
 import qualified Fission.Web.Server.Auth.DID               as Auth.DID
