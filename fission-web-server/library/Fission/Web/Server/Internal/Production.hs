@@ -21,6 +21,7 @@ import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
 import qualified RIO
+import qualified RIO.ByteString                                  as BS
 import qualified RIO.Text                                        as Text
 
 import           Fission.Prelude
@@ -62,17 +63,25 @@ import qualified Fission.Web.Server.Environment.WNFS.Types       as WNFS
 import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
 
 runInProdSimple :: Fission.Server () -> IO ()
-runInProdSimple action = runInProd \_ _ -> action
+runInProdSimple action = runInProd (Just True) \_ _ -> do
+  logDebug @Text "🌱🐇 Running in simple prod environment ✨🍭"
+  action
 
 runInProd
-  :: (  (Application -> Application)
+  :: Maybe Bool
+  -> (  (Application -> Application)
      -> (Application -> IO ())
      -> Fission.Server a
      )
   -> IO a
-runInProd action = do
-  Just  manifest <- JSON.decodeFileStrict "./addon-manifest.json"
-  env            <- YAML.decodeFileThrow  "./env.yaml"
+runInProd overrideVerbose action = do
+  putStrLnIO "🏗️  Setting up production environment..."
+
+  putStrLnIO "   📥 Loading Heroku addon manifest..."
+  Just manifest <- JSON.decodeFileStrict "./addon-manifest.json"
+
+  putStrLnIO "   📥 Loading the Fission Server's env.yaml"
+  env <- YAML.decodeFileThrow  "./env.yaml"
 
   let
     AWS.Environment        {..} = env |> aws
@@ -99,16 +108,26 @@ runInProd action = do
     userZoneID     = baseUserDataZoneID
     userRootDomain = baseUserDataRootDomain
 
-  isVerbose  <- isDebugEnabled
+  putStrLnIO "   🦜 Setting verbosity"
+  isVerbose' <- isDebugEnabled
+  let isVerbose = fromMaybe isVerbose' overrideVerbose
   logOptions <- logOptionsHandle stdout isVerbose
 
-  processCtx  <- mkDefaultProcessContext
+  putStrLnIO "   📠 Setting up Unix process context"
+  processCtx <- mkDefaultProcessContext
+
+  putStrLnIO "   🕷️  Setting up HTTP manager"
+  putStrLnIO "      🎛️  Configuring..."
   httpManager <- HTTP.newManager HTTP.defaultManagerSettings
                    { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
+
+  putStrLnIO "      ✨ Creating manager"
   tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
 
+  putStrLnIO "   💂 Configuring optional Sentry middleware"
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger RIO.LevelWarn) sentryDSN
 
+  putStrLnIO "   📋 Setting up application logger"
   withLogFunc (setLogUseTime True logOptions) \baseLogger -> do
     let
       condDebug    = if pretty then identity else logStdoutDev
@@ -116,8 +135,12 @@ runInProd action = do
       runner       = runSettings' $ mkSettings logFunc port
       logFunc      = baseLogger <> condSentryLogger
 
+    putStrLnIO "   🏊 Establishing database pool"
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
+      putStrLnIO "   🔌 Setting up websocket relay store"
       linkRelayStoreVar <- atomically $ newTVar mempty
+
+      putStrLnIO "✅ Setup done, running action(s)..."
       Fission.Server.runServer Fission.Server.Config {..} $ action condDebug runner
 
 start :: (Application -> Application) -> (Application -> IO ()) -> Fission.Server ()
@@ -130,20 +153,20 @@ start middleware runner = do
   logDebug $ displayShow cfg
 
   runDB do
-    logInfo @Text ">>>>>>>>>> Ensuring live DB matches latest schema"
+    logInfo @Text "🗂️  Ensuring live DB matches latest schema"
     updateDBToLatest
 
-    logInfo @Text ">>>>>>>>>> Ensuring default user is in DB"
+    logInfo @Text "🙋 Ensuring default user is in DB"
     userId <- User.getByPublicKey serverPK >>= \case
       Just (Entity userId _) -> return userId
       Nothing -> Web.Error.ensureM $ User.createDB "fission" serverPK "hello@fission.codes" now
 
-    logInfo @Text ">>>>>>>>>> Ensuring default data domain domains is in DB"
+    logInfo @Text "💽 Ensuring default data domain domains is in DB"
     Domain.getByDomainName userRootDomain >>= \case
       Right _ -> return ()
       Left  _ -> Domain.create userRootDomain userId userZoneID now
 
-    logInfo @Text ">>>>>>>>>> Ensuring default app domain domains is in DB"
+    logInfo @Text "📱 Ensuring default app domain domains is in DB"
     Domain.getByDomainName baseAppDomain >>= \case
       Right _ -> return ()
       Left  _ -> Domain.create baseAppDomain userId baseAppZoneID now
@@ -151,7 +174,7 @@ start middleware runner = do
   auth <- Auth.mkAuth
   logDebug @Text $ layoutWithContext (Proxy @Fission.Server.API) auth
 
-  logInfo $ ">>>>>>>>>> Staring server at " <> Text.pack (show now)
+  logInfo $ "📤 Staring server at " <> Text.pack (show now)
   Web.Error.ensureM ServerDID.publicize
 
   host
@@ -173,7 +196,9 @@ tlsSettings' = tlsSettings "domain-crt.txt" "domain-key.txt"
 
 clientTimeout :: Int
 clientTimeout = 540000000 -- 9 minutes = 1 min less than AWS
--- clientTimeout = -- 1800000000 -- 30 minutes
 
 serverTimeout :: Int
 serverTimeout = 1800
+
+putStrLnIO :: MonadIO m => Text -> m ()
+putStrLnIO txt = BS.putStr (encodeUtf8 txt <> "\n")
