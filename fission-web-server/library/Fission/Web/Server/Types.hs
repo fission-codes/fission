@@ -357,6 +357,7 @@ instance MonadIPFSPinner Server where
                     threadDelay backoffMicroSeconds
                     clusterPin (nextBackoff backoffMicroSeconds) env
 
+                  -- First past the post strategy
                   Cluster.Normal Cluster.PinComplete ->
                     return ok
 
