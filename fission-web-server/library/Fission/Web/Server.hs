@@ -37,7 +37,6 @@ import qualified Fission.Web.Server.App                 as App
 import qualified Fission.Web.Server.App.Content         as App.Content
 import qualified Fission.Web.Server.App.Domain          as App.Domain
 
-import           Fission.Web.Server.Config.Types
 import           Fission.Web.Server.Types               as Fission
 
 import           Fission.Web.Server.Handler
@@ -56,10 +55,6 @@ import           Fission.Internal.Orphanage.PlainText   ()
 -- | Top level web API type. Handled by 'server'.
 type API    = Swagger.API :<|> Fission.API :<|> LinkWS
 type LinkWS = "user" :> "link" :> RelayWS
-
--- | Run actions described by a @Fission@ type
-runServer :: MonadIO m => Config -> Fission.Server a -> m a
-runServer cfg actions = runRIO cfg $ unServer actions
 
 app ::
   ( App.Domain.Initializer    m

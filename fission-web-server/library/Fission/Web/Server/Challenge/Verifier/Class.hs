@@ -23,12 +23,8 @@ instance MonadIO m => Verifier (Transaction m) where
       Just (Entity challengeId UserChallenge { userChallengeHash, userChallengeUserId }) ->
         if challenge == userChallengeHash
           then do
-            update userChallengeUserId
-              [ UserVerified  =. True ]
-
-            delete challengeId
-
+            update userChallengeUserId [ UserVerified  =. True ]
             return ok
 
-          else
+        else
             return $ Left NotFound

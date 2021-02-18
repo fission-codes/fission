@@ -1,11 +1,15 @@
 module Fission.Web.Server.Types
-  ( Server (..)
+  ( runServer
+  , Server (..)
   , module Fission.Web.Server.Config.Types
   ) where
 
 import           Control.Monad.Catch
 
+import           System.Random
+
 import qualified RIO.ByteString.Lazy                               as Lazy
+import qualified RIO.List                                          as List
 import           RIO.NonEmpty                                      as NonEmpty
 import qualified RIO.Text                                          as Text
 
@@ -111,6 +115,10 @@ newtype Server a = Server { unServer :: RIO Config a }
                    , MonadCatch
                    , MonadMask
                    )
+
+-- | Run actions described by a @Fission@ type
+runServer :: MonadIO m => Config -> Server a -> m a
+runServer cfg actions = runRIO cfg $ unServer actions
 
 instance MonadLogger Server where
   monadLoggerLog loc src lvl msg = Server $ monadLoggerLog loc src lvl msg
@@ -248,7 +256,6 @@ instance MonadRoute53 Server where
           Nothing  -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just rrs -> return $ Right rrs
 
-
 instance MonadWNFS Server where
   getUserDataRoot username = do
     zoneID <- asks userZoneID
@@ -307,73 +314,79 @@ instance MonadLinkedIPFS Server where
 
 instance MonadIPFSPinner Server where
   pin cid =
-    asks clusterURL >>= \case
-      Nothing ->
-        IPFS.Pin.add cid >>= \case
-          Left  err -> return $ Error.openLeft err
-          Right _   -> return ok
+    IPFS.Pin.add cid >>= \case
+      Left  err -> return $ Error.openLeft err
+      Right _   -> return $ Right ()
 
-      Just (IPFS.URL url) -> do
-        IPFS.Timeout secs <- asks ipfsTimeout
-        manager           <- asks httpManager
-        started           <- getCurrentTime
-
-        let
-          timeout' = secondsToNominalDiffTime $ fromIntegral secs
-          expireAt = addUTCTime timeout' started
-
-        clusterPin expireAt dohertyMicroSeconds (mkClientEnv manager url)
-
-    where
-      checkPin = Cluster.status cid
-      runPin   = Cluster.pin    cid
-
-      nextBackoff :: Int -> Int
-      nextBackoff us = min 5_000_000 (floor (fromIntegral us * 1.15 :: Double))
-
-      clusterPin expireAt backoffMicroSeconds env = do
-        now <- getCurrentTime
-        if now >= expireAt
-          then
-            return $ Error.openLeft Cluster.ClusterTimeout
-
-          else
-            liftIO (runClientM runPin env) >>= \case
-              Left err -> do
-                formattedErr <- Cluster.parseClientError err
-                return $ Error.openLeft formattedErr
-
-              Right _ ->
-                liftIO (runClientM checkPin env) >>= \case
-                  Left err -> do
-                    formattedErr <- Cluster.parseClientError err
-                    return $ Error.openLeft formattedErr
-
-                  Right (state@Cluster.GlobalPinStatus {errs}) -> do
-                    unless (null errs) do
-                      logError $ "Cluster errors: " <> display errs
-
-                    case Cluster.progress state of
-                      Cluster.Failed err@(Cluster.FailedWith _) ->
-                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
-
-                      Cluster.Failed err@(Cluster.Inconsistent _) ->
-                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
-
-                      Cluster.Normal Cluster.Queued -> do
-                        logDebug $ display cid <> " is queued on cluster, retrying..."
-                        threadDelay backoffMicroSeconds
-                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
-
-                      Cluster.Normal Cluster.Pinning -> do
-                        logDebug $ display cid <> " is still being pinned on cluster, retrying..."
-                        threadDelay backoffMicroSeconds
-                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
-
-                      -- First past the post strategy
-                      Cluster.Normal Cluster.PinComplete -> do
-                        logDebug $ "At least one cluster node replicated " <> display cid
-                        return ok
+--    asks clusterURL >>= \case
+--      Nothing ->
+--        IPFS.Pin.add cid >>= \case
+--          Left  err -> return $ Error.openLeft err
+--          Right _   -> return ok
+--
+--      Just (IPFS.URL url) -> do
+--        IPFS.Timeout secs <- asks ipfsTimeout
+--        manager           <- asks httpManager
+--        started           <- getCurrentTime
+--
+--        let
+--          timeout' = secondsToNominalDiffTime $ fromIntegral secs
+--          expireAt = addUTCTime timeout' started
+--
+--        return ()
+--
+--        -- clusterPin expireAt dohertyMicroSeconds (mkClientEnv manager url)
+--
+--    where
+--      checkPin = Cluster.status cid
+--      runPin   = Cluster.pin    cid
+--
+--      nextBackoff :: Int -> Int
+--      nextBackoff us = min 5_000_000 (floor (fromIntegral us * 1.15 :: Double))
+--
+--      clusterPin expireAt backoffMicroSeconds env = do
+--        now <- getCurrentTime
+--        if now >= expireAt
+--          then
+--            return $ Error.openLeft Cluster.ClusterTimeout
+--
+--          else
+--            liftIO (runClientM runPin env) >>= \case
+--              Left err -> do
+--                formattedErr <- Cluster.parseClientError err
+--                return $ Error.openLeft formattedErr
+--
+--              Right _ ->
+--                liftIO (runClientM checkPin env) >>= \case
+--                  Left err -> do
+--                    formattedErr <- Cluster.parseClientError err
+--                    return $ Error.openLeft formattedErr
+--
+--                  Right (state@Cluster.GlobalPinStatus {errs}) -> do
+--                    unless (null errs) do
+--                      logError $ "Cluster errors: " <> display errs
+--
+--                    case Cluster.progress state of
+--                      Cluster.Failed err@(Cluster.FailedWith _) ->
+--                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
+--
+--                      Cluster.Failed err@(Cluster.Inconsistent _) ->
+--                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
+--
+--                      Cluster.Normal Cluster.Queued -> do
+--                        logDebug $ display cid <> " is queued on cluster, retrying..."
+--                        threadDelay backoffMicroSeconds
+--                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
+--
+--                      Cluster.Normal Cluster.Pinning -> do
+--                        logDebug $ display cid <> " is still being pinned on cluster, retrying..."
+--                        threadDelay backoffMicroSeconds
+--                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
+--
+--                      -- First past the post strategy
+--                      Cluster.Normal Cluster.PinComplete -> do
+--                        logDebug $ "At least one cluster node replicated " <> display cid
+--                        return ok
 
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
@@ -397,15 +410,27 @@ instance IPFS.MonadLocalIPFS Server where
 
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
-    peerID       <- head <$> asks ipfsRemotePeers
+    cfg          <- ask
+    peerIDs      <- NonEmpty.toList <$> asks ipfsRemotePeers
     IPFS.URL url <- asks ipfsURL
     manager      <- asks httpManager
 
-    Peer.connectRetry peerID 25 >>= \case
-      Left  err -> logDebug $ "Unable to connect: " <> textDisplay err
-      Right _   -> return ()
+    let
+      pinTo peerID = do
+        Peer.connectRetry peerID 25 >>= \case
+          Left  err -> logDebug $ "Unable to connect: " <> textDisplay err
+          Right _   -> return ()
 
-    liftIO . runClientM query $ mkClientEnv manager url
+        liftIO . runClientM query $ mkClientEnv manager url
+
+    randomIndex  <- liftIO . getStdRandom $ randomR (0, List.length peerIDs)
+    pinTo (peerIDs `List.genericIndex` randomIndex) >>= \case -- NOTE partial index, but checked above
+      Left err ->
+        return $ Left err
+
+      Right a -> do
+        liftIO . async $ mapConcurrently_ (runServer cfg . pinTo) peerIDs -- 🚀 Fire & forget
+        return $ Right a
 
 instance MonadBasicAuth Heroku.Auth Server where
   getVerifier = do
