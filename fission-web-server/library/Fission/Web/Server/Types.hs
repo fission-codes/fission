@@ -33,6 +33,7 @@ import qualified Fission.Internal.UTF8                     as UTF8
 
 import           Fission.Error                             as Error
 import qualified Fission.Process                           as Process
+import           Fission.Time
 
 import           Fission.Web.Server.AWS
 import           Fission.Web.Server.AWS.Types              as AWS
@@ -330,7 +331,7 @@ instance IPFS.MonadRemoteIPFS Server where
 
     logDebug @Text "Running IPFS request across cluster"
     requests <- forM clusterURLs \(IPFS.URL url) ->
-      Process.asyncFor (Unity (Seconds secs) * 1_000_000) do -- 1 microsecond = 1/10^6 seconds
+      Process.asyncFor (Seconds (Unity secs)) do
         runClientM query $ mkClientEnv manager url
 
     liftIO $ untilDone requests

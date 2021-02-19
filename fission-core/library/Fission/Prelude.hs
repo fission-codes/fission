@@ -24,7 +24,7 @@ module Fission.Prelude
   , module Data.Generics.Product
   , module Data.Generics.Sum
 
-  , module Fission.Unit.Prefix.Types
+  , module Fission.Unit.Prefix
 
   , module Fission.Internal.Log
   , module Fission.Internal.Time
@@ -109,7 +109,7 @@ import           Test.QuickCheck                             hiding
                                                              (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
-import           Fission.Unit.Prefix.Types
+import           Fission.Unit.Prefix
 
 import           Fission.Internal.Log
 import           Fission.Internal.Orphanage.OpenUnion        ()

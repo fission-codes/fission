@@ -16,6 +16,8 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
+import qualified Fission.Process.Time            as Process
+
 import qualified Fission.Web.Client.App          as App
 
 import qualified Fission.Internal.UTF8           as UTF8
@@ -122,7 +124,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDi
 
     unless (diffUTCTime now oldTime < Time.doherty) do
       void $ swapMVar timeCache now
-      threadDelay $ fromIntegral Time.dohertyMicroSeconds
+      Process.sleepThread Time.dohertyMicroSeconds
 
       CLI.IPFS.Add.dir absDir >>= \case
         Left err ->

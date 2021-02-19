@@ -5,61 +5,71 @@ module Fission.Process.Time
   , module Fission.Process.Time.Error
   )  where
 
-import qualified Data.Fixed                 as Fixed
 import           System.Timeout
+
+-- ⚛️
 
 import           Fission.Prelude
 
+import           Fission.Time
+
 import           Fission.Process.Time.Error
 
-sleepThread ::
+sleepThread :: forall m prefix s .
   ( MonadIO      m
-  , Functor      prefix
-  , FromPrefixed prefix
+  , Integral    (prefix s)
+  , Num         (prefix Double)
+  , FromPrefixed prefix Double
   )
-  => prefix (Seconds Natural)
+  => Seconds prefix s
   -> m ()
-sleepThread s = threadDelay . truncate . getSeconds $ getMicro usInt
+sleepThread (Seconds s) = threadDelay $ truncate us
   where
-    usInt :: Micro (Seconds (Fixed.Fixed 1))
-    usInt = changePrefix $ asFixed s
+    us :: Double
+    Micro us = convert asDouble
+
+    asDouble :: prefix Double
+    asDouble = fromIntegral s
 
 -- | Run an async action, with a max time
 --
 -- == Examples
 --
--- asyncFor (Milli (Seconds 42)) (return ())
+-- asyncFor (Seconds (Milli 42)) (return ())
 asyncFor ::
   ( MonadIO      m
-  , Functor      prefix
-  , FromPrefixed prefix
+  , Integral    (prefix s)
+  , Num         (prefix Double)
+  , FromPrefixed prefix Double
   )
-  => prefix (Seconds Natural)
+  => Seconds prefix s
   -> IO a
-   -> m (Async (Either TimedOut a))
+  -> m (Async (Either TimedOut a))
 asyncFor us io = liftIO . async $ quitAfter us io
 
 -- | Quit the inner process after a period of time
 --
 -- == Examples
 --
--- quitAfter (Pico (Seconds 1_000_000)) (return ())
-quitAfter ::
-  ( MonadIO      m
-  , Functor      prefix
-  , FromPrefixed prefix
+-- quitAfter (Seconds (Pico 1_000_000)) (return ())
+quitAfter :: forall prefix s m a .
+  ( MonadIO m
+  , Integral    (prefix s)
+  , Num         (prefix Double)
+  , FromPrefixed prefix Double
   )
-  => prefix (Seconds Natural)
+  => Seconds prefix s
   -> IO a
   -> m (Either TimedOut a)
-quitAfter maxTime io =
+quitAfter (Seconds maxTime) io =
   liftIO do
-    timeout (fromIntegral us) io >>= \case
+    timeout (truncate us) io >>= \case
       Nothing -> return $ Left  TimedOut
       Just a  -> return $ Right a
 
   where
-    Micro (Seconds us) = asNatural fixed
+    us :: Double
+    Micro us = convert asDouble
 
-    fixed :: Micro (Seconds (Fixed.Fixed 0))
-    fixed = changePrefix $ mapScalar fromIntegral maxTime
+    asDouble :: prefix Double
+    asDouble = fromIntegral maxTime
