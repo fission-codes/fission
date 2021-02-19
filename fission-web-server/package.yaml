@@ -113,7 +113,6 @@ dependencies:
   - lens-aeson
   - QuickCheck
   - quickcheck-instances
-  - random
   - text
   - time
   - uuid

@@ -6,8 +6,6 @@ module Fission.Web.Server.Types
 
 import           Control.Monad.Catch
 
-import           System.Random
-
 import qualified RIO.ByteString.Lazy                               as Lazy
 import qualified RIO.List                                          as List
 import           RIO.NonEmpty                                      as NonEmpty
@@ -36,7 +34,9 @@ import           Fission.Prelude
 import qualified Fission.Internal.UTF8                             as UTF8
 
 import           Fission.Error                                     as Error
+import qualified Fission.Process.Status.Types                      as Process
 import           Fission.Time
+
 import           Fission.Web.Server.AWS
 import           Fission.Web.Server.AWS.Types                      as AWS
 import           Fission.Web.Server.Models
@@ -277,7 +277,6 @@ instance MonadWNFS Server where
     where
       extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
 
-
 instance MonadDNSLink Server where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
     Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
@@ -312,82 +311,14 @@ instance MonadDNSLink Server where
 instance MonadLinkedIPFS Server where
   getLinkedPeers = asks ipfsRemotePeers
 
+-- FIXME remove
 instance MonadIPFSPinner Server where
   pin cid =
     IPFS.Pin.add cid >>= \case
       Left  err -> return $ Error.openLeft err
       Right _   -> return $ Right ()
 
---    asks clusterURL >>= \case
---      Nothing ->
---        IPFS.Pin.add cid >>= \case
---          Left  err -> return $ Error.openLeft err
---          Right _   -> return ok
---
---      Just (IPFS.URL url) -> do
---        IPFS.Timeout secs <- asks ipfsTimeout
---        manager           <- asks httpManager
---        started           <- getCurrentTime
---
---        let
---          timeout' = secondsToNominalDiffTime $ fromIntegral secs
---          expireAt = addUTCTime timeout' started
---
---        return ()
---
---        -- clusterPin expireAt dohertyMicroSeconds (mkClientEnv manager url)
---
---    where
---      checkPin = Cluster.status cid
---      runPin   = Cluster.pin    cid
---
---      nextBackoff :: Int -> Int
---      nextBackoff us = min 5_000_000 (floor (fromIntegral us * 1.15 :: Double))
---
---      clusterPin expireAt backoffMicroSeconds env = do
---        now <- getCurrentTime
---        if now >= expireAt
---          then
---            return $ Error.openLeft Cluster.ClusterTimeout
---
---          else
---            liftIO (runClientM runPin env) >>= \case
---              Left err -> do
---                formattedErr <- Cluster.parseClientError err
---                return $ Error.openLeft formattedErr
---
---              Right _ ->
---                liftIO (runClientM checkPin env) >>= \case
---                  Left err -> do
---                    formattedErr <- Cluster.parseClientError err
---                    return $ Error.openLeft formattedErr
---
---                  Right (state@Cluster.GlobalPinStatus {errs}) -> do
---                    unless (null errs) do
---                      logError $ "Cluster errors: " <> display errs
---
---                    case Cluster.progress state of
---                      Cluster.Failed err@(Cluster.FailedWith _) ->
---                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
---
---                      Cluster.Failed err@(Cluster.Inconsistent _) ->
---                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
---
---                      Cluster.Normal Cluster.Queued -> do
---                        logDebug $ display cid <> " is queued on cluster, retrying..."
---                        threadDelay backoffMicroSeconds
---                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
---
---                      Cluster.Normal Cluster.Pinning -> do
---                        logDebug $ display cid <> " is still being pinned on cluster, retrying..."
---                        threadDelay backoffMicroSeconds
---                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
---
---                      -- First past the post strategy
---                      Cluster.Normal Cluster.PinComplete -> do
---                        logDebug $ "At least one cluster node replicated " <> display cid
---                        return ok
-
+-- FIXME remove
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
     IPFS.BinPath ipfs <- asks ipfsPath
@@ -410,27 +341,44 @@ instance IPFS.MonadLocalIPFS Server where
 
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
-    cfg          <- ask
-    peerIDs      <- NonEmpty.toList <$> asks ipfsRemotePeers
-    IPFS.URL url <- asks ipfsURL
-    manager      <- asks httpManager
+    cfg               <- ask
+    -- FIXME a bunch of this needs to change; need addresses not peer IDs
+    peerIDs           <- asks ipfsRemotePeers
+    IPFS.Timeout secs <- asks ipfsTimeout
+    IPFS.URL url      <- asks ipfsURL
+    manager           <- asks httpManager
 
-    let
-      pinTo peerID = do
-        Peer.connectRetry peerID 25 >>= \case
-          Left  err -> logDebug $ "Unable to connect: " <> textDisplay err
-          Right _   -> return ()
+    logDebug @Text "Running IPFS request across cluster"
+    requests <- peers' `forM` \peerID ->
+      timeout (fromIntegral secs * 1_000_000) do -- 1 microsecond = 1/10^6 seconds
+        async . runClientM query $ mkClientEnv manager url
 
-        liftIO . runClientM query $ mkClientEnv manager url
+    liftIO $ untilDone requests
 
-    randomIndex  <- liftIO . getStdRandom $ randomR (0, List.length peerIDs)
-    pinTo (peerIDs `List.genericIndex` randomIndex) >>= \case -- NOTE partial index, but checked above
-      Left err ->
-        return $ Left err
+    where
+      untilDone :: NonEmpty (IO (Maybe (Async a))) -> IO (Either ClientError a)
+      untilDone asyncRefs = do
+        results <- sequence (getStatus <$> asyncRefs)
+        case maxStatus results of
+          Process.Failed err  -> return $ Left err   -- All failed
+          -- FIXME delay between polls?
+          Process.InProgress  -> untilDone asyncRefs -- At least one InProgress, and no Success
+          Process.Success val -> return $ Right val  -- At least one Success
 
-      Right a -> do
-        liftIO . async $ mapConcurrently_ (runServer cfg . pinTo) peerIDs -- 🚀 Fire & forget
-        return $ Right a
+      maxStatus :: NonEmpty (Process.Status err a) -> Process.Status err a
+      maxStatus statuses = NonEmpty.head $ sort statuses
+
+      getStatus :: IO (Maybe (Async a)) -> IO (Process.Status ClientError a)
+      getStatus threadWithTimeout =
+        threadWithTimeout >>= \case
+          Nothing -> -- ⏲️  Timed out
+            return . Process.Failed $ ConnectionError err
+
+          Just thread ->
+            poll thread >>= \case
+              Nothing          -> return $ Process.InProgress
+              Just (Left  err) -> return $ Process.Failed  err
+              Just (Right val) -> return $ Process.Success val
 
 instance MonadBasicAuth Heroku.Auth Server where
   getVerifier = do
