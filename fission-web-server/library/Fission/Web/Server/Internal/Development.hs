@@ -7,6 +7,8 @@ module Fission.Web.Server.Internal.Development
   , connectionInfo
   ) where
 
+import           RIO.NonEmpty                              (nonEmpty)
+
 import           Data.Pool
 import           Database.Persist.Sql                      (SqlBackend)
 
@@ -110,7 +112,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     userRootDomain = "userootdomain.net"
 
     ipfsPath        = "/usr/local/bin/ipfs"
-    ipfsURL         = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
+    Just ipfsURLs   = nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
     ipfsTimeout     = IPFS.Timeout 3600
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     clusterURL      = Nothing
@@ -175,10 +177,9 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Co
       }
 
     ipfsPath        = "/usr/local/bin/ipfs"
-    ipfsURL         = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
+    Just ipfsURLs   = nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout     = IPFS.Timeout 3600
-    clusterURL      = Nothing
 
     baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
     userZoneID     = AWS.ZoneID "USER_ZONE_ID"

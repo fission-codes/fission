@@ -6,6 +6,8 @@ module Fission.Web.Server.Types
 
 import           Control.Monad.Catch
 
+import           Data.ByteString.Char8                             as Char8
+
 import qualified RIO.ByteString.Lazy                               as Lazy
 import qualified RIO.List                                          as List
 import           RIO.NonEmpty                                      as NonEmpty
@@ -22,6 +24,7 @@ import           Network.AWS                                       as AWS hiding
 import           Network.AWS.Route53
 
 import qualified Network.IPFS                                      as IPFS
+import qualified Network.IPFS.File.Types                           as IPFS.File
 import qualified Network.IPFS.Peer                                 as Peer
 import qualified Network.IPFS.Pin                                  as IPFS.Pin
 import qualified Network.IPFS.Process                              as IPFS
@@ -34,7 +37,8 @@ import           Fission.Prelude
 import qualified Fission.Internal.UTF8                             as UTF8
 
 import           Fission.Error                                     as Error
-import qualified Fission.Process.Status.Types                      as Process
+import qualified Fission.Process                                   as Process
+
 import           Fission.Time
 
 import           Fission.Web.Server.AWS
@@ -318,7 +322,6 @@ instance MonadIPFSPinner Server where
       Left  err -> return $ Error.openLeft err
       Right _   -> return $ Right ()
 
--- FIXME remove
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
     IPFS.BinPath ipfs <- asks ipfsPath
@@ -343,42 +346,53 @@ instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
     cfg               <- ask
     -- FIXME a bunch of this needs to change; need addresses not peer IDs
-    peerIDs           <- asks ipfsRemotePeers
+    clusterURLs       <- asks ipfsURLs
     IPFS.Timeout secs <- asks ipfsTimeout
-    IPFS.URL url      <- asks ipfsURL
     manager           <- asks httpManager
 
     logDebug @Text "Running IPFS request across cluster"
-    requests <- peers' `forM` \peerID ->
-      timeout (fromIntegral secs * 1_000_000) do -- 1 microsecond = 1/10^6 seconds
-        async . runClientM query $ mkClientEnv manager url
+    requests <- forM clusterURLs \(IPFS.URL url) ->
+      Process.asyncFor (secs * 1_000_000) do -- 1 microsecond = 1/10^6 seconds
+        runClientM query $ mkClientEnv manager url
 
     liftIO $ untilDone requests
 
     where
-      untilDone :: NonEmpty (IO (Maybe (Async a))) -> IO (Either ClientError a)
+      untilDone ::
+           NonEmpty (Async (Either Process.TimedOut (Either ClientError a)))
+        -> IO (Either ClientError a)
       untilDone asyncRefs = do
         results <- sequence (getStatus <$> asyncRefs)
-        case maxStatus results of
-          Process.Failed err  -> return $ Left err   -- All failed
-          -- FIXME delay between polls?
-          Process.InProgress  -> untilDone asyncRefs -- At least one InProgress, and no Success
-          Process.Success val -> return $ Right val  -- At least one Success
+        case Process.progress results of
+          Process.Failed err -> return $ Left err
+          Process.InProgress -> untilDone asyncRefs
+          Process.Success a  -> return $ Right a
+      -- NOTE letting GHC's scheduler handle the frequency of retries.
+      -- This should be pretty lightweight, since we're just waiting for processes to return.
+      -- That said, if we go to 99% CPU or something, this is probably a good place to look 😉
 
-      maxStatus :: NonEmpty (Process.Status err a) -> Process.Status err a
-      maxStatus statuses = NonEmpty.head $ sort statuses
+      getStatus ::
+           Async (Either Process.TimedOut (Either ClientError a))
+        -> IO    (Process.Status ClientError a)
+      getStatus asyncThread =
+        poll asyncThread >>= \case
+          Nothing -> -- 🏋️‍ Still working on it
+            return Process.InProgress
 
-      getStatus :: IO (Maybe (Async a)) -> IO (Process.Status ClientError a)
-      getStatus threadWithTimeout =
-        threadWithTimeout >>= \case
-          Nothing -> -- ⏲️  Timed out
-            return . Process.Failed $ ConnectionError err
+          Just result ->
+            case result of
+              Left procError -> -- 🧨 Inner action throw an exception
+                return . Process.Failed $ ConnectionError procError
 
-          Just thread ->
-            poll thread >>= \case
-              Nothing          -> return $ Process.InProgress
-              Just (Left  err) -> return $ Process.Failed  err
-              Just (Right val) -> return $ Process.Success val
+              Right maybeTimedOut ->
+                case maybeTimedOut of
+                  Left Process.TimedOut -> -- ⏲️  Timed out
+                    return . Process.Failed . ConnectionError $ toException Process.TimedOut
+
+                  Right requestResult ->
+                    case requestResult of -- 🌐 HTTP request result
+                      Left  clientErr -> return $ Process.Failed  clientErr
+                      Right a         -> return $ Process.Success a
 
 instance MonadBasicAuth Heroku.Auth Server where
   getVerifier = do

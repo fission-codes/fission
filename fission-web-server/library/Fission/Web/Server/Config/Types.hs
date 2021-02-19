@@ -35,10 +35,9 @@ data Config = Config
   , dbPool            :: Pool SqlBackend
   --
   , ipfsPath          :: IPFS.BinPath
-  , ipfsURL           :: IPFS.URL
+  , ipfsURLs          :: NonEmpty IPFS.URL
   , ipfsRemotePeers   :: NonEmpty IPFS.Peer
   , ipfsTimeout       :: IPFS.Timeout
-  , clusterURL        :: Maybe IPFS.URL
   --
   , herokuID          :: Heroku.ID
   , herokuPassword    :: Heroku.Password
@@ -78,10 +77,9 @@ instance Show Config where
     , "  dbPool            = " <> show dbPool
     --
     , "  ipfsPath          = " <> show ipfsPath
-    , "  ipfsURL           = " <> show ipfsURL
+    , "  ipfsURLs          = " <> show ipfsURLs
     , "  ipfsRemotePeers   = " <> show ipfsRemotePeers
     , "  ipfsTimeout       = " <> show ipfsTimeout
-    , "  clusterURL        = " <> show clusterURL
     --
     , "  herokuID          = " <> show herokuID
     , "  herokuPassword    = " <> show herokuPassword

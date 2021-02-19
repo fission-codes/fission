@@ -96,10 +96,9 @@ runInProd overrideVerbose action = do
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
 
     ipfsPath        = env |> ipfs |> binPath
-    ipfsURL         = env |> ipfs |> url
+    ipfsURLs        = env |> ipfs |> urls
     ipfsRemotePeers = env |> ipfs |> remotePeers
     ipfsTimeout     = env |> ipfs |> IPFS.timeout
-    clusterURL      = env |> ipfs |> clusterUrl
 
     awsAccessKey   = accessKey
     awsSecretKey   = secretKey
