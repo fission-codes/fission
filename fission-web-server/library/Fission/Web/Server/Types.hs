@@ -16,7 +16,8 @@ import           Servant.Client
 import           Servant.Server.Experimental.Auth
 
 import           Network.AWS                               as AWS hiding
-                                                                  (Request)
+                                                                  (Request,
+                                                                   Seconds)
 import           Network.AWS.Route53
 
 import qualified Network.IPFS                              as IPFS
@@ -329,7 +330,7 @@ instance IPFS.MonadRemoteIPFS Server where
 
     logDebug @Text "Running IPFS request across cluster"
     requests <- forM clusterURLs \(IPFS.URL url) ->
-      Process.asyncFor (secs * 1_000_000) do -- 1 microsecond = 1/10^6 seconds
+      Process.asyncFor (Unity (Seconds secs) * 1_000_000) do -- 1 microsecond = 1/10^6 seconds
         runClientM query $ mkClientEnv manager url
 
     liftIO $ untilDone requests

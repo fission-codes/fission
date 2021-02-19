@@ -122,7 +122,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDi
 
     unless (diffUTCTime now oldTime < Time.doherty) do
       void $ swapMVar timeCache now
-      threadDelay Time.dohertyMicroSeconds
+      threadDelay $ fromIntegral Time.dohertyMicroSeconds
 
       CLI.IPFS.Add.dir absDir >>= \case
         Left err ->

@@ -10,5 +10,5 @@ doherty :: NominalDiffTime
 doherty = 0.4
 
 -- | The Doherty threshold in µs
-dohertyMicroSeconds :: Int
+dohertyMicroSeconds :: Micro (Seconds Natural)
 dohertyMicroSeconds = 400_000
