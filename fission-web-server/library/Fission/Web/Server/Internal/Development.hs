@@ -8,6 +8,7 @@ module Fission.Web.Server.Internal.Development
   ) where
 
 import           RIO.NonEmpty                              (nonEmpty)
+import qualified RIO.Partial                               as Partial
 
 import           Data.Pool
 import           Database.Persist.Sql                      (SqlBackend)
@@ -112,10 +113,9 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     userRootDomain = "userootdomain.net"
 
     ipfsPath        = "/usr/local/bin/ipfs"
-    Just ipfsURLs   = nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
+    ipfsURLs        = Partial.fromJust $ nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
     ipfsTimeout     = IPFS.Timeout 3600
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
-    clusterURL      = Nothing
 
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
@@ -177,7 +177,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Co
       }
 
     ipfsPath        = "/usr/local/bin/ipfs"
-    Just ipfsURLs   = nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
+    ipfsURLs        = Partial.fromJust $ nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout     = IPFS.Timeout 3600
 
