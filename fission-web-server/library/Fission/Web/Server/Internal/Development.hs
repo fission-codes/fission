@@ -95,6 +95,8 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     action
 
   where
+    ipfsHttpManager = httpManager
+
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
 
@@ -165,6 +167,8 @@ mkConfig ::
   -> Config
 mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Config {..}
   where
+    ipfsHttpManager = httpManager
+
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
 

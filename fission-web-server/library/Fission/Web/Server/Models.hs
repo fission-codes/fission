@@ -95,7 +95,6 @@ UserChallenge
   userId    UserId
   hash      Challenge
 
-  UniqueUserId    userId
   UniqueChallenge hash
 
   deriving Show Eq

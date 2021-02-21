@@ -112,6 +112,8 @@ import           Test.QuickCheck.Instances                   ()
 import           Fission.Unit.Prefix
 
 import           Fission.Internal.Log
+
+import           Fission.Internal.Orphanage.ClientError      ()
 import           Fission.Internal.Orphanage.OpenUnion        ()
 import           Fission.Internal.Time
 import           Fission.Internal.UTF8                       (displayLazyBS,

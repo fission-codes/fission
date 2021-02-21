@@ -145,6 +145,7 @@ dependencies:
   - mime-types
   - path-pieces
   - servant
+  - servant-client
   - servant-client-core
   - servant-swagger
   - swagger2

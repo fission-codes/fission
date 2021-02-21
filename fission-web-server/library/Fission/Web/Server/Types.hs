@@ -8,7 +8,10 @@ import           Control.Monad.Catch
 
 import qualified RIO.ByteString.Lazy                       as Lazy
 import           RIO.NonEmpty                              as NonEmpty
+import           RIO.NonEmpty.Partial                      as NonEmpty.Partial
 import qualified RIO.Text                                  as Text
+
+import           System.Random                             as Random
 
 import           Database.Esqueleto                        as SQL hiding ((<&>))
 
@@ -32,8 +35,6 @@ import           Fission.Prelude
 import qualified Fission.Internal.UTF8                     as UTF8
 
 import           Fission.Error                             as Error
-import qualified Fission.Process                           as Process
-import           Fission.Time
 
 import           Fission.Web.Server.AWS
 import           Fission.Web.Server.AWS.Types              as AWS
@@ -50,6 +51,7 @@ import qualified Fission.Web.Server.App.Destroyer          as App.Destroyer
 import qualified Fission.Web.Server.Error                  as Web.Error
 import           Fission.Web.Server.WNFS                   as WNFS
 
+import           Fission.Web.Server.IPFS.Cluster           as Cluster
 import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
 import           Fission.Web.Server.IPFS.Linked
 
@@ -325,53 +327,24 @@ instance IPFS.MonadLocalIPFS Server where
 
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
-    clusterURLs       <- asks ipfsURLs
-    IPFS.Timeout secs <- asks ipfsTimeout
-    manager           <- asks httpManager
+    manager      <- asks ipfsHttpManager
+    urls         <- asks ipfsURLs
+    randomIndex  <- liftIO $ randomRIO (0, NonEmpty.length urls - 1)
 
-    logDebug @Text "Running IPFS request across cluster"
-    requests <- forM clusterURLs \(IPFS.URL url) ->
-      Process.asyncFor (Seconds (Unity secs)) do
-        runClientM query $ mkClientEnv manager url
+    let
+      IPFS.URL url  = urls NonEmpty.Partial.!! randomIndex -- Partial, but checked above
+      clientManager = mkClientEnv manager url
 
-    liftIO $ untilDone requests
+    liftIO $ runClientM query clientManager
 
-    where
-      untilDone ::
-           NonEmpty (Async (Either Process.TimedOut (Either ClientError a)))
-        -> IO (Either ClientError a)
-      untilDone asyncRefs = do
-        results <- sequence (getStatus <$> asyncRefs)
-        case Process.progress results of
-          Process.Failed err -> return $ Left err
-          Process.InProgress -> untilDone asyncRefs
-          Process.Success a  -> return $ Right a
-      -- NOTE letting GHC's scheduler handle the frequency of retries.
-      -- This should be pretty lightweight, since we're just waiting for processes to return.
-      -- That said, if we go to 99% CPU or something, this is probably a good place to look 😉
+instance MonadIPFSCluster Server where
+  runCluster query = do
+    clusterURLs     <- asks ipfsURLs
+    ipfsHttpManager <- asks ipfsHttpManager
 
-      getStatus ::
-           Async (Either Process.TimedOut (Either ClientError a))
-        -> IO    (Process.Status ClientError a)
-      getStatus asyncThread =
-        poll asyncThread >>= \case
-          Nothing -> -- 🏋️‍ Still working on it
-            return Process.InProgress
-
-          Just result ->
-            case result of
-              Left procError -> -- 🧨 Inner action threw an exception
-                return . Process.Failed $ ConnectionError procError
-
-              Right maybeTimedOut ->
-                case maybeTimedOut of
-                  Left Process.TimedOut -> -- ⏲️  Timed out
-                    return . Process.Failed . ConnectionError $ toException Process.TimedOut
-
-                  Right requestResult ->
-                    case requestResult of -- 🌐 HTTP request result
-                      Left  clientErr -> return $ Process.Failed  clientErr
-                      Right a         -> return $ Process.Success a
+    logDebug @Text "🏘️  Running IPFS request across cluster"
+    forM clusterURLs \(IPFS.URL url) ->
+      liftIO . async . runClientM query $ mkClientEnv ipfsHttpManager url
 
 instance MonadBasicAuth Heroku.Auth Server where
   getVerifier = do
@@ -422,6 +395,7 @@ instance Server.DID.Publicize Server where
     let
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
+
       txtRecordValue = textDisplay did
 
     if mockRoute53
@@ -546,7 +520,7 @@ instance User.Modifier Server where
             return $ Error.openLeft err
 
           Right size -> do
-            IPFS.ipfsPin newCID >>= \case
+            Cluster.pin newCID >>= \case
               Left err ->
                 return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
 
@@ -617,7 +591,7 @@ instance App.Modifier Server where
               Right Domain {domainZoneId} -> do
                 result <- if copyFiles
                             then
-                              IPFS.ipfsPin newCID >>= \case
+                              Cluster.pin newCID >>= \case
                                 Right _  -> return ok
                                 Left err -> return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
 

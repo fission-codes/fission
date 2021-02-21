@@ -20,9 +20,9 @@
            bin     = bin;
          };
 
-    build = task "build" "${stack} build";
-    test  = task "test" "${stack} test";
-    repl  = task "repl" "${stack} repl --no-nix-pure";
+    build    = task "build" "${stack} build";
+    runtests = task "runtests" "${stack} test";
+    repl     = task "repl" "${stack} repl --no-nix-pure";
 
     watch       = task "watch" "${stack} build --file-watch";
     watch-ghcid = task "watch-ghcid" ''
@@ -38,7 +38,7 @@
       repl
       ssh-prod
       ssh-staging
-      test
+      runtests
       watch
       watch-ghcid
     ]
