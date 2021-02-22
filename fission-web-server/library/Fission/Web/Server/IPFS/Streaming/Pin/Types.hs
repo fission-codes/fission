@@ -25,6 +25,6 @@ data PinStatus = PinStatus
 
 instance FromJSON PinStatus where
   parseJSON = withObject "IPFS.PinStatus" \obj -> do
-    pins     <- obj .: "Pins"     .!= []
-    progress <- obj .: "Progress" .!= 0
+    pins     <- obj .:? "Pins"     .!= []
+    progress <- obj .:? "Progress" .!= 0
     return PinStatus {..}
