@@ -1,5 +1,6 @@
 module Fission.Process.Time
   ( sleepThread
+  , setAsyncTimer
   , module Fission.Process.Time.Error
   )  where
 
@@ -24,3 +25,17 @@ sleepThread (Seconds s) = threadDelay $ truncate us
 
     asDouble :: prefix Double
     asDouble = fromIntegral s
+
+setAsyncTimer ::
+  ( MonadIO      m
+  , Integral    (prefix s)
+  , Num         (prefix Double)
+  , FromPrefixed prefix Double
+  )
+  => Seconds prefix s
+  -> IO a
+  -> m (Async a)
+setAsyncTimer s action =
+  liftIO $ async do
+    sleepThread s
+    action
