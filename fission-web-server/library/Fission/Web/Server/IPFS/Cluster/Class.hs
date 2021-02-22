@@ -15,10 +15,11 @@ import qualified Servant.Client.Streaming as Stream
 
 import           Fission.Prelude
 
-class MonadIO m => MonadIPFSCluster m where
-  runCluster :: ClientM a -> m (NonEmpty (Async (Either ClientError a)))
+class MonadIO m => MonadIPFSCluster m a where
+  runCluster ::
+       ClientM a
+    -> m (NonEmpty (Async (Either ClientError a)))
 
   streamCluster ::
-    Eq a
-    => Stream.ClientM (SourceIO a)
+       Stream.ClientM (SourceIO a)
     -> m (NonEmpty ((Async (Either ClientError a)), TChan a))

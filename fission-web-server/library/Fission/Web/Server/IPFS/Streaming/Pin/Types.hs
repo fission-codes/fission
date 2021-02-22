@@ -23,6 +23,9 @@ data PinStatus = PinStatus
   }
   deriving (Eq, Show)
 
+instance Display PinStatus where
+  display status = displayShow status
+
 instance FromJSON PinStatus where
   parseJSON = withObject "IPFS.PinStatus" \obj -> do
     pins     <- obj .:? "Pins"     .!= []

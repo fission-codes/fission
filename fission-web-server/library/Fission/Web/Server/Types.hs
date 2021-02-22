@@ -347,7 +347,7 @@ instance IPFS.MonadRemoteIPFS Server where
 
     liftIO $ runClientM query clientManager
 
-instance MonadIPFSCluster Server where
+instance (Eq a, Display a) => MonadIPFSCluster Server a where
   runCluster query = do
     clusterURLs     <- asks ipfsURLs
     ipfsHttpManager <- asks ipfsHttpManager
@@ -357,6 +357,7 @@ instance MonadIPFSCluster Server where
       liftIO . async $ runClientM query (mkClientEnv ipfsHttpManager url)
 
   streamCluster streamQuery = do
+    cfg             <- ask
     clusterURLs     <- asks ipfsURLs
     ipfsHttpManager <- asks ipfsHttpManager
 
@@ -365,20 +366,31 @@ instance MonadIPFSCluster Server where
       resultChan <- liftIO newTChanIO
       latestVar  <- atomically $ newTVar Nothing
 
+      logDebug $ "Starting request to cluster node: " <> display url
+
       asyncRef <- liftIO $ async do
-        Stream.withClientM streamQuery (mkClientEnv ipfsHttpManager url) \case
-          Left clientErr ->
-            return $ Left clientErr
+        Stream.withClientM streamQuery (mkClientEnv ipfsHttpManager url) \event ->
+          runServer cfg $
+            case event of
+              Left clientErr -> do
+                logError $ "Cluster node " <> display url <> " reported streaming client error: " <> display clientErr
+                return $ Left clientErr
 
-          Right ioSource -> do
-            runExceptT (Stream.runSourceT ioSource) >>= \case
-              Left errMsg ->
-                return . Left . ConnectionError . toException $ GenericError errMsg
+              Right ioSource ->
+                liftIO (runExceptT $ Stream.runSourceT ioSource) >>= \case
+                  Left errMsg -> do
+                    logError $ "Cluster node " <> display url <> " reported generic streaming error: " <> displayShow errMsg
+                    return . Left . ConnectionError . toException $ GenericError errMsg
 
-              Right vals ->
-                case List.lastMaybe vals of
-                  Nothing    -> return . Left . ConnectionError . toException $ NotFound @PinStatus
-                  Just final -> return $ Right final
+                  Right vals ->
+                    case List.lastMaybe vals of
+                      Nothing -> do
+                        logError $ "Cluster node " <> display url <> " did not report any streaming updates."
+                        return . Left . ConnectionError . toException $ NotFound @PinStatus
+
+                      Just final -> do
+                        logDebug $ "Cluster node " <> display url <> " streamed successfully; ended with: " <> display final
+                        return $ Right final
 
       asyncIdleTimeout (Seconds (Unity (120 :: Natural))) asyncRef latestVar
       return (asyncRef, resultChan)

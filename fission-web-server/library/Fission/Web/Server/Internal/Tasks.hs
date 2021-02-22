@@ -53,7 +53,7 @@ ensureAllPinned = do
 
     liftIO (runClientM listPins $ mkClientEnv manager url) >>= \case
       Left err ->
-        logError $ "Pin list reuqest failed: " <> displayShow err
+        logError $ "Pin list request failed: " <> displayShow err
 
       Right remoteCIDs ->  do
         let missingCIDs = dbCIDs List.\\ remoteCIDs
