@@ -349,47 +349,50 @@ instance IPFS.MonadRemoteIPFS Server where
 
 instance (Eq a, Display a) => MonadIPFSCluster Server a where
   runCluster query = do
+    cfg             <- ask
     clusterURLs     <- asks ipfsURLs
     ipfsHttpManager <- asks ipfsHttpManager
 
-    logDebug @Text "🏘️  Running IPFS request across cluster (strict)"
+    logDebug @Text "🐙🛎️  Running IPFS request across cluster (strict)"
     forM clusterURLs \(IPFS.URL url) ->
-      liftIO . async $ runClientM query (mkClientEnv ipfsHttpManager url)
+      runServer cfg do
+        logDebug $ "🐙🎬 Starting request to cluster node: " <> display url
+        liftIO . async $ runClientM query (mkClientEnv ipfsHttpManager url)
 
   streamCluster streamQuery = do
     cfg             <- ask
     clusterURLs     <- asks ipfsURLs
     ipfsHttpManager <- asks ipfsHttpManager
 
-    logDebug @Text "🏘️  Running IPFS request across cluster (streaming)"
+    logDebug @Text "🐙🚰 Running IPFS request across cluster (streaming)"
     forM clusterURLs \(IPFS.URL url) -> do
       resultChan <- liftIO newTChanIO
       latestVar  <- atomically $ newTVar Nothing
 
-      logDebug $ "Starting request to cluster node: " <> display url
+      logDebug $ "🐙🎬 Starting request to cluster node: " <> display url
 
       asyncRef <- liftIO $ async do
         Stream.withClientM streamQuery (mkClientEnv ipfsHttpManager url) \event ->
           runServer cfg $
             case event of
               Left clientErr -> do
-                logError $ "Cluster node " <> display url <> " reported streaming client error: " <> display clientErr
+                logError $ "🐙😭 Cluster node " <> display url <> " reported streaming client error: " <> display clientErr
                 return $ Left clientErr
 
               Right ioSource ->
                 liftIO (runExceptT $ Stream.runSourceT ioSource) >>= \case
                   Left errMsg -> do
-                    logError $ "Cluster node " <> display url <> " reported generic streaming error: " <> displayShow errMsg
+                    logError $ "🐙😭 Cluster node " <> display url <> " reported generic streaming error: " <> displayShow errMsg
                     return . Left . ConnectionError . toException $ GenericError errMsg
 
                   Right vals ->
                     case List.lastMaybe vals of
                       Nothing -> do
-                        logError $ "Cluster node " <> display url <> " did not report any streaming updates."
+                        logError $ "🐙🙉 Cluster node " <> display url <> " did not report any streaming updates."
                         return . Left . ConnectionError . toException $ NotFound @PinStatus
 
                       Just final -> do
-                        logDebug $ "Cluster node " <> display url <> " streamed successfully; ended with: " <> display final
+                        logDebug $ "🐙👍 Cluster node " <> display url <> " streamed successfully; ended with: " <> display final
                         return $ Right final
 
       asyncIdleTimeout (Seconds (Unity (120 :: Natural))) asyncRef latestVar

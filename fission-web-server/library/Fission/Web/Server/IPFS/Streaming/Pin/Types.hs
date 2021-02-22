@@ -19,7 +19,7 @@ type PinComplete
 
 data PinStatus = PinStatus
   { pins     :: [CID]
-  , progress :: Natural
+  , progress :: Maybe Natural
   }
   deriving (Eq, Show)
 
@@ -29,5 +29,5 @@ instance Display PinStatus where
 instance FromJSON PinStatus where
   parseJSON = withObject "IPFS.PinStatus" \obj -> do
     pins     <- obj .:? "Pins"     .!= []
-    progress <- obj .:? "Progress" .!= 0
+    progress <- obj .:? "Progress"
     return PinStatus {..}
