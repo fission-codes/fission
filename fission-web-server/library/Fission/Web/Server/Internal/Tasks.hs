@@ -48,6 +48,7 @@ deleteByUsername userNameTxt =
 
 ensureAllPinned :: Server ()
 ensureAllPinned = do
+  cfg         <- ask
   dbCIDs      <- getAllDBPins
   clusterURLs <- asks ipfsURLs
   manager     <- asks ipfsHttpManager
@@ -66,23 +67,26 @@ ensureAllPinned = do
           missingCIDs = dbCIDs List.\\ remoteCIDs
           deduped     = List.nub missingCIDs
 
-        forM_ deduped \cid@(CID hash) -> do
-          logInfo $ "📥 Attemptng to pin " <> hash
-          liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
-            Left err ->
-              logError $ mconcat
-                [ "🧨 Pin failed: "
-                , " -- "
-                , displayShow url
-                , " -- "
-                , displayShow cid
-                , " -- "
-                , displayShow err
-                ]
+        logWarn $ "⚠️  Discrepancy found. Missing: " <> displayShow deduped
 
-            Right _ -> do
-              logInfo $ "📌 Pinned " <> hash
-              noop
+        forConcurrently_ deduped \cid@(CID hash) ->
+          runServer cfg do
+            logInfo $ "📥 Attempting to pin " <> hash
+            liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
+              Left err ->
+                logError $ mconcat
+                  [ "🧨 Pin failed: "
+                  , " -- "
+                  , displayShow url
+                  , " -- "
+                  , displayShow cid
+                  , " -- "
+                  , displayShow err
+                  ]
+
+              Right _ -> do
+                logInfo $ "📌 Pinned " <> hash
+                noop
 
 pinAllToCluster :: [CID] -> Server [(CID, ClientError)]
 pinAllToCluster cids =
