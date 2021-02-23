@@ -55,7 +55,7 @@ ensureAllPinned = do
 
   let dbCIDUniques = List.nub dbCIDs
 
-  forM_ clusterURLs \(IPFS.URL url) -> do
+  forConcurrently_ clusterURLs \(IPFS.URL url) -> do
     let clientManager = mkClientEnv manager url
 
     logInfo $ "🩺🐙 Checking " <> displayShow url
@@ -68,7 +68,7 @@ ensureAllPinned = do
           remoteCIDs  = Map.keys remoteCIDMap
           missingCIDs = dbCIDUniques List.\\ remoteCIDs
 
-        logWarn $ "⚠️  Discrepancy found. Missing: " <> Text.intercalate ", " (unaddress <$> missingCIDs)
+        logWarn $ "⚠️  Missing " <> textDisplay (List.length missingCIDs) <> " CIDs."
 
         forConcurrently_ missingCIDs \cid@(CID hash) ->
           runServer cfg do
@@ -85,9 +85,8 @@ ensureAllPinned = do
                   , displayShow err
                   ]
 
-              Right _ -> do
-                logInfo $ "📌 Pinned " <> hash
-                noop
+              Right _ ->
+                logInfo $ "📌 Pinned " <> display hash <> " to " <> displayShow url
 
 pinAllToCluster :: [CID] -> Server [(CID, ClientError)]
 pinAllToCluster cids =
