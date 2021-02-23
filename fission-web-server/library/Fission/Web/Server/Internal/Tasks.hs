@@ -67,7 +67,7 @@ ensureAllPinned = do
           missingCIDs = dbCIDs List.\\ remoteCIDs
           deduped     = List.nub missingCIDs
 
-        logWarn $ "⚠️  Discrepancy found. Missing: " <> display (unaddress <$> deduped)
+        logWarn $ "⚠️  Discrepancy found. Missing: " <> Text.intercalate ", " (unaddress <$> deduped)
 
         forConcurrently_ deduped \cid@(CID hash) ->
           runServer cfg do
