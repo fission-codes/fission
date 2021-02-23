@@ -55,20 +55,22 @@ ensureAllPinned = do
   forM_ clusterURLs \(IPFS.URL url) -> do
     let clientManager = mkClientEnv manager url
 
+    logInfo $ "🩺🐙 Checking " <> displayShow url
     liftIO (runClientM listPins $ mkClientEnv manager url) >>= \case
       Left err ->
-        logError $ "Pin list request failed: " <> displayShow err
+        logError $ "🧨 Pin list request failed: " <> displayShow err
 
       Right (PinLsList remoteCIDMap) ->  do
         let
           remoteCIDs  = Map.keys remoteCIDMap
           missingCIDs = dbCIDs List.\\ remoteCIDs
 
-        forM_ missingCIDs \cid@(CID hash) ->
+        forM_ missingCIDs \cid@(CID hash) -> do
+          logInfo $ "📥 Attemptng to pin " <> hash
           liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
             Left err ->
               logError $ mconcat
-                [ "Pin failed: "
+                [ "🧨 Pin failed: "
                 , " -- "
                 , displayShow url
                 , " -- "
@@ -78,7 +80,7 @@ ensureAllPinned = do
                 ]
 
             Right _ -> do
-              logInfo $ "Pinned " <> display cid
+              logInfo $ "📌 Pinned " <> hash
               noop
 
 pinAllToCluster :: [CID] -> Server [(CID, ClientError)]
