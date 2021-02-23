@@ -2,10 +2,13 @@
 
 module Fission.Web.Server.Internal.Orphanage.CID () where
 
+import           Data.Aeson
+
 import           Database.Persist.Class
 import           Database.Persist.Sql
 
 import           Network.IPFS.CID.Types
+
 import           RIO
 import qualified RIO.Text                       as Text
 
@@ -23,3 +26,6 @@ instance PersistField CID where
 
 instance PersistFieldSql CID where
   sqlType _pxy = SqlString
+
+instance FromJSONKey CID where
+  fromJSONKey = FromJSONKeyText \txt -> CID txt

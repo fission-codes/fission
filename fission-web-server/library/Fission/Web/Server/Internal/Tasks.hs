@@ -7,13 +7,15 @@ module Fission.Web.Server.Internal.Tasks
   , listPins
   ) where
 
-import qualified RIO.List                        as List
+import qualified RIO.List                                  as List
+import qualified RIO.Map                                   as Map
+import qualified RIO.Text                                  as Text
 
 import           Database.Esqueleto
 
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Client             as IPFS
-import qualified Network.IPFS.URL.Types          as IPFS
+import qualified Network.IPFS.Client                       as IPFS
+import qualified Network.IPFS.URL.Types                    as IPFS
 
 import           Servant.API
 import           Servant.Client
@@ -22,11 +24,13 @@ import           Fission.Prelude
 
 import           Fission.User.Username.Types
 
-import qualified Fission.Web.Server.IPFS.Cluster as Cluster
+import qualified Fission.Web.Server.IPFS.Cluster           as Cluster
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Types
-import qualified Fission.Web.Server.User         as User
+import qualified Fission.Web.Server.User                   as User
+
+import           Fission.Web.Server.Internal.Orphanage.CID ()
 
 deleteByUsername :: Text -> Server ()
 deleteByUsername userNameTxt =
@@ -55,8 +59,10 @@ ensureAllPinned = do
       Left err ->
         logError $ "Pin list request failed: " <> displayShow err
 
-      Right remoteCIDs ->  do
-        let missingCIDs = dbCIDs List.\\ remoteCIDs
+      Right (ListPinsResponse (PinLsList remoteCIDMap)) ->  do
+        let
+          remoteCIDs  = Map.keys remoteCIDMap
+          missingCIDs = dbCIDs List.\\ remoteCIDs
 
         forM_ missingCIDs \cid@(CID hash) ->
           liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
@@ -96,14 +102,45 @@ getAllDBPins =
 
     return $ fmap unValue (appRoots ++ userRoots ++ loosePins)
 
-listPins :: ClientM [CID]
-listPins = (client (Proxy @ListPins)) (Just True) (Just "direct")
+listPins :: ClientM ListPinsResponse
+listPins = (client (Proxy @ListPins)) (Just Recursive)
 
 type ListPins
   = "api"
   :> "v0"
   :> "pin"
   :> "ls"
-  :> QueryParam "quiet" Bool
-  :> QueryParam "type"  Text
-  :> Post '[JSON] [CID]
+  :> QueryParam "type" PinType
+  :> Post '[JSON] ListPinsResponse
+
+newtype ListPinsResponse = ListPinsResponse { pins :: PinLsList }
+  deriving (Eq, Show)
+
+instance FromJSON ListPinsResponse where
+  parseJSON = withObject "ListPinResponse" \obj -> do
+    pins <- obj .: "PinLsList"
+    return $ ListPinsResponse pins
+
+newtype PinLsList = PinLsList { keyMap :: Map CID PinType }
+  deriving (Eq, Show)
+
+instance FromJSON PinLsList where
+  parseJSON = withObject "PinLsList" \obj -> do
+    keyMap <- obj .: "Keys"
+    return (PinLsList keyMap)
+
+data PinType
+  = Indirect
+  | Recursive
+  deriving (Show, Eq)
+
+instance FromJSON PinType where
+  parseJSON = withText "PinType" \txt ->
+    case txt of
+      "indirect"  -> return Indirect
+      "recursive" -> return Recursive
+      other       -> fail $ Text.unpack (other <> " is not a valid PinType")
+
+instance ToHttpApiData PinType where
+  toUrlPiece Indirect  = "indirect"
+  toUrlPiece Recursive = "recursive"
