@@ -21,6 +21,7 @@ import qualified Fission.Internal.UTF8       as UTF8
 import           Fission.IPFS.Error.Types    as IPFS
 import           Fission.Web.Client
 
+import           Fission.CLI.Display.Text
 import           Fission.CLI.IPFS.Peers      as Peers
 
 -- | Connect to the Fission IPFS network with a set amount of retries
@@ -75,12 +76,11 @@ connectTo peers = do
       raise IPFS.UnableToConnect
 
 -- | Create a could not connect to Fission peer message for the terminal
-couldNotSwarmConnect :: MonadIO m => m ()
+couldNotSwarmConnect :: (MonadCleanup m, MonadIO m) => m ()
 couldNotSwarmConnect = do
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
-  UTF8.putText "😭 We were unable to connect to the Fission IPFS peer!\n"
+  colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red] do
+    UTF8.putText "😭 We were unable to connect to the Fission IPFS peer!\n"
 
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow]
-  UTF8.putText "Try checking your connection or logging in again\n"
+  colourized [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow] do
+    UTF8.putText "Try checking your connection or logging in again\n"
 
-  liftIO $ ANSI.setSGR [ANSI.Reset]
