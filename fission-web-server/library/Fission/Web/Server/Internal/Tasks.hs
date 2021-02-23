@@ -53,6 +53,8 @@ ensureAllPinned = do
   clusterURLs <- asks ipfsURLs
   manager     <- asks ipfsHttpManager
 
+  let dbCIDUniques = List.nub dbCIDs
+
   forM_ clusterURLs \(IPFS.URL url) -> do
     let clientManager = mkClientEnv manager url
 
@@ -64,12 +66,11 @@ ensureAllPinned = do
       Right (PinLsList remoteCIDMap) ->  do
         let
           remoteCIDs  = Map.keys remoteCIDMap
-          missingCIDs = dbCIDs List.\\ remoteCIDs
-          deduped     = List.nub missingCIDs
+          missingCIDs = dbCIDUniques List.\\ remoteCIDs
 
-        logWarn $ "⚠️  Discrepancy found. Missing: " <> Text.intercalate ", " (unaddress <$> deduped)
+        logWarn $ "⚠️  Discrepancy found. Missing: " <> Text.intercalate ", " (unaddress <$> missingCIDs)
 
-        forConcurrently_ deduped \cid@(CID hash) ->
+        forConcurrently_ missingCIDs \cid@(CID hash) ->
           runServer cfg do
             logInfo $ "📥 Attempting to pin " <> hash
             liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
