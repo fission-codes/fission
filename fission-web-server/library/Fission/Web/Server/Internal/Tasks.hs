@@ -55,7 +55,7 @@ ensureAllPinned = do
 
   let dbCIDUniques = List.nub dbCIDs
 
-  forConcurrently_ clusterURLs \(IPFS.URL url) -> do
+  forConcurrently_ clusterURLs \(IPFS.URL url@BaseUrl { baseUrlHost }) -> do
     let clientManager = mkClientEnv manager url
 
     logInfo $ "🩺🐙 Checking " <> displayShow url
@@ -68,25 +68,25 @@ ensureAllPinned = do
           remoteCIDs  = Map.keys remoteCIDMap
           missingCIDs = dbCIDUniques List.\\ remoteCIDs
 
-        logWarn $ "⚠️  Missing " <> textDisplay (List.length missingCIDs) <> " CIDs."
+        logWarn $ "⚠️  Missing " <> display (List.length missingCIDs) <> " CIDs  on " <> displayShow baseUrlHost
 
-        forConcurrently_ missingCIDs \cid@(CID hash) ->
+        forConcurrently_ missingCIDs \(CID hash) ->
           runServer cfg do
-            logInfo $ "📥 Attempting to pin " <> hash
+            logInfo $ "📥 Attempting to pin " <> display hash <> " to " <> displayShow baseUrlHost
             liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
               Left err ->
                 logError $ mconcat
                   [ "🧨 Pin failed: "
                   , " -- "
-                  , displayShow url
+                  , displayShow baseUrlHost
                   , " -- "
-                  , displayShow cid
+                  , display hash
                   , " -- "
                   , displayShow err
                   ]
 
               Right _ ->
-                logInfo $ "📌 Pinned " <> display hash <> " to " <> displayShow url
+                logInfo $ "📌 Pinned " <> display hash <> " to " <> displayShow baseUrlHost
 
 pinAllToCluster :: [CID] -> Server [(CID, ClientError)]
 pinAllToCluster cids =
