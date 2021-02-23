@@ -33,7 +33,8 @@ checkLatestRelease ::
 checkLatestRelease = do
   attempt Env.get >>= \case
     Left  err ->
-      CLI.Error.put err "Unable to parse config"
+      -- Also happens when the CLI isn't setup yet
+      logDebug @Text "Unable to parse config"
 
     Right Env {updateChecked} -> do
       now <- currentTime
