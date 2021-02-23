@@ -11,7 +11,7 @@ import           Fission.CLI.Display.Text
 
 waitFor :: (MonadIO m, MonadCleanup m) => ByteString -> m a -> m a
 waitFor msg action =
-  colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
+  colourized [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow] do
     liftIO $ ANSI.cursorForward 3
     putStr msg
     liftIO $ ANSI.setCursorColumn 0

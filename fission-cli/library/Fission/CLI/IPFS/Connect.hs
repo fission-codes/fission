@@ -80,7 +80,7 @@ couldNotSwarmConnect = do
   liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red]
   UTF8.putText "😭 We were unable to connect to the Fission IPFS peer!\n"
 
-  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue]
+  liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow]
   UTF8.putText "Try checking your connection or logging in again\n"
 
   liftIO $ ANSI.setSGR [ANSI.Reset]
