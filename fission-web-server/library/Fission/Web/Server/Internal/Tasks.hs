@@ -59,7 +59,7 @@ ensureAllPinned = do
       Left err ->
         logError $ "Pin list request failed: " <> displayShow err
 
-      Right (ListPinsResponse (PinLsList remoteCIDMap)) ->  do
+      Right (PinLsList remoteCIDMap) ->  do
         let
           remoteCIDs  = Map.keys remoteCIDMap
           missingCIDs = dbCIDs List.\\ remoteCIDs
@@ -103,7 +103,7 @@ getAllDBPins =
 
     return $ fmap unValue (appRoots ++ userRoots ++ loosePins)
 
-listPins :: ClientM ListPinsResponse
+listPins :: ClientM PinLsList
 listPins = (client (Proxy @ListPins)) (Just Recursive)
 
 type ListPins
@@ -112,12 +112,22 @@ type ListPins
   :> "pin"
   :> "ls"
   :> QueryParam "type" PinType
-  :> Post '[JSON] PinlsList
+  :> Post '[JSON] PinLsList
+
+newtype PinLsList = PinLsList { keyMap :: Map CID WrappedPinType  }
 
 instance FromJSON PinLsList where
   parseJSON = withObject "PinLsList" \obj -> do
     keyMap <- obj .: "Keys"
-    return (PinLsList keyMap)
+    return PinLsList { keyMap }
+
+newtype WrappedPinType = WrappedPinType PinType
+  deriving (Show, Eq)
+
+instance FromJSON WrappedPinType where
+  parseJSON = withObject "WrappedPinType" \obj -> do
+    pinType <- obj .: "Type"
+    return $ WrappedPinType pinType
 
 data PinType
   = Indirect
