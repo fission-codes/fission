@@ -64,8 +64,9 @@ ensureAllPinned = do
         let
           remoteCIDs  = Map.keys remoteCIDMap
           missingCIDs = dbCIDs List.\\ remoteCIDs
+          deduped     = List.nub missingCIDs
 
-        forM_ missingCIDs \cid@(CID hash) -> do
+        forM_ deduped \cid@(CID hash) -> do
           logInfo $ "📥 Attemptng to pin " <> hash
           liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
             Left err ->
