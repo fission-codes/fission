@@ -9,8 +9,6 @@ import           Servant
 import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
-import qualified Fission.Web.Server.IPFS.Cluster.Error              as Cluster
-
 import           Fission.Prelude
 
 import           Fission.Error                                      as Error
@@ -48,7 +46,6 @@ type Errors' = OpenUnion
 
    , IPFS.Pin.Error
    , IPFS.Stat.Error
-   , Cluster.Error
 
    , InvalidURL
    , ServerError

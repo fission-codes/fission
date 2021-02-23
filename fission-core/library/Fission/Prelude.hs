@@ -24,6 +24,8 @@ module Fission.Prelude
   , module Data.Generics.Product
   , module Data.Generics.Sum
 
+  , module Fission.Unit.Prefix
+
   , module Fission.Internal.Log
   , module Fission.Internal.Time
 
@@ -104,10 +106,14 @@ import           RIO                                         hiding (Handler,
                                                               (^.))
 
 import           Test.QuickCheck                             hiding
-                                                              (Result (..))
+                                                             (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
+import           Fission.Unit.Prefix
+
 import           Fission.Internal.Log
+
+import           Fission.Internal.Orphanage.ClientError      ()
 import           Fission.Internal.Orphanage.OpenUnion        ()
 import           Fission.Internal.Time
 import           Fission.Internal.UTF8                       (displayLazyBS,

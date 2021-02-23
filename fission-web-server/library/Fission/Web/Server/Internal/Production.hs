@@ -16,6 +16,7 @@ import           Servant
 import qualified Network.HTTP.Client                             as HTTP
 import qualified Network.HTTP.Client.TLS                         as HTTP
 
+import           Network.IPFS.Timeout.Types                      as IPFS
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
@@ -27,6 +28,7 @@ import qualified RIO.Text                                        as Text
 import           Fission.Prelude
 
 import           Fission.Internal.App
+import           Fission.Time
 import           Fission.User.DID.Types
 
 import qualified Fission.Web.Server.Types                        as Fission
@@ -95,11 +97,10 @@ runInProd overrideVerbose action = do
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
 
-    ipfsPath        = env |> ipfs |> binPath
-    ipfsURL         = env |> ipfs |> url
-    ipfsRemotePeers = env |> ipfs |> remotePeers
-    ipfsTimeout     = env |> ipfs |> IPFS.timeout
-    clusterURL      = env |> ipfs |> clusterUrl
+    ipfsPath                                = env |> ipfs |> binPath
+    ipfsURLs                                = env |> ipfs |> urls
+    ipfsRemotePeers                         = env |> ipfs |> remotePeers
+    ipfsTimeout@(IPFS.Timeout ipfsTOutSecs) = env |> ipfs |> IPFS.timeout
 
     awsAccessKey   = accessKey
     awsSecretKey   = secretKey
@@ -118,11 +119,32 @@ runInProd overrideVerbose action = do
 
   putStrLnIO "   🕷️  Setting up HTTP manager"
   putStrLnIO "      🎛️  Configuring..."
-  httpManager <- HTTP.newManager HTTP.defaultManagerSettings
-                   { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout }
 
-  putStrLnIO "      ✨ Creating manager"
-  tlsManager  <- HTTP.newManager HTTP.tlsManagerSettings
+  let
+    httpSettings = HTTP.defaultManagerSettings
+      { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout
+      , HTTP.managerConnCount       = 200
+      }
+
+    tlsHttpSettings = HTTP.tlsManagerSettings
+      { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout
+      , HTTP.managerConnCount       = 200
+      }
+
+    Seconds (Micro ipfsTOut) = convert $ Seconds (Unity ipfsTOutSecs)
+    ipfsHttpSettings = HTTP.defaultManagerSettings
+      { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro $ fromIntegral ipfsTOut
+      , HTTP.managerConnCount       = 200
+      }
+
+  putStrLnIO "      📞🌐 Creating base HTTP client manager"
+  httpManager <- HTTP.newManager httpSettings
+
+  putStrLnIO "      🛸🌐 Creating IPFS HTTP client manager"
+  ipfsHttpManager <- HTTP.newManager ipfsHttpSettings
+
+  putStrLnIO "      🙈🌐 Creating TLS client manager"
+  tlsManager <- HTTP.newManager tlsHttpSettings
 
   putStrLnIO "   💂 Configuring optional Sentry middleware"
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger RIO.LevelWarn) sentryDSN

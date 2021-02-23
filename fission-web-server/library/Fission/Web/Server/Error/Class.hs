@@ -14,8 +14,6 @@ import qualified Network.IPFS.Add.Error                             as Add
 import qualified Network.IPFS.Get.Error                             as Get
 import qualified Network.IPFS.Peer.Error                            as Peer
 
-import qualified Fission.Web.Server.IPFS.Cluster.Error              as Cluster
-
 import           Fission.Prelude
 
 import qualified Fission.User.Username.Error                        as Username
@@ -117,13 +115,6 @@ instance ToServerError Peer.Error where
     Peer.DecodeFailure _ -> err500 { errBody = "Peer list decode error" }
     Peer.CannotConnect _ -> err503 { errBody = "Unable to connect to peer" }
     Peer.UnknownErr    _ -> err500 { errBody = "Unknown peer list error" }
-
-instance ToServerError Cluster.Error where
-  toServerError = \case
-    Cluster.ClusterDaemonErr msg -> err502 { errBody = "IPFS Cluster Error: " <> displayLazyBS msg}
-    Cluster.UnknownPinErr    _   -> err502 { errBody = "Unknown IPFS Cluster pin error" }
-    Cluster.UnexpectedOutput _   -> err502 { errBody = "Unexpected IPFS Cluster result" }
-    Cluster.ClusterTimeout       -> err504 { errBody = displayLazyBS Cluster.ClusterTimeout }
 
 instance ToServerError IPFS.Linearization where
   toServerError _ = err500 { errBody = "Unable to linearize IPFS result" }

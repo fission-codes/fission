@@ -7,8 +7,6 @@ import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
-import qualified Fission.Web.Server.IPFS.Cluster.Error              as Cluster
-
 import           Servant.Server
 
 import           Fission.Prelude                                    hiding (on)
@@ -31,7 +29,6 @@ type Errors' = OpenUnion
 
    , IPFS.Pin.Error
    , IPFS.Stat.Error
-   , Cluster.Error
 
    , ServerError
    , InvalidURL

@@ -6,12 +6,11 @@ import qualified Network.IPFS.Types as IPFS
 import           Fission.Prelude
 
 data Environment = Environment
-  { url         :: IPFS.URL           -- ^ IPFS client URL (may be remote)
-  , timeout     :: IPFS.Timeout       -- ^ IPFS timeout in seconds
-  , binPath     :: IPFS.BinPath       -- ^ Path to local IPFS binary
+  { timeout     :: IPFS.Timeout       -- ^ IPFS timeout in seconds
   , gateway     :: IPFS.Gateway       -- ^ Domain Name of IPFS Gateway
-  , remotePeers :: NonEmpty IPFS.Peer -- ^ Remote Peer to connect to
-  , clusterUrl  :: Maybe IPFS.URL     -- ^ IPFS Cluster client URL (may be remote)
+  , binPath     :: IPFS.BinPath       -- ^ Path to local IPFS binary
+  , urls        :: NonEmpty IPFS.URL  -- ^ IPFS client URLs (may be remote)
+  , remotePeers :: NonEmpty IPFS.Peer -- ^ Remote Peers for users to connect to
   } deriving Show
 
 instance FromJSON Environment where
@@ -19,8 +18,7 @@ instance FromJSON Environment where
     timeout     <- obj .:? "timeout" .!= 3600
     binPath     <- obj .:? "binPath" .!= "/usr/local/bin/ipfs"
     gateway     <- obj .:? "gateway" .!= "ipfs.runfission.com"
-    url         <- obj .:  "url" >>= parseJSON . String
+    urls        <- obj .:  "urls"
     remotePeers <- obj .:  "remotePeers"
-    clusterUrl  <- obj .:? "clusterUrl"
 
     return Environment {..}

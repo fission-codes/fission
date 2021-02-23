@@ -1,97 +1,105 @@
 module Fission.Web.Server.Types
-  ( Server (..)
+  ( runServer
+  , Server (..)
   , module Fission.Web.Server.Config.Types
   ) where
 
-import           Control.Monad.Catch
+import           Control.Monad.Catch                         hiding (finally)
+import           Control.Monad.Except
 
-import qualified RIO.ByteString.Lazy                               as Lazy
-import           RIO.NonEmpty                                      as NonEmpty
-import qualified RIO.Text                                          as Text
+import qualified RIO.ByteString.Lazy                         as Lazy
+import qualified RIO.List                                    as List
+import           RIO.NonEmpty                                as NonEmpty
+import           RIO.NonEmpty.Partial                        as NonEmpty.Partial
+import qualified RIO.Text                                    as Text
 
-import           Database.Esqueleto                                as SQL hiding
-                                                                          ((<&>))
+import           System.Random                               as Random
+
+import           Database.Esqueleto                          as SQL hiding
+                                                                    ((<&>))
 
 import           Servant.Client
+import qualified Servant.Client.Streaming                    as Stream
 import           Servant.Server.Experimental.Auth
+import qualified Servant.Types.SourceT                       as Stream
 
-import           Network.AWS                                       as AWS hiding
-                                                                          (Request)
+import           Network.AWS                                 as AWS hiding
+                                                                    (Request,
+                                                                     Seconds)
 import           Network.AWS.Route53
 
-import qualified Network.IPFS                                      as IPFS
-import qualified Network.IPFS.Peer                                 as Peer
-import qualified Network.IPFS.Pin                                  as IPFS.Pin
-import qualified Network.IPFS.Process                              as IPFS
-import qualified Network.IPFS.Process.Error                        as IPFS.Process
-import qualified Network.IPFS.Stat                                 as IPFS.Stat
-import qualified Network.IPFS.Types                                as IPFS
+import qualified Network.IPFS                                as IPFS
+import qualified Network.IPFS.Add.Error                      as IPFS.Pin
+import qualified Network.IPFS.Process                        as IPFS
+import qualified Network.IPFS.Process.Error                  as IPFS.Process
+import qualified Network.IPFS.Stat                           as IPFS.Stat
+import qualified Network.IPFS.Types                          as IPFS
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                             as UTF8
+import qualified Fission.Internal.UTF8                       as UTF8
 
-import           Fission.Error                                     as Error
+import           Fission.Error                               as Error
+import           Fission.Error.GenericError.Types
 import           Fission.Time
+
 import           Fission.Web.Server.AWS
-import           Fission.Web.Server.AWS.Types                      as AWS
+import           Fission.Web.Server.AWS.Types                as AWS
 import           Fission.Web.Server.Models
 
-import qualified Fission.Web.Server.DID.Publicize.Class            as Server.DID
+import qualified Fission.Web.Server.DID.Publicize.Class      as Server.DID
 import           Fission.Web.Server.Host.Types
 
-import           Fission.DNS                                       as DNS
-import           Fission.URL                                       as URL
+import           Fission.DNS                                 as DNS
+import           Fission.URL                                 as URL
 
-import qualified Fission.Web.Server.App                            as App
-import qualified Fission.Web.Server.App.Destroyer                  as App.Destroyer
-import           Fission.Web.Server.IPFS.DNSLink                   as DNSLink
-import           Fission.Web.Server.WNFS                           as WNFS
+import           Fission.Web.Async
 
-import qualified Fission.Web.Server.Error                          as Web.Error
+import qualified Fission.Web.Server.App                      as App
+import qualified Fission.Web.Server.App.Destroyer            as App.Destroyer
+import qualified Fission.Web.Server.Error                    as Web.Error
+import           Fission.Web.Server.WNFS                     as WNFS
 
-import qualified Fission.Web.Server.Heroku.AddOn.Creator           as Heroku.AddOn
-
-import           Fission.Web.Server.IPFS.Cluster                   as Cluster
-import qualified Fission.Web.Server.IPFS.Cluster.Pin.Global.Status as Cluster
-
+import           Fission.Web.Server.IPFS.Cluster             as Cluster
+import           Fission.Web.Server.IPFS.DNSLink             as DNSLink
 import           Fission.Web.Server.IPFS.Linked
-import           Fission.Web.Server.IPFS.Pinner                    as IPFS.Pinner
+import           Fission.Web.Server.IPFS.Streaming.Pin.Types
 
-import           Fission.Web.Server.AWS                            as AWS
-import           Fission.Web.Server.AWS.Route53                    as Route53
+import qualified Fission.Web.Server.Heroku.AddOn.Creator     as Heroku.AddOn
+import           Fission.Web.Server.Heroku.Types             as Heroku
+
+import           Fission.Web.Server.AWS                      as AWS
+import           Fission.Web.Server.AWS.Route53              as Route53
 import           Fission.Web.Server.Authorization.Types
 
-import           Fission.Web.Server.Heroku.Types                   as Heroku
-
-import           Fission.Web.Server.Auth                           as Auth
-import qualified Fission.Web.Server.Auth.DID                       as Auth.DID
-import qualified Fission.Web.Server.Auth.Token                     as Auth.Token
+import           Fission.Web.Server.Auth                     as Auth
+import qualified Fission.Web.Server.Auth.DID                 as Auth.DID
+import qualified Fission.Web.Server.Auth.Token               as Auth.Token
 
 import           Fission.Web.Server.Handler
-import           Fission.Web.Server.Reflective                     as Reflective
+import           Fission.Web.Server.Reflective               as Reflective
 
-import           Fission.User.DID                                  as DID
-import qualified Fission.Web.Server.User                           as User
+import           Fission.User.DID                            as DID
+import qualified Fission.Web.Server.User                     as User
 import           Fission.Web.Server.User.Creator.Class
-import qualified Fission.Web.Server.User.Modifier.Class            as User.Modifier
-import qualified Fission.Web.Server.User.Password                  as Password
+import qualified Fission.Web.Server.User.Modifier.Class      as User.Modifier
+import qualified Fission.Web.Server.User.Password            as Password
 
-import qualified Fission.Key                                       as Key
+import qualified Fission.Key                                 as Key
 
 import           Fission.Web.Server.MonadDB
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent             as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent       as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver         as JWT
 
 import           Fission.Authorization.ServerDID.Class
 
-import           Fission.Web.Server.App.Content                    as App.Content
-import           Fission.Web.Server.App.Domain                     as App.Domain
+import           Fission.Web.Server.App.Content              as App.Content
+import           Fission.Web.Server.App.Domain               as App.Domain
 
-import           Fission.Web.Server.Challenge                      as Challenge
-import qualified Fission.Web.Server.Domain                         as Domain
-import qualified Fission.Web.Server.Email                          as Email
+import           Fission.Web.Server.Challenge                as Challenge
+import qualified Fission.Web.Server.Domain                   as Domain
+import qualified Fission.Web.Server.Email                    as Email
 import           Fission.Web.Server.Email.Class
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
@@ -111,6 +119,10 @@ newtype Server a = Server { unServer :: RIO Config a }
                    , MonadCatch
                    , MonadMask
                    )
+
+-- | Run actions described by a @Fission@ type
+runServer :: MonadIO m => Config -> Server a -> m a
+runServer cfg actions = runRIO cfg $ unServer actions
 
 instance MonadLogger Server where
   monadLoggerLog loc src lvl msg = Server $ monadLoggerLog loc src lvl msg
@@ -248,7 +260,6 @@ instance MonadRoute53 Server where
           Nothing  -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just rrs -> return $ Right rrs
 
-
 instance MonadWNFS Server where
   getUserDataRoot username = do
     zoneID <- asks userZoneID
@@ -269,7 +280,6 @@ instance MonadWNFS Server where
           Just vals -> return $ Right $ extractCID vals
     where
       extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
-
 
 instance MonadDNSLink Server where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
@@ -305,76 +315,6 @@ instance MonadDNSLink Server where
 instance MonadLinkedIPFS Server where
   getLinkedPeers = asks ipfsRemotePeers
 
-instance MonadIPFSPinner Server where
-  pin cid =
-    asks clusterURL >>= \case
-      Nothing ->
-        IPFS.Pin.add cid >>= \case
-          Left  err -> return $ Error.openLeft err
-          Right _   -> return ok
-
-      Just (IPFS.URL url) -> do
-        IPFS.Timeout secs <- asks ipfsTimeout
-        manager           <- asks httpManager
-        started           <- getCurrentTime
-
-        let
-          timeout' = secondsToNominalDiffTime $ fromIntegral secs
-          expireAt = addUTCTime timeout' started
-
-        clusterPin expireAt dohertyMicroSeconds (mkClientEnv manager url)
-
-    where
-      checkPin = Cluster.status cid
-      runPin   = Cluster.pin    cid
-
-      nextBackoff :: Int -> Int
-      nextBackoff us = min 5_000_000 (floor (fromIntegral us * 1.15 :: Double))
-
-      clusterPin expireAt backoffMicroSeconds env = do
-        now <- getCurrentTime
-        if now >= expireAt
-          then
-            return $ Error.openLeft Cluster.ClusterTimeout
-
-          else
-            liftIO (runClientM runPin env) >>= \case
-              Left err -> do
-                formattedErr <- Cluster.parseClientError err
-                return $ Error.openLeft formattedErr
-
-              Right _ ->
-                liftIO (runClientM checkPin env) >>= \case
-                  Left err -> do
-                    formattedErr <- Cluster.parseClientError err
-                    return $ Error.openLeft formattedErr
-
-                  Right (state@Cluster.GlobalPinStatus {errs}) -> do
-                    unless (null errs) do
-                      logError $ "Cluster errors: " <> display errs
-
-                    case Cluster.progress state of
-                      Cluster.Failed err@(Cluster.FailedWith _) ->
-                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
-
-                      Cluster.Failed err@(Cluster.Inconsistent _) ->
-                        return . Error.openLeft $ Cluster.UnknownPinErr $ textDisplay err
-
-                      Cluster.Normal Cluster.Queued -> do
-                        logDebug $ display cid <> " is queued on cluster, retrying..."
-                        threadDelay backoffMicroSeconds
-                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
-
-                      Cluster.Normal Cluster.Pinning -> do
-                        logDebug $ display cid <> " is still being pinned on cluster, retrying..."
-                        threadDelay backoffMicroSeconds
-                        clusterPin expireAt (nextBackoff backoffMicroSeconds) env
-
-                      -- First past the post strategy
-                      Cluster.Normal Cluster.PinComplete -> do
-                        logDebug $ "At least one cluster node replicated " <> display cid
-                        return ok
-
 instance IPFS.MonadLocalIPFS Server where
   runLocal opts arg = do
     IPFS.BinPath ipfs <- asks ipfsPath
@@ -397,15 +337,66 @@ instance IPFS.MonadLocalIPFS Server where
 
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
-    peerID       <- head <$> asks ipfsRemotePeers
-    IPFS.URL url <- asks ipfsURL
-    manager      <- asks httpManager
+    manager      <- asks ipfsHttpManager
+    urls         <- asks ipfsURLs
+    randomIndex  <- liftIO $ randomRIO (0, NonEmpty.length urls - 1)
 
-    Peer.connectRetry peerID 25 >>= \case
-      Left  err -> logDebug $ "Unable to connect: " <> textDisplay err
-      Right _   -> return ()
+    let
+      IPFS.URL url  = urls NonEmpty.Partial.!! randomIndex -- Partial, but checked above
+      clientManager = mkClientEnv manager url
 
-    liftIO . runClientM query $ mkClientEnv manager url
+    liftIO $ runClientM query clientManager
+
+instance (Eq a, Display a) => MonadIPFSCluster Server a where
+  runCluster query = do
+    cfg             <- ask
+    clusterURLs     <- asks ipfsURLs
+    ipfsHttpManager <- asks ipfsHttpManager
+
+    logDebug @Text "🐙🛎️  Running IPFS request across cluster (strict)"
+    forM clusterURLs \(IPFS.URL url) ->
+      runServer cfg do
+        logDebug $ "🐙🎬 Starting request to cluster node: " <> display url
+        liftIO . async $ runClientM query (mkClientEnv ipfsHttpManager url)
+
+  streamCluster streamQuery = do
+    cfg             <- ask
+    clusterURLs     <- asks ipfsURLs
+    ipfsHttpManager <- asks ipfsHttpManager
+
+    logDebug @Text "🐙🚰 Running IPFS request across cluster (streaming)"
+    forM clusterURLs \(IPFS.URL url) -> do
+      resultChan <- liftIO newTChanIO
+      latestVar  <- atomically $ newTVar Nothing
+
+      logDebug $ "🐙🎬 Starting request to cluster node: " <> display url
+
+      asyncRef <- liftIO $ async do
+        Stream.withClientM streamQuery (mkClientEnv ipfsHttpManager url) \event ->
+          runServer cfg $
+            case event of
+              Left clientErr -> do
+                logError $ "🐙😭 Cluster node " <> display url <> " reported streaming client error: " <> display clientErr
+                return $ Left clientErr
+
+              Right ioSource ->
+                liftIO (runExceptT $ Stream.runSourceT ioSource) >>= \case
+                  Left errMsg -> do
+                    logError $ "🐙😭 Cluster node " <> display url <> " reported generic streaming error: " <> displayShow errMsg
+                    return . Left . ConnectionError . toException $ GenericError errMsg
+
+                  Right vals ->
+                    case List.lastMaybe vals of
+                      Nothing -> do
+                        logError $ "🐙🙉 Cluster node " <> display url <> " did not report any streaming updates."
+                        return . Left . ConnectionError . toException $ NotFound @PinStatus
+
+                      Just final -> do
+                        logDebug $ "🐙👍 Cluster node " <> display url <> " streamed successfully; ended with: " <> display final
+                        return $ Right final
+
+      asyncIdleTimeout (Seconds (Unity (120 :: Natural))) asyncRef latestVar
+      return (asyncRef, resultChan)
 
 instance MonadBasicAuth Heroku.Auth Server where
   getVerifier = do
@@ -456,6 +447,7 @@ instance Server.DID.Publicize Server where
     let
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
+
       txtRecordValue = textDisplay did
 
     if mockRoute53
@@ -580,9 +572,9 @@ instance User.Modifier Server where
             return $ Error.openLeft err
 
           Right size -> do
-            IPFS.Pinner.pin newCID >>= \case
+            Cluster.pinStream newCID >>= \case
               Left err ->
-                return $ Error.relaxedLeft err
+                return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
 
               Right _ -> do
                 zoneID <- asks userZoneID
@@ -651,9 +643,10 @@ instance App.Modifier Server where
               Right Domain {domainZoneId} -> do
                 result <- if copyFiles
                             then
-                              IPFS.Pinner.pin newCID >>= \case
+                              Cluster.pinStream newCID >>= \case
                                 Right _  -> return ok
-                                Left err -> return $ Error.relaxedLeft err
+                                Left err -> return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
+
                             else
                               return ok
 

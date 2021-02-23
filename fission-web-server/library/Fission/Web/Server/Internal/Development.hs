@@ -7,6 +7,9 @@ module Fission.Web.Server.Internal.Development
   , connectionInfo
   ) where
 
+import           RIO.NonEmpty                              (nonEmpty)
+import qualified RIO.Partial                               as Partial
+
 import           Data.Pool
 import           Database.Persist.Sql                      (SqlBackend)
 
@@ -92,6 +95,8 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     action
 
   where
+    ipfsHttpManager = httpManager
+
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
 
@@ -110,10 +115,9 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     userRootDomain = "userootdomain.net"
 
     ipfsPath        = "/usr/local/bin/ipfs"
-    ipfsURL         = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
+    ipfsURLs        = Partial.fromJust $ nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
     ipfsTimeout     = IPFS.Timeout 3600
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
-    clusterURL      = Nothing
 
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
@@ -163,6 +167,8 @@ mkConfig ::
   -> Config
 mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Config {..}
   where
+    ipfsHttpManager = httpManager
+
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
 
@@ -175,10 +181,9 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Co
       }
 
     ipfsPath        = "/usr/local/bin/ipfs"
-    ipfsURL         = IPFS.URL $ BaseUrl Http "localhost" 5001 ""
+    ipfsURLs        = Partial.fromJust $ nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]
     ipfsRemotePeers = pure $ IPFS.Peer "/ip4/3.215.160.238/tcp/4001/ipfs/QmVLEz2SxoNiFnuyLpbXsH6SvjPTrHNMU88vCQZyhgBzgw"
     ipfsTimeout     = IPFS.Timeout 3600
-    clusterURL      = Nothing
 
     baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
     userZoneID     = AWS.ZoneID "USER_ZONE_ID"
