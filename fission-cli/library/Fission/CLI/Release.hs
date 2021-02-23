@@ -8,7 +8,6 @@ import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
 
-import qualified Fission.CLI.Display.Error    as CLI.Error
 import           Fission.CLI.Display.Text
 import           Fission.CLI.Environment      as Env
 import qualified Fission.CLI.Meta             as Meta
@@ -27,12 +26,11 @@ checkLatestRelease ::
   , MonadEnvironment m
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  , Show (OpenUnion (Errors m))
   )
   => m ()
 checkLatestRelease = do
   attempt Env.get >>= \case
-    Left  err ->
+    Left  _ ->
       -- Also happens when the CLI isn't setup yet
       logDebug @Text "Unable to parse config"
 
