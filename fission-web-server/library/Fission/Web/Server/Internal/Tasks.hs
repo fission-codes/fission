@@ -77,7 +77,8 @@ ensureAllPinned = do
                 , displayShow err
                 ]
 
-            Right _ ->
+            Right _ -> do
+              logInfo $ "Pinned " <> display cid
               noop
 
 pinAllToCluster :: [CID] -> Server [(CID, ClientError)]
@@ -111,18 +112,7 @@ type ListPins
   :> "pin"
   :> "ls"
   :> QueryParam "type" PinType
-  :> Post '[JSON] ListPinsResponse
-
-newtype ListPinsResponse = ListPinsResponse { pins :: PinLsList }
-  deriving (Eq, Show)
-
-instance FromJSON ListPinsResponse where
-  parseJSON = withObject "ListPinResponse" \obj -> do
-    pins <- obj .: "PinLsList"
-    return $ ListPinsResponse pins
-
-newtype PinLsList = PinLsList { keyMap :: Map CID PinType }
-  deriving (Eq, Show)
+  :> Post '[JSON] PinlsList
 
 instance FromJSON PinLsList where
   parseJSON = withObject "PinLsList" \obj -> do
