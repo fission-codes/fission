@@ -310,7 +310,7 @@ produce signingSK baseURL = do
               jwt    = delegateSuperUser requestorDID signingSK rootProof now
               bearer = Bearer.fromJWT jwt
 
-            accessOK <- reaskYN $ "Grant access to:" <> JWT.prettyPrintGrants jwt
+            accessOK <- reaskYN $ "Grant access to: " <> JWT.prettyPrintGrants jwt
             unless accessOK $ raise Denied
 
             aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}

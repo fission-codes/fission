@@ -52,7 +52,7 @@ reaskNotEmpty' prompt = do
 
 -- | reask where valid responses are some form of yes/no
 reaskYN :: (MonadIO m, MonadLogger m) => Text -> m Bool
-reaskYN prompt = isYes <$> reask prompt ynTest
+reaskYN prompt = isYes <$> reask (prompt <> " [Y/n]") ynTest
 
 ynTest :: ByteString -> Bool
 ynTest resp = isYes resp || isNo resp

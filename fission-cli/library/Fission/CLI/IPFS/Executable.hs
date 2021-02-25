@@ -60,7 +60,7 @@ place' ::
 place' host = do
   logDebug $ "Setting up IPFS binary for " <> textDisplay host
 
-  IPFS.BinPath ipfsPath    <- Path.globalIPFSBin
+  IPFS.BinPath    ipfsPath <- Path.globalIPFSBin
   File.Serialized lazyFile <- ensureM . runBootstrapT . ipfsCat $ IPFS.binCidFor host
 
   logDebug $ "Writing IPFS binary to " <> Text.pack ipfsPath

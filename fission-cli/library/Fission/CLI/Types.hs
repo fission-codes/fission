@@ -173,7 +173,7 @@ instance forall errs cfg.
   type Errors (FissionCLI errs cfg) = errs
 
   raise err = do
-    logDebug $ "Raised exception: " <> display (include err :: OpenUnion errs)
+    logWarn $ "Raised: " <> display (include err :: OpenUnion errs)
     FissionCLI $ raise err
 
 instance
@@ -248,7 +248,8 @@ instance
     logDebug @Text "Adding UCAN to store"
     storePath <- ucanStorePath
     store     <- WebNative.Mutation.Auth.getAll
-    (_, cid)  <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
+    -- FIXME (_, cid)  <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
+    let cid = CID "abc"
 
     store
       |> Map.insert cid token
@@ -258,7 +259,9 @@ instance
 
   getAll = do
     storePath <- ucanStorePath
-    YAML.readFile storePath
+    attempt (YAML.readFile storePath) >>= \case
+      Left  _        -> return mempty
+      Right store    -> return store
 
 ucanStorePath :: MonadEnvironment m => m FilePath
 ucanStorePath = do
@@ -275,10 +278,15 @@ instance
   set did subGraphRoot aesKey = do
     logDebug $ "Storing AES key for " <> display did <> " @ " <> displayShow subGraphRoot
 
-    storePath                             <- wnfsKeyStorePath
-    WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
+    storePath  <- wnfsKeyStorePath
+    storeOrErr <- attempt $ YAML.readFile storePath
+    -- WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
     let
+      store = case storeOrErr of
+        Left  _                                        -> mempty
+        Right (WebNative.FileSystem.Auth.Store store') -> store'
+
       oldDIDStore    = fromMaybe mempty (store !? did)
       newDIDStore    = Map.insert subGraphRoot aesKey oldDIDStore
       newGlobalStore = Map.insert did newDIDStore store
@@ -288,8 +296,14 @@ instance
   getAllMatching did subGraphRoot = do
     logDebug $ "Looking up AES key for " <> display did <> " @ " <> displayShow subGraphRoot
 
-    storePath                             <- wnfsKeyStorePath
-    WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
+    storePath  <- wnfsKeyStorePath
+    storeOrErr <- attempt $ YAML.readFile storePath
+    -- WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
+
+    let
+      store = case storeOrErr of
+        Left  _                                        -> mempty
+        Right (WebNative.FileSystem.Auth.Store store') -> store'
 
     (store !? did)
       |> fromMaybe mempty
@@ -328,10 +342,14 @@ instance
     now       <- currentTime
     serverDID <- getServerDID
     sk        <- getAuth
+    errOrEnv  <- attempt Env.get
 
-    Env {rootProof} <- Env.get
+    let
+      rootProof' = case errOrEnv of
+        Left _                -> Nothing
+        Right Env {rootProof} -> rootProof
 
-    proof <- case rootProof of
+    proof <- case rootProof' of
                Nothing ->
                  return RootCredential
 
@@ -641,7 +659,7 @@ instance
 
   connect BaseUrl {..} (Topic rawTopic) withConn = do
     logDebug $ mconcat
-      [ "Websocket connecting at: "
+      [ "📞🙏 Websocket connecting at: "
       , baseUrlHost
       , ":"
       , show port
@@ -651,7 +669,7 @@ instance
     control \runInBase -> do
       WSS.runSecureClient baseUrlHost port path \conn ->
         runInBase do
-          logDebug @Text "Websocket pubsub connected"
+          logDebug @Text "📞🔗 Websocket pubsub connected"
           withConn conn
 
     where
@@ -659,12 +677,18 @@ instance
       path = baseUrlPath <> "/user/link/" <> Text.unpack rawTopic
 
   sendLBS conn msg = do
-    logDebug $ "Sending over pubsub: " <> msg
+    logDebug $ "📞🗣️  Sending over pubsub: " <> msg
     liftIO . WS.sendDataMessage conn $ WS.Binary msg
 
   receiveLBS conn = do
-    logDebug @Text "Listening for pubsub-over-websockets message..."
-    lbs <- liftIO (WS.receiveDataMessage conn) >>= \case
+    logDebug @Text "📞👂 Listening for pubsub-over-websockets message..."
+    -- lbs <- liftIO (WS.receiveDataMessage conn) >>= \case
+    --   WS.Text   lbs _ -> return lbs
+    --   WS.Binary lbs   -> return lbs
+
+    msg <- liftIO (WS.receiveDataMessage conn)
+    logDebug @Text "*********************************"
+    lbs <- case msg of
       WS.Text   lbs _ -> return lbs
       WS.Binary lbs   -> return lbs
 

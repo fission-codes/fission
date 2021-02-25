@@ -102,6 +102,7 @@ dependencies:
   - optparse-applicative
 
   ## Concurrency & Parallelism ##
+  - async
   - parallel
 
   ## Cryptogrpahy ##

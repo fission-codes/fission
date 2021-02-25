@@ -94,20 +94,19 @@ setup ::
   -> Maybe Email
   -> m ()
 setup maybeOS fissionURL maybeUsername maybeEmail = do
-  void . Key.Store.create $ Proxy @SigningKey
-  void . Key.Store.create $ Proxy @ExchangeKey
-
-  UTF8.putText "📥 Installing dependencies..."
+  UTF8.putTextLn "📥 Installing dependencies..."
   Executable.place maybeOS
 
   attempt User.ensureNotLoggedIn >>= \case
     Left _ ->
-      noop
+      Display.putOk "Done! You're all ready to go 🚀"
 
     Right () ->  do
+      void . Key.Store.create $ Proxy @SigningKey
+      void . Key.Store.create $ Proxy @ExchangeKey
+
       username <- do
-        hasAccount <- Prompt.reaskYN "Do you have an existing account? [Y/n]:"
-        case hasAccount of
+        Prompt.reaskYN "Do you have an existing account?" >>= \case
           False ->
             User.register maybeUsername maybeEmail
 
@@ -116,7 +115,6 @@ setup maybeOS fissionURL maybeUsername maybeEmail = do
             rootURL   <- getRemoteBaseUrl
             Login.consume signingSK rootURL
 
-      UTF8.putText "🏗️  Setting default config..."
+      UTF8.putTextLn "🏗️  Setting default config..."
       Env.init username fissionURL Nothing
-
-  Display.putOk "🙌 Done! Welcome to Fisison ✨"
+      Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"

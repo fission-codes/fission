@@ -1,5 +1,7 @@
 module Fission.CLI (cli, interpret) where
 
+import qualified RIO                                                as Logger
+
 import           Data.Type.List
 
 import qualified Crypto.PubKey.Ed25519                              as Ed25519
@@ -84,7 +86,13 @@ cli = do
 
   ipfsDaemonVar <- liftIO newEmptyMVar
   processCtx    <- mkDefaultProcessContext
-  logOptions    <- logOptionsHandle stderr isVerbose
+  logOptions'   <- logOptionsHandle stderr isVerbose
+
+  let
+    logOptions =
+      if isVerbose
+        then logOptions'
+        else setLogMinLevel Logger.LevelError logOptions'
 
   withLogFunc logOptions \logFunc -> do
     finalizeDID fissionDID Base.Config {serverDID = ServerDID.fallback, ..} >>= \case

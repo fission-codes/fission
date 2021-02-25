@@ -3,7 +3,6 @@
 module Fission.Web.Client
   ( sendRequestM
   , sendAuthedRequest
-  , withPayload
   , attachAuth -- authClient
   , ClientError (..)
   , module Fission.Web.Client.Auth
@@ -47,7 +46,7 @@ sendAuthedRequest ::
   -> m a
 sendAuthedRequest req = do
   auth <- attachAuth
-  ensureM $ sendRequest $ req auth
+  ensureM . sendRequest $ req auth
 
 attachAuth ::
   ( MonadTime    m
@@ -60,8 +59,3 @@ attachAuth = do
   auth    <- getAuth
   authReq <- mkAuthReq
   return $ mkAuthenticatedRequest auth \_ath -> authReq
-
-infixl 1 `withPayload`
-withPayload :: Functor f => f (a -> b) -> a -> f b
-clientFun `withPayload` arg = (\f -> f arg) <$> clientFun
-
