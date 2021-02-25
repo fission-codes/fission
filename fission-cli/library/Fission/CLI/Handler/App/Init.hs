@@ -71,12 +71,12 @@ appInit appDir mayBuildDir' mayAppName = do
 
       UTF8.putText "⏯️  Next run "
 
-      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
+      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
         UTF8.putText "fission app publish"
 
       UTF8.putText " or "
 
-      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow] do
+      colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
         UTF8.putText "fission app publish --watch"
 
       UTF8.putText " to sync data\n"
