@@ -175,6 +175,7 @@ instance ToServerError JWT.Claims.Error where
     IncorrectReceiver -> err422 { errBody = displayLazyBS IncorrectReceiver }
     Expired           -> err401 { errBody = displayLazyBS Expired }
     TooEarly          -> err401 { errBody = displayLazyBS TooEarly }
+    IncorrectSender   -> err401 { errBody = displayLazyBS IncorrectSender }
 
 instance ToServerError JWT.Error where
   toServerError = \case

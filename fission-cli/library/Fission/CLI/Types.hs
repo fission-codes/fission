@@ -248,12 +248,14 @@ instance
     logDebug @Text "Adding UCAN to store"
     storePath <- ucanStorePath
     store     <- WebNative.Mutation.Auth.getAll
-    -- FIXME (_, cid)  <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
-    let cid = CID "abc"
+    (_, cid)  <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
+    let
+      -- cid      = CID "abc"
+      newStore = Map.insert cid token store
 
-    store
-      |> Map.insert cid token
-      |> YAML.writeFile storePath
+    logDebug $ "Writing updated UCAN store: " <> displayShow newStore
+
+    storePath `YAML.writeFile` newStore
 
     return cid
 
@@ -291,6 +293,7 @@ instance
       newDIDStore    = Map.insert subGraphRoot aesKey oldDIDStore
       newGlobalStore = Map.insert did newDIDStore store
 
+    logDebug @Text "Writing updated WNFS store"
     storePath `YAML.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
 
   getAllMatching did subGraphRoot = do
@@ -525,9 +528,10 @@ instance
       arg'       = Text.unpack . decodeUtf8Lenient $ Lazy.toStrict arg
 
       opts =
-        if | cmd == Just "swarm"                    -> opts' <> [arg']
-           | cmd == Just "pin" || cmd == Just "add" -> opts' <> [arg', timeout, cidVersion, ignore]
-           | otherwise                              -> opts' <> [arg', timeout]
+        if | cmd == Just "swarm"                            -> opts' <> [arg']
+           | List.elem "--std-in" opts                      -> ("echo " <> arg' <> " | ") : (opts' <> [timeout, cidVersion, ignore])
+           | cmd == Just "pin" || cmd == Just "add"         -> opts' <> [arg', timeout, cidVersion, ignore]
+           | otherwise                                      -> opts' <> [arg', timeout]
 
       process = intercalate " " ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
 

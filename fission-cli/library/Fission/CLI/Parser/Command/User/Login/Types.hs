@@ -2,7 +2,7 @@ module Fission.CLI.Parser.Command.User.Login.Types (Options (..)) where
 
 import           Fission.Prelude
 
-import           Fission.User.Username.Types
+-- import           Fission.User.Username.Types
 
 import           Fission.CLI.Parser.Verbose.Types
 
