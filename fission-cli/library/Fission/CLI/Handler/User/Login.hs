@@ -121,13 +121,8 @@ login = do
     baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
-    Right () ->
-      consume signingSK baseURL
-
-    Left err ->
-      case openUnionMatch @(AlreadyExists DID) err of
-        Nothing -> raise err
-        Just _  -> produce signingSK baseURL
+    Right () -> produce signingSK baseURL -- FIXME consume signingSK baseURL
+    Left  _  -> produce signingSK baseURL
 
 type ConsumerConstraints m =
   ( MonadIO          m
@@ -180,7 +175,7 @@ consume signingSK baseURL = do
     logDebug @Text "🤝 Device linking handshake: Step 1"
     aesConn <- secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       let
-        Secure.Connection {key = (pk, _sk)} = rsaConn -- FIXME kwy pair type
+        Secure.Connection {key = (pk, _sk)} = rsaConn -- FIXME key pair type
         sessionDID = DID Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
@@ -277,51 +272,57 @@ produce signingSK baseURL = do
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
   rootProof <- Bearer.toProof <$> WebNative.Mutation.Store.getRootUCAN
   rootDID   <- getRootDID (Ed25519PublicKey signingPK) rootProof
-  username  <- sendAuthedRequest User.whoami
+  username  <- return "expede-0225" -- FIXME sendAuthedRequest User.whoami
 
   PubSub.connect baseURL (PubSub.Topic $ textDisplay rootDID) \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"
 
-    UTF8.putText $ "🌐 Listening for logins requests for " <> textDisplay username
+    logUser $ "🌐 Listening for logins requests for " <> textDisplay username
 
-    secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
+    secure conn () \(rsaConn@Secure.Connection {key = (_, sk)} :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       logDebug @Text "🤝 Device linking handshake: Step 2"
-      requestorTempDID <- listenRaw conn
+      requestorTempDID@(DID _ tmpPK) <- listenRaw conn
 
-      reattempt 10 do
-        logDebug @Text "🤝 Device linking handshake: Step 3"
+      case tmpPK of
+        Ed25519PublicKey _ ->
+          error "wrong key type" --FIXME
 
-        secure conn () \aesConn@Secure.Connection {key = sessionKey} -> do
-          now <- getCurrentTime
+        RSAPublicKey tmpRSA ->
+          reattempt 10 do
+            logDebug @Text "🤝 Device linking handshake: Step 3"
 
-          let
-            handshakeJWT = simpleWNFS now requestorTempDID signingSK [SessionKey sessionKey] rootProof
+            secure conn () \aesConn@Secure.Connection {key = sessionKey} -> do
+              now <- getCurrentTime
 
-          rsaConn `secureBroadcastJSON` PubSub.Session { sessionKey
-                                                       , bearerToken = Bearer.fromJWT handshakeJWT
-                                                       }
+              let
+                connectedRSAConn = rsaConn {key = (tmpRSA, sk)}
+                handshakeJWT = simpleWNFS now requestorTempDID signingSK [SessionKey sessionKey] rootProof
 
-          logDebug @Text "🤝 Device linking handshake: Step 4 (noop)"
-          logDebug @Text "🤝 Device linking handshake: Step 5"
-          PIN.Payload requestorDID pin <- secureListenJSON aesConn
+              connectedRSAConn `secureBroadcastJSON` PubSub.Session { sessionKey
+                                                                    , bearerToken = Bearer.fromJWT handshakeJWT
+                                                                    }
 
-          pinOK <- reaskYN ("Does this code match your second device? " <> toEmoji pin)
-          unless pinOK do
-            raise $ Mismatch @PIN
+              logDebug @Text "🤝 Device linking handshake: Step 4 (noop)"
+              logDebug @Text "🤝 Device linking handshake: Step 5"
+              PIN.Payload requestorDID pin <- secureListenJSON aesConn
 
-          reattempt 100 do
-            logDebug @Text "🤝 Device linking handshake: Step 6"
+              pinOK <- reaskYN ("Does this code match your second device? " <> toEmoji pin)
+              unless pinOK do
+                raise $ Mismatch @PIN
 
-            (_, readKey) <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
+              reattempt 100 do
+                logDebug @Text "🤝 Device linking handshake: Step 6"
 
-            let
-              jwt    = delegateSuperUser requestorDID signingSK rootProof now
-              bearer = Bearer.fromJWT jwt
+                (_, readKey) <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
 
-            accessOK <- reaskYN $ "Grant access to: " <> JWT.prettyPrintGrants jwt
-            unless accessOK $ raise Denied
+                let
+                  jwt    = delegateSuperUser requestorDID signingSK rootProof now
+                  bearer = Bearer.fromJWT jwt
 
-            aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
+                accessOK <- reaskYN $ "Grant access to: " <> JWT.prettyPrintGrants jwt
+                unless accessOK $ raise Denied
+
+                aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 
     UTF8.putTextLn "Login to other device successful 👍"
 

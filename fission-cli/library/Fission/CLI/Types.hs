@@ -686,7 +686,7 @@ instance
 
     where
       port = fromIntegral baseUrlPort
-      path = baseUrlPath <> "/user/link/" <> Text.unpack rawTopic
+      path = baseUrlPath <> "/" <> Text.unpack rawTopic
 
   sendLBS conn msg = do
     logDebug @Text "📞🗣️  Sending over pubsub:"
@@ -700,7 +700,6 @@ instance
     --   WS.Binary lbs   -> return lbs
 
     msg <- liftIO (WS.receiveDataMessage conn)
-    logDebug @Text "*********************************"
     lbs <- case msg of
       WS.Text   lbs _ -> return lbs
       WS.Binary lbs   -> return lbs
@@ -737,10 +736,9 @@ instance forall errs cfg .
   toSecurePayload (rsaPK, _) PubSub.Session {bearerToken, sessionKey = sessionKey@(Symmetric.Key aesClear)} = do
     logDebug @Text "Encrypting RSA-secured PubSub.Session payload (Handshake)"
 
+    iv          <- ensureM   Symmetric.genIV
+    msg         <- ensure  $ Symmetric.encrypt sessionKey iv bearerToken
     encryptedBS <- ensureM $ RSA.OAEP.encrypt oaepParams rsaPK aesClear
-
-    iv  <- ensureM Symmetric.genIV
-    msg <- ensure $ Symmetric.encrypt sessionKey iv bearerToken
 
     return PubSub.Handshake { msg
                             , iv

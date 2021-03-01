@@ -76,7 +76,7 @@ decrypt (Symmetric.Key aesKey) iv (EncryptedPayload cipherLBS) =
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
 genAES256 :: MonadRandom m => m (Symmetric.Key AES256)
-genAES256 = Symmetric.Key <$> getRandomBytes (blockSize (undefined :: AES256))
+genAES256 = Symmetric.Key <$> getRandomBytes 32
 
 -- | Generate a random initialization vector for a given block cipher
 genIV :: MonadRandom m => m (Either IV.GenError (IV AES256))
