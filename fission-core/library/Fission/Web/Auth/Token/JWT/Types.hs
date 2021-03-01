@@ -228,6 +228,12 @@ instance Arbitrary Proof where
         let rawContent = RawContent $ B64.URL.encodeJWT header claims
         return $ Nested rawContent innerJWT
 
+instance Display Proof where
+  display = \case
+    RootCredential -> "RootCredential"
+    Nested raw _   -> "Nested "    <> display raw
+    Reference cid  -> "Reference " <> display cid
+
 instance ToJSON Proof where
   toJSON = \case
     RootCredential ->

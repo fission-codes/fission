@@ -14,8 +14,6 @@ import           Servant.Client
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8             as UTF8
-
 import           Fission.Error
 import           Fission.Key.Error                 as Key
 import           Fission.Key.IV.Error              as IV
@@ -29,8 +27,8 @@ import           Fission.User.Username.Types
 import           Fission.Web.Client                as Client
 import           Fission.Web.Client.HTTP.Class
 
-import           Fission.CLI.Environment           as Env
 import qualified Fission.CLI.Environment.OS        as OS
+import           Fission.CLI.Environment.Types
 import           Fission.CLI.Remote
 
 import qualified Fission.CLI.User                  as User
@@ -66,6 +64,8 @@ type SetupConstraints m =
   , MonadManagedHTTP m
   , MonadWebAuth     m (SecretKey SigningKey)
 
+  , m `Raises` AlreadyExists DID
+  , m `Raises` AlreadyExists Env
   , m `Raises` ClientError
   , m `Raises` DNSError
   , m `Raises` IPFS.Process.Error
@@ -89,19 +89,18 @@ type SetupConstraints m =
 setup ::
   SetupConstraints m
   => Maybe OS.Supported
-  -> BaseUrl
   -> Maybe Username
   -> Maybe Email
   -> m ()
-setup maybeOS fissionURL maybeUsername maybeEmail = do
-  UTF8.putTextLn "📥 Installing dependencies..."
+setup maybeOS maybeUsername maybeEmail = do
+  logUser @Text "📥 Installing dependencies..."
   Executable.place maybeOS
 
   attempt User.ensureNotLoggedIn >>= \case
     Left _ ->
       Display.putOk "Done! You're all ready to go 🚀"
 
-    Right () ->  do
+    Right () -> do
       void . Key.Store.create $ Proxy @SigningKey
       void . Key.Store.create $ Proxy @ExchangeKey
 
@@ -115,6 +114,5 @@ setup maybeOS fissionURL maybeUsername maybeEmail = do
             rootURL   <- getRemoteBaseUrl
             Login.consume signingSK rootURL
 
-      UTF8.putTextLn "🏗️  Setting default config..."
-      Env.init username fissionURL Nothing
+      logUser @Text "🏗️  Setting default config..."
       Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"

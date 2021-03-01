@@ -16,7 +16,6 @@ import qualified Fission.Web.Client.User         as User
 ensureNotLoggedIn ::
   ( MonadIO        m
   , MonadTime      m
-  , MonadLogger    m
   , MonadWebClient m
   , ServerDID      m
   , MonadWebAuth   m Auth.Token
@@ -27,7 +26,6 @@ ensureNotLoggedIn ::
   )
   => m ()
 ensureNotLoggedIn = do
-  logInfo @Text "dhsjhdkashdkhsa"
   attempt (sendAuthedRequest User.whoami) >>= \case
     Right _ -> raise $ AlreadyExists @DID
     Left  _ -> return ()

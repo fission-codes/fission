@@ -137,6 +137,5 @@ createAccount maybeUsername maybeEmail = do
                 _ ->
                   "Invalid content type."
 
-      CLI.Error.put err $
-        errMsg <> " Please try again or contact Fission support at https://fission.codes"
+      CLI.Error.put err $ errMsg <> " Please try again or contact Fission support at https://fission.codes"
       raise err

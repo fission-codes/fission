@@ -51,6 +51,7 @@ import qualified Fission.DNS                                       as DNS
 
 import           Fission.Error.NotFound.Types
 
+import qualified Fission.JSON                                      as JSON
 import qualified Fission.Key.Error                                 as Key
 import           Fission.User.DID.Types
 import           Fission.Web.Client.HTTP.Class
@@ -62,7 +63,8 @@ import qualified Fission.CLI.Connected.Types                       as Connected
 import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
 import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
 
-import qualified Fission.CLI.YAML                                  as YAML
+import qualified Fission.CLI.JSON                                  as JSON
+-- import qualified Fission.CLI.YAML                                  as YAML
 
 -- import           Fission.CLI.Key.Ed25519                           as Ed25519
 import           Fission.CLI.Key.Store                             as Key.Store
@@ -173,7 +175,7 @@ instance forall errs cfg.
   type Errors (FissionCLI errs cfg) = errs
 
   raise err = do
-    logWarn $ "Raised: " <> display (include err :: OpenUnion errs)
+    logWarn $ "🙋 " <> display (include err :: OpenUnion errs)
     FissionCLI $ raise err
 
 instance
@@ -215,7 +217,7 @@ instance MonadRandom (FissionCLI errs cfg) where
 instance ServerDID (FissionCLI errs Connected.Config) where
   getServerDID = do
     did <- asks Connected.serverDID
-    logDebug $ "Loaded Server DID: " <> textDisplay did
+    logDebug $ "⚙️ 🆔 Loaded Server DID: " <> textDisplay did
     return did
 
 instance
@@ -227,15 +229,15 @@ instance
   => ServerDID (FissionCLI errs Base.Config) where
   getServerDID = do
     did <- asks Base.serverDID
-    logDebug $ "Loaded Server DID: " <> textDisplay did
+    logDebug $ "⚙️ 🆔 Loaded Server DID: " <> textDisplay did
     return did
 
 instance
-  ( YAML.ParseException `IsMember` errs
-  , NotFound FilePath   `IsMember` errs
-  , Process.Error       `IsMember` errs
-  , SomeException       `IsMember` errs
-  , IPFS.Add.Error       `IsMember` errs
+  ( JSON.Error        `IsMember` errs
+  , NotFound FilePath `IsMember` errs
+  , Process.Error     `IsMember` errs
+  , SomeException     `IsMember` errs
+  , IPFS.Add.Error    `IsMember` errs
   , Contains errs errs
   , HasLogFunc cfg
   , HasField' "ipfsTimeout"   cfg IPFS.Timeout
@@ -245,35 +247,37 @@ instance
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
   insert token@Bearer.Token {jwt} = do
-    logDebug @Text "Adding UCAN to store"
-    storePath <- ucanStorePath
-    store     <- WebNative.Mutation.Auth.getAll
-    (_, cid)  <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
+    logDebug @Text "🛂💾 Adding UCAN to store"
+    storePath     <- ucanStorePath
+    store         <- WebNative.Mutation.Auth.getAll
+    (_, CID hash') <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
+
     let
-      -- cid      = CID "abc"
-      newStore = Map.insert cid token store
+      -- TODO fix in ipfs-haskell smart constructor
+      cleanHash =
+        hash'
+          |> Text.dropPrefix "\""
+          |> Text.dropSuffix "\""
 
-    logDebug $ "Writing updated UCAN store: " <> displayShow newStore
+      cid          = CID cleanHash
+      newStoreJSON = Map.insert cid token store
 
-    storePath `YAML.writeFile` newStore
+    logDebug $ "🛂🗃️  Writing updated UCAN store: " <> displayShow newStoreJSON
+    storePath `JSON.writeFile` newStoreJSON
 
     return cid
 
   getAll = do
+    logDebug @Text "🛂🚚 Loading UCAN store"
     storePath <- ucanStorePath
-    attempt (YAML.readFile storePath) >>= \case
-      Left  _        -> return mempty
-      Right store    -> return store
-
-ucanStorePath :: MonadEnvironment m => m FilePath
-ucanStorePath = do
-  ucanDir <- globalUCANDir
-  return (ucanDir </> "store.yaml")
+    attempt (JSON.readFile storePath) >>= \case
+      Left  _     -> return mempty
+      Right store -> return store
 
 instance
   ( HasLogFunc cfg
-  , YAML.ParseException `IsMember` errs
-  , NotFound FilePath   `IsMember` errs
+  , JSON.Error        `IsMember` errs
+  , NotFound FilePath `IsMember` errs
   , Display (OpenUnion errs)
   )
   => WebNative.FileSystem.Auth.MonadStore (FissionCLI errs cfg) where
@@ -281,7 +285,7 @@ instance
     logDebug $ "Storing AES key for " <> display did <> " @ " <> displayShow subGraphRoot
 
     storePath  <- wnfsKeyStorePath
-    storeOrErr <- attempt $ YAML.readFile storePath
+    storeOrErr <- attempt $ JSON.readFile storePath
     -- WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
     let
@@ -294,13 +298,13 @@ instance
       newGlobalStore = Map.insert did newDIDStore store
 
     logDebug @Text "Writing updated WNFS store"
-    storePath `YAML.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
+    storePath `JSON.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
 
   getAllMatching did subGraphRoot = do
     logDebug $ "Looking up AES key for " <> display did <> " @ " <> displayShow subGraphRoot
 
     storePath  <- wnfsKeyStorePath
-    storeOrErr <- attempt $ YAML.readFile storePath
+    storeOrErr <- attempt $ JSON.readFile storePath
     -- WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
     let
@@ -313,14 +317,9 @@ instance
       |> Map.filterWithKey (\path _ -> path `List.isPrefixOf` subGraphRoot)
       |> pure
 
--- FIXME move to env module
-wnfsKeyStorePath :: MonadEnvironment m => m FilePath
-wnfsKeyStorePath = do
-  wnfsDir <- globalWNFSDir
-  return (wnfsDir </> "store.yaml")
-
 instance
   ( Key.Error                  `IsMember` errs
+  , JSON.Error                 `IsMember` errs
   , YAML.ParseException        `IsMember` errs
   , NotFound FilePath          `IsMember` errs
   , Process.Error              `IsMember` errs
@@ -342,29 +341,32 @@ instance
   )
   => MonadWebAuth (FissionCLI errs cfg) Token where
   getAuth = do
+    logDebug @Text "👀🛂 Fetching Token auth"
+
     now       <- currentTime
     serverDID <- getServerDID
     sk        <- getAuth
-    errOrEnv  <- attempt Env.get
+    proof     <- do
+      attempt Env.get >>= \case
+        Left _ -> do
+          return RootCredential
 
-    let
-      rootProof' = case errOrEnv of
-        Left _                -> Nothing
-        Right Env {rootProof} -> rootProof
+        Right Env {rootProof} ->
+          case rootProof of
+            Nothing -> do
+              return RootCredential
 
-    proof <- case rootProof' of
-               Nothing ->
-                 return RootCredential
+            Just cid -> do
+              store <- WebNative.Mutation.Auth.getAll
+              case store !? cid of
+                Nothing                -> raise  $ NotFound @JWT
+                Just Bearer.Token {..} -> return $ Nested rawContent jwt
 
-               Just cid -> do
-                 store <- WebNative.Mutation.Auth.getAll
-                 case store !? cid of
-                   Nothing                -> raise $ NotFound @JWT
-                   Just Bearer.Token {..} -> return $ Nested rawContent jwt
+    logDebug $ "🧾🛂 Proof: " <> display proof
 
     let
       jwt =
-        JWT.simpleWNFS now serverDID sk [] proof -- FIXME generalize
+        JWT.simpleWNFS now serverDID sk [] proof -- FIXME maybe needs SUPER_USER
 
       rawContent =
         jwt
@@ -375,6 +377,7 @@ instance
           |> Text.dropSuffix "\""
           |> JWT.contentOf
 
+    logDebug $ "🏗️ 🛂 Constructed token: " <> display rawContent
     return $ Bearer Bearer.Token {..}
 
 instance
@@ -509,7 +512,7 @@ instance
   )
   => MonadLocalIPFS (FissionCLI errs cfg) where
   runLocal opts' arg = do
-    logDebug @Text "Running local IPFS"
+    logDebug @Text "🌌🎬 Running local IPFS"
 
     ipfsRepo          <- globalIPFSRepo
     IPFS.BinPath ipfs <- globalIPFSBin
@@ -527,19 +530,24 @@ instance
       cmd        = headMaybe opts'
       arg'       = Text.unpack . decodeUtf8Lenient $ Lazy.toStrict arg
 
-      opts =
-        if | cmd == Just "swarm"                            -> opts' <> [arg']
-           | List.elem "--std-in" opts                      -> ("echo " <> arg' <> " | ") : (opts' <> [timeout, cidVersion, ignore])
-           | cmd == Just "pin" || cmd == Just "add"         -> opts' <> [arg', timeout, cidVersion, ignore]
-           | otherwise                                      -> opts' <> [arg', timeout]
+      (pipeArg, opts) =
+        if | cmd == Just "swarm"                            -> (Nothing,  opts' <> [arg'])
+           | List.elem "--stdin-name" opts'                 -> (Just arg, opts' <> [timeout, cidVersion, ignore])
+           | cmd == Just "pin" || cmd == Just "add"         -> (Nothing,  opts' <> [arg', timeout, cidVersion, ignore])
+           | otherwise                                      -> (Nothing,  opts' <> [arg', timeout])
 
-      process = intercalate " " ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
+      processStr = intercalate " " ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
+      rawProcess = fromString processStr
+      process    =
+        case pipeArg of
+          Nothing    -> rawProcess
+          Just inArg -> setStdin (byteStringInput inArg) rawProcess
 
-    logDebug $ "Running: " <> process
+    logDebug $ "🌌 Running: " <> processStr <> " with arg " <> show pipeArg
 
     Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
 
-    readProcess (fromString process) >>= \case
+    readProcess process >>= \case
       (ExitSuccess, contents, _) ->
         return $ Right contents
 
@@ -556,21 +564,21 @@ instance
   )
   => MonadIPFSDaemon (FissionCLI errs cfg) where
   runDaemon = do
-    logDebug @Text "Starting IPFS daemon"
+    logDebug @Text "😈🎬 Starting IPFS daemon"
 
     daemonVar <- asks $ getField @"ipfsDaemonVar"
 
     liftIO (tryReadMVar daemonVar) >>= \case
       Just daemonProcess -> do
-        logDebug @Text "IPFS Daemon already running"
+        logDebug @Text "😈⚙️  IPFS Daemon already running"
         return daemonProcess
 
       Nothing -> do
         process <- startup
 
         liftIO (tryPutMVar daemonVar process) >>= \case
-          True  -> logDebug @Text "Placed IPFS daemon in MVar"
-          False -> logDebug @Text "IPFS Daemon var full"
+          True  -> logDebug @Text "😈📦 Placed IPFS daemon in MVar"
+          False -> logDebug @Text "👿🈵 IPFS Daemon var full"
 
         return process
 
@@ -583,7 +591,7 @@ instance
         )
         => m (Process () () ())
       startup = do
-        logDebug @Text "Starting new IPFS Daemon"
+        logDebug @Text "😈🎬 Starting new IPFS Daemon"
 
         ipfsRepo         <- globalIPFSRepo
         BinPath ipfsPath <- globalIPFSBin
@@ -599,14 +607,14 @@ instance
           , " > /dev/null 2>&1"
           ]
 
-        logDebug @Text "IPFS daemon started"
+        logDebug @Text "😈🏁 IPFS daemon started"
 
         waitForStartup >>= \case
           True  ->
             return process
 
           False -> do
-            logDebug @Text "IPFS daemon startup appears stuck. Retrying."
+            logDebug @Text "👿🔁 IPFS daemon startup appears stuck. Retrying."
 
             stopProcess process
             void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
@@ -618,7 +626,7 @@ instance
             runDaemon
 
   checkRunning = do
-    logDebug @Text "Checking if IPFS daemon is running"
+    logDebug @Text "😈🔭 Checking if IPFS daemon is running"
 
     ipfsRepo         <- globalIPFSRepo
     BinPath ipfsPath <- globalIPFSBin
@@ -636,7 +644,7 @@ instance
     Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
     status <- liftIO $ withProcessWait command waitExitCode
 
-    logDebug $ show status
+    logDebug $ "😈🌡️  " <> show status
     return $ status == ExitSuccess
 
 waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m Bool
@@ -681,7 +689,8 @@ instance
       path = baseUrlPath <> "/user/link/" <> Text.unpack rawTopic
 
   sendLBS conn msg = do
-    logDebug $ "📞🗣️  Sending over pubsub: " <> msg
+    logDebug @Text "📞🗣️  Sending over pubsub:"
+    logDebug msg
     liftIO . WS.sendDataMessage conn $ WS.Binary msg
 
   receiveLBS conn = do

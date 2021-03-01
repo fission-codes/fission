@@ -50,7 +50,7 @@ instance
     toPublic _pxy = pure . Ed25519.toPublic
 
     generate _pxy = do
-      logDebug @Text "Generating signing key"
+      logDebug @Text "🏗️  Generating signing key"
       Ed25519.generateSecretKey
 
     getPath _pxy = do
@@ -58,7 +58,7 @@ instance
       return $ path </> "machine_id.ed25519"
 
     parse _pxy bs = do
-      logDebug @Text "Parsing signing key"
+      logDebug @Text "🧬 Parsing signing key"
       return case Ed25519.secretKey bs of
         CryptoPassed sk  -> Right sk
         CryptoFailed err -> Left $ Key.ParseError err
@@ -76,7 +76,7 @@ instance
     toPublic _pxy = pure . RSA.private_pub
 
     generate _pxy = do
-      logDebug @Text "Generating exchange key"
+      logDebug @Text "🏗️  Generating exchange key"
       genRSA2048
 
     getPath _pxy = do
@@ -84,7 +84,7 @@ instance
       return $ path </> "exchange.rsa2048"
 
     parse _pxy scrubbed = do
-      logDebug @Text "Parsing exchange key"
+      logDebug @Text "🧬 Parsing exchange key"
       return case Binary.decodeOrFail (Lazy.pack $ ByteArray.unpack scrubbed) of
         Left  _           -> Left $ Key.ParseError CryptoError_SecretKeyStructureInvalid
         Right (_, _, key) -> Right key

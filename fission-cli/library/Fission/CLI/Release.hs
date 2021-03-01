@@ -1,22 +1,26 @@
 module Fission.CLI.Release (checkLatestRelease) where
 
-import           Data.Versions
-import qualified Data.Yaml                    as YAML
 import qualified System.Console.ANSI          as ANSI
 
-import           Fission.Prelude
+import qualified RIO.Text                     as Text
 
-import           Fission.Error.NotFound.Types
-
-import           Fission.CLI.Display.Text
-import           Fission.CLI.Environment      as Env
-import qualified Fission.CLI.Meta             as Meta
-
-import qualified Fission.Internal.UTF8        as UTF8
+import qualified Data.Version                 as Version
+import qualified Data.Versions                as Versions
+import qualified Data.Yaml                    as YAML
 
 import           GitHub                       (github')
 import qualified GitHub
 import           GitHub.Data.Releases         as Releases
+
+import           Fission.Prelude
+
+import           Fission.Error.NotFound.Types
+import qualified Fission.Internal.UTF8        as UTF8
+
+import           Fission.CLI.Display.Text
+import           Fission.CLI.Environment      as Env
+
+import qualified Paths_fission_cli            as CLI
 
 checkLatestRelease ::
   ( MonadLogger      m
@@ -39,7 +43,7 @@ checkLatestRelease = do
       let
         nextUpdateTime = addUTCTime 86400 updateChecked
       unless (now < nextUpdateTime) do
-        logDebug @Text "Checking for newer versions..."
+        logDebug @Text "👀☁️  Checking for newer versions..."
 
         liftIO (github' GitHub.latestReleaseR "fission-suite" "fission") >>= \case
           Left err ->
@@ -49,17 +53,16 @@ checkLatestRelease = do
             Env.update \env -> env {updateChecked = now}
 
             let
-              currentVersion = getVersion $ Meta.version =<< Meta.package
-              latestVersion  = getVersion $ Just (Releases.releaseTagName latestRelease)
+              currentVersion = getVersion . Text.pack $ Version.showVersion CLI.version
+              latestVersion  = getVersion $ Releases.releaseTagName latestRelease
 
             when (currentVersion < latestVersion) do
               colourized [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow] do
                 UTF8.putText "⚠️  A new version of Fission CLI is available: "
                 UTF8.putTextLn $ Releases.releaseTagName latestRelease <> " (aka '" <> Releases.releaseName latestRelease <> "')"
 
-getVersion :: Maybe Text -> Maybe Versioning
-getVersion Nothing = Nothing
-getVersion (Just verTxt) =
-  case versioning verTxt of
+getVersion :: Text -> Maybe Versions.Versioning
+getVersion verTxt =
+  case Versions.versioning verTxt of
     Left _  -> Nothing
     Right v -> return v

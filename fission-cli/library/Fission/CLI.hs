@@ -1,5 +1,8 @@
 module Fission.CLI (cli, interpret) where
 
+import qualified Data.Version                                       as Version
+import qualified Paths_fission_cli                                  as CLI
+
 import qualified RIO                                                as Logger
 
 import           Data.Type.List
@@ -24,7 +27,6 @@ import           Fission.User.DID.Types
 import qualified Fission.User.Username.Error                        as Username
 
 import qualified Fission.CLI.IPFS.Daemon                            as IPFS.Daemon
-import qualified Fission.CLI.Meta                                   as Meta
 
 import           Fission.CLI.Environment                            as Env
 import qualified Fission.CLI.Environment.OS                         as OS
@@ -94,13 +96,14 @@ cli = do
         then logOptions'
         else setLogMinLevel Logger.LevelError logOptions'
 
-  withLogFunc logOptions \logFunc -> do
+  -- TODO add `--debug` option that includes LOC
+  withLogFunc (setLogUseLoc False logOptions) \logFunc -> do
     finalizeDID fissionDID Base.Config {serverDID = ServerDID.fallback, ..} >>= \case
-      Right serverDID -> interpret Base.Config {..} (Remote.toBaseUrl remote) cmd
+      Right serverDID -> interpret Base.Config {..} cmd
       Left  err       -> return . Left $ include err
 
-interpret :: MonadIO m => Base.Config -> BaseUrl -> Command -> m (Either (OpenUnion Errs) ())
-interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
+interpret :: MonadIO m => Base.Config -> Command -> m (Either (OpenUnion Errs) ())
+interpret baseCfg@Base.Config {ipfsDaemonVar} cmd =
   runFissionCLI baseCfg $
     dispatch `always` do
       liftIO (tryReadMVar ipfsDaemonVar) >>= \case
@@ -115,11 +118,11 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} fissionURL cmd =
       checkLatestRelease
 
       case cmd of
-        Version _ ->
-          logInfo $ maybe "unknown" identity (Meta.version =<< Meta.package)
+        Version _ -> do
+          logUser $ Version.showVersion CLI.version
 
         Setup Setup.Options {forceOS, maybeUsername, maybeEmail} ->
-          Setup.setup forceOS fissionURL maybeUsername maybeEmail
+          Setup.setup forceOS maybeUsername maybeEmail
 
         App subCmd ->
           App.interpret baseCfg subCmd

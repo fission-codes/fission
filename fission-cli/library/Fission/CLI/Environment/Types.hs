@@ -5,6 +5,8 @@ import qualified Network.IPFS.Types          as IPFS
 
 import           Fission.Prelude
 
+import           Fission.Error.Types
+
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
 
@@ -45,6 +47,9 @@ instance FromJSON Env where
     signingKeyPath <- obj .:  "signing_key_path"
     username       <- obj .:  "username"
     rootProof      <- obj .:? "root_proof"
-    updateChecked  <- obj .:? "update_checked"  .!= fromSeconds 0
+    updateChecked  <- obj .:? "update_checked" .!= fromSeconds 0
 
     return Env {..}
+
+instance Display (AlreadyExists Env) where
+  display _ = "Fission CLI config already exists"

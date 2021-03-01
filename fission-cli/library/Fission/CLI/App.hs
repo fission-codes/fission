@@ -18,6 +18,7 @@ import qualified Fission.Internal.UTF8                     as UTF8
 
 import           Fission.CLI.Types
 import           Fission.Error
+import qualified Fission.JSON                              as JSON
 import qualified Fission.Key                               as Key
 import           Fission.User.DID.Types
 
@@ -46,6 +47,7 @@ type Errs =
    , IPFS.UnableToConnect
    , IPFS.Process.Error
    , IPFS.Add.Error
+   , JSON.Error
    , ClientError
    , Key.Error
    , NotRegistered

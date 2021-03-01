@@ -84,6 +84,7 @@ import qualified Fission.CLI.WebNative.Mutation.Auth.Store   as WebNative.Mutati
 
 type Errs =
   '[ AlreadyExists DID
+   , AlreadyExists Env
    , ClientError
    , DNS.DNSError
    , JSON.Error
@@ -115,7 +116,9 @@ login = do
   rootURL   <- getRemoteBaseUrl
 
   let
-    baseURL = rootURL {baseUrlPath = "/user/link"} -- NOTE hardcoded and not using safeLink since that would cause a dependency on fission-web-server
+    -- NOTE hardcoded and not using safeLink since that would cause a dependency
+    -- on the fission-web-server
+    baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
     Right () ->
@@ -146,6 +149,7 @@ type ConsumerConstraints m =
   , MonadPubSubSecure m (RSA.PublicKey, RSA.PrivateKey)
 
   , MonadCleanup m
+  , m `Raises` AlreadyExists Env
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError
   , m `Raises` JSON.Error
@@ -162,7 +166,9 @@ type ConsumerConstraints m =
 
 consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> m Username
 consume signingSK baseURL = do
-  username  <- ensure . mkUsername =<< reaskNotEmpty' "Please enter you username: "
+  logDebug @Text "🛂📥 Consuming log-in..."
+
+  username  <- ensure . mkUsername =<< reaskNotEmpty' "Please enter you username:"
   targetDID <- ensureM $ DID.getByUsername username
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
 
@@ -266,6 +272,8 @@ type ProducerConstraints m =
 
 produce :: ProducerConstraints m => Ed25519.SecretKey -> BaseUrl -> m Username
 produce signingSK baseURL = do
+  logInfo @Text "🛂📤 Producing log-in..."
+
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
   rootProof <- Bearer.toProof <$> WebNative.Mutation.Store.getRootUCAN
   rootDID   <- getRootDID (Ed25519PublicKey signingPK) rootProof

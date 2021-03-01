@@ -17,6 +17,8 @@ module Fission.CLI.Environment
 import qualified Data.ByteString.Char8         as BS8
 import qualified Data.List.NonEmpty            as NonEmpty
 import qualified Data.Yaml                     as YAML
+
+import           RIO.Directory
 import           RIO.FilePath
 
 import qualified Network.DNS                   as DNS
@@ -27,7 +29,7 @@ import qualified Network.IPFS.Types            as IPFS
 
 import           Fission.Prelude
 
-import           Fission.Error.NotFound.Types
+import           Fission.Error.Types
 
 import           Fission.Web.Client
 
@@ -56,6 +58,7 @@ init ::
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError
   , m `Raises` NotFound DID
+  , m `Raises` AlreadyExists Env
 
   , Show (OpenUnion (Errors m))
   )
@@ -64,7 +67,7 @@ init ::
   -> Maybe CID
   -> m ()
 init username fissionURL rootProof = do
-  logDebug @Text "Initializing config file"
+  logDebug @Text "🎛️  Initializing user config file"
 
   attempt Peers.getPeers >>= \case
     Left err ->
@@ -75,12 +78,17 @@ init username fissionURL rootProof = do
       envPath        <- absPath
       signingKeyPath <- KeyStore.getPath $ Proxy @SigningKey
 
-      envPath `YAML.writeFile` Env
-        { peers          = NonEmpty.toList nonEmptyPeers
-        , ignored        = []
-        , updateChecked  = fromSeconds 0
-        , ..
-        }
+      doesFileExist envPath >>= \case
+        False ->
+          envPath `YAML.writeFile` Env
+            { peers          = NonEmpty.toList nonEmptyPeers
+            , ignored        = []
+            , updateChecked  = fromSeconds 0
+            , ..
+            }
+
+        True ->
+          raise $ AlreadyExists @Env
 
 -- | Gets hierarchical environment by recursing through file system
 get ::
@@ -93,7 +101,7 @@ get ::
   )
   => m Env
 get = do
-  logDebug @Text "Reading global config.yaml"
+  logDebug @Text "👀📖 Reading global config.yaml"
   path <- absPath
   env  <- YAML.readFile path
   return env

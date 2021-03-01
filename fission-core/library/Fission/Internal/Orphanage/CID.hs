@@ -13,4 +13,5 @@ instance ToJSONKey CID where
   toJSONKey = JSON.toJSONKeyText textDisplay
 
 instance FromJSONKey CID where
-  fromJSONKey = FromJSONKeyValue parseJSON
+  fromJSONKey = FromJSONKeyTextParser \txt ->
+    parseJSON (String txt)

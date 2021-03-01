@@ -21,6 +21,7 @@ import           Fission.Prelude
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 import qualified Fission.IPFS.Error.Types                  as IPFS
+import qualified Fission.JSON                              as JSON
 import qualified Fission.Key                               as Key
 import           Fission.User.DID.Types
 
@@ -56,6 +57,7 @@ run ::
   , Contains LiftErrs errs
 
   , YAML.ParseException  `IsMember` errs
+  , JSON.Error           `IsMember` errs
   , IPFS.Process.Error   `IsMember` errs
   , JWT.Resolver.Error   `IsMember` errs
   , NotFound JWT         `IsMember` errs
@@ -106,6 +108,7 @@ mkConnected ::
   , MonadRemote (FissionCLI errs inCfg)
 
   , YAML.ParseException `IsMember` errs
+  , JSON.Error          `IsMember` errs
   , IPFS.Process.Error  `IsMember` errs
   , IPFS.Add.Error      `IsMember` errs
   , JWT.Resolver.Error  `IsMember` errs
