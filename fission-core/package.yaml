@@ -171,6 +171,7 @@ tests:
       - QuickCheck
       - quickcheck-instances
       - rio
+      - world-peace
       - yaml
 
   fission-core-test:
