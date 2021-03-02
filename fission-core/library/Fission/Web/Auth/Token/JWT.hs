@@ -3,6 +3,7 @@ module Fission.Web.Auth.Token.JWT
   , getRootDID
   , mkUCAN
   , delegateSuperUser
+  , delegateAppendAll
   , simpleWNFS
   , prettyPrintGrants
   , module Fission.Web.Auth.Token.JWT.Types
@@ -84,6 +85,13 @@ simpleWNFS now receiverDID sk facts proof =
     -- Accounting for minor clock drift
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
+
+delegateAppendAll :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> JWT
+delegateAppendAll targetDID sk proof now =
+  mkUCAN targetDID sk start expire [] (Just Complete) AppendOnly proof
+  where
+    start  = addUTCTime (secondsToNominalDiffTime (-30)) now
+    expire = addUTCTime (nominalDay * 365 * 255)         now
 
 delegateSuperUser :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> JWT
 delegateSuperUser targetDID sk proof now =

@@ -252,7 +252,7 @@ instance
     store          <- WebNative.Mutation.Auth.getAll
 
     _              <- ensureM $ IPFS.addFile (encode ogUCAN)   "ucan.jwt" -- For CID references
-    (_, CID hash') <- ensureM $ IPFS.addFile (encode ogBearer) "bearer.jwt"
+    (_, CID hash') <- ensureM $ IPFS.addFile (encode token) "bearer.jwt"
 
     let
       -- TODO fix in ipfs-haskell smart constructor
@@ -269,9 +269,6 @@ instance
 
     return cid
     where
-      ogBearer :: Text
-      ogBearer = "Bearer " <> ogUCAN
-
       ogUCAN :: Text
       ogUCAN = ogContent <> "." <> textDisplay sig
 
@@ -374,7 +371,8 @@ instance
 
     let
       jwt =
-        JWT.simpleWNFS now serverDID sk [] proof -- FIXME maybe needs SUPER_USER
+        -- JWT.simpleWNFS now serverDID sk [] proof -- FIXME maybe needs SUPER_USER
+        JWT.delegateAppendAll serverDID sk proof now
 
       rawContent =
         jwt
