@@ -1,7 +1,8 @@
 module Fission.Web.Server.Swagger (handler) where
 
 import           Data.Swagger
-import           Data.Version
+import qualified Data.Version                                        as Version
+
 import qualified RIO.Text                                            as Text
 
 import           Servant

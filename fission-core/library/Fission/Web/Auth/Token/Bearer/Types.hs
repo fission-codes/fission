@@ -35,10 +35,8 @@ instance Display Token where
   textDisplay = Text.pack . show
 
 instance ToJSON Token where
-  toJSON Token {jwt} =
-    case toJSON jwt of
-      String txt -> String $ "Bearer " <> txt
-      _          -> error "impossible"
+  toJSON Token {jwt = JWT {sig}, rawContent} =
+    String $ "Bearer " <> textDisplay rawContent <> "." <> textDisplay sig
 
 instance FromJSON Token where
   parseJSON = withText "Bearer Token" \txt ->

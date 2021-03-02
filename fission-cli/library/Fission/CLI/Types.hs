@@ -246,11 +246,13 @@ instance
   , Display (OpenUnion errs)
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
-  insert token@Bearer.Token {jwt} = do
+  insert token@Bearer.Token {jwt = JWT {sig}, rawContent = RawContent ogContent} = do
     logDebug @Text "🛂💾 Adding UCAN to store"
     storePath      <- ucanStorePath
     store          <- WebNative.Mutation.Auth.getAll
-    (_, CID hash') <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
+
+    _              <- ensureM $ IPFS.addFile (encode ogUCAN)   "ucan.jwt" -- For CID references
+    (_, CID hash') <- ensureM $ IPFS.addFile (encode ogBearer) "bearer.jwt"
 
     let
       -- TODO fix in ipfs-haskell smart constructor
@@ -266,6 +268,12 @@ instance
     storePath `JSON.writeFile` newStoreJSON
 
     return cid
+    where
+      ogBearer :: Text
+      ogBearer = "Bearer " <> ogUCAN
+
+      ogUCAN :: Text
+      ogUCAN = ogContent <> "." <> textDisplay sig
 
   getAll = do
     logDebug @Text "🛂🚚 Loading UCAN store"
