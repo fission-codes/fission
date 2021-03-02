@@ -71,8 +71,8 @@ decrypt (Symmetric.Key aesKey) iv (EncryptedPayload cipherLBS) =
             mayClearBS = aeadSimpleDecrypt blockCipher ("" :: ByteString) cipherBS authTag
           in
             case mayClearBS of
-              Nothing      -> error "NOPE!"
-              Just clearBS ->  Right clearBS
+              Nothing      -> error "NOPE!" -- FIXME
+              Just clearBS -> Right clearBS
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher
 genAES256 :: MonadRandom m => m (Symmetric.Key AES256)

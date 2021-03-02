@@ -35,8 +35,8 @@ instance Display Token where
   textDisplay = Text.pack . show
 
 instance ToJSON Token where
-  toJSON (Token bs _) =
-    case toJSON bs of
+  toJSON Token {jwt} =
+    case toJSON jwt of
       String txt -> String $ "Bearer " <> txt
       _          -> error "impossible"
 

@@ -1,13 +1,12 @@
 module Fission.CLI.WebNative.Mutation.Auth.Store
   ( getBy
   , getRootUCAN
+  , getRootUserProof
   , module Fission.CLI.WebNative.Mutation.Auth.Store.Class
   ) where
 
 import qualified Data.Yaml                                        as YAML
 import           RIO.Map                                          as Map
-
-import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
@@ -18,7 +17,7 @@ import           Fission.Web.Auth.Token.JWT                       as JWT
 import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT
 import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT.Resolver
 
-import qualified Fission.Web.Auth.Token.Bearer.Types              as Bearer
+import           Fission.Web.Auth.Token.Bearer                    as Bearer
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types       as UCAN
 
@@ -31,16 +30,29 @@ getRootUCAN ::
   , MonadLogger      m
   , MonadEnvironment m
   , MonadRaise       m
-  , m `Raises` NotFound CID
   , m `Raises` NotFound FilePath
   , m `Raises` YAML.ParseException
   )
   => m (Maybe Bearer.Token) -- NOTE You may be root, hence Maybe
 getRootUCAN = do
-  Env {rootProof} <- Env.get
+  logDebug @Text "💪🛂 Getting root UCAN"
   store           <- getAll
-  cid             <- maybe (raise $ NotFound @CID) pure rootProof
-  return (store !? cid)
+  Env {rootProof} <- Env.get
+  case rootProof of
+    Just cid -> return (store !? cid)
+    Nothing  -> return Nothing
+
+getRootUserProof ::
+  ( MonadIO          m
+  , MonadStore       m
+  , MonadLogger      m
+  , MonadEnvironment m
+  , MonadRaise       m
+  , m `Raises` NotFound FilePath
+  , m `Raises` YAML.ParseException
+  )
+  => m JWT.Proof
+getRootUserProof = Bearer.toProof <$> getRootUCAN
 
 getBy :: forall m.
   ( MonadStore   m

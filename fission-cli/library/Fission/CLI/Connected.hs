@@ -44,6 +44,8 @@ import qualified Fission.CLI.Environment                   as Environment
 import           Fission.CLI.Environment.Types             as Environment
 import qualified Fission.CLI.IPFS.Connect                  as Connect
 
+import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
+
 -- | Ensure we have a local config file with the appropriate data
 --
 -- Takes a @Connected@-dependant action, and lifts it into an environment that
@@ -169,7 +171,8 @@ mkConnected inCfg ipfsTimeout = do
 
           Context.run cfg do
             logDebug @Text "Attempting user verification"
-            attempt (sendAuthedRequest User.verify) >>= \case
+            proof <- getRootUserProof
+            attempt (sendAuthedRequest proof User.verify) >>= \case
               Left err -> do
                 CLI.Error.put err "Not registered. Please run: fission user register"
                 raise NotRegistered

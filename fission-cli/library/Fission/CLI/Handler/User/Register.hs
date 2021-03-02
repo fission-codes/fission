@@ -1,37 +1,48 @@
 -- | Setup command
 module Fission.CLI.Handler.User.Register (register) where
 
-import qualified Crypto.PubKey.Ed25519           as Ed25519
+import qualified Data.Yaml                                 as YAML
+
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           Crypto.Random
 
+import           Network.DNS
 import           Network.HTTP.Types.Status
 import           Servant.Client
 
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
-import           Fission.Key.Error               as Key
+import           Fission.Error.Types
+import           Fission.Key.Error                         as Key
 import           Fission.User.Username.Types
 
+import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.Types
-import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as User
+import           Fission.Web.Client                        as Client
+import qualified Fission.Web.Client.User                   as User
 
+import           Fission.User.DID.Types
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
-import qualified Fission.User.Username.Error     as Username
+import qualified Fission.User.Username.Error               as Username
 
-import           Fission.CLI.Display.Error       as CLI.Error
-import           Fission.CLI.Display.Success     as CLI.Success
+import           Fission.CLI.Remote
 
-import           Fission.CLI.Environment         as Env
-import           Fission.CLI.Key.Store           as KeyStore
-import qualified Fission.CLI.Prompt              as Prompt
+import           Fission.CLI.Display.Error                 as CLI.Error
+import           Fission.CLI.Display.Success               as CLI.Success
+
+import           Fission.CLI.Environment                   as Env
+import           Fission.CLI.Key.Store                     as KeyStore
+import qualified Fission.CLI.Prompt                        as Prompt
+import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
 register ::
   ( MonadIO          m
+  , MonadRemote      m
   , MonadLogger      m
   , MonadWebClient   m
+  , UCAN.MonadStore  m
   , MonadEnvironment m
   , MonadTime        m
   , MonadRandom      m
@@ -40,9 +51,14 @@ register ::
   , MonadWebAuth     m (SecretKey SigningKey)
 
   , MonadCleanup     m
+  , m `Raises` AlreadyExists Env
   , m `Raises` ClientError
-  , m `Raises` Username.Invalid
+  , m `Raises` DNSError
   , m `Raises` Key.Error
+  , m `Raises` NotFound DID
+  , m `Raises` NotFound FilePath
+  , m `Raises` Username.Invalid
+  , m `Raises` YAML.ParseException
 
   , ClientError `IsMember` Errors m
   , Show (OpenUnion (Errors m))
@@ -51,17 +67,23 @@ register ::
   => Maybe Username
   -> Maybe Email
   -> m Username
-register maybeUsername maybeEmail =
-  attempt (sendAuthedRequest User.whoami) >>= \case
-    Right username -> do
-      CLI.Success.alreadyLoggedInAs username
-      return username
-
+register maybeUsername maybeEmail = do
+  attempt getRootUserProof >>= \case
     Left _ ->
       createAccount maybeUsername maybeEmail
 
+    Right proof ->
+      attempt (sendAuthedRequest proof User.whoami) >>= \case
+        Left _ ->
+          createAccount maybeUsername maybeEmail
+
+        Right username -> do
+          CLI.Success.alreadyLoggedInAs username
+          return username
+
 createAccount ::
   ( MonadIO          m
+  , MonadRemote      m
   , MonadLogger      m
   , MonadEnvironment m
   , MonadWebClient   m
@@ -72,9 +94,12 @@ createAccount ::
   , MonadWebAuth     m Ed25519.SecretKey
 
   , MonadCleanup     m
+  , m `Raises` AlreadyExists Env
   , m `Raises` ClientError
-  , m `Raises` Username.Invalid
+  , m `Raises` DNSError
   , m `Raises` Key.Error
+  , m `Raises` NotFound DID
+  , m `Raises` Username.Invalid
   , Show (OpenUnion (Errors m))
   , Contains (Errors m) (Errors m)
   , ClientError `IsMember` Errors m
@@ -86,11 +111,11 @@ createAccount maybeUsername maybeEmail = do
   logDebug @Text "🆔 Setting up new account"
 
   username <- case maybeUsername of
-    Nothing    -> ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username: "
+    Nothing    -> ensureM $ mkUsername <$> Prompt.reaskNotEmpty' "Username:"
     Just uname -> return uname
 
   email <- case maybeEmail of
-    Nothing   -> Email <$> Prompt.reaskNotEmpty' "Email: "
+    Nothing   -> Email <$> Prompt.reaskNotEmpty' "Email:"
     Just mail -> return mail
 
   exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
@@ -104,9 +129,11 @@ createAccount maybeUsername maybeEmail = do
       , exchangePK = Just exchangePK
       }
 
-  attempt (sendAuthedRequest $ User.createWithDID form) >>= \case
+  attempt (sendAuthedRequest RootCredential $ User.createWithDID form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
+      baseURL <- getRemoteBaseUrl
+      Env.init username baseURL Nothing
       return username
 
     Left err -> do

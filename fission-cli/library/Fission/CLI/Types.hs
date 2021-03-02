@@ -248,8 +248,8 @@ instance
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
   insert token@Bearer.Token {jwt} = do
     logDebug @Text "🛂💾 Adding UCAN to store"
-    storePath     <- ucanStorePath
-    store         <- WebNative.Mutation.Auth.getAll
+    storePath      <- ucanStorePath
+    store          <- WebNative.Mutation.Auth.getAll
     (_, CID hash') <- ensureM $ IPFS.addFile (encode jwt) "ucan.jwt"
 
     let
@@ -377,8 +377,11 @@ instance
           |> Text.dropSuffix "\""
           |> JWT.contentOf
 
-    logDebug $ "🏗️ 🛂 Constructed token: " <> display rawContent
-    return $ Bearer Bearer.Token {..}
+      token =
+        Bearer Bearer.Token {..}
+
+    logDebug $ "🏗️ 🛂 Constructed token: " <> decodeUtf8Lenient (Lazy.toStrict $ encode token)
+    return token
 
 instance
   ( Key.Error                  `IsMember` errs
@@ -548,7 +551,8 @@ instance
     Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
 
     readProcess process >>= \case
-      (ExitSuccess, contents, _) ->
+      (ExitSuccess, contents, _) -> do
+        logDebug @Text "🌌 IPFS process completed successfully"
         return $ Right contents
 
       (ExitFailure _, _, stdErrs)
@@ -578,7 +582,7 @@ instance
 
         liftIO (tryPutMVar daemonVar process) >>= \case
           True  -> logDebug @Text "😈📦 Placed IPFS daemon in MVar"
-          False -> logDebug @Text "👿🈵 IPFS Daemon var full"
+          False -> logWarn  @Text "👿🈵 IPFS Daemon var full"
 
         return process
 
@@ -614,7 +618,7 @@ instance
             return process
 
           False -> do
-            logDebug @Text "👿🔁 IPFS daemon startup appears stuck. Retrying."
+            logWarn @Text "👿🔁 IPFS daemon startup appears stuck. Retrying."
 
             stopProcess process
             void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
@@ -736,13 +740,13 @@ instance forall errs cfg .
   toSecurePayload (rsaPK, _) PubSub.Session {bearerToken, sessionKey = sessionKey@(Symmetric.Key aesClear)} = do
     logDebug @Text "Encrypting RSA-secured PubSub.Session payload (Handshake)"
 
-    iv          <- ensureM   Symmetric.genIV
-    msg         <- ensure  $ Symmetric.encrypt sessionKey iv bearerToken
-    encryptedBS <- ensureM $ RSA.OAEP.encrypt oaepParams rsaPK aesClear
+    iv           <- ensureM   Symmetric.genIV
+    msg          <- ensure  $ Symmetric.encrypt sessionKey iv bearerToken
+    encryptedAES <- ensureM $ RSA.OAEP.encrypt oaepParams rsaPK aesClear
 
-    return PubSub.Handshake { msg
-                            , iv
-                            , sessionKey = EncryptedPayload $ Lazy.fromStrict encryptedBS
+    return PubSub.Handshake { iv
+                            , msg
+                            , sessionKey = EncryptedPayload $ Lazy.fromStrict encryptedAES
                             }
 
   fromSecurePayload (_, rsaSK) PubSub.Handshake {iv, sessionKey = EncryptedPayload keyInRSA, msg = tokenInAES} = do
@@ -826,6 +830,7 @@ instance forall cfg errs .
   )
   => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
   runRemote query = do
+    logDebug @Text "Running remote IPFS"
     _ <- IPFS.Daemon.runDaemon
     runBootstrapT $ runRemote query
 

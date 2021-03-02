@@ -102,6 +102,7 @@ type LoginConstraints m =
   , MonadRemote m
 
   , m `Raises` Key.Error
+  , m `Raises` ClientError
 
   , Errors m `Contains` Errors m
   , AlreadyExists DID `IsMember` Errors m
@@ -269,10 +270,11 @@ produce :: ProducerConstraints m => Ed25519.SecretKey -> BaseUrl -> m Username
 produce signingSK baseURL = do
   logInfo @Text "🛂📤 Producing log-in..."
 
-  signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
-  rootProof <- Bearer.toProof <$> WebNative.Mutation.Store.getRootUCAN
-  rootDID   <- getRootDID (Ed25519PublicKey signingPK) rootProof
-  username  <- return "expede-0225" -- FIXME sendAuthedRequest User.whoami
+  signingPK      <- Key.Store.toPublic (Proxy @SigningKey) signingSK
+  rootProof      <- WebNative.Mutation.Store.getRootUserProof
+  rootDID        <- getRootDID (Ed25519PublicKey signingPK) rootProof
+  Env {username} <- Env.get
+  -- FIXME username  <- sendAuthedRequest rootProof User.whoami
 
   PubSub.connect baseURL (PubSub.Topic $ textDisplay rootDID) \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"

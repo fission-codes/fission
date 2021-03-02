@@ -112,7 +112,7 @@ setup maybeOS maybeUsername maybeEmail = do
           True -> do
             signingSK <- Key.Store.fetch $ Proxy @SigningKey
             rootURL   <- getRemoteBaseUrl
-            Login.consume signingSK rootURL
+            Login.consume signingSK rootURL {baseUrlPath = "/user/link"}
 
       logUser @Text "🏗️  Setting default config..."
       Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"

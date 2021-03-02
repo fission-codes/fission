@@ -1,11 +1,11 @@
 -- | Whoami command
 module Fission.CLI.Handler.User.Whoami (whoami) where
 
-import qualified Data.Yaml                       as YAML
+import qualified Data.Yaml                                 as YAML
 
-import qualified Crypto.PubKey.Ed25519           as Ed25519
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
 
-import qualified RIO.Text                        as Text
+import qualified RIO.Text                                  as Text
 
 import           Network.HTTP.Types.Status
 import           Servant.Client
@@ -13,19 +13,22 @@ import           Servant.Client
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import qualified Fission.Internal.UTF8           as UTF8
+import qualified Fission.Internal.UTF8                     as UTF8
 
 import           Fission.Authorization.ServerDID
 
 import           Fission.Web.Auth.Token.Types
-import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as User
+import           Fission.Web.Client                        as Client
+import qualified Fission.Web.Client.User                   as User
 
-import           Fission.CLI.Environment         as Env
-import           Fission.CLI.Environment.Path    as Path
+import           Fission.CLI.Environment                   as Env
+import           Fission.CLI.Environment.Path              as Path
 
-import qualified Fission.CLI.Display.Error       as CLI.Error
-import qualified Fission.CLI.Display.Success     as CLI.Success
+import qualified Fission.CLI.Display.Error                 as CLI.Error
+import qualified Fission.CLI.Display.Success               as CLI.Success
+
+import           Fission.CLI.Environment                   as Env
+import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
 
 -- | The command to attach to the CLI tree
@@ -33,23 +36,25 @@ whoami ::
   ( MonadIO          m
   , MonadTime        m
   , MonadLogger      m
+  , UCAN.MonadStore  m
   , MonadWebClient   m
   , MonadEnvironment m
   , ServerDID        m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
-  , MonadCleanup     m
+  , MoCnadCleanup     m
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   , Show    (OpenUnion (Errors m))
   , Display (OpenUnion (Errors m))
-  , IsMember ClientError (Errors m)
-  , Contains (Errors m) (Errors m)
+  , ClientError `IsMember` Errors m
+  , Errors m `Contains` Errors m
   )
   => m ()
 whoami = do
-  attempt (sendAuthedRequest User.whoami) >>= \case
+  proof <- getRootUserProof
+  attempt (sendAuthedRequest proof User.whoami) >>= \case
     Right username -> do
       CLI.Success.currentlyLoggedInAs $ textDisplay username
       Env.update \env -> env {username}

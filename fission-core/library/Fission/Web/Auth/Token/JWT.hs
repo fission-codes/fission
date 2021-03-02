@@ -74,7 +74,6 @@ getRootDID fallbackPK = \case
     (_, JWT {claims = JWT.Claims {proof}}) <- ensureM $ Proof.resolve cid
     getRootDID fallbackPK proof
 
--- FIXME may be able to move to inside the web client or CLI
 simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
 simpleWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
@@ -82,7 +81,7 @@ simpleWNFS now receiverDID sk facts proof =
     potency  = AppendOnly
     resource = Just (Subset (FissionFileSystem "/"))
 
-    -- Accounting for clock drift
+    -- Accounting for minor clock drift
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
 
@@ -105,7 +104,7 @@ mkUCAN ::
   -> JWT
 mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT {..}
   where
-    sig = JWT.Signature.Ed25519 . Key.signWith senderSK . encodeUtf8 $ B64.URL.encodeJWT header claims
+    sig = signEd25519 header claims senderSK
 
     sender = DID
       { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic senderSK
