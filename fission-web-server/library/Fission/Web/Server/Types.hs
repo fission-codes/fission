@@ -8,7 +8,7 @@ import           Control.Monad.Catch                         hiding (finally)
 import           Control.Monad.Except
 
 import qualified RIO.ByteString.Lazy                         as Lazy
-import qualified RIO.List                                    as List
+-- import qualified RIO.List                                    as List
 import           RIO.NonEmpty                                as NonEmpty
 import           RIO.NonEmpty.Partial                        as NonEmpty.Partial
 import qualified RIO.Text                                    as Text
@@ -373,25 +373,44 @@ instance (Eq a, Display a) => MonadIPFSCluster Server a where
 
       asyncRef <- liftIO $ async do
         Stream.withClientM streamQuery (mkClientEnv ipfsHttpManager url) \event ->
-          runServer cfg $
-            case event of
-              Left clientErr -> do
+          case event of
+            Left clientErr ->
+              runServer cfg do
                 logError $ "🐙😭 Cluster node " <> display url <> " reported streaming client error: " <> display clientErr
                 return $ Left clientErr
 
-              Right ioSource ->
-                liftIO (runExceptT $ Stream.runSourceT ioSource) >>= \case
-                  Left errMsg -> do
+            Right ioSource -> do
+              let
+                withErr errMsg =
+                  runServer cfg do
                     logError $ "🐙😭 Cluster node " <> display url <> " reported generic streaming error: " <> displayShow errMsg
-                    return . Left . ConnectionError . toException $ GenericError errMsg
+                    let err = ConnectionError . toException $ GenericError errMsg
+                    atomically do
+                      latestVar  `writeTVar`  Just (Left err)
+                      resultChan `writeTChan` Left err
 
-                  Right vals ->
-                    case List.lastMaybe vals of
-                      Nothing -> do
-                        logError $ "🐙🙉 Cluster node " <> display url <> " did not report any streaming updates."
-                        return . Left . ConnectionError . toException $ NotFound @PinStatus
+                withVal x =
+                  runServer cfg do
+                    logDebug $ "🐙📥 Cluster node " <> display url <> " streamed value: " <> display x
+                    atomically do
+                      latestVar  `writeTVar`  Just (Right x)
+                      resultChan `writeTChan` Right x
 
-                      Just final -> do
+              Stream.foreach withErr withVal ioSource
+              readTVarIO latestVar >>= \case
+                Nothing ->
+                  runServer cfg do
+                    logError $ "🐙🙉 Cluster node " <> display url <> " did not report any streaming updates."
+                    return . Left . ConnectionError . toException $ NotFound @PinStatus
+
+                Just finalResult ->
+                  runServer cfg do
+                    case finalResult of
+                      Left err -> do
+                        logDebug $ "🐙👍 Cluster node " <> display url <> " ended stream with an error: " <> display err
+                        return $ Left err
+
+                      Right final -> do
                         logDebug $ "🐙👍 Cluster node " <> display url <> " streamed successfully; ended with: " <> display final
                         return $ Right final
 
