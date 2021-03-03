@@ -406,7 +406,7 @@ instance (Eq a, Display a) => MonadIPFSCluster Server a where
                   runServer cfg do
                     case finalResult of
                       Left err -> do
-                        logDebug $ "🐙👍 Cluster node " <> display url <> " ended stream with an error: " <> display err
+                        logDebug $ "🐙🚨 Cluster node " <> display url <> " ended stream with an error: " <> display err
                         return $ Left err
 
                       Right final -> do
