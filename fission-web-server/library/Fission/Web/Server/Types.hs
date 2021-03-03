@@ -8,7 +8,6 @@ import           Control.Monad.Catch                         hiding (finally)
 import           Control.Monad.Except
 
 import qualified RIO.ByteString.Lazy                         as Lazy
--- import qualified RIO.List                                    as List
 import           RIO.NonEmpty                                as NonEmpty
 import           RIO.NonEmpty.Partial                        as NonEmpty.Partial
 import qualified RIO.Text                                    as Text
