@@ -84,11 +84,13 @@
 
   in
     commands {
-      build       = cmd "Build entire project"        "${stack} build";
-      install-cli = cmd "Install the Fission CLI"     "${stack} install fission-cli:fission";
-      runtests    = cmd "Run the complete test suite" "${stack} test";
-      repl        = cmd "Enter the project REPL"      "${stack} repl  --no-nix-pure";
-      watch       = cmd "Autobuild with file watcher" "${stack} build --file-watch";
+      build          = cmd "Build entire project"       "${stack} build";
+      install-cli    = cmd "Install the Fission CLI"    "${stack} install fission-cli:fission";
+      install-server = cmd "Install the Fission Server" "${stack} install fission-web-server:server";
+
+      runtests = cmd "Run the complete test suite" "${stack} test";
+      repl     = cmd "Enter the project REPL"      "${stack} repl  --no-nix-pure";
+      watch    = cmd "Autobuild with file watcher" "${stack} build --file-watch";
 
       ssh-staging = cmd "SSH into the staging environment"
         "${ssh} ubuntu@instance.runfission.net";
