@@ -4,4 +4,5 @@ module Fission.Error.GenericError.Types (GenericError (..)) where
 import           Fission.Prelude
 
 newtype GenericError = GenericError String
-  deriving (Eq, Show, Exception)
+  deriving stock    (Eq, Show)
+  deriving anyclass (Exception)

@@ -53,7 +53,7 @@ asyncIdleTimeout ::
   , FromPrefixed prefix Double
   )
   => Seconds prefix n
-  -> Async (Either err a)
+  -> Async a
   -> TVar  (Maybe a)
   -> m (Async (Either Process.TimedOut ()))
 asyncIdleTimeout idleTimeout asyncRef latestVar =

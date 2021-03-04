@@ -22,4 +22,4 @@ class MonadIO m => MonadIPFSCluster m a where
 
   streamCluster ::
        Stream.ClientM (SourceIO a)
-    -> m (NonEmpty ((Async (Either ClientError a)), TChan a))
+    -> m (NonEmpty ((Async (Either ClientError a)), TChan (Either ClientError a)))
