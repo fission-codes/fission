@@ -105,7 +105,7 @@
         ${git} pull
         ${server-install.script}
         ${killall} fission
-        printf "\033[31m\n\n\n>>>>> NOTE: Don't forget to release a new version of the CLI<<<<<\033[0m\n"
+        printf "🚨 Don't forget to release a new version of the CLI 📟✨"
         ${server-start.script}
       '';
 
