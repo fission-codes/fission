@@ -45,4 +45,4 @@ jobs:
 
     - name: Test
       run: |
-        runtests
+        stack test --no-nix --no-terminal
