@@ -1,11 +1,10 @@
 { pkgs, unstable, ... }:
   let
-    bash  = "${pkgs.bash}/bin/bash";
-    ghcid = "${pkgs.ghcid}/bin/ghcid";
-    git   = "${pkgs.git}/bin/git";
-    lsof  = "${pkgs.lsof}/bin/lsof";
-    ssh   = "${pkgs.openssh}/bin/ssh";
-    stack = "${unstable.stack}/bin/stack";
+    bash    = "${pkgs.bash}/bin/bash";
+    git     = "${pkgs.git}/bin/git";
+    killall = "${pkgs.killall}/bin/killall";
+    ssh     = "${pkgs.openssh}/bin/ssh";
+    stack   = "${unstable.stack}/bin/stack";
 
     cmd = description: script:
       { inherit description;
@@ -105,7 +104,7 @@
       server-update = cmd "Update & run the current server to the latest on the current branch" ''
         ${git} pull
         ${server-install.script}
-        kill $(sudo ${lsof} -t -i :${toString server-port})
+        ${killall} fission
         printf "\033[31m\n\n\n>>>>> NOTE: Don't forget to release a new version of the CLI<<<<<\033[0m\n"
         ${server-start.script}
       '';
@@ -115,7 +114,7 @@
       watch    = cmd "Autobuild with file watcher" "${stack} build --file-watch";
 
       ssh-staging = cmd "SSH into the staging environment"
-        "${ssh} -v fission@instance.runfission.net";
+        "${ssh} fission@instance.runfission.net";
 
       ssh-prod = cmd "SSH into the production environment"
         "${ssh} ubuntu@instance.runfission.com";
