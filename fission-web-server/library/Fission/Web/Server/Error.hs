@@ -61,9 +61,5 @@ throw ::
   => err
   -> m a
 throw err = do
-  let
-    serverError@ServerError {..} = toServerError err
-    status = Status errHTTPCode $ Lazy.toStrict errBody
-
   logError $ textDisplay err
-  throwM serverError
+  throwM $ toServerError err
