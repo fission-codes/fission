@@ -149,13 +149,19 @@ runInProd overrideVerbose action = do
   putStrLnIO "   💂 Configuring optional Sentry middleware"
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger RIO.LevelWarn) sentryDSN
 
+  let
+    logOpts =
+      logOptions
+        |> setLogUseLoc  False
+        |> setLogUseTime True
+
   putStrLnIO "   📋 Setting up application logger"
-  withLogFunc (setLogUseTime True logOptions) \baseLogger -> do
+  withLogFunc logOpts \baseLogger -> do
     let
       condDebug    = if pretty then identity else logStdoutDev
       runSettings' = if isTLS then runTLS tlsSettings' else runSettings
       runner       = runSettings' $ mkSettings logFunc port
-      logFunc      = setLogUseLoc False baseLogger <> condSentryLogger
+      logFunc      = baseLogger <> condSentryLogger
 
     putStrLnIO "   🏊 Establishing database pool"
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
