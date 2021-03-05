@@ -155,7 +155,7 @@ runInProd overrideVerbose action = do
       condDebug    = if pretty then identity else logStdoutDev
       runSettings' = if isTLS then runTLS tlsSettings' else runSettings
       runner       = runSettings' $ mkSettings logFunc port
-      logFunc      = baseLogger <> condSentryLogger
+      logFunc      = setLogUseLoc False baseLogger <> condSentryLogger
 
     putStrLnIO "   🏊 Establishing database pool"
     withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do

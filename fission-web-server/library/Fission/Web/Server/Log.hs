@@ -7,7 +7,7 @@ import           Network.HTTP.Types.Status
 import           Network.Wai.Internal      (Request (..))
 import           Network.Wai.Logger
 
-import           Text.Pretty.Simple
+-- import           Text.Pretty.Simple
 
 import           Fission.Prelude
 
