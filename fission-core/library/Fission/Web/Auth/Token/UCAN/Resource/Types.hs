@@ -7,7 +7,7 @@ import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 data Resource
-  = FissionFileSystem Text -- More efficent path
+  = FissionFileSystem Text -- More efficent than FilePath
   -- ^ Fission FileSystem path
   | FissionApp        (Scope URL)
   -- ^ Primary URL for an App
