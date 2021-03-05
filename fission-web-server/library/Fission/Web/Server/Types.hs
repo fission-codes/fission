@@ -337,14 +337,32 @@ instance IPFS.MonadLocalIPFS Server where
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
     manager      <- asks ipfsHttpManager
-    urls         <- asks ipfsURLs
-    randomIndex  <- liftIO $ randomRIO (0, NonEmpty.length urls - 1)
+    remotes      <- asks ipfsURLs
+    go manager remotes
 
-    let
-      IPFS.URL url  = urls NonEmpty.Partial.!! randomIndex -- Partial, but checked above
-      clientManager = mkClientEnv manager url
+    where
+      go manager remotes = do
+        randomIndex  <- liftIO $ randomRIO (0, NonEmpty.length remotes - 1)
+        let
+          IPFS.URL url  = remotes NonEmpty.Partial.!! randomIndex -- Partial, but checked above
+          hostname      = Text.pack $ baseUrlHost url
+          clientManager = mkClientEnv manager url
 
-    liftIO $ runClientM query clientManager
+        logDebug $ "🌌📞 Attempting remote IPFS request with " <> hostname
+        liftIO (runClientM query clientManager) >>= \case
+          Right val' -> do
+            logDebug $ "🌌👍 Remote IPFS node succcess at " <> hostname
+            return $ Right val'
+
+          Left err -> do
+            case nonEmpty $ NonEmpty.filter (/= IPFS.URL url) remotes of
+              Nothing -> do
+                logError @Text "🌌🚨 All remote IPFS nodes failed"
+                return $ Left err
+
+              Just fewerRemotes -> do
+                logWarn $ "🌌⚠️  Remote IPFS node " <> hostname <> " failed: " <> textDisplay err
+                go manager fewerRemotes
 
 instance (Eq a, Display a) => MonadIPFSCluster Server a where
   runCluster query = do
