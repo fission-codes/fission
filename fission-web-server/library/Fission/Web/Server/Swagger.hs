@@ -1,6 +1,7 @@
 module Fission.Web.Server.Swagger (handler) where
 
 import           Data.Swagger
+import qualified RIO.Text                                            as Text
 
 import           Servant
 import           Servant.Swagger
@@ -8,8 +9,6 @@ import qualified Servant.Swagger.Internal.TypeLevel.API              as Servant.
 import           Servant.Swagger.UI.ReDoc
 
 import           Fission.Prelude
-
-import qualified Fission.Web.Server.Meta                             as Meta
 
 import qualified Fission.Web.API.App.Types                           as API
 import qualified Fission.Web.API.DNS.Types                           as API
@@ -27,6 +26,8 @@ import           Fission.Web.Server.Internal.Orphanage.BasicAuth     ()
 import           Fission.Web.Server.Internal.Orphanage.BasicAuthData ()
 import           Fission.Web.Server.Internal.Orphanage.HigherOrder   ()
 import           Fission.Web.Server.Internal.Orphanage.RegisterDid   ()
+
+import qualified Paths_fission_web_server                            as Fission
 
 handler :: (forall a . Handler a -> m a) -> Web.Host -> ServerT Swagger.API m
 handler fromHandler appHost =
@@ -59,9 +60,7 @@ fission proxy appHost =
     |> info . license     ?~ projectLicense
   where
     version' =
-      Meta.package
-        |> bind Meta.version
-        |> maybe "unknown" identity
+      Text.pack $ show Fission.version
 
     fissionContact =
       mempty

@@ -147,7 +147,7 @@ runInProd overrideVerbose action = do
   tlsManager <- HTTP.newManager tlsHttpSettings
 
   putStrLnIO "   💂 Configuring optional Sentry middleware"
-  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger RIO.LevelWarn) sentryDSN
+  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host RIO.LevelWarn) sentryDSN
 
   let
     logOpts =
