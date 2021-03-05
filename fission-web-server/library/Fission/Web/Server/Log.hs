@@ -39,7 +39,7 @@ rioApacheLogger Request {..} Status {..} _mayInt =
       , " "
       , if rawQueryString == "" then "" else displayShow rawQueryString
       , " "
-      , display requestHeaders
+      , displayShow requestHeaders
       -- , display $ pShow requestHeaders
       ]
 
