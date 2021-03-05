@@ -20,7 +20,7 @@ rioApacheLogger ::
 rioApacheLogger Request {..} Status {..} _mayInt =
   unless (requestHeaderUserAgent == Just "ELB-HealthChecker/2.0") do
     if | statusCode >= 500 -> logError formatted
-       | statusCode >= 400 -> logInfo  formatted
+       | statusCode >= 400 -> logWarn  formatted
        | otherwise         -> logDebug formatted
   where
     formatted :: Utf8Builder
@@ -39,7 +39,8 @@ rioApacheLogger Request {..} Status {..} _mayInt =
       , " "
       , if rawQueryString == "" then "" else displayShow rawQueryString
       , " "
-      , display $ pShow requestHeaders
+      , display requestHeaders
+      -- , display $ pShow requestHeaders
       ]
 
 fromLogFunc :: LogFunc -> ApacheLogger
