@@ -8,6 +8,7 @@ import           Fission.Prelude
 import qualified Fission.Web.API.Heroku.Types                  as API
 
 import qualified Fission.Web.Server.Heroku.AddOn               as Heroku.AddOn
+import           Fission.Web.Server.IPFS.Linked
 import qualified Fission.Web.Server.LoosePin                   as LoosePin
 import           Fission.Web.Server.Reflective
 import qualified Fission.Web.Server.User                       as User
@@ -20,7 +21,7 @@ import           Fission.Web.Server.MonadDB
 handler ::
   ( MonadReflectiveServer    m
   , MonadRemoteIPFS          m
-  , MonadLocalIPFS           m
+  , MonadLinkedIPFS          m
   , MonadLogger              m
   , MonadThrow               m
   , User.Creator             m

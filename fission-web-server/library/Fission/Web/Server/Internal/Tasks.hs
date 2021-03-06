@@ -70,23 +70,23 @@ ensureAllPinned = do
 
         logWarn $ "⚠️  Missing " <> display (List.length missingCIDs) <> " CIDs  on " <> displayShow baseUrlHost
 
-        forConcurrently_ missingCIDs \(CID hash) ->
+        forConcurrently_ missingCIDs \cid ->
           runServer cfg do
-            logInfo $ "📥 Attempting to pin " <> display hash <> " to " <> displayShow baseUrlHost
-            liftIO (runClientM (IPFS.pin hash) clientManager) >>= \case
+            logInfo $ "📥 Attempting to pin " <> display cid <> " to " <> displayShow baseUrlHost
+            liftIO (runClientM (IPFS.pin cid) clientManager) >>= \case
               Left err ->
                 logError $ mconcat
                   [ "🧨 Pin failed: "
                   , " -- "
                   , displayShow baseUrlHost
                   , " -- "
-                  , display hash
+                  , display cid
                   , " -- "
                   , displayShow err
                   ]
 
               Right _ ->
-                logInfo $ "📌 Pinned " <> display hash <> " to " <> displayShow baseUrlHost
+                logInfo $ "📌 Pinned " <> display cid <> " to " <> displayShow baseUrlHost
 
 pinAllToCluster :: [CID] -> Server [(CID, ClientError)]
 pinAllToCluster cids =

@@ -4,101 +4,100 @@ module Fission.Web.Server.Types
   , module Fission.Web.Server.Config.Types
   ) where
 
-import           Control.Monad.Catch                         hiding (finally)
+import           Control.Monad.Catch                       hiding (finally)
 import           Control.Monad.Except
 
-import qualified RIO.ByteString.Lazy                         as Lazy
-import           RIO.NonEmpty                                as NonEmpty
-import           RIO.NonEmpty.Partial                        as NonEmpty.Partial
-import qualified RIO.Text                                    as Text
+import qualified RIO.ByteString.Lazy                       as Lazy
+import           RIO.NonEmpty                              as NonEmpty
+import           RIO.NonEmpty.Partial                      as NonEmpty.Partial
+import qualified RIO.Text                                  as Text
 
-import           System.Random                               as Random
+import           System.Random                             as Random
 
-import           Database.Esqueleto                          as SQL hiding
-                                                                    ((<&>))
+import           Database.Esqueleto                        as SQL hiding ((<&>))
 
 import           Servant.Client
-import qualified Servant.Client.Streaming                    as Stream
+import qualified Servant.Client.Streaming                  as Stream
 import           Servant.Server.Experimental.Auth
-import qualified Servant.Types.SourceT                       as Stream
+import qualified Servant.Types.SourceT                     as Stream
 
-import           Network.AWS                                 as AWS hiding
-                                                                    (Request,
-                                                                     Seconds)
+import           Network.AWS                               as AWS hiding
+                                                                  (Request,
+                                                                   Seconds)
 import           Network.AWS.Route53
 
-import qualified Network.IPFS                                as IPFS
-import qualified Network.IPFS.Add.Error                      as IPFS.Pin
-import qualified Network.IPFS.Process                        as IPFS
-import qualified Network.IPFS.Process.Error                  as IPFS.Process
-import qualified Network.IPFS.Stat                           as IPFS.Stat
-import qualified Network.IPFS.Types                          as IPFS
+import qualified Network.IPFS                              as IPFS
+import qualified Network.IPFS.Add.Error                    as IPFS.Pin
+import           Network.IPFS.Client.Streaming.Pin
+import           Network.IPFS.File.Types
+import qualified Network.IPFS.Stat                         as IPFS.Stat
+import qualified Network.IPFS.Types                        as IPFS
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                       as UTF8
+import qualified Fission.Internal.UTF8                     as UTF8
 
-import           Fission.Error                               as Error
+import           Fission.Error                             as Error
 import           Fission.Error.GenericError.Types
 import           Fission.Time
 
 import           Fission.Web.Server.AWS
-import           Fission.Web.Server.AWS.Types                as AWS
+import           Fission.Web.Server.AWS.Types              as AWS
 import           Fission.Web.Server.Models
 
-import qualified Fission.Web.Server.DID.Publicize.Class      as Server.DID
+import qualified Fission.Web.Server.DID.Publicize.Class    as Server.DID
 import           Fission.Web.Server.Host.Types
 
-import           Fission.DNS                                 as DNS
-import           Fission.URL                                 as URL
+import           Fission.DNS                               as DNS
+import           Fission.URL                               as URL
 
 import           Fission.Web.Async
 
-import qualified Fission.Web.Server.App                      as App
-import qualified Fission.Web.Server.App.Destroyer            as App.Destroyer
-import qualified Fission.Web.Server.Error                    as Web.Error
-import           Fission.Web.Server.WNFS                     as WNFS
+import qualified Fission.Web.Server.App                    as App
+import qualified Fission.Web.Server.App.Destroyer          as App.Destroyer
+import qualified Fission.Web.Server.Error                  as Web.Error
+import           Fission.Web.Server.WNFS                   as WNFS
 
-import           Fission.Web.Server.IPFS.Cluster             as Cluster
-import           Fission.Web.Server.IPFS.DNSLink             as DNSLink
+import           Fission.Web.Server.IPFS.Cluster           as Cluster
+import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
 import           Fission.Web.Server.IPFS.Linked
-import           Fission.Web.Server.IPFS.Streaming.Pin.Types
+-- import           Fission.Web.Server.IPFS.Streaming.Pin.Types
 
-import qualified Fission.Web.Server.Heroku.AddOn.Creator     as Heroku.AddOn
-import           Fission.Web.Server.Heroku.Types             as Heroku
+import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
+import           Fission.Web.Server.Heroku.Types           as Heroku
 
-import           Fission.Web.Server.AWS                      as AWS
-import           Fission.Web.Server.AWS.Route53              as Route53
+import           Fission.Web.Server.AWS                    as AWS
+import           Fission.Web.Server.AWS.Route53            as Route53
 import           Fission.Web.Server.Authorization.Types
 
-import           Fission.Web.Server.Auth                     as Auth
-import qualified Fission.Web.Server.Auth.DID                 as Auth.DID
-import qualified Fission.Web.Server.Auth.Token               as Auth.Token
+import           Fission.Web.Server.Auth                   as Auth
+import qualified Fission.Web.Server.Auth.DID               as Auth.DID
+import qualified Fission.Web.Server.Auth.Token             as Auth.Token
 
 import           Fission.Web.Server.Handler
-import           Fission.Web.Server.Reflective               as Reflective
+import           Fission.Web.Server.Reflective             as Reflective
 
-import           Fission.User.DID                            as DID
-import qualified Fission.Web.Server.User                     as User
+import           Fission.User.DID                          as DID
+import qualified Fission.Web.Server.User                   as User
 import           Fission.Web.Server.User.Creator.Class
-import qualified Fission.Web.Server.User.Modifier.Class      as User.Modifier
-import qualified Fission.Web.Server.User.Password            as Password
+import qualified Fission.Web.Server.User.Modifier.Class    as User.Modifier
+import qualified Fission.Web.Server.User.Password          as Password
 
-import qualified Fission.Key                                 as Key
+import qualified Fission.Key                               as Key
 
 import           Fission.Web.Server.MonadDB
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent       as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver         as JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver       as JWT
 
 import           Fission.Authorization.ServerDID.Class
 
-import           Fission.Web.Server.App.Content              as App.Content
-import           Fission.Web.Server.App.Domain               as App.Domain
+import           Fission.Web.Server.App.Content            as App.Content
+import           Fission.Web.Server.App.Domain             as App.Domain
 
-import           Fission.Web.Server.Challenge                as Challenge
-import qualified Fission.Web.Server.Domain                   as Domain
-import qualified Fission.Web.Server.Email                    as Email
+import           Fission.Web.Server.Challenge              as Challenge
+import qualified Fission.Web.Server.Domain                 as Domain
+import qualified Fission.Web.Server.Email                  as Email
 import           Fission.Web.Server.Email.Class
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
@@ -314,26 +313,6 @@ instance MonadDNSLink Server where
 instance MonadLinkedIPFS Server where
   getLinkedPeers = asks ipfsRemotePeers
 
-instance IPFS.MonadLocalIPFS Server where
-  runLocal opts arg = do
-    IPFS.BinPath ipfs <- asks ipfsPath
-    IPFS.Timeout secs <- asks ipfsTimeout
-
-    let
-      opts' = ("--timeout=" <> show secs <> "s") : opts
-      args' = byteStringInput arg
-
-    IPFS.runProc readProcess ipfs args' byteStringOutput opts' <&> \case
-      (ExitSuccess, contents, _) ->
-        Right contents
-
-      (ExitFailure _, _, stdErr)
-        | Lazy.isSuffixOf "context deadline exceeded" stdErr ->
-            Left $ IPFS.Process.Timeout secs
-
-        | otherwise ->
-            Left $ IPFS.Process.UnknownErr stdErr
-
 instance IPFS.MonadRemoteIPFS Server where
   runRemote query = do
     manager      <- asks ipfsHttpManager
@@ -459,15 +438,18 @@ instance App.Content.Initializer Server where
   placeholder = asks appPlaceholder
 
 instance JWT.Resolver Server where
-  resolve cid@(IPFS.CID hash) =
-    IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash) <&> \case
-      Left errMsg ->
-        Left $ CannotResolve cid errMsg
+  resolve cid =
+    IPFS.ipfsCat cid >>= \case
+      Left clientErr ->
+        return . Left $ CannotResolve cid clientErr
 
-      Right (Lazy.toStrict -> resolvedBS) ->
-        case eitherDecodeStrict resolvedBS of
-          Left  _   -> Left $ InvalidJWT resolvedBS
-          Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
+      Right (Serialized resolvedLBS) ->
+        let
+          resolvedBS = Lazy.toStrict resolvedLBS
+        in
+          case eitherDecodeStrict resolvedBS of
+            Left  _   -> return . Left $ InvalidJWT resolvedBS
+            Right jwt -> return $ Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
 
 instance ServerDID Server where
   getServerDID = asks fissionDID

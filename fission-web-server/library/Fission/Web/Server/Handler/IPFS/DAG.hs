@@ -3,9 +3,7 @@ module Fission.Web.Server.Handler.IPFS.DAG (put) where
 import           Database.Esqueleto
 
 import           Network.IPFS
-import qualified Network.IPFS.DAG                       as IPFS.DAG
-import           Network.IPFS.File.Types                as File
-import qualified Network.IPFS.Pin                       as IPFS.Pin
+import           Network.IPFS.Client.Streaming.Pin
 
 import           Servant
 
@@ -18,9 +16,12 @@ import qualified Fission.Web.Server.Error               as Web.Err
 import           Fission.Web.Server.LoosePin.Creator    as LoosePin
 import           Fission.Web.Server.MonadDB
 
+import qualified Fission.Web.Server.IPFS.Client.DAG     as IPFS
+import           Fission.Web.Server.IPFS.Cluster        as Cluster
+
 put ::
   ( MonadRemoteIPFS    m
-  , MonadLocalIPFS     m
+  , MonadIPFSCluster   m PinStatus
   , MonadLogger        m
   , MonadThrow         m
   , MonadTime          m
@@ -28,20 +29,8 @@ put ::
   , LoosePin.Creator t
   )
   => ServerT API.DAG.Upload m
-put (Serialized rawData) Authorization {about = Entity userId _} =
-  IPFS.DAG.put rawData >>= \case
-    Left err ->
-      Web.Err.throw err
-
-    Right newCID ->
-      IPFS.Pin.add newCID >>= \case
-        Left err ->
-          Web.Err.throw err
-
-        Right pinnedCID -> do
-          newCID
-            |> return
-            |> LoosePin.createMany userId
-            |> runDBNow
-
-          return pinnedCID
+put file Authorization {about = Entity userId _} = do
+  IPFS.Response newCID <- Web.Err.ensureM $ IPFS.dagPut file
+  _                    <- Web.Err.ensureM $ Cluster.pinStream newCID
+  runDBNow $ LoosePin.createMany userId [newCID]
+  return newCID
