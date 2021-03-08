@@ -11,21 +11,15 @@ import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Client                   as IPFS
 import           Network.IPFS.Client.Pin               as Pin
 import           Network.IPFS.Client.Streaming.Pin     as Pin
-import qualified Network.IPFS.File.Types               as File
-
 
 import           Servant.Client
 import qualified Servant.Client.Streaming              as Streaming
-import           Servant.Multipart
 
 -- ⚛️
 
 import           Fission.Prelude
 
 import           Fission.Web.Async
-
-import qualified Fission.Web.Server.File.Form.Types    as File
-import           Fission.Web.Server.IPFS.Client.DAG    as DAG
 import           Fission.Web.Server.IPFS.Cluster.Class
 
 pin :: MonadIPFSCluster m Pin.Response => CID -> m (Either ClientError Pin.Response)

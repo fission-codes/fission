@@ -13,6 +13,8 @@ import qualified Data.Yaml                                       as YAML
 
 import           Servant
 
+import qualified Network.HostName                                as Network
+
 import qualified Network.HTTP.Client                             as HTTP
 import qualified Network.HTTP.Client.TLS                         as HTTP
 
@@ -85,6 +87,9 @@ runInProd overrideVerbose action = do
   putStrLnIO "   📥 Loading the Fission Server's env.yaml"
   env <- YAML.decodeFileThrow  "./env.yaml"
 
+  machineName <- Network.getHostName
+  putStrLnIO $ "   🦾 Got machine host name: " <> Text.pack  machineName
+
   let
     AWS.Environment        {..} = env |> aws
     Auth.Environment       {..} = env |> auth
@@ -147,7 +152,7 @@ runInProd overrideVerbose action = do
   tlsManager <- HTTP.newManager tlsHttpSettings
 
   putStrLnIO "   💂 Configuring optional Sentry middleware"
-  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host RIO.LevelWarn) sentryDSN
+  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host environment RIO.LevelWarn) sentryDSN
 
   let
     logOpts =

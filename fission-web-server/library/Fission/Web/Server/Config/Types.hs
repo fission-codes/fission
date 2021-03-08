@@ -5,6 +5,7 @@ import qualified Network.HTTP.Client                       as HTTP
 import           Network.IPFS.CID.Types
 
 import qualified Network.AWS.Auth                          as AWS
+import qualified Network.HostName                          as Network
 import qualified Network.IPFS.Types                        as IPFS
 
 import           Data.Pool
@@ -14,6 +15,8 @@ import           Fission.Prelude
 
 import           Fission.URL.Types                         as URL
 import           Fission.User.DID.Types
+
+import           Fission.Web.API.Remote                    (Remote)
 
 import           Fission.Web.Server.Host.Types
 
@@ -60,6 +63,8 @@ data Config = Config
   , sibTemplateId     :: SIB.TemplateId
   --
   , host              :: Host
+  , machineName       :: Network.HostName
+  , environment       :: Remote
   , fissionDID        :: DID
   , serverZoneID      :: AWS.ZoneID
   , liveDriveURL      :: URL
@@ -103,6 +108,8 @@ instance Show Config where
     , "  sibTemplateId     = " <> show sibTemplateId
     --
     , "  host              = " <> show host
+    , "  machineName       = " <> machineName
+    , "  environment       = " <> show environment
     , "  fissionDID        = " <> show fissionDID
     , "  serverZoneID      = " <> show serverZoneID
     , "  liveDriveURL      = " <> show liveDriveURL

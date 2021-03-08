@@ -18,17 +18,19 @@ import qualified Servant.Client.Core                    as Servant
 
 import           Fission.Prelude                        hiding (onException)
 
+import           Fission.Web.API.Remote
+
 import           Fission.Web.Server.Host.Types
 import qualified Fission.Web.Server.Sentry.DSN.Types    as Sentry
 
 import qualified Paths_fission_web_server               as Fission
 
 -- | Instantiate a Sentry logger
-mkLogger :: MonadUnliftIO m => Host -> RIO.LogLevel -> Sentry.DSN -> m LogFunc
-mkLogger host minRIOLogLevel (Sentry.DSN dsn) = do
+mkLogger :: MonadUnliftIO m => Host -> Remote -> RIO.LogLevel -> Sentry.DSN -> m LogFunc
+mkLogger host remote minRIOLogLevel (Sentry.DSN dsn) = do
   raven <- liftIO $ initRaven dsn identity sendRecord silentFallback
   raven
-    |> logger host minRIOLogLevel
+    |> logger host remote minRIOLogLevel
     |> mkLogFunc
     |> pure
 
@@ -36,6 +38,7 @@ mkLogger host minRIOLogLevel (Sentry.DSN dsn) = do
 logger
   :: MonadUnliftIO m
   => Host
+  -> Remote
   -> RIO.LogLevel
   -> SentryService
   -> CallStack
@@ -43,7 +46,7 @@ logger
   -> RIO.LogLevel
   -> Utf8Builder
   -> m ()
-logger (Host host) minRIOLogLevel sentryService _cs _logSource logLevel msg =
+logger (Host host) remote minRIOLogLevel sentryService _cs _logSource logLevel msg =
   liftIO $ when (logLevel >= minRIOLogLevel) do
     now <- getCurrentTime
     register sentryService loggerName level message (sentryRecord now)
@@ -57,12 +60,13 @@ logger (Host host) minRIOLogLevel sentryService _cs _logSource logLevel msg =
     sentryRecord :: UTCTime -> SentryRecord -> SentryRecord
     sentryRecord time oldRecord =
       oldRecord
-        { srMessage    = message
-        , srLevel      = level
-        , srTimestamp  = time
-        , srPlatform   = Just "Haskell/Servant"
-        , srServerName = Just $ Servant.baseUrlHost host
-        , srRelease    = Just $ showVersion Fission.version
+        { srMessage     = message
+        , srLevel       = level
+        , srTimestamp   = time
+        , srPlatform    = Just "Haskell/Servant"
+        , srServerName  = Just $ Servant.baseUrlHost host
+        , srRelease     = Just $ showVersion Fission.version
+        , srEnvironment = Just $ show remote
         }
 
 -- | The name to report this logger as to Sentry

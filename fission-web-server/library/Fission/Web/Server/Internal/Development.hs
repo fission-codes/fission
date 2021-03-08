@@ -15,6 +15,8 @@ import           Database.Persist.Sql                      (SqlBackend)
 
 import           Servant.Client
 
+import qualified Network.HostName                          as Network
+
 import qualified Network.HTTP.Client                       as HTTP
 import qualified Network.HTTP.Client.TLS                   as HTTP
 
@@ -23,8 +25,11 @@ import qualified Network.IPFS.Types                        as IPFS
 import           Fission.Prelude
 
 import           Fission.Internal.Fixture.Key.Ed25519      as Fixture.Ed25519
+
 import           Fission.URL.Types
 import           Fission.User.DID.Types
+
+import           Fission.Web.API.Remote
 
 import           Fission.Web.Server
 import qualified Fission.Web.Server.AWS.Types              as AWS
@@ -87,6 +92,7 @@ run ::
   -> Server a
   -> IO a
 run logFunc dbPool processCtx httpManager tlsManager action = do
+  machineName       <- Network.getHostName
   linkRelayStoreVar <- atomically $ newTVar mempty
   let config = Config {..}
 
@@ -107,6 +113,8 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
       { publicKey = Fixture.Ed25519.pk
       , method    = Key
       }
+
+    environment = LocalDev
 
     baseAppZoneID  = AWS.ZoneID "BASE_APP_ZONE_ID"
     userZoneID     = AWS.ZoneID "USER_ZONE_ID"
@@ -142,7 +150,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
      > logOptions   <- logOptionsHandle stdout True
      > (logFunc, ) <- newLogFunc $ setLogUseTime True logOptions
      >
-     > let cfg = mkConfig dbPool processCtx httpManager logFunc
+     > let cfg = mkConfig dbPool processCtx httpManager logFunc "testmachine"
      > let run' = runServer cfg
      >
      > run' Network.IPFS.Peer.all
@@ -164,8 +172,9 @@ mkConfig ::
   -> HTTP.Manager
   -> LogFunc
   -> TVar Relay.Store
+  -> Network.HostName
   -> Config
-mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Config {..}
+mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar machineName = Config {..}
   where
     ipfsHttpManager = httpManager
 
@@ -189,6 +198,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar = Co
     userZoneID     = AWS.ZoneID "USER_ZONE_ID"
     serverZoneID   = AWS.ZoneID "SERVER_ZONE_ID"
 
+    environment    = LocalDev
     userRootDomain = "userootdomain.net"
 
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
@@ -235,9 +245,10 @@ mkConfig' = do
 
   -- A bit dirty; doesn't directly handle teardown
   (logFunc, close) <- newLogFunc . setLogUseTime True =<< logOptionsHandle stdout True
+  machineName      <- Network.getHostName
 
   withDBPool logFunc connectionInfo (PoolSize 4) \dbPool -> do
-    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar
+    let cfg = mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar machineName
     return (cfg, close)
 
 connectionInfo :: ConnectionInfo

@@ -140,6 +140,7 @@ dependencies:
 
   ## Fission ##
   - fission-core
+  - fission-web-api
   - fission-web-client
 
 library:
