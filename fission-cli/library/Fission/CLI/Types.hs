@@ -44,7 +44,8 @@ import           Servant.Client
 
 import qualified Turtle
 
-import           Fission.Prelude                                   hiding (mask, uninterruptibleMask)
+import           Fission.Prelude                                   hiding (mask,
+                                                                    uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.DNS                                       as DNS
@@ -251,11 +252,11 @@ instance
     storePath      <- ucanStorePath
     store          <- WebNative.Mutation.Auth.getAll
 
-    _              <- ensureM $ IPFS.addFile (encode ogUCAN)   "ucan.jwt" -- For CID references
-    (_, CID hash') <- ensureM $ IPFS.addFile (encode token) "bearer.jwt"
+    _              <- ensureM $ IPFS.addFile (encode ogUCAN) "ucan.jwt" -- For CID references
+    (_, CID hash') <- ensureM $ IPFS.addFile (encode token)  "bearer.jwt"
 
     let
-      -- TODO fix in ipfs-haskell smart constructor
+      -- FIXME fix in ipfs-haskell smart constructor
       cleanHash =
         hash'
           |> Text.dropPrefix "\""
@@ -302,7 +303,7 @@ instance
       newDIDStore    = Map.insert subGraphRoot aesKey oldDIDStore
       newGlobalStore = Map.insert did newDIDStore store
 
-    logDebug @Text "Writing updated WNFS store"
+    logDebug @Text "✍️  Writing updated WNFS store"
     storePath `JSON.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
 
   getAllMatching did subGraphRoot = do
@@ -552,8 +553,7 @@ instance
           Nothing    -> rawProcess
           Just inArg -> setStdin (byteStringInput inArg) rawProcess
 
-    logDebug $ "🌌 Running: " <> processStr <> " with arg " <> show pipeArg
-
+    logDebug $ "🌌⚙️  Running: " <> processStr <> " with arg " <> show pipeArg
     Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
 
     readProcess process >>= \case

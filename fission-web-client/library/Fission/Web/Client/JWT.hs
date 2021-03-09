@@ -1,7 +1,7 @@
 module Fission.Web.Client.JWT (mkAuthReq) where
 
-import qualified RIO.ByteString.Lazy                 as Lazy
-import qualified RIO.Text                            as Text
+-- import qualified RIO.ByteString.Lazy                 as Lazy
+-- import qualified RIO.Text                            as Text
 
 import qualified Crypto.PubKey.Ed25519               as Ed25519
 

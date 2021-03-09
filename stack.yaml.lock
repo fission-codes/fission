@@ -75,12 +75,12 @@ packages:
   original:
     hackage: raven-haskell-0.1.4.0
 - completed:
-    hackage: rescue-0.2.1@sha256:ff687f7a4f6439cd3207f5fcac88d4f5f70878dc6f14b04b4771f2fee7f120fe,4762
+    hackage: rescue-0.4.0@sha256:2fd39539e60f7920f829e083fdafd981550bb6e5e38af752692ba4a7b88d44df,5023
     pantry-tree:
-      size: 1722
-      sha256: 722f36197e88f77cdb39357e6683607f35810ba3cfbf9c007490df81250f5f2b
+      size: 1963
+      sha256: 98d8c86faaab0f58e420792c059f12e217a4acbb768bdddd9174449ddb0f1310
   original:
-    hackage: rescue-0.2.1
+    hackage: rescue-0.4.0
 - completed:
     hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
     pantry-tree:

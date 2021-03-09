@@ -58,10 +58,15 @@ instance
       return $ path </> "machine_id.ed25519"
 
     parse _pxy bs = do
-      logDebug @Text "🧬 Parsing signing key"
-      return case Ed25519.secretKey bs of
-        CryptoPassed sk  -> Right sk
-        CryptoFailed err -> Left $ Key.ParseError err
+      logDebug @Text "🧬🔬 Parsing signing key"
+      case Ed25519.secretKey bs of
+        CryptoPassed sk -> do
+          logInfo @Text "🧬👍 Loaded signing key"
+          return $ Right sk
+
+        CryptoFailed err -> do
+          logWarn @Text "🧬🛑 Unable to parse signing key"
+          return . Left $ Key.ParseError err
 
 instance
   ( MonadIO          m

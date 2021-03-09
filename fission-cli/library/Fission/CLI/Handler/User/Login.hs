@@ -45,7 +45,7 @@ import           Fission.User.DID.Types
 import           Fission.User.Username                       as Username
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.User                     as User
+-- import qualified Fission.Web.Client.User                     as User
 import qualified Fission.Web.Serialization                   as Web.Serialization
 
 -- 🛂 JWT/UCAN

@@ -142,7 +142,7 @@ getOrRetrievePeers ::
   -> m [IPFS.Peer]
 getOrRetrievePeers Env {peers = []} = do
   nonEmptyPeers <- Peers.getPeers
-  logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow nonEmptyPeers
+  logDebug $ "✍️  Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow nonEmptyPeers
 
   path    <- absPath
   current <- YAML.readFile @Env path

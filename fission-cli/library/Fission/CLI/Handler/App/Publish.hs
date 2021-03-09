@@ -88,6 +88,7 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME upda
           raise err
 
         Right cid@(CID hash) -> do
+          logDebug $ "📱 Directory CID is " <> hash
           proof <- getRootUserProof
           req   <- App.update appURL cid (Just updateData) <$> Client.attachAuth proof
 
