@@ -10,7 +10,7 @@ import           Fission.Prelude
 import qualified Fission.Key.Symmetric.Types as Symmetric
 
 newtype EncryptedWith inner cipher
-  = EncryptedPayload { cipherLBS :: Lazy.ByteString }
+  = EncryptedPayload { cipherLBS :: Lazy.ByteString } -- FIXME needs to be b64?
   deriving newtype (Eq, Show)
 
 instance Display (EncryptedWith inner cipher) where

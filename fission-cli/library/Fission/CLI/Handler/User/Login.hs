@@ -122,7 +122,7 @@ login = do
     baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
-    Right () -> produce signingSK baseURL -- FIXME consume signingSK baseURL
+    Right () -> consume signingSK baseURL
     Left  _  -> produce signingSK baseURL
 
 type ConsumerConstraints m =
@@ -191,7 +191,8 @@ consume signingSK baseURL = do
 
         logDebug @Text "🤝 Device linking handshake: Step 4"
         ensureM $ UCAN.check sessionDID rawContent jwt
-        -- FIXME waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
+
+        -- TODO waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
         ensure $ UCAN.containsFact jwt \facts ->
           if any (== SessionKey sessionKey) facts
             then Right ()

@@ -44,8 +44,7 @@ import           Servant.Client
 
 import qualified Turtle
 
-import           Fission.Prelude                                   hiding (mask,
-                                                                    uninterruptibleMask)
+import           Fission.Prelude                                   hiding (mask, uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.DNS                                       as DNS
