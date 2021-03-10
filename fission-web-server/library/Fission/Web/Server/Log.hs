@@ -31,13 +31,13 @@ rioApacheLogger Request {..} Status {..} _mayInt =
     formatted :: Utf8Builder
     formatted =
       mconcat
-        [ "[client "      <> displayShow remoteHost          <> "] "
-        , "[httpVersion " <> displayShow httpVersion         <> "] "
-        , "[status "      <> display statusCode              <> "] "
-        , "[method "      <> displayBytesUtf8 requestMethod  <> "] "
-        , pathInfo
-        , "[headers "     <> displayBytesUtf8 headers'       <> "] "
-        , "[message "     <> displayBytesUtf8 statusMessage' <> "] "
+        [ "[client "      <> displayShow      remoteHost    <> "] "
+        , "[httpVersion " <> displayShow      httpVersion   <> "] "
+        , "[status "      <> display          statusCode    <> "] "
+        , "[method "      <> displayBytesUtf8 requestMethod <> "] "
+        , pathInfo'
+        , "[headers "     <> displayBytesUtf8 headers'      <> "] "
+        , "[message "     <> displayBytesUtf8 statusMessage <> "] "
         ]
 
     headers' =
