@@ -54,7 +54,7 @@ rioApacheLogger Request {..} Status {..} _mayInt =
     pathInfo' =
       if rawPathInfo == ""
         then ""
-        else "[path " <> displayBytesUtf8 rawPathInfo <> queryString' <> "]"
+        else displayBytesUtf8 rawPathInfo <> queryString'
 
     queryString' =
       if rawQueryString == ""
