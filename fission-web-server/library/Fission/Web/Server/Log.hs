@@ -34,14 +34,14 @@ rioApacheLogger Request {..} Status {..} _mayInt =
     formatted :: Utf8Builder
     formatted =
       mconcat $ List.intersperse " "
-        [ displayShow remoteHost
+        [ displayShow      remoteHost
         , "- -"
-        , displayShow httpVersion
-        , display statusCode
+        , displayShow      httpVersion
+        , display          statusCode
+        , displayBytesUtf8 statusMessage
         , displayBytesUtf8 requestMethod
         , pathInfo'
         , displayBytesUtf8 headers'
-        , displayBytesUtf8 statusMessage
         ]
 
     headers' =
