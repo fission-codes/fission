@@ -2,7 +2,6 @@ module Fission.Web.Server.Handler.IPFS.Upload (add) where
 
 import           Database.Esqueleto
 
-import qualified Network.IPFS.Client.Pin                as IPFS.Pin
 import           Network.IPFS.File.Types                as File
 import           Network.IPFS.Remote.Class              as IPFS
 
@@ -28,6 +27,9 @@ add ::
   => ServerT API.IPFS.Upload m
 add (Serialized rawData) Authorization {about = Entity userId _} =
   IPFS.ipfsAdd rawData >>= \case
+    Left err ->
+      Web.Err.throw err
+
     Right newCID ->
       IPFS.ipfsPin newCID >>= \case
         Right _ -> do
@@ -36,6 +38,3 @@ add (Serialized rawData) Authorization {about = Entity userId _} =
 
         Left err ->
           Web.Err.throw err
-
-    Left err ->
-      Web.Err.throw err

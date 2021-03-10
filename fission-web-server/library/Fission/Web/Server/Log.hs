@@ -35,7 +35,7 @@ rioApacheLogger Request {..} Status {..} _mayInt =
     formatted =
       mconcat $ List.intersperse " "
         [ displayShow remoteHost
-        , " - - "
+        , "- -"
         , displayShow httpVersion
         , display statusCode
         , displayBytesUtf8 requestMethod
