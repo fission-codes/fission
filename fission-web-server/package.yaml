@@ -1,5 +1,5 @@
 name: fission-web-server
-version: '2.11.5.0'
+version: '2.11.5.2'
 category: API
 author:
   - Brooklyn Zelenka

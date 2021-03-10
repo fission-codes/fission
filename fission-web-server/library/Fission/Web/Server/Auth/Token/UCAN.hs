@@ -54,7 +54,8 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} =
     Left err ->
       throwM err
 
-    Right JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} ->
+    Right JWT {claims = JWT.Claims {sender = did@DID {publicKey = pk}}} -> do
+      logDebug $ "Got user DID: " <> encode did
       runDB (User.getByPublicKey pk) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User
