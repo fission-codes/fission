@@ -34,7 +34,7 @@ rioApacheLogger Request {..} Status {..} _mayInt =
         [ "[client "      <> displayShow remoteHost          <> "] "
         , "[httpVersion " <> displayShow httpVersion         <> "] "
         , "[status "      <> display statusCode              <> "] "
-        , "[method "      <> displayBytesUtf8 requestMethod' <> "] "
+        , "[method "      <> displayBytesUtf8 requestMethod  <> "] "
         , pathInfo
         , "[headers "     <> displayBytesUtf8 headers'       <> "] "
         , "[message "     <> displayBytesUtf8 statusMessage' <> "] "
