@@ -47,7 +47,7 @@ logger
   -> Utf8Builder
   -> m ()
 logger (Host host) remote minRIOLogLevel sentryService _cs _logSource logLevel msg =
-  liftIO $ when (logLevel >= minRIOLogLevel) do
+  liftIO $ when (logLevel >= RIO.LevelWarn) do
     now <- getCurrentTime
     register sentryService loggerName level message (sentryRecord now)
   where
