@@ -10,7 +10,12 @@ let
   tasks = commands {
     inherit pkgs;
     inherit unstable;
+    inherit server-path;
+    inherit server-port;
   };
+
+  server-path = ~/.local/bin/server;
+  server-port = 10235;
 
   ghc = unstable.ghc;
 
@@ -47,11 +52,6 @@ let
       unstable.haskellPackages.implicit-hie
     ];
 
-    fun = [
-      pkgs.figlet
-      pkgs.lolcat
-    ];
-   
     macos =
       if pkgs.stdenv.isDarwin then
         [ unstable.darwin.apple_sdk.frameworks.CoreServices
@@ -73,14 +73,11 @@ unstable.haskell.lib.buildStackProject {
     deps.data
     deps.macos
     deps.haskell 
-    deps.fun
     tasks
   ];
 
   shellHook = ''
     export LANG=C.UTF8
-  
-    echo "🌈✨ Welcome to the glorious... "
-    ${pkgs.figlet}/bin/figlet "Fission Build Env" | lolcat -a -s 50
+    touch ${server-path}
   '';
 }

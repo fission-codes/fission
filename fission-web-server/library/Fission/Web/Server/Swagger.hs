@@ -65,7 +65,7 @@ fission proxy appHost =
 
     fissionContact =
       mempty
-        |> name  ?~"Team Fission"
+        |> name  ?~ "Team Fission"
         |> url   ?~ URL "https://fission.codes"
         |> email ?~ "support@fission.codes"
 

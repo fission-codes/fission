@@ -1,5 +1,5 @@
 name: fission-web-server
-version: '2.11.5.2'
+version: '2.11.5.3'
 category: API
 author:
   - Brooklyn Zelenka
@@ -177,7 +177,7 @@ library:
   source-dirs: library
 
 executables:
-  server:
+  fission-server:
     main: Main.hs
     source-dirs: server
     dependencies:

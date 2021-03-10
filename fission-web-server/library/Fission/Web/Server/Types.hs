@@ -22,7 +22,7 @@ import           Servant.Server.Experimental.Auth
 import qualified Servant.Types.SourceT                     as Stream
 
 import           Network.AWS                               as AWS hiding
-                                                                  (Request,
+                                                                   (Request,
                                                                    Seconds)
 import           Network.AWS.Route53
 
@@ -66,9 +66,9 @@ import           Fission.Web.Server.IPFS.Linked
 import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
 import           Fission.Web.Server.Heroku.Types           as Heroku
 
+import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.AWS                    as AWS
 import           Fission.Web.Server.AWS.Route53            as Route53
-import           Fission.Web.Server.Authorization.Types
 
 import           Fission.Web.Server.Auth                   as Auth
 import qualified Fission.Web.Server.Auth.DID               as Auth.DID
@@ -585,25 +585,25 @@ instance User.Modifier Server where
         return . Error.openLeft $ NotFound @User
 
       Just (Entity _ User { userUsername }) ->
-        IPFS.Stat.getSizeRemote newCID >>= \case
+        Cluster.pinStream newCID >>= \case
           Left err ->
-            return $ Error.openLeft err
+            return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
 
-          Right size -> do
-            Cluster.pinStream newCID >>= \case
+          Right _ -> do
+            zoneID <- asks userZoneID
+            userDataDomain <- asks userRootDomain
+
+            let
+              url = URL
+                { domainName = userDataDomain
+                , subdomain  = Just $ Subdomain (textDisplay userUsername <> ".files")
+                }
+
+            IPFS.Stat.getSizeRemote newCID >>= \case
               Left err ->
-                return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
+                return $ Error.openLeft err
 
-              Right _ -> do
-                zoneID <- asks userZoneID
-                userDataDomain <- asks userRootDomain
-
-                let
-                  url = URL
-                    { domainName = userDataDomain
-                    , subdomain  = Just $ Subdomain (textDisplay userUsername <> ".files")
-                    }
-
+              Right size -> do
                 DNSLink.set userId url zoneID newCID >>= \case
                   Left err -> return $ Error.relaxedLeft err
                   Right _  -> Right <$> runDB (User.setDataDB userId newCID size now)
@@ -644,35 +644,35 @@ instance App.Creator Server where
 
 instance App.Modifier Server where
   setCID userId url newCID copyFiles now =
-    IPFS.Stat.getSizeRemote newCID >>= \case
+    runDB (App.Domain.primarySibling userId url) >>= \case
       Left err ->
-        return $ Error.openLeft err
+        return $ relaxedLeft err
 
-      Right size ->
-        runDB (App.Domain.primarySibling userId url) >>= \case
+      Right (Entity _ AppDomain {..}) ->
+        Domain.getByDomainName appDomainDomainName >>= \case
           Left err ->
-            return $ relaxedLeft err
+            return $ openLeft err
 
-          Right (Entity _ AppDomain {..}) ->
-            Domain.getByDomainName appDomainDomainName >>= \case
+          Right Domain {domainZoneId} -> do
+            result <- if copyFiles
+                        then
+                          Cluster.pinStream newCID >>= \case
+                            Right _  -> return ok
+                            Left err -> return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
+
+                        else
+                          return ok
+
+            case result of
               Left err ->
-                return $ openLeft err
+                return $ Left err
 
-              Right Domain {domainZoneId} -> do
-                result <- if copyFiles
-                            then
-                              Cluster.pinStream newCID >>= \case
-                                Right _  -> return ok
-                                Left err -> return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
-
-                            else
-                              return ok
-
-                case result of
+              Right _ ->
+                IPFS.Stat.getSizeRemote newCID >>= \case
                   Left err ->
-                    return $ Left err
+                    return $ Error.openLeft err
 
-                  Right _ ->
+                  Right size ->
                     DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
                       Left err -> return $ relaxedLeft err
                       Right _  -> runDB (App.setCidDB userId url newCID size copyFiles now)

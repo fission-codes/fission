@@ -49,13 +49,13 @@ toAuthorization ::
   )
   => JWT
   -> m Authorization
-toAuthorization jwt@JWT {claims = JWT.Claims {..}} =
+toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
+  logDebug @Text "🛂 Authorizing UCAN..."
   getRoot jwt >>= \case
     Left err ->
       throwM err
 
-    Right JWT {claims = JWT.Claims {sender = did@DID {publicKey = pk}}} -> do
-      logDebug $ "Got user DID: " <> encode did
+    Right JWT {claims = JWT.Claims {sender = did@DID {publicKey = pk}}} ->
       runDB (User.getByPublicKey pk) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User
