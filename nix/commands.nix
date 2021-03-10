@@ -114,7 +114,7 @@
         ${git} pull \
         && ${server-install.script} \
         && ${killall} fission-server \
-        && printf "🚨 Don't forget to release a new version of the CLI 📟✨" \
+        ;  printf "🚨 Don't forget to release a new version of the CLI 📟✨" \
         && ${server-start.script}
       '';
 
