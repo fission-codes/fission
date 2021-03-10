@@ -3,7 +3,10 @@ module Fission.Web.Server.Log
   , fromLogFunc
   ) where
 
+import qualified Data.CaseInsensitive      as Case
+
 import qualified RIO.ByteString.Lazy       as Lazy
+import qualified RIO.List                  as List
 import qualified RIO.Map                   as Map
 
 import           Network.HTTP.Types.Status
@@ -30,19 +33,20 @@ rioApacheLogger Request {..} Status {..} _mayInt =
   where
     formatted :: Utf8Builder
     formatted =
-      mconcat
-        [ "[client "      <> displayShow      remoteHost    <> "] "
-        , "[httpVersion " <> displayShow      httpVersion   <> "] "
-        , "[status "      <> display          statusCode    <> "] "
-        , "[method "      <> displayBytesUtf8 requestMethod <> "] "
+      mconcat $ List.intersperse " "
+        [ displayShow remoteHost
+        , " - - "
+        , displayShow httpVersion
+        , display statusCode
+        , displayBytesUtf8 requestMethod
         , pathInfo'
-        , "[headers "     <> displayBytesUtf8 headers'      <> "] "
-        , "[message "     <> displayBytesUtf8 statusMessage <> "] "
+        , displayBytesUtf8 headers'
+        , displayBytesUtf8 statusMessage
         ]
 
     headers' =
       requestHeaders
-        |> fmap (\(k, v) -> (show k, show v))
+        |> fmap (\(k, v) -> (decodeUtf8Lenient (Case.original k), decodeUtf8Lenient v))
         |> Map.fromList
         |> encode
         |> Lazy.toStrict

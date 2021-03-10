@@ -26,11 +26,11 @@ import qualified Fission.Web.Server.Sentry.DSN.Types    as Sentry
 import qualified Paths_fission_web_server               as Fission
 
 -- | Instantiate a Sentry logger
-mkLogger :: MonadUnliftIO m => Host -> Remote -> RIO.LogLevel -> Sentry.DSN -> m LogFunc
-mkLogger host remote minRIOLogLevel (Sentry.DSN dsn) = do
+mkLogger :: MonadUnliftIO m => Host -> Remote -> Sentry.DSN -> m LogFunc
+mkLogger host remote (Sentry.DSN dsn) = do
   raven <- liftIO $ initRaven dsn identity sendRecord silentFallback
   raven
-    |> logger host remote minRIOLogLevel
+    |> logger host remote
     |> mkLogFunc
     |> pure
 
@@ -39,14 +39,13 @@ logger
   :: MonadUnliftIO m
   => Host
   -> Remote
-  -> RIO.LogLevel
   -> SentryService
   -> CallStack
   -> LogSource
   -> RIO.LogLevel
   -> Utf8Builder
   -> m ()
-logger (Host host) remote minRIOLogLevel sentryService _cs _logSource logLevel msg =
+logger (Host host) remote sentryService _cs _logSource logLevel msg =
   liftIO $ when (logLevel >= RIO.LevelWarn) do
     now <- getCurrentTime
     register sentryService loggerName level message (sentryRecord now)

@@ -13,17 +13,16 @@ import qualified Data.Yaml                                       as YAML
 
 import           Servant
 
-import qualified Network.HostName                                as Network
-
 import qualified Network.HTTP.Client                             as HTTP
 import qualified Network.HTTP.Client.TLS                         as HTTP
 
+import qualified Network.HostName                                as Network
 import           Network.IPFS.Timeout.Types                      as IPFS
+
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
 
-import qualified RIO
 import qualified RIO.ByteString                                  as BS
 import qualified RIO.Text                                        as Text
 
@@ -56,15 +55,15 @@ import qualified Fission.Web.Server.Heroku.ID.Types              as Hku
 import qualified Fission.Web.Server.Heroku.Password.Types        as Hku
 import qualified Fission.Web.Server.Sentry                       as Sentry
 
-import qualified Fission.Web.Server.Environment.AWS.Types        as AWS
 import qualified Fission.Web.Server.Environment.Auth.Types       as Auth
+import qualified Fission.Web.Server.Environment.AWS.Types        as AWS
 import           Fission.Web.Server.Environment.IPFS.Types       as IPFS
 import qualified Fission.Web.Server.Environment.SendInBlue.Types as SendInBlue
 import qualified Fission.Web.Server.Environment.Server.Types     as Server
 import qualified Fission.Web.Server.Environment.Storage.Types    as Storage
 import           Fission.Web.Server.Environment.Types
-import qualified Fission.Web.Server.Environment.WNFS.Types       as WNFS
 import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
+import qualified Fission.Web.Server.Environment.WNFS.Types       as WNFS
 
 runInProdSimple :: Fission.Server () -> IO ()
 runInProdSimple action = runInProd (Just True) \_ _ -> do
@@ -86,9 +85,6 @@ runInProd overrideVerbose action = do
 
   putStrLnIO "   📥 Loading the Fission Server's env.yaml"
   env <- YAML.decodeFileThrow  "./env.yaml"
-
-  machineName <- Network.getHostName
-  putStrLnIO $ "   🦾 Got machine host name: " <> Text.pack  machineName
 
   let
     AWS.Environment        {..} = env |> aws
@@ -152,16 +148,13 @@ runInProd overrideVerbose action = do
   tlsManager <- HTTP.newManager tlsHttpSettings
 
   putStrLnIO "   💂 Configuring optional Sentry middleware"
-  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host environment RIO.LevelWarn) sentryDSN
+  condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host environment) sentryDSN
 
-  let
-    logOpts =
-      logOptions
-        |> setLogUseLoc  False
-        |> setLogUseTime True
+  putStrLnIO "   📛 Getting machine name"
+  machineName <- Network.getHostName
 
   putStrLnIO "   📋 Setting up application logger"
-  withLogFunc logOpts \baseLogger -> do
+  withLogFunc (setLogUseTime True logOptions) \baseLogger -> do
     let
       condDebug    = if pretty then identity else logStdoutDev
       runSettings' = if isTLS then runTLS tlsSettings' else runSettings
