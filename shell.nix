@@ -14,7 +14,7 @@ let
     inherit server-port;
   };
 
-  server-path = "~/.local/bin/server";
+  server-path = "~/.local/bin/fission-server";
   server-port = 10235;
 
   ghc = unstable.ghc;
