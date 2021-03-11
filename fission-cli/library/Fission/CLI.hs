@@ -12,7 +12,6 @@ import           Servant.Client.Core
 import qualified Network.IPFS.Timeout.Types                     as IPFS
 import qualified Network.IPFS.URL.Types                         as IPFS
 
-
 import           Fission.Prelude
 
 import           Fission.Error

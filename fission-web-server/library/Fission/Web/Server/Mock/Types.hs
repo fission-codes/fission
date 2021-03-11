@@ -13,7 +13,6 @@ import           Control.Monad.Writer
 
 import           Database.Esqueleto                        as Database
 
-import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
 import qualified Network.IPFS.Types                        as IPFS
 
@@ -158,11 +157,6 @@ instance
     Effect.log $ FollowDNSLink toSet toFollow
     runner <- asks followDNSLink
     return $ runner toSet toFollow
-
-instance IsMember RunLocalIPFS effs => MonadLocalIPFS (Mock effs) where
-  runLocal _ _ = do
-    Effect.log RunLocalIPFS
-    asks localIPFSCall
 
 instance IsMember RunRemoteIPFS effs => MonadRemoteIPFS (Mock effs) where
   runRemote _ = do

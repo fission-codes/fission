@@ -8,12 +8,8 @@ module Fission.Web.Server.Error
   , module Fission.Web.Server.Error.Class
   ) where
 
-import           Network.HTTP.Types.Status
-import qualified RIO.ByteString.Lazy                               as Lazy
-import           Servant.Server
-
 import           Fission.Prelude                                   hiding
-                                                                    (ensure,
+                                                                   (ensure,
                                                                     ensureM)
 
 import           Fission.Web.Server.Error.Class
@@ -61,11 +57,5 @@ throw ::
   => err
   -> m a
 throw err = do
-  let
-    serverError@ServerError {..} = toServerError err
-    status = Status errHTTPCode $ Lazy.toStrict errBody
-
-  when (statusIsServerError status) do
-    logError $ textDisplay err
-
-  throwM serverError
+  logError $ textDisplay err
+  throwM $ toServerError err
