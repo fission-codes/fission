@@ -26,8 +26,6 @@ import           Fission.CLI.Environment         as Env
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
 
-import           Fission.CLI.Environment.Path
-
 -- | The command to attach to the CLI tree
 whoami ::
   ( MonadIO          m
@@ -71,6 +69,6 @@ whoami = do
               DecodeFailure _ _ -> "Trouble decoding the registration response."
               _                 -> "Invalid content type."
 
-      global <- globalDir
+      global <- getGlobalPath
       UTF8.putTextLn $ "Please contact Fission support at https://fission.codes or delete " <> Text.pack global <> " and try again."
       raise err
