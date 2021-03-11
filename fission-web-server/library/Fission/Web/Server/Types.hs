@@ -61,7 +61,6 @@ import           Fission.Web.Server.WNFS                   as WNFS
 import           Fission.Web.Server.IPFS.Cluster           as Cluster
 import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
 import           Fission.Web.Server.IPFS.Linked
--- import           Fission.Web.Server.IPFS.Streaming.Pin.Types
 
 import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
 import           Fission.Web.Server.Heroku.Types           as Heroku

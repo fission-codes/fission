@@ -17,8 +17,6 @@ let
   server-path = "~/.local/bin/fission-server";
   server-port = 10235;
 
-  ghc = unstable.ghc;
-
   deps = {
     common = [ 
       pkgs.gnumake
@@ -34,7 +32,7 @@ let
 
     data = [
       pkgs.ipfs
-      pkgs.haskellPackages.postgresql-libpq
+ #     pkgs.haskellPackages.postgresql-libpq
       pkgs.lzma.dev   
       pkgs.lzma.out
       pkgs.zlib.dev
@@ -42,15 +40,7 @@ let
       pkgs.postgresql
     ];
 
-    haskell = [
-      unstable.ghcid
-      unstable.ghc
-      unstable.stack
-      unstable.stylish-haskell
-      unstable.haskellPackages.hie-bios
-      unstable.haskell-language-server
-      unstable.haskellPackages.implicit-hie
-    ];
+    haskell = [unstable.stack];
 
     macos =
       if pkgs.stdenv.isDarwin then
@@ -64,7 +54,6 @@ let
 in
 
 unstable.haskell.lib.buildStackProject {
-  inherit ghc;
   name = "Fisson";
   nativeBuildInputs = builtins.concatLists [
     deps.common 
@@ -78,6 +67,5 @@ unstable.haskell.lib.buildStackProject {
 
   shellHook = ''
     export LANG=C.UTF8
-    touch ${server-path}
   '';
 }

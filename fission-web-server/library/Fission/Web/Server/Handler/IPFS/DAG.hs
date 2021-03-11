@@ -3,7 +3,9 @@ module Fission.Web.Server.Handler.IPFS.DAG (put) where
 import           Database.Esqueleto
 
 import           Network.IPFS
+import qualified Network.IPFS.Client.DAG.Put.Types      as IPFS.DAG
 import           Network.IPFS.Client.Streaming.Pin
+import qualified Network.IPFS.DAG                       as IPFS.DAG
 
 import           Servant
 
@@ -16,7 +18,6 @@ import qualified Fission.Web.Server.Error               as Web.Err
 import           Fission.Web.Server.LoosePin.Creator    as LoosePin
 import           Fission.Web.Server.MonadDB
 
-import qualified Fission.Web.Server.IPFS.Client.DAG     as IPFS
 import           Fission.Web.Server.IPFS.Cluster        as Cluster
 
 put ::
@@ -30,7 +31,7 @@ put ::
   )
   => ServerT API.DAG.Upload m
 put file Authorization {about = Entity userId _} = do
-  IPFS.Response newCID <- Web.Err.ensureM $ IPFS.dagPut file
-  _                    <- Web.Err.ensureM $ Cluster.pinStream newCID
+  IPFS.DAG.Response newCID <- Web.Err.ensureM $ IPFS.DAG.putRemote file
+  _                        <- Web.Err.ensureM $ Cluster.pinStream newCID
   runDBNow $ LoosePin.createMany userId [newCID]
   return newCID
