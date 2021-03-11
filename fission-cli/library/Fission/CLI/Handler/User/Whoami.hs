@@ -5,6 +5,8 @@ import qualified Data.Yaml                       as YAML
 
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 
+import qualified RIO.Text                        as Text
+
 import           Network.HTTP.Types.Status
 import           Servant.Client
 
@@ -23,6 +25,8 @@ import           Fission.CLI.Environment         as Env
 
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
+
+import           Fission.CLI.Environment.Path
 
 -- | The command to attach to the CLI tree
 whoami ::
@@ -67,5 +71,6 @@ whoami = do
               DecodeFailure _ _ -> "Trouble decoding the registration response."
               _                 -> "Invalid content type."
 
-      UTF8.putText "Please contact Fission support at https://fission.codes or delete `~/.config/fission` and try again."
+      global <- globalDir
+      UTF8.putTextLn $ "Please contact Fission support at https://fission.codes or delete " <> Text.pack global <> " and try again."
       raise err
