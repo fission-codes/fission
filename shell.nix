@@ -32,7 +32,6 @@ let
 
     data = [
       pkgs.ipfs
- #     pkgs.haskellPackages.postgresql-libpq
       pkgs.lzma.dev   
       pkgs.lzma.out
       pkgs.zlib.dev
