@@ -1,5 +1,6 @@
 module Fission.CLI.Environment.Path
-  ( globalBinaryDir
+  ( globalDir
+  , globalBinaryDir
   , globalIPFSBin
   , globalIPFSRepo
   , globalTmpDir
@@ -13,6 +14,11 @@ import           RIO.FilePath                  ((</>))
 import           Fission.Prelude
 
 import           Fission.CLI.Environment.Class
+
+globalDir :: MonadEnvironment m => m FilePath
+globalDir = do
+  global <- getGlobalPath
+  return global
 
 globalBinaryDir :: MonadEnvironment m => m FilePath
 globalBinaryDir = do
