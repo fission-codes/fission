@@ -23,7 +23,7 @@ import qualified Fission.Security as Security
 -- True
 --
 -- >>> isValid "under_score"
--- False
+-- True
 --
 -- Blocklisted words are not allowed
 --
@@ -51,9 +51,6 @@ import qualified Fission.Security as Security
 -- >>> isValid "endswith-"
 -- False
 --
--- >>> isValid "endswith_"
--- False
---
 -- >>> isValid "_startswith"
 -- False
 --
@@ -77,8 +74,7 @@ isValid txt =
             , not blank
             , not startsWithHyphen
             , not endsWithHyphen
-            , not endsWithUnderscore
-            , not endsWithUnderscore
+            , not startsWithUnderscore
             , not inBlocklist
             ]
 
@@ -91,7 +87,6 @@ isValid txt =
     endsWithHyphen   = Text.isSuffixOf "-" txt
 
     startsWithUnderscore = Text.isPrefixOf "_" txt
-    endsWithUnderscore   = Text.isSuffixOf "_" txt
 
 isURLChar :: Char -> Bool
 isURLChar c =
