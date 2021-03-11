@@ -39,7 +39,11 @@ let
       pkgs.postgresql
     ];
 
-    haskell = [unstable.stack];
+    haskell = [
+      unstable.haskell-language-server
+      unstable.stack
+      unstable.stylish-haskell
+    ];
 
     macos =
       if pkgs.stdenv.isDarwin then

@@ -102,7 +102,7 @@
         ${figlet} "Fission Build Env" | ${lolcat} -a -s 50
       '';
 
-      build       = cmd "Build entire project"    "${stack} build --nix";
+      build       = cmd "Build entire project"    "${stack} build   --nix";
       cli-install = cmd "Install the Fission CLI" "${stack} install --nix fission-cli:fission";
 
       inherit
