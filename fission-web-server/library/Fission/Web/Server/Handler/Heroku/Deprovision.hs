@@ -38,11 +38,11 @@ destroy ::
   )
   => ServerT API.Heroku.Deprovision m
 destroy uuid' Heroku.Auth {} = do
-  toUnpin <- runDB (deleteAssociatedWith uuid')
+  toUnpin <- runDB $ deleteAssociatedWith uuid'
 
   forM_ toUnpin \cid ->
     IPFS.Pin.rm cid >>= \case
-      Left err -> logError (show err)
+      Left err -> logWarn $ displayLazyBS err
       Right _  -> pure ()
 
   return NoContent
