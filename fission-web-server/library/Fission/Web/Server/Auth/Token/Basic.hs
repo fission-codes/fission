@@ -27,7 +27,6 @@ import qualified Fission.Web.Server.User                          as User
 import qualified Fission.Web.Server.Auth.Error                    as Auth
 import           Fission.Web.Server.Authorization.Types
 
-
 handler ::
   ( MonadIO          m
   , MonadLogger      m
@@ -37,7 +36,9 @@ handler ::
   )
   => Auth.Basic.Token
   -> m Authorization
-handler token = Web.Err.ensureM . checkUser =<< Web.Err.ensure (parseBasic token)
+handler token = do
+  authData <- Web.Err.ensure $ parseBasic token
+  Web.Err.ensureM $ checkUser authData
 
 checkUser ::
   ( MonadLogger      m
