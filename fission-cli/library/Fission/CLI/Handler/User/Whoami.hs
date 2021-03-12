@@ -22,9 +22,11 @@ import           Fission.Web.Client              as Client
 import qualified Fission.Web.Client.User         as User
 
 import           Fission.CLI.Environment         as Env
+import           Fission.CLI.Environment.Path    as Path
 
 import qualified Fission.CLI.Display.Error       as CLI.Error
 import qualified Fission.CLI.Display.Success     as CLI.Success
+
 
 -- | The command to attach to the CLI tree
 whoami ::
@@ -69,6 +71,6 @@ whoami = do
               DecodeFailure _ _ -> "Trouble decoding the registration response."
               _                 -> "Invalid content type."
 
-      global <- getGlobalPath
+      global <- Path.getGlobalPath
       UTF8.putTextLn $ "Please contact Fission support at https://fission.codes or delete " <> Text.pack global <> " and try again."
       raise err
