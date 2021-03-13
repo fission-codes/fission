@@ -1,10 +1,12 @@
-{ pkgs, unstable, ... }:
+{ pkgs, unstable, server-path, server-port, ... }:
   let
     bash    = "${pkgs.bash}/bin/bash";
     git     = "${pkgs.git}/bin/git";
     killall = "${pkgs.killall}/bin/killall";
     ssh     = "${pkgs.openssh}/bin/ssh";
     stack   = "${unstable.stack}/bin/stack";
+    figlet  = "${pkgs.figlet}/bin/figlet";
+    lolcat  = "${pkgs.lolcat}/bin/lolcat";
 
     cmd = description: script:
       { inherit description;
@@ -83,18 +85,25 @@
       in
         [helper] ++ packages;
 
-    server-path = ~/.local/bin/server;
-    server-port = 10235;
-
     # This will be much better when we have a nix-build
-    server-install = cmd "Install the Fission Server" "${stack} install fission-web-server:server";
-    server-start   = cmd "Run the currently installed Fission Server"   "DEBUG=true nohup ${server-path} &";
-    server-debug   = cmd "Run the Fission Server in debug verbose mode" "DEBUG=true ${server-path}";
+    server-install = cmd "Install the Fission Server"
+      "${stack} install --nix fission-web-server:fission-server";
+
+    server-start = cmd "Run the currently installed Fission Server"
+      "DEBUG=true nohup ${server-path} &";
+
+    server-debug = cmd "Run the Fission Server in debug verbose mode"
+      "DEBUG=true ${server-path}";
 
   in
     commands {
-      build       = cmd "Build entire project"    "${stack} build";
-      cli-install = cmd "Install the Fission CLI" "${stack} install fission-cli:fission";
+      welcome = cmd "Print the pretty welcome" ''
+        echo "🌈✨ Welcome to the glorious... "
+        ${figlet} "Fission Build Env" | ${lolcat} -a -s 50
+      '';
+
+      build       = cmd "Build entire project"    "${stack} build   --nix";
+      cli-install = cmd "Install the Fission CLI" "${stack} install --nix fission-cli:fission";
 
       inherit
         server-install
@@ -102,16 +111,16 @@
         server-debug;
 
       server-update = cmd "Update & run the current server to the latest on the current branch" ''
-        ${git} pull
-        ${server-install.script}
-        ${killall} fission
-        printf "🚨 Don't forget to release a new version of the CLI 📟✨"
-        ${server-start.script}
+        ${git} pull \
+        && ${server-install.script} \
+        && ${killall} fission-server \
+        ;  printf "🚨 Don't forget to release a new version of the CLI 📟✨" \
+        && ${server-start.script}
       '';
 
-      runtests = cmd "Run the complete test suite" "${stack} test";
-      repl     = cmd "Enter the project REPL"      "${stack} repl  --no-nix-pure";
-      watch    = cmd "Autobuild with file watcher" "${stack} build --file-watch";
+      runtests = cmd "Run the complete test suite" "${stack} test  --nix";
+      repl     = cmd "Enter the project REPL"      "${stack} repl  --nix --no-nix-pure";
+      watch    = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
 
       ssh-staging = cmd "SSH into the staging environment"
         "${ssh} fission@instance.runfission.net";

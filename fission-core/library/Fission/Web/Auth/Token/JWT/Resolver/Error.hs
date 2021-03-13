@@ -1,12 +1,12 @@
 module Fission.Web.Auth.Token.JWT.Resolver.Error (Error (..)) where
 
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Process.Error as IPFS.Process
+import           Servant.Client.Core
 
 import           Fission.Prelude
 
 data Error
-  = CannotResolve CID IPFS.Process.Error
+  = CannotResolve CID ClientError
   | InvalidJWT ByteString
   deriving (Show, Eq, Exception)
 

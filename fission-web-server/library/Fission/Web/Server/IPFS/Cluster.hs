@@ -8,40 +8,37 @@ module Fission.Web.Server.IPFS.Cluster
 -- 🌐
 
 import           Network.IPFS.CID.Types
-import qualified Network.IPFS.Client                                 as IPFS
-import qualified Network.IPFS.Client.Pin                             as Pin
+import qualified Network.IPFS.Client                   as IPFS
+import           Network.IPFS.Client.Pin               as Pin
+import           Network.IPFS.Client.Streaming.Pin     as Pin
 
 import           Servant.Client
-import qualified Servant.Client.Streaming                            as Streaming
+import qualified Servant.Client.Streaming              as Streaming
 
 -- ⚛️
 
 import           Fission.Prelude
 
 import           Fission.Web.Async
-
 import           Fission.Web.Server.IPFS.Cluster.Class
-import           Fission.Web.Server.IPFS.Streaming.Pin.Types
-
-import           Fission.Internal.Orphanage.IPFS.Client.Pin.Response ()
 
 pin :: MonadIPFSCluster m Pin.Response => CID -> m (Either ClientError Pin.Response)
-pin (CID hash) = do
-  asyncRefs <- runCluster $ IPFS.pin hash
+pin cid = do
+  asyncRefs <- runCluster $ IPFS.pin cid
   waitAnySuccessCatch asyncRefs >>= \case
     Left  err      -> return $ Left err
     Right (_, val) -> return $ Right val
 
 unpin :: MonadIPFSCluster m Pin.Response => CID -> m (Either ClientError Pin.Response)
-unpin (CID hash) = do
-  asyncRefs <- runCluster $ IPFS.unpin hash True -- Recursive flag
+unpin cid = do
+  asyncRefs <- runCluster $ IPFS.unpin cid True -- Recursive flag
   waitAnySuccessCatch asyncRefs >>= \case
     Left  err      -> return $ Left err
     Right (_, val) -> return $ Right val
 
 pinStream :: MonadIPFSCluster m PinStatus => CID -> m (Either ClientError PinStatus)
 pinStream cid = do
-  pseudoStreams <- streamCluster $ (Streaming.client $ Proxy @PinComplete) (Just cid) (Just True)
+  pseudoStreams <- streamCluster $ (Streaming.client $ Proxy @PinComplete) cid (Just True)
   let asyncRefs = fst <$> pseudoStreams
   waitAnySuccessCatch asyncRefs >>= \case
     Left  err      -> return $ Left err

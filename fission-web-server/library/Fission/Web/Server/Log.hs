@@ -3,13 +3,20 @@ module Fission.Web.Server.Log
   , fromLogFunc
   ) where
 
+import qualified Data.CaseInsensitive      as Case
+
+import qualified RIO.ByteString.Lazy       as Lazy
+import qualified RIO.List                  as List
+import qualified RIO.Map                   as Map
+
 import           Network.HTTP.Types.Status
 import           Network.Wai.Internal      (Request (..))
 import           Network.Wai.Logger
 
-import           Text.Pretty.Simple
-
 import           Fission.Prelude
+
+fromLogFunc :: LogFunc -> ApacheLogger
+fromLogFunc logger r s mi = runRIO logger $ rioApacheLogger r s mi
 
 rioApacheLogger ::
   MonadLogger m
@@ -18,29 +25,38 @@ rioApacheLogger ::
   -> Maybe Integer
   -> m ()
 rioApacheLogger Request {..} Status {..} _mayInt =
-  unless (statusCode == 404 && requestHeaderUserAgent == Just "ELB-HealthChecker/2.0") do
+  unless (requestHeaderUserAgent == Just "ELB-HealthChecker/2.0") do
     if | statusCode >= 500 -> logError formatted
-       | statusCode >= 400 -> logInfo  formatted
+       | statusCode == 404 -> logInfo  formatted
+       | statusCode >= 400 -> logWarn  formatted
        | otherwise         -> logDebug formatted
   where
     formatted :: Utf8Builder
-    formatted = mconcat
-      [ displayShow remoteHost
-      , " - - "
-      , displayShow httpVersion
-      , " - - "
-      , display statusCode
-      , ": "
-      , displayShow statusMessage
-      , " "
-      , displayShow requestMethod
-      , " "
-      , if rawPathInfo    == "" then "" else displayShow rawPathInfo
-      , " "
-      , if rawQueryString == "" then "" else displayShow rawQueryString
-      , " "
-      , display $ pShow requestHeaders
-      ]
+    formatted =
+      mconcat $ List.intersperse " "
+        [ displayShow      remoteHost
+        , "- -"
+        , displayShow      httpVersion
+        , display          statusCode
+        , displayBytesUtf8 statusMessage
+        , displayBytesUtf8 requestMethod
+        , pathInfo'
+        , displayBytesUtf8 headers'
+        ]
 
-fromLogFunc :: LogFunc -> ApacheLogger
-fromLogFunc logger r s mi = runRIO logger $ rioApacheLogger r s mi
+    headers' =
+      requestHeaders
+        |> fmap (\(k, v) -> (decodeUtf8Lenient (Case.original k), decodeUtf8Lenient v))
+        |> Map.fromList
+        |> encode
+        |> Lazy.toStrict
+
+    pathInfo' =
+      if rawPathInfo == ""
+        then ""
+        else displayBytesUtf8 rawPathInfo <> queryString'
+
+    queryString' =
+      if rawQueryString == ""
+        then ""
+        else displayBytesUtf8 rawQueryString -- NOTE includes the `?`

@@ -10,16 +10,14 @@ module Fission.Web.Auth.Token.JWT.Proof
   , module Fission.Web.Auth.Token.JWT.Proof.Error
   ) where
 
-import qualified RIO.List                                         as List
-
 import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.JWT.Proof.Error
+import           Fission.Web.Auth.Token.JWT.Proof.WNFS
 import           Fission.Web.Auth.Token.JWT.Types                 as JWT
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 delegatedInBounds :: JWT -> JWT -> Either Error JWT
 delegatedInBounds  jwt prfJWT = do
@@ -37,15 +35,10 @@ signaturesMatch jwt prfJWT =
 resourceInSubset :: JWT -> JWT -> Either Error JWT
 resourceInSubset jwt prfJWT =
   case ((jwt |> claims |> resource), (prfJWT |> claims |> resource)) of
-    (Just (Subset (FissionFileSystem path)), Just (Subset (FissionFileSystem proofPath))) ->
-      if path `List.isPrefixOf` proofPath -- NOTE `List` because FilePath ~ String
-        then Right jwt
-        else Left ScopeOutOfBounds
-
-    (a, b) ->
-      if a == b
-        then Right jwt
-        else Left ScopeOutOfBounds
+    (Nothing,           _)                      -> Right jwt
+    (_,                 Just Complete)          -> Right jwt
+    (Just (Subset rsc), Just (Subset rscProof)) -> compareSubsets jwt rsc rscProof
+    _                                           -> Left ScopeOutOfBounds
 
 potencyInSubset :: JWT -> JWT -> Either Error JWT
 potencyInSubset jwt prfJWT =

@@ -1,12 +1,14 @@
 module Fission.Web.Server.Handler.IPFS (handler) where
 
 import           Network.IPFS
+import           Network.IPFS.Client.Streaming.Pin
 import           Servant
 
 import           Fission.Prelude
 
 import qualified Fission.Web.API.IPFS.Types               as API
 
+import           Fission.Web.Server.IPFS.Cluster
 import           Fission.Web.Server.IPFS.Linked
 import qualified Fission.Web.Server.LoosePin              as LoosePin
 import           Fission.Web.Server.MonadDB
@@ -21,7 +23,7 @@ import qualified Fission.Web.Server.Handler.IPFS.Upload   as Upload
 handler ::
   ( MonadRemoteIPFS      m
   , MonadLinkedIPFS      m
-  , MonadLocalIPFS       m
+  , MonadIPFSCluster     m PinStatus
   , MonadLogger          m
   , MonadThrow           m
   , MonadTime            m

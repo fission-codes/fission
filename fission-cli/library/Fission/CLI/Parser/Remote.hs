@@ -8,7 +8,7 @@ import           Servant.Client
 
 import           Fission.Prelude
 
-import           Fission.CLI.Remote  as Remote
+import           Fission.Web.API.Remote as Remote
 
 parser :: Parser BaseUrl
 parser =

@@ -2,10 +2,8 @@ module Fission.Web.Server.Handler.IPFS.Upload (add) where
 
 import           Database.Esqueleto
 
-import           Network.IPFS
-import qualified Network.IPFS.Add                       as IPFS
 import           Network.IPFS.File.Types                as File
-import qualified Network.IPFS.Pin                       as IPFS.Pin
+import           Network.IPFS.Remote.Class              as IPFS
 
 import           Servant
 
@@ -19,8 +17,7 @@ import           Fission.Web.Server.LoosePin.Creator    as LoosePin
 import           Fission.Web.Server.MonadDB
 
 add ::
-  ( MonadLocalIPFS     m
-  , MonadRemoteIPFS    m
+  ( MonadRemoteIPFS    m
   , MonadLogger        m
   , MonadThrow         m
   , MonadTime          m
@@ -29,15 +26,15 @@ add ::
   )
   => ServerT API.IPFS.Upload m
 add (Serialized rawData) Authorization {about = Entity userId _} =
-  IPFS.addRaw rawData >>= \case
+  IPFS.ipfsAdd rawData >>= \case
+    Left err ->
+      Web.Err.throw err
+
     Right newCID ->
-      IPFS.Pin.add newCID >>= \case
-        Right pinnedCID -> do
-          runDBNow $ LoosePin.createMany userId [pinnedCID]
-          return pinnedCID
+      IPFS.ipfsPin newCID >>= \case
+        Right _ -> do
+          runDBNow $ LoosePin.createMany userId [newCID]
+          return newCID
 
         Left err ->
           Web.Err.throw err
-
-    Left err ->
-      Web.Err.throw err

@@ -2,13 +2,11 @@ module Fission.Web.Server.Handler.Heroku.Provision (create) where
 
 import qualified Data.Text                                       as Text
 import           Data.UUID                                       as UUID
+import qualified RIO.NonEmpty                                    as NonEmpty
 
 import           Database.Persist.Sql
 
 import           Network.IPFS
-import           Network.IPFS.Peer                               (getExternalAddress)
-import           Network.IPFS.Peer.Types                         as IPFS
-
 import           Servant
 
 import           Fission.Prelude
@@ -26,6 +24,7 @@ import qualified Fission.Web.API.Heroku.Provision.Types          as API.Heroku
 
 import qualified Fission.Web.Server.Error                        as Web.Err
 import qualified Fission.Web.Server.Host.Types                   as Web
+import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.Reflective
 import qualified Fission.Web.Server.User.Creator                 as User
 
@@ -33,7 +32,8 @@ create ::
   ( MonadIO               m
   , MonadThrow            m
   , MonadLogger           m
-  , MonadLocalIPFS        m
+  , MonadRemoteIPFS       m
+  , MonadLinkedIPFS       m
   , MonadReflectiveServer m
   , User.Creator          m
   )
@@ -44,11 +44,11 @@ create Request {uuid, region} _ = do
   secret        <- Random.alphaNum 50
   userID        <- Web.Err.ensureM $ User.createWithHeroku uuid region username (Password secret) now
   Web.Host url' <- getHost
-  ipfsPeers     <- getIPFSPeers
+  ipfsPeers     <- getLinkedPeers
 
   return Provision
     { id      = fromIntegral $ fromSqlKey userID
-    , peers   = ipfsPeers
+    , peers   = NonEmpty.toList ipfsPeers
     , message = "Successfully provisioned Interplanetary Fission!"
     , config  = User.Provision
       { username = username
@@ -56,13 +56,3 @@ create Request {uuid, region} _ = do
       , url      = url'
       }
     }
-
-getIPFSPeers :: (MonadLocalIPFS m, MonadLogger m) => m [IPFS.Peer]
-getIPFSPeers =
-  getExternalAddress >>= \case
-    Right peers' ->
-      pure peers'
-
-    Left err -> do
-      logError <| textShow err
-      return []

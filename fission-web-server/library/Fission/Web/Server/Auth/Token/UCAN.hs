@@ -49,7 +49,8 @@ toAuthorization ::
   )
   => JWT
   -> m Authorization
-toAuthorization jwt@JWT {claims = JWT.Claims {..}} =
+toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
+  logDebug @Text "🛂 Authorizing UCAN..."
   getRoot jwt >>= \case
     Left err ->
       throwM err

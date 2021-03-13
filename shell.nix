@@ -10,9 +10,12 @@ let
   tasks = commands {
     inherit pkgs;
     inherit unstable;
+    inherit server-path;
+    inherit server-port;
   };
 
-  ghc = unstable.ghc;
+  server-path = "~/.local/bin/fission-server";
+  server-port = 10235;
 
   deps = {
     common = [ 
@@ -29,7 +32,6 @@ let
 
     data = [
       pkgs.ipfs
-      pkgs.haskellPackages.postgresql-libpq
       pkgs.lzma.dev   
       pkgs.lzma.out
       pkgs.zlib.dev
@@ -38,20 +40,11 @@ let
     ];
 
     haskell = [
-      unstable.ghcid
-      unstable.ghc
+      unstable.haskell-language-server
       unstable.stack
       unstable.stylish-haskell
-      unstable.haskellPackages.hie-bios
-      unstable.haskell-language-server
-      unstable.haskellPackages.implicit-hie
     ];
 
-    fun = [
-      pkgs.figlet
-      pkgs.lolcat
-    ];
-   
     macos =
       if pkgs.stdenv.isDarwin then
         [ unstable.darwin.apple_sdk.frameworks.CoreServices
@@ -64,7 +57,6 @@ let
 in
 
 unstable.haskell.lib.buildStackProject {
-  inherit ghc;
   name = "Fisson";
   nativeBuildInputs = builtins.concatLists [
     deps.common 
@@ -73,14 +65,10 @@ unstable.haskell.lib.buildStackProject {
     deps.data
     deps.macos
     deps.haskell 
-    deps.fun
     tasks
   ];
 
   shellHook = ''
     export LANG=C.UTF8
-  
-    echo "🌈✨ Welcome to the glorious... "
-    ${pkgs.figlet}/bin/figlet "Fission Build Env" | lolcat -a -s 50
   '';
 }

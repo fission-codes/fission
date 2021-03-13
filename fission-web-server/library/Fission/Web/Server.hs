@@ -8,6 +8,7 @@ module Fission.Web.Server
   ) where
 
 import           Network.IPFS
+import           Network.IPFS.Client.Streaming.Pin
 import           Servant
 
 import           Fission.Prelude
@@ -44,6 +45,7 @@ import qualified Fission.Web.Server.Handler.Relay       as Relay
 import           Fission.Web.Server.Handler.Relay.Types
 
 import qualified Fission.Web.Server.Host.Types          as Web
+import           Fission.Web.Server.IPFS.Cluster        as Cluster
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Reflective
@@ -63,8 +65,8 @@ app ::
   , MonadReflectiveServer     m
   , MonadRelayStore           m
   , MonadLinkedIPFS           m
+  , MonadIPFSCluster          m PinStatus
   , MonadRemoteIPFS           m
-  , MonadLocalIPFS            m
   , MonadDNSLink              m
   , MonadWNFS                 m
   , MonadLogger               m
@@ -105,7 +107,7 @@ server ::
   , MonadRelayStore           m
   , MonadLinkedIPFS           m
   , MonadRemoteIPFS           m
-  , MonadLocalIPFS            m
+  , MonadIPFSCluster          m PinStatus
   , MonadDNSLink              m
   , MonadWNFS                 m
   , MonadLogger               m
@@ -139,7 +141,7 @@ bizServer ::
   , MonadReflectiveServer     m
   , MonadLinkedIPFS           m
   , MonadRemoteIPFS           m
-  , MonadLocalIPFS            m
+  , MonadIPFSCluster          m PinStatus
   , MonadDNSLink              m
   , MonadWNFS                 m
   , MonadLogger               m
