@@ -40,6 +40,7 @@ let
     ];
 
     haskell = [
+      unstable.haskell-language-server
       unstable.stack
       unstable.stylish-haskell
     ];
