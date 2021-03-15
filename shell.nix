@@ -57,7 +57,7 @@ let
 in
 
 unstable.haskell.lib.buildStackProject {
-  name = "Fisson";
+  name = "Fission";
   nativeBuildInputs = builtins.concatLists [
     deps.common 
     deps.crypto
