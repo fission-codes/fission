@@ -5,6 +5,7 @@ module Fission.CLI.Environment.Path
   , globalTmpDir
   , globalKeyDir
   , getSigningKeyPath
+  , module Fission.CLI.Environment.Class
   ) where
 
 import qualified Network.IPFS.BinPath.Types    as IPFS
