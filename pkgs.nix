@@ -29,11 +29,11 @@
         "primitive-offset" = (((hackage.primitive-offset)."0.2.0.0").revisions).default;
         "run-st" = (((hackage.run-st)."0.1.1.0").revisions).default;
         "tuples" = (((hackage.tuples)."0.1.0.0").revisions).default;
-        fission-cli = ./fission-cli.nix;
-        fission-core = ./fission-core.nix;
-        fission-web-api = ./fission-web-api.nix;
-        fission-web-client = ./fission-web-client.nix;
-        fission-web-server = ./fission-web-server.nix;
+        fission-cli = ./fission-cli/fission-cli.nix;
+        fission-core = ./fission-core;
+        fission-web-api = ./fission-web-api/fission-web-api.nix;
+        fission-web-client = ./fission-web-client/fission-web-client.nix;
+        fission-web-server = ./fission-web-server/fission-web-server.nix;
         };
       };
   resolver = "lts-17.4";
