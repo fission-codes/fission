@@ -220,6 +220,7 @@ tests:
       - tasty-smallcheck
       - tasty-rerun
       - transformers
+      - world-peace
 
 benchmarks:
   fission-web-server-benchmark:
