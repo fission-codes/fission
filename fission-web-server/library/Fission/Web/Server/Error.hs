@@ -4,7 +4,7 @@ module Fission.Web.Server.Error
   , ensureM
   , ensureMaybe
   , throw
-  , withMessage
+  -- * Reexports
   , module Fission.Web.Server.Error.Class
   ) where
 
@@ -13,7 +13,6 @@ import           Fission.Prelude                                   hiding
                                                                     ensureM)
 
 import           Fission.Web.Server.Error.Class
-import           Fission.Web.Server.Error.Message
 
 import           Fission.Web.Server.Internal.Orphanage.ServerError ()
 

@@ -20,14 +20,10 @@ import           Fission.Web.Server.User.Password.Error
 random :: MonadIO m => m User.Password
 random = do
   pass <- Random.alphaNum 50
-  return (User.Password pass)
+  return $ User.Password pass
 
 hashPassword :: MonadIO m => User.Password -> m (Either FailedDigest Text)
-hashPassword (User.Password password) = do
-  password
-    |> encodeUtf8
-    |> hashPasswordUsingPolicy slowerBcryptHashingPolicy
-    |> liftIO
-    |> bind \case
-      Nothing           -> return <| Left FailedDigest
-      Just secretDigest -> return <| Right <| decodeUtf8Lenient secretDigest
+hashPassword User.Password {password} = do
+  liftIO (hashPasswordUsingPolicy slowerBcryptHashingPolicy $ encodeUtf8 password) >>= \case
+    Nothing           -> return $ Left FailedDigest
+    Just secretDigest -> return . Right $ decodeUtf8Lenient secretDigest
