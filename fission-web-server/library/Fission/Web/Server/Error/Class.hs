@@ -33,8 +33,6 @@ import           Fission.Web.Auth.Token.JWT.Proof.Error             as JWT.Proof
 import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resolver
 import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
 
-import qualified Fission.Web.Server.Error.Message                   as Error
-
 import           Fission.Internal.Orphanage.ClientError             ()
 
 class ToServerError err where
@@ -126,10 +124,10 @@ instance (ToServerError a, ToServerError (OpenUnion as)) => ToServerError (OpenU
   toServerError err = openUnion toServerError toServerError err
 
 instance Display (AlreadyExists entity) => ToServerError (AlreadyExists entity) where
-  toServerError alreadyExists = Error.withMessage alreadyExists err409
+  toServerError alreadyExists = err409 { errBody = displayLazyBS alreadyExists  }
 
 instance ToServerError (ActionNotAuthorized entity) where
-  toServerError _ = err401
+  toServerError disallowed = err403 { errBody = displayLazyBS disallowed }
 
 instance ToServerError ClientError where
   toServerError err = err502 { errBody = displayLazyBS err }
@@ -147,7 +145,7 @@ instance ToServerError Username.Invalid where
     err422 { errBody = displayLazyBS Username.Invalid }
 
 instance ToServerError Web.Auth.Error where
-  toServerError err = Error.withMessage err Server.err401
+  toServerError err = err401 { errBody = displayLazyBS err }
 
 instance ToServerError JWT.Header.Error where
   toServerError = \case
@@ -165,8 +163,8 @@ instance ToServerError JWT.Signature.Error where
 instance ToServerError JWT.Proof.Error where
   toServerError = \case
     ResolverError err     -> toServerError err
-    ScopeOutOfBounds      -> err401 { errBody = displayLazyBS ScopeOutOfBounds      }
-    PotencyEscelation     -> err401 { errBody = displayLazyBS PotencyEscelation     }
+    ScopeOutOfBounds      -> err422 { errBody = displayLazyBS ScopeOutOfBounds      }
+    PotencyEscelation     -> err422 { errBody = displayLazyBS PotencyEscelation     }
     TimeNotSubset         -> err422 { errBody = displayLazyBS TimeNotSubset         }
     MissingExpectedFact   -> err422 { errBody = displayLazyBS MissingExpectedFact   }
     InvalidSignatureChain -> err422 { errBody = displayLazyBS InvalidSignatureChain }
@@ -174,7 +172,7 @@ instance ToServerError JWT.Proof.Error where
 instance ToServerError JWT.Claims.Error where
   toServerError = \case
     ProofError    err -> toServerError err
-    IncorrectReceiver -> err401 { errBody = displayLazyBS IncorrectReceiver }
+    IncorrectReceiver -> err422 { errBody = displayLazyBS IncorrectReceiver }
     Expired           -> err401 { errBody = displayLazyBS Expired }
     TooEarly          -> err401 { errBody = displayLazyBS TooEarly }
 
