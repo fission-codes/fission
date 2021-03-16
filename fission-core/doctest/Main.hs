@@ -49,7 +49,9 @@ setup tmp src = do
         contents `forM_` go path exts'
 
       File { name, file } ->
-        writeFileBinary (dirPath <> "/" <> name) (exts' <> file)
+        if List.isSuffixOf ".hs" name
+          then writeFileBinary (dirPath <> "/" <> name) (exts' <> file)
+          else writeFileBinary (dirPath <> "/" <> name) file
 
 header :: [ByteString] -> ByteString
 header raw = mconcat
