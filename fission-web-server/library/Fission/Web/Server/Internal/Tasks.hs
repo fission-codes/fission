@@ -148,7 +148,6 @@ instance FromJSON PinType where
       "recursive" -> return Recursive
       other       -> fail $ Text.unpack (other <> " is not a valid PinType")
 
-
 instance ToHttpApiData PinType where
   toUrlPiece Indirect  = "indirect"
   toUrlPiece Recursive = "recursive"
