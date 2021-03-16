@@ -1,6 +1,5 @@
 module Fission.CLI.Handler.User.Login
-  ( Errs
-  , LoginConstraints
+  ( LoginConstraints
   , login
 
   -- * Consumer
@@ -45,7 +44,6 @@ import           Fission.User.DID.Types
 import           Fission.User.Username                       as Username
 
 import           Fission.Web.Client
--- import qualified Fission.Web.Client.User                     as User
 import qualified Fission.Web.Serialization                   as Web.Serialization
 
 -- 🛂 JWT/UCAN
@@ -81,21 +79,6 @@ import qualified Fission.CLI.PubSub.Secure.Session.Types     as PubSub
 
 import qualified Fission.CLI.WebNative.FileSystem.Auth.Store as WebNative.FileSystem.Auth.Store
 import qualified Fission.CLI.WebNative.Mutation.Auth.Store   as WebNative.Mutation.Store
-
-type Errs =
-  '[ AlreadyExists DID
-   , AlreadyExists Env
-   , ClientError
-   , DNS.DNSError
-   , JSON.Error
-   , JWT.Error
-   , JWT.Proof.Error
-   , Key.Error
-   , NotFound DID
-   , RSA.Error
-   , SecurePayload.Error
-   , UCAN.Resolver.Error
-   ]
 
 type LoginConstraints m =
   ( MonadIO     m
@@ -244,15 +227,15 @@ type ProducerConstraints m =
   , WebNative.FileSystem.Auth.Store.MonadStore m
   , WebNative.Mutation.Store.MonadStore        m
 
-  , MonadSecured m (Symmetric.Key AES256) PIN.Payload
-  , MonadSecured m (Symmetric.Key AES256) User.Link.Payload
+  , MonadSecured m (Symmetric.Key AES256)          PIN.Payload
+  , MonadSecured m (Symmetric.Key AES256)          User.Link.Payload
   , MonadSecured m (RSA.PublicKey, RSA.PrivateKey) PubSub.Session
 
   , MonadPubSubSecure m (RSA.PublicKey, RSA.PrivateKey)
   , MonadPubSubSecure m (Symmetric.Key AES256)
 
   , MonadCleanup m
-  , m `Raises` YAML.ParseException -- FIXME feels too granular... maybe push into CLI/Types?
+  , m `Raises` YAML.ParseException
   , m `Raises` JSON.Error
   , m `Raises` NotFound CID
   , m `Raises` NotFound FilePath

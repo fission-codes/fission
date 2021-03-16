@@ -163,6 +163,8 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
+      - base58string
+      - binary
       - directory
       - directory-tree
       - doctest

@@ -1,72 +1,31 @@
-module Fission.CLI.App
-  ( interpret
-  , Errs
-  ) where
-
-import qualified Crypto.PubKey.Ed25519                     as Ed25519
-import qualified Data.Yaml                                 as YAML
-import           Servant.Client.Core
-
-import qualified Network.DNS                               as DNS
-import qualified Network.IPFS.Add.Error                    as IPFS.Add
-import qualified Network.IPFS.Process.Error                as IPFS.Process
-import qualified Network.IPFS.Types                        as IPFS
+module Fission.CLI.App (interpret) where
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                     as UTF8
+import qualified Fission.Internal.UTF8                   as UTF8
 
 import           Fission.CLI.Types
 import           Fission.Error
-import qualified Fission.JSON                              as JSON
-import qualified Fission.Key                               as Key
-import           Fission.User.DID.Types
 
-import qualified Fission.IPFS.Error.Types                  as IPFS
 import           Fission.URL.Types
 
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as UCAN.Resolver
-import           Fission.Web.Auth.Token.JWT.Types
+import qualified Fission.CLI.Base.Types                  as Base
+import           Fission.CLI.Connected                   as Connected
 
-import qualified Fission.CLI.Base.Types                    as Base
-import           Fission.CLI.Connected                     as Connected
-import           Fission.CLI.Error.Types
+import           Fission.CLI.App.Environment             as App.Env
+import qualified Fission.CLI.Display.Error               as CLI.Error
+import qualified Fission.CLI.Handler                     as Handler
+import           Fission.CLI.Handler.Error.Types         (Errs)
 
-import           Fission.CLI.App.Environment               as App.Env
-import qualified Fission.CLI.Display.Error                 as CLI.Error
-import qualified Fission.CLI.Handler                       as Handler
-
-import           Fission.CLI.Parser.Command.App            as App
-import qualified Fission.CLI.Parser.Command.App.Info       as App.Info
-import           Fission.CLI.Parser.Command.App.Init       as App.Init
-import           Fission.CLI.Parser.Command.App.Up.Types   as App.Up
-import qualified Fission.CLI.Parser.Config.IPFS            as IPFS
-
-type Errs =
-  '[ SomeException
-   , IPFS.UnableToConnect
-   , IPFS.Process.Error
-   , IPFS.Add.Error
-   , JSON.Error
-   , ClientError
-   , Key.Error
-   , NotRegistered
-   , NoKeyFile
-   , AlreadyExists URL
-   , DNS.DNSError
-   , NotFound DID
-   , NotFound URL
-   , NotFound FilePath
-   , NotFound Ed25519.SecretKey
-   , NotFound JWT
-   , NotFound [IPFS.Peer]
-   , UCAN.Resolver.Error
-   , YAML.ParseException
-   ]
+import           Fission.CLI.Parser.Command.App          as App
+import qualified Fission.CLI.Parser.Command.App.Info     as App.Info
+import           Fission.CLI.Parser.Command.App.Init     as App.Init
+import           Fission.CLI.Parser.Command.App.Up.Types as App.Up
+import qualified Fission.CLI.Parser.Config.IPFS          as IPFS
 
 interpret :: forall errs .
-  ( Contains Errs errs
-  , Contains errs errs
+  ( Errs `Contains` errs
+  , errs `Contains` errs
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
   )

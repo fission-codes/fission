@@ -54,7 +54,6 @@ setup ::
   , m `Raises` DNSError
   , m `Raises` IPFS.Process.Error
   , m `Raises` Key.Error
-  , m `Raises` NotFound (Symmetric.Key AES256)
   , m `Raises` CryptoError
   , m `Raises` IV.GenError
   , m `Raises` NotFound CID

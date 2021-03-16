@@ -124,7 +124,7 @@ newtype FissionCLI errs cfg a = FissionCLI
                    , MonadBase IO
                    )
 
-runFissionCLI :: MonadIO m => cfg -> FissionCLI errs cfg a -> m (Either (OpenUnion errs) a)
+runFissionCLI :: forall errs m cfg a . MonadIO m => cfg -> FissionCLI errs cfg a -> m (Either (OpenUnion errs) a)
 runFissionCLI cfg = runRIO cfg . runRescueT . unFissionCLI
 
 instance

@@ -5,14 +5,10 @@ import qualified Paths_fission_cli                                  as CLI
 
 import qualified RIO                                                as Logger
 
-import           Data.Type.List
-
-import qualified Crypto.PubKey.Ed25519                              as Ed25519
 import           Options.Applicative
 
 import           Network.HTTP.Client                                as HTTP
 import           Network.HTTP.Client.TLS                            as HTTP
-import qualified Network.IPFS.Process.Error                         as IPFS.Process
 
 import           Servant.Client.Core
 
@@ -21,19 +17,13 @@ import qualified Network.IPFS.URL.Types                             as IPFS
 
 import           Fission.Prelude
 
-import           Fission.Error
-
 import           Fission.User.DID.Types
-import qualified Fission.User.Username.Error                        as Username
 
-import qualified Fission.CLI.IPFS.Daemon                            as IPFS.Daemon
-
-import           Fission.CLI.Environment                            as Env
-import qualified Fission.CLI.Environment.OS                         as OS
+import qualified Fission.CLI.Internal.ServerDID                     as ServerDID
 
 import qualified Fission.CLI.Base.Types                             as Base
-
-import qualified Fission.CLI.Handler.Setup                          as Setup
+import           Fission.CLI.Environment                            as Env
+import qualified Fission.CLI.IPFS.Daemon                            as IPFS.Daemon
 
 import           Fission.CLI.Release
 import qualified Fission.CLI.Remote                                 as Remote
@@ -47,23 +37,13 @@ import           Fission.CLI.Parser.Verbose.Types
 import qualified Fission.CLI.App                                    as App
 import           Fission.CLI.Types
 
+import           Fission.CLI.Handler.Error.Types                    (Errs)
+import qualified Fission.CLI.Handler.Setup                          as Setup
 import qualified Fission.CLI.Handler.User                           as User
-
-import qualified Fission.CLI.Internal.ServerDID                     as ServerDID
 
 import           Fission.Internal.Orphanage.Crypto.Error            ()
 import           Fission.Internal.Orphanage.Crypto.PubKey.RSA.Error ()
 import           Fission.Internal.Orphanage.Yaml.ParseException     ()
-
-type Errs = BaseErrs ++ App.Errs ++ User.Errs
-
-type BaseErrs
-   = '[ OS.Unsupported
-      , AlreadyExists Ed25519.SecretKey
-      , ClientError
-      , Username.Invalid
-      , IPFS.Process.Error
-      ]
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
@@ -131,7 +111,7 @@ finalizeDID (Just did) _ =
   pure $ Right did
 
 finalizeDID Nothing baseCfg@Base.Config {remote} =
-  runFissionCLI baseCfg do
+  runFissionCLI @Errs baseCfg do
     attempt Env.get >>= \case
       Right Env {serverDID} -> return serverDID
       Left  _               -> Env.fetchServerDID $ Remote.toBaseUrl remote
