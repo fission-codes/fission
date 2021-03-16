@@ -47,11 +47,14 @@ import           Fission.Internal.Orphanage.Yaml.ParseException     ()
 
 cli :: MonadUnliftIO m => m (Either (OpenUnion Errs) ())
 cli = do
-  Parser.Options {fissionDID, remote, cmd} <- liftIO $ customExecParser (prefs showHelpOnError) CLI.parserWithInfo
+  Parser.Options
+    { fissionDID
+    , remote
+    , cmd
+    , verboseFlag = VerboseFlag isVerbose
+    } <- liftIO $ customExecParser (prefs showHelpOnError) CLI.parserWithInfo
 
   let
-    VerboseFlag isVerbose = getter cmd
-
     ipfsURL     = IPFS.URL $ BaseUrl Https "ipfs.io" 443 ""
     ipfsTimeout = IPFS.Timeout 3600
 

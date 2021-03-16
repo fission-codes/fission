@@ -36,7 +36,7 @@ interpret baseCfg cmd = do
   logDebug @Text "App interpreter"
 
   case cmd of
-    Info (App.Info.Options _) ->
+    Info App.Info.CommandOnly ->
       Handler.appInfo
 
     Init App.Init.Options {appDir, buildDir, mayAppName, ipfsCfg = IPFS.Config {..}} -> do

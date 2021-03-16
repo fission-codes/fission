@@ -12,7 +12,6 @@ import           Fission.Prelude
 import           Fission.User.Username.Types
 
 import           Fission.CLI.Parser.Command.User.Login.Types
-import qualified Fission.CLI.Parser.Verbose                  as Verbose
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
@@ -23,8 +22,6 @@ parserWithInfo =
 
 parser :: Parser Options
 parser = do
-  verboseFlag <- Verbose.parser
-
   optUsername <- option username $ mconcat
     [ help  "Username"
     ---
