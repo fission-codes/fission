@@ -1,6 +1,4 @@
-module Fission.CLI.Handler.Setup (SetupErrs, SetupConstraints, setup) where
-
-import           Data.Type.List
+module Fission.CLI.Handler.Setup (setup) where
 
 import           Crypto.Cipher.AES                 (AES256)
 import           Crypto.Error                      as Crypto
@@ -44,21 +42,7 @@ import qualified Fission.CLI.Handler.User.Login    as Login
 import qualified Fission.CLI.Handler.User.Login    as User
 import qualified Fission.CLI.Handler.User.Register as User
 
-type SetupErrs =
-  '[ ClientError
-   , DNSError
-   , IPFS.Process.Error
-   , Key.Error
-   , NotFound (Symmetric.Key AES256)
-   , CryptoError
-   , IV.GenError
-   , NotFound CID
-   , NotFound DID
-   , OS.Unsupported
-   , Username.Invalid
-   ] ++ Login.Errs
-
-type SetupConstraints m =
+setup ::
   ( MonadIO          m
   , MonadLocalIPFS   m
   , MonadManagedHTTP m
@@ -85,9 +69,6 @@ type SetupConstraints m =
 
   , User.LoginConstraints m
   )
-
-setup ::
-  SetupConstraints m
   => Maybe OS.Supported
   -> Maybe Username
   -> Maybe Email

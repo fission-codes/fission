@@ -33,7 +33,6 @@ import qualified Fission.CLI.Environment.OS                         as OS
 
 import qualified Fission.CLI.Base.Types                             as Base
 
--- import qualified Fission.CLI.Handler                                as Handler
 import qualified Fission.CLI.Handler.Setup                          as Setup
 
 import           Fission.CLI.Release
@@ -42,8 +41,6 @@ import qualified Fission.CLI.Remote                                 as Remote
 import           Fission.CLI.Parser                                 as CLI
 import           Fission.CLI.Parser.Command.Setup.Types             as Setup
 import           Fission.CLI.Parser.Command.Types
--- import           Fission.CLI.Parser.Command.User.Register.Types     as Register
--- import           Fission.CLI.Parser.Command.User.Types
 import           Fission.CLI.Parser.Types                           as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
@@ -96,7 +93,6 @@ cli = do
         then logOptions'
         else setLogMinLevel Logger.LevelError logOptions'
 
-  -- TODO add `--debug` option that includes LOC
   withLogFunc (setLogUseLoc False logOptions) \logFunc -> do
     finalizeDID fissionDID Base.Config {serverDID = ServerDID.fallback, ..} >>= \case
       Right serverDID -> interpret Base.Config {..} cmd
