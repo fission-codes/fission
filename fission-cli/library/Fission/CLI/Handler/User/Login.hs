@@ -104,7 +104,7 @@ type LoginConstraints m =
   , m `Raises` Key.Error
   , m `Raises` ClientError
 
-  , Errors m `Contains` Errors m
+  , CheckErrors m
   , AlreadyExists DID `IsMember` Errors m
 
   , ConsumerConstraints m

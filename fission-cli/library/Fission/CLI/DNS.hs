@@ -39,7 +39,7 @@ update ::
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  , Errors m `Contains` Errors m
+  , CheckErrors m
   , Show (OpenUnion (Errors m))
   )
   => CID

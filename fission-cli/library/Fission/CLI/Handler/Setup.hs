@@ -78,7 +78,7 @@ type SetupConstraints m =
   , m `Raises` OS.Unsupported
   , m `Raises` Username.Invalid
 
-  , Errors m `Contains` Errors m
+  , CheckErrors m
   , ClientError `IsMember` Errors m
 
   , Show (OpenUnion (Errors m))

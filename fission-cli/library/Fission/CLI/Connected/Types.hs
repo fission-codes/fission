@@ -17,7 +17,6 @@ data Config = Config
   , secretKey     :: Ed25519.SecretKey
   , cliDID        :: DID
   , serverDID     :: DID
-  -- TODO link systems, ucanLink     :: !JWT
   , remote        :: Remote
   , logFunc       :: LogFunc
   , processCtx    :: ProcessContext

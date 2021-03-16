@@ -25,8 +25,9 @@ import           RIO.FilePath
 import qualified RIO.List                                          as List
 import           RIO.Map                                           as Map
 import qualified RIO.NonEmpty                                      as NonEmpty
--- import qualified RIO.Set                                           as Set
 import qualified RIO.Text                                          as Text
+
+import qualified Turtle
 
 import qualified Network.DNS                                       as DNS
 import qualified Network.HTTP.Client                               as HTTP
@@ -38,11 +39,8 @@ import qualified Network.IPFS.Process.Error                        as Process
 import           Network.IPFS.Types                                as IPFS
 
 import qualified Network.WebSockets.Client                         as WS
-import qualified Wuss                                              as WSS
-
 import           Servant.Client
-
-import qualified Turtle
+import qualified Wuss                                              as WSS
 
 import           Fission.Prelude                                   hiding (mask,
                                                                     uninterruptibleMask)
@@ -65,9 +63,7 @@ import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemo
 import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
 
 import qualified Fission.CLI.JSON                                  as JSON
--- import qualified Fission.CLI.YAML                                  as YAML
 
--- import           Fission.CLI.Key.Ed25519                           as Ed25519
 import           Fission.CLI.Key.Store                             as Key.Store
 
 import qualified Fission.CLI.WebNative.FileSystem.Auth             as WebNative.FileSystem.Auth
@@ -82,27 +78,17 @@ import           Fission.Web.Auth.Token.JWT                        as JWT
 
 import qualified Fission.Key.Asymmetric.Public                     as Asymmetric
 import           Fission.Key.EncryptedWith.Types
--- import qualified Fission.Key.Error                                 as Key
 import qualified Fission.Key.IV.Error                              as IV
 import qualified Fission.Key.Symmetric                             as Symmetric
 
 import           Fission.User.DID.NameService.Class                as DID
--- import           Fission.User.DID.Types
 import           Fission.User.Username
 
--- import           Fission.Web.Client.HTTP.Class
-
--- import qualified Fission.Web.Auth.Token.JWT                        as JWT
-
--- import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
--- import           Fission.Web.Auth.Token.JWT                        as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
 import qualified Fission.Web.Auth.Token.JWT.Resolver               as JWT.Resolver
 import           Fission.Web.Auth.Token.Types
--- import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import           Fission.Web.Client
--- import qualified Fission.Web.Client.JWT                            as JWT
 
 import           Fission.Internal.Orphanage.BaseUrl                ()
 import           Fission.Internal.Orphanage.CID                    ()
@@ -111,14 +97,6 @@ import           Fission.Internal.Orphanage.OpenUnion              ()
 
 import           Fission.Internal.Orphanage.ClientError            ()
 
--- import qualified Fission.CLI.Base.Types                            as Base
--- import           Fission.CLI.Bootstrap
--- import qualified Fission.CLI.Connected.Types                       as Connected
-
--- import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
--- import           Fission.CLI.IPFS.Ignore                           as IPFS.Ignore
-
--- import           Fission.CLI.Key.Store                             as Key.Store
 import           Fission.CLI.PubSub
 import           Fission.CLI.Remote
 
@@ -143,13 +121,11 @@ newtype FissionCLI errs cfg a = FissionCLI
                    , MonadReader cfg
                    , MonadThrow
                    , MonadCatch
+                   , MonadBase IO
                    )
 
 runFissionCLI :: MonadIO m => cfg -> FissionCLI errs cfg a -> m (Either (OpenUnion errs) a)
 runFissionCLI cfg = runRIO cfg . runRescueT . unFissionCLI
-
-instance MonadBase IO (FissionCLI errs cfg) where
-  liftBase = liftIO
 
 instance
   ( HasLogFunc cfg
@@ -292,7 +268,6 @@ instance
 
     storePath  <- wnfsKeyStorePath
     storeOrErr <- attempt $ JSON.readFile storePath
-    -- WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
     let
       store = case storeOrErr of
@@ -311,7 +286,6 @@ instance
 
     storePath  <- wnfsKeyStorePath
     storeOrErr <- attempt $ JSON.readFile storePath
-    -- WebNative.FileSystem.Auth.Store store <- YAML.readFile storePath
 
     let
       store = case storeOrErr of
@@ -372,7 +346,6 @@ instance
 
     let
       jwt =
-        -- JWT.simpleWNFS now serverDID sk [] proof -- FIXME maybe needs SUPER_USER
         JWT.delegateAppendAll serverDID sk proof now
 
       rawContent =
@@ -705,9 +678,6 @@ instance
 
   receiveLBS conn = do
     logDebug @Text "📞👂 Listening for pubsub-over-websockets message..."
-    -- lbs <- liftIO (WS.receiveDataMessage conn) >>= \case
-    --   WS.Text   lbs _ -> return lbs
-    --   WS.Binary lbs   -> return lbs
 
     msg <- liftIO (WS.receiveDataMessage conn)
     lbs <- case msg of

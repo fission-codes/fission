@@ -2,10 +2,9 @@
 module Fission.CLI.Handler.User.Whoami (whoami) where
 
 import qualified Data.Yaml                                 as YAML
+import qualified RIO.Text                                  as Text
 
 import qualified Crypto.PubKey.Ed25519                     as Ed25519
-
-import qualified RIO.Text                                  as Text
 
 import           Network.HTTP.Types.Status
 import           Servant.Client
@@ -27,9 +26,7 @@ import           Fission.CLI.Environment.Path              as Path
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
 
--- import           Fission.CLI.Environment                   as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
-
 
 -- | The command to attach to the CLI tree
 whoami ::
@@ -49,7 +46,7 @@ whoami ::
   , Show    (ErrorCase m)
   , Display (ErrorCase m)
   , ClientError `IsMember` Errors m
-  , Errors m `Contains` Errors m
+  , CheckErrors m
   )
   => m ()
 whoami = do

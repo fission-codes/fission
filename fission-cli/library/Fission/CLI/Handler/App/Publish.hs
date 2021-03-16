@@ -62,7 +62,7 @@ publish ::
   , m `Raises` IPFS.Process.Error
   , m `Raises` NotFound FilePath
   , Show (OpenUnion (Errors m))
-  , Errors m `Contains` Errors m
+  , CheckErrors m
   )
   => WatchFlag
   -> (m () -> IO ())
