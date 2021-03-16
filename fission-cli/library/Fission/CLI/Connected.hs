@@ -46,6 +46,24 @@ import qualified Fission.CLI.IPFS.Connect                  as Connect
 
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
+type BaseErrs =
+  '[ YAML.ParseException
+   , JSON.Error
+   , NoKeyFile
+   , Key.Error
+   , IPFS.Process.Error
+   , IPFS.Add.Error
+   , JWT.Resolver.Error
+   , NotFound JWT
+   , NotFound FilePath
+   , ClientError
+   , SomeException
+   , IPFS.UnableToConnect
+   , NotRegistered
+   , NotFound [IPFS.Peer]
+   , NotFound Ed25519.SecretKey
+   ]
+
 -- | Ensure we have a local config file with the appropriate data
 --
 -- Takes a @Connected@-dependant action, and lifts it into an environment that
@@ -56,15 +74,7 @@ run ::
   , ServerDID      (FissionCLI errs inCfg)
 
   , Contains errs     errs
-  , Contains LiftErrs errs
-
-  , YAML.ParseException  `IsMember` errs
-  , JSON.Error           `IsMember` errs
-  , IPFS.Process.Error   `IsMember` errs
-  , JWT.Resolver.Error   `IsMember` errs
-  , NotFound JWT         `IsMember` errs
-  , IPFS.UnableToConnect `IsMember` errs
-  , IPFS.Add.Error       `IsMember` errs
+  , Contains BaseErrs errs
 
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
@@ -94,30 +104,12 @@ run cfg ipfsTimeout actions =
           logDebug @Text "Connected to remote node"
           actions
 
-type LiftErrs =
-  '[ Key.Error
-   , NoKeyFile
-   , ClientError
-   , NotRegistered
-   , NotFound FilePath
-   , NotFound [IPFS.Peer]
-   , NotFound Ed25519.SecretKey
-   , SomeException
-   ]
-
 mkConnected ::
   ( ServerDID   (FissionCLI errs inCfg)
   , MonadRemote (FissionCLI errs inCfg)
 
-  , YAML.ParseException `IsMember` errs
-  , JSON.Error          `IsMember` errs
-  , IPFS.Process.Error  `IsMember` errs
-  , IPFS.Add.Error      `IsMember` errs
-  , JWT.Resolver.Error  `IsMember` errs
-  , NotFound JWT        `IsMember` errs
-
-  , Contains errs        errs
-  , Contains LiftErrs    errs
+  , Contains errs     errs
+  , Contains BaseErrs errs
 
   , Exception (OpenUnion errs)
   , Display   (OpenUnion errs)
