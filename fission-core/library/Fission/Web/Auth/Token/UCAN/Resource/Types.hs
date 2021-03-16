@@ -1,7 +1,5 @@
 module Fission.Web.Auth.Token.UCAN.Resource.Types (Resource (..)) where
 
-import qualified RIO.Text                                         as Text
-
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
