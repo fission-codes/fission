@@ -15,8 +15,6 @@ import qualified RIO.Text                                         as Text
 
 import           Fission.Prelude
 
--- import qualified Fission.Internal.Base64.URL                      as B64.URL
-
 import qualified Fission.Key                                      as Key
 import           Fission.User.DID                                 as DID
 
@@ -32,7 +30,6 @@ import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types      as JWT.Typ
 import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT
 import qualified Fission.Web.Auth.Token.JWT.Resolver.Class        as Proof
 import qualified Fission.Web.Auth.Token.JWT.Resolver.Error        as Resolver
--- import qualified Fission.Web.Auth.Token.JWT.Signature.Types       as JWT.Signature
 import           Fission.Web.Auth.Token.JWT.Types                 as JWT
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 

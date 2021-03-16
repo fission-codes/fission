@@ -24,6 +24,3 @@ getRemoteURL = toURL <$> getRemote
 
 getNameService :: MonadRemote m => m URL
 getNameService = toNameService <$> getRemote
-
---
-
