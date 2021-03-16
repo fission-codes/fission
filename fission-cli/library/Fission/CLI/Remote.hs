@@ -2,28 +2,19 @@ module Fission.CLI.Remote
   ( getRemoteURL
   , getRemoteBaseUrl
   , getNameService
-  --
-  , fromText
-  , toBaseUrl
-  -- * Known environments
-  , production
-  , staging
-  , development
   -- * Reexports
   , module Fission.CLI.Remote.Class
-  , module Fission.CLI.Remote.Types
+  , module Fission.Web.API.Remote
   )  where
 
-import qualified RIO.Text                 as Text
 import           Servant.Client.Core
 
 import           Fission.Prelude
 
-import qualified Fission.URL              as URL
 import           Fission.URL.Types
+import           Fission.Web.API.Remote
 
 import           Fission.CLI.Remote.Class
-import           Fission.CLI.Remote.Types
 
 getRemoteBaseUrl :: MonadRemote m => m BaseUrl
 getRemoteBaseUrl = toBaseUrl <$> getRemote
@@ -36,45 +27,3 @@ getNameService = toNameService <$> getRemote
 
 --
 
-fromText :: Text -> Maybe Remote
-fromText txt =
-  case Text.strip $ Text.toLower txt of
-    "production"  -> pure Production
-    "prod"        -> pure Production
-
-    "staging"     -> pure Staging
-
-    "development" -> pure Development
-    "dev"         -> pure Development
-
-    custom        -> Custom <$> parseBaseUrl (Text.unpack custom)
-
-toBaseUrl :: Remote -> BaseUrl
-toBaseUrl = \case
-  Production  -> production
-  Staging     -> staging
-  Development -> development
-  Custom url  -> url
-
-toURL :: Remote -> URL
-toURL = URL.fromBaseUrl . toBaseUrl
-
---
-
-toNameService :: Remote -> URL
-toNameService = \case
-  Production  -> URL "fission.name"    Nothing
-  Staging     -> URL "fissionuser.net" Nothing
-  Development -> URL "localhost"       Nothing
-  Custom url  -> URL.fromBaseUrl url
-
---
-
-production :: BaseUrl
-production = BaseUrl Https "runfission.com" 443  ""
-
-staging :: BaseUrl
-staging = BaseUrl Https "runfission.net" 443 ""
-
-development :: BaseUrl
-development = BaseUrl Http "localhost" 1337 ""

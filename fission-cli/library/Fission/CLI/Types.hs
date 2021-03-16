@@ -44,7 +44,8 @@ import           Servant.Client
 
 import qualified Turtle
 
-import           Fission.Prelude                                   hiding (mask, uninterruptibleMask)
+import           Fission.Prelude                                   hiding (mask,
+                                                                    uninterruptibleMask)
 
 import           Fission.Authorization.ServerDID
 import qualified Fission.DNS                                       as DNS
@@ -815,7 +816,7 @@ instance
   resolve cid@(IPFS.CID hash') =
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash') <&> \case
       Left errMsg ->
-        Left $ CannotResolve cid errMsg
+        Left $ CannotResolve cid (ConnectionError $ toException errMsg)
 
       Right (Lazy.toStrict -> resolvedBS) ->
         case eitherDecodeStrict resolvedBS of

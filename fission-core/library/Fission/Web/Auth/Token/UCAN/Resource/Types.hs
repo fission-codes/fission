@@ -27,7 +27,7 @@ instance Arbitrary Resource where
 
 instance Display Resource where
   textDisplay = \case
-    FissionFileSystem path            -> "WNFS at "     <> Text.pack path
+    FissionFileSystem path            -> "WNFS at "     <> path
 
     FissionApp        Complete        -> "all apps"
     FissionApp        (Subset url)    -> "app at "      <> textDisplay url

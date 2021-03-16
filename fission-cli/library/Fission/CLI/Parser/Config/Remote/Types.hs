@@ -1,12 +1,9 @@
 module Fission.CLI.Parser.Config.Remote.Types (RemoteConfig (..)) where
 
--- import           Servant.Client
-
 import           Fission.Prelude
 
 import           Fission.User.DID.Types
-
-import           Fission.CLI.Remote.Types
+import           Fission.Web.API.Remote
 
 data RemoteConfig = RemoteConfig
   -- { target :: BaseUrl

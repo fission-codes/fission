@@ -62,7 +62,7 @@ fission proxy appHost =
     |> info . license     ?~ projectLicense
   where
     version' =
-      Text.pack $ showVersion Fission.version
+      Text.pack $ Version.showVersion Fission.version
 
     fissionContact =
       mempty

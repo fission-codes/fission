@@ -27,7 +27,7 @@ import           Fission.CLI.Environment.Path              as Path
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
 
-import           Fission.CLI.Environment                   as Env
+-- import           Fission.CLI.Environment                   as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
 
@@ -42,12 +42,12 @@ whoami ::
   , ServerDID        m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
-  , MoCnadCleanup     m
+  , MonadCleanup     m
   , m `Raises` ClientError
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
-  , Show    (OpenUnion (Errors m))
-  , Display (OpenUnion (Errors m))
+  , Show    (ErrorCase m)
+  , Display (ErrorCase m)
   , ClientError `IsMember` Errors m
   , Errors m `Contains` Errors m
   )
