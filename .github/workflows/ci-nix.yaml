@@ -45,12 +45,12 @@ jobs:
 
     - name: 📦 Install dependencies
       run: |
-        stack build --nix --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
+        stack build --nix --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
 
     - name: 🏗️  Build
       run: |
-        stack build --nix --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+        stack build --nix --test --bench --no-run-tests --no-run-benchmarks
 
     - name: 🧪 Test
       run: |
-        stack test --nix --system-ghc
+        stack test --nix

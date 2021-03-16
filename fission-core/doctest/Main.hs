@@ -19,7 +19,7 @@ main = do
   let tmp = ".doctest-tmp"
   setup tmp "library"
 
-  source <- glob "library" -- tmp
+  source <- glob tmp
   doctest source
 
   removeDirectoryRecursive tmp
