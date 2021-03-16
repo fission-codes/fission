@@ -15,14 +15,7 @@ import           Fission.CLI.File
 import           Fission.Error.NotFound.Types
 
 -- | Writes partial environment to path
-writeFile ::
-  ( MonadIO     m
-  , MonadLogger m
-  , ToJSON a
-  )
-  => FilePath
-  -> a
-  -> m ()
+writeFile :: (MonadIO m, MonadLogger m, ToJSON a) => FilePath -> a -> m ()
 writeFile path contents = do
   logDebug $ "✍️  Writing YAML file to " <> Text.pack (show path)
   forceWrite path $ YAML.encode contents
