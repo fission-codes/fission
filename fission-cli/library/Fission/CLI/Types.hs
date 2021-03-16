@@ -232,7 +232,6 @@ instance
     (_, CID hash') <- ensureM $ IPFS.addFile (encode token)  "bearer.jwt"
 
     let
-      -- FIXME fix in ipfs-haskell smart constructor
       cleanHash =
         hash'
           |> Text.dropPrefix "\""

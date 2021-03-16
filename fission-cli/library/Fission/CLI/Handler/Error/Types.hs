@@ -25,6 +25,7 @@ import           Fission.URL.Types
 import           Fission.User.DID.Types
 import qualified Fission.User.Username.Error               as Username
 
+import qualified Fission.Key.Asymmetric.Algorithm.Error    as Asymmetric.Algorithm
 import qualified Fission.Key.Error                         as Key
 import qualified Fission.Key.IV.Error                      as IV
 import qualified Fission.Key.Symmetric                     as Symmetric
@@ -39,7 +40,7 @@ import qualified Fission.Web.Serialization                 as Web.Serialization
 import           Fission.CLI.Environment                   as Env
 import qualified Fission.CLI.Environment.OS                as OS
 import           Fission.CLI.Error.Types
-import           Fission.CLI.Linking.Status.Denied.Types
+import           Fission.CLI.Linking.Status.Types
 import           Fission.CLI.PIN.Types
 import           Fission.CLI.PubSub.Secure.Payload         as SecurePayload
 
@@ -55,7 +56,7 @@ type Errs
      , CryptoError
      , DNSError
      --
-     , Denied
+     , Status Denied
      --
      , IPFS.Add.Error
      , IPFS.Process.Error
@@ -70,6 +71,7 @@ type Errs
      , Key.Error
      , Mismatch PIN
      , NoKeyFile
+     , Asymmetric.Algorithm.Invalid
      --
      , NotFound (Symmetric.Key AES256)
      , NotFound CID

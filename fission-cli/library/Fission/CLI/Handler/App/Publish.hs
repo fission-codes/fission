@@ -71,7 +71,7 @@ publish ::
   -> Bool
   -> Bool
   -> m ()
-publish watchFlag runner appURL appPath _updateDNS updateData = do -- FIXME updateDNS
+publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updateDNS
   logDebug @Text "📱 App publish"
   attempt (App.readFrom appPath) >>= \case
     Left err -> do

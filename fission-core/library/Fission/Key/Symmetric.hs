@@ -71,7 +71,7 @@ decrypt (Symmetric.Key aesKey) iv (EncryptedPayload cipherLBS) =
             mayClearBS = aeadSimpleDecrypt blockCipher ("" :: ByteString) cipherBS authTag
           in
             case mayClearBS of
-              Nothing      -> error "NOPE!" -- FIXME
+              Nothing      -> Left CryptoError_MacKeyInvalid -- NOTE Fails when auth tag doens't match, hence this error
               Just clearBS -> Right clearBS
 
 -- | Generates a string of bytes (key) of a specific length for a given block cipher

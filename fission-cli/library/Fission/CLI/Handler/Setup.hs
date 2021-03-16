@@ -1,10 +1,6 @@
 module Fission.CLI.Handler.Setup (setup) where
 
-import           Crypto.Cipher.AES                 (AES256)
-import           Crypto.Error                      as Crypto
-
 import           Network.IPFS
-import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error        as IPFS.Process
 
 import           Network.DNS                       as DNS
@@ -14,8 +10,6 @@ import           Fission.Prelude
 
 import           Fission.Error
 import           Fission.Key.Error                 as Key
-import           Fission.Key.IV.Error              as IV
-import qualified Fission.Key.Symmetric.Types       as Symmetric
 
 import           Fission.User.DID.Types
 import           Fission.User.Email.Types
@@ -54,9 +48,6 @@ setup ::
   , m `Raises` DNSError
   , m `Raises` IPFS.Process.Error
   , m `Raises` Key.Error
-  , m `Raises` CryptoError
-  , m `Raises` IV.GenError
-  , m `Raises` NotFound CID
   , m `Raises` NotFound DID
   , m `Raises` OS.Unsupported
   , m `Raises` Username.Invalid
@@ -92,7 +83,7 @@ setup maybeOS maybeUsername maybeEmail = do
           True -> do
             signingSK <- Key.Store.fetch $ Proxy @SigningKey
             rootURL   <- getRemoteBaseUrl
-            Login.consume signingSK rootURL {baseUrlPath = "/user/link"}
+            Login.consume signingSK rootURL {baseUrlPath = "/user/link"} maybeUsername
 
       logUser @Text "🏗️  Setting default config..."
       Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"

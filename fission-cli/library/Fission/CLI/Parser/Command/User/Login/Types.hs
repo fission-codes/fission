@@ -2,13 +2,13 @@ module Fission.CLI.Parser.Command.User.Login.Types (Options (..)) where
 
 import           Fission.Prelude
 
--- import           Fission.User.Username.Types
+import           Fission.User.Username.Types
 
 import           Fission.CLI.Parser.Verbose.Types
 
 data Options = Options
   { verboseFlag :: VerboseFlag -- ^ Verbose flag
-  -- , username    :: Username -- FIXME
+  , optUsername :: Maybe Username
   } deriving (Show, Eq)
 
 -- FIXME use composition instead of ad hoc subtyping

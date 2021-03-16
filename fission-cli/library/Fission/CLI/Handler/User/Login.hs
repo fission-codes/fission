@@ -35,6 +35,7 @@ import           Fission.Error.Types
 import qualified Fission.JSON                                as JSON
 
 import           Fission.Authorization.ServerDID.Class
+import qualified Fission.Key.Asymmetric.Algorithm.Error      as Asymmetric.Algorithm
 import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Error                           as Key
 import qualified Fission.Key.Symmetric                       as Symmetric
@@ -94,18 +95,20 @@ type LoginConstraints m =
   , ProducerConstraints m
   )
 
-login :: LoginConstraints m => m Username
-login = do
+login :: LoginConstraints m => Maybe Username -> m Username
+login optUsername = do
   signingSK <- Key.Store.fetch $ Proxy @SigningKey
   rootURL   <- getRemoteBaseUrl
 
   let
     -- NOTE hardcoded and not using safeLink since that would cause a dependency
-    -- on the fission-web-server
+    -- on fission-web-server. servant-websockets contains servant-server,
+    -- and thus depends on zlib, which is annoying for our (potential) static builds.
+    -- This may change in the future.
     baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
-    Right () -> consume signingSK baseURL
+    Right () -> consume signingSK baseURL optUsername
     Left  _  -> produce signingSK baseURL
 
 type ConsumerConstraints m =
@@ -143,11 +146,15 @@ type ConsumerConstraints m =
   , Display (SecurePayload (Symmetric.Key AES256) User.Link.Payload)
   )
 
-consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> m Username
-consume signingSK baseURL = do
+consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> Maybe Username -> m Username
+consume signingSK baseURL optUsername = do
   logDebug @Text "🛂📥 Consuming log-in..."
 
-  username  <- ensure . mkUsername =<< reaskNotEmpty' "Please enter you username:"
+  username <- do
+    case optUsername of
+      Just uName -> return uName
+      Nothing    -> ensure . mkUsername =<< reaskNotEmpty' "Please enter you username:"
+
   targetDID <- ensureM $ DID.getByUsername username
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
 
@@ -159,7 +166,7 @@ consume signingSK baseURL = do
     logDebug @Text "🤝 Device linking handshake: Step 1"
     aesConn <- secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       let
-        Secure.Connection {key = (pk, _sk)} = rsaConn -- FIXME key pair type
+        Secure.Connection {key = (pk, _sk)} = rsaConn
         sessionDID = DID Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
@@ -235,6 +242,7 @@ type ProducerConstraints m =
   , MonadPubSubSecure m (Symmetric.Key AES256)
 
   , MonadCleanup m
+  , m `Raises` Asymmetric.Algorithm.Invalid
   , m `Raises` YAML.ParseException
   , m `Raises` JSON.Error
   , m `Raises` NotFound CID
@@ -244,8 +252,8 @@ type ProducerConstraints m =
   , m `Raises` SecurePayload.Error
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` Mismatch PIN
-  , m `Raises` Denied
   , m `Raises` ClientError
+  , m `Raises` Status Denied
 
   , Display (SecurePayload (Symmetric.Key AES256) PIN.Payload)
   )
@@ -258,7 +266,6 @@ produce signingSK baseURL = do
   rootProof      <- WebNative.Mutation.Store.getRootUserProof
   rootDID        <- getRootDID (Ed25519PublicKey signingPK) rootProof
   Env {username} <- Env.get
-  -- FIXME username  <- sendAuthedRequest rootProof User.whoami
 
   PubSub.connect baseURL (PubSub.Topic $ textDisplay rootDID) \conn -> reattempt 10 do
     logDebug @Text "🤝 Device linking handshake: Step 1 (noop)"
@@ -271,7 +278,7 @@ produce signingSK baseURL = do
 
       case tmpPK of
         Ed25519PublicKey _ ->
-          error "wrong key type" --FIXME
+          raise Asymmetric.Algorithm.Invalid
 
         RSAPublicKey tmpRSA ->
           reattempt 10 do
@@ -306,7 +313,7 @@ produce signingSK baseURL = do
                   bearer = Bearer.fromJWT jwt
 
                 accessOK <- reaskYN $ "Grant access to: " <> JWT.prettyPrintGrants jwt
-                unless accessOK $ raise Denied
+                unless accessOK $ raise (Status Denied)
 
                 aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 

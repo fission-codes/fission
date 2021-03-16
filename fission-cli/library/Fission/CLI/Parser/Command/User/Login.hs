@@ -9,6 +9,8 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
+import           Fission.User.Username.Types
+
 import           Fission.CLI.Parser.Command.User.Login.Types
 import qualified Fission.CLI.Parser.Verbose                  as Verbose
 
@@ -23,11 +25,18 @@ parser :: Parser Options
 parser = do
   verboseFlag <- Verbose.parser
 
---   username <- option str $ mconcat
---     [ help  "Username"
---     ---
---     , long  "username"
---     , short 'u'
---     ]
+  optUsername <- option username $ mconcat
+    [ help  "Username"
+    ---
+    , long  "username"
+    , short 'u'
+    ]
 
   pure Options {..}
+
+username :: ReadM (Maybe Username)
+username = do
+  raw <- str
+  pure case raw of
+    ""   -> Nothing
+    name -> Just name

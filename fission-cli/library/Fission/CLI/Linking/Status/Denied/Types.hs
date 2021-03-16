@@ -1,5 +1,7 @@
 module Fission.CLI.Linking.Status.Denied.Types (Denied (..)) where
 
+import qualified RIO.Text        as Text
+
 import           Fission.Prelude
 
 data Denied = Denied
@@ -8,16 +10,12 @@ data Denied = Denied
 instance Display Denied where
   display _ = "Denied"
 
--- NOTE will likely expand over time, but this is the only one at time of writing,
--- so just serializing directly here FIXME?
 instance ToJSON Denied where
-  toJSON Denied =
-    object ["linkStatus" .= ("DENIED" :: Text)]
+  toJSON Denied = String "DENIED"
 
 instance FromJSON Denied where
   parseJSON =
-    withObject "LinkStatus" \obj -> do
-      status :: Text <- obj .: "linkStatus"
-      case status of
+    withText "Denied" \txt -> do
+      case Text.toUpper txt of
         "DENIED" -> return Denied
-        _        -> fail "Invalid link status"
+        _        -> fail "Not the Denied status"
