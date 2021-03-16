@@ -12,7 +12,7 @@ import           Fission.CLI.Parser.Command.User.Types          as User
 
 import           Fission.CLI.Handler.Error.Types                (Errs)
 
-interpret :: forall errs .
+interpret ::
   ( Contains Errs errs
   , Contains errs errs
   , Display   (OpenUnion errs)
