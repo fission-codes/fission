@@ -1,8 +1,7 @@
 module Fission.Web.Server.Swagger (handler) where
 
 import           Data.Swagger
-import qualified Data.Version                                        as Version
-
+import           Data.Version
 import qualified RIO.Text                                            as Text
 
 import           Servant
@@ -62,7 +61,7 @@ fission proxy appHost =
     |> info . license     ?~ projectLicense
   where
     version' =
-      Text.pack $ Version.showVersion Fission.version
+      Text.pack $ showVersion Fission.version
 
     fissionContact =
       mempty
