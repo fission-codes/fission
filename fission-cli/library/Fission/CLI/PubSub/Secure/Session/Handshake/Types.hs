@@ -20,7 +20,7 @@ import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 data Handshake = Handshake
   { iv         :: IV AES256
   , sessionKey :: Symmetric.Key AES256 `EncryptedWith` RSA.PrivateKey
-  , msg        :: Bearer.Token         `EncryptedWith` Symmetric.Key AES256
+  , msg        :: Bearer.BareToken     `EncryptedWith` Symmetric.Key AES256
   }
   deriving Eq
 
@@ -50,10 +50,9 @@ instance ToJSON Handshake where
 
 instance FromJSON Handshake where
   parseJSON = withObject "PubSub.Session.Handshake" \obj -> do
-    token' :: Bearer.Token         `EncryptedWith` Symmetric.Key AES256 <- obj .: "msg"
-    key'   :: Symmetric.Key AES256 `EncryptedWith` RSA.PrivateKey       <- obj .: "sessionKey"
-
-    ivTxt <- obj .: "iv"
+    token' <- obj .: "msg"
+    key'   <- obj .: "sessionKey"
+    ivTxt  <- obj .: "iv"
 
     case makeIV . Base64.decodeLenient $ encodeUtf8 ivTxt of
       Nothing -> fail "Invalid (IV AES256)"

@@ -69,16 +69,16 @@ connectTo peers = do
     forConcurrently peers \peer ->
       runInBase $ tryConnect peer
 
-  filterM findFails (NonEmpty.toList results) >>= \case
-    [] -> return ()
-    _  -> raise IPFS.UnableToConnect
+  filterM findSuccess (NonEmpty.toList results) >>= \case
+    [] -> raise IPFS.UnableToConnect
+    _  -> return ()
 
   where
-    findFails :: StM m () -> m Bool
-    findFails stm =
+    findSuccess :: StM m () -> m Bool
+    findSuccess stm =
       attemptM (restoreM stm) \case
-        Left  _  -> return True
-        Right () -> return False
+        Left  _  -> return False
+        Right () -> return True
 
     tryConnect :: IPFS.Peer -> m ()
     tryConnect peer@(IPFS.Peer peerTxt) =

@@ -630,7 +630,7 @@ instance
     return $ status == ExitSuccess
 
 waitForStartup :: (MonadIO m, MonadIPFSDaemon m) => m Bool
-waitForStartup = go (10 :: Natural)
+waitForStartup = go (25 :: Natural)
   where
     go 0 =
       return False
@@ -641,8 +641,9 @@ waitForStartup = go (10 :: Natural)
           return True
 
         False -> do
-          threadDelay 1_000_000
+          threadDelay 500_000
           go $ count - 1
+
 instance
   ( HasLogFunc cfg
   , Contains errs errs
@@ -712,11 +713,15 @@ instance forall errs cfg .
   , Display (OpenUnion errs)
   )
   => MonadSecured (FissionCLI errs cfg) (RSA.PublicKey, RSA.PrivateKey) PubSub.Session where
-  toSecurePayload (rsaPK, _) PubSub.Session {bearerToken, sessionKey = sessionKey@(Symmetric.Key aesClear)} = do
+  toSecurePayload (rsaPK, _) PubSub.Session {bearerToken, sessionKey} = do
     logDebug @Text "Encrypting RSA-secured PubSub.Session payload (Handshake)"
 
+    let
+      Symmetric.Key aesClear = sessionKey
+      ucan = Bearer.BareToken bearerToken
+
     iv           <- ensureM   Symmetric.genIV
-    msg          <- ensure  $ Symmetric.encrypt sessionKey iv bearerToken
+    msg          <- ensure  $ Symmetric.encrypt sessionKey iv ucan
     encryptedAES <- ensureM $ RSA.OAEP.encrypt oaepParams rsaPK aesClear
 
     return PubSub.Handshake { iv

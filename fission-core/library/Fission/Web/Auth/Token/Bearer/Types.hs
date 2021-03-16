@@ -1,5 +1,8 @@
 -- | Authorization types; primarily more semantic aliases
-module Fission.Web.Auth.Token.Bearer.Types (Token (..)) where
+module Fission.Web.Auth.Token.Bearer.Types
+  ( Token     (..)
+  , BareToken (..)
+  ) where
 
 import qualified RIO.ByteString.Lazy                   as Lazy
 import qualified RIO.Text                              as Text
@@ -62,3 +65,20 @@ instance FromHttpApiData Token where
 
       Nothing ->
         Left $ txt <> " is missing the `Bearer ` prefix"
+
+--------------
+-- newtypes --
+--------------
+
+-- | Same as 'Token', but serialized without the 'bearer'. Internal use for UCANs.
+newtype BareToken = BareToken Token
+  deriving (Eq, Show)
+
+instance ToJSON BareToken where
+  toJSON (BareToken Token {jwt = JWT {sig}, rawContent}) =
+    String $ textDisplay rawContent <> "." <> textDisplay sig
+
+instance FromJSON BareToken where
+  parseJSON = withText "Bearer Token" \txt -> do
+    jwt <- parseJSON $ toJSON txt
+    return $ BareToken Token { jwt, rawContent = JWT.contentOf txt }

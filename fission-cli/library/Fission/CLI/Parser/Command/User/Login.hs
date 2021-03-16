@@ -27,6 +27,8 @@ parser = do
     ---
     , long  "username"
     , short 'u'
+    --
+    , value Nothing
     ]
 
   pure Options {..}
