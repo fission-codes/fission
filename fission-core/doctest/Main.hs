@@ -1,6 +1,7 @@
 module Main (main) where
 
 import           RIO
+import           RIO.FilePath
 import qualified RIO.List                  as List
 
 import           Data.Aeson.Lens
@@ -16,13 +17,14 @@ import           Test.QuickCheck.Instances ()
 
 main :: IO ()
 main = do
-  let tmp = ".doctest-tmp"
-  setup tmp "library"
+   let tmp = ".doctest-tmp"
+   setup tmp "library"
 
-  source <- glob tmp
-  doctest source
+   source <- glob tmp
+   doctest (["-isrc"] <> source)
+   -- doctest source
 
-  removeDirectoryRecursive tmp
+   removeDirectoryRecursive tmp
 
 setup :: FilePath -> FilePath -> IO ()
 setup tmp src = do
@@ -36,7 +38,7 @@ setup tmp src = do
   exts <- getExts
 
   (_ :/ files) <- readDirectoryWithL readFileBinary src
-  go (pwd <> "/" <> tmp) (header exts) files
+  go (pwd </> tmp) (header exts) files
   where
     go :: FilePath -> ByteString -> DirTree ByteString -> IO ()
     go dirPath exts' = \case
@@ -44,21 +46,17 @@ setup tmp src = do
         error $ show err
 
       Dir { name, contents } -> do
-        let path = dirPath <> "/" <> name
+        let path = dirPath </> name
         createDirectory path
         contents `forM_` go path exts'
 
       File { name, file } ->
         if List.isSuffixOf ".hs" name
-          then writeFileBinary (dirPath <> "/" <> name) (exts' <> file)
-          else writeFileBinary (dirPath <> "/" <> name) file
+          then writeFileBinary (dirPath </> name) (exts' <> file)
+          else writeFileBinary (dirPath </> name) file
 
 header :: [ByteString] -> ByteString
-header raw = mconcat
-  [ "{-# LANGUAGE "
-  , mconcat $ List.intersperse ", " raw
-  , " #-}\n"
-  ]
+header raw = "{-# LANGUAGE " <> mconcat (List.intersperse ", " raw) <> " #-}\n"
 
 getExts :: IO [ByteString]
 getExts = do

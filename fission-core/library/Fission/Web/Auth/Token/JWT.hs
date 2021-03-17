@@ -5,6 +5,7 @@ module Fission.Web.Auth.Token.JWT
   , delegateSuperUser
   , delegateAppendAll
   , simpleWNFS
+  , proveWNFS
   , prettyPrintGrants
   , module Fission.Web.Auth.Token.JWT.Types
   , module Fission.Web.Auth.Token.JWT.Error
@@ -78,6 +79,17 @@ simpleWNFS now receiverDID sk facts proof =
   where
     potency  = AppendOnly
     resource = Just (Subset (FissionFileSystem "/"))
+
+    -- Accounting for minor clock drift
+    begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
+    expiry = addUTCTime (secondsToNominalDiffTime   30)  now
+
+proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
+proveWNFS now receiverDID sk facts proof =
+  mkUCAN receiverDID sk begin expiry facts resource potency proof
+  where
+    potency  = AppendOnly
+    resource = Nothing
 
     -- Accounting for minor clock drift
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now

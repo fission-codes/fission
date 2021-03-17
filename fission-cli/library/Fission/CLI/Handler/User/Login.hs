@@ -289,7 +289,7 @@ produce signingSK baseURL = do
 
               let
                 connectedRSAConn = rsaConn {key = (tmpRSA, sk)}
-                handshakeJWT = simpleWNFS now requestorTempDID signingSK [SessionKey sessionKey] rootProof
+                handshakeJWT = proveWNFS now requestorTempDID signingSK [SessionKey sessionKey] rootProof
 
               connectedRSAConn `secureBroadcastJSON` PubSub.Session { sessionKey
                                                                     , bearerToken = Bearer.fromJWT handshakeJWT
