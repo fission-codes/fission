@@ -26,6 +26,9 @@ extra-deps:
   - servant-websockets-2.0.0
   - unliftio-core-0.1.2.0
 
+ghc-options:
+  "$everything": -haddock
+
 nix:
   enable:     false
   pure:       true

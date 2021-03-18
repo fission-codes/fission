@@ -8,7 +8,6 @@ nohup.out
 *.csr
 *.sqlite
 *.db
-.doctest-tmp/
 *.cabal
 .stack-work-profiling/*
 yesod-devel/*

@@ -27,12 +27,7 @@ fromMaybe err okHandler = maybe (openLeft err) (Right . okHandler)
 fromMaybe' :: IsMember err errs => err -> Maybe a -> Either (OpenUnion errs) a
 fromMaybe' err = fromMaybe err identity
 
-retryOnErr ::
-  Monad m
-  => (a -> m Bool)
-  -> Natural
-  -> m a
-  -> m a
+retryOnErr :: Monad m => (a -> m Bool) -> Natural -> m a -> m a
 retryOnErr _ 0 action = action
 retryOnErr check times action = do
   result <- action

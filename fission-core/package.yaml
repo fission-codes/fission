@@ -78,7 +78,6 @@ default-extensions:
   - TypeApplications
   - TypeFamilies
   - TypeSynonymInstances
-  - TemplateHaskell
   - TypeOperators
   - ViewPatterns
 
@@ -155,27 +154,6 @@ library:
   source-dirs: library
 
 tests:
-  fission-core-doctest:
-    main: Main.hs
-    source-dirs: doctest
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - base58string
-      - binary
-      - directory
-      - directory-tree
-      - doctest
-      - Glob
-      - lens-aeson
-      - QuickCheck
-      - quickcheck-instances
-      - rio
-      - world-peace
-      - yaml
-
   fission-core-test:
     main: Main.hs
     source-dirs:

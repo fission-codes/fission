@@ -118,10 +118,9 @@
         && ${server-start.script}
       '';
 
-      quality      = cmd "Run the complete test suite" "${stack} test  --nix";
-      core-doctest = cmd "Run the complete test suite" "${stack} test fission-core:fission-core-doctest --nix";
-      repl         = cmd "Enter the project REPL"      "${stack} repl  --nix --no-nix-pure";
-      watch        = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
+      quality = cmd "Run the complete test suite" "${stack} test  --nix";
+      repl    = cmd "Enter the project REPL"      "${stack} repl  --nix --no-nix-pure";
+      watch   = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
 
       ssh-staging = cmd "SSH into the staging environment"
         "${ssh} fission@instance.runfission.net";
