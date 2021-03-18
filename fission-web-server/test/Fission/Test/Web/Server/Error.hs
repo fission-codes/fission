@@ -6,7 +6,7 @@ import           Fission.Test.Web.Server.Prelude as Mock
 
 spec :: Spec
 spec =
-  describe "Fission.Error" $ parallel do
+  describe "Fission.Error" do
     (successSession, failureSession) <- runIO setup
 
     let
@@ -20,15 +20,15 @@ spec =
         , result    = failResult    :: Natural
         } = failureSession
 
-    describe "retryOnErr" $ parallel do
-      describe "handles a valid result" $ parallel do
+    describe "retryOnErr" do
+      describe "handles a valid result" do
         it "only runs once" do
           length successEffectLog `shouldBe` 1
 
         it "should return the valid result" do
           successResult `shouldBe` 5
 
-      describe "retries on an invalid result" $ parallel do
+      describe "retries on an invalid result" do
         it "retries 100 times" do
           length failEffectLog `shouldBe` 100
 

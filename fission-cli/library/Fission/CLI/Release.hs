@@ -59,7 +59,7 @@ checkLatestRelease = do
             when (currentVersion < latestVersion) do
               colourized [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow] do
                 UTF8.putText "⚠️  A new version of Fission CLI is available: "
-                UTF8.putTextLn $ Releases.releaseTagName latestRelease <> " (aka '" <> Releases.releaseName latestRelease <> "')"
+                UTF8.putTextLn $ Releases.releaseTagName latestRelease <> " (AKA '" <> Releases.releaseName latestRelease <> "')"
 
 getVersion :: Text -> Maybe Versions.Versioning
 getVersion verTxt =

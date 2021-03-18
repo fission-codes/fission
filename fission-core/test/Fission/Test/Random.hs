@@ -9,7 +9,7 @@ import           Fission.Test.Prelude
 
 spec :: Spec
 spec =
-  describe "Random" $ parallel do
+  describe "Random" do
     describe "alphaNum" do
       itsProp' "length is the specified length" \n -> do
         alphaNum <- Random.alphaNum n

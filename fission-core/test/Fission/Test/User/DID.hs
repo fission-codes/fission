@@ -14,7 +14,7 @@ import           Fission.Test.Prelude
 
 spec :: Spec
 spec =
-  describe "Serialization" $ parallel do
+  describe "Serialization" do
     context "RSA2048" do
       it "serializes to a well-known value"
         let

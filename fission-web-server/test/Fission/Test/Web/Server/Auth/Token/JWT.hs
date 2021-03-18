@@ -13,15 +13,15 @@ import qualified Fission.Test.Web.Server.Auth.Token.JWT.Proof      as Proof
 
 spec :: Spec
 spec =
-  describe "Fission.Web.Auth.Token.JWT" $ parallel do
+  describe "Fission.Web.Auth.Token.JWT" do
     Proof.spec
     Validation.spec
 
-    describe "serialization" $ parallel do
+    describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(jwt :: JWT) ->
         JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
 
-      describe "format" $ parallel do
+      describe "format" do
         itsProp' "contains exactly two '.'s" \(jwt :: JWT) ->
           jwt
             |> JSON.encode

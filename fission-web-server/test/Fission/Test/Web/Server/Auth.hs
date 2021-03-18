@@ -28,7 +28,7 @@ import qualified Fission.Test.Web.Server.Auth.Signature.Ed25519         as Ed
 
 spec :: Spec
 spec =
-  describe "Fission.Web.Auth" $ parallel do
+  describe "Fission.Web.Auth" do
     Token.spec
     Bearer.spec
     JWT.spec
@@ -36,10 +36,10 @@ spec =
     Resource.spec
     Scope.spec
 
-    describe "mkAuth" $ parallel do
+    describe "mkAuth" do
       (didResult, userResult, herokuResult) <- runIO setup
 
-      describe "value" $ parallel do
+      describe "value" do
         context "user auth" do
           it "uses the encapsulated function" do
             fmap about userResult `shouldBe` Right (Fixture.entity Fixture.user)

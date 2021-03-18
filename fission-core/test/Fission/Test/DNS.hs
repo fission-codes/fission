@@ -9,7 +9,7 @@ import           Fission.Test.Prelude
 
 spec :: Spec
 spec =
-  describe "Fission.DNS" $ parallel do
+  describe "Fission.DNS" do
     describe "splitRecord" do
       context "256 characters or less" do
         itsProp' "length does not change" \(SmallText txt) ->

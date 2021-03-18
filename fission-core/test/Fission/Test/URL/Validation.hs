@@ -6,19 +6,19 @@ import           Fission.Test.Prelude
 
 spec :: Spec
 spec =
-  describe "URL.Validation" $ parallel do
-    describe "isValid" $ parallel do
+  describe "URL.Validation" do
+    describe "isValid" do
       it "is valid on a simple string" $
         isValid "simple" `shouldBe` True
 
-      context "blocklisted words" $ parallel do
+      context "blocklisted words" do
         it "is disallowed" do
           isValid "recovery" `shouldBe` False
 
         it "checks in a case-insensitive way" $
           isValid "reCovErY" `shouldBe` False
 
-      context "characters" $ parallel do
+      context "characters" do
         it "can contain hyphens" $
           isValid "happy-name" `shouldBe` True
 
@@ -28,7 +28,7 @@ spec =
         it "does not allow uppercase characters at all" do
           isValid "hElLoWoRlD" `shouldBe` False
 
-        describe "only accepts URL-safe characters" $ parallel do
+        describe "only accepts URL-safe characters" do
           it "may not contain a plus sign" $
             isValid "plus+plus" `shouldBe` False
 
@@ -44,8 +44,8 @@ spec =
           it "may not contain a mix of invalid characters" $
             isValid "name&with#chars" `shouldBe` False
 
-        context "leads/trailing" $ parallel do
-          describe "must start with an alphanumeric character" $ parallel do
+        context "leads/trailing" do
+          describe "must start with an alphanumeric character" do
             it "may not start with a hyphen" do
               isValid "-startswith" `shouldBe` False
 

@@ -118,7 +118,7 @@
         && ${server-start.script}
       '';
 
-      quality = cmd "Run the complete test suite" "${stack} test  --nix";
+      quality = cmd "Run the complete test suite" "${stack} test  --nix --test-arguments='--color=always'";
       repl    = cmd "Enter the project REPL"      "${stack} repl  --nix --no-nix-pure";
       watch   = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
 

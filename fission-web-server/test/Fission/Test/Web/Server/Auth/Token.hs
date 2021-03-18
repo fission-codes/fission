@@ -20,8 +20,8 @@ import           Fission.Test.Web.Server.Prelude
 
 spec :: Spec
 spec =
-  describe "Auth.Token" $ parallel do
-    describe "serialization" $ parallel do
+  describe "Auth.Token" do
+    describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(token :: Token) ->
         JSON.eitherDecode (JSON.encode token) `shouldBe` Right token
 

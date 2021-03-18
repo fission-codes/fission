@@ -17,8 +17,8 @@ import           Fission.Test.Web.Server.Prelude
 
 spec :: Spec
 spec =
-  describe "Fission.Web.Auth.Signature.Ed25519" $ parallel do
-    describe "signature verification" $ parallel do
+  describe "Fission.Web.Auth.Signature.Ed25519" do
+    describe "signature verification" do
       itsProp' "verifies" \(jwt@JWT {..}, sk) ->
         let
           pk         = Ed25519.toPublic sk

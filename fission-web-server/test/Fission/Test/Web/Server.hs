@@ -8,7 +8,7 @@ import qualified Fission.Test.Web.Server.Ping    as Web.Ping
 
 spec :: Spec
 spec =
-  describe "Fission.Web.Server" $ parallel do
+  describe "Fission.Web.Server" do
     Web.Auth.spec
     Web.Ping.spec
     Error.spec

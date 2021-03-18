@@ -3,7 +3,7 @@ module Fission.Internal.Bool
   , truthy
   ) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 anyX :: [a -> Bool] -> a -> Bool
 anyX preds value = True `elem` (preds <*> [value])
@@ -24,4 +24,4 @@ anyX preds value = True `elem` (preds <*> [value])
 
 -}
 truthy :: (Eq a, IsString a) => a -> Bool
-truthy = anyX <| (==) <$> ["true", "yes", "1", "t", "on"]
+truthy = anyX $ (==) <$> ["true", "yes", "1", "t", "on"]

@@ -16,7 +16,7 @@ import           Fission.Test.Web.Server.Prelude
 
 spec :: Spec
 spec =
-  describe "Bearer Token" $ parallel do
+  describe "Bearer Token" do
     -- FIXME waiting on new real world example
     -- describe "real world fixture" do
       -- it "deserializes" do
@@ -26,11 +26,11 @@ spec =
       --     |> JSON.decode
       --     |> shouldBe (Just Bearer.tokenRSA2048)
 
-    describe "serialization" $ parallel do
+    describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(bearer :: Bearer.Token) ->
         JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
 
-      describe "outgoing" $ parallel do
+      describe "outgoing" do
         itsProp' "has no internal quotes" \(bearer :: Bearer.Token) ->
           bearer
             |> JSON.encode
@@ -51,8 +51,8 @@ spec =
               |> Lazy.filter (not . isValidChar)
               |> shouldBe mempty
 
-      describe "incoming" $ parallel do
-        describe "Postel's Law" $ parallel do
+      describe "incoming" do
+        describe "Postel's Law" do
           itsProp' "lowercase 'bearer'" \(jwt :: JWT) -> do
             let
               jwt' :: Lazy.ByteString

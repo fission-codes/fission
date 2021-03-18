@@ -6,5 +6,5 @@ import qualified Fission.Test         as Fission
 
 main :: IO ()
 main = do
-  spec <- testSpecs Fission.spec
+  spec <- testSpecs $ parallel Fission.spec
   defaultMain $ testGroup "Tests" spec

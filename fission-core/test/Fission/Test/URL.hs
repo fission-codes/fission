@@ -6,6 +6,5 @@ import qualified Fission.Test.URL.Validation as URL.Validation
 
 spec :: Spec
 spec =
-  parallel do
-    describe "URL" do
-      URL.Validation.spec
+  describe "URL" do
+    URL.Validation.spec

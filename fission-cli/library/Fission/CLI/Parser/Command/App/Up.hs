@@ -23,7 +23,7 @@ parserWithInfo =
 
 parser :: Parser Options
 parser = do
-  ipfsCfg     <- IPFS.parser
+  ipfsCfg <- IPFS.parser
 
   updateData <- option boolean $ mconcat
     [ help  "Upload the data"

@@ -9,7 +9,7 @@ import           Fission.Test.Web.Server.Prelude
 
 spec :: Spec
 spec =
-  describe "Resource" $ parallel do
-    describe "serialization" $ parallel do
+  describe "Resource" do
+    describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(resource :: Resource) ->
         JSON.eitherDecode (JSON.encode resource) `shouldBe` Right resource

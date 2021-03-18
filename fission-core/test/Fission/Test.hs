@@ -9,9 +9,8 @@ import qualified Fission.Test.User.DID as DID
 
 spec :: Spec
 spec =
-  parallel do
-    describe "Fission" do
-      DID.spec
-      DNS.spec
-      Random.spec
-      URL.spec
+  describe "Fission" do
+    DID.spec
+    DNS.spec
+    Random.spec
+    URL.spec

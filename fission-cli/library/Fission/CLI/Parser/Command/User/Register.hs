@@ -23,7 +23,6 @@ parserWithInfo =
 parser :: Parser Options
 parser = do
   maybeUsername <- option username $ mconcat
-
     [ help "The username to register"
     --------
     , long "username"
