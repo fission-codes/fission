@@ -26,7 +26,7 @@ spec =
       --     |> JSON.decode
       --     |> shouldBe (Just Bearer.tokenRSA2048)
 
-    describe "serialization" do
+    describe "serialization" $ parallel do
       itsProp' "serialized is isomorphic to ADT" \(bearer :: Bearer.Token) ->
         JSON.eitherDecode (JSON.encode bearer) `shouldBe` Right bearer
 
@@ -51,7 +51,7 @@ spec =
               |> Lazy.filter (not . isValidChar)
               |> shouldBe mempty
 
-      describe "incoming" do
+      describe "incoming" $ parallel do
         describe "Postel's Law" $ parallel do
           itsProp' "lowercase 'bearer'" \(jwt :: JWT) -> do
             let

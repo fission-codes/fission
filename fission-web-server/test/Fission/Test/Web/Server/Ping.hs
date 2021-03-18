@@ -10,8 +10,8 @@ import           Fission.Test.Web.Server.Prelude
 
 spec :: Spec
 spec =
-  describe "Fission.Web.Ping" do
-    describe "GET /ping" do
+  describe "Fission.Web.Ping" $ parallel do
+    describe "GET /ping" $ parallel do
       with pingServer do
         it "is always be successful" do
           get "/ping" `shouldRespondWith` 200

@@ -20,15 +20,15 @@ spec =
         , result    = failResult    :: Natural
         } = failureSession
 
-    describe "retryOnErr" do
-      describe "handles a valid result" do
+    describe "retryOnErr" $ parallel do
+      describe "handles a valid result" $ parallel do
         it "only runs once" do
           length successEffectLog `shouldBe` 1
 
         it "should return the valid result" do
           successResult `shouldBe` 5
 
-      describe "retries on an invalid result" do
+      describe "retries on an invalid result" $ parallel do
         it "retries 100 times" do
           length failEffectLog `shouldBe` 100
 

@@ -31,11 +31,11 @@ import           Fission.Web.Server.Mock
 -- | Prop test with description
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()
 itsProp description times prop =
-  modifyMaxSuccess (\_ -> times) . it description $ property prop
+  modifyMaxSuccess (\_ -> times) . it ("🔀 " <> description) $ property prop
 
 -- | Prop test with the default number of tries (100)
 itsProp' :: (HasCallStack, Testable a) => String -> a -> SpecWith ()
-itsProp' description prop = it description $ property prop
+itsProp' description prop = it ("🔀 " <> description) $ property prop
 
 bodyMatches :: Value -> [HTTP.Header] -> Body -> Maybe String
 bodyMatches expected _ jsonBody =

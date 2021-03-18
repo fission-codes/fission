@@ -36,7 +36,7 @@ spec =
     Resource.spec
     Scope.spec
 
-    describe "mkAuth" do
+    describe "mkAuth" $ parallel do
       (didResult, userResult, herokuResult) <- runIO setup
 
       describe "value" $ parallel do
