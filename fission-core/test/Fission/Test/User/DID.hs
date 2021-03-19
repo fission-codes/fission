@@ -32,7 +32,7 @@ spec =
           encode (DID Key edKey) `shouldBe` JSON.encode expected
 
     itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
-      JSON.decode (JSON.encode did) == Just did
+      JSON.decode (JSON.encode did) `shouldBe` Just did
 
     itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
       Lazy.isPrefixOf "\"did:key:z" (JSON.encode did)

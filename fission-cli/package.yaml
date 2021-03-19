@@ -52,9 +52,11 @@ default-extensions:
   - DeriveTraversable
   - DerivingStrategies
   - DuplicateRecordFields
+  - EmptyDataDecls
   - FlexibleContexts
   - FlexibleInstances
   - FunctionalDependencies
+  - GADTs
   - GeneralizedNewtypeDeriving
   - InstanceSigs
   - KindSignatures
