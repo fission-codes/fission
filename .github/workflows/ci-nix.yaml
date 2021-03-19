@@ -53,4 +53,4 @@ jobs:
 
     - name: 🧪 Test
       run: |
-        stack test --nix
+        nix-shell --command quality
