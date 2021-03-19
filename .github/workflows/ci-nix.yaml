@@ -17,8 +17,6 @@ jobs:
         ghc:
           - "8.10.4"
         os:
-          - macos-10.15
-          - macos-11.0
           - ubuntu-18.04
           - ubuntu-20.04
 
