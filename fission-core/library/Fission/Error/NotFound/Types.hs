@@ -6,6 +6,7 @@ import           RIO.FilePath
 
 import qualified Crypto.PubKey.Ed25519  as Ed25519
 
+import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Types     as IPFS
 
 import           Fission.Prelude
@@ -33,3 +34,6 @@ instance Display (NotFound [IPFS.Peer]) where
 
 instance Display (NotFound Ed25519.SecretKey) where
   display _ = "Unable to find Ed25519 secret key"
+
+instance Display (NotFound CID) where
+  display _ = "Unable to find CID"

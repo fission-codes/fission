@@ -60,12 +60,12 @@ More here: https://github.com/multiformats/unsigned-varint
 
 Ed25519
 
->>> eitherDecode (encode "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4") :: Either String DID
+> eitherDecode (encode "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4") :: Either String DID
 Right (DID {method = Key, publicKey = Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4=})
 
 RSA
 
-eitherDecode "\"did:key:z1LBnwEktwYLrpPhuwFowdVwAFX5zpRo9rrVzwiRRBBiaBoCR7hNqgstW7VM3T9auNbqTmQW4vdHb61RhTMVgCp1BTxuaKU3anWoERFXpuZvfE39g8u7HS9BeD1QJN1fX6S8vvskaPhxFkwLtGr4ZffkUE57WZpNWM6U6BqdktZxmKzxC85zN4FC9Ws5LHuGfxaCuBLiUfA7qEYVSz1Qu1rZDpD6NyfUNrHJ1ErZduJun976nbFHrmDnU47RcSMFESbNKDi1467tRfubsMrDzebdCFKQ2m1AYysto2i6Wmcnucjt3tnwTqe7Bo8L1g8h8UGA946DF3WeGbPUGqznsUdLq6XLCmJzJkJmrNyeZkswdyPX2Vu6J9E4J12Sb3h9ds7atByamftitEZsf6hPJkLUXGThYpCnmRAArRRfPY2H6cKDc7AcnFPyNHGkab5ZFo4qvgBZytbK1K5oD3HfQ6E2ybLhyC2b8i5wo6DLtm9ufixSJNNTH7Uikk88CmertKR7s12CK1WLEM3Zu5YBZNphnjj7cp8QTodAehRPV9NG1CLEAMJVN79DvYe6SfiafJobcvfD8npfS6jcejcyouQbEpKDG7QAnKS48P4AvgBqDvfNUe54jMkk6r6CoX4LcYGHukZDEnea9kwkEoXkUYS4j1AfbKh44FzSuXbQqZnjjVpThxCNmmNn1E4qHmsFkvGoF3FN55CPkoGfDCvyQJgqmsFmpeTJSy9wzv4MvbqpuATxr7eyxsGeCWQkcDwub32inGpR3reTfzRJECCFZarnXdcC5Pidakb1Wu8L\""
+> eitherDecode "\"did:key:z1LBnwEktwYLrpPhuwFowdVwAFX5zpRo9rrVzwiRRBBiaBoCR7hNqgstW7VM3T9auNbqTmQW4vdHb61RhTMVgCp1BTxuaKU3anWoERFXpuZvfE39g8u7HS9BeD1QJN1fX6S8vvskaPhxFkwLtGr4ZffkUE57WZpNWM6U6BqdktZxmKzxC85zN4FC9Ws5LHuGfxaCuBLiUfA7qEYVSz1Qu1rZDpD6NyfUNrHJ1ErZduJun976nbFHrmDnU47RcSMFESbNKDi1467tRfubsMrDzebdCFKQ2m1AYysto2i6Wmcnucjt3tnwTqe7Bo8L1g8h8UGA946DF3WeGbPUGqznsUdLq6XLCmJzJkJmrNyeZkswdyPX2Vu6J9E4J12Sb3h9ds7atByamftitEZsf6hPJkLUXGThYpCnmRAArRRfPY2H6cKDc7AcnFPyNHGkab5ZFo4qvgBZytbK1K5oD3HfQ6E2ybLhyC2b8i5wo6DLtm9ufixSJNNTH7Uikk88CmertKR7s12CK1WLEM3Zu5YBZNphnjj7cp8QTodAehRPV9NG1CLEAMJVN79DvYe6SfiafJobcvfD8npfS6jcejcyouQbEpKDG7QAnKS48P4AvgBqDvfNUe54jMkk6r6CoX4LcYGHukZDEnea9kwkEoXkUYS4j1AfbKh44FzSuXbQqZnjjVpThxCNmmNn1E4qHmsFkvGoF3FN55CPkoGfDCvyQJgqmsFmpeTJSy9wzv4MvbqpuATxr7eyxsGeCWQkcDwub32inGpR3reTfzRJECCFZarnXdcC5Pidakb1Wu8L\""
 Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB})
 
 -}
@@ -73,6 +73,10 @@ data DID = DID
   { method    :: Method
   , publicKey :: Key.Public
   } deriving (Show, Eq)
+
+-- For FromJSON
+instance Ord DID where
+  a `compare` b = textDisplay a `compare` textDisplay b
 
 instance Arbitrary DID where
   arbitrary = do
@@ -137,6 +141,12 @@ instance FromJSON DID where
 
 instance Display (AlreadyExists DID) where
   display _ = "DID already exists / account already created"
+
+instance ToJSONKey DID where
+  toJSONKey = JSON.toJSONKeyText textDisplay
+
+instance FromJSONKey DID where
+  fromJSONKey = FromJSONKeyValue parseJSON
 
 parseKeyW8s :: FromJSON a => ByteString -> JSON.Parser a
 parseKeyW8s = parseJSON . toJSON . decodeUtf8Lenient

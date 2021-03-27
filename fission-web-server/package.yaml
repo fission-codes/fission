@@ -1,5 +1,5 @@
 name: fission-web-server
-version: '2.11.5.4'
+version: '2.12.1.0'
 category: API
 author:
   - Brooklyn Zelenka
@@ -78,7 +78,6 @@ default-extensions:
   - TypeApplications
   - TypeFamilies
   - TypeSynonymInstances
-  - TemplateHaskell
   - TypeOperators
   - ViewPatterns
 

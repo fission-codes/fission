@@ -7,9 +7,8 @@ module Fission.Error
   , module Fission.Error.Types
   ) where
 
-import Fission.Prelude hiding (fromMaybe, ok)
-import Fission.Error.Types
-
+import           Fission.Error.Types
+import           Fission.Prelude     hiding (fromMaybe, ok)
 
 openLeft :: IsMember err errs => err -> Either (OpenUnion errs) a
 openLeft err = Left (openUnionLift err)
@@ -28,12 +27,7 @@ fromMaybe err okHandler = maybe (openLeft err) (Right . okHandler)
 fromMaybe' :: IsMember err errs => err -> Maybe a -> Either (OpenUnion errs) a
 fromMaybe' err = fromMaybe err identity
 
-retryOnErr ::
-  Monad m
-  => (a -> m Bool)
-  -> Natural
-  -> m a
-  -> m a
+retryOnErr :: Monad m => (a -> m Bool) -> Natural -> m a -> m a
 retryOnErr _ 0 action = action
 retryOnErr check times action = do
   result <- action

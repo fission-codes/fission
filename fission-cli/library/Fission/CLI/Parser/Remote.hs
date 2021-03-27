@@ -4,13 +4,12 @@ module Fission.CLI.Parser.Remote
   ) where
 
 import           Options.Applicative
-import           Servant.Client
 
 import           Fission.Prelude
 
 import           Fission.Web.API.Remote as Remote
 
-parser :: Parser BaseUrl
+parser :: Parser Remote
 parser =
   option remote $ mconcat
     [ internal
@@ -20,12 +19,12 @@ parser =
     , short   'R'
     , metavar "PROD|STAGING|DEV|MOCK|<url>"
     ----------
-    , value Remote.production
+    , value Remote.Production
     ]
 
-remote :: ReadM BaseUrl
+remote :: ReadM Remote
 remote = do
   txt <- str
-  case Remote.toBaseUrl =<< Remote.fromText txt of
-    Nothing      -> fail $ "Unable to parse BaseUrl"
-    Just baseUrl -> pure baseUrl
+  case Remote.fromText txt of
+    Nothing -> fail $ "Unable to parse BaseUrl"
+    Just r  -> pure r

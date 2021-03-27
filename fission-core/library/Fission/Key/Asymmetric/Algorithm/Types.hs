@@ -22,11 +22,13 @@ instance ToJSON Algorithm where
   toJSON = String . \case
     RSA2048 -> "RS256" -- Per the JWT Spec (RFC 7519)
     Ed25519 -> "Ed25519"
+    -- TODO Ed25519 -> "EdDSA"
 
 instance FromJSON Algorithm where
   parseJSON = withText "JWT.Algorithm" \case
     "RS256"   -> return RSA2048
-    "Ed25519" -> return Ed25519
+    "EdDSA"   -> return Ed25519
+    "Ed25519" -> return Ed25519 -- NOTE historical, backwards compatibility
     other     -> fail (Text.unpack other <> " is not a valid JWT algorithm")
 
 instance PersistField Algorithm where

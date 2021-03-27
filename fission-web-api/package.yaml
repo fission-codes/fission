@@ -78,7 +78,6 @@ default-extensions:
   - TypeApplications
   - TypeFamilies
   - TypeSynonymInstances
-  - TemplateHaskell
   - TypeOperators
   - ViewPatterns
 

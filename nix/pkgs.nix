@@ -1,6 +1,5 @@
 let
   # (1)
-  # FIXME pin to specific version
   haskellNix = import (builtins.fetchTarball https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz) {}; #/archive/21a6d6090a64ef5956c9625bcf00a15045d65042.tar.gz) {};
 
   # (2)

@@ -13,5 +13,5 @@ import qualified Fission.CLI.Parser.Remote              as Remote
 parser :: Parser RemoteConfig
 parser = do
   mayDID <- DID.parser
-  target <- Remote.parser
+  remote <- Remote.parser
   pure RemoteConfig {..}

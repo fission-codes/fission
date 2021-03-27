@@ -11,14 +11,14 @@ import           Control.Monad.Writer           (runWriterT)
 
 import           Fission.Prelude
 
-import           Fission.Web.Server.Mock.Types  as Mock
 import           Fission.Web.Server.Mock.Types
+import           Fission.Web.Server.Mock.Types  as Mock
 
 import           Fission.Web.Server.Mock.Config
 import           Fission.Web.Server.Mock.Effect
 
 -- | Run the action described by a @Mock@
-runMock :: MonadIO m => Mock.Config -> Mock effs a -> m (Mock.Session effs a)
+runMock :: forall effs m a . MonadIO m => Mock.Config -> Mock effs a -> m (Mock.Session effs a)
 runMock cfg action = do
   action
     |> unMock

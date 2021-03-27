@@ -34,14 +34,6 @@ import qualified RIO.ByteString            as Strict
 import qualified RIO.ByteString.Lazy       as Lazy
 import qualified RIO.Text                  as Text
 
--- $setup
--- >>> :set -XOverloadedStrings
--- >>> import Test.QuickCheck
--- >>> import Test.QuickCheck.Instances ()
--- >>> import qualified RIO.ByteString      as Strict
--- >>> import qualified RIO.ByteString.Lazy as Lazy
--- >>> import qualified RIO.Text            as Text
-
 class Textable a where
   encode :: a -> Either UnicodeException Text
 
@@ -59,19 +51,7 @@ fromRawBytes = decodeUtf8Lenient . Strict.pack
 
 -- | Convert any binary object to 'Text'
 --
--- >>> toBase58Text "hello world"
--- "StV1DL6CwTryKyV"
---
--- >>> toBase58Text $ Strict.pack ([0x0ed, 0x01] :: [Word8] )
--- "K36"
---
--- >>> toBase58Text $ Strict.pack ([0xed, 0x01, 0x01, 0x23, 0x45, 0x67] :: [Word8])
--- "332DkaEge"
---
 -- NOTE that base58 text does not concatenate without decoding to some base2 first
---
--- >>> toBase58Text "hello world" == toBase58Text "hello " <> toBase58Text "world"
--- False
 toBase58Text :: Strict.ByteString -> Text
 toBase58Text = BS58.BTC.toText . BS58.BTC.fromBytes
 
@@ -108,42 +88,18 @@ stripQuotesBS = stripOptionalPrefixBS "\"" . stripOptionalSuffixBS "\""
 stripQuotesLazyBS :: Lazy.ByteString -> Lazy.ByteString
 stripQuotesLazyBS = stripOptionalPrefixLazyBS "\"" . stripOptionalSuffixLazyBS "\""
 
-{-| Strip one newline character from the end of a lazy `ByteString`.
-
-    >>> stripNewline ";)\n"
-    ";)"
-
-    >>> stripNewline "<>\n\n"
-    "<>\n"
-
-    prop> stripNewline (Lazy.append bs "\n") == bs
-    prop> stripNewline (Lazy.append bs "\n\n") == bs <> "\n"
-
--}
+-- | Strip one newline character from the end of a lazy `ByteString`.
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
 stripNewline bs =
   bs
     |> Lazy.stripSuffix "\n"
     |> fromMaybe bs
 
-{-| Show text.
-
-    >>> textShow 1
-    "1"
-
--}
+-- | Show text.
 textShow :: Show a => a -> Text
 textShow = textDisplay . displayShow
 
-{-| Remove a number of characters from the beginning and the end of a lazy `ByteString`.
-
-    >>> stripNBS 3 "aaabccc"
-    "b"
-
-    >>> stripNBS 0 "b"
-    "b"
-
--}
+-- | Remove a number of characters from the beginning and the end of a lazy `ByteString`.
 stripNBS :: Natural -> Lazy.ByteString -> Lazy.ByteString
 stripNBS n bs =
   bs
@@ -153,17 +109,7 @@ stripNBS n bs =
     i :: Int64
     i = fromIntegral n
 
-{-| Remove a number of characters from the beginning and the end of some text.
-
-    >>> stripN 3 "aaabccc"
-    "b"
-
-    >>> stripN 0 "b"
-    "b"
-
-    prop> \n -> stripN n (Text.center (3 + fromIntegral n * 2) '_' "o.O") == "o.O"
-
--}
+-- | Remove a number of characters from the beginning and the end of some text.
 stripN :: Natural -> Text -> Text
 stripN n = Text.dropEnd i . Text.drop i
   where
@@ -179,10 +125,6 @@ putTextLn :: MonadIO m => Text -> m ()
 putTextLn txt = putText $ txt <> "\n"
 
 -- | Wrap text with some other piece of text.
---
--- prop> \s -> Text.take    1 (wrapIn "|" s) == "|"
--- prop> \s -> Text.takeEnd 1 (wrapIn "|" s) == "|"
--- prop> \s -> Text.length    (wrapIn "|" s) == (Text.length s) + 2
 wrapIn :: Text -> Text -> Text
 wrapIn wrapper txt = wrapper <> txt <> wrapper
 

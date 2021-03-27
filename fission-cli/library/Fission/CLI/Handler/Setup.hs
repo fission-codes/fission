@@ -1,79 +1,89 @@
 module Fission.CLI.Handler.Setup (setup) where
 
-import qualified Crypto.PubKey.Ed25519             as Ed25519
-import           Crypto.Random
-import           Network.DNS
 import           Network.IPFS
+import qualified Network.IPFS.Process.Error        as IPFS.Process
+
+import           Network.DNS                       as DNS
 import           Servant.Client
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8             as UTF8
-
-import           Fission.Error.NotFound.Types
+import           Fission.Error
+import           Fission.Key.Error                 as Key
 
 import           Fission.User.DID.Types
+import           Fission.User.Email.Types
 import qualified Fission.User.Username.Error       as Username
+import           Fission.User.Username.Types
 
-import           Fission.Web.Client.Class
+import           Fission.Web.Client                as Client
 import           Fission.Web.Client.HTTP.Class
 
-import           Fission.CLI.Environment           as Env
 import qualified Fission.CLI.Environment.OS        as OS
+import           Fission.CLI.Environment.Types
+import           Fission.CLI.Remote
+
+import qualified Fission.CLI.User                  as User
 
 import qualified Fission.CLI.Display.Success       as Display
 import qualified Fission.CLI.IPFS.Executable       as Executable
+import qualified Fission.CLI.Prompt                as Prompt
 
-import qualified Fission.CLI.Key.Store             as Key
+import           Fission.CLI.Key.Store             as Key
+import           Fission.CLI.Key.Store             as Key.Store
 
-import           Fission.Authorization.ServerDID
+import qualified Fission.CLI.Handler.User.Login    as Login
+import qualified Fission.CLI.Handler.User.Login    as User
 import qualified Fission.CLI.Handler.User.Register as User
-import           Fission.Error
-import           Fission.User.Email.Types
-import           Fission.User.Username.Types
-import           Fission.Web.Auth.Token.Types
-import           Fission.Web.Client                as Client
 
 setup ::
   ( MonadIO          m
-  , MonadEnvironment m
-  , MonadWebClient   m
-  , MonadManagedHTTP m
   , MonadLocalIPFS   m
-  , MonadTime        m
-  , MonadLogger      m
-  , MonadRandom      m
-  , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
-  , ServerDID        m
+  , MonadManagedHTTP m
+  , MonadWebAuth     m (SecretKey SigningKey)
 
-  , MonadCleanup m
-  , m `Raises` OS.Unsupported
+  , m `Raises` AlreadyExists DID
+  , m `Raises` AlreadyExists Env
   , m `Raises` ClientError
-  , m `Raises` Key.Error
   , m `Raises` DNSError
+  , m `Raises` IPFS.Process.Error
+  , m `Raises` Key.Error
   , m `Raises` NotFound DID
-  , m `Raises` AlreadyExists Ed25519.SecretKey
+  , m `Raises` OS.Unsupported
   , m `Raises` Username.Invalid
 
-  , IsMember ClientError (Errors m)
-  , IsMember Key.Error (Errors m)
+  , CheckErrors m
+  , ClientError `IsMember` Errors m
+
   , Show (OpenUnion (Errors m))
-  , Errors m `Contains` Errors m
+
+  , User.LoginConstraints m
   )
   => Maybe OS.Supported
-  -> BaseUrl
   -> Maybe Username
   -> Maybe Email
   -> m ()
-setup maybeOS fissionURL maybeUsername maybeEmail = do
-  Key.create
-  username <- User.register maybeUsername maybeEmail
-
-  UTF8.putText "Setting default config..."
-  Env.init username fissionURL
-
-  UTF8.putText "Installing dependencies..."
+setup maybeOS maybeUsername maybeEmail = do
+  logUser @Text "📥 Installing dependencies..."
   Executable.place maybeOS
 
-  Display.putOk "Done"
+  attempt User.ensureNotLoggedIn >>= \case
+    Left _ ->
+      Display.putOk "Done! You're all ready to go 🚀"
+
+    Right () -> do
+      void . Key.Store.create $ Proxy @SigningKey
+      void . Key.Store.create $ Proxy @ExchangeKey
+
+      username <- do
+        Prompt.reaskYN "Do you have an existing account?" >>= \case
+          False ->
+            User.register maybeUsername maybeEmail
+
+          True -> do
+            signingSK <- Key.Store.fetch $ Proxy @SigningKey
+            rootURL   <- getRemoteBaseUrl
+            Login.consume signingSK rootURL {baseUrlPath = "/user/link"} maybeUsername
+
+      logUser @Text "🏗️  Setting default config..."
+      Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"

@@ -27,13 +27,13 @@ instance
     manager <- getHTTPManager
     let url = BaseUrl Https "ipfs.io" 443  ""
 
-    logDebug $ "Making remote IPFS request to HTTP gateway " <> textDisplay url
+    logDebug $ "🌌📞 Making remote IPFS request to HTTP gateway " <> showBaseUrl url
 
     liftIO (runClientM query $ mkClientEnv manager url) >>= \case
       Left err -> do
-        logError $ "Failed to read from remote gateway: " <> textDisplay err
+        logError $ "🌌💔 Failed to read from remote gateway: " <> textDisplay err
         return $ Left err
 
       Right val -> do
-        logDebug @Text "Remote IPFS success"
+        logDebug @Text "🌌👍 Remote IPFS success"
         return $ Right val

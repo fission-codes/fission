@@ -27,6 +27,6 @@ getPeers ::
   )
   => m (NonEmpty IPFS.Peer)
 getPeers = do
-  logDebug @Text "Getting peers remotely"
+  logDebug @Text "🌌📥 Getting peers remotely"
   Cursor.withHidden $ CLI.Wait.waitFor "Retrieving Fission Peer List..." do
     ensureM $ sendRequest IPFS.getPeers

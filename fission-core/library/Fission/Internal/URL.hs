@@ -2,27 +2,12 @@ module Fission.Internal.URL
   ( isURLCharacter
   ) where
 
-import Data.Word8
+import           Data.Word8
 
-import Fission.Internal.Bool (anyX)
-import Fission.Prelude
+import           Fission.Internal.Bool (anyX)
+import           Fission.Prelude
 
-{-| Check that a byte represents a valid URL character.
-
-    $setup
-    >>> import Data.Char (ord)
-    >>> fromChar = ord .> fromIntegral
-
-    >>> isURLCharacter (fromChar 'a')
-    True
-
-    >>> isURLCharacter (fromChar '/')
-    False
-
-    >>> isURLCharacter (fromChar '?')
-    False
-
--}
+-- | Check that a byte represents a valid URL character.
 isURLCharacter :: Word8 -> Bool
 isURLCharacter w
   =  isAsciiUpper w

@@ -15,16 +15,9 @@ import           Fission.CLI.File
 import           Fission.Error.NotFound.Types
 
 -- | Writes partial environment to path
-writeFile ::
-  ( MonadIO     m
-  , MonadLogger m
-  , ToJSON a
-  )
-  => FilePath
-  -> a
-  -> m ()
+writeFile :: (MonadIO m, MonadLogger m, ToJSON a) => FilePath -> a -> m ()
 writeFile path contents = do
-  logDebug $ "Writing YAML file to " <> Text.pack (show path)
+  logDebug $ "✍️  Writing YAML file to " <> Text.pack (show path)
   forceWrite path $ YAML.encode contents
 
 -- | Decodes file to partial environment
@@ -39,12 +32,12 @@ readFile ::
   => FilePath
   -> m a
 readFile path = do
-  logDebug $ "Reading YAML from " <> Text.pack (show path)
+  logDebug $ "👀📖 Reading YAML from " <> Text.pack (show path)
   doesFileExist path >>= \case
     False -> do
-      logDebug @Text "Path does not exist"
+      logDebug @Text "🛑 Path does not exist"
       raise $ NotFound @FilePath
 
     True -> do
-      logDebug @Text "Path does exist"
+      logDebug @Text "🛤️  File path does exist"
       ensureM . liftIO $ YAML.decodeFileEither path

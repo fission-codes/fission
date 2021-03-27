@@ -1,10 +1,10 @@
 module Fission.Web.Server.Auth.Error (Error (..)) where
 
-import qualified Servant.Server           as Server
+import           Servant.Server           hiding (BasicAuthResult (..))
 
 import           Fission.Prelude
 
-import           Fission.Web.Server.Error as Error
+import           Fission.Web.Server.Error
 
 data Error
   = NoToken
@@ -24,4 +24,4 @@ instance Display Error where
     Unauthorized    -> "User not authorized"
 
 instance ToServerError Error where
-  toServerError err = Error.withMessage err Server.err401
+  toServerError err = err401 { errBody = displayLazyBS err }

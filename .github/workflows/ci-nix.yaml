@@ -17,7 +17,6 @@ jobs:
         ghc:
           - "8.10.4"
         os:
-          # - macos-10.15 -- Giving up for now, S3 certificate issue
           - ubuntu-18.04
           - ubuntu-20.04
 
@@ -41,16 +40,16 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-nix
+        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-nix-2
 
     - name: 📦 Install dependencies
       run: |
-        stack build --nix --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
+        stack build --nix --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
 
     - name: 🏗️  Build
       run: |
-        stack build --nix --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+        stack build --nix --test --bench --no-run-tests --no-run-benchmarks
 
     - name: 🧪 Test
       run: |
-        stack test --nix --system-ghc
+        nix-shell --command quality

@@ -5,39 +5,64 @@ module Fission.CLI.Connected
   , module Fission.CLI.Connected.Types
   ) where
 
-import qualified Crypto.PubKey.Ed25519           as Ed25519
-import qualified Data.Yaml                       as YAML
-import qualified RIO.NonEmpty                    as NonEmpty
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import qualified Data.Yaml                                 as YAML
+import qualified RIO.NonEmpty                              as NonEmpty
 
-import qualified Network.HTTP.Client             as HTTP
+import qualified Network.HTTP.Client                       as HTTP
+import qualified Network.IPFS.Add.Error                    as IPFS.Add
 import           Network.IPFS.Local.Class
-import qualified Network.IPFS.Timeout.Types      as IPFS
-import qualified Network.IPFS.Types              as IPFS
-import           Servant.Client
+import qualified Network.IPFS.Process.Error                as IPFS.Process
+import qualified Network.IPFS.Timeout.Types                as IPFS
+import qualified Network.IPFS.Types                        as IPFS
 
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
-import qualified Fission.IPFS.Error.Types        as IPFS
-import qualified Fission.Key                     as Key
+import qualified Fission.IPFS.Error.Types                  as IPFS
+import qualified Fission.JSON                              as JSON
+import qualified Fission.Key                               as Key
 import           Fission.User.DID.Types
 
-import           Fission.Web.Client              as Client
-import qualified Fission.Web.Client.User         as User
+import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as JWT.Resolver
+import           Fission.Web.Auth.Token.JWT.Types
+
+import           Fission.Web.Client                        as Client
+import qualified Fission.Web.Client.User                   as User
 
 import           Fission.CLI.Connected.Types
-import qualified Fission.CLI.Context             as Context
+import qualified Fission.CLI.Context                       as Context
 import           Fission.CLI.Error.Types
+import           Fission.CLI.Remote
 import           Fission.CLI.Types
 
-import qualified Fission.CLI.Key.Ed25519         as Ed25519
-import qualified Fission.CLI.Key.Store           as Key.Store
+import           Fission.CLI.Key.Store                     as Key.Store
 
-import qualified Fission.CLI.Display.Error       as CLI.Error
-import qualified Fission.CLI.Environment         as Environment
-import           Fission.CLI.Environment.Types   as Environment
-import qualified Fission.CLI.IPFS.Connect        as Connect
+import qualified Fission.CLI.Display.Error                 as CLI.Error
+import qualified Fission.CLI.Environment                   as Environment
+import           Fission.CLI.Environment.Types             as Environment
+import qualified Fission.CLI.IPFS.Connect                  as Connect
+
+import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
+
+type BaseErrs =
+  '[ YAML.ParseException
+   , JSON.Error
+   , NoKeyFile
+   , Key.Error
+   , IPFS.Process.Error
+   , IPFS.Add.Error
+   , JWT.Resolver.Error
+   , NotFound JWT
+   , NotFound FilePath
+   , ClientError
+   , SomeException
+   , IPFS.UnableToConnect
+   , NotRegistered
+   , NotFound [IPFS.Peer]
+   , NotFound Ed25519.SecretKey
+   ]
 
 -- | Ensure we have a local config file with the appropriate data
 --
@@ -49,16 +74,15 @@ run ::
   , ServerDID      (FissionCLI errs inCfg)
 
   , Contains errs     errs
-  , Contains LiftErrs errs
-  , IsMember YAML.ParseException  errs
-  , IsMember IPFS.UnableToConnect errs
+  , Contains BaseErrs errs
+
   , Display   (OpenUnion errs)
   , Exception (OpenUnion errs)
 
   , HasLogFunc                inCfg
   , HasProcessContext         inCfg
-  , HasField' "fissionURL"    inCfg BaseUrl
   , HasField' "httpManager"   inCfg HTTP.Manager
+  , HasField' "remote"        inCfg Remote
   , HasField' "ipfsDaemonVar" inCfg (MVar (Process () () ()))
   )
   => inCfg
@@ -80,38 +104,27 @@ run cfg ipfsTimeout actions =
           logDebug @Text "Connected to remote node"
           actions
 
-type LiftErrs =
-  '[ Key.Error
-   , NoKeyFile
-   , ClientError
-   , NotRegistered
-   , NotFound FilePath
-   , NotFound [IPFS.Peer]
-   , NotFound Ed25519.SecretKey
-   , SomeException
-   ]
-
 mkConnected ::
-  ( ServerDID (FissionCLI errs inCfg)
+  ( ServerDID   (FissionCLI errs inCfg)
+  , MonadRemote (FissionCLI errs inCfg)
 
-  , IsMember YAML.ParseException errs
-  , Contains errs        errs
-  , Contains LiftErrs    errs
+  , Contains errs     errs
+  , Contains BaseErrs errs
 
   , Exception (OpenUnion errs)
   , Display   (OpenUnion errs)
 
   , HasLogFunc                inCfg
   , HasProcessContext         inCfg
-  , HasField' "fissionURL"    inCfg BaseUrl
+
   , HasField' "httpManager"   inCfg HTTP.Manager
   , HasField' "ipfsDaemonVar" inCfg (MVar (Process () () ()))
   )
   => inCfg
   -> IPFS.Timeout -- ^ IPFS timeout in seconds
   -> FissionCLI errs inCfg Config
-mkConnected inCfg ipfsTimeout =
-  attempt (Key.Store.getAsBytes >>= Ed25519.parseSecretKey) >>= \case
+mkConnected inCfg ipfsTimeout = do
+  attempt (Key.Store.fetch $ Proxy @SigningKey) >>= \case
     Left _err -> do
       CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user register"
       raise NoKeyFile
@@ -120,6 +133,8 @@ mkConnected inCfg ipfsTimeout =
       logDebug @Text "Ed25519 key loaded"
 
       serverDID  <- getServerDID
+      remote     <- getRemote
+
       config     <- Environment.get
       maybePeers <- Environment.getOrRetrievePeers config
 
@@ -144,15 +159,12 @@ mkConnected inCfg ipfsTimeout =
               , method    = Key
               }
 
-            cfg = Config
-              { fissionURL  = getField @"fissionURL"  inCfg
-              , httpManager = getField @"httpManager" inCfg
-              , ..
-              }
+            cfg = Config { httpManager = getField @"httpManager" inCfg, ..}
 
           Context.run cfg do
             logDebug @Text "Attempting user verification"
-            attempt (sendAuthedRequest User.verify) >>= \case
+            proof <- getRootUserProof
+            attempt (sendAuthedRequest proof User.verify) >>= \case
               Left err -> do
                 CLI.Error.put err "Not registered. Please run: fission user register"
                 raise NotRegistered

@@ -16,6 +16,6 @@ forceWrite ::
   -> ByteString
   -> m ()
 forceWrite path bs = do
-  logDebug $ "Writing to " <> Text.pack path
+  logDebug $ "✍️  Writing to " <> Text.pack path
   createDirectoryIfMissing True $ dropFileName path
   writeBinaryFileDurableAtomic path bs

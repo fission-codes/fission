@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.9.6.0'
+version: '2.10.0.7'
 category: CLI
 author:
   - Brooklyn Zelenka
@@ -94,6 +94,7 @@ dependencies:
   - monad-logger
   - monad-time
   - mtl
+  - transformers-base
 
   ## CLI ##
   - ansi-terminal
@@ -101,15 +102,21 @@ dependencies:
   - optparse-applicative
 
   ## Concurrency & Parallelism ##
+  - async
   - parallel
 
   ## Cryptogrpahy ##
   - cryptonite
+  - HsOpenSSL
 
   ## Data ##
   - aeson
+  - base64-bytestring
+  - binary
   - bytestring
+  - dimensions
   - memory
+  - scientific
   - utf8-string
   - versions
   - yaml
@@ -137,6 +144,8 @@ dependencies:
   - servant
   - servant-client
   - servant-client-core
+  - wuss
+  - wss-client
 
   ## Fission ##
   - fission-core

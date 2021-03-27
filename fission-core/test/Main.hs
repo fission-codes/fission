@@ -1,16 +1,10 @@
 module Main (main) where
 
-import           Test.Fission.Prelude
-import qualified Test.Fission.Random
+import           Fission.Test.Prelude
 
-import qualified Test.Fission.User.DID as DID
+import qualified Fission.Test         as Fission
 
 main :: IO ()
-main = defaultMain =<< tests
-
-tests :: IO TestTree
-tests =
-  testGroup "Fission Specs" <$> sequence
-    [ DID.tests
-    , Test.Fission.Random.tests
-    ]
+main = do
+  spec <- testSpecs $ parallel Fission.spec
+  defaultMain $ testGroup "Tests" spec
