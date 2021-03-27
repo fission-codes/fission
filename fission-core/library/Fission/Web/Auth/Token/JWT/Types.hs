@@ -30,15 +30,18 @@ import           Network.IPFS.CID.Types
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
 
-import qualified Fission.Internal.Base64.URL                      as B64.URL
+import qualified Servant.API as Servant
+
 import           Fission.Prelude
 
-import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
-
-import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
-import qualified Fission.Internal.UTF8                            as UTF8
+import           Fission.Error.NotFound.Types
 
 import           Fission.Key                                      as Key
+import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
+
+import qualified Fission.Internal.Base64.URL                      as B64.URL
+import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
+import qualified Fission.Internal.UTF8                            as UTF8
 
 import           Fission.Authorization.Potency.Types
 import           Fission.User.DID.Types
@@ -117,6 +120,17 @@ instance FromJSON JWT where
         fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
     where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
+
+instance Servant.ToHttpApiData JWT where
+  toUrlPiece jwt =
+    jwt
+      |> encode
+      |> Lazy.toStrict
+      |> decodeUtf8Lenient
+      |> UTF8.stripQuotes
+
+instance Display (NotFound JWT) where
+  display _ = "Unable to find UCAN"
 
 ------------
 -- Claims --
@@ -223,6 +237,12 @@ instance Arbitrary Proof where
         innerJWT@(JWT {..}) <- arbitrary
         let rawContent = RawContent $ B64.URL.encodeJWT header claims
         return $ Nested rawContent innerJWT
+
+instance Display Proof where
+  display = \case
+    RootCredential -> "RootCredential"
+    Nested raw _   -> "Nested "    <> display raw
+    Reference cid  -> "Reference " <> display cid
 
 instance ToJSON Proof where
   toJSON = \case

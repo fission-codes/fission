@@ -40,6 +40,7 @@ let
     ];
 
     haskell = [
+      unstable.haskellPackages.implicit-hie
       unstable.haskell-language-server
       unstable.stack
       unstable.stylish-haskell
@@ -64,7 +65,7 @@ unstable.haskell.lib.buildStackProject {
     deps.cli
     deps.data
     deps.macos
-    deps.haskell 
+    deps.haskell
     tasks
   ];
 

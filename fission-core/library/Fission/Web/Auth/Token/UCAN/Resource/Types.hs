@@ -23,6 +23,16 @@ instance Arbitrary Resource where
       , RegisteredDomain  <$> arbitrary
       ]
 
+instance Display Resource where
+  textDisplay = \case
+    FissionFileSystem path            -> "WNFS at "     <> path
+
+    FissionApp        Complete        -> "all apps"
+    FissionApp        (Subset url)    -> "app at "      <> textDisplay url
+
+    RegisteredDomain  Complete        -> "all domains names"
+    RegisteredDomain  (Subset domain) -> "domain name " <> textDisplay domain
+
 instance ToJSON Resource where
   toJSON = \case
     FissionFileSystem path   -> object [ "wnfs"   .= path   ]

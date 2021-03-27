@@ -16,7 +16,7 @@ stop ::
   => Process () () ()
   -> m ()
 stop daemonProc = do
-  logDebug @Text "Stopping IPFS Daemon"
+  logDebug @Text "😈⏹️  Stopping IPFS Daemon"
   void forceStop
   liftIO $ stopProcess daemonProc
 

@@ -12,7 +12,6 @@ import           Fission.Prelude
 import           Fission.CLI.Parser.Command.App.Up.Types
 import qualified Fission.CLI.Parser.Config.IPFS          as IPFS
 import           Fission.CLI.Parser.Internal
-import qualified Fission.CLI.Parser.Verbose              as Verbose
 import           Fission.CLI.Parser.Watch.Types
 
 parserWithInfo :: ParserInfo Options
@@ -24,8 +23,7 @@ parserWithInfo =
 
 parser :: Parser Options
 parser = do
-  ipfsCfg     <- IPFS.parser
-  verboseFlag <- Verbose.parser
+  ipfsCfg <- IPFS.parser
 
   updateData <- option boolean $ mconcat
     [ help  "Upload the data"

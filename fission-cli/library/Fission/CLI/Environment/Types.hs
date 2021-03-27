@@ -1,8 +1,11 @@
 module Fission.CLI.Environment.Types (Env (..)) where
 
+import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Types          as IPFS
 
 import           Fission.Prelude
+
+import           Fission.Error.Types
 
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
@@ -13,10 +16,13 @@ data Env = Env
   { peers          :: [IPFS.Peer]
   , ignored        :: [Text] -- ^ Passing through verbatim for ipfsignore
 
-  -- IDs
+  -- Server
   , serverDID      :: DID
+
+  -- Account
   , signingKeyPath :: FilePath
   , username       :: Username
+  , rootProof      :: Maybe CID
 
   -- Releases
   , updateChecked  :: UTCTime
@@ -29,6 +35,7 @@ instance ToJSON Env where
     , "server_did"       .= serverDID
     , "signing_key_path" .= signingKeyPath
     , "username"         .= username
+    , "root_proof"       .= rootProof
     , "update_checked"   .= updateChecked
     ]
 
@@ -39,6 +46,10 @@ instance FromJSON Env where
     serverDID      <- obj .:  "server_did"
     signingKeyPath <- obj .:  "signing_key_path"
     username       <- obj .:  "username"
+    rootProof      <- obj .:? "root_proof"
     updateChecked  <- obj .:? "update_checked" .!= fromSeconds 0
 
     return Env {..}
+
+instance Display (AlreadyExists Env) where
+  display _ = "Fission CLI config already exists"

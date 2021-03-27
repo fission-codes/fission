@@ -13,7 +13,6 @@ import qualified Fission.App.Name                          as App
 
 import           Fission.CLI.Parser.Command.App.Init.Types
 import qualified Fission.CLI.Parser.Config.IPFS            as IPFS
-import qualified Fission.CLI.Parser.Verbose                as Verbose
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
@@ -24,8 +23,7 @@ parserWithInfo =
 
 parser :: Parser Options
 parser = do
-  ipfsCfg     <- IPFS.parser
-  verboseFlag <- Verbose.parser
+  ipfsCfg <- IPFS.parser
 
   appDir <- strOption $ mconcat
     [ help    "The file path to initialize the app in (app config, etc)"

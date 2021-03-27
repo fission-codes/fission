@@ -4,32 +4,31 @@ module Fission.CLI.IPFS.Connect
   , couldNotSwarmConnect
   ) where
 
-import qualified RIO.NonEmpty                as NonEmpty
+import qualified RIO.NonEmpty             as NonEmpty
 
-import           Control.Parallel.Strategies (parMap, rpar)
-
-import qualified System.Console.ANSI         as ANSI
+import qualified System.Console.ANSI      as ANSI
 
 import           Network.IPFS
-import qualified Network.IPFS.Peer           as IPFS.Peer
-import qualified Network.IPFS.Types          as IPFS
+import qualified Network.IPFS.Peer        as IPFS.Peer
+import qualified Network.IPFS.Types       as IPFS
 import           Servant.Client
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8       as UTF8
-import           Fission.IPFS.Error.Types    as IPFS
+import           Fission.IPFS.Error.Types as IPFS
+import qualified Fission.Internal.UTF8    as UTF8
 import           Fission.Web.Client
 
 import           Fission.CLI.Display.Text
-import           Fission.CLI.IPFS.Peers      as Peers
+import           Fission.CLI.IPFS.Peers   as Peers
 
 -- | Connect to the Fission IPFS network with a set amount of retries
 swarmConnectWithRetry ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadLocalIPFS m
-  , MonadWebClient m
+  ( MonadIO             m
+  , MonadBaseControl IO m
+  , MonadLogger         m
+  , MonadLocalIPFS      m
+  , MonadWebClient      m
 
   , MonadCleanup m
   , m `Raises` IPFS.UnableToConnect
@@ -40,40 +39,57 @@ swarmConnectWithRetry ::
   -> Natural
   -> m ()
 swarmConnectWithRetry peers retries = do
-  logDebug @Text "Connecting peers"
-  connectTo peers `rescue` \err ->
-    case retries of
-      0 ->
-        raise err
+  logDebug @Text "🌌🔌 Connecting peers"
+  connectTo peers `attemptM` \case
+    Right val ->
+      return val
 
-      _ -> do
-        retryPeers <- Peers.getPeers
-        swarmConnectWithRetry retryPeers (retries - 1)
+    Left err ->
+      case retries of
+        0 ->
+          raise err
 
-connectTo ::
-  ( MonadIO        m
-  , MonadLogger    m
-  , MonadLocalIPFS m
-  , MonadRescue    m
+        _ -> do
+          retryPeers <- Peers.getPeers
+          UTF8.putText "🛰 🔁 Unable to connect to the Fission IPFS peer, trying again...\n"
+          swarmConnectWithRetry retryPeers (retries - 1)
+
+connectTo :: forall m .
+  ( MonadIO             m
+  , MonadBaseControl IO m
+  , MonadLogger         m
+  , MonadLocalIPFS      m
+  , MonadRescue         m
   , m `Raises` IPFS.UnableToConnect
   )
   => NonEmpty IPFS.Peer
   -> m ()
 connectTo peers = do
-  sequence (logDebug . show <$> NonEmpty.toList peers)
-  attempts <- sequence . parMap rpar IPFS.Peer.connect $ NonEmpty.toList peers
+  results <- liftBaseWith \runInBase ->
+    forConcurrently peers \peer ->
+      runInBase $ tryConnect peer
 
-  if any isRight attempts
-    then do
-      logDebug @Text "Successfully connected to a node. Full results:"
-      logDebug $ show attempts
+  filterM findSuccess (NonEmpty.toList results) >>= \case
+    [] -> raise IPFS.UnableToConnect
+    _  -> return ()
 
-    else do
-      logDebug @Text "Unable to connect. Full results:"
-      logDebug $ show attempts
+  where
+    findSuccess :: StM m () -> m Bool
+    findSuccess stm =
+      attemptM (restoreM stm) \case
+        Left  _  -> return False
+        Right () -> return True
 
-      UTF8.putText "🛰 Unable to connect to the Fission IPFS peer, trying again...\n"
-      raise IPFS.UnableToConnect
+    tryConnect :: IPFS.Peer -> m ()
+    tryConnect peer@(IPFS.Peer peerTxt) =
+      IPFS.Peer.connect peer >>= \case
+        Left err -> do
+          logWarn $ "🛰️ 🛑 Unable to connect to: " <> textDisplay err
+          raise IPFS.UnableToConnect
+
+        Right () -> do
+          logInfo $ "🛰️ 🎉 Connected to " <> peerTxt
+          return ()
 
 -- | Create a could not connect to Fission peer message for the terminal
 couldNotSwarmConnect :: (MonadCleanup m, MonadIO m) => m ()
@@ -83,4 +99,3 @@ couldNotSwarmConnect = do
 
   colourized [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Yellow] do
     UTF8.putText "Try checking your connection or logging in again\n"
-

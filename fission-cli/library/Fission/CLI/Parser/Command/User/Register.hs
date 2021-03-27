@@ -9,10 +9,9 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
-import           Fission.User.Username.Types
-import           Fission.User.Email.Types
 import           Fission.CLI.Parser.Command.User.Register.Types
-import qualified Fission.CLI.Parser.Verbose                     as Verbose
+import           Fission.User.Email.Types
+import           Fission.User.Username.Types
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
@@ -23,10 +22,7 @@ parserWithInfo =
 
 parser :: Parser Options
 parser = do
-  verboseFlag <- Verbose.parser
-
   maybeUsername <- option username $ mconcat
-
     [ help "The username to register"
     --------
     , long "username"

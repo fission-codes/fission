@@ -106,7 +106,7 @@ import           RIO                                         hiding (Handler,
                                                               (^.))
 
 import           Test.QuickCheck                             hiding
-                                                             (Result (..))
+                                                              (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
 import           Fission.Unit.Prefix
@@ -115,6 +115,7 @@ import           Fission.Internal.Log
 
 import           Fission.Internal.Orphanage.ClientError      ()
 import           Fission.Internal.Orphanage.OpenUnion        ()
+import           Fission.Internal.Orphanage.String           ()
 import           Fission.Internal.Time
 import           Fission.Internal.UTF8                       (displayLazyBS,
                                                               putText,

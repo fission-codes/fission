@@ -1,61 +1,68 @@
 -- | File sync, IPFS-style
 module Fission.CLI.Handler.App.Publish (publish) where
 
-import qualified Data.Yaml                       as YAML
+import qualified Data.Yaml                                 as YAML
 
-import qualified Crypto.PubKey.Ed25519           as Ed25519
-import           System.FSNotify                 as FS
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import           System.FSNotify                           as FS
 
 import           RIO.Directory
 
 import           Network.HTTP.Types.Status
-import qualified Network.IPFS.Process.Error      as IPFS.Process
+import qualified Network.IPFS.Process.Error                as IPFS.Process
 
 import           Network.IPFS
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import qualified Fission.Process.Time            as Process
+import qualified Fission.Process.Time                      as Process
 
-import qualified Fission.Web.Client.App          as App
+import qualified Fission.Web.Client.App                    as App
 
-import qualified Fission.Internal.UTF8           as UTF8
+import qualified Fission.Internal.UTF8                     as UTF8
 
-import qualified Fission.Time                    as Time
+import qualified Fission.Time                              as Time
 import           Fission.URL
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
+
+import           Fission.Web.Auth.Token.JWT                as JWT
 import           Fission.Web.Auth.Token.Types
 
-import           Fission.Web.Client              as Client
+import           Fission.Web.Client                        as Client
 import           Fission.Web.Client.Error
 
-import qualified Fission.CLI.Display.Error       as CLI.Error
-import qualified Fission.CLI.Display.Success     as CLI.Success
-import qualified Fission.CLI.IPFS.Add            as CLI.IPFS.Add
+import qualified Fission.CLI.Display.Error                 as CLI.Error
+import qualified Fission.CLI.Display.Success               as CLI.Success
+import qualified Fission.CLI.IPFS.Add                      as CLI.IPFS.Add
 
-import           Fission.CLI.App.Environment     as App
+import           Fission.CLI.App.Environment               as App
 import           Fission.CLI.Parser.Watch.Types
+
+import           Fission.CLI.Environment                   (MonadEnvironment)
+import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
 -- | Sync the current working directory to the server over IPFS
 publish ::
-  ( MonadIO        m
-  , MonadCleanup   m
-  , MonadLogger    m
-  , MonadLocalIPFS m
-  , MonadWebClient m
-  , MonadTime      m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
+  ( MonadIO          m
+  , MonadCleanup     m
+  , MonadLogger      m
+  , MonadLocalIPFS   m
+  , UCAN.MonadStore  m
+  , MonadEnvironment m
+  , MonadWebClient   m
+  , MonadTime        m
+  , MonadWebAuth     m Token
+  , MonadWebAuth     m Ed25519.SecretKey
+  , ServerDID        m
   , m `Raises` YAML.ParseException
-  , m `Raises` NotFound FilePath
   , m `Raises` ClientError
   , m `Raises` IPFS.Process.Error
+  , m `Raises` NotFound FilePath
   , Show (OpenUnion (Errors m))
-  , Contains (Errors m) (Errors m)
+  , CheckErrors m
   )
   => WatchFlag
   -> (m () -> IO ())
@@ -64,7 +71,8 @@ publish ::
   -> Bool
   -> Bool
   -> m ()
-publish watchFlag runner appURL appPath _updateDNS updateData = -- FIXME updateDNS
+publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updateDNS
+  logDebug @Text "📱 App publish"
   attempt (App.readFrom appPath) >>= \case
     Left err -> do
       CLI.Error.put err "App not set up. Please double check your path, or run `fission app register`"
@@ -72,7 +80,7 @@ publish watchFlag runner appURL appPath _updateDNS updateData = -- FIXME updateD
 
     Right App.Env {buildDir} -> do
       absBuildPath <- liftIO $ makeAbsolute buildDir
-      logDebug $ "Starting single IPFS add locally of " <> displayShow absBuildPath
+      logDebug $ "📱 Starting single IPFS add locally of " <> displayShow absBuildPath
 
       CLI.IPFS.Add.dir absBuildPath >>= \case
         Left err -> do
@@ -80,7 +88,9 @@ publish watchFlag runner appURL appPath _updateDNS updateData = -- FIXME updateD
           raise err
 
         Right cid@(CID hash) -> do
-          req <- App.update appURL cid (Just updateData) <$> Client.attachAuth
+          logDebug $ "📱 Directory CID is " <> hash
+          proof <- getRootUserProof
+          req   <- App.update appURL cid (Just updateData) <$> Client.attachAuth proof
 
           retryOnStatus [status502] 100 req >>= \case
             Left err -> do
@@ -96,7 +106,7 @@ publish watchFlag runner appURL appPath _updateDNS updateData = -- FIXME updateD
                   liftIO $ FS.withManager \watchMgr -> do
                     hashCache <- newMVar hash
                     timeCache <- newMVar =<< getCurrentTime
-                    void $ handleTreeChanges runner appURL updateData timeCache hashCache watchMgr absBuildPath
+                    void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
                     forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
 
 handleTreeChanges ::
@@ -110,6 +120,7 @@ handleTreeChanges ::
   , ServerDID      m
   )
   => (m () -> IO ())
+  -> JWT.Proof
   -> URL
   -> Bool
   -> MVar UTCTime
@@ -117,7 +128,7 @@ handleTreeChanges ::
   -> WatchManager
   -> FilePath -- ^ Build dir
   -> IO StopListening
-handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDir =
+handleTreeChanges runner userProof appURL copyFilesFlag timeCache hashCache watchMgr absDir =
   FS.watchTree watchMgr absDir (\_ -> True) \_ -> runner do
     now     <- getCurrentTime
     oldTime <- readMVar timeCache
@@ -138,7 +149,7 @@ handleTreeChanges runner appURL copyFilesFlag timeCache hashCache watchMgr absDi
             UTF8.putText "\n"
 ---            req <- App.mkUpdateReq appURL cid copyFilesFlag
 
-            req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth
+            req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth userProof
 
             retryOnStatus [status502] 100 req >>= \case
               Left err -> CLI.Error.put err "Server unable to sync data"

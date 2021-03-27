@@ -17,24 +17,28 @@ module Fission.CLI.Environment
 import qualified Data.ByteString.Char8         as BS8
 import qualified Data.List.NonEmpty            as NonEmpty
 import qualified Data.Yaml                     as YAML
+
+import           RIO.Directory
 import           RIO.FilePath
 
 import qualified Network.DNS                   as DNS
 import           Servant.Client
 
+import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Types            as IPFS
 
 import           Fission.Prelude
 
-import           Fission.Error.NotFound.Types
+import           Fission.Error.Types
+
+import           Fission.Web.Client
 
 import           Fission.User.DID.Types
 import           Fission.User.Username.Types
-import           Fission.Web.Client
 
 import qualified Fission.CLI.Display.Error     as CLI.Error
-import           Fission.CLI.Environment.Path  as Path
 import           Fission.CLI.IPFS.Peers        as Peers
+import           Fission.CLI.Key.Store         as KeyStore
 import qualified Fission.CLI.YAML              as YAML
 
 -- Reexports
@@ -48,18 +52,22 @@ init ::
   , MonadEnvironment m
   , MonadLogger      m
   , MonadWebClient   m
+  , MonadKeyStore    m SigningKey
 
   , MonadCleanup m
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError
   , m `Raises` NotFound DID
+  , m `Raises` AlreadyExists Env
+
   , Show (OpenUnion (Errors m))
   )
   => Username
   -> BaseUrl
+  -> Maybe CID
   -> m ()
-init username fissionURL = do
-  logDebug @Text "Initializing config file"
+init username fissionURL rootProof = do
+  logDebug @Text "🎛️  Initializing user config file"
 
   attempt Peers.getPeers >>= \case
     Left err ->
@@ -68,16 +76,19 @@ init username fissionURL = do
     Right nonEmptyPeers -> do
       serverDID      <- fetchServerDID fissionURL
       envPath        <- absPath
-      signingKeyPath <- Path.getSigningKeyPath
+      signingKeyPath <- KeyStore.getPath $ Proxy @SigningKey
 
-      envPath `YAML.writeFile` Env
-        { peers          = NonEmpty.toList nonEmptyPeers
-        , ignored        = []
-        , signingKeyPath
-        , serverDID
-        , username
-        , updateChecked  = fromSeconds 0
-        }
+      doesFileExist envPath >>= \case
+        False ->
+          envPath `YAML.writeFile` Env
+            { peers          = NonEmpty.toList nonEmptyPeers
+            , ignored        = []
+            , updateChecked  = fromSeconds 0
+            , ..
+            }
+
+        True ->
+          raise $ AlreadyExists @Env
 
 -- | Gets hierarchical environment by recursing through file system
 get ::
@@ -90,7 +101,7 @@ get ::
   )
   => m Env
 get = do
-  logDebug @Text "Reading global config.yaml"
+  logDebug @Text "👀📖 Reading global config.yaml"
   path <- absPath
   env  <- YAML.readFile path
   return env
@@ -131,7 +142,7 @@ getOrRetrievePeers ::
   -> m [IPFS.Peer]
 getOrRetrievePeers Env {peers = []} = do
   nonEmptyPeers <- Peers.getPeers
-  logDebug $ "Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow nonEmptyPeers
+  logDebug $ "✍️  Retrieved Peers from API, and writing to ~/.fission.yaml: " <> textShow nonEmptyPeers
 
   path    <- absPath
   current <- YAML.readFile @Env path
@@ -153,15 +164,15 @@ absPath = do
 
 fetchServerDID ::
   ( MonadIO     m
-  , MonadRaise  m
   , MonadLogger m
+  , MonadRaise  m
   , m `Raises` DNS.DNSError
   , m `Raises` NotFound DID
   )
   => BaseUrl
   -> m DID
 fetchServerDID fissionURL = do
-  rs      <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
+  rs <- liftIO $ DNS.makeResolvSeed DNS.defaultResolvConf
   let url = BS8.pack $ "_did." <> baseUrlHost fissionURL
 
   logDebug $ "No cached server DID. Fetching from " <> decodeUtf8Lenient url

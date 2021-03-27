@@ -36,7 +36,7 @@ compareSubsets jwt rsc rscProof =
         _ ->
           Left ScopeOutOfBounds
 
-    (RegisteredDomain _, FissionApp Complete) ->
+    (RegisteredDomain _, RegisteredDomain Complete) ->
       Right jwt
 
     (FissionApp _, FissionApp Complete) ->

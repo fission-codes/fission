@@ -5,17 +5,11 @@ import           Fission.Prelude
 import qualified Fission.App.Name                     as App
 
 import qualified Fission.CLI.Parser.Config.IPFS.Types as IPFS
-import           Fission.CLI.Parser.Verbose.Types
 
 -- | Arguments, flags & switches for the `app init` command
 data Options = Options
-  { appDir      :: FilePath
-  , buildDir    :: Maybe FilePath
-  , mayAppName  :: Maybe App.Name
-  , ipfsCfg     :: IPFS.Config
-  , verboseFlag :: VerboseFlag -- ^ Verbose flag
+  { appDir     :: FilePath
+  , buildDir   :: Maybe FilePath
+  , mayAppName :: Maybe App.Name
+  , ipfsCfg    :: IPFS.Config
   } deriving (Show, Eq)
-
-instance Has VerboseFlag Options where
-  hasLens = lens verboseFlag \opts newFlag ->
-    opts {verboseFlag = newFlag }

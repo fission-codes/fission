@@ -10,7 +10,6 @@ import           Options.Applicative
 import           Fission.Prelude
 
 import           Fission.CLI.Parser.Command.App.Info.Types
-import qualified Fission.CLI.Parser.Verbose                as Verbose
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
@@ -20,6 +19,4 @@ parserWithInfo =
     ]
 
 parser :: Parser Options
-parser = do
-  verboseFlag <- Verbose.parser
-  pure Options {..}
+parser = pure CommandOnly

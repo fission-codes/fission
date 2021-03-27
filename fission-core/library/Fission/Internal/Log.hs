@@ -6,21 +6,31 @@ module Fission.Internal.Log
  , logError
  , logErrorN
  , logOther
+ , logUser
  ) where
 
-import Control.Monad.Logger (ToLogStr, MonadLogger, LogLevel (..), logWithoutLoc, logDebugN, logErrorN)
+import           Control.Monad.Logger hiding (logDebug, logError, logInfo,
+                                       logOther, logWarn)
+import           GHC.Stack
+import           RIO                  (Text, decodeUtf8Lenient, ($), (.))
 
-logInfo :: (ToLogStr msg, MonadLogger m) => msg -> m ()
-logInfo = logWithoutLoc "" LevelInfo
+logInfo :: (HasCallStack, ToLogStr msg, MonadLogger m) => msg -> m ()
+logInfo msg = logInfoCS callStack $ format msg
 
-logDebug :: (ToLogStr msg, MonadLogger m) => msg -> m ()
-logDebug = logWithoutLoc "" LevelDebug
+logDebug :: (HasCallStack, ToLogStr msg, MonadLogger m) => msg -> m ()
+logDebug msg = logDebugCS callStack $ format msg
 
-logWarn :: (ToLogStr msg, MonadLogger m) => msg -> m ()
-logWarn = logWithoutLoc "" LevelWarn
+logWarn :: (HasCallStack, ToLogStr msg, MonadLogger m) => msg -> m ()
+logWarn msg = logWarnCS callStack $ format msg
 
-logError :: (ToLogStr msg, MonadLogger m) => msg -> m ()
-logError = logWithoutLoc "" LevelError
+logError :: (HasCallStack, ToLogStr msg, MonadLogger m) => msg -> m ()
+logError msg = logErrorCS callStack $ format msg
 
-logOther :: (ToLogStr msg, MonadLogger m) => LogLevel -> msg -> m ()
-logOther = logWithoutLoc ""
+logUser :: (HasCallStack, ToLogStr msg, MonadLogger m) => msg -> m ()
+logUser msg = logOther "user" $ format msg
+
+logOther :: (HasCallStack, ToLogStr msg, MonadLogger m) => Text -> msg -> m ()
+logOther lvlTxt msg = logOtherCS callStack (LevelOther lvlTxt) (format msg)
+
+format :: ToLogStr msg => msg -> Text
+format msg = decodeUtf8Lenient . fromLogStr $ toLogStr msg
