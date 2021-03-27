@@ -5,6 +5,7 @@ import qualified Data.ByteString.Lazy.Char8                        as Lazy.Char8
 import qualified RIO.ByteString.Lazy                               as Lazy
 
 import           Fission.Web.Auth.Token.JWT
+import qualified Fission.Internal.UTF8                     as UTF8
 
 import qualified Fission.Test.Web.Server.Auth.Token.JWT.Validation as Validation
 import           Fission.Test.Web.Server.Prelude
