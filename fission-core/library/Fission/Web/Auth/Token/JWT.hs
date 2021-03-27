@@ -88,7 +88,7 @@ proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
 proveWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
-    potency  = AppendOnly
+    potency  = AuthNOnly
     resource = Nothing
 
     -- Accounting for minor clock drift

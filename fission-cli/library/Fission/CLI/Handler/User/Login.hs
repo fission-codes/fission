@@ -30,7 +30,6 @@ import           Fission.Prelude
 
 import qualified Fission.Internal.UTF8                       as UTF8
 
-import           Fission.Emoji.Class
 import           Fission.Error.Types
 import qualified Fission.JSON                                as JSON
 
@@ -108,8 +107,14 @@ login optUsername = do
     baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
-    Right () -> consume signingSK baseURL optUsername
-    Left  _  -> produce signingSK baseURL
+    Right () ->
+      consume signingSK baseURL optUsername
+
+    Left  err -> do
+      -- TODO replace below with `produce signingSK baseURL` when auth lobby can handle EdDSA
+      Env {username} <- Env.get
+      logUser $ "Already logged in as " <> textDisplay username
+      raise err
 
 type ConsumerConstraints m =
   ( MonadIO          m
@@ -196,7 +201,7 @@ consume signingSK baseURL optUsername = do
     let
       pinStep = PIN.Payload myDID pin
 
-    UTF8.putTextLn $ "Confirmation code: " <> toEmoji pin
+    UTF8.putTextLn $ "Confirmation code: " <> textDisplay pin
     secureBroadcastJSON aesConn pinStep
 
     reattempt 100 do
@@ -299,7 +304,7 @@ produce signingSK baseURL = do
               logDebug @Text "🤝 Device linking handshake: Step 5"
               PIN.Payload requestorDID pin <- secureListenJSON aesConn
 
-              pinOK <- reaskYN ("Does this code match your second device? " <> toEmoji pin)
+              pinOK <- reaskYN $ "Does this code match your second device? " <> textDisplay pin
               unless pinOK do
                 raise $ Mismatch @PIN
 

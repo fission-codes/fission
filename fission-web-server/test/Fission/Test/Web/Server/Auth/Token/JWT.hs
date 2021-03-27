@@ -17,7 +17,15 @@ spec =
     Proof.spec
     Validation.spec
 
-    describe "serialization" do
+    describe "Header serialization" do
+      itsProp' "text serialization is unquoted JSON" \(jwt :: JWT) ->
+        jwt
+          |> toUrlPiece
+          |> UTF8.wrapIn "\""
+          |> encodeUtf8
+          |> shouldBe (JSON.encode jwt)
+
+    describe "JSON serialization" do
       itsProp' "serialized is isomorphic to ADT" \(jwt :: JWT) ->
         JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
 

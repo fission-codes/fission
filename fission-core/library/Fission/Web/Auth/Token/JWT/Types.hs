@@ -30,6 +30,8 @@ import           Network.IPFS.CID.Types
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
 
+import qualified Servant.API as Servant
+
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
@@ -118,6 +120,14 @@ instance FromJSON JWT where
         fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
     where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
+
+instance Servant.ToHttpApiData JWT where
+  toUrlPiece jwt =
+    jwt
+      |> encode
+      |> Lazy.toStrict
+      |> decodeUtf8Lenient
+      |> UTF8.stripQuotes
 
 instance Display (NotFound JWT) where
   display _ = "Unable to find UCAN"
