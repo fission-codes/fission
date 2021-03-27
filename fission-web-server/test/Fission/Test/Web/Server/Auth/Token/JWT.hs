@@ -25,6 +25,7 @@ spec =
           |> toUrlPiece
           |> UTF8.wrapIn "\""
           |> encodeUtf8
+          |> Lazy.fromStrict
           |> shouldBe (JSON.encode jwt)
 
     describe "JSON serialization" do
