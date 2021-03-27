@@ -3,6 +3,7 @@ module Fission.Test.Web.Server.Auth.Token.JWT (spec) where
 import qualified Data.Aeson                                        as JSON
 import qualified Data.ByteString.Lazy.Char8                        as Lazy.Char8
 import qualified RIO.ByteString.Lazy                               as Lazy
+import           Servant.API
 
 import           Fission.Web.Auth.Token.JWT
 import qualified Fission.Internal.UTF8                     as UTF8
