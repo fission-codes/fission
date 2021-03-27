@@ -12,8 +12,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        stack:
-          - "2.5.1"
         ghc:
           - "8.10.4"
         os:
@@ -30,12 +28,6 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
 
-    - uses: haskell/actions/setup@v1
-      name: 🧱 Set up Haskell Stack
-      with:
-        ghc-version: ${{ matrix.ghc }}
-        stack-version: ${{ matrix.stack }}
-
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
       with:
@@ -44,11 +36,11 @@ jobs:
 
     - name: 📦 Install dependencies
       run: |
-        stack build --nix --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
+        nix-shell --command "stack build --test --bench --no-run-tests --no-run-benchmarks --only-dependencies"
 
     - name: 🏗️  Build
       run: |
-        stack build --nix --test --bench --no-run-tests --no-run-benchmarks
+        nix-shell --command "stack build --test --bench --no-run-tests --no-run-benchmarks"
 
     - name: 🧪 Test
       run: |
