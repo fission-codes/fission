@@ -21,8 +21,7 @@ instance Arbitrary Algorithm where
 instance ToJSON Algorithm where
   toJSON = String . \case
     RSA2048 -> "RS256" -- Per the JWT Spec (RFC 7519)
-    Ed25519 -> "Ed25519"
-    -- TODO Ed25519 -> "EdDSA"
+    Ed25519 -> "EdDSA"
 
 instance FromJSON Algorithm where
   parseJSON = withText "JWT.Algorithm" \case
