@@ -8,14 +8,10 @@ on:
 
 jobs:
   stack:
-    name: ${{ matrix.os }} / GHC ${{ matrix.ghc }} / Nix
+    name: ${{ matrix.os }} / Nix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        stack:
-          - "2.5.1"
-        ghc:
-          - "8.10.4"
         os:
           - ubuntu-20.04
 
@@ -33,7 +29,7 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-nix
+        key: ${{ runner.os }}-stack-nix
 
     - name: 🏗️  Build
       run: |
