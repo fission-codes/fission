@@ -36,7 +36,7 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-nix-2
+        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-no-nix
 
     - name: 📦 Install dependencies
       run: |
