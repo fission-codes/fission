@@ -1,4 +1,4 @@
-name: Artifacts (Native)
+name: CI (Native)
 
 # Trigger the workflow on push or pull request, but only for the main branch
 on:
@@ -17,7 +17,6 @@ jobs:
         ghc:
           - "8.10.4"
         os:
-          - macos-10.15
           - ubuntu-18.04
           - ubuntu-20.04
 
@@ -36,24 +35,8 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-no-nix
+        key: ${{ runner.os }}-{{ matrix.ghc }}-stack-ci
 
-    - name: 📦 Install dependencies
+    - name: 🧪 Test
       run: |
-        stack build --no-nix --only-dependencies
-
-    - name: 🏗️  Build
-      run: |
-           stack build --no-nix
-
-    - name: 🏺 Upload CLI Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: fission-cli-{{ runner.os }}
-        path: ./.stack-work/**/bin/fission
-
-    - name: 🏺 Upload Server Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: fission-server-{{ runner.os }}
-        path: ./.stack-work/**/bin/fission-server
+        stack test --no-nix
