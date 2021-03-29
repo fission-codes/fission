@@ -31,7 +31,7 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack-nix
+        key: ${{ matrix.os }}-stack-nix
 
     - name: 🏗️  Build
       run: |
@@ -40,11 +40,11 @@ jobs:
     - name: 🏺 Upload CLI Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: fission-cli-{{ runner.os }}-nix
+        name: fission-cli-${{ matrix.os }}-nix
         path: ./.stack-work/**/*-nix/**/bin/fission
 
     - name: 🏺 Upload Server Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: fission-server-{{ runner.os }}-nix
+        name: fission-server-${{ matrix.os }}-nix
         path: ./.stack-work/**/*-nix/**/bin/fission-server
