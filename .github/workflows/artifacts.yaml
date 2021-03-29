@@ -1,4 +1,4 @@
-name: Artifacts (Ubunutu)
+name: Artifacts (Native)
 
 # Trigger the workflow on push or pull request, but only for the main branch
 on:
@@ -56,4 +56,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: fission-web-server
-        path: ./.stack-work/**/bin/fission-web-server
+        path: ./.stack-work/**/bin/fission-server
