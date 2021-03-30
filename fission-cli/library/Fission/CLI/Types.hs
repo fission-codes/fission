@@ -594,9 +594,8 @@ instance
         process <- startProcess . fromString $ intercalate " "
           [ "IPFS_PATH=" <> ipfsRepo
           , "2> /dev/null"
-          , "1> /dev/null"
           , ipfsPath
-          , "daemon"
+          , "daemon > /dev/null"
           ]
 
         logDebug @Text "😈🏁 IPFS daemon started"
@@ -630,10 +629,9 @@ instance
         fromString $ intercalate " "
           [ "IPFS_PATH=" <> ipfsRepo
           , "2>/dev/null"
-          , "1>/dev/null"
           , ipfsPath
           , "swarm"
-          , "addrs"
+          , "addrs > /dev/null"
           ]
 
     Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
