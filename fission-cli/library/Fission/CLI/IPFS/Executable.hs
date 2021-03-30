@@ -58,7 +58,7 @@ place' ::
   => OS.Supported
   -> m ()
 place' host = do
-  logDebug $ "Setting up IPFS binary for " <> textDisplay host
+  logUser $ "🪐 Downloading managed IPFS for " <> textDisplay host
 
   IPFS.BinPath    ipfsPath <- Path.globalIPFSBin
   File.Serialized lazyFile <- ensureM . runBootstrapT . ipfsCat $ IPFS.binCidFor host
@@ -67,6 +67,8 @@ place' host = do
   ipfsPath `forceWrite` Lazy.toStrict lazyFile
 
   void . Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath
+
+  logUser @Text "🪐 Configuring managed IPFS"
 
   IPFS.Config.init
   void $ IPFS.Config.enableRelay

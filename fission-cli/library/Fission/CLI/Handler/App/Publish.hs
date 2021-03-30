@@ -36,7 +36,9 @@ import           Fission.Web.Client.Error
 
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
+
 import qualified Fission.CLI.IPFS.Add                      as CLI.IPFS.Add
+import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 
 import           Fission.CLI.App.Environment               as App
 import           Fission.CLI.Parser.Watch.Types
@@ -50,6 +52,7 @@ publish ::
   , MonadCleanup     m
   , MonadLogger      m
   , MonadLocalIPFS   m
+  , MonadIPFSDaemon  m
   , UCAN.MonadStore  m
   , MonadEnvironment m
   , MonadWebClient   m
@@ -81,6 +84,7 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updat
     Right App.Env {buildDir} -> do
       absBuildPath <- liftIO $ makeAbsolute buildDir
       logDebug $ "📱 Starting single IPFS add locally of " <> displayShow absBuildPath
+      logUser @Text "🛫 App publish local preflight"
 
       CLI.IPFS.Add.dir absBuildPath >>= \case
         Left err -> do
@@ -89,9 +93,11 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updat
 
         Right cid@(CID hash) -> do
           logDebug $ "📱 Directory CID is " <> hash
+          _     <- IPFS.Daemon.runDaemon
           proof <- getRootUserProof
           req   <- App.update appURL cid (Just updateData) <$> Client.attachAuth proof
 
+          logUser @Text "✈️  Pushing to remote"
           retryOnStatus [status502] 100 req >>= \case
             Left err -> do
               CLI.Error.put err "Server unable to sync data"
