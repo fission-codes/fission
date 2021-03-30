@@ -72,6 +72,7 @@ setup maybeOS maybeUsername maybeEmail = do
       Display.putOk "Done! You're all ready to go 🚀"
 
     Right () -> do
+      logUser @Text "🔑 Creating keys"
       void . Key.Store.create $ Proxy @SigningKey
       void . Key.Store.create $ Proxy @ExchangeKey
 
