@@ -68,7 +68,7 @@ place' host = do
 
   void . Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath
 
-  logUser @Text "🪐 Configuring managed IPFS"
+  logUser @Text "🎛️  Configuring managed IPFS"
 
   IPFS.Config.init
   void $ IPFS.Config.enableRelay

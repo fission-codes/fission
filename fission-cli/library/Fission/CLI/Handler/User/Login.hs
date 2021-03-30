@@ -158,7 +158,7 @@ consume signingSK baseURL optUsername = do
   username <- do
     case optUsername of
       Just uName -> return uName
-      Nothing    -> ensure . mkUsername =<< reaskNotEmpty' "📛 Please enter you username:"
+      Nothing    -> ensure . mkUsername =<< reaskNotEmpty' "📛 Please enter your username:"
 
   targetDID <- ensureM $ DID.getByUsername username
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
