@@ -759,7 +759,7 @@ instance forall errs cfg .
             return . Left $ CannotDecrypt cryptoError
 
           Right bs -> do
-            logDebug $ "Decrypted still-serialized brearer token: " <> bs
+            logDebug $ "Decrypted still-serialized bearer token: " <> bs
             case eitherDecode $ encode ("Bearer " <> decodeUtf8Lenient bs) of
               Left err          -> return . Left $ UnableToDeserialize err
               Right bearerToken -> return $ Right PubSub.Session {..}
