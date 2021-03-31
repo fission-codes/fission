@@ -10,6 +10,6 @@ data Supported
 
 instance Display Supported where
   display = \case
-    Linux -> "linux"
-    NixOS -> "nix"
-    MacOS -> "darwin"
+    Linux -> "Linux"
+    NixOS -> "Nix"
+    MacOS -> "macOS"

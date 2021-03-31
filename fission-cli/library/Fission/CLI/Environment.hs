@@ -67,7 +67,7 @@ init ::
   -> Maybe CID
   -> m ()
 init username fissionURL rootProof = do
-  logDebug @Text "🎛️  Initializing user config file"
+  logUser @Text "🎛️  Initializing user config file"
 
   attempt Peers.getPeers >>= \case
     Left err ->

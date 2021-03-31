@@ -21,4 +21,4 @@ stop daemonProc = do
   liftIO $ stopProcess daemonProc
 
 forceStop :: MonadIO m => m ExitCode
-forceStop = runProcess . fromString $ "killall fission-ipfs > /dev/null 2>&1"
+forceStop = runProcess . fromString $ "2>/dev/null killall fission-ipfs > /dev/null"

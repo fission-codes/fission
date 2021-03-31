@@ -13,7 +13,7 @@ import qualified Crypto.PubKey.RSA                                 as RSA
 import qualified Crypto.PubKey.RSA.OAEP                            as RSA.OAEP
 import           Crypto.Random
 
-import           Data.ByteArray                                    as ByteArray
+import           Data.ByteArray                                    as ByteArray hiding (any)
 import qualified Data.Yaml                                         as YAML
 
 import           Control.Monad.Base
@@ -496,14 +496,15 @@ instance
   runLocal opts' arg = do
     logDebug @Text "🌌🎬 Running local IPFS"
 
+    when (requiresDaemon opts') do
+      void IPFS.Daemon.runDaemon
+
     ipfsRepo          <- globalIPFSRepo
     IPFS.BinPath ipfs <- globalIPFSBin
     IPFS.Timeout secs <- asks $ getField @"ipfsTimeout"
 
     pwd        <- getCurrentDirectory
     ignorePath <- IPFS.Ignore.writeTmp . show . Crypto.hash @ByteString @SHA256 $ fromString pwd
-
-    void IPFS.Daemon.runDaemon
 
     let
       cidVersion = "--cid-version=1"
@@ -513,10 +514,10 @@ instance
       arg'       = Text.unpack . decodeUtf8Lenient $ Lazy.toStrict arg
 
       (pipeArg, opts) =
-        if | cmd == Just "swarm"                            -> (Nothing,  opts' <> [arg'])
-           | List.elem "--stdin-name" opts'                 -> (Just arg, opts' <> [timeout, cidVersion, ignore])
-           | cmd == Just "pin" || cmd == Just "add"         -> (Nothing,  opts' <> [arg', timeout, cidVersion, ignore])
-           | otherwise                                      -> (Nothing,  opts' <> [arg', timeout])
+        if | cmd == Just "swarm"                    -> (Nothing,  opts' <> [arg'])
+           | List.elem "--stdin-name" opts'         -> (Just arg, opts' <> [timeout, cidVersion, ignore])
+           | cmd == Just "pin" || cmd == Just "add" -> (Nothing,  opts' <> [arg', timeout, cidVersion, ignore])
+           | otherwise                              -> (Nothing,  opts' <> [arg', timeout])
 
       processStr = intercalate " " ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
       rawProcess = fromString processStr
@@ -539,6 +540,16 @@ instance
 
         | otherwise ->
             return . Left $ Process.UnknownErr stdErrs
+
+requiresDaemon :: [String] -> Bool
+requiresDaemon opts = or matchers
+  where
+    matchers :: [Bool]
+    matchers =
+      [ any ("swarm" `List.isPrefixOf`) opts
+      , any ("dht"   `List.isPrefixOf`) opts
+      , any ("log"   `List.isPrefixOf`) opts
+      ]
 
 instance
   ( HasLogFunc cfg
@@ -582,11 +593,9 @@ instance
 
         process <- startProcess . fromString $ intercalate " "
           [ "IPFS_PATH=" <> ipfsRepo
+          , "2> /dev/null"
           , ipfsPath
-          , "daemon"
-          , "--enable-pubsub-experiment"
-          , "--enable-namesys-pubsub"
-          , " > /dev/null 2>&1"
+          , "daemon > /dev/null"
           ]
 
         logDebug @Text "😈🏁 IPFS daemon started"
@@ -601,9 +610,11 @@ instance
             stopProcess process
             void IPFS.Daemon.forceStop -- Clean up any existing, on the off chance
 
-            let lockPath = Turtle.decodeString $ ipfsRepo <> "/repo.lock"
-            void $ Turtle.touch lockPath
-            void $ Turtle.rm    lockPath
+            let
+              lockPath = Turtle.decodeString $ ipfsRepo </> "repo.lock"
+
+            whenM (Turtle.testfile lockPath) do
+              void $ Turtle.rm lockPath
 
             runDaemon
 
@@ -617,10 +628,10 @@ instance
       command =
         fromString $ intercalate " "
           [ "IPFS_PATH=" <> ipfsRepo
+          , "2>/dev/null"
           , ipfsPath
           , "swarm"
-          , "addrs"
-          , "> /dev/null 2>&1"
+          , "addrs > /dev/null"
           ]
 
     Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
@@ -746,7 +757,7 @@ instance forall errs cfg .
             return . Left $ CannotDecrypt cryptoError
 
           Right bs -> do
-            logDebug $ "Decrypted still-serialized brearer token: " <> bs
+            logDebug $ "Decrypted still-serialized bearer token: " <> bs
             case eitherDecode $ encode ("Bearer " <> decodeUtf8Lenient bs) of
               Left err          -> return . Left $ UnableToDeserialize err
               Right bearerToken -> return $ Right PubSub.Session {..}
@@ -787,7 +798,8 @@ instance
   , MonadIPFSIgnore (FissionCLI errs cfg)
   )
   => JWT.Resolver (FissionCLI errs cfg) where
-  resolve cid@(IPFS.CID hash') =
+  resolve cid@(IPFS.CID hash') = do
+    _ <- IPFS.Daemon.runDaemon
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash') <&> \case
       Left errMsg ->
         Left $ CannotResolve cid (ConnectionError $ toException errMsg)

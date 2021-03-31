@@ -6,11 +6,12 @@ module Fission.CLI.Prompt
   , reaskWithError
   ) where
 
-import qualified Data.List             as List
+import qualified RIO.List             as List
 import           RIO.ByteString        as BS hiding (map, pack)
 
-import qualified Fission.Internal.UTF8 as UTF8
 import           Fission.Prelude
+
+import qualified Fission.Internal.UTF8 as UTF8
 
 reaskWithError ::
   ( MonadIO     m
@@ -52,10 +53,15 @@ reaskNotEmpty' prompt = do
 
 -- | reask where valid responses are some form of yes/no
 reaskYN :: (MonadIO m, MonadLogger m) => Text -> m Bool
-reaskYN prompt = isYes <$> reask (prompt <> " [Y/n]") ynTest
+reaskYN prompt = do
+  response <- reask (prompt <> " [Y/n]") validYn
+  return (isDefault response || isYes response)
 
-ynTest :: ByteString -> Bool
-ynTest resp = isYes resp || isNo resp
+validYn :: ByteString -> Bool
+validYn resp = isYes resp || isNo resp || isDefault resp
+
+isDefault :: ByteString -> Bool
+isDefault = (== "")
 
 isYes :: ByteString -> Bool
 isYes resp = List.elem resp (["y", "Y", "yes", "Yes", "YES"] :: [ByteString])

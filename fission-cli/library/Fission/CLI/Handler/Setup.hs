@@ -64,7 +64,7 @@ setup ::
   -> Maybe Email
   -> m ()
 setup maybeOS maybeUsername maybeEmail = do
-  logUser @Text "📥 Installing dependencies..."
+  logUser @Text "🌱 Setting up environment"
   Executable.place maybeOS
 
   attempt User.ensureNotLoggedIn >>= \case
@@ -72,18 +72,19 @@ setup maybeOS maybeUsername maybeEmail = do
       Display.putOk "Done! You're all ready to go 🚀"
 
     Right () -> do
+      logUser @Text "🔑 Creating keys"
       void . Key.Store.create $ Proxy @SigningKey
       void . Key.Store.create $ Proxy @ExchangeKey
 
       username <- do
-        Prompt.reaskYN "Do you have an existing account?" >>= \case
+        Prompt.reaskYN "🏠 Do you have an existing account?" >>= \case
           False ->
             User.register maybeUsername maybeEmail
 
           True -> do
+            logUser @Text "🔗 Please open auth.fission.codes on a signed-in device"
             signingSK <- Key.Store.fetch $ Proxy @SigningKey
             rootURL   <- getRemoteBaseUrl
             Login.consume signingSK rootURL {baseUrlPath = "/user/link"} maybeUsername
 
-      logUser @Text "🏗️  Setting default config..."
       Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"
