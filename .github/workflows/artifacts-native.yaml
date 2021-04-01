@@ -33,10 +33,15 @@ jobs:
         ghc-version:   ${{ matrix.ghc }}
         stack-version: ${{ matrix.stack }}
 
-    - name: 🪟  Additional Windows Setup
-      if: ${{ runner.os == 'Windows' }}
-      run: |
-        winget install openssl.light
+    #- name: 🪟  Additional Windows Setup
+    #  if: ${{ runner.os == 'Windows' }}
+    #  run: |
+    #    winget install openssl.light
+
+    - name: add custom pacman repository
+      uses: myci-actions/add-pacman-repo@2
+      with:
+        name: mingw-w64-x86_64-openssl
 
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
