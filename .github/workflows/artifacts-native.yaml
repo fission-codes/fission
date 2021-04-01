@@ -34,7 +34,7 @@ jobs:
         stack-version: ${{ matrix.stack }}
 
     - name: 🍫 Chocolatey Action
-      if: ${{ matrix.os == windows-2019 }}
+      if: ${{ runner.os == 'Windows' }}
       uses: crazy-max/ghaction-chocolatey@v1.4.1
 
     - uses: actions/cache@v2
