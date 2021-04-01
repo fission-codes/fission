@@ -39,7 +39,8 @@ jobs:
     #    winget install openssl.light
 
     - name: add custom pacman repository
-      uses: myci-actions/add-pacman-repo@2
+      if: ${{ runner.os == 'Windows' }}
+      uses: myci-actions/add-pacman-repo@1
       with:
         name: mingw-w64-x86_64-openssl
 
