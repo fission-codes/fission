@@ -36,6 +36,9 @@ jobs:
     - name: 🍫 Chocolatey Action
       if: ${{ runner.os == 'Windows' }}
       uses: crazy-max/ghaction-chocolatey@v1.4.1
+       with:
+          args: |
+            install openssl
 
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
