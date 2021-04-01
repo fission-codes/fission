@@ -36,7 +36,7 @@ jobs:
     - name: 🪟  Additional Windows Setup
       if: ${{ runner.os == 'Windows' }}
       run: |
-        wnget install openssl.light
+        winget install openssl.light
 
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
