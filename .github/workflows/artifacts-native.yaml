@@ -33,6 +33,10 @@ jobs:
         ghc-version:   ${{ matrix.ghc }}
         stack-version: ${{ matrix.stack }}
 
+    - name: 🍫 Chocolatey Action
+      runs_on: windows-2019
+      uses: crazy-max/ghaction-chocolatey@v1.4.1
+
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
       with:
