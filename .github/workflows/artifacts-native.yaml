@@ -33,12 +33,10 @@ jobs:
         ghc-version:   ${{ matrix.ghc }}
         stack-version: ${{ matrix.stack }}
 
-    - name: 🍫 Chocolatey Action
+    - name: 🪟  Additional Windows Setup
       if: ${{ runner.os == 'Windows' }}
-      uses: crazy-max/ghaction-chocolatey@v1.4.1
-      with:
-        args: |
-          install openssl.light
+      args: |
+        wnget install openssl.light
 
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
