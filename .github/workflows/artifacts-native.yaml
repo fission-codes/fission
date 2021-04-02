@@ -47,7 +47,7 @@ jobs:
     - name: Ensure OpenSSL installed on Windows
       if: ${{ runner.os == 'Windows' }}
       run: |
-        stack exec -- pacman -Sy --no-confirm mingw-w64-x86_64-openssl
+        stack exec -- pacman -Sy --noconfirm mingw-w64-x86_64-openssl
 
     - name: Ensure HsOpenSSL compiles on Windows
       if: ${{ runner.os == 'Windows' }}
