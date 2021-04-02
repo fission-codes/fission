@@ -52,7 +52,7 @@ jobs:
     - name: Ensure HsOpenSSL compiles on Windows
       if: ${{ runner.os == 'Windows' }}
       run: |
-        stack install HsOpenSSL
+        stack --extra-lib-dirs=C:\OpenSSL-Win64 --extra-include-dirs=C:\OpenSSL-Win64\include install HsOpenSSL
 
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
