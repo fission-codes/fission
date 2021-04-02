@@ -47,12 +47,12 @@ jobs:
     - name: Ensure OpenSSL installed on Windows
       if: ${{ runner.os == 'Windows' }}
       run: |
-        stack exec -- pacman -Sy --noconfirm openssl openssl-dev
+        stack exec -- pacman -Sy --noconfirm openssl openssl-devel
 
     - name: Ensure HsOpenSSL compiles on Windows
       if: ${{ runner.os == 'Windows' }}
       run: |
-        stack --extra-include-dirs=C:\OpenSSL\include --extra-lib-dirs=C:\OpenSSL\lib\MinGW install HsOpenSSL
+        stack --extra-include-dirs=\"C:/OpenSSL-Win32/include\" --extra-lib-dirs=\"C:/OpenSSL-Win32/\" install HsOpenSSL
 
     - uses: actions/cache@v2
       name: 🗄️  Cache ~/.stack
