@@ -126,5 +126,5 @@
         "${ssh} fission@instance.runfission.net";
 
       ssh-prod = cmd "SSH into the production environment"
-        "${ssh} ubuntu@instance.runfission.com";
+        "${ssh} fission@instance.runfission.com";
     }
