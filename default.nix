@@ -3,7 +3,7 @@
 
 let
   haskellNix = import haskellNixSrc { };
-  pkgs = import haskellNix.sources.nixpkgs-2003 haskellNix.nixpkgsArgs;
+  pkgs = import haskellNix.sources.nixpkgs-unstable haskellNix.nixpkgsArgs;
 
   pkgSet = pkgs.haskell-nix.mkStackPkgSet {
     stack-pkgs = import ./nix/pkgs.nix;
