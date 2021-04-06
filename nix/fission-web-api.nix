@@ -41,6 +41,6 @@
         buildable = true;
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ./fission-web-api; }) // {
+    } // rec { src = (pkgs.lib).mkDefault ../fission-web-api; }) // {
     cabal-generator = "hpack";
     }

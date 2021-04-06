@@ -6,7 +6,7 @@ let
   pkgs = import haskellNix.sources.nixpkgs-2003 haskellNix.nixpkgsArgs;
 
   pkgSet = pkgs.haskell-nix.mkStackPkgSet {
-    stack-pkgs = import ./nix/pkgs.nix;
+    stack-pkgs = import ./pkgs.nix;
     pkg-def-extras = [];
     modules = [];
   };

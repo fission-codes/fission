@@ -43,6 +43,6 @@
         buildable = true;
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ./fission-web-client; }) // {
+    } // rec { src = (pkgs.lib).mkDefault ../fission-web-client; }) // {
     cabal-generator = "hpack";
     }

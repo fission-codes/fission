@@ -208,6 +208,6 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ./fission-core; }) // {
+    } // rec { src = (pkgs.lib).mkDefault ../fission-core; }) // {
     cabal-generator = "hpack";
     }

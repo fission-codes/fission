@@ -331,6 +331,6 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ./fission-web-server; }) // {
+    } // rec { src = (pkgs.lib).mkDefault ../fission-web-server; }) // {
     cabal-generator = "hpack";
     }

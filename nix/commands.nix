@@ -126,7 +126,7 @@
         "nix build -f https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz pkgs.haskell-nix.nix-tools.ghc8104 --out-link nix-tools";
 
       stack-to-nix = cmd "Generate Nix expressions for all Stack project components"
-        "./nix-tools/bin/stack-to-nix --output . --stack-yaml stack.yaml";
+        "./nix-tools/bin/stack-to-nix --output ./nix --stack-yaml stack.yaml";
 
       ssh-staging = cmd "SSH into the staging environment"
         "${ssh} fission@instance.runfission.net";
