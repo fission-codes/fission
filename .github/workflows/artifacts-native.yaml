@@ -1,4 +1,4 @@
-name: Artifacts 🏺 (Native)
+name: 🏺 Artifacts (Native)
 
 # Trigger the workflow on push or pull request, but only for the main branch
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   stack:
-    name: ${{ matrix.os }} / GHC ${{ matrix.ghc }} / Stack ${{ matrix.stack }}
+    name: 🖥️  ${{ matrix.os }} 🏭 GHC ${{ matrix.ghc }} 📚 Stack ${{ matrix.stack }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
