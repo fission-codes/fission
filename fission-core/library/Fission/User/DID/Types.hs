@@ -109,7 +109,7 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          Ed25519PublicKey ed  -> [0xed, 0x01] <> BS.unpack (encodeUtf8 (textDisplay ed))
+          Ed25519PublicKey ed  -> [0xed, 0x01]       <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay ed)
           RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
                                {-   ^     ^     ^
                                     |     |     |
@@ -129,7 +129,7 @@ instance FromJSON DID where
       Just fragment -> do
         pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : 0x01 : edKeyW8s) ->
-            Ed25519PublicKey <$> parseKeyW8s (BS.pack edKeyW8s)
+            Ed25519PublicKey <$> parseKeyW8s (BS64.encode $ BS.pack edKeyW8s)
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
             RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
