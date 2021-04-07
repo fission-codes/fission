@@ -3,6 +3,7 @@
 # Edit at https://www.gitignore.io/?templates=linux,macos,haskell,windows
 
 nohup.out
+result
 
 *.pem
 *.csr

@@ -1,6 +1,7 @@
 { pkgs, unstable, server-path, server-port, ... }:
   let
     bash    = "${pkgs.bash}/bin/bash";
+    cachix  = "${pkgs.cachix}/bin/cachix";
     git     = "${pkgs.git}/bin/git";
     killall = "${pkgs.killall}/bin/killall";
     ssh     = "${pkgs.openssh}/bin/ssh";
