@@ -1,4 +1,4 @@
-name: Cachix 🧰
+name: 🧰 Cachix
 on:
   pull_request:
   push:
