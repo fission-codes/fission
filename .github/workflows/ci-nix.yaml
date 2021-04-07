@@ -1,4 +1,4 @@
-name: CI (Nix)
+name: Tests 🧪 (Nix)
 
 # Trigger the workflow on push or pull request, but only for the main branch
 on:
