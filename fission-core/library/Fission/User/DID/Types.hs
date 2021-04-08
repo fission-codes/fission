@@ -60,7 +60,7 @@ More here: https://github.com/multiformats/unsigned-varint
 
 Ed25519
 
-> eitherDecode (encode "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4") :: Either String DID
+> eitherDecode (encode "did:key:z361CTeTLoCWnoZyMwwZV3myCxm1GRGjaNPmSZCNCqzXo") :: Either String DID
 Right (DID {method = Key, publicKey = Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4=})
 
 RSA
@@ -101,7 +101,7 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DID method pk) = header <> UTF8.toBase58Text (BS.pack multicodecW8)
+  textDisplay (DID method pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"
@@ -109,7 +109,7 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          Ed25519PublicKey ed  -> [0xed, 0x01]       <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay ed)
+          Ed25519PublicKey ed  -> 0xed : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay ed)
           RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
                                {-   ^     ^     ^
                                     |     |     |
@@ -128,7 +128,7 @@ instance FromJSON DID where
 
       Just fragment -> do
         pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
-          (0xed : 0x01 : edKeyW8s) ->
+          (0xed : edKeyW8s) ->
             Ed25519PublicKey <$> parseKeyW8s (BS64.encode $ BS.pack edKeyW8s)
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->

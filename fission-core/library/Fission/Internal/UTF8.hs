@@ -34,6 +34,8 @@ import qualified RIO.ByteString            as Strict
 import qualified RIO.ByteString.Lazy       as Lazy
 import qualified RIO.Text                  as Text
 
+import           Fission.Text.Encoded
+
 class Textable a where
   encode :: a -> Either UnicodeException Text
 
@@ -52,8 +54,8 @@ fromRawBytes = decodeUtf8Lenient . Strict.pack
 -- | Convert any binary object to 'Text'
 --
 -- NOTE that base58 text does not concatenate without decoding to some base2 first
-toBase58Text :: Strict.ByteString -> Text
-toBase58Text = BS58.BTC.toText . BS58.BTC.fromBytes
+toBase58Text :: Strict.ByteString -> 'Base58_BTC `Encoded` Text
+toBase58Text = Encoded . BS58.BTC.toText . BS58.BTC.fromBytes
 
 stripOptionalPrefix :: Text -> Text -> Text
 stripOptionalPrefix pfx txt = maybe txt id $ Text.stripPrefix pfx txt

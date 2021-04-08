@@ -37,7 +37,7 @@ instance Proof.Resolver InTimeBounds where
 instance ServerDID InTimeBounds where
   getServerDID = pure did
     where
-      Right did = eitherDecode "\"did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4\""
+      Right did = eitherDecode "\"did:key:z361CTeTLoCWnoZyMwwZV3myCxm1GRGjaNPmSZCNCqzXo\""
 
 instance MonadTime InTimeBounds where
   currentTime = pure $ Time.fromSeconds 1591627760
