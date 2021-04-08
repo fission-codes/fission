@@ -27,7 +27,7 @@ spec =
       it "serializes to a well-known value"
         let
           expected :: Text
-          expected = "did:key:z361CTeTLoCWnoZyMwwZV3myCxm1GRGjaNPmSZCNCqzXo"
+          expected = "did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB"
         in
           encode (DID Key edKey) `shouldBe` JSON.encode expected
 
