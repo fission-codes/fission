@@ -6,8 +6,6 @@ module Fission.Text.Encoded
   , module Fission.Text.Encoding.Types
   ) where
 
-import RIO
-
 import Fission.Text.Encoded.Class
 import Fission.Text.Encoded.Types
 import Fission.Text.Encoding.Types
