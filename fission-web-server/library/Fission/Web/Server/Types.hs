@@ -156,11 +156,16 @@ instance MonadRoute53 Server where
         changeRecordMock
 
       else do
-        req <- createChangeRequest zoneTxt
+        Route53.get url (ZoneID zoneTxt) >>= \case
+          Left err ->
+            return $ Left err
 
-        AWS.within NorthVirginia do
-          resp <- send req
-          return $ validate resp
+          Right recordSet -> do
+            req <- createChangeRequest zoneTxt recordSet
+
+            AWS.within NorthVirginia do
+              resp <- send req
+              return $ validate resp
 
     where
       changeRecordMock = do
@@ -173,11 +178,9 @@ instance MonadRoute53 Server where
         return $ Right mockRecordResponse
 
       -- | Create the AWS change request for Route53
-      createChangeRequest zoneID = do
+      createChangeRequest zoneID recordSet = do
         let
-          urlTxt = textDisplay url
-          fields = resourceRecordSet urlTxt recordType
-          batch  = changeBatch . pure $ change Delete fields
+          batch  = changeBatch . pure $ change Delete recordSet
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
