@@ -1,6 +1,7 @@
 { pkgs, unstable, server-path, server-port, ... }:
   let
     bash    = "${pkgs.bash}/bin/bash";
+    cachix  = "${pkgs.cachix}/bin/cachix";
     git     = "${pkgs.git}/bin/git";
     killall = "${pkgs.killall}/bin/killall";
     ssh     = "${pkgs.openssh}/bin/ssh";
@@ -121,6 +122,12 @@
       quality = cmd "Run the complete test suite" "${stack} test  --nix --test-arguments='--color=always'";
       repl    = cmd "Enter the project REPL"      "${stack} repl  --nix --no-nix-pure";
       watch   = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
+
+      get-nt = cmd "Get haskell.nix nix-tools" 
+        "nix build -f https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz pkgs.haskell-nix.nix-tools.ghc8104 --out-link nix-tools";
+
+      stack-to-nix = cmd "Generate Nix expressions for all Stack project components"
+        "./nix-tools/bin/stack-to-nix --output ./nix --stack-yaml stack.yaml";
 
       ssh-staging = cmd "SSH into the staging environment"
         "${ssh} fission@instance.runfission.net";

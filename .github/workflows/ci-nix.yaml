@@ -1,4 +1,4 @@
-name: CI (Nix)
+name: 🧪 Tests (Nix)
 
 # Trigger the workflow on push or pull request, but only for the main branch
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   stack:
-    name: ${{ matrix.os }} / Nix
+    name: 🖥️  ${{ matrix.os }} ❄️  Nix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
