@@ -21,6 +21,7 @@ data Pair = Pair
 instance Arbitrary Pair where
   arbitrary = elements pregenerated
 
+-- FIXME probably drop this
 pregenerated :: [Pair]
 pregenerated =
   [ Pair pk1 sk1

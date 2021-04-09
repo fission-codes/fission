@@ -159,6 +159,7 @@ dependencies:
   - servant-auth-swagger
   - servant-client
   - servant-client-core
+  - servant-lucid
   - servant-server
   - servant-swagger
   - servant-swagger-ui-redoc

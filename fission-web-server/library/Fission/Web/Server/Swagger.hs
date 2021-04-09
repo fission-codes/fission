@@ -12,6 +12,7 @@ import           Servant.Swagger.UI.ReDoc
 import           Fission.Prelude
 
 import qualified Fission.Web.API.App.Types                           as API
+import qualified Fission.Web.API.Auth.Types                          as API
 import qualified Fission.Web.API.DNS.Types                           as API
 import qualified Fission.Web.API.Heroku.Types                        as API
 import qualified Fission.Web.API.IPFS.Types                          as API
@@ -42,6 +43,7 @@ docs host' =
   host'
     |> fission (Proxy @Fission.API)
     |> app
+    |> auth
     |> dns
     |> heroku
     |> ipfs
@@ -78,6 +80,10 @@ fission proxy appHost =
 app :: Swagger -> Swagger
 app = makeDocs (Proxy @API.App)
   ["App" |> description ?~ "Hosted applications"]
+
+auth :: Swagger -> Swagger
+auth = makeDocs (Proxy @API.Auth)
+  ["Auth" |> description ?~ "Sepcialized auth endpoints"]
 
 dns :: Swagger -> Swagger
 dns = makeDocs (Proxy @API.DNS)

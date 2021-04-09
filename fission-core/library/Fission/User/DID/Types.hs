@@ -7,10 +7,14 @@ module Fission.User.DID.Types
 import qualified Data.Aeson.Types                  as JSON
 import           Data.Swagger
 
+import qualified Data.ByteArray                    as BA
 import           Data.Base58String.Bitcoin         as BS58.BTC
 import           Data.Binary                       hiding (encode)
 import qualified Data.ByteString.Base64            as BS64
 import           Data.Hashable                     (Hashable (..))
+
+import           Crypto.Error
+import qualified Crypto.PubKey.Ed25519             as Ed25519
 
 import qualified RIO.ByteString                    as BS
 import qualified RIO.Text                          as Text
@@ -35,7 +39,7 @@ did:key:<MULTIBASE(base58-btc, MULTICODEC(public-key-type, raw-public-key-bytes)
 > For example, in UTF-32, "z" would be [0x7a, 0x00, 0x00, 0x00].
 >
 > Expressing a base58btc encoded ed25519 cryptographic identifier would look like this:
-> 0x7a 0xed01 ED25519_PUBLIC_KEY_BYTES
+> 0x7a 0xed ED25519_PUBLIC_KEY_BYTES
 > [...]
 > Expressing a cryptographic identifier that is a base58btc encoded RSA SPKI-based
 >   public key fingerprint using SHA2-256/256 would look like this:
@@ -109,7 +113,8 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          Ed25519PublicKey ed  -> 0xed : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay ed)
+          -- FIXME add Ed25519Legacy
+          Ed25519PublicKey ed  -> 0xed : BS.unpack (BA.convert ed)
           RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
                                {-   ^     ^     ^
                                     |     |     |
@@ -129,7 +134,9 @@ instance FromJSON DID where
       Just fragment -> do
         pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : edKeyW8s) ->
-            Ed25519PublicKey <$> parseKeyW8s (BS64.encode $ BS.pack edKeyW8s)
+            case Ed25519.publicKey $ BS.pack edKeyW8s of
+              CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
+              CryptoPassed edPK -> return $ Ed25519PublicKey edPK
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
             RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)

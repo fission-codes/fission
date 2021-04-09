@@ -179,7 +179,7 @@ fetchServerDID fissionURL = do
 
   liftIO (DNS.withResolver rs \resolver -> DNS.lookupTXT resolver url) >>= \case
     Left errs -> do
-      CLI.Error.put errs "Unable to find Fission's ID online"
+      CLI.Error.put errs "Problem fetching Fission's DID"
       raise errs
 
     Right [] -> do
@@ -187,7 +187,9 @@ fetchServerDID fissionURL = do
       raise $ NotFound @DID
 
     Right (didTxt : _) ->
-      case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
+      -- FIXME remove line:
+      case eitherDecodeStrict "\"did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB\"" of
+      -- case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
         Left errs -> do
           CLI.Error.put errs "Unable to find Fission's ID online"
           raise $ NotFound @DID
