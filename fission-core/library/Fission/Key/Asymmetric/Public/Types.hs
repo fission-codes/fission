@@ -30,7 +30,7 @@ instance Display Public where
 
 instance Arbitrary Public where
   arbitrary = oneof
-    [ Ed25519PublicKey       <$> arbitrary
+    [ Ed25519PublicKey <$> arbitrary
     , RSAPublicKey . Pair.pk <$> arbitrary
     ]
 
@@ -39,10 +39,9 @@ instance ToHttpApiData Public where
 
 instance FromHttpApiData Public where
   parseUrlPiece txt =
-    if | "MII" `Text.isPrefixOf` txt -> RSAPublicKey     <$> parseUrlPiece txt
-       | Text.length txt == 44       -> Ed25519PublicKey <$> parseUrlPiece txt
-       -- FIXME
-       | otherwise -> Left $ "Unable to determine public key algorithm: " <> txt
+    if "MII" `Text.isPrefixOf` txt
+      then RSAPublicKey     <$> parseUrlPiece txt
+      else Ed25519PublicKey <$> parseUrlPiece txt
 
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack

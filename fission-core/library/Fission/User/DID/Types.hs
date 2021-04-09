@@ -138,6 +138,7 @@ instance FromJSON DID where
               then
                 -- Legacy encoding for backward compatability
                 Ed25519PublicKey <$> parseKeyW8s (BS.pack $ List.drop 1 edKeyW8s)
+
               else
                 case Ed25519.publicKey $ BS.pack edKeyW8s of
                   CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError

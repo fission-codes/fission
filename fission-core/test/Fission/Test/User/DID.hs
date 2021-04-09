@@ -23,13 +23,22 @@ spec =
         in
           encode (DID Key rsaKey) `shouldBe` "\"" <> expected <> "\""
 
-    context "ED25519" do
+    context "Ed25519" do
       it "serializes to a well-known value"
         let
           expected :: Text
           expected = "did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB"
         in
           encode (DID Key edKey) `shouldBe` JSON.encode expected
+
+      context "Legacy" do
+        it "deserializes to a well-known value"
+          let
+            input :: ByteString
+            input = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"
+          in
+            eitherDecodeStrict ("\"" <> input <> "\"")
+              `shouldBe` Right (DID Key edKey)
 
     itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
       JSON.decode (JSON.encode did) `shouldBe` Just did
