@@ -4,6 +4,8 @@ module Fission.Web.Auth.Token.Bearer.Types
   , BareToken (..)
   ) where
 
+import qualified Data.Binary.Builder                   as Builder
+
 import qualified RIO.ByteString.Lazy                   as Lazy
 import qualified RIO.Text                              as Text
 
@@ -83,6 +85,13 @@ instance FromJSON BareToken where
   parseJSON = withText "Bearer Token" \txt -> do
     jwt <- parseJSON $ toJSON txt
     return $ BareToken Token { jwt, rawContent = JWT.contentOf txt }
+
+instance MimeRender PlainText BareToken where
+  mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
+   Builder.toLazyByteString . getUtf8Builder $ display rawContent <> "." <> display sig
+
+instance MimeUnrender PlainText BareToken  where
+  mimeUnrender _ lbs = eitherDecode ("\"" <> lbs <> "\"")
 
 instance ToSchema BareToken where
   declareNamedSchema _ =

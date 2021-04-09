@@ -17,6 +17,7 @@ import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519             as Ed25519
 
 import qualified RIO.ByteString                    as BS
+import qualified RIO.List                          as List
 import qualified RIO.Text                          as Text
 
 import           Servant.API
@@ -113,7 +114,6 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          -- FIXME add Ed25519Legacy
           Ed25519PublicKey ed  -> 0xed : BS.unpack (BA.convert ed)
           RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
                                {-   ^     ^     ^
@@ -134,9 +134,14 @@ instance FromJSON DID where
       Just fragment -> do
         pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
           (0xed : edKeyW8s) ->
-            case Ed25519.publicKey $ BS.pack edKeyW8s of
-              CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
-              CryptoPassed edPK -> return $ Ed25519PublicKey edPK
+            if List.headMaybe edKeyW8s == Just 0x01 && length edKeyW8s > 40
+              then
+                -- Legacy encoding for backward compatability
+                Ed25519PublicKey <$> parseKeyW8s (BS.pack $ List.drop 1 edKeyW8s)
+              else
+                case Ed25519.publicKey $ BS.pack edKeyW8s of
+                  CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
+                  CryptoPassed edPK -> return $ Ed25519PublicKey edPK
 
           (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
             RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)

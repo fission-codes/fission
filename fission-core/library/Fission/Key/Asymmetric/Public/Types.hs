@@ -18,7 +18,6 @@ import           Fission.Internal.Orphanage.RSA2048.Public    ()
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey
-  | Ed25519LegacyPK  Crypto.Ed25519.PublicKey -- ^ Historical encoding
   | RSAPublicKey     Crypto.RSA.PublicKey
   deriving Eq
 
@@ -27,13 +26,11 @@ instance Show Public where
 
 instance Display Public where
   textDisplay (Ed25519PublicKey pk) = textDisplay pk
-  textDisplay (Ed25519LegacyPK  pk) = textDisplay pk
   textDisplay (RSAPublicKey     pk) = textDisplay pk
 
 instance Arbitrary Public where
   arbitrary = oneof
     [ Ed25519PublicKey       <$> arbitrary
-    , Ed25519LegacyPK        <$> arbitrary
     , RSAPublicKey . Pair.pk <$> arbitrary
     ]
 

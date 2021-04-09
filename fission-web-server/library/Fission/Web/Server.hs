@@ -15,6 +15,8 @@ import           Fission.Prelude
 
 import qualified Fission.Web.API.Types                  as Fission
 
+import qualified Fission.Web.Auth.Token.JWT.Resolver   as Proof
+
 import qualified Fission.Web.Server.Auth                as Auth
 import qualified Fission.Web.Server.Challenge           as Challenge
 import           Fission.Web.Server.Email
@@ -37,6 +39,8 @@ import qualified Fission.Web.Server.LoosePin            as LoosePin
 import qualified Fission.Web.Server.App                 as App
 import qualified Fission.Web.Server.App.Content         as App.Content
 import qualified Fission.Web.Server.App.Domain          as App.Domain
+
+import qualified  Fission.Web.Server.Handler.Auth.UCAN.Verify as Auth.UCAN.Verify
 
 import           Fission.Web.Server.Types               as Fission
 
@@ -62,6 +66,7 @@ app ::
   ( App.Domain.Initializer    m
   , App.Content.Initializer   m
   , App.CRUD                  m
+  , Proof.Resolver            m
   , MonadReflectiveServer     m
   , MonadRelayStore           m
   , MonadLinkedIPFS           m
@@ -103,6 +108,7 @@ server ::
   ( App.Domain.Initializer    m
   , App.Content.Initializer   m
   , App.CRUD                  m
+  , Proof.Resolver            m
   , MonadReflectiveServer     m
   , MonadRelayStore           m
   , MonadLinkedIPFS           m
@@ -138,6 +144,7 @@ bizServer ::
   ( App.Domain.Initializer    m
   , App.Content.Initializer   m
   , App.CRUD                  m
+  , Proof.Resolver            m
   , MonadReflectiveServer     m
   , MonadLinkedIPFS           m
   , MonadRemoteIPFS           m
@@ -168,3 +175,4 @@ bizServer = IPFS.handler
        :<|> User.handler
        :<|> Ping.handler
        :<|> DNS.handler
+       :<|> Auth.UCAN.Verify.handler

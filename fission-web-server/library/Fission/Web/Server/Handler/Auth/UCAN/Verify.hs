@@ -1,4 +1,4 @@
-module Fission.Web.Server.Handler.Auth.UCAN.Verify where
+module Fission.Web.Server.Handler.Auth.UCAN.Verify (handler) where
 
 import           Servant
 

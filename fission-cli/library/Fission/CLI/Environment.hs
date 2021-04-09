@@ -187,11 +187,9 @@ fetchServerDID fissionURL = do
       raise $ NotFound @DID
 
     Right (didTxt : _) ->
-      -- FIXME remove line:
-      case eitherDecodeStrict "\"did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB\"" of
-      -- case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
+      case eitherDecodeStrict ("\"" <> didTxt <> "\"") of
         Left errs -> do
-          CLI.Error.put errs "Unable to find Fission's ID online"
+          CLI.Error.put errs "Unable parse Fission's DID from DNS"
           raise $ NotFound @DID
 
         Right serverDID -> do
