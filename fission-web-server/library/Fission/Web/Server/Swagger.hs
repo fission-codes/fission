@@ -83,7 +83,7 @@ app = makeDocs (Proxy @API.App)
 
 auth :: Swagger -> Swagger
 auth = makeDocs (Proxy @API.Auth)
-  ["Auth" |> description ?~ "Sepcialized auth endpoints"]
+  ["Auth" |> description ?~ "Specialized auth endpoints"]
 
 dns :: Swagger -> Swagger
 dns = makeDocs (Proxy @API.DNS)
