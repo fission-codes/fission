@@ -31,7 +31,7 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ matrix.os }}-stack-nix-3
+        key: ${{ matrix.os }}-stack-nix-4
 
     - name: 🏗️  Build
       run: |
