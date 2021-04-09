@@ -19,6 +19,7 @@ import qualified Network.HTTP.Client.TLS                         as HTTP
 import qualified Network.HostName                                as Network
 import           Network.IPFS.Timeout.Types                      as IPFS
 
+import           Network.Wai
 import           Network.Wai.Handler.Warp
 import           Network.Wai.Handler.WarpTLS
 import           Network.Wai.Middleware.RequestLogger
@@ -215,6 +216,10 @@ mkSettings logger (Server.Port port) =
   defaultSettings
     |> setPort port
     |> setLogger (Web.Log.fromLogFunc logger)
+    |> setOnExceptionResponse
+      (mapResponseHeaders (("Access-Control-Allow-Origin", "*") :) 
+        . defaultOnExceptionResponse
+      )
     |> setTimeout serverTimeout
 
 tlsSettings' :: TLSSettings
