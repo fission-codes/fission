@@ -89,13 +89,6 @@ packages:
   original:
     hackage: servant-auth-swagger-0.2.10.1
 - completed:
-    hackage: servant-lucid-0.9.0.2@sha256:693278d574dba7313e931200118424762c02682bbc654e8866be4e6d1c73d816,1803
-    pantry-tree:
-      size: 392
-      sha256: c5635bc53887b81087c3430341790d45cd4063340a0baa62bedd2e77ed4aa84d
-  original:
-    hackage: servant-lucid-0.9.0.2
-- completed:
     hackage: servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
     pantry-tree:
       size: 381
