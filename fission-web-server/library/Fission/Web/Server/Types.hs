@@ -147,7 +147,7 @@ instance MonadAWS Server where
     runResourceT $ runAWS env awsAction
 
 instance MonadRoute53 Server where
-  clear recordType url (ZoneID zoneTxt) = do
+  clear url (ZoneID zoneTxt) = do
     logDebug $ "Clearing DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -763,7 +763,7 @@ pullFromDNS urls = do
           return . Error.openLeft $ NotFound @ZoneID
 
         Just zoneId ->
-          AWS.clear Txt url zoneId <&> \case
+          AWS.clear url zoneId <&> \case
             Left err -> Error.openLeft err
             Right _  -> Right (url : accs)
 
