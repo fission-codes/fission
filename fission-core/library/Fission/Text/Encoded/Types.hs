@@ -20,16 +20,16 @@ newtype (enc :: Encoding) `Encoded` (carrierText :: Type)
 instance Functor (Encoded enc) where
   fmap f Encoded { encoded } = Encoded $ f encoded
 
-instance Display (Encoded 'UTF8 Text) where
+instance Display (Encoded 'UTF16 Text) where
   display Encoded { encoded } = display encoded
 
-instance Display (Encoded 'Octal String) where
+instance Display (Encoded 'UnicodePoints String) where
   textDisplay Encoded { encoded } = Text.pack encoded
 
-instance Display (Encoded 'Octal ByteString) where
+instance Display (Encoded 'ASCII ByteString) where
   -- NOTE This function performs no checks to ensure that the data is, in fact, UTF8 encoded
   display Encoded { encoded } = displayBytesUtf8 encoded
 
-instance Display (Encoded 'Octal Lazy.ByteString) where
+instance Display (Encoded 'ASCII Lazy.ByteString) where
   -- NOTE This function performs no checks to ensure that the data is, in fact, UTF8 encoded
   display encoded = display $ Lazy.toStrict <$> encoded

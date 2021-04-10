@@ -4,11 +4,11 @@ import RIO
 
 -- | Encodings, intended for use at the type level
 data Encoding
-  = Binary
-  | Octal -- ^ i.e. the default for 'String' and 'ByteString'
-  | Hexadecimal
+  = ASCII         -- ^ i.e. the default for 'ByteString'
   | Base58_BTC
-  | Base64
-  | Base64_URL
-  | UTF8 -- ^ i.e. the default for 'Text'
+  | Base64        -- ^ RFC 4648
+  | Base64_URL    -- ^ RFC 4648
+  | UTF8
+  | UTF16         -- ^ i.e. the default for 'Text'
+  | UnicodePoints -- ^ i.e. the default for 'String'
   deriving (Eq, Show)
