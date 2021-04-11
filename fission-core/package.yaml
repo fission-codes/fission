@@ -19,7 +19,7 @@ copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission
-tested-with: GHC==8.10.3
+tested-with: GHC==8.10.4
 extra-source-files:
   - README.md
 
