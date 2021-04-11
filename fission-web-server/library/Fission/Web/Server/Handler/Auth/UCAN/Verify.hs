@@ -4,11 +4,11 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
+import qualified Fission.Web.Auth.Token.Bearer.Types    as Bearer
 
+import           Fission.Web.Auth.Token.JWT.Resolver    as Proof
 import           Fission.Web.Auth.Token.JWT.Types
-import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
-import qualified Fission.Web.Auth.Token.JWT.Validation as UCAN
+import qualified Fission.Web.Auth.Token.JWT.Validation  as UCAN
 
 import qualified Fission.Web.API.Auth.UCAN.Verify.Types as API.UCAN
 
