@@ -131,10 +131,10 @@ instance
     runner <- asks updateRoute53
     return $ runner r url zone nonEmptyTxts ttl
 
-  clear r url _ = do
+  clear url _ = do
     Effect.log ClearRoute53
     runner <- asks clearRoute53
-    return $ runner r url
+    return $ runner url
 
   get url zone = do
     runner <- asks getRoute53
