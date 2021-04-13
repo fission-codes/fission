@@ -235,7 +235,7 @@ putStrLnIO :: MonadIO m => Text -> m ()
 putStrLnIO txt = BS.putStr (encodeUtf8 txt <> "\n")
 
 addResponseHeader :: HTTP.HeaderName -> ByteString -> Response -> Response
-addResponseHeader field val = mapResponseHeaders \headers -> (field, val) : headers
+addResponseHeader headerName value = mapResponseHeaders \headers -> (headerName, value) : headers
 
 onExceptionResponse :: SomeException -> Response
 onExceptionResponse exception =
