@@ -147,7 +147,7 @@ instance MonadAWS Server where
     runResourceT $ runAWS env awsAction
 
 instance MonadRoute53 Server where
-  clear recordType url (ZoneID zoneTxt) = do
+  clear url (ZoneID zoneTxt) = do
     logDebug $ "Clearing DNS record at: " <> displayShow url
     AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
 
@@ -156,11 +156,16 @@ instance MonadRoute53 Server where
         changeRecordMock
 
       else do
-        req <- createChangeRequest zoneTxt
+        Route53.get url (ZoneID zoneTxt) >>= \case
+          Left err ->
+            return $ Left err
 
-        AWS.within NorthVirginia do
-          resp <- send req
-          return $ validate resp
+          Right recordSet -> do
+            req <- createChangeRequest zoneTxt recordSet
+
+            AWS.within NorthVirginia do
+              resp <- send req
+              return $ validate resp
 
     where
       changeRecordMock = do
@@ -173,11 +178,9 @@ instance MonadRoute53 Server where
         return $ Right mockRecordResponse
 
       -- | Create the AWS change request for Route53
-      createChangeRequest zoneID = do
+      createChangeRequest zoneID recordSet = do
         let
-          urlTxt = textDisplay url
-          fields = resourceRecordSet urlTxt recordType
-          batch  = changeBatch . pure $ change Delete fields
+          batch  = changeBatch . pure $ change Delete recordSet
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
@@ -760,7 +763,7 @@ pullFromDNS urls = do
           return . Error.openLeft $ NotFound @ZoneID
 
         Just zoneId ->
-          AWS.clear Txt url zoneId <&> \case
+          AWS.clear url zoneId <&> \case
             Left err -> Error.openLeft err
             Right _  -> Right (url : accs)
 

@@ -55,7 +55,7 @@ defaultConfig = Config
   , setDNSLink      = \_ _ _ -> Right $ URL (DomainName "example.com") Nothing
   , followDNSLink   = \_ _   -> Right ()
   , getBaseDomain   = DomainName "example.com"
-  , clearRoute53    = \_ _ ->
+  , clearRoute53    = \_ ->
       Right . changeResourceRecordSetsResponse 200 $ changeInfo "ciId" Insync agesAgo
 
   , updateRoute53   = \_ _ _ _ _ ->

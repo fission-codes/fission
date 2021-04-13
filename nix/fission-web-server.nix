@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "2.2";
-      identifier = { name = "fission-web-server"; version = "2.12.2.0"; };
+      identifier = { name = "fission-web-server"; version = "2.12.4.0"; };
       license = "AGPL-3.0-or-later";
       copyright = "© 2020 Fission Internet Software Services for Open Networks Inc.";
       maintainer = "brooklyn@fission.codes,\ndaniel@fission.codes,\nsteven@fission.codes,\njames@fission.codes";
