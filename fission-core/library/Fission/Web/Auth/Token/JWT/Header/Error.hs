@@ -5,7 +5,7 @@ import           Fission.Prelude
 data Error
   = UnsupportedVersion
   | UnsupportedAlgorithm
-  deriving (Show, Eq, Exception)
+  deriving (Show, Eq, Exception, Generic, NFData)
 
 instance Display Error where
   display UnsupportedAlgorithm = "Unsupported JWT signing algorithm"
