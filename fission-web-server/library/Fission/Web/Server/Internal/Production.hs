@@ -216,10 +216,9 @@ mkSettings logger (Server.Port port) =
   defaultSettings
     |> setPort port
     |> setLogger (Web.Log.fromLogFunc logger)
-    |> setOnExceptionResponse
-      (mapResponseHeaders (("Access-Control-Allow-Origin", "*") :) 
-        . defaultOnExceptionResponse
-      )
+    |> setOnExceptionResponse \exception ->
+        addResponseHeader "Access-Control-Allow-Origin" "*"
+          (defaultOnExceptionResponse exception)
     |> setTimeout serverTimeout
 
 tlsSettings' :: TLSSettings
@@ -233,3 +232,6 @@ serverTimeout = 1800
 
 putStrLnIO :: MonadIO m => Text -> m ()
 putStrLnIO txt = BS.putStr (encodeUtf8 txt <> "\n")
+
+addResponseHeader :: HeaderName -> ByteString -> Response -> Response
+addResponseHeader field val = mapResponseHeaders \headers -> (field, val) : headers
