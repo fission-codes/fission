@@ -8,6 +8,8 @@ module Fission.Web.Server.Internal.Production
   , serverTimeout
   ) where
 
+import           Control.Exception
+
 import qualified Data.Aeson                                      as JSON
 import qualified Data.Yaml                                       as YAML
 
@@ -15,6 +17,7 @@ import           Servant
 
 import qualified Network.HTTP.Client                             as HTTP
 import qualified Network.HTTP.Client.TLS                         as HTTP
+import qualified Network.HTTP.Types.Header                       as HTTP
 
 import qualified Network.HostName                                as Network
 import           Network.IPFS.Timeout.Types                      as IPFS
@@ -216,9 +219,7 @@ mkSettings logger (Server.Port port) =
   defaultSettings
     |> setPort port
     |> setLogger (Web.Log.fromLogFunc logger)
-    |> setOnExceptionResponse \exception ->
-        addResponseHeader "Access-Control-Allow-Origin" "*"
-          (defaultOnExceptionResponse exception)
+    |> setOnExceptionResponse onExceptionResponse
     |> setTimeout serverTimeout
 
 tlsSettings' :: TLSSettings
@@ -233,5 +234,9 @@ serverTimeout = 1800
 putStrLnIO :: MonadIO m => Text -> m ()
 putStrLnIO txt = BS.putStr (encodeUtf8 txt <> "\n")
 
-addResponseHeader :: HeaderName -> ByteString -> Response -> Response
+addResponseHeader :: HTTP.HeaderName -> ByteString -> Response -> Response
 addResponseHeader field val = mapResponseHeaders \headers -> (field, val) : headers
+
+onExceptionResponse :: SomeException -> Response
+onExceptionResponse exception =
+  addResponseHeader "Access-Control-Allow-Origin" "*" (defaultOnExceptionResponse exception)
