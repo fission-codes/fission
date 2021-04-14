@@ -2,12 +2,13 @@
 
 module Fission.Test.User.DID (spec) where
 
-import qualified Data.Aeson           as JSON
+import qualified Data.Aeson            as JSON
+import qualified Crypto.PubKey.Ed25519 as Ed25519
 
-import qualified RIO.ByteString.Lazy  as Lazy
+import qualified RIO.ByteString.Lazy   as Lazy
 import           Servant.API
 
-import           Fission.Key          as Key
+import           Fission.Key           as Key
 import           Fission.User.DID
 
 import           Fission.Test.Prelude
@@ -30,6 +31,16 @@ spec =
           expected = "did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsXCnLH7q9yw4QgNPULDmDKB"
         in
           encode (DID Key edKey) `shouldBe` JSON.encode expected
+
+      itsProp' "deserialize . serialize ~ id" \(ed25519pk :: Ed25519.PublicKey) ->
+        decode (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe`
+          Just (DID Key $ Ed25519PublicKey ed25519pk)
+
+      itsProp' "lengths is always 56" \(ed25519pk :: Ed25519.PublicKey) ->
+        Lazy.length (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe` 56 + 2 -- extra 2 for quotes because JSON
+
+      itsProp' "always starts with 'did:key:z6Mk'" \(ed25519pk :: Ed25519.PublicKey) ->
+        Lazy.take 13 (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe` "\"did:key:z6Mk"
 
       context "Legacy" do
         it "deserializes to a well-known value"
