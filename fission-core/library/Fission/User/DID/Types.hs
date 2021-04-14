@@ -17,7 +17,6 @@ import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519             as Ed25519
 
 import qualified RIO.ByteString                    as BS
-import qualified RIO.List                          as List
 import qualified RIO.Text                          as Text
 
 import           Servant.API
@@ -40,7 +39,7 @@ did:key:<MULTIBASE(base58-btc, MULTICODEC(public-key-type, raw-public-key-bytes)
 > For example, in UTF-32, "z" would be [0x7a, 0x00, 0x00, 0x00].
 >
 > Expressing a base58btc encoded ed25519 cryptographic identifier would look like this:
-> 0x7a 0xed ED25519_PUBLIC_KEY_BYTES
+> 0x7a 0xed 0x01 ED25519_PUBLIC_KEY_BYTES
 > [...]
 > Expressing a cryptographic identifier that is a base58btc encoded RSA SPKI-based
 >   public key fingerprint using SHA2-256/256 would look like this:
@@ -114,8 +113,8 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          Ed25519PublicKey ed  -> 0xed : BS.unpack (BA.convert ed)
-          RSAPublicKey     rsa -> [0x00, 0xF5, 0x02] <> BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
+          Ed25519PublicKey ed  -> 0xed : 0x01 : BS.unpack (BA.convert ed)
+          RSAPublicKey     rsa -> 0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
                                {-   ^     ^     ^
                                     |     |     |
                                     |    "expect 373 Bytes", encoded in the mixed-endian format
@@ -133,11 +132,11 @@ instance FromJSON DID where
 
       Just fragment -> do
         pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
-          (0xed : edKeyW8s) ->
-            if List.headMaybe edKeyW8s == Just 0x01 && length edKeyW8s > 40
+          (0xed : 0x01 : edKeyW8s) ->
+            if length edKeyW8s > 40
               then
                 -- Legacy encoding for backward compatability
-                Ed25519PublicKey <$> parseKeyW8s (BS.pack $ List.drop 1 edKeyW8s)
+                Ed25519PublicKey <$> parseKeyW8s (BS.pack edKeyW8s)
 
               else
                 case Ed25519.publicKey $ BS.pack edKeyW8s of

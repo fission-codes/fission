@@ -27,7 +27,7 @@ spec =
       it "serializes to a well-known value"
         let
           expected :: Text
-          expected = "did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB"
+          expected = "did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsXCnLH7q9yw4QgNPULDmDKB"
         in
           encode (DID Key edKey) `shouldBe` JSON.encode expected
 
@@ -40,6 +40,11 @@ spec =
             eitherDecodeStrict ("\"" <> input <> "\"")
               `shouldBe` Right (DID Key edKey)
 
+      context "W3C did:key Ed25519 test vectors" do
+        didKeyTestVectors |> foldMapM \(idx, bs) ->
+          it ("Deserializes vector #" <> show idx <> " to a valid DID") $
+            eitherDecode (encode bs) `shouldSatisfy` isEd25519DidKey
+
     itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
       JSON.decode (JSON.encode did) `shouldBe` Just did
 
@@ -51,3 +56,15 @@ Right rsaKey = parseUrlPiece "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1
 
 edKey :: Key.Public
 Right edKey = parseUrlPiece "Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4="
+
+isEd25519DidKey :: Either String DID -> Bool
+isEd25519DidKey = \case
+  Right (DID Key (Ed25519PublicKey _)) -> True
+  _                                    -> False
+
+didKeyTestVectors :: [(Natural, Text)]
+didKeyTestVectors =
+  [ (0, "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp")
+  , (1, "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG")
+  , (2, "did:key:z6MknGc3ocHs3zdPiJbnaaqDi58NGb4pk1Sp9WxWufuXSdxf")
+  ]
