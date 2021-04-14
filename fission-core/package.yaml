@@ -1,21 +1,25 @@
 name: fission-core
-version: '3.2.2.0'
+version: '3.2.3.0'
 category: API
 author:
   - Brooklyn Zelenka
   - Daniel Holmgren
   - Steven Vandevelde
   - James Walker
+  - Brian Ginsburg
+  - Philipp Krüger
 maintainer:
   - brooklyn@fission.codes
   - daniel@fission.codes
   - steven@fission.codes
   - james@fission.codes
+  - brian@fission.codes
+  - philipp@fission.codes
 copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission
-tested-with: GHC==8.10.3
+tested-with: GHC==8.10.4
 extra-source-files:
   - README.md
 

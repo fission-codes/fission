@@ -24,6 +24,7 @@ module Fission.Prelude
   , module Data.Generics.Product
   , module Data.Generics.Sum
 
+  , module Fission.Text.Encoded
   , module Fission.Unit.Prefix
 
   , module Fission.Internal.Log
@@ -69,7 +70,7 @@ import           Control.Monad.Trans.Rescue
 
 import           Network.IPFS.Internal.Orphanage.Utf8Builder ()
 
-import           Data.Aeson                                  hiding (Options)
+import           Data.Aeson                                  hiding (Encoding, Options)
 import           Data.Bifunctor                              (bimap)
 import           Data.Bool
 import           Data.Has                                    hiding (Lens)
@@ -110,6 +111,7 @@ import           Test.QuickCheck                             hiding
 import           Test.QuickCheck.Instances                   ()
 
 import           Fission.Unit.Prefix
+import           Fission.Text.Encoded
 
 import           Fission.Internal.Log
 

@@ -13,16 +13,16 @@ spec =
   describe "Fission.Internal.UTF8" do
     describe "toBase58Text" do
       it "converts regular text" $
-        toBase58Text "hello world" `shouldBe` "StV1DL6CwTryKyV"
+        toBase58Text "hello world" `shouldBe` Encoded @'Base58_BTC "StV1DL6CwTryKyV"
 
       it "converts short hexadecimal" $
-        toBase58Text (Strict.pack ([0x0ed, 0x01] :: [Word8])) `shouldBe` "K36"
+        toBase58Text (Strict.pack ([0x0ed, 0x01] :: [Word8])) `shouldBe` Encoded @'Base58_BTC "K36"
 
       it "converts longer hexadecimal" do
         [0xed, 0x01, 0x01, 0x23, 0x45, 0x67]
           |> Strict.pack
           |> toBase58Text
-          |> shouldBe "332DkaEge"
+          |> shouldBe (Encoded @'Base58_BTC "332DkaEge")
 
       describe "must concatenation through base2" do
         it "fails with a naive concatenation" $
