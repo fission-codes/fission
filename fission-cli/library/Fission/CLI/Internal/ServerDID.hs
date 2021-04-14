@@ -8,4 +8,4 @@ import           Fission.User.DID.Types
 
 fallback :: DID
 fallback =
-  fromJust $ decode "\"did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB\""
+  fromJust $ decode "\"did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsXCnLH7q9yw4QgNPULDmDKB\""

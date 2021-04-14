@@ -64,7 +64,7 @@ More here: https://github.com/multiformats/unsigned-varint
 
 Ed25519
 
-> eitherDecode (encode "did:key:z2DSW536bcWxPGuz7ZMnXdju64pBoWrybTyzTqWYWa7EjsB") :: Either String DID
+> eitherDecode (encode "did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsXCnLH7q9yw4QgNPULDmDKB") :: Either String DID
 Right (DID {method = Key, publicKey = Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4=})
 
 RSA
