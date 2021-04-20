@@ -13,7 +13,8 @@ import qualified Crypto.PubKey.RSA                                 as RSA
 import qualified Crypto.PubKey.RSA.OAEP                            as RSA.OAEP
 import           Crypto.Random
 
-import           Data.ByteArray                                    as ByteArray hiding (any)
+import           Data.ByteArray                                    as ByteArray hiding
+                                                                                (any)
 import qualified Data.Yaml                                         as YAML
 
 import           Control.Monad.Base
@@ -39,6 +40,8 @@ import qualified Network.IPFS.Process.Error                        as Process
 import           Network.IPFS.Types                                as IPFS
 
 import qualified Network.WebSockets.Client                         as WS
+import           Servant.API                                       hiding
+                                                                   (IsMember)
 import           Servant.Client
 import qualified Wuss                                              as WSS
 
@@ -281,7 +284,7 @@ instance
     storePath `JSON.writeFile` WebNative.FileSystem.Auth.Store newGlobalStore
 
   getAllMatching did subGraphRoot = do
-    logDebug $ "Looking up AES key for " <> display did <> " @ " <> displayShow subGraphRoot
+    logDebug $ "👀 🔑 Looking up AES keys matching " <> display did <> " @ " <> displayShow subGraphRoot
 
     storePath  <- wnfsKeyStorePath
     storeOrErr <- attempt $ JSON.readFile storePath
@@ -729,10 +732,10 @@ instance forall errs cfg .
 
     let
       Symmetric.Key aesClear = sessionKey
-      ucan = Bearer.BareToken bearerToken
+      token = Bearer.BareToken bearerToken
 
     iv           <- ensureM   Symmetric.genIV
-    msg          <- ensure  $ Symmetric.encrypt sessionKey iv ucan
+    msg          <- ensure  $ Symmetric.encrypt sessionKey iv token
     encryptedAES <- ensureM $ RSA.OAEP.encrypt oaepParams rsaPK aesClear
 
     return PubSub.Handshake { iv
@@ -767,8 +770,8 @@ oaepParams = RSA.OAEP.defaultOAEPParams SHA256
 
 instance forall errs cfg msg .
   ( HasLogFunc cfg
-  , ToJSON   msg
-  , FromJSON msg
+  , MimeRender   OctetStream msg
+  , MimeUnrender OctetStream msg
   , IV.GenError `IsMember` errs
   , CryptoError `IsMember` errs
   , Display (OpenUnion errs)
@@ -784,8 +787,8 @@ instance forall errs cfg msg .
       Left cryptoError ->
         return . Left $ CannotDecrypt cryptoError
 
-      Right bs ->
-        case eitherDecodeStrict bs of
+      Right lbs ->
+        case mimeUnrender (Proxy @OctetStream) $ Lazy.fromStrict lbs of
           Left err -> return . Left $ UnableToDeserialize err
           Right a  -> return $ Right a
 

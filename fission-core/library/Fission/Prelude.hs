@@ -38,6 +38,8 @@ module Fission.Prelude
   , module Test.QuickCheck
 
   , Entity (..)
+  , buildByteString
+  , buildLazyByteString
   , headMaybe
   , identity
   , intercalate
@@ -70,7 +72,8 @@ import           Control.Monad.Trans.Rescue
 
 import           Network.IPFS.Internal.Orphanage.Utf8Builder ()
 
-import           Data.Aeson                                  hiding (Encoding, Options)
+import           Data.Aeson                                  hiding (Encoding,
+                                                              Options)
 import           Data.Bifunctor                              (bimap)
 import           Data.Bool
 import           Data.Has                                    hiding (Lens)
@@ -107,11 +110,11 @@ import           RIO                                         hiding (Handler,
                                                               (^.))
 
 import           Test.QuickCheck                             hiding
-                                                              (Result (..))
+                                                             (Result (..))
 import           Test.QuickCheck.Instances                   ()
 
-import           Fission.Unit.Prefix
 import           Fission.Text.Encoded
+import           Fission.Unit.Prefix
 
 import           Fission.Internal.Log
 
@@ -124,6 +127,10 @@ import           Fission.Internal.UTF8                       (displayLazyBS,
                                                               putTextLn,
                                                               textShow)
 
+-- Not reexported
+import qualified Data.ByteString.Builder                     as Builder
+import qualified RIO.ByteString.Lazy                         as Lazy
+
 identity :: a -> a
 identity a = a
 
@@ -135,3 +142,9 @@ ok = Right ()
 
 noop :: Applicative f => f ()
 noop = pure ()
+
+buildByteString :: Utf8Builder -> ByteString
+buildByteString utf8 = Lazy.toStrict $ buildLazyByteString utf8
+
+buildLazyByteString :: Utf8Builder -> Lazy.ByteString
+buildLazyByteString (Utf8Builder builder) = Builder.toLazyByteString builder

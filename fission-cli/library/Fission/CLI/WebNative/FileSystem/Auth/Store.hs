@@ -1,5 +1,6 @@
 module Fission.CLI.WebNative.FileSystem.Auth.Store
-  ( getLeastPrivileged
+  ( create
+  , getLeastPrivileged
   , getMostPrivileged
   -- * Reexports
   , module Fission.CLI.WebNative.FileSystem.Auth.Store.Class
@@ -7,16 +8,33 @@ module Fission.CLI.WebNative.FileSystem.Auth.Store
   ) where
 
 import           Crypto.Cipher.AES                                 (AES256)
+import           Crypto.Random.Types
 import qualified RIO.Map                                           as Map
 
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import qualified Fission.Key.Symmetric.Types                       as Symmetric
+import qualified Fission.Key.Symmetric                             as Symmetric
 import           Fission.User.DID.Types
 
-import           Fission.CLI.WebNative.FileSystem.Auth.Store.Class
+import qualified Fission.CLI.WebNative.FileSystem.Auth.Store.Class as WNFS.Auth
 import           Fission.CLI.WebNative.FileSystem.Auth.Store.Types
+
+-- Reexport
+
+import           Fission.CLI.WebNative.FileSystem.Auth.Store.Class
+
+create ::
+  ( MonadRandom m
+  , MonadStore  m
+  )
+  => DID
+  -> FilePath
+  -> m (Symmetric.Key AES256)
+create did path = do
+  key <- Symmetric.genAES256
+  WNFS.Auth.set did path key
+  return key
 
 getLeastPrivileged ::
   ( MonadStore m

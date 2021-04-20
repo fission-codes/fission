@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.11.0.0'
+version: '2.12.0.0'
 category: CLI
 author:
   - Brooklyn Zelenka
@@ -19,7 +19,7 @@ copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission
-tested-with: GHC==8.8.4
+tested-with: GHC==8.10.4
 extra-source-files:
   - README.md
 
@@ -177,6 +177,33 @@ executables:
     # uncomment to build a static binary on Linux
     # cc-options: -static
     # ld-options: -static -pthread
+
+tests:
+  fission-cli-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - hspec
+      - hspec-core
+      - hspec-expectations
+      - hspec-wai
+      - hspec-wai-json
+      - fission-cli
+      - QuickCheck
+      - quickcheck-instances
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
+      - transformers
+      - world-peace
 
 benchmarks:
   fission-cli-benchmark:

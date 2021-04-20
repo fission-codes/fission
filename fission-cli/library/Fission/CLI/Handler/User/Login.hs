@@ -107,14 +107,8 @@ login optUsername = do
     baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
-    Right () ->
-      consume signingSK baseURL optUsername
-
-    Left  err -> do
-      -- TODO replace below with `produce signingSK baseURL` when auth lobby can handle EdDSA
-      Env {username} <- Env.get
-      logUser $ "Already logged in as " <> textDisplay username
-      raise err
+    Right () -> consume signingSK baseURL optUsername
+    Left  _  -> produce signingSK baseURL
 
 type ConsumerConstraints m =
   ( MonadIO          m
@@ -175,7 +169,7 @@ consume signingSK baseURL optUsername = do
         sessionDID = DID Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
-      broadcastRaw conn sessionDID
+      broadcastApiData conn sessionDID
 
       reattempt 10 do
         logDebug @Text "🤝 Device linking handshake: Step 3"
@@ -311,7 +305,13 @@ produce signingSK baseURL = do
               reattempt 100 do
                 logDebug @Text "🤝 Device linking handshake: Step 6"
 
-                (_, readKey) <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
+                (_, readKey) <- do
+                  attempt (WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/") >>= \case
+                    Left _ -> -- Not found
+                      -- FIXME check that you're the root user, if so generate, otherwise fail
+                      undefined
+
+                    Right (_, key) -> return key
 
                 let
                   jwt    = delegateSuperUser requestorDID signingSK rootProof now

@@ -2,7 +2,7 @@ module Fission.CLI.PubSub
   ( listenJSON
   , listenRaw
   , broadcastJSON
-  , broadcastRaw
+  , broadcastApiData
   , module Fission.CLI.PubSub.Class
   , module Fission.CLI.PubSub.Topic.Types
   ) where
@@ -47,6 +47,6 @@ listenRaw conn = do
 broadcastJSON :: (MonadPubSub m, ToJSON msg) => Connection m -> msg -> m ()
 broadcastJSON conn msg = sendLBS conn $ encode msg
 
-broadcastRaw :: (MonadPubSub m, ToHttpApiData msg) => Connection m -> msg -> m ()
-broadcastRaw conn msg =
+broadcastApiData :: (MonadPubSub m, ToHttpApiData msg) => Connection m -> msg -> m ()
+broadcastApiData conn msg =
   sendLBS conn . Binary.toLazyByteString $ toEncodedUrlPiece msg

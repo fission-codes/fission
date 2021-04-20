@@ -1,9 +1,9 @@
 -- | Setup command
 module Fission.CLI.Handler.User.Register (register) where
 
-import qualified Data.Yaml                                 as YAML
+import qualified Data.Yaml                                   as YAML
 
-import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import qualified Crypto.PubKey.Ed25519                       as Ed25519
 import           Crypto.Random
 
 import           Network.DNS
@@ -14,28 +14,30 @@ import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.Types
-import           Fission.Key.Error                         as Key
+import           Fission.Key                                 as Key
 import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.Types
-import           Fission.Web.Client                        as Client
-import qualified Fission.Web.Client.User                   as User
+import           Fission.Web.Client                          as Client
+import qualified Fission.Web.Client.User                     as User
 
 import           Fission.User.DID.Types
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
-import qualified Fission.User.Username.Error               as Username
+import qualified Fission.User.Username.Error                 as Username
 
 import           Fission.CLI.Remote
 
-import           Fission.CLI.Display.Error                 as CLI.Error
-import           Fission.CLI.Display.Success               as CLI.Success
+import           Fission.CLI.Display.Error                   as CLI.Error
+import           Fission.CLI.Display.Success                 as CLI.Success
 
-import           Fission.CLI.Environment                   as Env
-import           Fission.CLI.Key.Store                     as KeyStore
-import qualified Fission.CLI.Prompt                        as Prompt
-import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
+import           Fission.CLI.Environment                     as Env
+import           Fission.CLI.Key.Store                       as KeyStore
+import qualified Fission.CLI.Prompt                          as Prompt
+
+import qualified Fission.CLI.WebNative.FileSystem.Auth.Store as WNFS
+import           Fission.CLI.WebNative.Mutation.Auth.Store   as UCAN
 
 register ::
   ( MonadIO          m
@@ -47,6 +49,7 @@ register ::
   , MonadTime        m
   , MonadRandom      m
   , ServerDID        m
+  , WNFS.MonadStore  m
   , MonadWebAuth     m Token
   , MonadWebAuth     m (SecretKey SigningKey)
 
@@ -90,6 +93,7 @@ createAccount ::
   , MonadTime        m
   , ServerDID        m
   , MonadRandom      m
+  , WNFS.MonadStore  m
   , MonadWebAuth     m Token
   , MonadWebAuth     m Ed25519.SecretKey
 
@@ -118,8 +122,9 @@ createAccount maybeUsername maybeEmail = do
     Nothing   -> Email <$> Prompt.reaskNotEmpty' "Email:"
     Just mail -> return mail
 
-  exchangeSK <- KeyStore.fetch $ Proxy @ExchangeKey
-  exchangePK <- KeyStore.toPublic (Proxy @ExchangeKey) exchangeSK
+  exchangePK <- KeyStore.fetchPublic (Proxy @ExchangeKey)
+  signingPK  <- KeyStore.fetchPublic (Proxy @SigningKey)
+  _          <- WNFS.create (DID Key $ Ed25519PublicKey signingPK) "/"
 
   let
     form = Registration

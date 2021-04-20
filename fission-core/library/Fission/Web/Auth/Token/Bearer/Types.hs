@@ -4,13 +4,11 @@ module Fission.Web.Auth.Token.Bearer.Types
   , BareToken (..)
   ) where
 
-import qualified Data.Binary.Builder                   as Builder
-
 import qualified RIO.ByteString.Lazy                   as Lazy
 import qualified RIO.Text                              as Text
 
-import           Data.Swagger
 import           Data.Aeson.Types
+import           Data.Swagger
 import           Servant.API
 
 import           Fission.Prelude
@@ -38,7 +36,7 @@ instance Arbitrary Token where
       }
 
 instance Display Token where
-  textDisplay = Text.pack . show
+  textDisplay = toUrlPiece
 
 instance ToJSON Token where
   toJSON Token {jwt = JWT {sig}, rawContent} =
@@ -77,6 +75,10 @@ instance FromHttpApiData Token where
 newtype BareToken = BareToken Token
   deriving (Eq, Show)
 
+instance Display BareToken where
+  textDisplay (BareToken Token {jwt = JWT {sig}, rawContent}) =
+    utf8BuilderToText $ display rawContent <> "." <> display sig
+
 instance ToJSON BareToken where
   toJSON (BareToken Token {jwt = JWT {sig}, rawContent}) =
     String $ textDisplay rawContent <> "." <> textDisplay sig
@@ -88,9 +90,16 @@ instance FromJSON BareToken where
 
 instance MimeRender PlainText BareToken where
   mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
-   Builder.toLazyByteString . getUtf8Builder $ display rawContent <> "." <> display sig
+   buildLazyByteString $ display rawContent <> "." <> display sig
+
+instance MimeRender OctetStream BareToken where
+  mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
+   buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeUnrender PlainText BareToken  where
+  mimeUnrender _ lbs = eitherDecode ("\"" <> lbs <> "\"")
+
+instance MimeUnrender OctetStream BareToken  where
   mimeUnrender _ lbs = eitherDecode ("\"" <> lbs <> "\"")
 
 instance ToSchema BareToken where

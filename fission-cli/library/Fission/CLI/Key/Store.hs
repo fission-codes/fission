@@ -2,6 +2,7 @@ module Fission.CLI.Key.Store
   ( create
   , forceCreate
   , fetch
+  , fetchPublic
   , delete
   , persist
   , exists
@@ -77,6 +78,18 @@ fetch ::
 fetch keyRole = do
   scrubbed <- getAsBytes keyRole
   ensureM $ parse keyRole scrubbed
+
+fetchPublic ::
+  ( MonadIO       m
+  , MonadKeyStore m key
+  , MonadRaise    m
+  , m `Raises` Key.Error
+  )
+  => Proxy key
+  -> m (PublicKey key)
+fetchPublic keyRole = do
+  sk <- fetch keyRole
+  toPublic keyRole sk
 
 getAsBytes ::
   ( MonadIO       m

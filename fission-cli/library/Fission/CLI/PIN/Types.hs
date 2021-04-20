@@ -3,6 +3,8 @@ module Fission.CLI.PIN.Types (PIN (..)) where
 import qualified RIO.Text                as Text
 import qualified RIO.Vector              as Vector
 
+import           Servant.API
+
 import           Fission.Prelude
 
 import           Fission.Emoji.Class
@@ -59,3 +61,9 @@ instance FromJSON PIN where
 
 instance Display (Mismatch PIN) where
   display _ = "PIN codes do not match"
+
+instance MimeRender OctetStream PIN where
+  mimeRender _ pin =  encode pin
+
+instance MimeUnrender OctetStream PIN where
+  mimeUnrender _ lbs = eitherDecode lbs

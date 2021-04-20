@@ -7,9 +7,9 @@ module Fission.User.DID.Types
 import qualified Data.Aeson.Types                  as JSON
 import           Data.Swagger
 
-import qualified Data.ByteArray                    as BA
 import           Data.Base58String.Bitcoin         as BS58.BTC
 import           Data.Binary                       hiding (encode)
+import qualified Data.ByteArray                    as BA
 import qualified Data.ByteString.Base64            as BS64
 import           Data.Hashable                     (Hashable (..))
 
@@ -125,31 +125,7 @@ instance ToJSON DID where
   toJSON = String . textDisplay
 
 instance FromJSON DID where
-  parseJSON = withText "DID" \txt ->
-    case Text.stripPrefix "did:key:z" txt of
-      Nothing ->
-        fail $ show txt <> " does not have a valid did:key header"
-
-      Just fragment -> do
-        pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
-          (0xed : 0x01 : edKeyW8s) ->
-            if length edKeyW8s > 40
-              then
-                -- Legacy encoding for backward compatability
-                Ed25519PublicKey <$> parseKeyW8s (BS.pack edKeyW8s)
-
-              else
-                case Ed25519.publicKey $ BS.pack edKeyW8s of
-                  CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
-                  CryptoPassed edPK -> return $ Ed25519PublicKey edPK
-
-          (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-            RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
-
-          nope ->
-            fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
-
-        return $ DID Key pk
+  parseJSON = withText "DID" parseText
 
 instance Display (AlreadyExists DID) where
   display _ = "DID already exists / account already created"
@@ -158,7 +134,34 @@ instance ToJSONKey DID where
   toJSONKey = JSON.toJSONKeyText textDisplay
 
 instance FromJSONKey DID where
-  fromJSONKey = FromJSONKeyValue parseJSON
+  fromJSONKey = FromJSONKeyTextParser parseText
 
 parseKeyW8s :: FromJSON a => ByteString -> JSON.Parser a
 parseKeyW8s = parseJSON . toJSON . decodeUtf8Lenient
+
+parseText :: Text -> JSON.Parser DID
+parseText txt =
+  case Text.stripPrefix "did:key:z" txt of
+    Nothing ->
+      fail $ show txt <> " does not have a valid did:key header"
+
+    Just fragment -> do
+      pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
+        (0xed : 0x01 : edKeyW8s) ->
+          if length edKeyW8s > 40
+            then
+              -- Legacy encoding for backward compatability
+              Ed25519PublicKey <$> parseKeyW8s (BS.pack edKeyW8s)
+
+            else
+              case Ed25519.publicKey $ BS.pack edKeyW8s of
+                CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
+                CryptoPassed edPK -> return $ Ed25519PublicKey edPK
+
+        (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
+          RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
+
+        nope ->
+          fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
+
+      return $ DID Key pk
