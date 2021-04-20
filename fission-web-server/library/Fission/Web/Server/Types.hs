@@ -623,7 +623,8 @@ instance App.Creator Server where
         appId <- runDB (App.createDB ownerId cid size now)
 
         runDB (App.Domain.associateWithFallback ownerId appId maySubdomain now) >>= \case
-          Left err ->
+          Left err -> do
+            runDB (App.destroy ownerId appId now)
             return $ Error.relaxedLeft err
 
           Right subdomain -> do
