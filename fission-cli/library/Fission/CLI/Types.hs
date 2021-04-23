@@ -522,7 +522,7 @@ instance
            | cmd == Just "pin" || cmd == Just "add" -> (Nothing,  opts' <> [arg', timeout, cidVersion, ignore])
            | otherwise                              -> (Nothing,  opts' <> [arg', timeout])
 
-      processStr = intercalate " " ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
+      processStr = unwords ("IPFS_PATH=" <> ipfsRepo : ipfs : opts)
       rawProcess = fromString processStr
       process    =
         case pipeArg of

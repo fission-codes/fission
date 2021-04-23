@@ -27,6 +27,7 @@ data Env = Env
   -- Releases
   , updateChecked  :: UTCTime
   }
+  deriving (Eq, Show)
 
 instance ToJSON Env where
   toJSON Env {..} = object
@@ -42,7 +43,7 @@ instance ToJSON Env where
 instance FromJSON Env where
   parseJSON = withObject "Env" \obj -> do
     peers          <- obj .:  "peers"
-    ignored        <- obj .:? "ignored" .!= []
+    ignored        <- obj .:? "ignore" .!= []
     serverDID      <- obj .:  "server_did"
     signingKeyPath <- obj .:  "signing_key_path"
     username       <- obj .:  "username"

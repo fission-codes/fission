@@ -183,7 +183,7 @@ consume signingSK baseURL optUsername = do
 
         -- TODO waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
         ensure $ UCAN.containsFact jwt \facts ->
-          if any (== SessionKey sessionKey) facts
+          if SessionKey sessionKey `elem` facts
             then Right ()
             else Left JWT.Proof.MissingExpectedFact
 
@@ -305,7 +305,7 @@ produce signingSK baseURL = do
               reattempt 100 do
                 logDebug @Text "🤝 Device linking handshake: Step 6"
 
-                (_, readKey) <- do
+                readKey <- do
                   attempt (WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/") >>= \case
                     Left _ -> -- Not found
                       -- FIXME check that you're the root user, if so generate, otherwise fail
