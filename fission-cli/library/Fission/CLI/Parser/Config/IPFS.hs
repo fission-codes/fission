@@ -49,5 +49,5 @@ timeoutParser =
     , long "ipfs-timeout"
     , metavar "SECONDS"
     ----------
-    , value 1800
+    , value 300
     ]
