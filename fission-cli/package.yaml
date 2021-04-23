@@ -178,33 +178,6 @@ executables:
     # cc-options: -static
     # ld-options: -static -pthread
 
-tests:
-  fission-cli-test:
-    main: Main.hs
-    source-dirs:
-      - library
-      - test
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - hspec
-      - hspec-core
-      - hspec-expectations
-      - hspec-wai
-      - hspec-wai-json
-      - fission-cli
-      - QuickCheck
-      - quickcheck-instances
-      - tasty
-      - tasty-hunit
-      - tasty-hspec
-      - tasty-smallcheck
-      - tasty-rerun
-      - transformers
-      - world-peace
-
 benchmarks:
   fission-cli-benchmark:
     main: Main.hs
