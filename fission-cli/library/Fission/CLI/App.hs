@@ -69,7 +69,7 @@ interpret baseCfg cmd = do
         runIO = void . Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
-        Right Env {appURL, ipfsIgnored} -
+        Right Env {appURL, ipfsIgnored} ->
           run' . local (addAppIgnore ipfsIgnored) $ -- Local because only need to add for this one scenario
             Handler.publish watch runIO appURL filePath updateDNS updateData
 
