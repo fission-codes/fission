@@ -69,9 +69,14 @@ interpret baseCfg cmd = do
         runIO = void . Connected.run baseCfg timeoutSeconds
 
       attempt App.Env.read >>= \case
-        Right Env {appURL} ->
-          run' $ Handler.publish watch runIO appURL filePath updateDNS updateData
+        Right Env {appURL, ipfsIgnored} -
+          run' . local (addAppIgnore ipfsIgnored) $ -- Local because only need to add for this one scenario
+            Handler.publish watch runIO appURL filePath updateDNS updateData
 
         Left _ -> do
           CLI.Error.put (NotFound @URL) "You have not set up an app. Please run `fission app register`"
           raise $ NotFound @URL
+
+addAppIgnore :: [Text] -> Connected.Config -> Connected.Config
+addAppIgnore appIgnored cfg@Connected.Config {ignoredFiles} =
+  cfg {ignoredFiles = ignoredFiles <> appIgnored}
