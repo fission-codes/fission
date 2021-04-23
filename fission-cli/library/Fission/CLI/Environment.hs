@@ -103,7 +103,7 @@ get ::
 get = do
   logDebug @Text "👀📖 Reading global config.yaml"
   path <- absPath
-  env <- YAML.readFile path
+  env  <- YAML.readFile path
   return env
 
 put :: (MonadEnvironment m, MonadIO m, MonadLogger m) => Env -> m ()
