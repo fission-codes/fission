@@ -90,11 +90,11 @@ instance FromJSON BareToken where
 
 instance MimeRender PlainText BareToken where
   mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
-   buildLazyByteString $ display rawContent <> "." <> display sig
+    buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeRender OctetStream BareToken where
   mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
-   buildLazyByteString $ display rawContent <> "." <> display sig
+    buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeUnrender PlainText BareToken  where
   mimeUnrender _ lbs = eitherDecode ("\"" <> lbs <> "\"")

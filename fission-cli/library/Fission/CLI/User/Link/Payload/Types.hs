@@ -16,9 +16,9 @@ data Payload = Payload
   deriving Eq
 
 instance ToJSON Payload where
-  toJSON Payload {readKey, bearer = Bearer.Token {rawContent}} =
+  toJSON Payload {readKey, bearer} =
     object [ "readKey" .= readKey
-           , "ucan"    .= rawContent
+           , "ucan"    .= BareToken bearer
            ]
 
 instance FromJSON Payload where

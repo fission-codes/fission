@@ -307,17 +307,19 @@ produce signingSK baseURL = do
 
                 readKey <- do
                   attempt (WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/") >>= \case
-                    Left _ -> -- Not found
-                      -- FIXME check that you're the root user, if so generate, otherwise fail
-                      undefined
+                    Left _ ->
+                      case rootProof of
+                        RootCredential -> WebNative.FileSystem.Auth.Store.create rootDID "/"
+                        _              -> raise $ NotFound @(Symmetric.Key AES256)
 
-                    Right (_, key) -> return key
+                    Right (_, key) ->
+                      return key
 
                 let
                   jwt    = delegateSuperUser requestorDID signingSK rootProof now
                   bearer = Bearer.fromJWT jwt
 
-                accessOK <- reaskYN $ "Grant access to: " <> JWT.prettyPrintGrants jwt
+                accessOK <- reaskYN $ "🧞 Grant access? " <> JWT.prettyPrintGrants jwt
                 unless accessOK $ raise (Status Denied)
 
                 aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
