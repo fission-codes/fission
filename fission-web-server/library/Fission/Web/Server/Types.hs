@@ -510,35 +510,30 @@ instance User.Creator Server where
           Left err ->
             return $ Error.relaxedLeft err
 
-          Right _ ->
-            App.createWithPlaceholder userId Nothing now >>= \case
-              Left err ->
+          Right _ -> do
+            domainName <- asks userRootDomain
+            zoneID     <- asks userZoneID
+
+            let
+              subdomain  = Just . Subdomain $ textDisplay username
+              url        = URL {..}
+
+              userPublic = dataURL `WithPath` ["public"]
+              dataURL    = URL
+                { domainName
+                , subdomain  = Just $ Subdomain (textDisplay username <> ".files")
+                }
+
+            DNSLink.follow userId url zoneID userPublic >>= \case
+              Left  err ->
                 return $ Error.relaxedLeft err
 
               Right _ -> do
-                domainName <- asks userRootDomain
-                zoneID     <- asks userZoneID
+                defaultCID <- asks defaultDataCID
 
-                let
-                  subdomain  = Just . Subdomain $ textDisplay username
-                  url        = URL {..}
-
-                  userPublic = dataURL `WithPath` ["public"]
-                  dataURL    = URL
-                    { domainName
-                    , subdomain  = Just $ Subdomain (textDisplay username <> ".files")
-                    }
-
-                DNSLink.follow userId url zoneID userPublic >>= \case
-                  Left  err ->
-                    return $ Error.relaxedLeft err
-
-                  Right _ -> do
-                    defaultCID <- asks defaultDataCID
-
-                    User.setData userId defaultCID now <&> \case
-                      Left err -> Error.relaxedLeft err
-                      Right () -> Right userId
+                User.setData userId defaultCID now <&> \case
+                  Left err -> Error.relaxedLeft err
+                  Right () -> Right userId
 
   createWithHeroku herokuUUID herokuRegion username password now =
     runDB $ User.createWithHerokuDB herokuUUID herokuRegion username password now

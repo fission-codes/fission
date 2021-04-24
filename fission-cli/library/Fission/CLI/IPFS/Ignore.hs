@@ -25,6 +25,8 @@ writeTmp name = do
   ignores <- getIgnoredFiles
   tmpDir  <- globalTmpDir
 
+  logDebug $ "🙈 Writing temp ignore file " <> display tmpDir <> " with: " <> displayShow ignores
+
   let
     ignoresTxt = encodeUtf8 $ Text.intercalate "\n" ignores
     path       = tmpDir </> name
