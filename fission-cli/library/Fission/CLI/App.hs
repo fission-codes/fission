@@ -60,7 +60,7 @@ interpret baseCfg cmd = do
               logError @Text "Problem setting up new app"
               raise errs
 
-    Up App.Up.Options {watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
+    Up App.Up.Options {open, watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let
         run' :: FissionCLI errs Connected.Config () -> FissionCLI errs Base.Config ()
         run' = ensureM . Connected.run baseCfg timeoutSeconds
@@ -71,7 +71,7 @@ interpret baseCfg cmd = do
       attempt App.Env.read >>= \case
         Right Env {appURL, ipfsIgnored} ->
           run' . local (addAppIgnore ipfsIgnored) $ -- Local because only need to add for this one scenario
-            Handler.publish watch runIO appURL filePath updateDNS updateData
+            Handler.publish open watch runIO appURL filePath updateDNS updateData
 
         Left _ -> do
           CLI.Error.put (NotFound @URL) "You have not set up an app. Please run `fission app register`"

@@ -7,6 +7,8 @@ import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           System.FSNotify                           as FS
 
 import           RIO.Directory
+import qualified RIO.Text                                  as Text
+import           Web.Browser
 
 import           Network.HTTP.Types.Status
 import qualified Network.IPFS.Process.Error                as IPFS.Process
@@ -42,6 +44,7 @@ import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 
 import           Fission.CLI.App.Environment               as App
 import           Fission.CLI.Parser.Watch.Types
+import           Fission.CLI.Parser.Open.Types
 
 import           Fission.CLI.Environment                   (MonadEnvironment)
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
@@ -67,14 +70,15 @@ publish ::
   , Show (OpenUnion (Errors m))
   , CheckErrors m
   )
-  => WatchFlag
+  => OpenFlag
+  -> WatchFlag
   -> (m () -> IO ())
   -> URL
   -> FilePath
   -> Bool
   -> Bool
   -> m ()
-publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updateDNS
+publish openFlag watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updateDNS
   logDebug @Text "📱 App publish"
   attempt (App.readFrom appPath) >>= \case
     Left err -> do
@@ -104,16 +108,23 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updat
               raise err
 
             Right _ ->
-              case watchFlag of
-                WatchFlag False ->
+              case (openFlag, watchFlag) of
+                (OpenFlag True, WatchFlag True) ->
                   success appURL
 
-                WatchFlag True ->
+                (OpenFlag True, _) -> do
+                  _ <- liftIO . openBrowser $ "https://ipfs.runfission.com/ipns/" <> (Text.unpack $ textDisplay appURL)
+                  success appURL
+
+                (_, WatchFlag True) ->
                   liftIO $ FS.withManager \watchMgr -> do
                     hashCache <- newMVar hash
                     timeCache <- newMVar =<< getCurrentTime
                     void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
                     forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+
+                (OpenFlag False, WatchFlag False) ->
+                  success appURL
 
 handleTreeChanges ::
   ( MonadIO        m

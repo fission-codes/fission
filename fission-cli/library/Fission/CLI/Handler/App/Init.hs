@@ -81,7 +81,7 @@ appInit appDir mayBuildDir' mayAppName = do
       UTF8.putText "⏯️  Next run "
 
       colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
-        UTF8.putText "fission app publish"
+        UTF8.putText "fission app publish [--open]"
 
       UTF8.putText " or "
 

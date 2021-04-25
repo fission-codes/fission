@@ -13,6 +13,7 @@ import           Fission.CLI.Parser.Command.App.Up.Types
 import qualified Fission.CLI.Parser.Config.IPFS          as IPFS
 import           Fission.CLI.Parser.Internal
 import           Fission.CLI.Parser.Watch.Types
+import           Fission.CLI.Parser.Open.Types
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
@@ -41,6 +42,13 @@ parser = do
     , long  "update-dns"
     ----------
     , value True
+    ]
+
+  open <- fmap OpenFlag . switch $ mconcat
+    [ help  "open your default browser @ https://ipfs.runfission.com/ipns/"
+    ----------
+    , long  "open"
+    , short 'o'
     ]
 
   watch <- fmap WatchFlag . switch $ mconcat
