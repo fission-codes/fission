@@ -3,16 +3,16 @@ module Fission.App.Types
   , App(..)
   ) where
 
-import Data.Swagger hiding (URL, url)
+import           Data.Swagger     hiding (URL, url)
 
-import Fission.Prelude
+import           Fission.Prelude
 
-import Fission.App.Name
-import Fission.URL
+import           Fission.App.Name
+import           Fission.URL
 
 
 data App = App
-  { urls :: [URL]
+  { urls       :: [URL]
   , insertedAt :: UTCTime
   , modifiedAt :: UTCTime
   }
@@ -24,7 +24,7 @@ data App = App
 
 instance FromJSON App where
   parseJSON = withObject "App" \obj -> do
-    urls        <- obj .: "urls"
+    urls       <- obj .: "urls"
     insertedAt <- obj .: "insertedAt"
     modifiedAt <- obj .: "modifiedAt"
 
@@ -32,7 +32,7 @@ instance FromJSON App where
 
 instance ToJSON App where
   toJSON App {..} = object
-    [ "urls"        .= urls
+    [ "urls"       .= urls
     , "insertedAt" .= insertedAt
     , "modifiedAt" .= modifiedAt
     ]
