@@ -13,8 +13,8 @@ newtype CouldNotSend = CouldNotSend ClientError
            )
 
 instance Display CouldNotSend where
-  display (CouldNotSend _) = "An error occured while trying to send an email"
+  display (CouldNotSend _) = "We couldn't send the verification email, please check you've provided a valid email address."
 
 
 instance ToServerError CouldNotSend where
-  toServerError couldNotSend = err500 { errBody = displayLazyBS couldNotSend }
+  toServerError couldNotSend = err422 { errBody = displayLazyBS couldNotSend }
