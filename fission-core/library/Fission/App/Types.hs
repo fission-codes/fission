@@ -39,7 +39,7 @@ instance ToJSON Payload where
 
 instance ToSchema Payload where
   declareNamedSchema _ = do
-    urls'       <- declareSchemaRef (Proxy :: Proxy [URL])
+    urls'       <- declareSchemaRef $ Proxy @[URL]
     insertedAt' <- declareSchemaRef $ Proxy @UTCTime
     modifiedAt' <- declareSchemaRef $ Proxy @UTCTime
 
