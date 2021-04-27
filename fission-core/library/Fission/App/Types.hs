@@ -1,6 +1,6 @@
 module Fission.App.Types
   ( module Fission.App.Name
-  , App(..)
+  , Payload(..)
   ) where
 
 import           Data.Swagger     hiding (URL, url)
@@ -11,7 +11,7 @@ import           Fission.App.Name
 import           Fission.URL
 
 
-data App = App
+data Payload = Payload
   { urls       :: [URL]
   , insertedAt :: UTCTime
   , modifiedAt :: UTCTime
@@ -22,22 +22,22 @@ data App = App
 
 
 
-instance FromJSON App where
-  parseJSON = withObject "App" \obj -> do
+instance FromJSON Payload where
+  parseJSON = withObject "Payload" \obj -> do
     urls       <- obj .: "urls"
     insertedAt <- obj .: "insertedAt"
     modifiedAt <- obj .: "modifiedAt"
 
-    return App {..}
+    return Payload {..}
 
-instance ToJSON App where
-  toJSON App {..} = object
+instance ToJSON Payload where
+  toJSON Payload {..} = object
     [ "urls"       .= urls
     , "insertedAt" .= insertedAt
     , "modifiedAt" .= modifiedAt
     ]
 
-instance ToSchema App where
+instance ToSchema Payload where
   declareNamedSchema _ = do
     urls'       <- declareSchemaRef (Proxy :: Proxy [URL])
     insertedAt' <- declareSchemaRef $ Proxy @UTCTime
@@ -52,7 +52,7 @@ instance ToSchema App where
            ]
       |> required .~ ["username", "email"]
       |> description ?~ "Properties for a registered application"
-      |> example ?~ toJSON App
+      |> example ?~ toJSON Payload
         { urls       = [ URL
                             (DomainName "fission.codes")
                             (Just $ Subdomain "my-cool-subdomain")
@@ -60,5 +60,5 @@ instance ToSchema App where
         , insertedAt = fromSeconds 0
         , modifiedAt = fromSeconds 20
         }
-      |> NamedSchema (Just "App")
+      |> NamedSchema (Just "Payload")
       |> pure

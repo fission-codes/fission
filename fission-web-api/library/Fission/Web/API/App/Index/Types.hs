@@ -11,4 +11,4 @@ type Index
   :> Description "A list of all of your apps and their associated domain names"
   --
   :> Auth.HigherOrder
-  :> Get '[JSON] (Map Natural App)
+  :> Get '[JSON] (Map Natural Payload)
