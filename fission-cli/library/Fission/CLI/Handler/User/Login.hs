@@ -298,7 +298,7 @@ produce signingSK baseURL = do
               logDebug @Text "🤝 Device linking handshake: Step 5"
               PIN.Payload requestorDID pin <- secureListenJSON aesConn
 
-              pinOK <- reaskYN $ "Does this code match your second device? " <> textDisplay pin
+              pinOK <- reaskYN $ "🔢  Does this code match your second device? " <> textDisplay pin
               unless pinOK do
                 raise $ Mismatch @PIN
 
@@ -324,6 +324,6 @@ produce signingSK baseURL = do
 
                 aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 
-    UTF8.putTextLn "Login to other device successful 👍"
+    UTF8.putTextLn "🤝 Login to other device successful 🎉"
 
   return username
