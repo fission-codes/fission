@@ -17,6 +17,8 @@ import           Crypto.Cipher.Types
 import           Crypto.Error
 import           Crypto.Random.Types             as Random
 
+import           Servant.API
+
 import           Fission.Prelude
 
 import           Fission.Key.EncryptedWith.Types
@@ -28,7 +30,7 @@ import           Fission.Key.Symmetric.Types     as Symmetric
 import           Fission.Key.Symmetric.Types
 
 encrypt ::
-  ToJSON a
+  MimeRender OctetStream a
   => Symmetric.Key AES256
   -> IV AES256
   -> a
@@ -45,9 +47,9 @@ encrypt (Symmetric.Key rawKey) iv plaintext =
 
         CryptoPassed blockCipher ->
           let
-            (authTag, cipherBS) = aeadSimpleEncrypt blockCipher ("" :: ByteString) (Lazy.toStrict $ encode plaintext) 16
+            (authTag, cipherBS) = aeadSimpleEncrypt blockCipher ("" :: ByteString) (Lazy.toStrict $ mimeRender (Proxy @OctetStream) plaintext) 16
           in
-            Right . EncryptedPayload $ Lazy.fromStrict (cipherBS <> (BA.convert authTag))
+            Right . EncryptedPayload $ Lazy.fromStrict (cipherBS <> BA.convert authTag)
 
 decrypt ::
      Symmetric.Key AES256
@@ -66,7 +68,7 @@ decrypt (Symmetric.Key aesKey) iv (EncryptedPayload cipherLBS) =
 
         CryptoPassed blockCipher ->
           let
-            (cipherBS, tagBS) = BS.splitAt (fromIntegral $ (Lazy.length cipherLBS) - 16) (Lazy.toStrict cipherLBS)
+            (cipherBS, tagBS) = BS.splitAt (fromIntegral $ Lazy.length cipherLBS - 16) (Lazy.toStrict cipherLBS)
             authTag = AuthTag $ BA.convert tagBS
             mayClearBS = aeadSimpleDecrypt blockCipher ("" :: ByteString) cipherBS authTag
           in

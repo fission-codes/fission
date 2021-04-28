@@ -27,6 +27,7 @@ data Env = Env
   -- Releases
   , updateChecked  :: UTCTime
   }
+  deriving (Eq, Show)
 
 instance ToJSON Env where
   toJSON Env {..} = object

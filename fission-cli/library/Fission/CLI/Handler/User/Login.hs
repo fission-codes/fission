@@ -107,14 +107,8 @@ login optUsername = do
     baseURL = rootURL {baseUrlPath = "/user/link"}
 
   attempt ensureNotLoggedIn >>= \case
-    Right () ->
-      consume signingSK baseURL optUsername
-
-    Left  err -> do
-      -- TODO replace below with `produce signingSK baseURL` when auth lobby can handle EdDSA
-      Env {username} <- Env.get
-      logUser $ "Already logged in as " <> textDisplay username
-      raise err
+    Right () -> consume signingSK baseURL optUsername
+    Left  _  -> produce signingSK baseURL
 
 type ConsumerConstraints m =
   ( MonadIO          m
@@ -175,7 +169,7 @@ consume signingSK baseURL optUsername = do
         sessionDID = DID Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
-      broadcastRaw conn sessionDID
+      broadcastApiData conn sessionDID
 
       reattempt 10 do
         logDebug @Text "🤝 Device linking handshake: Step 3"
@@ -189,7 +183,7 @@ consume signingSK baseURL optUsername = do
 
         -- TODO waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
         ensure $ UCAN.containsFact jwt \facts ->
-          if any (== SessionKey sessionKey) facts
+          if SessionKey sessionKey `elem` facts
             then Right ()
             else Left JWT.Proof.MissingExpectedFact
 
@@ -304,24 +298,32 @@ produce signingSK baseURL = do
               logDebug @Text "🤝 Device linking handshake: Step 5"
               PIN.Payload requestorDID pin <- secureListenJSON aesConn
 
-              pinOK <- reaskYN $ "Does this code match your second device? " <> textDisplay pin
+              pinOK <- reaskYN $ "🔢  Does this code match your second device? " <> textDisplay pin
               unless pinOK do
                 raise $ Mismatch @PIN
 
               reattempt 100 do
                 logDebug @Text "🤝 Device linking handshake: Step 6"
 
-                (_, readKey) <- WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/"
+                readKey <- do
+                  attempt (WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/") >>= \case
+                    Left _ ->
+                      case rootProof of
+                        RootCredential -> WebNative.FileSystem.Auth.Store.create rootDID "/"
+                        _              -> raise $ NotFound @(Symmetric.Key AES256)
+
+                    Right (_, key) ->
+                      return key
 
                 let
                   jwt    = delegateSuperUser requestorDID signingSK rootProof now
                   bearer = Bearer.fromJWT jwt
 
-                accessOK <- reaskYN $ "Grant access to: " <> JWT.prettyPrintGrants jwt
+                accessOK <- reaskYN $ "🧞 Grant access? " <> JWT.prettyPrintGrants jwt
                 unless accessOK $ raise (Status Denied)
 
                 aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}
 
-    UTF8.putTextLn "Login to other device successful 👍"
+    UTF8.putTextLn "🤝 Login to other device successful 🎉"
 
   return username

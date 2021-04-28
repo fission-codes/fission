@@ -1,5 +1,7 @@
 module Fission.CLI.PIN.Payload.Types (Payload (..)) where
 
+import           Servant.API
+
 import           Fission.Prelude
 
 import           Fission.User.DID.Types
@@ -24,3 +26,9 @@ instance FromJSON Payload where
     did <- obj .: "did"
     pin <- obj .: "pin"
     return Payload {..}
+
+instance MimeRender OctetStream Payload where
+  mimeRender _ payload = encode payload
+
+instance MimeUnrender OctetStream Payload where
+  mimeUnrender _ lbs = eitherDecode lbs

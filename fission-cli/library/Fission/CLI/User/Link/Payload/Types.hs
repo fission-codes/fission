@@ -2,6 +2,8 @@ module Fission.CLI.User.Link.Payload.Types (Payload (..)) where
 
 import           Crypto.Cipher.AES                   (AES256)
 
+import           Servant.API
+
 import           Fission.Prelude
 
 import qualified Fission.Key.Symmetric.Types         as Symmetric
@@ -14,9 +16,9 @@ data Payload = Payload
   deriving Eq
 
 instance ToJSON Payload where
-  toJSON Payload {readKey, bearer = Bearer.Token {rawContent}} =
+  toJSON Payload {readKey, bearer} =
     object [ "readKey" .= readKey
-           , "ucan"    .= rawContent
+           , "ucan"    .= BareToken bearer
            ]
 
 instance FromJSON Payload where
@@ -26,3 +28,9 @@ instance FromJSON Payload where
     bearer  <- parseJSON $ String ("bearer " <> rawUCAN)
 
     return Payload {..}
+
+instance MimeRender OctetStream Payload where
+  mimeRender _ payload = encode payload
+
+instance MimeUnrender OctetStream Payload where
+  mimeUnrender _ lbs = eitherDecode lbs
