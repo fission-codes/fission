@@ -25,7 +25,7 @@ getIpfsGateway =
   getRemote >>= \case
     Production     -> fromBase production
     Staging        -> fromBase staging
-    LocalDev       -> return . showBaseUrl $ BaseUrl Http "localhost" 5001 "ipns"
+    LocalDev       -> return . showBaseUrl $ BaseUrl Http "localhost" 11235 "ipns"
     Custom baseUrl -> fromBase baseUrl
   where
     fromBase url@BaseUrl{..} =
