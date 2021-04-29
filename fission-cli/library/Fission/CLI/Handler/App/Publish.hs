@@ -17,8 +17,6 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import qualified Fission.Process.Time                      as Process
-
 import qualified Fission.Web.Client.App                    as App
 
 import qualified Fission.Internal.UTF8                     as UTF8
@@ -119,13 +117,17 @@ publish
             Right _ -> do
               ipfsGateway <- getIpfsGateway
 
-              when open do
+              when open  do
                 liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
 
               when watching do
                 liftIO $ FS.withManager \watchMgr -> do
-                  hashCache <- newMVar hash
-                  timeCache <- newMVar =<< getCurrentTime
+                  now <- getCurrentTime
+                  (hashCache, timeCache) <- atomically do
+                    hashCache <- newTVar hash
+                    timeCache <- newTVar now
+                    return (hashCache, timeCache)
+
                   void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
                   forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
 
@@ -145,37 +147,54 @@ handleTreeChanges ::
   -> JWT.Proof
   -> URL
   -> Bool
-  -> MVar UTCTime
-  -> MVar Text
+  -> TVar UTCTime
+  -> TVar Text
   -> WatchManager
   -> FilePath -- ^ Build dir
   -> IO StopListening
 handleTreeChanges runner userProof appURL copyFilesFlag timeCache hashCache watchMgr absDir =
-  FS.watchTree watchMgr absDir (\_ -> True) \_ -> runner do
-    now     <- getCurrentTime
-    oldTime <- readMVar timeCache
+  FS.watchTree watchMgr absDir (\_ -> True) \_ ->
+    runner do
+      now <- getCurrentTime
 
-    unless (diffUTCTime now oldTime < Time.doherty) do
-      void $ swapMVar timeCache now
-      Process.sleepThread Time.dohertyMicroSeconds
+      update <- atomically do
+        oldTime <- readTVar timeCache
+        if diffUTCTime now oldTime > Time.doherty
+          then do
+            writeTVar timeCache now
+            return True
 
-      CLI.IPFS.Add.dir absDir >>= \case
-        Left err ->
-          CLI.Error.put' err
+          else
+            return False
 
-        Right cid@(CID newHash) -> do
-          oldHash <- swapMVar hashCache newHash
-          logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
+      when update do
+        CLI.IPFS.Add.dir absDir >>= \case
+          Left err ->
+            CLI.Error.put' err
 
-          unless (oldHash == newHash) do
-            UTF8.putText "\n"
----            req <- App.mkUpdateReq appURL cid copyFilesFlag
+          Right cid@(CID newHash) -> do
+            maybeOldHash <- atomically do
+              oldHash <- readTVar hashCache
+              if oldHash == newHash
+                then
+                  return Nothing
 
-            req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth userProof
+                else do
+                  writeTVar hashCache newHash
+                  return $ Just oldHash
 
-            retryOnStatus [status502] 100 req >>= \case
-              Left err -> CLI.Error.put err "Server unable to sync data"
-              Right _  -> success appURL
+            case maybeOldHash of
+              Nothing ->
+                logDebug @Text "CID did not change, noop"
+
+              Just oldHash -> do
+                logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
+                UTF8.putNewline
+                req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth userProof
+
+                retryOnStatus [status502] 100 req >>= \case
+                  Left err -> CLI.Error.put err "Server unable to sync data"
+                  Right _  -> success appURL
 
 success :: MonadIO m => URL -> m ()
 success appURL = do
