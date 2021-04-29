@@ -21,12 +21,18 @@ getRemoteBaseUrl :: MonadRemote m => m BaseUrl
 getRemoteBaseUrl = toBaseUrl <$> getRemote
 
 getIpfsGateway :: MonadRemote m => m String
-getIpfsGateway = do
-  url <- getRemoteBaseUrl
-  let BaseUrl {..} = url
-      ipfsGateway = url { baseUrlHost = "ipfs." <> baseUrlHost, baseUrlPath = "ipns" }
-
-  pure $ showBaseUrl ipfsGateway
+getIpfsGateway =
+  getRemote >>= \case
+    Production     -> fromBase production
+    Staging        -> fromBase staging
+    LocalDev       -> return . showBaseUrl $ BaseUrl Http "localhost" 5001 "ipns"
+    Custom baseUrl -> fromBase baseUrl
+  where
+    fromBase url@BaseUrl{..} =
+      return $ showBaseUrl url
+        { baseUrlHost = "ipfs." <> baseUrlHost
+        , baseUrlPath = "ipns"
+        }
 
 getRemoteURL :: MonadRemote m => m URL
 getRemoteURL = toURL <$> getRemote

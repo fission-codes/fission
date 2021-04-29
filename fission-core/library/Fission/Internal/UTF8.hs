@@ -3,6 +3,7 @@ module Fission.Internal.UTF8
   ( Textable (..)
   , putText
   , putTextLn
+  , putNewline
   , displayLazyBS
   , toBase58Text
   , fromRawBytes
@@ -125,6 +126,9 @@ putText = Strict.putStr . encodeUtf8
 -- | Helper for printing Text' to a console with a newline at the end
 putTextLn :: MonadIO m => Text -> m ()
 putTextLn txt = putText $ txt <> "\n"
+
+putNewline :: MonadIO m => m ()
+putNewline = putText "\n"
 
 -- | Wrap text with some other piece of text.
 wrapIn :: Text -> Text -> Text
