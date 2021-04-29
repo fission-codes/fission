@@ -126,7 +126,7 @@ mkConnected ::
 mkConnected inCfg ipfsTimeout = do
   attempt (Key.Store.fetch $ Proxy @SigningKey) >>= \case
     Left _err -> do
-      CLI.Error.put NoKeyFile "Cannot find key. Please run: fission user login"
+      CLI.Error.put NoKeyFile "Cannot find key. Try 'fission setup' if this is your first time or 'fission user login' if you have an existing account."
       raise NoKeyFile
 
     Right secretKey -> do

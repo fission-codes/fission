@@ -7,7 +7,6 @@ import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           System.FSNotify                           as FS
 
 import           RIO.Directory
-import qualified RIO.Text                                  as Text
 import           Web.Browser
 
 import           Network.HTTP.Types.Status
@@ -80,7 +79,15 @@ publish ::
   -> Bool
   -> Bool
   -> m ()
-publish openFlag watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updateDNS
+publish
+  (OpenFlag open)
+  (WatchFlag watching)
+  runner
+  appURL
+  appPath
+  _updateDNS -- TODO updateDNS
+  updateData
+    = do
   logDebug @Text "📱 App publish"
   attempt (App.readFrom appPath) >>= \case
     Left err -> do
@@ -110,39 +117,19 @@ publish openFlag watchFlag runner appURL appPath _updateDNS updateData = do -- T
               raise err
 
             Right _ -> do
-              BaseUrl {..} <- getRemoteBaseUrl
+              ipfsGateway <- getIpfsGateway
 
-              let remoteUrl =
-                    (case baseUrlScheme of
-                        Https -> "https://"
-                        Http  -> "http://"
-                    )
-                    <> "ipfs."
-                    <> baseUrlHost
-                    <> "/ipns/"
-                    -- <> baseUrlPort -- not sure the best way to encorporate the port or if it's needed?
+              when open do
+                liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
 
-              let open =
-                    liftIO . openBrowser $ remoteUrl <> show appURL
+              when watching do
+                liftIO $ FS.withManager \watchMgr -> do
+                  hashCache <- newMVar hash
+                  timeCache <- newMVar =<< getCurrentTime
+                  void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
+                  forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
 
-              let watch =
-                    liftIO $ FS.withManager \watchMgr -> do
-                      hashCache <- newMVar hash
-                      timeCache <- newMVar =<< getCurrentTime
-                      void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
-                      forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
-
-              case (openFlag, watchFlag) of
-                (OpenFlag True, WatchFlag True) ->
-                  open >> watch
-
-                (OpenFlag True, _) ->
-                  open >> success appURL
-
-                (_, WatchFlag True) -> watch
-
-                (OpenFlag False, WatchFlag False) ->
-                  success appURL
+              success appURL
 
 handleTreeChanges ::
   ( MonadIO        m
