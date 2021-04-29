@@ -2,12 +2,14 @@ module Fission.CLI.Remote
   ( getRemoteURL
   , getRemoteBaseUrl
   , getNameService
+  , BaseUrl(..)
+  , Scheme(..)
   -- * Reexports
   , module Fission.CLI.Remote.Class
   , module Fission.Web.API.Remote
   )  where
 
-import           Servant.Client.Core
+import           Servant.Client.Core      (BaseUrl (..), Scheme (..))
 
 import           Fission.Prelude
 

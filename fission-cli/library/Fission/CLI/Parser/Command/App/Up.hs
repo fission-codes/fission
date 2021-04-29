@@ -12,8 +12,8 @@ import           Fission.Prelude
 import           Fission.CLI.Parser.Command.App.Up.Types
 import qualified Fission.CLI.Parser.Config.IPFS          as IPFS
 import           Fission.CLI.Parser.Internal
-import           Fission.CLI.Parser.Watch.Types
 import           Fission.CLI.Parser.Open.Types
+import           Fission.CLI.Parser.Watch.Types
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
@@ -45,7 +45,7 @@ parser = do
     ]
 
   open <- fmap OpenFlag . switch $ mconcat
-    [ help  "open your default browser @ https://ipfs.runfission.com/ipns/"
+    [ help  "Open your default browser after publish"
     ----------
     , long  "open"
     , short 'o'

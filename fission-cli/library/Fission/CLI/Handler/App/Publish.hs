@@ -45,6 +45,7 @@ import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 import           Fission.CLI.App.Environment               as App
 import           Fission.CLI.Parser.Open.Types
 import           Fission.CLI.Parser.Watch.Types
+import           Fission.CLI.Remote
 
 import           Fission.CLI.Environment                   (MonadEnvironment)
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
@@ -58,6 +59,7 @@ publish ::
   , MonadIPFSDaemon  m
   , UCAN.MonadStore  m
   , MonadEnvironment m
+  , MonadRemote      m
   , MonadWebClient   m
   , MonadTime        m
   , MonadWebAuth     m Token
@@ -108,15 +110,27 @@ publish openFlag watchFlag runner appURL appPath _updateDNS updateData = do -- T
               raise err
 
             Right _ -> do
+              BaseUrl {..} <- getRemoteBaseUrl
+
+              let remoteUrl =
+                    (case baseUrlScheme of
+                        Https -> "https://"
+                        Http  -> "http://"
+                    )
+                    <> "ipfs."
+                    <> baseUrlHost
+                    <> "/ipns/"
+                    -- <> baseUrlPort -- not sure the best way to encorporate the port or if it's needed?
+
+              let open =
+                    liftIO . openBrowser $ remoteUrl <> show appURL
+
               let watch =
                     liftIO $ FS.withManager \watchMgr -> do
                       hashCache <- newMVar hash
                       timeCache <- newMVar =<< getCurrentTime
                       void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
                       forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
-
-              let open =
-                    liftIO . openBrowser $ "https://ipfs.runfission.com/ipns/" <> Text.unpack (textDisplay appURL)
 
               case (openFlag, watchFlag) of
                 (OpenFlag True, WatchFlag True) ->
