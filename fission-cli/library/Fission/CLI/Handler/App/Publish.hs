@@ -17,8 +17,6 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import qualified Fission.Process.Time                      as Process
-
 import qualified Fission.Web.Client.App                    as App
 
 import qualified Fission.Internal.UTF8                     as UTF8
@@ -119,7 +117,7 @@ publish
             Right _ -> do
               ipfsGateway <- getIpfsGateway
 
-              when open do
+              when open  do
                 liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
 
               when watching do
