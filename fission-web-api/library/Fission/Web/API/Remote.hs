@@ -26,7 +26,6 @@ data Remote
   | Custom BaseUrl
   deriving (Show, Eq)
 
-
 instance Display Remote where
   display = displayShow
 
