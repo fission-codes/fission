@@ -43,8 +43,8 @@ import qualified Fission.CLI.IPFS.Add                      as CLI.IPFS.Add
 import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 
 import           Fission.CLI.App.Environment               as App
-import           Fission.CLI.Parser.Watch.Types
 import           Fission.CLI.Parser.Open.Types
+import           Fission.CLI.Parser.Watch.Types
 
 import           Fission.CLI.Environment                   (MonadEnvironment)
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
@@ -107,21 +107,25 @@ publish openFlag watchFlag runner appURL appPath _updateDNS updateData = do -- T
               CLI.Error.put err "Server unable to sync data"
               raise err
 
-            Right _ ->
+            Right _ -> do
+              let watch =
+                    liftIO $ FS.withManager \watchMgr -> do
+                      hashCache <- newMVar hash
+                      timeCache <- newMVar =<< getCurrentTime
+                      void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
+                      forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+
+              let open =
+                    liftIO . openBrowser $ "https://ipfs.runfission.com/ipns/" <> Text.unpack (textDisplay appURL)
+
               case (openFlag, watchFlag) of
                 (OpenFlag True, WatchFlag True) ->
-                  success appURL
+                  open >> watch
 
-                (OpenFlag True, _) -> do
-                  _ <- liftIO . openBrowser $ "https://ipfs.runfission.com/ipns/" <> (Text.unpack $ textDisplay appURL)
-                  success appURL
+                (OpenFlag True, _) ->
+                  open >> success appURL
 
-                (_, WatchFlag True) ->
-                  liftIO $ FS.withManager \watchMgr -> do
-                    hashCache <- newMVar hash
-                    timeCache <- newMVar =<< getCurrentTime
-                    void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
-                    forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+                (_, WatchFlag True) -> watch
 
                 (OpenFlag False, WatchFlag False) ->
                   success appURL

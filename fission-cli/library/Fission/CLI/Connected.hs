@@ -166,7 +166,7 @@ mkConnected inCfg ipfsTimeout = do
             proof <- getRootUserProof
             attempt (sendAuthedRequest proof User.verify) >>= \case
               Left err -> do
-                CLI.Error.put err "Not registered. Please run: fission user register"
+                CLI.Error.put err "Not registered. Please run: fission user login"
                 raise NotRegistered
 
               Right _ -> do
