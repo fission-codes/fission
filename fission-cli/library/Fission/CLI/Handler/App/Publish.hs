@@ -170,8 +170,6 @@ handleTreeChanges runner userProof appURL copyFilesFlag timeCache hashCache watc
             return False
 
       when update do
-        Process.sleepThread Time.dohertyMicroSeconds
-
         CLI.IPFS.Add.dir absDir >>= \case
           Left err ->
             CLI.Error.put' err
