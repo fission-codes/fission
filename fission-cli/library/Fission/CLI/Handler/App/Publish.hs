@@ -7,6 +7,7 @@ import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           System.FSNotify                           as FS
 
 import           RIO.Directory
+import           Web.Browser
 
 import           Network.HTTP.Types.Status
 import qualified Network.IPFS.Process.Error                as IPFS.Process
@@ -41,7 +42,9 @@ import qualified Fission.CLI.IPFS.Add                      as CLI.IPFS.Add
 import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
 
 import           Fission.CLI.App.Environment               as App
+import           Fission.CLI.Parser.Open.Types
 import           Fission.CLI.Parser.Watch.Types
+import           Fission.CLI.Remote
 
 import           Fission.CLI.Environment                   (MonadEnvironment)
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
@@ -55,6 +58,7 @@ publish ::
   , MonadIPFSDaemon  m
   , UCAN.MonadStore  m
   , MonadEnvironment m
+  , MonadRemote      m
   , MonadWebClient   m
   , MonadTime        m
   , MonadWebAuth     m Token
@@ -67,14 +71,23 @@ publish ::
   , Show (OpenUnion (Errors m))
   , CheckErrors m
   )
-  => WatchFlag
+  => OpenFlag
+  -> WatchFlag
   -> (m () -> IO ())
   -> URL
   -> FilePath
   -> Bool
   -> Bool
   -> m ()
-publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updateDNS
+publish
+  (OpenFlag open)
+  (WatchFlag watching)
+  runner
+  appURL
+  appPath
+  _updateDNS -- TODO updateDNS
+  updateData
+    = do
   logDebug @Text "📱 App publish"
   attempt (App.readFrom appPath) >>= \case
     Left err -> do
@@ -103,17 +116,20 @@ publish watchFlag runner appURL appPath _updateDNS updateData = do -- TODO updat
               CLI.Error.put err "Server unable to sync data"
               raise err
 
-            Right _ ->
-              case watchFlag of
-                WatchFlag False ->
-                  success appURL
+            Right _ -> do
+              ipfsGateway <- getIpfsGateway
 
-                WatchFlag True ->
-                  liftIO $ FS.withManager \watchMgr -> do
-                    hashCache <- newMVar hash
-                    timeCache <- newMVar =<< getCurrentTime
-                    void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
-                    forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+              when open do
+                liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
+
+              when watching do
+                liftIO $ FS.withManager \watchMgr -> do
+                  hashCache <- newMVar hash
+                  timeCache <- newMVar =<< getCurrentTime
+                  void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
+                  forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+
+              success appURL
 
 handleTreeChanges ::
   ( MonadIO        m

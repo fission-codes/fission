@@ -130,6 +130,7 @@ dependencies:
   - rescue
 
   ## File System ##
+  - open-browser
   - file-embed
   - path-pieces
   - fsnotify

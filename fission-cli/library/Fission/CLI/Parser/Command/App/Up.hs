@@ -12,6 +12,7 @@ import           Fission.Prelude
 import           Fission.CLI.Parser.Command.App.Up.Types
 import qualified Fission.CLI.Parser.Config.IPFS          as IPFS
 import           Fission.CLI.Parser.Internal
+import           Fission.CLI.Parser.Open.Types
 import           Fission.CLI.Parser.Watch.Types
 
 parserWithInfo :: ParserInfo Options
@@ -41,6 +42,13 @@ parser = do
     , long  "update-dns"
     ----------
     , value True
+    ]
+
+  open <- fmap OpenFlag . switch $ mconcat
+    [ help  "Open your default browser after publish"
+    ----------
+    , long  "open"
+    , short 'o'
     ]
 
   watch <- fmap WatchFlag . switch $ mconcat
