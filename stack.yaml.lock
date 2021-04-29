@@ -12,12 +12,12 @@ packages:
   original:
     hackage: amazonka-1.6.1
 - completed:
-    hackage: constraints-deriving-1.1.1.1@sha256:40a239cc58e3d1978590a780736144351d95f0f56232523ade5e145bda1213bb,4064
+    hackage: constraints-deriving-1.1.1.2@sha256:7e875b19b72920064e30ab722f01a7de2d4ee7840c2889c116297a4549262b72,4027
     pantry-tree:
-      size: 3134
-      sha256: 401fb63192f1dcb03402def7f4ef05e6da9f001fc7b8024f0fd460680ce75089
+      size: 3377
+      sha256: 49c39bb5d120a14f475964b6337288590f12374e94471e6e637c4ca0f5553988
   original:
-    hackage: constraints-deriving-1.1.1.1
+    hackage: constraints-deriving-1.1.1.2
 - completed:
     hackage: cryptostore-0.2.1.0@sha256:9896e2984f36a1c8790f057fd5ce3da4cbcaf8aa73eb2d9277916886978c5b19,3881
     pantry-tree:
@@ -26,12 +26,12 @@ packages:
   original:
     hackage: cryptostore-0.2.1.0
 - completed:
-    hackage: dimensions-2.1.0.0@sha256:c598a801f4ef24d13065a8f6a91b2b0d8f0668623bd4f7a866fa0606fe8b9885,2263
+    hackage: dimensions-2.1.1.0@sha256:ce33d4765e00e726ae7925f226fc685abd81afc7853cb861b4e04c186e90ad5a,2263
     pantry-tree:
       size: 1303
-      sha256: 9ca9bd767a26d86249f85ddeb3df58d3bb1b56b6a1007203d0f2cb34ccedf427
+      sha256: 5e45ec67acfd851e448db156b7c24859c8447c48f7670080b330c64fc9039a4b
   original:
-    hackage: dimensions-2.1.0.0
+    hackage: dimensions-2.1.1.0
 - completed:
     hackage: hfsevents-0.1.6@sha256:295b29e8a4ac51a0015f4fb92b4140139d7b13ed691318159a20f85ce785dac6,863
     pantry-tree:
@@ -68,33 +68,12 @@ packages:
   original:
     hackage: rescue-0.4.2.1
 - completed:
-    hackage: servant-auth-0.4.0.0@sha256:01d02dfb7df4747fc96442517146d7d4ab0e575e597a124e238e8763036ea4ff,2125
-    pantry-tree:
-      size: 332
-      sha256: a7ec2c54fddfa417ee2467f1131b1d83ad43cc29ddfd4b98869fc924e4b5e980
-  original:
-    hackage: servant-auth-0.4.0.0
-- completed:
-    hackage: servant-auth-server-0.4.6.0@sha256:b411b44f4252e91e5da2455d71a7113c8b5b8ff2d943d19b2ddedcfcf0392351,5111
-    pantry-tree:
-      size: 1376
-      sha256: 8cd29612112546a02085e2cb30dd5a72ea46ed81e644195c589d0b26652279cb
-  original:
-    hackage: servant-auth-server-0.4.6.0
-- completed:
-    hackage: servant-auth-swagger-0.2.10.1@sha256:6d5f1a4594c922fa8baccb0344de91108d57d1228ec5911723fce4340c27d129,2821
-    pantry-tree:
-      size: 408
-      sha256: b4b12628d1e2ad82c2eb5f09b4074414646104dabad87693b539a109938c5a41
-  original:
-    hackage: servant-auth-swagger-0.2.10.1
-- completed:
-    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3@sha256:c3d9d26f66d6e45fe00e401134ffda25a640aeaf9bf469f2964be65cff435fb3,1575
+    hackage: servant-swagger-ui-redoc-0.3.4.1.22.3@sha256:c19967101d9205b1a936fad254f22f02c471953c10b1137364a4589e121f0562,1474
     pantry-tree:
       size: 381
-      sha256: c66e48f90cd9e6beda31ecfa8b2761c02ff3a4b6373638578202048e8c7cf6a1
+      sha256: 854dc59f86a3d1c30f48c9be287dcba7dbdaf482f4488d8d94884ff577678cc3
   original:
-    hackage: servant-swagger-ui-redoc-0.3.3.1.22.3
+    hackage: servant-swagger-ui-redoc-0.3.4.1.22.3
 - completed:
     hackage: servant-websockets-2.0.0@sha256:6e9e3600bced90fd52ed3d1bf632205cb21479075b20d6637153cc4567000234,2253
     pantry-tree:
@@ -111,7 +90,7 @@ packages:
     hackage: unliftio-core-0.1.2.0
 snapshots:
 - completed:
-    size: 567037
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/9.yaml
-    sha256: d7d8d5106e53d1669964bd8bd2b0f88a5ad192d772f5376384b76738fd992311
-  original: lts-17.9
+    size: 567241
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/10.yaml
+    sha256: 321b3b9f0c7f76994b39e0dabafdc76478274b4ff74cc5e43d410897a335ad3b
+  original: lts-17.10
