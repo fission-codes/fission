@@ -168,7 +168,7 @@ runInProd overrideVerbose action = do
     ekg <- liftIO . EKG.monitorEndpoints api =<< EKG.newStore
 
     let
-      condEKG      = if True then ekg else identity
+      condEKG      = if useEKG then ekg      else identity
       condDebug    = if pretty then identity else logStdoutDev
       middleware   = condEKG . condDebug
 

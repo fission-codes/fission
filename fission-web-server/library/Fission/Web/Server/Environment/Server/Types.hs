@@ -15,6 +15,7 @@ data Environment = Environment
   , environment  :: Remote           -- ^ Which remote this server is acting as / env
   , port         :: Web.Port         -- ^ Web app's port
   , isTLS        :: Bool             -- ^ Run over TLS
+  , useEKG       :: Bool             -- ^ Run with EKG
   , pretty       :: Bool             -- ^ Pretty-print requests
   , sentryDSN    :: Maybe Sentry.DSN -- ^ Sentry DSN key
   , serverZoneID :: AWS.ZoneID       -- ^ Hosted Zone of this server (runfission.com at time of writing)
@@ -25,6 +26,7 @@ instance FromJSON Environment where
     sentryDSN    <- obj .:? "sentry_dsn"
     pretty       <- obj .:? "pretty" .!= False
     isTLS        <- obj .:? "tls"    .!= True
+    useEKG       <- obj .:? "ekg"    .!= True
     port         <- obj .:? "port"   .!= Web.Port if isTLS then 443 else 80
     host         <- obj .:  "host"
     environment  <- obj .:  "environment"
