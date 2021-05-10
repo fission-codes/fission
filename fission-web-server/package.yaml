@@ -153,6 +153,7 @@ dependencies:
   - hostname
 
   ## Web ##
+  - ekg-core
   - http-client
   - http-client-tls
   - http-media
@@ -164,6 +165,7 @@ dependencies:
   - servant-auth-swagger
   - servant-client
   - servant-client-core
+  - servant-ekg
   - servant-server
   - servant-swagger
   - servant-swagger-ui-redoc

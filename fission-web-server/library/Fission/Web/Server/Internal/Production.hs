@@ -14,6 +14,9 @@ import qualified Data.Aeson                                      as JSON
 import qualified Data.Yaml                                       as YAML
 
 import           Servant
+import qualified Servant.Ekg                                     as EKG
+
+import qualified System.Metrics                                  as EKG
 
 import qualified Network.HTTP.Client                             as HTTP
 import qualified Network.HTTP.Client.TLS                         as HTTP
@@ -59,20 +62,23 @@ import qualified Fission.Web.Server.Heroku.ID.Types              as Hku
 import qualified Fission.Web.Server.Heroku.Password.Types        as Hku
 import qualified Fission.Web.Server.Sentry                       as Sentry
 
-import qualified Fission.Web.Server.Environment.Auth.Types       as Auth
 import qualified Fission.Web.Server.Environment.AWS.Types        as AWS
+import qualified Fission.Web.Server.Environment.Auth.Types       as Auth
 import           Fission.Web.Server.Environment.IPFS.Types       as IPFS
 import qualified Fission.Web.Server.Environment.SendInBlue.Types as SendInBlue
 import qualified Fission.Web.Server.Environment.Server.Types     as Server
 import qualified Fission.Web.Server.Environment.Storage.Types    as Storage
 import           Fission.Web.Server.Environment.Types
-import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
 import qualified Fission.Web.Server.Environment.WNFS.Types       as WNFS
+import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
+
+import           Fission.Web.Server.Internal.Orphanage.WebSocket ()
 
 runInProdSimple :: Fission.Server () -> IO ()
-runInProdSimple action = runInProd (Just True) \_ _ -> do
-  logDebug @Text "🌱🐇 Running in simple prod environment ✨🍭"
-  action
+runInProdSimple action =
+  runInProd (Just True) \_ _ -> do
+    logDebug @Text "🌱🐇 Running in simple prod environment ✨🍭"
+    action
 
 runInProd
   :: Maybe Bool
@@ -139,7 +145,7 @@ runInProd overrideVerbose action = do
     Seconds (Micro ipfsTOut) = convert $ Seconds (Unity ipfsTOutSecs)
     ipfsHttpSettings = HTTP.defaultManagerSettings
       { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro $ fromIntegral ipfsTOut
-      , HTTP.managerConnCount       = 200
+      , HTTP.managerConnCount       = 1000
       }
 
   putStrLnIO "      📞🌐 Creating base HTTP client manager"
@@ -159,19 +165,24 @@ runInProd overrideVerbose action = do
 
   putStrLnIO "   📋 Setting up application logger"
   withLogFunc (setLogUseTime True logOptions) \baseLogger -> do
+    ekg <- liftIO . EKG.monitorEndpoints api =<< EKG.newStore
+
     let
+      condEKG      = if True then ekg else identity
       condDebug    = if pretty then identity else logStdoutDev
+      middleware   = condEKG . condDebug
+
       runSettings' = if isTLS then runTLS tlsSettings' else runSettings
       runner       = runSettings' $ mkSettings logFunc port
       logFunc      = baseLogger <> condSentryLogger
 
     putStrLnIO "   🏊 Establishing database pool"
-    withDBPool baseLogger pgConnectInfo (PoolSize 4) \dbPool -> do
+    withDBPool baseLogger pgConnectInfo (PoolSize 12) \dbPool -> do
       putStrLnIO "   🔌 Setting up websocket relay store"
       linkRelayStoreVar <- atomically $ newTVar mempty
 
       putStrLnIO "✅ Setup done, running action(s)..."
-      Fission.Server.runServer Fission.Server.Config {..} $ action condDebug runner
+      Fission.Server.runServer Fission.Server.Config {..} (action middleware runner)
 
 start :: (Application -> Application) -> (Application -> IO ()) -> Fission.Server ()
 start middleware runner = do
@@ -202,7 +213,7 @@ start middleware runner = do
       Left  _ -> Domain.create baseAppDomain userId baseAppZoneID now
 
   auth <- Auth.mkAuth
-  logDebug @Text $ layoutWithContext (Proxy @Fission.Server.API) auth
+  logDebug @Text $ layoutWithContext api auth
 
   logInfo $ "📤 Staring server at " <> Text.pack (show now)
   Web.Error.ensureM ServerDID.publicize
@@ -213,6 +224,9 @@ start middleware runner = do
     |> CORS.middleware
     |> runner
     |> liftIO
+
+api :: Proxy Fission.Server.API
+api = Proxy
 
 mkSettings :: LogFunc -> Server.Port -> Settings
 mkSettings logger (Server.Port port) =
