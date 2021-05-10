@@ -1,26 +1,17 @@
-module Fission.App.Types
-  ( module Fission.App.Name
-  , Payload(..)
-  ) where
+module Fission.Web.API.App.Index.Payload.Types (Payload(..)) where
 
-import           Data.Swagger     hiding (URL, url)
+import           Data.Swagger    hiding (URL, url)
 
 import           Fission.Prelude
 
-import           Fission.App.Name
 import           Fission.URL
-
 
 data Payload = Payload
   { urls       :: [URL]
   , insertedAt :: UTCTime
   , modifiedAt :: UTCTime
   }
-  -- What about deriving Json of normal data?
-  -- deriving (Eq, Generic, Show, ToJSON)
   deriving (Eq, Show)
-
-
 
 instance FromJSON Payload where
   parseJSON = withObject "Payload" \obj -> do
@@ -53,12 +44,15 @@ instance ToSchema Payload where
       |> required .~ ["username", "email"]
       |> description ?~ "Properties for a registered application"
       |> example ?~ toJSON Payload
-        { urls       = [ URL
-                            (DomainName "fission.codes")
-                            (Just $ Subdomain "my-cool-subdomain")
-                        ]
-        , insertedAt = fromSeconds 0
-        , modifiedAt = fromSeconds 20
+        { urls       = [url]
+        , insertedAt = fromSeconds 1620600000
+        , modifiedAt = fromSeconds 1620610000
         }
-      |> NamedSchema (Just "Payload")
+      |> NamedSchema (Just "App Index Payload")
       |> pure
+
+    where
+      url = URL
+        { domainName = DomainName "fission.codes"
+        , subdomain  = Just $ Subdomain "my-cool-subdomain"
+        }

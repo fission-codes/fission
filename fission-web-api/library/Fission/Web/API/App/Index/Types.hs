@@ -1,10 +1,12 @@
-module Fission.Web.API.App.Index.Types (Index) where
-
-import           Fission.App.Types
+module Fission.Web.API.App.Index.Types
+  ( Index
+  , module Fission.Web.API.App.Index.Payload.Types
+  ) where
 
 import           Fission.Web.API.Prelude
 
-import qualified Fission.Web.API.Auth.Types as Auth
+import           Fission.Web.API.App.Index.Payload.Types
+import qualified Fission.Web.API.Auth.Types              as Auth
 
 type Index
   =  Summary "App index"
