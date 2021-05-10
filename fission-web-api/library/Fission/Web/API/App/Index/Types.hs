@@ -1,6 +1,6 @@
 module Fission.Web.API.App.Index.Types (Index) where
 
-import           Fission.URL.Types
+import           Fission.App.Types
 
 import           Fission.Web.API.Prelude
 
@@ -11,4 +11,4 @@ type Index
   :> Description "A list of all of your apps and their associated domain names"
   --
   :> Auth.HigherOrder
-  :> Get '[JSON] (Map Natural [URL])
+  :> Get '[JSON] (Map Natural Payload)
