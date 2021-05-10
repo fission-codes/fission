@@ -12,8 +12,8 @@ import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.API.Prelude
 
-import           Fission.Web.API.Auth.UCAN.Types
 import qualified Fission.Web.API.Heroku.Auth.Types as Heroku
+import           Fission.Web.API.Auth.UCAN.Types
 
 type Auth = "auth" :> UCAN
 
