@@ -20,7 +20,6 @@
           pkgs.writeScriptBin name ''
             #!${bash}
             echo "⚙️  Running ${name}..."
-            unset STACK_IN_NIX_SHELL
             ${script}
           '';
 
