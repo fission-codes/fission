@@ -1,6 +1,4 @@
-resolver: lts-17.10
-
-allow-newer: true
+resolver: lts-17.11
 
 packages:
   - fission-cli
@@ -27,6 +25,6 @@ ghc-options:
   "$everything": -haddock
 
 nix:
-  enable:     false
+  enable:     true
   pure:       true
   shell-file: shell.nix
