@@ -30,7 +30,7 @@ jobs:
       name: 🗄️  Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ matrix.os }}-stack-nix-ci-3
+        key: ${{ matrix.os }}-stack-nix-ci-4
 
     - name: 🧪 Test
       run: |
