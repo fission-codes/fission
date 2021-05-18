@@ -24,4 +24,3 @@ instance Display Oldstyle where
 
   textDisplay Oldstyle {did} =
     textDisplay did
-
