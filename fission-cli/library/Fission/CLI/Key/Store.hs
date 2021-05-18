@@ -1,6 +1,7 @@
 module Fission.CLI.Key.Store
   ( create
   , forceCreate
+  , fromFile
   , fetch
   , fetchPublic
   , delete
@@ -66,6 +67,26 @@ persist ::
 persist keyRole key = do
   path <- KeyStore.getPath keyRole
   forceWrite path $ B64.toByteString key
+
+fromFile ::
+  ( MonadIO m
+  , MonadKeyStore m key
+  , MonadRaise    m
+  , MonadLogger m
+  , m `Raises` Key.Error
+  )
+  => Proxy key
+  -> FilePath
+  -> m ()
+fromFile keyRole keyFile = do
+  scrubbed <- doesFileExist keyFile >>= \case
+    False ->
+      raise Key.DoesNotExist
+    True -> do
+      bs <- readFileBinary keyFile
+      return $ B64.Scrubbed.scrub bs
+  secretKey <- ensureM $ parse keyRole scrubbed
+  persist keyRole secretKey
 
 fetch ::
   ( MonadIO       m

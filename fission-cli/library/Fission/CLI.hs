@@ -100,8 +100,8 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} cmd =
         Version _ -> do
           logUser $ Version.showVersion CLI.version
 
-        Setup Setup.Options {forceOS, maybeUsername, maybeEmail} ->
-          Setup.setup forceOS maybeUsername maybeEmail
+        Setup Setup.Options {forceOS, maybeUsername, maybeEmail, maybeKeyFile} ->
+          Setup.setup forceOS maybeUsername maybeEmail maybeKeyFile
 
         App subCmd ->
           App.interpret baseCfg subCmd
