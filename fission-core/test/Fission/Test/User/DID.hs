@@ -2,8 +2,8 @@
 
 module Fission.Test.User.DID (spec) where
 
-import qualified Data.Aeson            as JSON
 import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Data.Aeson            as JSON
 
 import qualified RIO.ByteString.Lazy   as Lazy
 import           Servant.API
@@ -42,7 +42,7 @@ spec =
       itsProp' "always starts with 'did:key:z6Mk'" \(ed25519pk :: Ed25519.PublicKey) ->
         Lazy.take 13 (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe` "\"did:key:z6Mk"
 
-      context "Legacy" do
+      context "Legacy (AKA `Oldstyle`)" do
         it "deserializes to a well-known value"
           let
             input :: ByteString
@@ -50,6 +50,9 @@ spec =
           in
             eitherDecodeStrict ("\"" <> input <> "\"")
               `shouldBe` Right (DID Key edKey)
+
+         it "can be manually set to display in the Oldstyle format"
+           encode (Oldstyle $ DID Key edKey) `shouldBe` "NOT THIS"
 
       context "W3C did:key Ed25519 test vectors" do
         didKeyTestVectors |> foldMapM \(idx, bs) ->
