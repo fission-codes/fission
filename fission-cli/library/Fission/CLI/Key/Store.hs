@@ -69,24 +69,29 @@ persist keyRole key = do
   forceWrite path $ B64.toByteString key
 
 fromFile ::
-  ( MonadIO m
+  forall m key .
+  ( MonadIO       m
   , MonadKeyStore m key
   , MonadRaise    m
-  , MonadLogger m
+  , MonadLogger   m
   , m `Raises` Key.Error
   )
   => Proxy key
   -> FilePath
   -> m ()
 fromFile keyRole keyFile = do
-  scrubbed <- doesFileExist keyFile >>= \case
-    False ->
-      raise Key.DoesNotExist
-    True -> do
-      bs <- readFileBinary keyFile
-      return $ B64.Scrubbed.scrub bs
+  scrubbed  <- getScrubbed
   secretKey <- ensureM $ parse keyRole scrubbed
   persist keyRole secretKey
+  where
+    getScrubbed :: m ByteArray.ScrubbedBytes
+    getScrubbed =
+      doesFileExist keyFile >>= \case
+        False ->
+          raise Key.DoesNotExist
+        True -> do
+          bs <- readFileBinary keyFile
+          return $ B64.Scrubbed.scrub bs
 
 fetch ::
   ( MonadIO       m
