@@ -46,6 +46,16 @@ parser = do
     , metavar "EMAIL"
     ]
 
+  maybeKeyFile <- option keyfile $ mconcat
+    [ help "A root keyfile to import"
+    -------
+    , long "with-key"
+    , short 'k'
+    -------
+    , value Nothing
+    , metavar "KEYFILE"
+    ]
+
   pure Options {..}
 
 username :: ReadM (Maybe Username)
@@ -61,6 +71,14 @@ email = do
   pure case raw of
     ""   -> Nothing
     mail -> Just mail
+
+keyfile :: ReadM (Maybe FilePath)
+keyfile = do
+  raw <- str
+  pure case raw of
+    ""   -> Nothing
+    path -> Just path
+
 
 osParser :: Parser (Maybe OS.Supported)
 osParser = do

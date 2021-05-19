@@ -10,4 +10,5 @@ data Options = Options
   { forceOS       :: Maybe OS.Supported
   , maybeUsername :: Maybe Username
   , maybeEmail    :: Maybe Email
+  , maybeKeyFile  :: Maybe FilePath
   } deriving (Show, Eq)
