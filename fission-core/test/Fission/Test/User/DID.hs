@@ -2,14 +2,15 @@
 
 module Fission.Test.User.DID (spec) where
 
-import qualified Data.Aeson            as JSON
-import qualified Crypto.PubKey.Ed25519 as Ed25519
+import qualified Crypto.PubKey.Ed25519           as Ed25519
+import qualified Data.Aeson                      as JSON
 
-import qualified RIO.ByteString.Lazy   as Lazy
+import qualified RIO.ByteString.Lazy             as Lazy
 import           Servant.API
 
-import           Fission.Key           as Key
+import           Fission.Key                     as Key
 import           Fission.User.DID
+import           Fission.User.DID.Oldstyle.Types
 
 import           Fission.Test.Prelude
 
@@ -42,14 +43,13 @@ spec =
       itsProp' "always starts with 'did:key:z6Mk'" \(ed25519pk :: Ed25519.PublicKey) ->
         Lazy.take 13 (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe` "\"did:key:z6Mk"
 
-      context "Legacy" do
-        it "deserializes to a well-known value"
-          let
-            input :: ByteString
-            input = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"
-          in
-            eitherDecodeStrict ("\"" <> input <> "\"")
-              `shouldBe` Right (DID Key edKey)
+      context "Legacy (AKA `Oldstyle`)" do
+        it "deserializes to a well-known value" $
+          eitherDecodeStrict ("\"" <> encodeUtf8 oldstyle <> "\"")
+            `shouldBe` Right (DID Key edKey)
+
+        it "can be manually set to display in the Oldstyle format" $
+          textDisplay Oldstyle { did = DID Key edKey } `shouldBe` oldstyle
 
       context "W3C did:key Ed25519 test vectors" do
         didKeyTestVectors |> foldMapM \(idx, bs) ->
@@ -79,3 +79,6 @@ didKeyTestVectors =
   , (1, "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG")
   , (2, "did:key:z6MknGc3ocHs3zdPiJbnaaqDi58NGb4pk1Sp9WxWufuXSdxf")
   ]
+
+oldstyle :: Text
+oldstyle = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"

@@ -77,6 +77,8 @@ import           Fission.Web.Server.Handler
 import           Fission.Web.Server.Reflective             as Reflective
 
 import           Fission.User.DID                          as DID
+import qualified Fission.User.DID.Oldstyle.Types           as DID
+
 import qualified Fission.Web.Server.User                   as User
 import           Fission.Web.Server.User.Creator.Class
 import qualified Fission.Web.Server.User.Modifier.Class    as User.Modifier
@@ -468,7 +470,7 @@ instance Server.DID.Publicize Server where
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
 
-      txtRecordValue = textDisplay did
+      txtRecordValue = textDisplay $ DID.Oldstyle did
 
     if mockRoute53
       then do
