@@ -6,7 +6,7 @@ module Fission.CLI.IPFS.Executable
 import qualified RIO.ByteString.Lazy           as Lazy
 import qualified RIO.Text                      as Text
 
-import qualified Turtle                        as Turtle
+import qualified Turtle
 
 import           Network.IPFS
 import qualified Network.IPFS.File.Types       as File
@@ -70,10 +70,10 @@ place' host = do
 
   logUser @Text "🎛️  Configuring managed IPFS"
 
-  IPFS.Config.init
-  void $ IPFS.Config.enableRelay
+  void IPFS.Config.init
+  void IPFS.Config.enableRelay
 
-  void $ IPFS.Config.setApiAddress
-  void $ IPFS.Config.setBootstrap
-  void $ IPFS.Config.setGatewayAddress
-  void $ IPFS.Config.setSwarmAddresses
+  void IPFS.Config.setApiAddress
+  void IPFS.Config.setBootstrap
+  void IPFS.Config.setGatewayAddress
+  void IPFS.Config.setSwarmAddresses

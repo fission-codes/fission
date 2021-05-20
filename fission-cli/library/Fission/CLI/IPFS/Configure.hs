@@ -7,30 +7,24 @@ module Fission.CLI.IPFS.Configure
   , enableRelay
   ) where
 
-import qualified RIO.ByteString.Lazy          as Lazy
+import qualified RIO.ByteString.Lazy        as Lazy
 
-import           Network.IPFS.Local.Class     as IPFS
-import qualified Network.IPFS.Process.Error   as IPFS
-import qualified Network.IPFS.Types           as IPFS
+import           Network.IPFS.Local.Class   as IPFS
+import qualified Network.IPFS.Process.Error as IPFS
 
 import           Turtle
 
 import           Fission.Prelude
 
-import           Fission.CLI.Environment      hiding (init)
-import           Fission.CLI.Environment.Path
 
-init :: (MonadIO m, MonadEnvironment m) => m ExitCode
+init ::
+  ( MonadLocalIPFS m
+  , MonadRaise     m
+  , m `Raises` IPFS.Error
+  )
+  => m IPFS.RawMessage
 init = do
-  IPFS.BinPath ipfsPath <- globalIPFSBin
-  ipfsRepo              <- globalIPFSRepo
-   -- Needs to be run manually because it's a prerequesite for the daemon
-  runProcess . fromString $ intercalate " "
-    [ "IPFS_PATH=" <> ipfsRepo
-    , ipfsPath
-    , "init"
-    , "&> /dev/null"
-    ]
+  ensureM $ IPFS.runLocal ["init"] ""
 
 setBootstrap :: forall m . MonadLocalIPFS m => m (Either IPFS.Error ())
 setBootstrap =
