@@ -43,7 +43,7 @@ Now run `fission setup` to install the Fission-controlled IPFS node.
 
 Grab the latest binary for your operating system from our [release page](https://github.com/fission-suite/fission/releases).
 
-You'll find the most up to date instructions for [installation](https://guide.fission.codes/hosting/installation) and [getting started](https://guide.fission.codes/hosting/getting-started) in our [Guide](https://guide.fission.codes).
+You'll find the most up to date instructions for [installation](https://guide.fission.codes/developers/installation) and [getting started](https://guide.fission.codes/developers/getting-started) in our [Guide](https://guide.fission.codes).
 
 ### Seamless Deployments
 Deployments are just one step: `fission app publish`
