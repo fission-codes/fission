@@ -152,20 +152,23 @@ dependencies:
   - amazonka-route53
   - hostname
 
-  ## Web ##
+  ## Monitoring
   - ekg-core
+  - ekg-statsd
+  - raven-haskell
+  - servant-ekg
+
+  ## Web ##
   - http-client
   - http-client-tls
   - http-media
   - http-types
   - ipfs
-  - raven-haskell
   - servant
   - servant-auth-server
   - servant-auth-swagger
   - servant-client
   - servant-client-core
-  - servant-ekg
   - servant-server
   - servant-swagger
   - servant-swagger-ui-redoc

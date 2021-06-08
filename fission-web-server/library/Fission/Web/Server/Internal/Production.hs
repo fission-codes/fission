@@ -17,6 +17,7 @@ import           Servant
 import qualified Servant.Ekg                                     as EKG
 
 import qualified System.Metrics                                  as EKG
+import qualified System.Remote.Monitoring.Statsd                 as EKG.StatsD
 
 import qualified Network.HTTP.Client                             as HTTP
 import qualified Network.HTTP.Client.TLS                         as HTTP
@@ -165,11 +166,13 @@ runInProd overrideVerbose action = do
 
   putStrLnIO "   📋 Setting up application logger"
   withLogFunc (setLogUseTime True logOptions) \baseLogger -> do
-    ekg <- liftIO . EKG.monitorEndpoints api =<< EKG.newStore
+    ekgStore   <- liftIO EKG.newStore
+    ekgServant <- liftIO $ EKG.monitorEndpoints api ekgStore
+    void . liftIO $ EKG.StatsD.forkStatsd EKG.StatsD.defaultStatsdOptions ekgStore
 
     let
-      condEKG      = if useEKG then ekg      else identity
-      condDebug    = if pretty then identity else logStdoutDev
+      condEKG      = if useEKG then ekgServant else identity
+      condDebug    = if pretty then identity   else logStdoutDev
       middleware   = condEKG . condDebug
 
       runSettings' = if isTLS then runTLS tlsSettings' else runSettings
