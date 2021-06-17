@@ -40,12 +40,12 @@ packages:
   original:
     hackage: hfsevents-0.1.6
 - completed:
-    hackage: ipfs-1.3.0.3@sha256:7c79786a90e40e5bccc54140be7c1576e0677713a3889fe2f730e968f88f8c12,6107
+    hackage: ipfs-1.3.1@sha256:69634b279a61777d391f9a6fac42f645df2e6485dee337400a2ac861602474ae,6223
     pantry-tree:
       size: 4198
-      sha256: 137be0f28f1350ee704ac4ea92b06119b3edb3068bc1ba15d41260f9bc7781bf
+      sha256: 1df7822f65be2a6877c9478cc692d06479449eae215b802bc5a65f73f0107d94
   original:
-    hackage: ipfs-1.3.0.3
+    hackage: ipfs-1.3.1
 - completed:
     hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
     pantry-tree:
@@ -61,12 +61,12 @@ packages:
   original:
     hackage: raven-haskell-0.1.4.0
 - completed:
-    hackage: rescue-0.4.2.1@sha256:53256f87722af6f91e9e4ed18741c5e2515a0432ae7e94b16e3edf73931ec0c3,5025
+    hackage: servant-multipart-client-0.12.1@sha256:d043063e2f33eab86840f87c4bdb16eb3fe4a5847a0b118e4f4265cf3ba4c9b3,1892
     pantry-tree:
-      size: 1963
-      sha256: 74b6dfd972089dba05241803a450e808348c5db6dc204810cc01161266c72194
+      size: 400
+      sha256: cb02eea7894a94e5dedf5cb74fd5fc6b989711ebb46a0e14d77f74f3b89dcbe0
   original:
-    hackage: rescue-0.4.2.1
+    hackage: servant-multipart-client-0.12.1
 - completed:
     hackage: servant-swagger-ui-redoc-0.3.4.1.22.3@sha256:c19967101d9205b1a936fad254f22f02c471953c10b1137364a4589e121f0562,1474
     pantry-tree:
@@ -90,7 +90,7 @@ packages:
     hackage: unliftio-core-0.1.2.0
 snapshots:
 - completed:
-    size: 567669
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/12.yaml
-    sha256: facf6cac73b22a83ca955b580a98a7a09ed71f8f974c7a55d28e608c23e689a9
-  original: lts-17.12
+    size: 585393
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/0.yaml
+    sha256: c632012da648385b9fa3c29f4e0afd56ead299f1c5528ee789058be410e883c0
+  original: lts-18.0
