@@ -88,6 +88,27 @@ packages:
       sha256: 9d970bf5f98e68e8fc129b04d6c9d8eb1e641c7556ffd0f0a168a259335b6fd7
   original:
     hackage: unliftio-core-0.1.2.0
+- completed:
+    hackage: github-0.26@sha256:a9d4046325c3eb28cdc7bef2c3f5bb213328caeae0b7dce6f51de655f0bffaa1,7162
+    pantry-tree:
+      size: 7511
+      sha256: b71aab2984b268030c9e2617043575681134c1fe60dffbd5596e659c0a3e9aec
+  original:
+    hackage: github-0.26
+- completed:
+    hackage: base16-bytestring-0.1.1.7@sha256:0021256a9628971c08da95cb8f4d0d72192f3bb8a7b30b55c080562d17c43dd3,2231
+    pantry-tree:
+      size: 454
+      sha256: 2dc99cd67293b09204098202d0bdcdcf89d2b8c69ce6c8f4e31deadbdab2a7f9
+  original:
+    hackage: base16-bytestring-0.1.1.7
+- completed:
+    hackage: http-link-header-1.0.3.1@sha256:9917c26635a46eff5d36c5344a4ae42fad2b5de79c0e300363bddd5eec66facd,1937
+    pantry-tree:
+      size: 990
+      sha256: 155feaf856daf5b55491048c8c4726ba765a8fe79263ebdbfc82f6c385a15715
+  original:
+    hackage: http-link-header-1.0.3.1
 snapshots:
 - completed:
     size: 585393

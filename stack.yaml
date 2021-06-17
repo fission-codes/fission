@@ -21,6 +21,11 @@ extra-deps:
   - servant-websockets-2.0.0
   - unliftio-core-0.1.2.0
 
+  # Waiting for github to make it back into Stackage LTS 18
+  - github-0.26
+  - base16-bytestring-0.1.1.7
+  - http-link-header-1.0.3.1
+
 ghc-options:
   "$everything": -haddock
 
