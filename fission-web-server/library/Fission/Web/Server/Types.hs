@@ -16,6 +16,7 @@ import           System.Random                             as Random
 
 import           Database.Esqueleto                        as SQL hiding ((<&>))
 
+import           Servant.API
 import           Servant.Client
 import qualified Servant.Client.Streaming                  as Stream
 import           Servant.Server.Experimental.Auth
