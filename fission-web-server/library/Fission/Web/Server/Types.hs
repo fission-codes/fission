@@ -285,19 +285,27 @@ instance MonadWNFS Server where
 
 instance MonadDNSLink Server where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
+    -- Ensure that the gateway is available first
     Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
       Left err ->
         return $ Error.openLeft err
 
       Right _ ->
-        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
+        Route53.set Txt (DNSLink.toDNSLink url) zoneID (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right url
 
     where
       gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
-      dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
       dnsLink    = "dnslink=/ipfs/" <> hash
+
+  unset _userId url@URL {..} zoneID = do
+    logDebug $ "Unsetting DNSLink at _dnslink." <> display url
+
+    -- NOTE does NOT unset the gateway CNAME
+    Route53.clear (DNSLink.toDNSLink url) zoneID >>= \case
+      Left err -> return $ Error.openLeft err
+      Right _  -> return $ Right ()
 
   follow _userId url@URL {..} zoneID followeeURL = do
     Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
@@ -305,14 +313,13 @@ instance MonadDNSLink Server where
         return $ Error.openLeft err
 
       Right _ ->
-        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
+        Route53.set Txt (DNSLink.toDNSLink url) zoneID (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right ()
 
     where
-      gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
-      dnsLinkURL = URL.prefix' (URL.Subdomain "_dnslink") url
-      dnsLink    = "dnslink=/ipns/" <> textDisplay followeeURL
+      gateway = URL { domainName, subdomain = Just (Subdomain "gateway") }
+      dnsLink = "dnslink=/ipns/" <> textDisplay followeeURL
 
 instance MonadLinkedIPFS Server where
   getLinkedPeers = asks ipfsRemotePeers

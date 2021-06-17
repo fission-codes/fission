@@ -35,6 +35,12 @@ class MonadRoute53 m => MonadDNSLink m where
     -> CID        -- ^ The @CID@ to set at that DNSLink
     -> m (Either Errors' URL)
 
+  unset ::
+       UserId     -- ^ Who is performing this action (for auth)
+    -> URL        -- ^ The @URL@ target
+    -> AWS.ZoneID -- ^ The @ZoneID@ for the associated @URL@
+    -> m (Either Errors' ())
+
   follow ::
        UserId
     -> URL        -- ^ Follower
