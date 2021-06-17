@@ -53,6 +53,7 @@ defaultConfig = Config
   , remoteIPFSPin   = Right $ IPFS.Client.Response [IPFS.CID "Qmfhajhfjka"]
   , remoteIPFSUnpin = Right $ IPFS.Client.Response [IPFS.CID "Qmhjsdahjhkjas"]
   , setDNSLink      = \_ _ _ -> Right $ URL (DomainName "example.com") Nothing
+  , unsetDNSLink    = \_ _   -> Right ()
   , followDNSLink   = \_ _   -> Right ()
   , getBaseDomain   = DomainName "example.com"
   , clearRoute53    = \_ ->

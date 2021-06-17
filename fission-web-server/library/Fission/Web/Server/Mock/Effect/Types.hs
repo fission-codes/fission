@@ -5,6 +5,7 @@ module Fission.Web.Server.Mock.Effect.Types
   , UpdateRoute53      (..)
   , ClearRoute53       (..)
   , SetDNSLink         (..)
+  , UnsetDNSLink       (..)
   , FollowDNSLink      (..)
   , RunLocalIPFS       (..)
   , RunRemoteIPFS      (..)
@@ -81,6 +82,10 @@ data ClearRoute53
 
 data SetDNSLink
   = SetDNSLink
+  deriving (Eq, Show)
+
+data UnsetDNSLink
+  = UnsetDNSLink
   deriving (Eq, Show)
 
 data FollowDNSLink

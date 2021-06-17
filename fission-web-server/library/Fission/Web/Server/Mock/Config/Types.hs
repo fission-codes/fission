@@ -20,13 +20,14 @@ import           Fission.URL                            as URL
 import           Fission.User.DID.Types
 import qualified Fission.Web.API.Heroku.Auth.Types      as Heroku
 
-import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.AWS.Types           as AWS
+import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.IPFS.DNSLink.Class  as DNSLink
 import           Fission.Web.Server.Models
 
 data Config = Config
   { setDNSLink      :: URL.DomainName -> Maybe URL.Subdomain -> IPFS.CID -> Either DNSLink.Errors' URL
+  , unsetDNSLink    :: URL.DomainName -> Maybe URL.Subdomain -> Either DNSLink.Errors' ()
   , followDNSLink   :: URL -> Path URL -> Either DNSLink.Errors' ()
   , getBaseDomain   :: URL.DomainName
   , updateRoute53   :: RecordType -> URL -> AWS.ZoneID -> NonEmpty Text -> Natural -> Either ServerError ChangeResourceRecordSetsResponse

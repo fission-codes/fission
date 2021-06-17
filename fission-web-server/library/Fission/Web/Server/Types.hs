@@ -299,7 +299,7 @@ instance MonadDNSLink Server where
       gateway    = URL { domainName, subdomain = Just (Subdomain "gateway") }
       dnsLink    = "dnslink=/ipfs/" <> hash
 
-  unset _userId url@URL {..} zoneID = do
+  unset _userId url zoneID = do
     logDebug $ "Unsetting DNSLink at _dnslink." <> display url
 
     -- NOTE does NOT unset the gateway CNAME
@@ -688,12 +688,12 @@ instance App.Destroyer Server where
   destroy uId appId now =
     runDB (App.destroy uId appId now) >>= \case
       Left err   -> return $ Left err
-      Right urls -> pullFromDNS urls
+      Right urls -> pullAppFromDNS uId urls
 
   destroyByURL uId domainName maySubdomain now =
     runDB (App.destroyByURL uId domainName maySubdomain now) >>= \case
       Left err   -> return $ Left err
-      Right urls -> pullFromDNS urls
+      Right urls -> pullAppFromDNS uId urls
 
 instance Heroku.AddOn.Creator Server where
   create uuid region now = runDB $ Heroku.AddOn.create uuid region now
@@ -770,8 +770,8 @@ sendSIBEmail email = do
     liftIO (runClientM (Email.sendEmail apiKey email) (mkClientEnv httpManager sibUrl))
 
 
-pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
-pullFromDNS urls = do
+pullAppFromDNS :: UserId -> [URL] -> Server (Either App.Destroyer.Errors' [URL])
+pullAppFromDNS userId urls = do
   domainsAndZoneIDs <- runDB . select $ from \domain -> do
     where_ $ domain ^. DomainDomainName `in_` valList (URL.domainName <$> urls)
     return (domain ^. DomainDomainName, domain ^. DomainZoneId)
@@ -800,9 +800,19 @@ pullFromDNS urls = do
           return . Error.openLeft $ NotFound @ZoneID
 
         Just zoneId ->
-          AWS.clear url zoneId <&> \case
-            Left err -> Error.openLeft err
-            Right _  -> Right (url : accs)
+          AWS.clear url zoneId >>= \case
+            Left err ->
+              return $ Error.openLeft err
+
+            Right _  ->
+              Route53.get (DNSLink.toDNSLink url) zoneId >>= \case
+                Left _ ->
+                  return $ Right (url : accs)
+
+                Right _ ->
+                  DNSLink.unset userId url zoneId >>= \case
+                    Left err -> return $ Error.relaxedLeft err
+                    Right _  -> return $ Right (url : accs)
 
 runUserUpdate ::
      Transaction Server (Either User.Modifier.Errors' a)

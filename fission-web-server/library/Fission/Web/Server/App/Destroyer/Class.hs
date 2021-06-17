@@ -27,6 +27,10 @@ type Errors' = OpenUnion
    , NotFound            AppDomain
    , ActionNotAuthorized AppDomain
 
+   , NotFound            URL
+   , ActionNotAuthorized URL
+   , InvalidURL
+
    , NotFound AWS.ZoneID
 
    , ServerError

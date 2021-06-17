@@ -144,6 +144,7 @@ instance
   ( IsMember UpdateRoute53 effs
   , IsMember ClearRoute53  effs
   , IsMember SetDNSLink    effs
+  , IsMember UnsetDNSLink  effs
   , IsMember FollowDNSLink effs
   , IsMember RunAWS        effs
   )
@@ -152,6 +153,11 @@ instance
     Effect.log SetDNSLink
     runner <- asks setDNSLink
     return $ runner domainName subdomain cid
+
+  unset _userID URL {..} _ = do
+    Effect.log UnsetDNSLink
+    runner <- asks unsetDNSLink
+    return $ runner domainName subdomain
 
   follow _userID toSet _ toFollow = do
     Effect.log $ FollowDNSLink toSet toFollow
