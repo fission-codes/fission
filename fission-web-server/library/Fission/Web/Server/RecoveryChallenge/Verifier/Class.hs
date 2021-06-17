@@ -1,4 +1,4 @@
-module Fission.Web.Server.Challenge.Verifier.Class (Verifier (..)) where
+module Fission.Web.Server.RecoveryChallenge.Verifier.Class (Verifier (..)) where
 
 import           Database.Persist
 

@@ -1,4 +1,4 @@
-module Fission.Web.Server.Challenge.Retriever.Class (Retriever (..)) where
+module Fission.Web.Server.RecoveryChallenge.Retriever.Class (Retriever (..)) where
 
 import           Database.Persist
 
