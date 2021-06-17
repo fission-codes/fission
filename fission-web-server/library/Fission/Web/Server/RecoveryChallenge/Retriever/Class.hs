@@ -15,7 +15,9 @@ class Monad m => Retriever m where
 
 instance MonadIO m => Retriever (Transaction m) where
   retrieve userId = do
-    res <- selectFirst [ UserRecoveryChallengeUserId ==. userId ] []
+    res <- selectFirst
+      [ UserRecoveryChallengeUserId ==. userId ]
+      [ Desc UserRecoveryChallengeInsertedAt  ]
     case res of
       Nothing ->
         return $ Left NotFound

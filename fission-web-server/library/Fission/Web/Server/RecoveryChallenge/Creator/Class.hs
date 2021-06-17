@@ -5,7 +5,6 @@ import           Database.Esqueleto
 import           Fission.Prelude
 
 import           Fission.Challenge.Types
-import           Fission.Error.Types
 import qualified Fission.Random                   as Random
 
 import           Fission.Web.Server.Models        as Models

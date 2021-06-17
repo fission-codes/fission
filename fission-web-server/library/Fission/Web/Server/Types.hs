@@ -715,6 +715,10 @@ instance RecoveryChallenge.Creator Server where
   create userId now =
     runDB $ RecoveryChallenge.create userId now
 
+instance RecoveryChallenge.Retriever Server where
+  retrieve userId =
+    runDB $ RecoveryChallenge.retrieve userId
+
 instance MonadEmail Server where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager
@@ -747,8 +751,7 @@ instance MonadEmail Server where
 
     let
       env = mkClientEnv httpManager sibUrl
-      path = Text.unpack $ Challenge.verificationLink challenge
-      verifyUrl = baseHostUrl { baseUrlPath = path }
+      verifyUrl = baseHostUrl { baseUrlPath = "?challenge" <> Text.unpack (toUrlPiece challenge) }
       emailData = Email.Request
         { templateId = templateId
         , to = [recipient]
