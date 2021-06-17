@@ -13,50 +13,51 @@ import           Servant
 
 import           Fission.Prelude
 
-import qualified Fission.Web.API.Types                  as Fission
+import qualified Fission.Web.API.Types                       as Fission
 
-import qualified Fission.Web.Auth.Token.JWT.Resolver   as Proof
+import qualified Fission.Web.Auth.Token.JWT.Resolver         as Proof
 
-import qualified Fission.Web.Server.Auth                as Auth
-import qualified Fission.Web.Server.Challenge           as Challenge
+import qualified Fission.Web.Server.Auth                     as Auth
+import qualified Fission.Web.Server.Challenge                as Challenge
 import           Fission.Web.Server.Email
-import qualified Fission.Web.Server.Swagger             as Web.Swagger
-import qualified Fission.Web.Server.User                as User
+import qualified Fission.Web.Server.RecoveryChallenge        as RecoveryChallenge
+import qualified Fission.Web.Server.Swagger                  as Web.Swagger
+import qualified Fission.Web.Server.User                     as User
 import           Fission.Web.Server.WNFS
 
-import qualified Fission.Web.Server.Handler.App         as App
-import qualified Fission.Web.Server.Handler.DNS         as DNS
-import qualified Fission.Web.Server.Handler.Heroku      as Heroku
-import qualified Fission.Web.Server.Handler.IPFS        as IPFS
-import qualified Fission.Web.Server.Handler.Ping        as Ping
-import qualified Fission.Web.Server.Handler.User        as User
-import qualified Fission.Web.Server.Heroku.AddOn        as Heroku.AddOn
-import qualified Fission.Web.Server.Swagger.Types       as Swagger
+import qualified Fission.Web.Server.Handler.App              as App
+import qualified Fission.Web.Server.Handler.DNS              as DNS
+import qualified Fission.Web.Server.Handler.Heroku           as Heroku
+import qualified Fission.Web.Server.Handler.IPFS             as IPFS
+import qualified Fission.Web.Server.Handler.Ping             as Ping
+import qualified Fission.Web.Server.Handler.User             as User
+import qualified Fission.Web.Server.Heroku.AddOn             as Heroku.AddOn
+import qualified Fission.Web.Server.Swagger.Types            as Swagger
 
-import           Fission.Web.Server.IPFS.DNSLink        as DNSLink
-import qualified Fission.Web.Server.LoosePin            as LoosePin
+import           Fission.Web.Server.IPFS.DNSLink             as DNSLink
+import qualified Fission.Web.Server.LoosePin                 as LoosePin
 
-import qualified Fission.Web.Server.App                 as App
-import qualified Fission.Web.Server.App.Content         as App.Content
-import qualified Fission.Web.Server.App.Domain          as App.Domain
+import qualified Fission.Web.Server.App                      as App
+import qualified Fission.Web.Server.App.Content              as App.Content
+import qualified Fission.Web.Server.App.Domain               as App.Domain
 
-import qualified  Fission.Web.Server.Handler.Auth.UCAN.Verify as Auth.UCAN.Verify
+import qualified Fission.Web.Server.Handler.Auth.UCAN.Verify as Auth.UCAN.Verify
 
-import           Fission.Web.Server.Types               as Fission
+import           Fission.Web.Server.Types                    as Fission
 
 import           Fission.Web.Server.Handler
-import qualified Fission.Web.Server.Handler.Relay       as Relay
+import qualified Fission.Web.Server.Handler.Relay            as Relay
 import           Fission.Web.Server.Handler.Relay.Types
 
-import qualified Fission.Web.Server.Host.Types          as Web
-import           Fission.Web.Server.IPFS.Cluster        as Cluster
+import qualified Fission.Web.Server.Host.Types               as Web
+import           Fission.Web.Server.IPFS.Cluster             as Cluster
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Reflective
 import           Fission.Web.Server.Relay.Store.Class
 
-import           Fission.Internal.Orphanage.OctetStream ()
-import           Fission.Internal.Orphanage.PlainText   ()
+import           Fission.Internal.Orphanage.OctetStream      ()
+import           Fission.Internal.Orphanage.PlainText        ()
 
 -- | Top level web API type. Handled by 'server'.
 type API    = Swagger.API :<|> Fission.API :<|> LinkWS
@@ -81,6 +82,7 @@ app ::
   , Challenge.Creator         m
   , Challenge.Retriever       m
   , Challenge.Verifier        m
+  , RecoveryChallenge.Creator m
   , MonadDB                 t m
   , MonadLogger             t
   , MonadThrow              t
@@ -123,6 +125,7 @@ server ::
   , Challenge.Creator         m
   , Challenge.Retriever       m
   , Challenge.Verifier        m
+  , RecoveryChallenge.Creator m
   , MonadDB                 t m
   , MonadLogger             t
   , MonadThrow              t
@@ -158,6 +161,7 @@ bizServer ::
   , Challenge.Creator         m
   , Challenge.Retriever       m
   , Challenge.Verifier        m
+  , RecoveryChallenge.Creator m
   , MonadDB                 t m
   , MonadLogger             t
   , MonadThrow              t
