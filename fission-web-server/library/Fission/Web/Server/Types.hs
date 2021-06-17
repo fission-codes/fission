@@ -100,6 +100,7 @@ import           Fission.Web.Server.Challenge              as Challenge
 import qualified Fission.Web.Server.Domain                 as Domain
 import qualified Fission.Web.Server.Email                  as Email
 import           Fission.Web.Server.Email.Class
+import           Fission.Web.Server.RecoveryChallenge      as RecoveryChallenge
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Relay.Store.Class
@@ -710,6 +711,10 @@ instance Challenge.Verifier Server where
   verify challenge =
     runDB $ Challenge.verify challenge
 
+instance RecoveryChallenge.Creator Server where
+  create userId now =
+    runDB $ RecoveryChallenge.create userId now
+
 instance MonadEmail Server where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager
@@ -730,6 +735,29 @@ instance MonadEmail Server where
 
     mapLeft Email.CouldNotSend <$>
       liftIO (runClientM (Email.sendEmail apiKey emailData) env)
+
+  -- TODO philipp: Add another SIB template, another config option for another template ID, refactor existing template id config name, etc.
+  -- Also maybe abstract a small helper function for sending SIB emails
+  sendRecoveryEmail recipient@Email.Recipient { name } challenge = do
+    httpManager      <- asks tlsManager
+    Host baseHostUrl <- asks host
+    Host sibUrl      <- asks sibUrl
+    apiKey           <- asks sibApiKey
+    templateId       <- asks sibTemplateId
+
+    let
+      env = mkClientEnv httpManager sibUrl
+      path = Text.unpack $ Challenge.verificationLink challenge
+      verifyUrl = baseHostUrl { baseUrlPath = path }
+      emailData = Email.Request
+        { templateId = templateId
+        , to = [recipient]
+        , params = Email.TemplateOptions verifyUrl name
+        }
+
+    mapLeft Email.CouldNotSend <$>
+      liftIO (runClientM (Email.sendEmail apiKey emailData) env)
+
 
 pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do
