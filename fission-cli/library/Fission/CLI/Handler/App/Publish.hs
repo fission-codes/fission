@@ -120,10 +120,7 @@ publish
               when open  do
                 liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
 
-              logDebug @Text ">>>>>>>>>>>> BEFORE WATCHING"
-
               when watching do
-                logDebug @Text ">>>>>>>>>>>> STARTED WATCHING"
                 liftIO $ FS.withManager \watchMgr -> do
                   now <- getCurrentTime
                   (hashCache, timeCache) <- atomically do
