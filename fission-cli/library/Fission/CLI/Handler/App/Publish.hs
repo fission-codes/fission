@@ -120,7 +120,10 @@ publish
               when open  do
                 liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
 
+              logDebug @Text ">>>>>>>>>>>> BEFORE WATCHING"
+
               when watching do
+                logDebug @Text ">>>>>>>>>>>> STARTED WATCHING"
                 liftIO $ FS.withManager \watchMgr -> do
                   now <- getCurrentTime
                   (hashCache, timeCache) <- atomically do
@@ -129,7 +132,7 @@ publish
                     return (hashCache, timeCache)
 
                   void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
-                  forever . liftIO $ threadDelay 1_000_000 -- Sleep main thread
+                  liftIO . forever $ threadDelay 1_000_000 -- Sleep main thread
 
               success appURL
 
