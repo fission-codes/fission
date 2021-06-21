@@ -43,7 +43,7 @@ handlerViaChallenge ::
   )
   => ServerT ("did" :> API.SetViaChallenge) m
 
-handlerViaChallenge pk username [challenge] = do
+handlerViaChallenge pk username challenge = do
   Entity userId _ <- Web.Error.ensureMaybe noSuchUsername =<< User.getByUsername username
   challengeStored <- Web.Error.ensureM $ RecoveryChallenge.retrieve userId
 
@@ -57,7 +57,3 @@ handlerViaChallenge pk username [challenge] = do
   where
     noSuchUsername =
       err422 { errBody = "Couldn't find a user with such username" }
-
-handlerViaChallenge _ _ _ = do
-  Web.Error.throw err400
-    { errBody = "Need exactly 1 challenge query parameter" }

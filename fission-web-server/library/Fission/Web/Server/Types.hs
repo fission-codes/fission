@@ -726,7 +726,7 @@ instance MonadEmail Server where
     Host baseHostUrl <- asks host
     Host sibUrl      <- asks sibUrl
     apiKey           <- asks sibApiKey
-    templateId       <- asks sibTemplateId
+    templateId       <- asks sibVerificationEmailTemplateId
 
     let
       env = mkClientEnv httpManager sibUrl
@@ -735,7 +735,7 @@ instance MonadEmail Server where
       emailData = Email.Request
         { templateId = templateId
         , to = [recipient]
-        , params = Email.TemplateOptions verifyUrl name
+        , params = toJSON $ Email.VerificationTemplateOptions verifyUrl name
         }
 
     mapLeft Email.CouldNotSend <$>
@@ -748,15 +748,16 @@ instance MonadEmail Server where
     Host baseHostUrl <- asks host
     Host sibUrl      <- asks sibUrl
     apiKey           <- asks sibApiKey
-    templateId       <- asks sibTemplateId
+    templateId       <- asks sibRecoveryEmailTemplateId
 
     let
       env = mkClientEnv httpManager sibUrl
-      verifyUrl = baseHostUrl { baseUrlPath = "?challenge" <> Text.unpack (toUrlPiece challenge) }
+      path = Text.unpack $ RecoveryChallenge.recoveryLink challenge
+      recoveryUrl = baseHostUrl { baseUrlPath = path }
       emailData = Email.Request
         { templateId = templateId
         , to = [recipient]
-        , params = Email.TemplateOptions verifyUrl name
+        , params = toJSON $ Email.RecoveryTemplateOptions recoveryUrl name
         }
 
     mapLeft Email.CouldNotSend <$>
