@@ -39,7 +39,7 @@ import qualified Network.IPFS.Add.Error                            as IPFS.Add
 import qualified Network.IPFS.Process.Error                        as Process
 import           Network.IPFS.Types                                as IPFS
 
-import qualified Network.WebSockets.Client                         as WS
+import qualified "wss-client" Network.WebSockets.Client            as WS
 import           Servant.API                                       hiding
                                                                    (IsMember)
 import           Servant.Client
