@@ -16,7 +16,6 @@ import           System.Random                             as Random
 
 import           Database.Esqueleto                        as SQL hiding ((<&>))
 
-import           Servant.API
 import           Servant.Client
 import qualified Servant.Client.Streaming                  as Stream
 import           Servant.Server.Experimental.Auth
@@ -745,15 +744,15 @@ instance MonadEmail Server where
   -- Also maybe abstract a small helper function for sending SIB emails
   sendRecoveryEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager
-    Host baseHostUrl <- asks host
     Host sibUrl      <- asks sibUrl
     apiKey           <- asks sibApiKey
     templateId       <- asks sibRecoveryEmailTemplateId
+    Host recoverBase <- asks sibRecoveryApp
 
     let
       env = mkClientEnv httpManager sibUrl
       path = Text.unpack $ RecoveryChallenge.recoveryLink challenge
-      recoveryUrl = baseHostUrl { baseUrlPath = path }
+      recoveryUrl = recoverBase { baseUrlPath = path }
       emailData = Email.Request
         { templateId = templateId
         , to = [recipient]

@@ -11,6 +11,7 @@ data Environment = Environment
   , sibUrl                         :: Web.Host       -- ^ Base url for API
   , sibVerificationEmailTemplateId :: SIB.TemplateId -- ^ Verification email template ID
   , sibRecoveryEmailTemplateId     :: SIB.TemplateId -- ^ Recovery email template ID
+  , sibRecoveryApp                 :: Web.Host       -- ^ Recovery app base url to link in recovery emails
   } deriving (Show, Eq)
 
 instance FromJSON Environment where
@@ -19,5 +20,6 @@ instance FromJSON Environment where
     sibUrl                         <- obj .: "base_url"
     sibVerificationEmailTemplateId <- obj .: "verification_email_template_id"
     sibRecoveryEmailTemplateId     <- obj .: "recovery_email_template_id"
+    sibRecoveryApp                 <- obj .: "recovery_app"
 
     return Environment {..}

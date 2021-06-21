@@ -62,6 +62,7 @@ data Config = Config
   , sibUrl                         :: Host
   , sibVerificationEmailTemplateId :: SIB.TemplateId
   , sibRecoveryEmailTemplateId     :: SIB.TemplateId
+  , sibRecoveryApp                 :: Host
   --
   , host                           :: Host
   , machineName                    :: Network.HostName
