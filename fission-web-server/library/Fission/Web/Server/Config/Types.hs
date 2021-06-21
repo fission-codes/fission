@@ -109,6 +109,7 @@ instance Show Config where
     , "  sibUrl                         = " <> show sibUrl
     , "  sibVerificationEmailTemplateId = " <> show sibVerificationEmailTemplateId
     , "  sibRecoveryEmailTemplateId     = " <> show sibRecoveryEmailTemplateId
+    , "  sibRecoveryApp                 = " <> show sibRecoveryApp
     --
     , "  host                           = " <> show host
     , "  machineName                    = " <> machineName
