@@ -716,8 +716,8 @@ instance RecoveryChallenge.Creator Server where
     runDB $ RecoveryChallenge.create userId now
 
 instance RecoveryChallenge.Retriever Server where
-  retrieve userId =
-    runDB $ RecoveryChallenge.retrieve userId
+  retrieve userId now =
+    runDB $ RecoveryChallenge.retrieve userId now
 
 instance MonadEmail Server where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
