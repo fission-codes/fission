@@ -21,17 +21,20 @@ handler ::
   , User.Modifier m
   , User.Retriever m
   , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
   )
   => ServerT API.DID m
 handler =
        handlerAuthenticated
   :<|> handlerViaChallenge
 
+
 handlerAuthenticated :: (MonadTime m, MonadLogger m, MonadThrow m, User.Modifier m) => ServerT ("did" :> API.SetAuthenticated) m
 handlerAuthenticated pk Authorization {about = Entity userID _} = do
   now <- currentTime
   Web.Error.ensureM $ User.updatePublicKey userID pk now
   return NoContent
+
 
 handlerViaChallenge ::
   ( MonadTime m
@@ -40,6 +43,7 @@ handlerViaChallenge ::
   , User.Modifier m
   , User.Retriever m
   , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
   )
   => ServerT ("did" :> API.SetViaChallenge) m
 
@@ -53,6 +57,9 @@ handlerViaChallenge pk username challenge = do
     (Web.Error.throw (NotFound @UserRecoveryChallenge))
 
   Web.Error.ensureM $ User.updatePublicKey userId pk now
+
+  RecoveryChallenge.destroyForUser userId
+
   return NoContent
 
   where

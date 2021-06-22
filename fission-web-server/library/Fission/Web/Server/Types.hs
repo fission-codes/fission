@@ -719,6 +719,10 @@ instance RecoveryChallenge.Retriever Server where
   retrieve userId now =
     runDB $ RecoveryChallenge.retrieve userId now
 
+instance RecoveryChallenge.Destroyer Server where
+  destroyForUser userId =
+    runDB $ RecoveryChallenge.destroyForUser userId
+
 instance MonadEmail Server where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager

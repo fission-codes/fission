@@ -39,6 +39,7 @@ handler ::
   , Challenge.Verifier          m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
   , MonadWNFS                   m
   , MonadTime                   m
   , MonadLogger                 m

@@ -84,6 +84,7 @@ app ::
   , Challenge.Verifier          m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
   , MonadDB                   t m
   , MonadLogger               t
   , MonadThrow                t
@@ -128,6 +129,7 @@ server ::
   , Challenge.Verifier          m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
   , MonadDB                   t m
   , MonadLogger               t
   , MonadThrow                t
@@ -165,6 +167,7 @@ bizServer ::
   , Challenge.Verifier          m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
   , MonadDB                   t m
   , MonadLogger               t
   , MonadThrow                t
