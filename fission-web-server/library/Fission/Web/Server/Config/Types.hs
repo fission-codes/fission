@@ -62,7 +62,7 @@ data Config = Config
   , sibUrl                         :: Host
   , sibVerificationEmailTemplateId :: SIB.TemplateId
   , sibRecoveryEmailTemplateId     :: SIB.TemplateId
-  , sibRecoveryApp                 :: Host
+  , sibRecoveryAppUrl              :: Text
   --
   , host                           :: Host
   , machineName                    :: Network.HostName
@@ -109,7 +109,7 @@ instance Show Config where
     , "  sibUrl                         = " <> show sibUrl
     , "  sibVerificationEmailTemplateId = " <> show sibVerificationEmailTemplateId
     , "  sibRecoveryEmailTemplateId     = " <> show sibRecoveryEmailTemplateId
-    , "  sibRecoveryApp                 = " <> show sibRecoveryApp
+    , "  sibRecoveryAppUrl              = " <> show sibRecoveryAppUrl
     --
     , "  host                           = " <> show host
     , "  machineName                    = " <> machineName

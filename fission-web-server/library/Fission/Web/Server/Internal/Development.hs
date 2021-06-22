@@ -140,7 +140,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     sibUrl                         = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
     sibVerificationEmailTemplateId = SIB.TemplateId 1
     sibRecoveryEmailTemplateId     = SIB.TemplateId 1
-    sibRecoveryApp                 = Host $ BaseUrl Https "nottherealrecoveryapp.io" 443 ""
+    sibRecoveryAppUrl              = "https://nottherealrecoveryapp.io/recover/"
 
 {- | Setup a complete development configuration with all pure defaults set
 
@@ -216,7 +216,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar mach
     sibUrl                         = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
     sibVerificationEmailTemplateId = SIB.TemplateId 1
     sibRecoveryEmailTemplateId     = SIB.TemplateId 1
-    sibRecoveryApp                 = Host $ BaseUrl Https "nottherealrecoveryapp.io" 443 ""
+    sibRecoveryAppUrl              = "https://nottherealrecoveryapp.io/recover/"
 
 
 {- | Setup a complete development configuration.

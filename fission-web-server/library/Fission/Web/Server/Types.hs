@@ -740,19 +740,17 @@ instance MonadEmail Server where
     mapLeft Email.CouldNotSend <$>
       liftIO (runClientM (Email.sendEmail apiKey emailData) env)
 
-  -- TODO philipp: Add another SIB template, another config option for another template ID, refactor existing template id config name, etc.
-  -- Also maybe abstract a small helper function for sending SIB emails
+  -- TODO philipp: maybe abstract a small helper function for sending SIB emails
   sendRecoveryEmail recipient@Email.Recipient { name } challenge = do
     httpManager      <- asks tlsManager
     Host sibUrl      <- asks sibUrl
     apiKey           <- asks sibApiKey
     templateId       <- asks sibRecoveryEmailTemplateId
-    Host recoverBase <- asks sibRecoveryApp
+    recoveryAppUrl   <- asks sibRecoveryAppUrl
 
     let
       env = mkClientEnv httpManager sibUrl
-      path = Text.unpack $ RecoveryChallenge.recoveryLink challenge
-      recoveryUrl = recoverBase { baseUrlPath = path }
+      recoveryUrl = RecoveryChallenge.recoveryLink recoveryAppUrl challenge
       emailData = Email.Request
         { templateId = templateId
         , to = [recipient]

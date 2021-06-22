@@ -1,13 +1,11 @@
 module Fission.Web.Server.Email.SendInBlue.RecoveryTemplateOptions.Types (RecoveryTemplateOptions(..)) where
 
-import           Servant.Client
-
 import           Fission.Prelude
 
 import           Fission.User.Username.Types
 
 data RecoveryTemplateOptions = RecoveryTemplateOptions
-  { recoveryLink :: BaseUrl
+  { recoveryLink :: Text
   , username     :: Username
   }
 
