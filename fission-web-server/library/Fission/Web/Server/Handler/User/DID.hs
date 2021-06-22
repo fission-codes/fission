@@ -44,13 +44,14 @@ handlerViaChallenge ::
   => ServerT ("did" :> API.SetViaChallenge) m
 
 handlerViaChallenge pk username challenge = do
+  now <- currentTime
+
   Entity userId _ <- Web.Error.ensureMaybe noSuchUsername =<< User.getByUsername username
-  challengeStored <- Web.Error.ensureM $ RecoveryChallenge.retrieve userId
+  challengeStored <- Web.Error.ensureM $ RecoveryChallenge.retrieve userId now
 
   when (challengeStored /= challenge)
     (Web.Error.throw (NotFound @UserRecoveryChallenge))
 
-  now <- currentTime
   Web.Error.ensureM $ User.updatePublicKey userId pk now
   return NoContent
 
