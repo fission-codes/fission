@@ -97,7 +97,7 @@ publish
       logDebug $ "📱 Starting single IPFS add locally of " <> displayShow absBuildPath
       logUser @Text "🛫 App publish local preflight"
 
-      CLI.IPFS.Add.dir absBuildPath >>= \case
+      CLI.IPFS.Add.dir (UTF8.wrapIn "\"" absBuildPath) >>= \case
         Left err -> do
           CLI.Error.put' err
           raise err
