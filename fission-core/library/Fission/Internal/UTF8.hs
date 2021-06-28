@@ -22,7 +22,6 @@ module Fission.Internal.UTF8
   , stripNewline
   , textShow
   , wrapIn
-  , wrapInBS
   ) where
 
 import           Data.Base58String.Bitcoin as BS58.BTC
@@ -93,10 +92,7 @@ stripQuotesLazyBS = stripOptionalPrefixLazyBS "\"" . stripOptionalSuffixLazyBS "
 
 -- | Strip one newline character from the end of a lazy `ByteString`.
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
-stripNewline bs =
-  bs
-    |> Lazy.stripSuffix "\n"
-    |> fromMaybe bs
+stripNewline bs = fromMaybe bs $ Lazy.stripSuffix "\n" bs
 
 -- | Show text.
 textShow :: Show a => a -> Text
@@ -106,7 +102,7 @@ textShow = textDisplay . displayShow
 stripNBS :: Natural -> Lazy.ByteString -> Lazy.ByteString
 stripNBS n bs =
   bs
-    |> Lazy.take ((Lazy.length bs) - i)
+    |> Lazy.take (Lazy.length bs - i)
     |> Lazy.drop i
   where
     i :: Int64
@@ -130,9 +126,6 @@ putTextLn txt = putText $ txt <> "\n"
 putNewline :: MonadIO m => m ()
 putNewline = putText "\n"
 
--- | Wrap text with some other piece of text.
-wrapIn :: Text -> Text -> Text
+-- | Wrap text with some other piece of text
+wrapIn :: Semigroup s => s -> s -> s
 wrapIn wrapper txt = wrapper <> txt <> wrapper
-
-wrapInBS :: ByteString -> ByteString -> ByteString
-wrapInBS wrapper bs = wrapper <> bs <> wrapper
