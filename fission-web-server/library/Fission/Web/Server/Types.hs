@@ -150,7 +150,7 @@ instance HTTP.MonadHttp Server where
   -- TODO switch to MonadRaise.raise when that's available in this package
   handleHttpException = \case
     HTTP.VanillaHttpException httpException -> throwM httpException
-    HTTP.JsonHttpException txt              ->  throwM $ JSON.Error txt
+    HTTP.JsonHttpException txt              -> throwM $ JSON.Error txt
 
 instance MonadRelayStore Server where
   getStoreVar = asks linkRelayStoreVar
