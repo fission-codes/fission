@@ -34,7 +34,7 @@ purgeMany :: forall m . MonadHttp m => [URL] -> m (Either NGINX.BatchErrors ())
 purgeMany urls =
   foldM mAcc (Right ()) urls
   where
-    mAcc :: Either BatchErrors () -> URL -> m (Either NGINX.BatchErrors ())
+    mAcc :: Either NGINX.BatchErrors () -> URL -> m (Either NGINX.BatchErrors ())
     mAcc acc url =
       purge url >>= \case
         Right () ->
