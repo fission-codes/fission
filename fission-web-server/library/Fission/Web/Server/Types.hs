@@ -453,6 +453,12 @@ instance MonadAuth Authorization Server where
 instance App.Domain.Initializer Server where
   initial = asks baseAppDomain
 
+instance App.Domain.Retriever Server where
+  allForOwner userID                   = runDB $ allForOwner userID
+  allForApp   appID                    = runDB $ allForApp appID
+  allSiblingsByDomain domain subdomain = runDB $ allSiblingsByDomain domain subdomain
+  primarySibling userID url            = runDB $ primarySibling userID url
+
 instance App.Content.Initializer Server where
   placeholder = asks appPlaceholder
 
@@ -663,8 +669,8 @@ instance App.Modifier Server where
       Left err ->
         return $ relaxedLeft err
 
-      Right (Entity _ AppDomain {..}) ->
-        Domain.getByDomainName appDomainDomainName >>= \case
+      Right (Entity _ AppDomain {appDomainDomainName = domainName', appDomainSubdomain = subdomain'}) ->
+        Domain.getByDomainName domainName' >>= \case
           Left err ->
             return $ openLeft err
 
@@ -688,9 +694,28 @@ instance App.Modifier Server where
                     return $ Error.openLeft err
 
                   Right size ->
-                    DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
-                      Left err -> return $ relaxedLeft err
-                      Right _  -> runDB (App.setCidDB userId url newCID size copyFiles now)
+                    DNSLink.set userId (URL domainName' subdomain') domainZoneId newCID >>= \case
+                      Left err ->
+                        return $ relaxedLeft err
+
+                      Right _ -> do
+                        runDB (App.setCidDB userId url newCID size copyFiles now) >>= \case
+                          Left err ->
+                            return $ relaxedLeft err
+
+                          Right appId -> do
+                            appDomains <- App.Domain.allForApp appId
+
+                            let
+                              urls :: [URL]
+                              urls = appDomains <&> \(Entity _ AppDomain {..}) ->
+                                        URL { domainName = appDomainDomainName
+                                            , subdomain  = appDomainSubdomain
+                                            }
+
+                            NGINX.purgeMany urls >>= \case
+                              Left err -> return $ openLeft err
+                              Right _  -> return $ Right appId
 
 instance App.Destroyer Server where
   destroy uId appId now =

@@ -3,6 +3,7 @@
 module Fission.Web.Server.Error.Class (ToServerError (..)) where
 
 import qualified RIO.ByteString.Lazy                                as Lazy
+import qualified RIO.NonEmpty                                       as NonEmpty
 
 import           Servant.Client                                     (ClientError (..))
 import           Servant.Server                                     as Server
@@ -32,6 +33,8 @@ import           Fission.Web.Auth.Token.JWT.Header.Error            as JWT.Heade
 import           Fission.Web.Auth.Token.JWT.Proof.Error             as JWT.Proof
 import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resolver
 import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
+
+import qualified Fission.Web.Server.Internal.NGINX.Purge.Error      as NGINX
 
 import           Fission.Internal.Orphanage.ClientError             ()
 
@@ -183,3 +186,9 @@ instance ToServerError JWT.Error where
     HeaderError    err -> toServerError err
     ClaimsError    err -> toServerError err
     SignatureError err -> toServerError err
+
+instance ToServerError NGINX.Error where
+  toServerError = NGINX.serverError
+
+instance ToServerError NGINX.BatchErrors where
+  toServerError (NGINX.BatchErrors errs) = NonEmpty.head errs

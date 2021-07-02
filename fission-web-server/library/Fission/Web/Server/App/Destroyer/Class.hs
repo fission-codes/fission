@@ -13,6 +13,7 @@ import           Fission.URL
 
 import qualified Fission.Web.Server.AWS.Zone.Types                  as AWS
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
+import qualified Fission.Web.Server.Internal.NGINX.Purge            as NGINX
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Ownership
@@ -29,6 +30,7 @@ type Errors' = OpenUnion
 
    , NotFound AWS.ZoneID
 
+   , NGINX.Error
    , ServerError
    ]
 

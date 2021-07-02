@@ -15,6 +15,7 @@ import           Fission.Error                                      as Error
 import           Fission.URL
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
+import qualified Fission.Web.Server.Internal.NGINX.Purge            as NGINX
 import           Fission.Web.Server.Models
 
 type Errors' = OpenUnion
@@ -29,6 +30,8 @@ type Errors' = OpenUnion
 
    , IPFS.Pin.Error
    , IPFS.Stat.Error
+
+   , NGINX.BatchErrors
 
    , ServerError
    , InvalidURL
