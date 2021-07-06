@@ -102,6 +102,8 @@ import           Fission.Internal.Orphanage.CID                    ()
 import           Fission.CLI.PubSub
 import           Fission.CLI.Remote
 
+import           Fission.CLI.GitHub.Class                          as GitHub
+
 import           Fission.CLI.PubSub.Secure.Class
 import qualified Fission.CLI.PubSub.Secure.Payload.AES.Types       as AES
 import           Fission.CLI.PubSub.Secure.Payload.Class
@@ -186,6 +188,22 @@ instance
       remote  <- getRemote
 
       liftIO . runClientM req . mkClientEnv manager $ toBaseUrl remote
+
+instance
+  ( Contains errs errs
+  , Display (OpenUnion errs)
+  , IsMember SomeException errs
+
+  , HasField' "httpManager" cfg HTTP.Manager
+  , HasLogFunc              cfg
+  )
+  => MonadGitHub (FissionCLI errs cfg) where
+  sendRequest req =
+    CLI.withLoader 50_000 do
+      manager <- asks $ getField @"httpManager"
+
+      logDebug @Text "🐱🐙 Making request to GitHub"
+      liftIO . runClientM req . mkClientEnv manager $ BaseUrl Https "github.com" 443 ""
 
 instance MonadTime (FissionCLI errs cfg) where
   currentTime = liftIO getCurrentTime

@@ -8,13 +8,7 @@ import           RIO.FilePath
 
 import           Fission.Prelude
 
-forceWrite ::
-  ( MonadIO     m
-  , MonadLogger m
-  )
-  => FilePath
-  -> ByteString
-  -> m ()
+forceWrite :: (MonadIO m, MonadLogger m) => FilePath -> ByteString -> m ()
 forceWrite path bs = do
   logDebug $ "✍️  Writing to " <> Text.pack path
   createDirectoryIfMissing True $ dropFileName path

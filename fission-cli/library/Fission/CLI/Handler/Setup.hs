@@ -19,13 +19,14 @@ import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Client                          as Client
-import           Fission.Web.Client.HTTP.Class
 import qualified Fission.Web.Client.User                     as User
 
 import           Fission.CLI.Display.Error                   as CLI.Error
 
 import           Fission.CLI.Environment                     as Env
 import qualified Fission.CLI.Environment.OS                  as OS
+
+import           Fission.CLI.GitHub.Class                    as GitHub
 import           Fission.CLI.Remote
 
 import qualified Fission.CLI.User                            as User
@@ -46,7 +47,7 @@ import qualified Fission.CLI.WebNative.FileSystem.Auth.Store as WNFS
 setup ::
   ( MonadIO          m
   , MonadLocalIPFS   m
-  , MonadManagedHTTP m
+  , MonadGitHub      m
   , MonadWebAuth     m (SecretKey SigningKey)
   , m `Raises` AlreadyExists DID
   , m `Raises` AlreadyExists Env
@@ -85,16 +86,19 @@ setup maybeOS maybeUsername maybeEmail maybeKeyFile = do
         Just keyFile -> do
           logDebug $ "🔑 Got a Keyfile: " <> keyFile
           Key.Store.fromFile (Proxy @SigningKey) keyFile
+
           attempt (sendAuthedRequest RootCredential User.whoami) >>= \case
             Left err -> do
               CLI.Error.put err "Invalid key file provided."
               raise err
+
             Right username -> do
               baseURL <- getRemoteBaseUrl
               signingPK  <- Key.Store.fetchPublic (Proxy @SigningKey)
               _ <- WNFS.create (DID Key $ Ed25519PublicKey signingPK) "/"
               Env.init username baseURL Nothing
               Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"
+
         Nothing -> do
           void . Key.Store.create $ Proxy @SigningKey
           username <- do

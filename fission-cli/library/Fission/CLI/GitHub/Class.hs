@@ -1,4 +1,4 @@
-module Fission.CLI.GitHub.Class where
+module Fission.CLI.GitHub.Class (MonadGitHub (..)) where
 
 import           Fission.Prelude
 import           Servant.Client
