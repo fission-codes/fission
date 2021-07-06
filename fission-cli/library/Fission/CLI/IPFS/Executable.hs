@@ -38,6 +38,7 @@ import qualified Fission.CLI.IPFS.Configure             as IPFS.Config
 import qualified Fission.CLI.IPFS.Version.Types         as IPFS
 
 import           Fission.CLI.IPFS.Download.GitHub.Types
+import qualified Fission.CLI.IPFS.Release.Types         as IPFS
 
 import           Fission.CLI.GitHub.Class               as GitHub
 
@@ -95,9 +96,10 @@ download ::
   , m `Raises` ClientError
   )
   => IPFS.Version
+  -> OS.Supported
   -> FilePath
   -> m ()
-download ipfsVersion ipfsPath = do
+download version os ipfsPath = do
   -- Environment
   IPFS.BinPath ipfsPath <- Path.globalIPFSBin
   tmp                   <- Path.globalTmpDir
@@ -116,7 +118,7 @@ download ipfsVersion ipfsPath = do
     baseUrl = BaseUrl Https "github.com" 443 ""
 
     foo :: ClientM Lazy.ByteString
-    foo = client (Proxy @GetRelease) ipfsVersion "dhsaj" -- FIXME
+    foo = client (Proxy @GetRelease) version IPFS.Release {..} -- FIXME abstract out to own module
 
     tmpTar :: FilePath
     tmpTar = "go-ipfs-release.tar.gz"

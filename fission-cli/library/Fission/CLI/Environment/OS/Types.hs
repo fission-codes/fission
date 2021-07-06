@@ -9,5 +9,5 @@ data Supported
 
 instance Display Supported where
   display = \case
-    Linux -> "linux"
-    MacOS -> "darwin"
+    Linux -> "Linux"
+    MacOS -> "macOS"
