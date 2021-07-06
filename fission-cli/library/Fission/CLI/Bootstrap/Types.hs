@@ -17,6 +17,7 @@ newtype BootstrapT cfg m a = BootstrapT { runBootstrapT :: m a }
 instance MonadManagedHTTP m => MonadManagedHTTP (BootstrapT cfg m) where
   getHTTPManager = BootstrapT getHTTPManager
 
+-- FIXME marked for deletion
 instance
   ( MonadIO          m
   , MonadLogger      m
