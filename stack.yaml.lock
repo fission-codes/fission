@@ -82,6 +82,13 @@ packages:
   original:
     hackage: servant-websockets-2.0.0
 - completed:
+    hackage: streamly-0.8.0@sha256:9784c80ee1ada51477520cabc4e92a0c76a6bb265f968a188f2fce818e7398e0,19654
+    pantry-tree:
+      size: 21676
+      sha256: 42c3843e920955b647a25a125c090efa72e024d1ef73d8e3ccf5710dc9217940
+  original:
+    hackage: streamly-0.8.0
+- completed:
     hackage: unliftio-core-0.1.2.0@sha256:b0a7652ffce2284a6cebe05c99eb60573a8fb6631163f34b0b30a80b4a78cb23,1081
     pantry-tree:
       size: 328

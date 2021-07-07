@@ -19,6 +19,7 @@ extra-deps:
   - servant-multipart-client-0.12.1
   - servant-swagger-ui-redoc-0.3.4.1.22.3
   - servant-websockets-2.0.0
+  - streamly-0.8.0 # Nicer API, waiting for Stackage to upgrade
   - unliftio-core-0.1.2.0
 
   # Waiting for github to make it back into Stackage LTS 18
