@@ -725,44 +725,43 @@ instance RecoveryChallenge.Destroyer Server where
 
 instance MonadEmail Server where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
-    httpManager      <- asks tlsManager
     Host baseHostUrl <- asks host
-    Host sibUrl      <- asks sibUrl
-    apiKey           <- asks sibApiKey
     templateId       <- asks sibVerificationEmailTemplateId
 
     let
-      env = mkClientEnv httpManager sibUrl
       path = Text.unpack $ Challenge.verificationLink challenge
       verifyUrl = baseHostUrl { baseUrlPath = path }
-      emailData = Email.Request
+      email = Email.Request
         { templateId = templateId
         , to = [recipient]
         , params = toJSON $ Email.VerificationTemplateOptions verifyUrl name
         }
 
-    mapLeft Email.CouldNotSend <$>
-      liftIO (runClientM (Email.sendEmail apiKey emailData) env)
+    sendSIBEmail email
 
-  -- TODO philipp: maybe abstract a small helper function for sending SIB emails
   sendRecoveryEmail recipient@Email.Recipient { name } challenge = do
-    httpManager      <- asks tlsManager
-    Host sibUrl      <- asks sibUrl
-    apiKey           <- asks sibApiKey
     templateId       <- asks sibRecoveryEmailTemplateId
     recoveryAppUrl   <- asks sibRecoveryAppUrl
 
     let
-      env = mkClientEnv httpManager sibUrl
       recoveryUrl = RecoveryChallenge.recoveryLink recoveryAppUrl challenge
-      emailData = Email.Request
+      email = Email.Request
         { templateId = templateId
         , to = [recipient]
         , params = toJSON $ Email.RecoveryTemplateOptions recoveryUrl name
         }
 
-    mapLeft Email.CouldNotSend <$>
-      liftIO (runClientM (Email.sendEmail apiKey emailData) env)
+    sendSIBEmail email
+
+
+sendSIBEmail :: (MonadReader Config m, MonadIO m) => Email.Request -> m (Either Email.CouldNotSend Email.Response)
+sendSIBEmail email = do
+  httpManager      <- asks tlsManager
+  Host sibUrl      <- asks sibUrl
+  apiKey           <- asks sibApiKey
+
+  mapLeft Email.CouldNotSend <$>
+    liftIO (runClientM (Email.sendEmail apiKey email) (mkClientEnv httpManager sibUrl))
 
 
 pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
