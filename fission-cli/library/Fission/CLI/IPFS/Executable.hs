@@ -88,7 +88,7 @@ unpack tarGz = do
   tmp                   <- Path.globalTmpDir
 
   let
-    tmpTar      = tmp </> "go-ipfs-release.tar.gz"
+    tmpTar      = tmp </> "go-ipfs-release.tar"
     source      = Turtle.decodeString (tmp </> "go-ipfs" </> "ipfs")
     destination = Turtle.decodeString ipfsPath
 
