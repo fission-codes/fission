@@ -1,5 +1,5 @@
 -- | Module for DEPRECATED Ed25519 DID encoding format
-module Fission.User.DID.Oldstyle.Types where
+module Fission.User.DID.Oldstyle.Types (Oldstyle (..)) where
 
 import qualified RIO.ByteString                as BS
 

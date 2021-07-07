@@ -40,7 +40,7 @@ jobs:
 
     - name: 📦 Install dependencies
       run: |
-        stack build --no-nix --only-dependencies
+        stack build --no-nix --only-dependencies || true
 
     - name: 🏗️  Build
       run: |
