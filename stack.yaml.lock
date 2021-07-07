@@ -68,10 +68,10 @@ packages:
   original:
     hackage: servant-multipart-client-0.12.1
 - completed:
-    hackage: servant-swagger-ui-redoc-0.3.4.1.22.3@sha256:c19967101d9205b1a936fad254f22f02c471953c10b1137364a4589e121f0562,1474
+    hackage: servant-swagger-ui-redoc-0.3.4.1.22.3@sha256:538695996d0f925d2b7ac378c25eaff0cef6ca973afbdefb41db6b0ad133d0f0,1544
     pantry-tree:
       size: 381
-      sha256: 854dc59f86a3d1c30f48c9be287dcba7dbdaf482f4488d8d94884ff577678cc3
+      sha256: 80f93d1bbdca9c08254642ed3b539172425d204cf1ffad288d02be33670f2d66
   original:
     hackage: servant-swagger-ui-redoc-0.3.4.1.22.3
 - completed:
@@ -111,7 +111,7 @@ packages:
     hackage: http-link-header-1.0.3.1
 snapshots:
 - completed:
-    size: 585392
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/1.yaml
-    sha256: 4e4c5e435a2f1c6f3c650f282db0f387f806406ed4fe6ef1aa4e6add9035d065
-  original: lts-18.1
+    size: 585393
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/0.yaml
+    sha256: c632012da648385b9fa3c29f4e0afd56ead299f1c5528ee789058be410e883c0
+  original: lts-18.0
