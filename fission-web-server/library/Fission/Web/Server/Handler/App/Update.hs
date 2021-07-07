@@ -16,6 +16,9 @@ import           Fission.Web.Server.Error                   as Web.Error
 
 -- 🌐
 
+import qualified RIO.NonEmpty                               as NonEmpty
+
+import           Servant.Types.SourceT
 import qualified Streamly.Prelude                           as Streamly
 
 import           Network.IPFS.Client.Streaming.Pin
@@ -49,29 +52,41 @@ update url newCID copyDataFlag Authorization {about = Entity userId _} = do
     copyFiles :: Bool
     copyFiles = maybe True identity copyDataFlag
 
-updateStreaming :: (MonadLogger m, MonadThrow m, MonadTime m, App.Modifier m) => ServerT (API.App.StreamingUpdate m) m
-updateStreaming url newCID Authorization {about = Entity userId _} = do
+-- CID -> Authorization -> m (SourceT IO Natural)
+updateStreaming ::
+  ( MonadIO m
+  , MonadLogger m
+  , MonadThrow m
+  , MonadTime m
+  , App.Modifier m
+  , MonadIPFSCluster m PinStatus
+  )
+  => ServerT (API.App.StreamingUpdate m) m
+updateStreaming  url newCID Authorization {about = Entity userId _} = do
+-- updateStreaming newCID Authorization {about = Entity userId _} = do
+-- updateStreaming = do
   now <- currentTime
 
-  pseudoStreams <- streamCluster $ (Streaming.client $ Proxy @PinComplete) newCID (Just True)
+  pseudoStreams <- streamCluster $ (Streaming.client $ Proxy @PinComplete) undefined (Just True)
+  -- pseudoStreams <- streamCluster $ (Streaming.client $ Proxy @PinComplete) newCID (Just True)
 
   let
     asyncRefs = fst <$> pseudoStreams
     chans     = snd <$> pseudoStreams
 
   status       <- liftIO . newTVarIO $ Uploading 0
-  asyncUpdates <- for chans \statusChan -> withAsync (action statusChan status) pure
+  asyncUpdates <- for chans \statusChan -> liftIO $ withAsync (action statusChan status) pure
 
-  status
-    |> readTVarIO
-    |> liftIO
-    |> Streamly.repeatM
-    |> Streamly.takeWhile isUploading
-    |> Streamly.finally (cancel <$> asyncUpdates)
-    |> Streamly.fromSerial
+--   status
+--     |> readTVarIO
+--     |> liftIO
+--     |> Streamly.repeatM
+--     |> Streamly.takeWhile isUploading
+--     |> Streamly.finally (cancel <$> asyncUpdates)
+--     |> Streamly.fromSerial
  --   |> toSourceIO
 
-  return $ return 1
+  return undefined --  (source [1] :: SourceIO Natural)
 
 isUploading :: UploadStatus -> Bool
 isUploading = \case
@@ -110,3 +125,10 @@ data UploadStatus
   = Failed
   | Uploading Natural
   | Done
+
+-- class ToSourceIO chunk a | a -> chunk where
+
+instance ToSourceIO a (SerialT a) where
+  -- toSourceIO :: SerialT a -> SourceIO a
+  toSourceIO serialStream = do
+    StreamT \k -> do

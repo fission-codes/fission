@@ -18,4 +18,5 @@ type StreamingUpdate m
   :> Capture    "New CID"   IPFS.CID
   --
   :> Auth.HigherOrder
+  -- :> Stream 'PATCH 200 NewlineFraming JSON (SourceIO Natural) -- FIXME better type
   :> Stream 'PATCH 200 NewlineFraming JSON (SourceT m Natural) -- FIXME better type
