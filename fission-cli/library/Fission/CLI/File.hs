@@ -1,6 +1,7 @@
-module Fission.CLI.File (forceWrite) where
+module Fission.CLI.File (forceWrite, lazyForceWrite) where
 
-import qualified RIO.Text        as Text
+import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.Text            as Text
 
 import           RIO.Directory
 import           RIO.File
@@ -13,3 +14,10 @@ forceWrite path bs = do
   logDebug $ "✍️  Writing to " <> Text.pack path
   createDirectoryIfMissing True $ dropFileName path
   writeBinaryFileDurableAtomic path bs
+
+
+lazyForceWrite :: (MonadIO m, MonadLogger m) => FilePath -> Lazy.ByteString -> m ()
+lazyForceWrite path bs = do
+  logDebug $ "✍️  Writing to " <> Text.pack path
+  createDirectoryIfMissing True $ dropFileName path
+  Lazy.writeFile path bs

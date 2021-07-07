@@ -23,6 +23,8 @@ import           Servant.Client
 
 import           Fission.Prelude
 
+import           Fission.Error.NotFound.Types
+
 import           Fission.CLI.Environment        as Env
 import qualified Fission.CLI.Environment.OS     as OS
 import qualified Fission.CLI.Environment.Path   as Path
@@ -66,7 +68,15 @@ place' ::
   -> m ()
 place' host = do
   logUser $ "🪐 Downloading managed IPFS for " <> textDisplay host
-  unpack =<< download (IPFS.Version 0 9 0) host
+  IPFS.BinPath ipfsPath <- Path.globalIPFSBin
+
+  -- Network
+  ipfsBin <- ensure . unpack =<< download (IPFS.Version 0 9 0) host
+
+  logDebug @Text "🚎 Moving IPFS into place..."
+  File.lazyForceWrite ipfsPath ipfsBin
+  void $ Turtle.chmod Turtle.executable $ Turtle.decodeString ipfsPath
+
   configure
 
 download ::
@@ -82,30 +92,26 @@ download version os = do
   logDebug $ "⬇️  Downloading go-ipfs " <> display version <> " for " <> display os
   ensureM . GitHub.sendRequest $ IPFS.getRelease IPFS.Release {..}
 
-unpack :: (MonadIO m, MonadLogger m, MonadEnvironment m) => Lazy.ByteString -> m ()
+unpack ::
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadEnvironment m
+  )
+  => Lazy.ByteString
+  -> m (Either (NotFound FilePath) Lazy.ByteString)
 unpack tarGz = do
-  IPFS.BinPath ipfsPath <- Path.globalIPFSBin
-  tmp                   <- Path.globalTmpDir
-
-  let
-    tmpTar      = tmp </> "go-ipfs-release.tar"
-    source      = Turtle.decodeString (tmp </> "go-ipfs" </> "ipfs")
-    destination = Turtle.decodeString ipfsPath
-
-  -- FileSystem
-  logDebug @Text "💗 Decompressing archive..."
-  File.forceWrite tmpTar (Lazy.toStrict $ GZip.decompress tarGz)
-
-  logDebug @Text "🦖 Untarring..."
-  liftIO $ Tar.extract tmp tmpTar
-  void $ Turtle.chmod Turtle.executable source
-
-  logDebug @Text "🚎 Moving IPFS into place..."
-  createDirectoryIfMissing True $ dropFileName ipfsPath
-  Turtle.mv source destination
-
-  logDebug @Text "🧹 Cleaning up..."
-  Turtle.rmtree $ Turtle.decodeString tmp
+  logDebug @Text "💗 Unpacking archive..."
+  tarGz
+    |> GZip.decompress
+    |> Tar.read
+    |> Tar.foldEntries getIPFS (Left NotFound) (\_ -> Left NotFound)
+    |> pure
+  where
+    getIPFS :: Tar.Entry -> Either (NotFound FilePath) Lazy.ByteString -> Either (NotFound FilePath) Lazy.ByteString
+    getIPFS entry acc =
+      case (Tar.entryPath entry, Tar.entryContent entry) of
+        ("/go-ipfs/ipfs", Tar.NormalFile ipfsBin _) -> Right ipfsBin
+        _                                           -> acc
 
 configure ::
   ( MonadEnvironment m
