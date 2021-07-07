@@ -7,8 +7,6 @@ module Fission.CLI.IPFS.Executable
   ) where
 
 import qualified RIO.ByteString.Lazy            as Lazy
-import           RIO.Directory
-import           RIO.FilePath                   (dropFileName, (</>))
 
 import qualified Codec.Archive.Tar              as Tar
 import qualified Codec.Compression.GZip         as GZip
@@ -46,6 +44,7 @@ place ::
   , MonadEnvironment m
   , MonadRescue      m
   , m `Raises` OS.Unsupported
+  , m `Raises` NotFound FilePath
   , m `Raises` ClientError
   , m `Raises` IPFS.Error
   )
@@ -62,6 +61,7 @@ place' ::
   , MonadEnvironment m
   , MonadRescue      m
   , m `Raises` ClientError
+  , m `Raises` NotFound FilePath
   , m `Raises` IPFS.Error
   )
   => OS.Supported
@@ -71,7 +71,7 @@ place' host = do
   IPFS.BinPath ipfsPath <- Path.globalIPFSBin
 
   -- Network
-  ipfsBin <- ensure . unpack =<< download (IPFS.Version 0 9 0) host
+  ipfsBin <- ensureM . unpack =<< download (IPFS.Version 0 9 0) host
 
   logDebug @Text "🚎 Moving IPFS into place..."
   File.lazyForceWrite ipfsPath ipfsBin
@@ -92,13 +92,7 @@ download version os = do
   logDebug $ "⬇️  Downloading go-ipfs " <> display version <> " for " <> display os
   ensureM . GitHub.sendRequest $ IPFS.getRelease IPFS.Release {..}
 
-unpack ::
-  ( MonadIO          m
-  , MonadLogger      m
-  , MonadEnvironment m
-  )
-  => Lazy.ByteString
-  -> m (Either (NotFound FilePath) Lazy.ByteString)
+unpack :: (MonadIO m, MonadLogger m) => Lazy.ByteString -> m (Either (NotFound FilePath) Lazy.ByteString)
 unpack tarGz = do
   logDebug @Text "💗 Unpacking archive..."
   tarGz
@@ -110,8 +104,8 @@ unpack tarGz = do
     getIPFS :: Tar.Entry -> Either (NotFound FilePath) Lazy.ByteString -> Either (NotFound FilePath) Lazy.ByteString
     getIPFS entry acc =
       case (Tar.entryPath entry, Tar.entryContent entry) of
-        ("/go-ipfs/ipfs", Tar.NormalFile ipfsBin _) -> Right ipfsBin
-        _                                           -> acc
+        ("go-ipfs/ipfs", Tar.NormalFile ipfsBin _) -> Right ipfsBin
+        _                                          -> acc
 
 configure ::
   ( MonadEnvironment m

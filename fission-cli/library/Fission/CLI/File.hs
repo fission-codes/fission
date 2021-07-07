@@ -17,7 +17,7 @@ forceWrite path bs = do
 
 
 lazyForceWrite :: (MonadIO m, MonadLogger m) => FilePath -> Lazy.ByteString -> m ()
-lazyForceWrite path bs = do
+lazyForceWrite path lbs = do
   logDebug $ "✍️  Writing to " <> Text.pack path
   createDirectoryIfMissing True $ dropFileName path
-  Lazy.writeFile path bs
+  Lazy.writeFile path lbs
