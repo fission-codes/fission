@@ -64,36 +64,37 @@ type API    = Swagger.API :<|> Fission.API :<|> LinkWS
 type LinkWS = "user" :> "link" :> RelayWS
 
 app ::
-  ( App.Domain.Initializer      m
-  , App.Content.Initializer     m
-  , App.CRUD                    m
-  , Proof.Resolver              m
-  , MonadReflectiveServer       m
-  , MonadRelayStore             m
-  , MonadLinkedIPFS             m
-  , MonadIPFSCluster            m PinStatus
-  , MonadRemoteIPFS             m
-  , MonadDNSLink                m
-  , MonadWNFS                   m
-  , MonadLogger                 m
-  , MonadTime                   m
-  , MonadEmail                  m
-  , User.CRUD                   m
-  , Challenge.Creator           m
-  , Challenge.Retriever         m
-  , Challenge.Verifier          m
+  -- ( MonadIPFSCluster m PinStatus -- FIXME abstract out
+  ( App.Domain.Initializer    m
+  , App.Content.Initializer   m
+  , App.CRUD                  m
+  , Proof.Resolver            m
+  , MonadReflectiveServer     m
+  , MonadRelayStore           m
+  , MonadLinkedIPFS           m
+  , MonadIPFSCluster          m PinStatus
+  , MonadRemoteIPFS           m
+  , MonadDNSLink              m
+  , MonadWNFS                 m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadEmail                m
+  , User.CRUD                 m
+  , Challenge.Creator         m
+  , Challenge.Retriever       m
+  , Challenge.Verifier        m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
   , RecoveryChallenge.Destroyer m
-  , MonadDB                   t m
-  , MonadLogger               t
-  , MonadThrow                t
-  , Heroku.AddOn.CRUD         t
-  , LoosePin.CRUD             t
-  , User.Retriever            t
-  , User.Destroyer            t
-  , App.Retriever             t
-  , App.Domain.Retriever      t
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , LoosePin.CRUD           t
+  , User.Retriever          t
+  , User.Destroyer          t
+  , App.Retriever           t
+  , App.Domain.Retriever    t
   )
   => (forall a . m a -> Handler a)
   -> Context Auth.Checks
@@ -109,36 +110,37 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  ( App.Domain.Initializer      m
-  , App.Content.Initializer     m
-  , App.CRUD                    m
-  , Proof.Resolver              m
-  , MonadReflectiveServer       m
-  , MonadRelayStore             m
-  , MonadLinkedIPFS             m
-  , MonadRemoteIPFS             m
-  , MonadIPFSCluster            m PinStatus
-  , MonadDNSLink                m
-  , MonadWNFS                   m
-  , MonadLogger                 m
-  , MonadTime                   m
-  , MonadEmail                  m
-  , User.CRUD                   m
-  , Challenge.Creator           m
-  , Challenge.Retriever         m
-  , Challenge.Verifier          m
+  -- ( MonadIPFSCluster m PinStatus -- FIXME abstract out
+  ( App.Domain.Initializer    m
+  , App.Content.Initializer   m
+  , App.CRUD                  m
+  , Proof.Resolver            m
+  , MonadReflectiveServer     m
+  , MonadRelayStore           m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadIPFSCluster          m PinStatus
+  , MonadDNSLink              m
+  , MonadWNFS                 m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadEmail                m
+  , User.CRUD                 m
+  , Challenge.Creator         m
+  , Challenge.Retriever       m
+  , Challenge.Verifier        m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
   , RecoveryChallenge.Destroyer m
-  , MonadDB                   t m
-  , MonadLogger               t
-  , MonadThrow                t
-  , Heroku.AddOn.CRUD         t
-  , LoosePin.CRUD             t
-  , User.Retriever            t
-  , User.Destroyer            t
-  , App.Retriever             t
-  , App.Domain.Retriever      t
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , LoosePin.CRUD           t
+  , User.Retriever          t
+  , User.Destroyer          t
+  , App.Retriever           t
+  , App.Domain.Retriever    t
   )
   => Web.Host
   -> ServerT API m
@@ -148,35 +150,36 @@ server appHost
   :<|> Relay.relay
 
 bizServer ::
-  ( App.Domain.Initializer      m
-  , App.Content.Initializer     m
-  , App.CRUD                    m
-  , Proof.Resolver              m
-  , MonadReflectiveServer       m
-  , MonadLinkedIPFS             m
-  , MonadRemoteIPFS             m
-  , MonadIPFSCluster            m PinStatus
-  , MonadDNSLink                m
-  , MonadWNFS                   m
-  , MonadLogger                 m
-  , MonadTime                   m
-  , MonadEmail                  m
-  , User.CRUD                   m
+ --  ( MonadIPFSCluster m PinStatus -- FIXME abstract out
+  ( App.Domain.Initializer    m
+  , App.Content.Initializer   m
+  , App.CRUD                  m
+  , Proof.Resolver            m
+  , MonadReflectiveServer     m
+  , MonadLinkedIPFS           m
+  , MonadRemoteIPFS           m
+  , MonadIPFSCluster          m PinStatus
+  , MonadDNSLink              m
+  , MonadWNFS                 m
+  , MonadLogger               m
+  , MonadTime                 m
+  , MonadEmail                m
+  , User.CRUD                 m
   , Challenge.Creator           m
   , Challenge.Retriever         m
   , Challenge.Verifier          m
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
   , RecoveryChallenge.Destroyer m
-  , MonadDB                   t m
-  , MonadLogger               t
-  , MonadThrow                t
-  , Heroku.AddOn.CRUD         t
-  , LoosePin.CRUD             t
-  , User.Retriever            t
-  , User.Destroyer            t
-  , App.Retriever             t
-  , App.Domain.Retriever      t
+  , MonadDB                 t m
+  , MonadLogger             t
+  , MonadThrow              t
+  , Heroku.AddOn.CRUD       t
+  , LoosePin.CRUD           t
+  , User.Retriever          t
+  , User.Destroyer          t
+  , App.Retriever           t
+  , App.Domain.Retriever    t
   )
   => ServerT Fission.API m
 bizServer = IPFS.handler

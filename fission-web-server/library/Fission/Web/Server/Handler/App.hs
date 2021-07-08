@@ -18,8 +18,14 @@ import qualified Fission.Web.Server.Handler.App.Destroy as Destroy
 import qualified Fission.Web.Server.Handler.App.Index   as Index
 import qualified Fission.Web.Server.Handler.App.Update  as Update
 
+
+
+import           Fission.Web.Server.IPFS.Cluster.Class
+import           Network.IPFS.Client.Streaming.Pin
+
 handler ::
-  ( App.Domain.Initializer  m
+  ( MonadIPFSCluster m PinStatus -- FIXME abstract out
+  , App.Domain.Initializer  m
   , App.CRUD                m
   , App.Content.Initializer m
   , MonadTime               m
@@ -33,4 +39,5 @@ handler ::
 handler = Index.index
      :<|> Create.create
      :<|> Update.update
+     :<|> Update.updateStreaming
      :<|> Destroy.handler
