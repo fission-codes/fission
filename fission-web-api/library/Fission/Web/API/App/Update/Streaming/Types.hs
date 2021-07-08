@@ -10,6 +10,13 @@ import           Fission.URL.Types
 import qualified Fission.Web.API.Auth.Types as Auth
 import           Fission.Web.API.Prelude
 
+
+
+
+
+import           Servant.Types.SourceT      as S
+import           Streamly.Prelude
+
 type StreamingUpdate
   = Summary "" -- FIXME
   :> Description "" -- FIXME
@@ -19,4 +26,17 @@ type StreamingUpdate
   --
   :> Auth.HigherOrder
   -- :> Stream 'PATCH 200 NewlineFraming JSON (SourceIO Natural) -- FIXME better type
-  :> Stream 'PATCH 200 NewlineFraming JSON (SourceIO Natural) -- FIXME better type
+  -- :> Stream 'PATCH 200 NewlineFraming JSON (SourceIO Natural) -- FIXME better type
+  :> Stream 'PATCH 200 NewlineFraming JSON (SourceIO UploadStatus) -- FIXME better type
+
+
+isUploading :: UploadStatus -> Bool
+isUploading = \case
+  Uploading _ -> True
+  _           -> False
+
+
+data UploadStatus
+  = Failed
+  | Uploading Natural
+  | Done

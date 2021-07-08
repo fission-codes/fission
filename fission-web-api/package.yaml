@@ -96,6 +96,7 @@ dependencies:
 
   ## Data ##
   - swagger2
+  - streamly
   - uuid
 
   ## Fission
