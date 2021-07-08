@@ -95,8 +95,6 @@ mayOS :: ReadM (Maybe OS.Supported)
 mayOS = do
   raw <- str
   case Text.toLower raw of
-    "nix"   -> pure $ Just NixOS
-    "nixos" -> pure $ Just NixOS
     "mac"   -> pure $ Just MacOS
     "macos" -> pure $ Just MacOS
     "linux" -> pure $ Just Linux

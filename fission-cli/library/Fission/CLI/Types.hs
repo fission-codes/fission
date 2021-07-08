@@ -59,7 +59,6 @@ import           Fission.User.DID.Types
 import           Fission.Web.Client.HTTP.Class
 
 import qualified Fission.CLI.Base.Types                            as Base
-import           Fission.CLI.Bootstrap
 import qualified Fission.CLI.Connected.Types                       as Connected
 
 import           Fission.CLI.IPFS.Daemon                           as IPFS.Daemon
@@ -93,15 +92,12 @@ import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.Client
 
-import           Fission.Internal.Orphanage.BaseUrl                ()
 import           Fission.Internal.Orphanage.CID                    ()
-import           Fission.Internal.Orphanage.DNS.DNSError           ()
-import           Fission.Internal.Orphanage.OpenUnion              ()
-
-import           Fission.Internal.Orphanage.ClientError            ()
 
 import           Fission.CLI.PubSub
 import           Fission.CLI.Remote
+
+import           Fission.CLI.GitHub.Class                          as GitHub
 
 import           Fission.CLI.PubSub.Secure.Class
 import qualified Fission.CLI.PubSub.Secure.Payload.AES.Types       as AES
@@ -187,6 +183,22 @@ instance
       remote  <- getRemote
 
       liftIO . runClientM req . mkClientEnv manager $ toBaseUrl remote
+
+instance
+  ( Contains errs errs
+  , Display (OpenUnion errs)
+  , IsMember SomeException errs
+
+  , HasField' "httpManager" cfg HTTP.Manager
+  , HasLogFunc              cfg
+  )
+  => MonadGitHub (FissionCLI errs cfg) where
+  sendRequest req =
+    CLI.withLoader 50_000 do
+      manager <- asks $ getField @"httpManager"
+
+      logDebug @Text "🐱🐙 Making request to GitHub"
+      liftIO . runClientM req . mkClientEnv manager $ BaseUrl Https "github.com" 443 ""
 
 instance MonadTime (FissionCLI errs cfg) where
   currentTime = liftIO getCurrentTime
@@ -811,23 +823,6 @@ instance
         case eitherDecodeStrict resolvedBS of
           Left  _   -> Left $ InvalidJWT resolvedBS
           Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
-
-instance forall cfg errs .
-  ( HasField' "httpManager"   cfg HTTP.Manager
-  , HasField' "ipfsURL"       cfg IPFS.URL
-  , HasField' "ipfsDaemonVar" cfg (MVar (Process () () ()))
-  , HasLogFunc                cfg
-  , HasProcessContext         cfg
-  , SomeException `IsMember` errs
-  , Exception (OpenUnion errs)
-  , Display   (OpenUnion errs)
-  , Contains errs errs
-  )
-  => IPFS.MonadRemoteIPFS (FissionCLI errs cfg) where
-  runRemote query = do
-    logDebug @Text "Running remote IPFS"
-    _ <- IPFS.Daemon.runDaemon
-    runBootstrapT $ runRemote query
 
 instance MonadEnvironment (FissionCLI errs cfg) where
   getGlobalPath = do

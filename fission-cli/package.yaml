@@ -1,5 +1,5 @@
 name: fission-cli
-version: '2.14.3.0'
+version: '2.15.0.0'
 category: CLI
 author:
   - Brooklyn Zelenka
@@ -121,9 +121,11 @@ dependencies:
   - dimensions
   - memory
   - scientific
+  - tar
   - utf8-string
   - versions
   - yaml
+  - zlib
 
   ## Error Handling ##
   - exceptions
