@@ -606,11 +606,11 @@ instance
 
         Turtle.export "IPFS_PATH" $ Text.pack ipfsRepo
 
-        process <- startProcess . fromString $ intercalate " "
+        process <- startProcess . fromString $ unwords
           [ "IPFS_PATH=" <> ipfsRepo
           , "2> /dev/null"
           , ipfsPath
-          , "daemon > /dev/null"
+          , "daemon --migrate > /dev/null"
           ]
 
         logDebug @Text "😈🏁 IPFS daemon started"
