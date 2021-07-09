@@ -4,107 +4,116 @@ module Fission.Web.Server.Types
   , module Fission.Web.Server.Config.Types
   ) where
 
-import           Control.Monad.Catch                       hiding (finally)
+import           Control.Monad.Catch                           hiding (finally)
 import           Control.Monad.Except
 
-import qualified RIO.ByteString.Lazy                       as Lazy
-import           RIO.NonEmpty                              as NonEmpty
-import           RIO.NonEmpty.Partial                      as NonEmpty.Partial
-import qualified RIO.Text                                  as Text
+import qualified RIO.ByteString.Lazy                           as Lazy
+import           RIO.NonEmpty                                  as NonEmpty
+import           RIO.NonEmpty.Partial                          as NonEmpty.Partial
+import qualified RIO.Text                                      as Text
 
-import           System.Random                             as Random
+import qualified Streamly.Prelude                              as Streamly
+import           System.Random                                 as Random
 
-import           Database.Esqueleto                        as SQL hiding ((<&>))
+import           Database.Esqueleto                            as SQL hiding
+                                                                      ((<&>))
 
+import           Servant.API
 import           Servant.Client
-import qualified Servant.Client.Streaming                  as Stream
+import qualified Servant.Client.Streaming                      as Stream
 import           Servant.Server.Experimental.Auth
-import qualified Servant.Types.SourceT                     as Stream
+import qualified Servant.Types.SourceT                         as Stream
 
-import           Network.AWS                               as AWS hiding
-                                                                  (Request,
-                                                                   Seconds)
+import           Network.AWS                                   as AWS hiding
+                                                                      (Request,
+                                                                       Seconds)
 import           Network.AWS.Route53
 
-import qualified Network.IPFS                              as IPFS
-import qualified Network.IPFS.Add.Error                    as IPFS.Pin
+import qualified Network.IPFS                                  as IPFS
+import qualified Network.IPFS.Add.Error                        as IPFS.Pin
 import           Network.IPFS.Client.Streaming.Pin
 import           Network.IPFS.File.Types
-import qualified Network.IPFS.Stat                         as IPFS.Stat
-import qualified Network.IPFS.Types                        as IPFS
+import qualified Network.IPFS.Stat                             as IPFS.Stat
+import qualified Network.IPFS.Types                            as IPFS
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8                     as UTF8
+import qualified Fission.Internal.UTF8                         as UTF8
 
-import           Fission.Error                             as Error
+import           Fission.Error                                 as Error
 import           Fission.Error.GenericError.Types
 import           Fission.Time
 
-import           Fission.Web.Server.AWS.Types              as AWS
+import           Fission.Web.Server.AWS
+import           Fission.Web.Server.AWS.Types                  as AWS
 import           Fission.Web.Server.Models
 
-import qualified Fission.Web.Server.DID.Publicize.Class    as Server.DID
+import qualified Fission.Web.Server.DID.Publicize.Class        as Server.DID
 import           Fission.Web.Server.Host.Types
 
-import           Fission.DNS                               as DNS
-import           Fission.URL                               as URL
+import           Fission.DNS                                   as DNS
+import           Fission.URL                                   as URL
 
 import           Fission.Web.Async
 
-import qualified Fission.Web.Server.App                    as App
-import qualified Fission.Web.Server.App.Destroyer          as App.Destroyer
-import qualified Fission.Web.Server.Error                  as Web.Error
-import           Fission.Web.Server.WNFS                   as WNFS
+import           Fission.Web.API.App.Update.Streaming.Types
 
-import           Fission.Web.Server.IPFS.Cluster           as Cluster
-import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
+import qualified Fission.Web.Server.App                        as App
+import qualified Fission.Web.Server.App.Destroyer              as App.Destroyer
+
+import qualified Fission.Web.Server.Error                      as Web.Error
+import           Fission.Web.Server.WNFS                       as WNFS
+
+import           Fission.Web.Server.IPFS.Cluster               as Cluster
+import           Fission.Web.Server.IPFS.DNSLink               as DNSLink
 import           Fission.Web.Server.IPFS.Linked
 
-import qualified Fission.Web.Server.Heroku.AddOn.Creator   as Heroku.AddOn
-import           Fission.Web.Server.Heroku.Types           as Heroku
+import qualified Fission.Web.Server.Heroku.AddOn.Creator       as Heroku.AddOn
+import           Fission.Web.Server.Heroku.Types               as Heroku
 
-import           Fission.Web.Server.AWS                    as AWS
-import           Fission.Web.Server.AWS.Route53            as Route53
+import           Fission.Web.Server.AWS                        as AWS
+import           Fission.Web.Server.AWS.Route53                as Route53
 import           Fission.Web.Server.Authorization.Types
 
-import           Fission.Web.Server.Auth                   as Auth
-import qualified Fission.Web.Server.Auth.DID               as Auth.DID
-import qualified Fission.Web.Server.Auth.Token             as Auth.Token
+import           Fission.Web.Server.Auth                       as Auth
+import qualified Fission.Web.Server.Auth.DID                   as Auth.DID
+import qualified Fission.Web.Server.Auth.Token                 as Auth.Token
 
 import           Fission.Web.Server.Handler
-import           Fission.Web.Server.Reflective             as Reflective
+import           Fission.Web.Server.Reflective                 as Reflective
 
-import           Fission.User.DID                          as DID
-import qualified Fission.User.DID.Oldstyle.Types           as DID
+import           Fission.User.DID                              as DID
+import qualified Fission.User.DID.Oldstyle.Types               as DID
 
-import qualified Fission.Web.Server.User                   as User
+import qualified Fission.Web.Server.User                       as User
 import           Fission.Web.Server.User.Creator.Class
-import qualified Fission.Web.Server.User.Modifier.Class    as User.Modifier
-import qualified Fission.Web.Server.User.Password          as Password
+import qualified Fission.Web.Server.User.Modifier.Class        as User.Modifier
+import qualified Fission.Web.Server.User.Password              as Password
 
-import qualified Fission.Key                               as Key
+import qualified Fission.Key                                   as Key
 
 import           Fission.Web.Server.MonadDB
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver       as JWT
+import qualified Fission.Web.Auth.Token.JWT.RawContent         as JWT
+import           Fission.Web.Auth.Token.JWT.Resolver           as JWT
 
 import           Fission.Authorization.ServerDID.Class
 
-import           Fission.Web.Server.App.Content            as App.Content
-import           Fission.Web.Server.App.Domain             as App.Domain
+import           Fission.Web.Server.App.Content                as App.Content
+import           Fission.Web.Server.App.Domain                 as App.Domain
 
-import           Fission.Web.Server.Challenge              as Challenge
-import qualified Fission.Web.Server.Domain                 as Domain
-import qualified Fission.Web.Server.Email                  as Email
+import           Fission.Web.Server.Challenge                  as Challenge
+import qualified Fission.Web.Server.Domain                     as Domain
+import qualified Fission.Web.Server.Email                      as Email
 import           Fission.Web.Server.Email.Class
-import           Fission.Web.Server.RecoveryChallenge      as RecoveryChallenge
+import           Fission.Web.Server.RecoveryChallenge          as RecoveryChallenge
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Relay.Store.Class
 
 import           Fission.Web.Server.Config.Types
+
+import           Fission.Web.Server.Internal.Orphanage.SerialT ()
 
 -- | The top-level app type
 newtype Server a = Server { unServer :: RIO Config a }
@@ -676,6 +685,129 @@ instance App.Modifier Server where
                     DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
                       Left err -> return $ relaxedLeft err
                       Right _  -> runDB (App.setCidDB userId url newCID size copyFiles now)
+
+  setCIDStreaming userId url newCID now = do
+    runDB (App.Domain.primarySibling userId url) >>= \case
+      Left err ->
+        undefined -- return $ relaxedLeft err
+
+      Right (Entity _ AppDomain {..}) ->
+        Domain.getByDomainName appDomainDomainName >>= \case
+          Left err ->
+            undefined -- return $ openLeft err
+
+          Right Domain {domainZoneId} -> do
+            status        <- liftIO $ newTVarIO . Right $ BytesReceived 0
+            pseudoStreams <- streamCluster $ (Stream.client $ Proxy @PinComplete) newCID (Just True)
+
+            let (asyncRefs, chans) = NonEmpty.unzip pseudoStreams
+            asyncListeners <- fanIn chans status
+
+            listenForEnd asyncRefs status
+
+            cfg <- ask
+
+            let
+              mainStream :: Streamly.Serial (Either ClientError BytesReceived)
+              mainStream =
+                Streamly.repeatM (readTVarIO status)
+                  |> Streamly.delay 0.500
+                  |> Streamly.takeWhile isRight
+                  |> Streamly.finally do
+                      forM_ asyncListeners cancel
+                      forM_ asyncRefs      cancel
+
+              reportFinalFailure :: Streamly.Serial (Either ClientError BytesReceived)
+              reportFinalFailure =
+                Streamly.takeWhile isLeft $ Streamly.fromListM
+                  [ readTVarIO status -- report any error back to the user immedietly
+                  , readTVarIO status >>= \case -- wrap up internally
+                      Left err ->
+                        undefined -- FIXME
+
+                      Right okVal -> do
+                        runServer cfg $ IPFS.Stat.getSizeRemote newCID >>= \case
+                          Left err ->
+                            undefined -- return $ Error.openLeft err -- FIXME
+
+                          Right size ->
+                            DNSLink.set userId (URL appDomainDomainName appDomainSubdomain) domainZoneId newCID >>= \case
+                              Left err ->
+                                undefined -- return $ relaxedLeft err
+
+                              Right _  ->
+                                runDB (App.setCidDB userId url newCID size True now) >>= \case
+                                  Left err -> undefined
+                                  Right _  -> return $ Right okVal
+                  ]
+
+            return . Stream.mapStepT simplify $ toSourceIO (mainStream <> reportFinalFailure)
+    where
+      listenForEnd ::
+        MonadIO m
+        => NonEmpty (Async (Either ClientError PinStatus))
+        -> TVar (Either ClientError BytesReceived)
+        -> m ()
+      listenForEnd asyncRefs status =
+        liftIO do
+          results <- waitAll asyncRefs
+          when (all isLeft results) do
+            atomically $ writeTVar status
+              case NonEmpty.head results of
+                Right PinStatus {progress} ->
+                  case progress of
+                    Nothing    -> Right $ BytesReceived 0
+                    Just bytes -> Right $ BytesReceived bytes
+
+                Left err
+                  -> Left err
+
+      simplify :: Monad m => Stream.StepT m (Either ClientError BytesReceived) -> Stream.StepT m BytesReceived
+      simplify = \case
+        Stream.Yield (Right byteCount) more -> Stream.Yield byteCount (simplify more)
+        Stream.Yield (Left  err)       _    -> Stream.Error (show err)
+
+        Stream.Skip   more                  -> simplify more
+        Stream.Effect action                -> Stream.Effect $ fmap simplify action
+        Stream.Error  msg                   -> Stream.Error msg
+        Stream.Stop                         -> Stream.Stop
+
+      fanIn ::
+        MonadIO m
+        => NonEmpty (TChan (Either ClientError PinStatus))
+        -> TVar (Either ClientError BytesReceived)
+        -> m (NonEmpty (Async ()))
+      fanIn chans statusVar =
+        forM chans \statusChan -> do
+          liftIO $ withAsync (atomically $ reportBytes statusChan statusVar) pure
+
+      asSerial :: Streamly.Serial a -> Streamly.Serial a
+      asSerial a = a
+
+      reportBytes ::
+        TChan (Either ClientError PinStatus)
+        -> TVar (Either ClientError BytesReceived)
+        -> STM ()
+      reportBytes channel status =
+        readTVar status >>= \case
+          Left _ ->
+            return ()
+
+          Right (BytesReceived lastMax) ->
+            readTChan channel >>= \case
+              Left _ ->
+                return ()
+
+              Right PinStatus {progress} ->
+                case progress of
+                  Nothing ->
+                    return ()
+
+                  Just bytesHere -> do -- FIXME I think it's bytes? Maybe blocks?
+                    when (bytesHere > lastMax) do
+                      writeTVar status . Right $ BytesReceived bytesHere
+
+                    reportBytes channel status
 
 instance App.Destroyer Server where
   destroy uId appId now =
