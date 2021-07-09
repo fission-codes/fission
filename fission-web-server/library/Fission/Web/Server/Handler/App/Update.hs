@@ -18,6 +18,7 @@ import           Fission.Web.Server.Error                      as Web.Error
 
 import qualified RIO.List                                      as List
 import qualified RIO.NonEmpty                                  as NonEmpty
+import qualified RIO.Text                                      as Text
 
 import           Servant.Types.SourceT                         as S
 import qualified Streamly.Prelude                              as Streamly
@@ -71,79 +72,85 @@ updateStreaming ::
   => ServerT API.App.StreamingUpdate m
 updateStreaming  url newCID Authorization {about = Entity userId _} = do
   now           <- currentTime
-  status        <- liftIO . newTVarIO $ Uploading 0 -- FIXME switch to mvar?
+  status        <- liftIO $ newTVarIO . Right $ BytesReceived 0
   pseudoStreams <- streamCluster $ (Streaming.client $ Proxy @PinComplete) newCID (Just True)
 
   let (asyncRefs, chans) = NonEmpty.unzip pseudoStreams
-  asyncListeners <- foo chans status
+  asyncListeners <- fanIn chans status
 
-  let
-    source :: Streamly.SerialT IO (Maybe BytesReceived)
-    source =
-      Streamly.repeatM do
-        sleepThread . Seconds $ Milli @Natural 500
-        readTVarIO status >>= \case
-          Uploading byteCount -> return . Just $ BytesReceived byteCount
-          _                   -> return $ Nothing
+  _ <- liftIO ( pure |> withAsync do
+    results <- waitAll asyncRefs
+    when (all isLeft results) $ atomically do
+      let
+        result' =
+          case NonEmpty.head results of
+            Right PinStatus {progress} ->
+              case progress of
+                Nothing    -> Right $ BytesReceived 0
+                Just bytes -> Right $ BytesReceived bytes
 
-  source
-    |> Streamly.takeWhile isJust
+            Left err
+              -> Left err
+
+      writeTVar status result')
+
+  Streamly.repeatM (readTVarIO status)
+    |> Streamly.delay 0.500
+    |> Streamly.takeWhile isRight
     |> Streamly.finally do
          forM_ asyncListeners cancel
          forM_ asyncRefs      cancel
+         readTVarIO status
+    |> Streamly.take 1
+    |> Streamly.takeWhile isLeft
+    |> asSerial
     |> toSourceIO
-    |> mapStepT go
+    |> mapStepT simplify
     |> pure
 
-  where
-    go :: Monad m => StepT m (Maybe BytesReceived) -> StepT m BytesReceived
-    go = \case
-      S.Yield Nothing          more -> go more
-      S.Yield (Just byteCount) more -> S.Yield byteCount (go more)
+simplify :: Monad m => StepT m (Either ClientError BytesReceived) -> StepT m BytesReceived
+simplify = \case
+  S.Yield (Right byteCount) more -> S.Yield byteCount (simplify more)
+  S.Yield (Left  err)       _    -> S.Error (show err)
 
-      S.Skip   more                 -> go more
-      S.Effect action               -> S.Effect $ fmap go action
-      S.Error  msg                  -> S.Error msg
-      S.Stop                        -> S.Stop
+  S.Skip   more                  -> simplify more
+  S.Effect action                -> S.Effect $ fmap simplify action
+  S.Error  msg                   -> S.Error msg
+  S.Stop                         -> S.Stop
 
-foo ::
+fanIn ::
   MonadIO m
   => NonEmpty (TChan (Either ClientError PinStatus))
-  -> TVar UploadStatus
+  -> TVar (Either ClientError BytesReceived)
   -> m (NonEmpty (Async ()))
-foo chans statusVar =
-  forM chans \statusChan ->
-    liftIO $ withAsync (atomically $ fanIn statusChan statusVar) pure
+fanIn chans statusVar =
+  forM chans \statusChan -> do
+    liftIO $ withAsync (atomically $ reportBytes statusChan statusVar) pure
 
-fanIn :: TChan (Either ClientError PinStatus) -> TVar UploadStatus -> STM ()
-fanIn channel status = go
-  where
-    go :: STM ()
-    go =
-      readTVar status >>= \case
-        Done ->
+asSerial :: Streamly.Serial a -> Streamly.Serial a
+asSerial a = a
+
+reportBytes ::
+  TChan (Either ClientError PinStatus)
+  -> TVar (Either ClientError BytesReceived)
+  -> STM ()
+reportBytes channel status =
+  readTVar status >>= \case
+    Left _ ->
+      return ()
+
+    Right (BytesReceived lastMax) ->
+      readTChan channel >>= \case
+        Left _ ->
           return ()
 
-        Failed ->
-          return ()
+        Right PinStatus {progress} ->
+          case progress of
+            Nothing ->
+              return ()
 
-        Uploading lastMax ->
-          readTChan channel >>= \case
-            Left err ->
-              undefined -- FIXME
+            Just bytesHere -> do -- FIXME I think it's bytes? Maybe blocks?
+              when (bytesHere > lastMax) do
+                writeTVar status . Right $ BytesReceived bytesHere
 
-            Right PinStatus {progress} ->
-              case progress of
-                Nothing ->
-                  return ()
-
-                Just bytesHere -> do -- FIXME I think it's bytes? Maybe blocks?
-                  when (bytesHere > lastMax) do
-                    writeTVar status $ Uploading bytesHere
-
-                  go
-
-data UploadStatus
-  = Failed
-  | Uploading Natural
-  | Done
+              reportBytes channel status

@@ -83,8 +83,9 @@ waitAnySuccessCatchCancel asyncRefs = do
 
 -- | Wait for all cluster peers to complete.
 waitAll :: MonadIO m => NonEmpty (Async (Either ClientError a)) -> m (NonEmpty (Either ClientError a))
-waitAll asyncRefs = liftIO $ forConcurrently  asyncRefs \ref ->
-  normalizeResult <$> waitCatch ref
+waitAll asyncRefs =
+  liftIO $ forConcurrently asyncRefs \ref ->
+    normalizeResult <$> waitCatch ref
 
 normalizeResult :: Either SomeException (Either ClientError a) -> Either ClientError a
 normalizeResult = \case

@@ -7,6 +7,7 @@ import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
+import           Servant.API
 import           Servant.Server
 
 import           Fission.Prelude                                    hiding (on)
@@ -16,6 +17,9 @@ import           Fission.URL
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
+
+-- FIXME onlu the bytesrecieved; extract out!
+import           Fission.Web.API.App.Update.Streaming.Types
 
 type Errors' = OpenUnion
   '[ NotFound App
@@ -42,3 +46,10 @@ class Monad m => Modifier m where
     -> Bool    -- ^ Flag: copy data (default yes)
     -> UTCTime -- ^ Now
     -> m (Either Errors' AppId)
+
+  setCIDStreaming ::
+       UserId
+    -> URL
+    -> CID
+    -> UTCTime
+    -> m (SourceIO BytesReceived)
