@@ -25,6 +25,6 @@ type SetViaChallenge
   --
   :> ReqBody '[JSON] Key.Public
   :> Capture "Username" Username
-  :> QueryParam' '[Required, Strict] "challenge" Challenge
+  :> Capture "Challenge" Challenge
   --
   :> PutNoContent

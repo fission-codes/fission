@@ -41,7 +41,6 @@ import           Fission.Error                             as Error
 import           Fission.Error.GenericError.Types
 import           Fission.Time
 
-import           Fission.Web.Server.AWS
 import           Fission.Web.Server.AWS.Types              as AWS
 import           Fission.Web.Server.Models
 
