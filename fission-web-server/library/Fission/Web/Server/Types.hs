@@ -41,7 +41,6 @@ import           Fission.Error                             as Error
 import           Fission.Error.GenericError.Types
 import           Fission.Time
 
-import           Fission.Web.Server.AWS
 import           Fission.Web.Server.AWS.Types              as AWS
 import           Fission.Web.Server.Models
 
@@ -100,6 +99,7 @@ import           Fission.Web.Server.Challenge              as Challenge
 import qualified Fission.Web.Server.Domain                 as Domain
 import qualified Fission.Web.Server.Email                  as Email
 import           Fission.Web.Server.Email.Class
+import           Fission.Web.Server.RecoveryChallenge      as RecoveryChallenge
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Relay.Store.Class
@@ -710,26 +710,58 @@ instance Challenge.Verifier Server where
   verify challenge =
     runDB $ Challenge.verify challenge
 
+instance RecoveryChallenge.Creator Server where
+  create userId now =
+    runDB $ RecoveryChallenge.create userId now
+
+instance RecoveryChallenge.Retriever Server where
+  retrieve userId now =
+    runDB $ RecoveryChallenge.retrieve userId now
+
+instance RecoveryChallenge.Destroyer Server where
+  destroyForUser userId =
+    runDB $ RecoveryChallenge.destroyForUser userId
+
 instance MonadEmail Server where
   sendVerificationEmail recipient@Email.Recipient { name } challenge = do
-    httpManager      <- asks tlsManager
     Host baseHostUrl <- asks host
-    Host sibUrl      <- asks sibUrl
-    apiKey           <- asks sibApiKey
-    templateId       <- asks sibTemplateId
+    templateId       <- asks sibVerificationEmailTemplateId
 
     let
-      env = mkClientEnv httpManager sibUrl
       path = Text.unpack $ Challenge.verificationLink challenge
       verifyUrl = baseHostUrl { baseUrlPath = path }
-      emailData = Email.Request
+      email = Email.Request
         { templateId = templateId
         , to = [recipient]
-        , params = Email.TemplateOptions verifyUrl name
+        , params = toJSON $ Email.VerificationTemplateOptions verifyUrl name
         }
 
-    mapLeft Email.CouldNotSend <$>
-      liftIO (runClientM (Email.sendEmail apiKey emailData) env)
+    sendSIBEmail email
+
+  sendRecoveryEmail recipient@Email.Recipient { name } challenge = do
+    templateId       <- asks sibRecoveryEmailTemplateId
+    recoveryAppUrl   <- asks sibRecoveryAppUrl
+
+    let
+      recoveryUrl = RecoveryChallenge.recoveryLink recoveryAppUrl challenge
+      email = Email.Request
+        { templateId = templateId
+        , to = [recipient]
+        , params = toJSON $ Email.RecoveryTemplateOptions recoveryUrl name
+        }
+
+    sendSIBEmail email
+
+
+sendSIBEmail :: (MonadReader Config m, MonadIO m) => Email.Request -> m (Either Email.CouldNotSend Email.Response)
+sendSIBEmail email = do
+  httpManager      <- asks tlsManager
+  Host sibUrl      <- asks sibUrl
+  apiKey           <- asks sibApiKey
+
+  mapLeft Email.CouldNotSend <$>
+    liftIO (runClientM (Email.sendEmail apiKey email) (mkClientEnv httpManager sibUrl))
+
 
 pullFromDNS :: [URL] -> Server (Either App.Destroyer.Errors' [URL])
 pullFromDNS urls = do

@@ -75,6 +75,7 @@ default-extensions:
   - OverloadedStrings
   - OverloadedLabels
   - OverloadedLists
+  - PackageImports
   - PostfixOperators
   - RankNTypes
   - RecordWildCards

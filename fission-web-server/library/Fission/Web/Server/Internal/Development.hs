@@ -136,9 +136,11 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"
 
-    sibApiKey     = SIB.ApiKey "SEND_IN_BLUE_API_KEY"
-    sibUrl        = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
-    sibTemplateId = SIB.TemplateId 1
+    sibApiKey                      = SIB.ApiKey "SEND_IN_BLUE_API_KEY"
+    sibUrl                         = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
+    sibVerificationEmailTemplateId = SIB.TemplateId 1
+    sibRecoveryEmailTemplateId     = SIB.TemplateId 1
+    sibRecoveryAppUrl              = "https://nottherealrecoveryapp.io/recover/"
 
 {- | Setup a complete development configuration with all pure defaults set
 
@@ -210,9 +212,12 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar mach
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
     defaultDataCID = IPFS.CID "QmUserData"
 
-    sibApiKey     = SIB.ApiKey "SEND_IN_BLUE_API_KEY"
-    sibUrl        = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
-    sibTemplateId = SIB.TemplateId 1
+    sibApiKey                      = SIB.ApiKey "SEND_IN_BLUE_API_KEY"
+    sibUrl                         = Host $ BaseUrl Https "notreallysendinblue.com" 443 ""
+    sibVerificationEmailTemplateId = SIB.TemplateId 1
+    sibRecoveryEmailTemplateId     = SIB.TemplateId 1
+    sibRecoveryAppUrl              = "https://nottherealrecoveryapp.io/recover/"
+
 
 {- | Setup a complete development configuration.
 

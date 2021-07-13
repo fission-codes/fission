@@ -10,3 +10,4 @@ import           Fission.Web.Server.Email.SendInBlue.Types as SIB
 
 class Monad m => MonadEmail m where
   sendVerificationEmail :: Recipient -> Challenge -> m (Either CouldNotSend SIB.Response)
+  sendRecoveryEmail :: Recipient -> Challenge -> m (Either CouldNotSend SIB.Response)

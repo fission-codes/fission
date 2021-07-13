@@ -30,91 +30,95 @@ import qualified Fission.Web.Server.Relay.Store.Types      as Relay
 
 -- | The top level 'Fission' application 'RIO' configuration
 data Config = Config
-  { processCtx        :: ProcessContext
-  , logFunc           :: LogFunc
+  { processCtx                     :: ProcessContext
+  , logFunc                        :: LogFunc
   --
-  , httpManager       :: HTTP.Manager
-  , tlsManager        :: HTTP.Manager
-  , ipfsHttpManager   :: HTTP.Manager
-  , dbPool            :: Pool SqlBackend
+  , httpManager                    :: HTTP.Manager
+  , tlsManager                     :: HTTP.Manager
+  , ipfsHttpManager                :: HTTP.Manager
+  , dbPool                         :: Pool SqlBackend
   --
-  , ipfsPath          :: IPFS.BinPath
-  , ipfsURLs          :: NonEmpty IPFS.URL
-  , ipfsRemotePeers   :: NonEmpty IPFS.Peer
-  , ipfsTimeout       :: IPFS.Timeout
+  , ipfsPath                       :: IPFS.BinPath
+  , ipfsURLs                       :: NonEmpty IPFS.URL
+  , ipfsRemotePeers                :: NonEmpty IPFS.Peer
+  , ipfsTimeout                    :: IPFS.Timeout
   --
-  , herokuID          :: Heroku.ID
-  , herokuPassword    :: Heroku.Password
+  , herokuID                       :: Heroku.ID
+  , herokuPassword                 :: Heroku.Password
   --
-  , awsAccessKey      :: AWS.AccessKey
-  , awsSecretKey      :: AWS.SecretKey
-  , awsMockRoute53    :: AWS.MockRoute53
+  , awsAccessKey                   :: AWS.AccessKey
+  , awsSecretKey                   :: AWS.SecretKey
+  , awsMockRoute53                 :: AWS.MockRoute53
   --
-  , baseAppDomain     :: URL.DomainName
-  , baseAppZoneID     :: AWS.ZoneID
-  , appPlaceholder    :: CID
+  , baseAppDomain                  :: URL.DomainName
+  , baseAppZoneID                  :: AWS.ZoneID
+  , appPlaceholder                 :: CID
   --
-  , userRootDomain    :: URL.DomainName
-  , userZoneID        :: AWS.ZoneID
-  , defaultDataCID    :: CID
+  , userRootDomain                 :: URL.DomainName
+  , userZoneID                     :: AWS.ZoneID
+  , defaultDataCID                 :: CID
   --
-  , sibApiKey         :: SIB.ApiKey
-  , sibUrl            :: Host
-  , sibTemplateId     :: SIB.TemplateId
+  , sibApiKey                      :: SIB.ApiKey
+  , sibUrl                         :: Host
+  , sibVerificationEmailTemplateId :: SIB.TemplateId
+  , sibRecoveryEmailTemplateId     :: SIB.TemplateId
+  , sibRecoveryAppUrl              :: Text
   --
-  , host              :: Host
-  , machineName       :: Network.HostName
-  , environment       :: Remote
-  , fissionDID        :: DID
-  , serverZoneID      :: AWS.ZoneID
-  , liveDriveURL      :: URL
+  , host                           :: Host
+  , machineName                    :: Network.HostName
+  , environment                    :: Remote
+  , fissionDID                     :: DID
+  , serverZoneID                   :: AWS.ZoneID
+  , liveDriveURL                   :: URL
   --
-  , linkRelayStoreVar :: TVar Relay.Store
+  , linkRelayStoreVar              :: TVar Relay.Store
   }
 
 instance Show Config where
   show Config {..} = intercalate "\n"
     [ "Config {"
-    , "  processCtx        = **SOME PROC CONTEXT**"
-    , "  logFunc           = **SOME LOG FUNCTION**"
+    , "  processCtx                     = **SOME PROC CONTEXT**"
+    , "  logFunc                        = **SOME LOG FUNCTION**"
     --
-    , "  httpManager       = **SOME HTTP MANAGER**"
-    , "  tlsManager        = **SOME HTTP/TLS MANAGER**"
-    , "  ipfsHttpManager   = **SOME HTTP/TLS MANAGER**"
-    , "  dbPool            = " <> show dbPool
+    , "  httpManager                    = **SOME HTTP MANAGER**"
+    , "  tlsManager                     = **SOME HTTP/TLS MANAGER**"
+    , "  ipfsHttpManager                = **SOME HTTP/TLS MANAGER**"
+    , "  dbPool                         = " <> show dbPool
     --
-    , "  ipfsPath          = " <> show ipfsPath
-    , "  ipfsURLs          = " <> show ipfsURLs
-    , "  ipfsRemotePeers   = " <> show ipfsRemotePeers
-    , "  ipfsTimeout       = " <> show ipfsTimeout
+    , "  ipfsPath                       = " <> show ipfsPath
+    , "  ipfsURLs                       = " <> show ipfsURLs
+    , "  ipfsRemotePeers                = " <> show ipfsRemotePeers
+    , "  ipfsTimeout                    = " <> show ipfsTimeout
     --
-    , "  herokuID          = " <> show herokuID
-    , "  herokuPassword    = " <> show herokuPassword
+    , "  herokuID                       = " <> show herokuID
+    , "  herokuPassword                 = " <> show herokuPassword
     --
-    , "  awsAccessKey      = " <> show awsAccessKey
-    , "  awsSecretKey      = HIDDEN"
-    , "  awsMockRoute53    = " <> show awsMockRoute53
+    , "  awsAccessKey                   = " <> show awsAccessKey
+    , "  awsSecretKey                   = HIDDEN"
+    , "  awsMockRoute53                 = " <> show awsMockRoute53
     --
-    , "  baseAppZoneID     = " <> show baseAppZoneID
-    , "  baseAppDomainName = " <> show baseAppDomain
-    , "  appPlaceholder    = " <> show appPlaceholder
+    , "  baseAppZoneID                  = " <> show baseAppZoneID
+    , "  baseAppDomainName              = " <> show baseAppDomain
+    , "  appPlaceholder                 = " <> show appPlaceholder
     --
-    , "  userRootDomain    = " <> show userRootDomain
-    , "  userZoneID        = " <> show userZoneID
-    , "  defaultDataCID    = " <> show defaultDataCID
+    , "  userRootDomain                 = " <> show userRootDomain
+    , "  userZoneID                     = " <> show userZoneID
+    , "  defaultDataCID                 = " <> show defaultDataCID
     --
-    , "  sibApiKey         = " <> show sibApiKey
-    , "  sibUrl            = " <> show sibUrl
-    , "  sibTemplateId     = " <> show sibTemplateId
+    , "  sibApiKey                      = " <> show sibApiKey
+    , "  sibUrl                         = " <> show sibUrl
+    , "  sibVerificationEmailTemplateId = " <> show sibVerificationEmailTemplateId
+    , "  sibRecoveryEmailTemplateId     = " <> show sibRecoveryEmailTemplateId
+    , "  sibRecoveryAppUrl              = " <> show sibRecoveryAppUrl
     --
-    , "  host              = " <> show host
-    , "  machineName       = " <> machineName
-    , "  environment       = " <> show environment
-    , "  fissionDID        = " <> show fissionDID
-    , "  serverZoneID      = " <> show serverZoneID
-    , "  liveDriveURL      = " <> show liveDriveURL
+    , "  host                           = " <> show host
+    , "  machineName                    = " <> machineName
+    , "  environment                    = " <> show environment
+    , "  fissionDID                     = " <> show fissionDID
+    , "  serverZoneID                   = " <> show serverZoneID
+    , "  liveDriveURL                   = " <> show liveDriveURL
     --
-    , "  linkRelayStoreVar = **SOME RELAY STORE TVAR**"
+    , "  linkRelayStoreVar              = **SOME RELAY STORE TVAR**"
     , "}"
     ]
 

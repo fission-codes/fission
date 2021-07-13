@@ -99,6 +99,17 @@ UserChallenge
 
   deriving Show Eq
 
+--------------------------------------------------------------------------------
+
+UserRecoveryChallenge
+  userId     UserId
+  hash       Challenge
+  insertedAt UTCTime
+
+  UniqueRecoveryChallenge hash
+
+  deriving Show Eq
+
 ------------
 -- Events --
 ------------
@@ -276,6 +287,9 @@ instance Display (AlreadyExists User) where
 instance Display (AlreadyExists UserChallenge) where
   display _ = "Challenge already exists"
 
+instance Display (AlreadyExists UserRecoveryChallenge) where
+  display _ = "Recovery Challenge already exists"
+
 instance Display (AlreadyExists LoosePin) where
   display _ = "Loose pin already exists"
 
@@ -293,6 +307,9 @@ instance Display (NotFound User) where
 
 instance Display (NotFound UserChallenge) where
   display _ = "Challenge not found"
+
+instance Display (NotFound UserRecoveryChallenge) where
+  display _ = "Recovery challenge not found"
 
 instance Display (NotFound LoosePin) where
   display _ = "Loose pin not found"
