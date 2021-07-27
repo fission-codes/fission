@@ -40,6 +40,7 @@ import           Fission.Prelude
 
 import qualified Fission.Internal.UTF8                         as UTF8
 
+import           Fission.BytesReceived.Types
 import           Fission.Error                                 as Error
 import           Fission.Error.GenericError.Types
 import           Fission.Time
@@ -55,8 +56,6 @@ import           Fission.DNS                                   as DNS
 import           Fission.URL                                   as URL
 
 import           Fission.Web.Async
-
-import           Fission.Web.API.App.Update.Streaming.Types
 
 import qualified Fission.Web.Server.App                        as App
 import qualified Fission.Web.Server.App.Destroyer              as App.Destroyer

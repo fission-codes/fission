@@ -36,8 +36,11 @@ handler ::
   , App.Domain.Retriever  t
   )
   => ServerT API.App m
-handler = Index.index
-     :<|> Create.create
-     :<|> Update.update
-     :<|> Update.updateStreaming
-     :<|> Destroy.handler
+handler =
+  nonStreaming :<|> Update.updateStreaming
+  where
+    nonStreaming =
+           Index.index
+      :<|> Create.create
+      :<|> Update.update
+      :<|> Destroy.handler

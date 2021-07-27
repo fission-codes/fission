@@ -12,14 +12,12 @@ import           Servant.Server
 
 import           Fission.Prelude                                    hiding (on)
 
+import           Fission.BytesReceived.Types
 import           Fission.Error                                      as Error
 import           Fission.URL
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
-
--- FIXME onlu the bytesrecieved; extract out!
-import           Fission.Web.API.App.Update.Streaming.Types
 
 type Errors' = OpenUnion
   '[ NotFound App
