@@ -4,7 +4,7 @@ import           Data.Swagger    hiding (URL, url)
 
 import           Fission.Prelude
 
-newtype BytesReceived = BytesReceived { byteCount :: Natural } -- FIXME is it bytes?
+newtype BytesReceived = BytesReceived { byteCount :: Natural }
   deriving (Show, Eq)
 
 instance ToJSON BytesReceived where

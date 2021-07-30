@@ -43,6 +43,7 @@ import qualified "wss-client" Network.WebSockets.Client            as WS
 import           Servant.API                                       hiding
                                                                    (IsMember)
 import           Servant.Client
+import qualified Servant.Client.Streaming                          as Streaming
 import qualified Wuss                                              as WSS
 
 import           Fission.Prelude                                   hiding (mask,
@@ -183,6 +184,16 @@ instance
       remote  <- getRemote
 
       liftIO . runClientM req . mkClientEnv manager $ toBaseUrl remote
+
+  streamWith req handler = do
+    manager <- asks $ getField @"httpManager"
+    remote  <- getRemote
+
+    let env = mkClientEnv manager $ toBaseUrl remote
+
+    control \runInBase ->
+      Streaming.withClientM req env \resp ->
+        runInBase $ handler resp
 
 instance
   ( Contains errs errs

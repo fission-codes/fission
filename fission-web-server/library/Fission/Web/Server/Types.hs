@@ -781,7 +781,7 @@ instance App.Modifier Server where
           liftIO $ withAsync (atomically $ reportBytes statusChan statusVar) pure
 
       asSerial :: Streamly.Serial a -> Streamly.Serial a
-      asSerial a = a
+      asSerial a = a -- FIXME?
 
       reportBytes ::
         TChan (Either ClientError PinStatus)
@@ -802,7 +802,7 @@ instance App.Modifier Server where
                   Nothing ->
                     return ()
 
-                  Just bytesHere -> do -- FIXME I think it's bytes? Maybe blocks?
+                  Just bytesHere -> do
                     when (bytesHere > lastMax) do
                       writeTVar status . Right $ BytesReceived bytesHere
 

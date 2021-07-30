@@ -64,7 +64,6 @@ type API    = Swagger.API :<|> Fission.API :<|> LinkWS
 type LinkWS = "user" :> "link" :> RelayWS
 
 app ::
-  -- ( MonadIPFSCluster m PinStatus -- FIXME abstract out
   ( App.Domain.Initializer    m
   , App.Content.Initializer   m
   , App.CRUD                  m
@@ -110,7 +109,6 @@ app handlerNT authChecks appHost = do
 
 -- | Web handlers for the 'API'
 server ::
-  -- ( MonadIPFSCluster m PinStatus -- FIXME abstract out
   ( App.Domain.Initializer    m
   , App.Content.Initializer   m
   , App.CRUD                  m
@@ -150,7 +148,6 @@ server appHost
   :<|> Relay.relay
 
 bizServer ::
- --  ( MonadIPFSCluster m PinStatus -- FIXME abstract out
   ( App.Domain.Initializer    m
   , App.Content.Initializer   m
   , App.CRUD                  m
