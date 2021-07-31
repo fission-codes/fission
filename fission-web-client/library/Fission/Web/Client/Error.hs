@@ -10,7 +10,6 @@ import           Fission.Web.Client
 import           Network.HTTP.Types.Status
 import           Servant.Client
 
-
 retryOnStatus ::
   ( MonadWebClient m
   , MonadLogger m
@@ -22,11 +21,7 @@ retryOnStatus ::
 retryOnStatus retryOn times req =
   retryOnErr (checkStatus retryOn) times (sendRequest req)
 
-checkStatus ::
-  MonadLogger m
-  => [Status]
-  -> Either ClientError a
-  -> m Bool
+checkStatus :: MonadLogger m => [Status] -> Either ClientError a -> m Bool
 checkStatus retryOn = \case
   Right _ ->
     return True

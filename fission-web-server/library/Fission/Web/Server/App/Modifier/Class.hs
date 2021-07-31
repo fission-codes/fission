@@ -7,10 +7,12 @@ import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 
+import           Servant.API
 import           Servant.Server
 
 import           Fission.Prelude                                    hiding (on)
 
+import           Fission.BytesReceived.Types
 import           Fission.Error                                      as Error
 import           Fission.URL
 
@@ -42,3 +44,10 @@ class Monad m => Modifier m where
     -> Bool    -- ^ Flag: copy data (default yes)
     -> UTCTime -- ^ Now
     -> m (Either Errors' AppId)
+
+  setCIDStreaming ::
+       UserId
+    -> URL
+    -> CID
+    -> UTCTime
+    -> m (SourceIO BytesReceived)

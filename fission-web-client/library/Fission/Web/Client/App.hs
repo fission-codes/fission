@@ -4,11 +4,15 @@ module Fission.Web.Client.App
   ( index
   , create
   , update
+  , streamingUpdate
   , destroy
   ) where
 
+import qualified Servant.Client.Streaming  as Streaming
+
 import           Fission.Web.API.Prelude
 
-import           Fission.Web.API.App.Types
+import qualified Fission.Web.API.App.Types as App
 
-index :<|> create :<|> update :<|> destroy = client $ Proxy @App
+index :<|> create :<|> update :<|> destroy = client $ Proxy @App.NonStreaming
+streamingUpdate =  Streaming.client $ Proxy @App.Streaming

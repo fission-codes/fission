@@ -99,6 +99,7 @@ dependencies:
   - monad-time
   - mtl
   - resource-pool
+  - streamly
 
   ## Concurrency ##
   - stm

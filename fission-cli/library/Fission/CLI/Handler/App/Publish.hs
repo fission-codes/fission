@@ -47,6 +47,30 @@ import           Fission.CLI.Remote
 import           Fission.CLI.Environment                   (MonadEnvironment)
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
+
+
+
+
+
+import           Control.Monad.Except
+import           Network.HTTP.Client                       as HTTP
+import qualified Network.HTTP.Client.TLS                   as TLS
+import qualified RIO.ByteString                            as BS
+import           Servant.Client
+import qualified Servant.Client.Streaming                  as Stream
+import           Servant.Types.SourceT
+
+
+
+
+
+
+
+
+
+import           Fission.BytesReceived.Types
+import qualified RIO.Text                                  as Text
+
 -- | Sync the current working directory to the server over IPFS
 publish ::
   ( MonadIO          m
@@ -88,9 +112,9 @@ publish
     = do
   logDebug @Text "📱 App publish"
   attempt (App.readFrom appPath) >>= \case
-    Left err -> do
-      CLI.Error.put err "App not set up. Please double check your path, or run `fission app register`"
-      raise err
+  --   Left err -> do
+  --     CLI.Error.put err "App not set up. Please double check your path, or run `fission app register`"
+  --     raise err
 
     Right App.Env {buildDir} -> do
       absBuildPath <- liftIO $ makeAbsolute buildDir
@@ -98,40 +122,59 @@ publish
       logUser @Text "🛫 App publish local preflight"
 
       CLI.IPFS.Add.dir (UTF8.wrapIn "\"" absBuildPath) >>= \case
-        Left err -> do
-          CLI.Error.put' err
-          raise err
+        -- Left err -> do
+          -- CLI.Error.put' err
+          -- raise err
 
         Right cid@(CID hash) -> do
           logDebug $ "📱 Directory CID is " <> hash
           _     <- IPFS.Daemon.runDaemon
           proof <- getRootUserProof
-          req   <- App.update appURL cid (Just updateData) <$> Client.attachAuth proof
+          -- req   <- App.update appURL cid (Just updateData) <$> Client.attachAuth proof
+          req   <- App.streamingUpdate appURL cid <$> Client.attachAuth proof
 
           logUser @Text "✈️  Pushing to remote"
-          retryOnStatus [status502] 100 req >>= \case
-            Left err -> do
-              CLI.Error.put err "Server unable to sync data"
-              raise err
+          logUser @Text "✈️FUR EEL"
 
-            Right _ -> do
-              ipfsGateway <- getIpfsGateway
 
-              when open  do
-                liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
+          req `streamWith` \stream -> do
+            BS.putStr "Inside"
+            case stream of
+              Left err -> logUser $ "NOOOOOOO" <> show err
+              Right stream -> do
+                liftIO $ foreach
+                  (\errStr -> BS.putStr . encodeUtf8 . Text.pack $ "BAD: " <> errStr)
+                  (\good -> BS.putStr . encodeUtf8 . Text.pack $ "GOOD: " <>  show good) stream
+              --   result :: Either String [BytesReceived] <- liftIO . runExceptT $ runSourceT stream
+              --   case result of
+              --     Left err -> logUser $ show err
+              --     Right list ->
+              --       logUser $ show list
 
-              when watching do
-                liftIO $ FS.withManager \watchMgr -> do
-                  now <- getCurrentTime
-                  (hashCache, timeCache) <- atomically do
-                    hashCache <- newTVar hash
-                    timeCache <- newTVar now
-                    return (hashCache, timeCache)
-
-                  void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
-                  liftIO . forever $ threadDelay 1_000_000 -- Sleep main thread
-
-              success appURL
+              --   return ()
+--           retryOnStatus [status502] 100 req >>= \case
+--             Left err -> do
+--               CLI.Error.put err "Server unable to sync data"
+--               raise err
+--
+--             Right _ -> do
+--               ipfsGateway <- getIpfsGateway
+--
+--               when open  do
+--                 liftIO . void . openBrowser $ ipfsGateway <> "/" <> show appURL
+--
+--               when watching do
+--                 liftIO $ FS.withManager \watchMgr -> do
+--                   now <- getCurrentTime
+--                   (hashCache, timeCache) <- atomically do
+--                     hashCache <- newTVar hash
+--                     timeCache <- newTVar now
+--                     return (hashCache, timeCache)
+--
+--                   void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
+--                   liftIO . forever $ threadDelay 1_000_000 -- Sleep main thread
+--
+--               success appURL
 
 handleTreeChanges ::
   ( MonadIO        m
