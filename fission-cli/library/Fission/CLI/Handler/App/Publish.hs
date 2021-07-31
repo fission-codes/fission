@@ -55,9 +55,21 @@ import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 import           Control.Monad.Except
 import           Network.HTTP.Client                       as HTTP
 import qualified Network.HTTP.Client.TLS                   as TLS
+import qualified RIO.ByteString                            as BS
 import           Servant.Client
 import qualified Servant.Client.Streaming                  as Stream
 import           Servant.Types.SourceT
+
+
+
+
+
+
+
+
+
+import           Fission.BytesReceived.Types
+import qualified RIO.Text                                  as Text
 
 -- | Sync the current working directory to the server over IPFS
 publish ::
@@ -122,12 +134,24 @@ publish
           req   <- App.streamingUpdate appURL cid <$> Client.attachAuth proof
 
           logUser @Text "✈️  Pushing to remote"
+          logUser @Text "✈️FUR EEL"
 
-          req `streamWith` \case
-            Left err -> logError $ "NOOOOOOO" <> show err
-            Right stream -> do
-              events :: Either String a <- liftIO . runExceptT $ runSourceT stream
-              forM_ events \event -> logInfo $ ">>>>>> THE THING: " <> show event
+
+          req `streamWith` \stream -> do
+            BS.putStr "Inside"
+            case stream of
+              Left err -> logUser $ "NOOOOOOO" <> show err
+              Right stream -> do
+                liftIO $ foreach
+                  (\errStr -> BS.putStr . encodeUtf8 . Text.pack $ "BAD: " <> errStr)
+                  (\good -> BS.putStr . encodeUtf8 . Text.pack $ "GOOD: " <>  show good) stream
+              --   result :: Either String [BytesReceived] <- liftIO . runExceptT $ runSourceT stream
+              --   case result of
+              --     Left err -> logUser $ show err
+              --     Right list ->
+              --       logUser $ show list
+
+              --   return ()
 --           retryOnStatus [status502] 100 req >>= \case
 --             Left err -> do
 --               CLI.Error.put err "Server unable to sync data"

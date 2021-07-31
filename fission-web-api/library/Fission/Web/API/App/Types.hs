@@ -11,6 +11,6 @@ import           Fission.Web.API.App.Update.Types
 type App = NonStreaming :<|> Streaming
 
 type NonStreaming = "app" :> API
-type Streaming    = "app" :> StreamingUpdate
+type Streaming    = "app" :> "streaming" :> StreamingUpdate
 
 type API = Index :<|> Create :<|> Update :<|> Destroy
