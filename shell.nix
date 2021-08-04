@@ -18,6 +18,8 @@ let
   server-port = 10235;
 
   deps = {
+    bench = [pkgs.wrk2];
+
     common = [ 
       pkgs.gnumake
       unstable.niv
