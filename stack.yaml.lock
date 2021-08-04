@@ -61,6 +61,20 @@ packages:
   original:
     hackage: raven-haskell-0.1.4.0
 - completed:
+    hackage: rescue-0.4.2.1@sha256:53256f87722af6f91e9e4ed18741c5e2515a0432ae7e94b16e3edf73931ec0c3,5025
+    pantry-tree:
+      size: 1963
+      sha256: 74b6dfd972089dba05241803a450e808348c5db6dc204810cc01161266c72194
+  original:
+    hackage: rescue-0.4.2.1
+- completed:
+    hackage: servant-ekg-0.3.1@sha256:19bd9dc3943983da8e79d6f607614c68faea4054fb889d508c8a2b67b6bdd448,2203
+    pantry-tree:
+      size: 552
+      sha256: 432766c31fdcd06fd2102d4d0ac63217c880d80d3bef4ad64b5b2ed95f8af355
+  original:
+    hackage: servant-ekg-0.3.1
+- completed:
     hackage: servant-multipart-client-0.12.1@sha256:d043063e2f33eab86840f87c4bdb16eb3fe4a5847a0b118e4f4265cf3ba4c9b3,1892
     pantry-tree:
       size: 400
@@ -111,7 +125,7 @@ packages:
     hackage: http-link-header-1.0.3.1
 snapshots:
 - completed:
-    size: 585393
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/0.yaml
-    sha256: c632012da648385b9fa3c29f4e0afd56ead299f1c5528ee789058be410e883c0
-  original: lts-18.0
+    size: 585817
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/5.yaml
+    sha256: 22d24d0dacad9c1450b9a174c28d203f9bb482a2a8da9710a2f2a9f4afee2887
+  original: lts-18.5
