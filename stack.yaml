@@ -17,7 +17,7 @@ extra-deps:
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.4.2.1
-  - servant-ekg-0.3.1
+  - servant-ekg-0.3.1 # Needs the allow-newer
   - servant-multipart-client-0.12.1
   - servant-swagger-ui-redoc-0.3.4.1.22.3
   - servant-websockets-2.0.0
