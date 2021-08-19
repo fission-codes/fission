@@ -41,7 +41,7 @@ instance ToSchema Payload where
            , ("insertedAt", insertedAt')
            , ("modifiedAt", modifiedAt')
            ]
-      |> required .~ ["username", "email"]
+      |> required .~ ["urls", "insertedAt", "modifiedAt"]
       |> description ?~ "Properties for a registered application"
       |> example ?~ toJSON Payload
         { urls       = [url]
