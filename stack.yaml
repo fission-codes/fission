@@ -7,6 +7,7 @@ packages:
   - fission-web-api
   - fission-web-client
   - fission-web-server
+  - spiral-ratchet
 
 extra-deps:
   - amazonka-1.6.1

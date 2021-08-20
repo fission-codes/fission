@@ -1,0 +1,129 @@
+name: spiral-ratchet
+version: '0.1.0'
+category: Cryptography
+author:
+  - Brooklyn Zelenka
+maintainer:
+  - brooklyn@fission.codes
+copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
+license: Apache-2.0
+license-file: LICENSE
+github: fission-suite/fission
+tested-with: GHC==8.10.4
+extra-source-files:
+  - README.md
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Warn about too much
+  - -Wredundant-constraints
+  # Prettier Development
+  - -fhide-source-paths
+
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DuplicateRecordFields
+  - EmptyDataDecls
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - LiberalTypeSynonyms
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - NumericUnderscores
+  - OverloadedStrings
+  - OverloadedLabels
+  - OverloadedLists
+  - PostfixOperators
+  - PackageImports
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+  - TypeOperators
+  - ViewPatterns
+
+dependencies:
+  ## Base ##
+  - base
+  - flow
+  - rio
+  - rio-orphans
+
+  ## Capabilties ##
+  - cryptonite
+  - random
+
+  ## Data ##
+  - aeson
+  - base64-bytestring
+  - memory
+  - QuickCheck
+  - quickcheck-instances
+
+library:
+  source-dirs: library
+
+tests:
+  fission-core-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - spiral-ratchet
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
+
+benchmarks:
+  fission-core-benchmark:
+    main: Main.hs
+    source-dirs: benchmark
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-A32m
+      - -O2
+    dependencies:
+      - spiral-ratchet
+      - tasty-bench
