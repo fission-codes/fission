@@ -61,7 +61,7 @@ import           Fission.Internal.Orphanage.PlainText        ()
 
 -- | Top level web API type. Handled by 'server'.
 type API    = Swagger.API :<|> Fission.API :<|> LinkWS :<|> Root
-type Root   = Get '[] NoContent
+type Root   = Get '[JSON, OctetStream, PlainText] NoContent
 type LinkWS = "user" :> "link" :> RelayWS
 
 app ::
