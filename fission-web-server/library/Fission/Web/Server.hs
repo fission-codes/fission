@@ -60,7 +60,8 @@ import           Fission.Internal.Orphanage.OctetStream      ()
 import           Fission.Internal.Orphanage.PlainText        ()
 
 -- | Top level web API type. Handled by 'server'.
-type API    = Swagger.API :<|> Fission.API :<|> LinkWS
+type API    = ROOT :<|> Swagger.API :<|> Fission.API :<|> LinkWS
+type Root   = Get NoContent
 type LinkWS = "user" :> "link" :> RelayWS
 
 app ::
@@ -143,7 +144,8 @@ server :: forall m t .
   => Web.Host
   -> ServerT API m
 server appHost
-  =    Web.Swagger.handler fromHandler appHost
+  =    pure NoContent
+  :<|> Web.Swagger.handler fromHandler appHost
   :<|> bizServer
   :<|> Relay.relay
 
