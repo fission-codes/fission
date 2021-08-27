@@ -12,5 +12,7 @@ import           Fission.Web.API.Ping.Types
 import           Fission.Web.API.User.Types
 
 type API = V2 :<|> Unversioned
-type V2 = "v2" :> Unversioned
+type V2 = "api" :> "v2" :> Unversioned
+
+-- DEPRECATED
 type Unversioned = IPFS :<|> App :<|> Heroku :<|> User :<|> Ping :<|> DNS :<|> Auth
