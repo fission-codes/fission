@@ -108,7 +108,7 @@ app handlerNT authChecks appHost = do
     api = Proxy @API
 
 -- | Web handlers for the 'API'
-server ::
+server :: forall m t .
   ( App.Domain.Initializer      m
   , App.Content.Initializer     m
   , App.CRUD                    m
@@ -179,10 +179,20 @@ bizServer ::
   , App.Domain.Retriever      t
   )
   => ServerT Fission.API m
-bizServer = IPFS.handler
-       :<|> App.handler
-       :<|> Heroku.handler
-       :<|> User.handler
-       :<|> Ping.handler
-       :<|> DNS.handler
-       :<|> Auth.UCAN.Verify.handler
+bizServer = v2 :<|> v_
+  where
+    v2 =   IPFS.handler
+      :<|> App.handler
+      :<|> Heroku.handler
+      :<|> User.handler
+      :<|> Ping.handler
+      :<|> DNS.handler
+      :<|> Auth.UCAN.Verify.handler
+
+    v_ =   IPFS.handler
+      :<|> App.handler
+      :<|> Heroku.handler
+      :<|> User.handler
+      :<|> Ping.handler
+      :<|> DNS.handler
+      :<|> Auth.UCAN.Verify.handler

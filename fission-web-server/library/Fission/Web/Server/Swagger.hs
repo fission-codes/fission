@@ -42,13 +42,14 @@ docs :: Web.Host -> Swagger
 docs host' =
   host'
     |> fission (Proxy @Fission.API)
-    |> app
-    |> auth
-    |> dns
-    |> heroku
-    |> ipfs
-    |> ping
-    |> user
+    |> docsV2
+    |> docsV_
+
+docsV2 :: Swagger -> Swagger
+docsV2 = app . auth . dns . heroku . ipfs . ping . user
+
+docsV_ :: Swagger -> Swagger
+docsV_ = docsV2
 
 fission :: HasSwagger api => Proxy api -> Web.Host -> Swagger
 fission proxy appHost =
