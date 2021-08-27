@@ -60,7 +60,7 @@ import           Fission.Internal.Orphanage.OctetStream      ()
 import           Fission.Internal.Orphanage.PlainText        ()
 
 -- | Top level web API type. Handled by 'server'.
-type API    = ROOT :<|> Swagger.API :<|> Fission.API :<|> LinkWS
+type API    = Root :<|> Swagger.API :<|> Fission.API :<|> LinkWS
 type Root   = Get NoContent
 type LinkWS = "user" :> "link" :> RelayWS
 
