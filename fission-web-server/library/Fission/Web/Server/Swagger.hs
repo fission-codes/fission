@@ -8,7 +8,7 @@ import           Servant.Swagger.UI.ReDoc
 
 import           Fission.Prelude
 
-import qualified Fission.Web.API.Docs             as Docs
+import qualified Fission.Web.API.Doc              as Doc
 import qualified Fission.Web.API.Host.Types       as Web
 
 import qualified Fission.Web.Server.Swagger.Types as Swagger
@@ -23,6 +23,6 @@ handler ::
   -> ServerT Swagger.Docs m
 handler fromHandler appHost v pxy =
   appHost
-    |> Docs.meta pxy v
+    |> Doc.meta pxy v
     |> redocSchemaUIServer
     |> hoistServer (Proxy @Swagger.Docs) fromHandler

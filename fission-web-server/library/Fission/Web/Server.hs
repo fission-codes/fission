@@ -62,8 +62,12 @@ import qualified Paths_fission_web_server                    as Fission
 
 -- | Top level web API type. Handled by 'server'.
 type API
-  =    Swagger.V2 :<|> Fission.V2
-  :<|> Swagger.V_ :<|> Fission.V_
+  -- V2
+  =    Swagger.V2
+  :<|> Fission.V2
+  -- Unversioned
+  :<|> Swagger.V_
+  :<|> Fission.V_
   :<|> LinkWS
   :<|> Root
 

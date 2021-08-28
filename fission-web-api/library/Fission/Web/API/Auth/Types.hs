@@ -5,7 +5,6 @@ module Fission.Web.API.Auth.Types
   , RegisterDID
   , HigherOrder
   , Auth
-  , fissionSecurity
   ) where
 
 import           Data.Swagger
@@ -38,7 +37,7 @@ instance HasSwagger api => HasSwagger (RegisterDID :> api) where
   toSwagger _ =
     Proxy @api
       |> toSwagger
-      |> securityDefinitions .~ SecurityDefinitions [("User-originated DID Registration", fissionSecurity)]
+      |> securityDefinitions .~ SecurityDefinitions [("User-originated DID Registration", security')]
 
 instance HasEndpoint sub => HasEndpoint (RegisterDID :> sub) where
   getEndpoint        _ = getEndpoint        $ Proxy @sub
@@ -48,21 +47,20 @@ instance HasSwagger api => HasSwagger (HerokuAddOnAPI :> api) where
   toSwagger _ =
     Proxy @api
       |> toSwagger
-      |> securityDefinitions .~ SecurityDefinitions [("HerokuAddOn Auth", fissionSecurity)]
+      |> securityDefinitions .~ SecurityDefinitions [("HerokuAddOn Auth", security')]
 
 instance HasSwagger api => HasSwagger (HigherOrder :> api) where
   toSwagger _ =
     Proxy @api
       |> toSwagger
-      |> securityDefinitions .~ SecurityDefinitions [("Fission Auth", fissionSecurity)]
+      |> securityDefinitions .~ SecurityDefinitions [("Fission Auth", security')]
 
 instance HasEndpoint sub => HasEndpoint (AuthProtect "higher-order" :> sub) where
   getEndpoint        _ = getEndpoint        $ Proxy @sub
   enumerateEndpoints _ = enumerateEndpoints $ Proxy @sub
 
--- FIXME move to function module
-fissionSecurity :: SecurityScheme
-fissionSecurity = SecurityScheme (SecuritySchemeApiKey keyParams) describe
+security' :: SecurityScheme
+security' = SecurityScheme (SecuritySchemeApiKey keyParams) describe
   where
     keyParams :: ApiKeyParams
     keyParams = ApiKeyParams "Authorization" ApiKeyHeader

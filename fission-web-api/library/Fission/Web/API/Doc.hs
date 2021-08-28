@@ -1,4 +1,4 @@
-module Fission.Web.API.Docs (meta) where
+module Fission.Web.API.Doc (meta) where
 
 import           Data.Version               (Version, showVersion)
 import qualified RIO.Text                   as Text
