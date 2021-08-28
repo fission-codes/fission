@@ -3,9 +3,15 @@ module Fission.Web.API.Ping
   , module Fission.Web.API.Ping.Types
   ) where
 
-import  Fission.Web.API.Prelude
-import  Fission.Web.API.Ping.Types
+import           Data.Swagger
+import           Servant.Swagger
 
-docs :: Swagger -> Swagger
-docs = makeDocs (Proxy @Ping)
-  ["Ping" |> description ?~ "Check for liveness"]
+import           Fission.Web.API.Ping.Types
+import           Servant.Swagger.TypeLevel
+
+import           Fission.Web.API.Prelude
+
+docs :: Ping `IsSubAPI` api => Proxy api -> Swagger -> Swagger
+docs api =
+  applyTagsFor (subOperations (Proxy @Ping) api)
+    ["Ping" |> description ?~ "Check for liveness"]

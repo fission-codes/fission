@@ -1,11 +1,14 @@
 module Fission.Web.API.Prelude
-  ( module Data.Swagger
-  , module Servant.API
+  ( module Servant.API
   , module Servant.Client
+  , module Flow
   , module RIO
+  , (?~)
   ) where
 
-import           Data.Swagger
+import           Flow
 import           RIO
 import           Servant.API
 import           Servant.Client
+
+import           Control.Lens   ((?~))

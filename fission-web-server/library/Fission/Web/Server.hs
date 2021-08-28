@@ -3,7 +3,6 @@ module Fission.Web.Server
   ( API
   , app
   , server
-  , bizServer
   , runServer
   ) where
 
@@ -13,6 +12,7 @@ import           Servant
 
 import           Fission.Prelude
 
+import qualified Fission.Web.API.Host.Types                  as Web
 import qualified Fission.Web.API.Types                       as Fission
 
 import qualified Fission.Web.Auth.Token.JWT.Resolver         as Proof
@@ -49,7 +49,6 @@ import           Fission.Web.Server.Handler
 import qualified Fission.Web.Server.Handler.Relay            as Relay
 import           Fission.Web.Server.Handler.Relay.Types
 
-import qualified Fission.Web.Server.Host.Types               as Web
 import           Fission.Web.Server.IPFS.Cluster             as Cluster
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.MonadDB
@@ -59,8 +58,15 @@ import           Fission.Web.Server.Relay.Store.Class
 import           Fission.Internal.Orphanage.OctetStream      ()
 import           Fission.Internal.Orphanage.PlainText        ()
 
+import qualified Paths_fission_web_server                    as Fission
+
 -- | Top level web API type. Handled by 'server'.
-type API    = Swagger.API :<|> Fission.API :<|> LinkWS :<|> Root
+type API
+  =    Swagger.V2 :<|> Fission.V2
+  :<|> Swagger.V_ :<|> Fission.V_
+  :<|> LinkWS
+  :<|> Root
+
 type Root   = Get '[JSON, OctetStream, PlainText] NoContent
 type LinkWS = "user" :> "link" :> RelayWS
 
@@ -144,53 +150,14 @@ server ::
   => Web.Host
   -> ServerT API m
 server appHost
-  =    Web.Swagger.handler fromHandler appHost
-  :<|> bizServer
+  =    Web.Swagger.handler fromHandler appHost Fission.version (Proxy @Fission.V2)
+  :<|> v2
+  :<|> Web.Swagger.handler fromHandler appHost Fission.version (Proxy @Fission.V_)
+  :<|> v_
   :<|> Relay.relay
   :<|> pure NoContent
-
-bizServer ::
-  ( App.Domain.Initializer      m
-  , App.Content.Initializer     m
-  , App.CRUD                    m
-  , Proof.Resolver              m
-  , MonadReflectiveServer       m
-  , MonadLinkedIPFS             m
-  , MonadRemoteIPFS             m
-  , MonadIPFSCluster            m PinStatus
-  , MonadDNSLink                m
-  , MonadWNFS                   m
-  , MonadLogger                 m
-  , MonadTime                   m
-  , MonadEmail                  m
-  , User.CRUD                   m
-  , Challenge.Creator           m
-  , Challenge.Retriever         m
-  , Challenge.Verifier          m
-  , RecoveryChallenge.Creator   m
-  , RecoveryChallenge.Retriever m
-  , RecoveryChallenge.Destroyer m
-  , MonadDB                   t m
-  , MonadLogger               t
-  , MonadThrow                t
-  , Heroku.AddOn.CRUD         t
-  , LoosePin.CRUD             t
-  , User.Retriever            t
-  , User.Destroyer            t
-  , App.Retriever             t
-  , App.Domain.Retriever      t
-  )
-  => ServerT Fission.API m
-bizServer = v2 :<|> v_
   where
-    v2 =   IPFS.handler
-      :<|> App.handler
-      :<|> Heroku.handler
-      :<|> User.handler
-      :<|> Ping.handler
-      :<|> DNS.handler
-      :<|> Auth.UCAN.Verify.handler
-
+    v2 = v_
     v_ =   IPFS.handler
       :<|> App.handler
       :<|> Heroku.handler

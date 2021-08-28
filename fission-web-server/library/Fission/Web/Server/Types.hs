@@ -45,11 +45,11 @@ import           Fission.Web.Server.AWS.Types              as AWS
 import           Fission.Web.Server.Models
 
 import qualified Fission.Web.Server.DID.Publicize.Class    as Server.DID
-import           Fission.Web.Server.Host.Types
 
 import           Fission.DNS                               as DNS
 import           Fission.URL                               as URL
 
+import           Fission.Web.API.Host.Types
 import           Fission.Web.Async
 
 import qualified Fission.Web.Server.App                    as App

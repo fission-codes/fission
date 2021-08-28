@@ -1,25 +1,37 @@
-module Fission.Web.API.Docs (makeDocs, subOps) where
+module Fission.Web.API.Docs (meta) where
 
-import  Fission.Web.API.Prelude
-import  Fission.Web.API.Types
+import           Data.Version               (Version, showVersion)
+import qualified RIO.Text                   as Text
 
-makeDocs
-  :: ( Servant.API.IsSubAPI subRoute Fission.API
-     , HasSwagger subRoute
-     )
-  => Proxy subRoute
-  -> [Tag]
-  -> Swagger
-  -> Swagger
-makeDocs routeProxy = applyTagsFor (subOps routeProxy)
+import           Data.Swagger
+import           Servant.Swagger
 
-subOps
-  :: ( Applicative f
-     , Servant.API.IsSubAPI subRoute Fission.API
-     , HasSwagger subRoute
-     )
-  => Proxy subRoute
-  -> (Operation -> f Operation)
-  ->   Swagger
-  -> f Swagger
-subOps routeProxy = subOperations routeProxy $ Proxy @Fission.API
+import qualified Fission.Web.API.Host.Types as Web
+import           Fission.Web.API.Prelude    hiding (Https)
+
+meta :: HasSwagger api => Proxy api -> Version -> Web.Host -> Swagger
+meta proxy v appHost =
+  proxy
+    |> toSwagger
+    |> host               ?~ Host (Web.getRawHost appHost) Nothing
+    |> schemes            ?~ [Https]
+    |> info . title       .~ "The Fission API"
+    |> info . version     .~ version'
+    |> info . description ?~ blurb
+    |> info . contact     ?~ fissionContact
+    |> info . license     ?~ projectLicense
+  where
+    version' =
+      Text.pack $ showVersion v
+
+    fissionContact =
+      mempty
+        |> name  ?~ "Team Fission"
+        |> url   ?~ URL "https://fission.codes"
+        |> email ?~ "support@fission.codes"
+
+    projectLicense =
+      "AGPL 3.0" |> url ?~ URL "https://www.gnu.org/licenses/agpl-3.0.en.html"
+
+    blurb =
+      "Bootstrapped & distributed backend-as-a-service with user-controlled data"

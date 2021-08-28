@@ -3,9 +3,19 @@ module Fission.Web.API.Auth
   , module Fission.Web.API.Auth.Types
   ) where
 
-import  Fission.Web.API.Prelude
-import  Fission.Web.API.Auth.Types
+import           Data.Swagger
+import           Servant.Swagger
 
-docs :: Swagger -> Swagger
-docs = makeDocs (Proxy @Auth)
-  ["Auth" |> description ?~ "Specialized auth endpoints"]
+import           Fission.Web.API.Auth.Types
+import           Servant.Swagger.TypeLevel
+
+import           Fission.Web.API.Prelude
+
+docs :: ("api" :> "v2" :> Auth) `IsSubAPI` api => Proxy api -> Swagger -> Swagger
+docs api = applyTags tags'
+
+docsV_ :: Auth `IsSubAPI` api => Proxy api -> Swagger -> Swagger
+docsV_ api = applyTagsFor (subOperations (Proxy @Auth) api) tags'
+
+tags' :: [Tag]
+tags' = ["Auth" |> description ?~ "Specialized auth endpoints"]

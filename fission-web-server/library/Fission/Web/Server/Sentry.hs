@@ -18,9 +18,9 @@ import qualified Servant.Client.Core                    as Servant
 
 import           Fission.Prelude                        hiding (onException)
 
+import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote
 
-import           Fission.Web.Server.Host.Types
 import qualified Fission.Web.Server.Sentry.DSN.Types    as Sentry
 
 import qualified Paths_fission_web_server               as Fission

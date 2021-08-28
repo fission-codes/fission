@@ -1,4 +1,4 @@
-module Fission.Web.Server.Host.Types
+module Fission.Web.API.Host.Types
   ( Host (..)
   , Port (..)
   , getRawHost

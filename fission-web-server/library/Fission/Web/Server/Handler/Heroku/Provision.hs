@@ -21,9 +21,9 @@ import qualified Fission.User.Provision.Types                    as User
 import           Fission.User.Username.Types
 
 import qualified Fission.Web.API.Heroku.Provision.Types          as API.Heroku
+import qualified Fission.Web.API.Host.Types                      as Web
 
 import qualified Fission.Web.Server.Error                        as Web.Err
-import qualified Fission.Web.Server.Host.Types                   as Web
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.Reflective
 import qualified Fission.Web.Server.User.Creator                 as User

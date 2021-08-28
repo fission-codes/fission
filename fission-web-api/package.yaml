@@ -89,12 +89,14 @@ default-extensions:
 dependencies:
   ## Base ##
   - base
+  - flow
   - rio
 
   ## Crypto ##
   - cryptonite
 
   ## Data ##
+  - lens
   - swagger2
   - uuid
 
@@ -106,8 +108,11 @@ dependencies:
   - ipfs
   - servant
   - servant-auth
+  - servant-ekg
   - servant-client
   - servant-client-core
+  - servant-swagger
+  - warp
 
 library:
   source-dirs: library

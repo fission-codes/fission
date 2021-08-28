@@ -3,9 +3,15 @@ module Fission.Web.API.User
   , module Fission.Web.API.User.Types
   ) where
 
-import  Fission.Web.API.Prelude
-import  Fission.Web.API.User.Types
+import           Data.Swagger
+import           Servant.Swagger
 
-docs :: Swagger -> Swagger
-docs = makeDocs (Proxy @User)
-  ["User" |> description ?~ "Accounts, authentication, and stats"]
+import           Fission.Web.API.User.Types
+import           Servant.Swagger.TypeLevel
+
+import           Fission.Web.API.Prelude
+
+docs :: User `IsSubAPI` api => Proxy api -> Swagger -> Swagger
+docs api =
+  applyTagsFor (subOperations (Proxy @User) api)
+    ["User" |> description ?~ "Accounts, authentication, and stats"]

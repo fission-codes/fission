@@ -3,10 +3,10 @@ module Fission.Web.Server.Environment.Server.Types (Environment (..)) where
 
 import           Fission.Prelude
 
+import qualified Fission.Web.API.Host.Types          as Web
 import           Fission.Web.API.Remote              (Remote)
 
 import qualified Fission.Web.Server.AWS.Types        as AWS
-import qualified Fission.Web.Server.Host.Types       as Web
 import qualified Fission.Web.Server.Sentry.DSN.Types as Sentry
 
 -- | Configuration for the web application

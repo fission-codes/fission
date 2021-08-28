@@ -3,9 +3,15 @@ module Fission.Web.API.IPFS
   , module Fission.Web.API.IPFS.Types
   ) where
 
-import  Fission.Web.API.Prelude
-import  Fission.Web.API.IPFS.Types
+import           Data.Swagger
+import           Servant.Swagger
 
-docs :: Swagger -> Swagger
-docs = makeDocs (Proxy @IPFS)
-  ["IPFS" |> description ?~ "The primary IPFS API"]
+import           Fission.Web.API.IPFS.Types
+import           Servant.Swagger.TypeLevel
+
+import           Fission.Web.API.Prelude
+
+docs :: IPFS `IsSubAPI` api => Proxy api -> Swagger -> Swagger
+docs api =
+  applyTagsFor (subOperations (Proxy @IPFS) api)
+    ["IPFS" |> description ?~ "The primary IPFS API"]
