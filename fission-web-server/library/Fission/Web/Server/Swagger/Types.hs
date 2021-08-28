@@ -1,8 +1,9 @@
-module Fission.Web.Server.Swagger.Types (V2, V_, Docs) where
+module Fission.Web.Server.Swagger.Types (Latest, V2, V_, Docs) where
 
 import           Servant.API
 import           Servant.Swagger.UI.ReDoc
 
+type Latest = V2
 type V2 = "v2" :> Docs
 type V_ = Docs
 

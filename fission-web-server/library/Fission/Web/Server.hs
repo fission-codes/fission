@@ -63,10 +63,11 @@ import qualified Paths_fission_web_server                    as Fission
 -- | Top level web API type. Handled by 'server'.
 type API
   -- V2
-  =    Swagger.V2
-  :<|> Fission.V2
-  -- Unversioned
-  :<|> Swagger.V_
+  =    Fission.V2
+  -- Docs
+  :<|> Swagger.Latest
+  :<|> Swagger.V2
+  -- API with omitted docs
   :<|> Fission.V_
   :<|> LinkWS
   :<|> Root
@@ -154,13 +155,16 @@ server ::
   => Web.Host
   -> ServerT API m
 server appHost
-  =    Web.Swagger.handler fromHandler appHost Fission.version (Proxy @Fission.V2)
-  :<|> v2
-  :<|> Web.Swagger.handler fromHandler appHost Fission.version (Proxy @Fission.V_)
+  =    v2
+  :<|> latestDocs
+  :<|> v2Docs -- v2, happens to be the same right now
   :<|> v_
   :<|> Relay.relay
   :<|> pure NoContent
   where
+    latestDocs = v2Docs
+    v2Docs = Web.Swagger.handler fromHandler appHost Fission.version (Proxy @Fission.V2)
+
     v2 = v_
     v_ =   IPFS.handler
       :<|> App.handler
