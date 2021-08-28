@@ -109,7 +109,7 @@ app handlerNT authChecks appHost = do
     api = Proxy @API
 
 -- | Web handlers for the 'API'
-server :: forall m t .
+server ::
   ( App.Domain.Initializer      m
   , App.Content.Initializer     m
   , App.CRUD                    m
