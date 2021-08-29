@@ -1,5 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-
 module Fission.Web.Server.Handler.User (handler) where
 
 import           Servant
