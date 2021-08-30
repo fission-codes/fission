@@ -1,12 +1,13 @@
-module Fission.Web.Server.Handler.User (handler) where
+module Fission.Web.Server.Handler.User (handlerV_, handlerV2) where
 
-import           Servant
+import           Servant.Server.Generic
 
 import           Fission.Prelude
 
-import qualified Fission.Web.API.User.Types                     as API
+import qualified Fission.Web.API.User.Types                     as User
 
 import           Fission.Web.Server.IPFS.DNSLink.Class          as DNSLink
+import           Fission.Web.Server.Relay
 import           Fission.Web.Server.WNFS.Class
 
 import qualified Fission.Web.Server.Challenge.Creator.Class     as Challenge
@@ -20,6 +21,7 @@ import qualified Fission.Web.Server.User.Creator.Class          as User
 import qualified Fission.Web.Server.User.Modifier.Class         as User
 import qualified Fission.Web.Server.User.Retriever.Class        as User
 
+import qualified Fission.Web.Server.Handler.Relay               as Relay
 import qualified Fission.Web.Server.Handler.User.Create         as Create
 import qualified Fission.Web.Server.Handler.User.DID            as DID
 import qualified Fission.Web.Server.Handler.User.DataRoot       as DataRoot
@@ -29,7 +31,7 @@ import qualified Fission.Web.Server.Handler.User.Password.Reset as Password.Rese
 import qualified Fission.Web.Server.Handler.User.Verify         as Verify
 import qualified Fission.Web.Server.Handler.User.WhoAmI         as WhoAmI
 
-handler ::
+handlerV2 ::
   ( App.Domain.Initializer      m
   , User.Creator                m
   , User.Modifier               m
@@ -40,18 +42,52 @@ handler ::
   , RecoveryChallenge.Creator   m
   , RecoveryChallenge.Retriever m
   , RecoveryChallenge.Destroyer m
+  , MonadRelayStore             m
   , MonadWNFS                   m
   , MonadTime                   m
   , MonadLogger                 m
   , MonadDNSLink                m
   , MonadEmail                  m
   )
-  => ServerT API.User m
-handler = Create.create
-     :<|> WhoAmI.handler
-     :<|> Verify.handler
-     :<|> Email.handler
-     :<|> DID.handler
-     :<|> ExchangeKey.handler
-     :<|> DataRoot.handler
-     :<|> Password.Reset.handler
+  => User.RoutesV2 (AsServerT m)
+handlerV2 =
+  User.RoutesV2
+    { create       = Create.withDID
+    , whoAmI       = genericServerT WhoAmI.handler
+    , email        = genericServerT Email.handler
+    , did          = genericServerT DID.handler
+    , linkingRelay = genericServerT Relay.handler
+    , dataRoot     = genericServerT DataRoot.handler
+    }
+
+handlerV_ ::
+  ( App.Domain.Initializer      m
+  , User.Creator                m
+  , User.Modifier               m
+  , User.Retriever              m
+  , Challenge.Creator           m
+  , Challenge.Retriever         m
+  , Challenge.Verifier          m
+  , RecoveryChallenge.Creator   m
+  , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
+  , MonadRelayStore             m
+  , MonadWNFS                   m
+  , MonadTime                   m
+  , MonadLogger                 m
+  , MonadDNSLink                m
+  , MonadEmail                  m
+  )
+  => User.RoutesV_ (AsServerT m)
+handlerV_ =
+  User.RoutesV_
+    { create        = genericServerT Create.createV_
+    , whoAmI        = genericServerT WhoAmI.handler
+    , email         = genericServerT Email.handler
+    , did           = genericServerT DID.handler
+    , exchangeKeys  = genericServerT ExchangeKey.handler
+    , linkingRelay  = genericServerT Relay.handler
+    , dataRoot      = genericServerT DataRoot.handler
+    , passwordReset = Password.Reset.handler
+    , verify        = Verify.handler
+    }

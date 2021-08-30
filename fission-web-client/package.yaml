@@ -1,5 +1,5 @@
 name: fission-web-client
-version: '1.0.0.0'
+version: '2.0.0.0'
 category: Client
 author:
   - Brooklyn Zelenka
@@ -19,7 +19,7 @@ copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission
-tested-with: GHC==8.8.4
+tested-with: GHC==8.10.7
 extra-source-files:
   - README.md
 
@@ -92,22 +92,31 @@ default-extensions:
 dependencies:
   ## Base ##
   - base
+  - free
   - rio
 
   ## Cryptogrpahy ##
   - cryptonite
 
   ## Data ##
+  - aeson
   - base64-bytestring
+  - binary
 
   ## Web ##
+  - blaze-html
   - http-client
   - http-client-tls
   - http-types
   - ipfs
   - servant
+  - servant-blaze
   - servant-client
   - servant-client-core
+  - servant-swagger-ui-core
+  - servant-websockets
+  - wuss
+  - websockets
 
   ## Fission ##
   - fission-core

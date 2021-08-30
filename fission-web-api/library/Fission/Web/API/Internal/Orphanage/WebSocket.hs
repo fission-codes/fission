@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Web.Server.Internal.Orphanage.WebSocket () where
+module Fission.Web.API.Internal.Orphanage.WebSocket () where
 
 import           Data.Swagger
 

@@ -4,7 +4,6 @@ module Fission.Web.API.Auth.Types
   ( HerokuAddOnAPI
   , RegisterDID
   , HigherOrder
-  , Auth
   ) where
 
 import           Data.Swagger
@@ -18,10 +17,7 @@ import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.API.Prelude
 
-import           Fission.Web.API.Auth.UCAN.Types
 import qualified Fission.Web.API.Heroku.Auth.Types as Heroku
-
-type Auth = "auth" :> UCAN
 
 -- | Authorization check for the Heroku Addon API
 type HerokuAddOnAPI = BasicAuth "heroku add-on api" Heroku.Auth

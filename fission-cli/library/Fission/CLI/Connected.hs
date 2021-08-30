@@ -29,7 +29,6 @@ import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as JWT.Resolver
 import           Fission.Web.Auth.Token.JWT.Types
 
 import           Fission.Web.Client                        as Client
-import qualified Fission.Web.Client.User                   as User
 
 import           Fission.CLI.Connected.Types
 import qualified Fission.CLI.Context                       as Context
@@ -164,11 +163,11 @@ mkConnected inCfg ipfsTimeout = do
           Context.run cfg do
             logDebug @Text "Attempting user verification"
             proof <- getRootUserProof
-            attempt (sendAuthedRequest proof User.verify) >>= \case
+            attempt (sendAuthedRequest proof whoAmI) >>= \case
               Left err -> do
                 CLI.Error.put err "Not registered. Please run: fission user login"
                 raise NotRegistered
 
-              Right _ -> do
-                logDebug @Text "User is registered"
+              Right username -> do
+                logDebug $ "User is registered as " <> display username
                 return cfg

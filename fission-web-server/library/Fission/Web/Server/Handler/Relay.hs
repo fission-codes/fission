@@ -73,24 +73,26 @@
 
 
 -}
-module Fission.Web.Server.Handler.Relay (relay) where
+module Fission.Web.Server.Handler.Relay (handler) where
 
-import qualified Network.WebSockets                     as WS
-import           Servant
+import qualified Network.WebSockets          as WS
+import           Servant.Server.Generic
 
 import           Fission.Prelude
 
-import           Fission.Web.Server.Relay               as Relay
+import qualified Fission.Web.API.Relay.Types as Relay
 
-import qualified Fission.Web.Server.Handler.Relay.Types as API
+import           Fission.Web.Server.Relay    as Relay
 
-relay :: (MonadIO m, MonadLogger m, MonadRelayStore m) => ServerT API.RelayWS m
-relay did conn = do
-  logDebug $ "Connected to user link for " <> textDisplay did
-  storeVar <- getStoreVar
-  (sentBufferVar, chanIn, chanOut) <- atomically $ Relay.setup did storeVar
+handler :: (MonadIO m, MonadLogger m, MonadRelayStore m) => Relay.Routes (AsServerT m)
+handler = Relay.Routes { socket }
+  where
+    socket did conn = do
+      logDebug $ "Connected to user link for " <> textDisplay did
+      storeVar <- getStoreVar
+      (sentBufferVar, chanIn, chanOut) <- atomically $ Relay.setup did storeVar
 
-  liftIO $ WS.withPingThread conn 30 noop do
-    concurrently_
-      (inbound  conn chanIn  sentBufferVar)
-      (outbound conn chanOut sentBufferVar)
+      liftIO $ WS.withPingThread conn 30 noop do
+        concurrently_
+          (inbound  conn chanIn  sentBufferVar)
+          (outbound conn chanOut sentBufferVar)

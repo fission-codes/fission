@@ -1,5 +1,5 @@
 module Fission.Web.API.User.ExchangeKey.Types
-  ( ExchangeKeys
+  ( Routes (..)
   , Add
   , Remove
   ) where
@@ -10,9 +10,14 @@ import           Fission.Web.API.Prelude
 
 import qualified Fission.Web.API.Auth.Types as Auth
 
-type ExchangeKeys = "exchange" :> "keys" :> API
+data Routes mode = Routes
+  { add ::
+      mode :- Add
 
-type API = Add :<|> Remove
+  , remove ::
+      mode :- Remove
+  }
+  deriving Generic
 
 type Add
   =  Summary "Add Public Exchange Key"

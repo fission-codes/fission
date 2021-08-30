@@ -17,7 +17,7 @@ import           Network.IPFS.CID.Types
 
 import           Fission.Prelude
 
-import qualified Fission.Web.Client.App                    as App
+import           Fission.Web.Client
 
 import qualified Fission.Internal.UTF8                     as UTF8
 
@@ -106,7 +106,7 @@ publish
           logDebug $ "📱 Directory CID is " <> hash
           _     <- IPFS.Daemon.runDaemon
           proof <- getRootUserProof
-          req   <- App.update appURL cid (Just updateData) <$> Client.attachAuth proof
+          req   <- updateApp appURL cid (Just updateData) <$> Client.attachAuth proof
 
           logUser @Text "✈️  Pushing to remote"
           retryOnStatus [status502] 100 req >>= \case
@@ -190,7 +190,7 @@ handleTreeChanges runner userProof appURL copyFilesFlag timeCache hashCache watc
               Just oldHash -> do
                 logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
                 UTF8.putNewline
-                req <- App.update appURL cid (Just copyFilesFlag) <$> attachAuth userProof
+                req <- updateApp appURL cid (Just copyFilesFlag) <$> attachAuth userProof
 
                 retryOnStatus [status502] 100 req >>= \case
                   Left err -> CLI.Error.put err "Server unable to sync data"

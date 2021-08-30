@@ -1,16 +1,16 @@
 module Fission.Web.Server.Handler.User.DataRoot (handler) where
 
 import           Servant
+import           Servant.Server.Generic
 
 import           Fission.Prelude
 
-import qualified Fission.Web.API.User.DataRoot.Types             as API
+import qualified Fission.Web.API.User.DataRoot.Types    as DataRoot
 
-import qualified Fission.Web.Server.User                         as User
-import           Fission.Web.Server.WNFS
-
-import qualified Fission.Web.Server.Handler.User.DataRoot.Get    as Get
-import qualified Fission.Web.Server.Handler.User.DataRoot.Update as Update
+import           Fission.Web.Server.Authorization.Types
+import           Fission.Web.Server.Error               as Web.Error
+import qualified Fission.Web.Server.User                as User
+import           Fission.Web.Server.WNFS                as WNFS
 
 handler ::
   ( MonadLogger   m
@@ -19,5 +19,13 @@ handler ::
   , MonadWNFS     m
   , User.Modifier m
   )
-  => ServerT API.DataRoot m
-handler = Update.handler :<|> Get.handler
+  => DataRoot.Routes (AsServerT m)
+handler = DataRoot.Routes {..}
+  where
+    get username =
+      Web.Error.ensureM $ WNFS.getUserDataRoot username
+
+    update newCID Authorization {about = Entity userID _} = do
+      now <- currentTime
+      Web.Error.ensureM $ User.setData userID newCID now
+      return NoContent

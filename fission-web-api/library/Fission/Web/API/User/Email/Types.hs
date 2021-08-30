@@ -1,16 +1,42 @@
-module Fission.Web.API.User.Email.Types (Email) where
+module Fission.Web.API.User.Email.Types (Routes (..), Verify) where
+
+import           Fission.Challenge.Types
 
 import           Fission.Web.API.Prelude
 
-import           Fission.Web.API.User.Email.Verify.Types
+import           Fission.User.Username.Types
+import qualified Fission.Web.API.Auth.Types  as Auth
 
-import           Fission.Web.API.User.Email.Resend.Types
+data Routes mode = Routes
+  { verify ::
+      mode
+      :- "verify"
+      :> Verify
 
-import Fission.Web.API.User.Email.Recover.Types
+  , resend ::
+      mode
+      :- "resend"
+      :> Summary "Resend verification email"
+      :> Description "Send a verification email to currently authenticated user."
+      --
+      :> Auth.HigherOrder
+      :> PostNoContent
 
-type Email = "email" :> API
+  , recover ::
+      mode
+      :- "recover"
+      :> Summary "Email verification for account recovery"
+      --
+      :> Capture "Username" Username
+      --
+      :> PostNoContent
+  }
+  deriving Generic
 
-type API
-  =    Verify
-  :<|> Resend
-  :<|> Recover
+
+type Verify
+  =  Summary "Email verification"
+  --
+  :> Capture "Challenge" Challenge
+  --
+  :> GetNoContent

@@ -18,7 +18,6 @@ import           Fission.Authorization.ServerDID
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                        as Client
-import qualified Fission.Web.Client.User                   as User
 
 import           Fission.CLI.Environment                   as Env
 import           Fission.CLI.Environment.Path              as Path
@@ -51,7 +50,7 @@ whoami ::
   => m ()
 whoami = do
   proof <- getRootUserProof
-  attempt (sendAuthedRequest proof User.whoami) >>= \case
+  attempt (sendAuthedRequest proof whoAmI) >>= \case
     Right username -> do
       CLI.Success.currentlyLoggedInAs $ textDisplay username
       Env.update \env -> env {username}

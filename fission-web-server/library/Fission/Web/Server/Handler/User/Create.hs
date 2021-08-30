@@ -1,16 +1,17 @@
 module Fission.Web.Server.Handler.User.Create
-  ( create
+  ( createV_
   , withDID
   , withPassword
   ) where
 
 import           Servant
+import           Servant.Server.Generic
 
 import           Fission.Prelude
 
 import           Fission.User.DID.Types
 
-import qualified Fission.Web.API.User.Create.Types          as API.User
+import qualified Fission.Web.API.User.Create.Types          as User.Create
 
 import qualified Fission.Web.Server.Challenge.Creator.Class as Challenge
 import           Fission.Web.Server.Email
@@ -20,7 +21,7 @@ import qualified Fission.Web.Server.User                    as User
 
 import           Fission.Web.Server.Auth.Types              ()
 
-create ::
+createV_ ::
   ( MonadDNSLink      m
   , MonadLogger       m
   , MonadTime         m
@@ -28,8 +29,12 @@ create ::
   , User.Creator      m
   , Challenge.Creator m
   )
-  => ServerT API.User.Create m
-create = withDID :<|> withPassword
+  => User.Create.RoutesV_ (AsServerT m)
+createV_ =
+  User.Create.RoutesV_
+    { withDID      = withDID
+    , withPassword = withPassword
+    }
 
 withDID ::
   ( MonadDNSLink      m
@@ -39,7 +44,7 @@ withDID ::
   , User.Creator      m
   , Challenge.Creator m
   )
-  => ServerT API.User.CreateWithDID m
+  => ServerT User.Create.WithDID m
 withDID User.Registration {username, email} DID {..} = do
   now       <- currentTime
   userId    <- Web.Err.ensureM $ User.create username publicKey email now
@@ -55,7 +60,7 @@ withPassword ::
   , User.Creator      m
   , Challenge.Creator m
   )
-  => ServerT API.User.CreateWithPassword m
+  => ServerT User.Create.WithPassword m
 withPassword User.Registration {password = Nothing} =
   Web.Err.throw err422 { errBody = "Missing password" }
 

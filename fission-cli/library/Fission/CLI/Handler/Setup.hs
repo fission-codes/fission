@@ -19,7 +19,6 @@ import           Fission.User.Username.Types
 
 import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Client                          as Client
-import qualified Fission.Web.Client.User                     as User
 
 import           Fission.CLI.Display.Error                   as CLI.Error
 
@@ -87,7 +86,7 @@ setup maybeOS maybeUsername maybeEmail maybeKeyFile = do
           logDebug $ "🔑 Got a Keyfile: " <> keyFile
           Key.Store.fromFile (Proxy @SigningKey) keyFile
 
-          attempt (sendAuthedRequest RootCredential User.whoami) >>= \case
+          attempt (sendAuthedRequest RootCredential whoAmI) >>= \case
             Left err -> do
               CLI.Error.put err "Invalid key file provided."
               raise err
