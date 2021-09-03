@@ -40,6 +40,8 @@ import           Fission.Internal.App
 import           Fission.Time
 import           Fission.User.DID.Types
 
+import           Fission.Web.API.Host.Types                      as Server
+
 import qualified Fission.Web.Server.Types                        as Fission
 import qualified Fission.Web.Server.Types                        as Fission.Server
 
@@ -51,7 +53,6 @@ import           Fission.Web.Server.User                         as User
 
 import qualified Fission.Web.Server                              as Fission.Server
 import qualified Fission.Web.Server.Error                        as Web.Error
-import           Fission.Web.Server.Host.Types                   as Server
 import qualified Fission.Web.Server.Log                          as Web.Log
 
 import           Fission.Web.Server.Auth                         as Auth

@@ -27,6 +27,9 @@ import qualified Fission.Internal.Fixture.Time             as Fixture
 import           Fission.URL
 import           Fission.User.DID.Types
 
+import qualified Fission.Web.API.Heroku.Auth.Types         as Heroku
+import qualified Fission.Web.API.Host.Types                as Web
+
 import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.Mock.Config.Types      as Mock
 import           Fission.Web.Server.Mock.Effect            as Effect
@@ -36,13 +39,10 @@ import           Fission.Web.Server.IPFS.DNSLink.Class
 import           Fission.Web.Server.IPFS.Linked.Class
 
 import           Fission.Web.Server.Auth.Class
-import qualified Fission.Web.Server.Host.Types             as Web
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.Reflective.Class
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
-
-import qualified Fission.Web.API.Heroku.Auth.Types         as Heroku
 
 import           Fission.Web.Server.AWS
 import           Fission.Web.Server.Heroku.AddOn           as Heroku.AddOn

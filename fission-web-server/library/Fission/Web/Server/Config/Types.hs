@@ -16,9 +16,8 @@ import           Fission.Prelude
 import           Fission.URL.Types                         as URL
 import           Fission.User.DID.Types
 
+import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote                    (Remote)
-
-import           Fission.Web.Server.Host.Types
 
 import qualified Fission.Web.Server.AWS.Types              as AWS
 
