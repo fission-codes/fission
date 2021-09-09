@@ -14,7 +14,7 @@ spec =
       it "is always be successful" do
         get "/" `shouldRespondWith` 200
 
-      it "contains the text 'pong'" do
+      it "has an empty body'" do
         get "/" `shouldRespondWith` 200
           { matchBody = MatchBody $ bodyMatches Null }
 
