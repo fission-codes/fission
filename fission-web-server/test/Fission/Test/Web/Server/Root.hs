@@ -1,7 +1,6 @@
 module Fission.Test.Web.Server.Root (spec) where
 
 import           Servant
-import           Servant.API.Generic
 
 import qualified Fission.Web.API.Types           as API
 
@@ -16,7 +15,7 @@ spec =
 
       it "has an empty body'" do
         get "/" `shouldRespondWith` 200
-          { matchBody = MatchBody $ bodyMatches Null }
+          { matchBody = MatchBody . bodyMatches $ String "" }
 
 rootServer :: IO Application
 rootServer = return . serve (Proxy @API.Root) $ runMockIO defaultConfig rootHandler
