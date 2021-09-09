@@ -4,6 +4,7 @@ module Fission.Web.API.Types
   , RoutesV2 (..)
   , RoutesV_ (..)
   , V2       (..)
+  , Root
   ) where
 
 import           Servant.API.Generic
@@ -24,9 +25,11 @@ data Routes mode = Routes
   { v2          :: mode :- "v2" :> ToServantApi RoutesV2
   , latestDocs  :: mode :- Docs
   , unversioned :: mode :- ToServantApi RoutesV_
-  , root        :: mode :- Get '[JSON, OctetStream, PlainText] NoContent
+  , root        :: mode :- Root
   }
   deriving Generic
+
+type Root = Get '[JSON, OctetStream, PlainText] NoContent
 
 data RoutesV2 mode = RoutesV2
   { api  :: mode :- "api" :> ToServantApi V2
