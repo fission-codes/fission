@@ -15,7 +15,10 @@ spec =
 
       it "has an empty body'" do
         get "/" `shouldRespondWith` 200
-          { matchBody = MatchBody . bodyMatches $ String "" }
+          { matchBody =
+              MatchBody \_ body ->
+                if body == "" then Nothing else Just "not empty"
+          }
 
 rootServer :: IO Application
 rootServer = return . serve (Proxy @API.Root) $ runMockIO defaultConfig rootHandler
