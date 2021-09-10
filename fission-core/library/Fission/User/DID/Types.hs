@@ -4,6 +4,8 @@ module Fission.User.DID.Types
   , module Fission.User.DID.Method.Types
   ) where
 
+import qualified RIO.ByteString.Lazy               as Lazy
+
 import qualified Data.Aeson.Types                  as JSON
 import           Data.Swagger
 
@@ -11,6 +13,7 @@ import           Data.Base58String.Bitcoin         as BS58.BTC
 import           Data.Binary                       hiding (encode)
 import qualified Data.ByteArray                    as BA
 import qualified Data.ByteString.Base64            as BS64
+import qualified Data.ByteString.Builder           as Builder
 import           Data.Hashable                     (Hashable (..))
 
 import           Crypto.Error
@@ -113,13 +116,11 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          Ed25519PublicKey ed  -> 0xed : 0x01 : BS.unpack (BA.convert ed)
-          RSAPublicKey     rsa -> 0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
-                               {-   ^     ^     ^
-                                    |     |     |
-                                    |    "expect 373 Bytes", encoded in the mixed-endian format
-                                  "raw"
-                              -}
+          Ed25519PublicKey ed ->
+            0xed : 0x01 : BS.unpack (BA.convert ed)
+
+          RSAPublicKey rsa ->
+            0x12 : 0x05 : BS.unpack (Lazy.toStrict . Builder.toLazyByteString . getUtf8Builder $ display rsa)
 
 instance ToJSON DID where
   toJSON = String . textDisplay
@@ -158,6 +159,11 @@ parseText txt =
                 CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
                 CryptoPassed edPK -> return $ Ed25519PublicKey edPK
 
+        -- Multiformats rsa-x509-pub
+        (0x12 : 0x05 : rsaKeyW8s) ->
+          RSAPublicKey <$> parseKeyW8s (BS.pack rsaKeyW8s)
+
+        -- Legacy encoding for backward compatability
         (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
           RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
 

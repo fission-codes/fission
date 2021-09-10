@@ -4,14 +4,16 @@ module Fission.Internal.Orphanage.RSA2048.Public () where
 
 import qualified System.IO.Unsafe         as Unsafe
 
+import qualified RIO.ByteString           as BS
+
 import qualified Crypto.PubKey.RSA        as RSA
 import qualified Crypto.Store.X509        as X509
+
+import qualified Data.ByteString.Builder  as Builder
 
 import qualified Data.ASN1.BinaryEncoding as ASN1
 import qualified Data.ASN1.Encoding       as ASN1
 import qualified Data.ASN1.Types          as ASN1
-
-import qualified Data.PEM                 as PEM
 
 import qualified Data.ByteString.Base64   as BS64
 import qualified Data.X509                as X509
@@ -32,9 +34,8 @@ instance Arbitrary RSA.PublicKey where
 
 instance Display RSA.PublicKey where
   textDisplay pk =
-    X509.PubKeyRSA pk
-      |> X509.pubKeyToPEM
-      |> PEM.pemWriteBS
+    [X509.PubKeyRSA pk]
+      |> X509.writePubKeyFileToMemory
       |> decodeUtf8Lenient
       |> Text.strip
       |> Text.dropPrefix pemHeader

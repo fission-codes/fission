@@ -21,7 +21,7 @@ spec =
       it "serializes to a well-known value"
         let
           expected :: Lazy.ByteString
-          expected = "did:key:z13V3Sog2YaUKhdGCmgx9UZuW1o1ShFJYc6DvGYe7NTt689NoL2RtpVs65Zw899YrTN9WuxdEEDm54YxWuQHQvcKfkZwa8HTgokHxGDPEmNLhvh69zUMEP4zjuARQ3T8bMUumkSLGpxNe1bfQX624ef45GhWb3S9HM3gvAJ7Qftm8iqnDQVcxwKHjmkV4hveKMTix4bTRhieVHi1oqU4QCVy4QPWpAAympuCP9dAoJFxSP6TNBLY9vPKLazsg7XcFov6UuLWsEaxJ5SomCpDx181mEgW2qTug5oQbrJwExbD9CMgXHLVDE2QgLoQMmgsrPevX57dH715NXC2uY6vo2mYCzRY4KuDRUsrkuYCkewL8q2oK1BEDVvi3Sg8pbC9QYQ5mMiHf8uxiHxTAmPedv8"
+          expected = "did:key:z6QpGjYPVzCGb5LgDoRzmYPiuusJxNfPySt8uiyVfyKqbJHkXGKmhP8q6tWvjmUFxQdW16z1zNPbSvefQ15k9VKURuVy7JX6WF1nA3FmfNNjds8bgRMJYTLLTw4GQGYxE8juG9vFRVkigz5g5PozyTgjqcCgcWVXTaDRW3kLDrtZgzj9J3Z2kthgx1HFsFt3bZCCZ8qZ23bryGDCbVg7z5NCP7SQqoMU9zbS7YygVPrayNuKhaibJkYLDpCbcncenn9eAtjpAtXbuWbwuet1CJB6T25xmfCFhq9nTbwKCXvnboLRa4MPTbpuHYyoiiJiZRUb5v7ut6Gcbr9YHYN7E7QMUjs2xAZHHk2f1xBqdKfrAi6qrxkMQqJaNexogYsHkCTNE43wVT87kDt92DyhbVupyBgMTi3jy3otFzbBYoE3213wzvnG5fVnTKNn4g1FLCmcv8XYRHD6tvPsbMDCA2xVaqKaFnN4nZhDVKK2RnATSDCbHLrAAresS365zMrARDtdJRvYcjULR1bhhmQ58k8J64h"
         in
           encode (DID Key rsaKey) `shouldBe` "\"" <> expected <> "\""
 
