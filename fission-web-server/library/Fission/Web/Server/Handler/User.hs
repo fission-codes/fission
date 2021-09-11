@@ -57,7 +57,7 @@ handlerV2 =
     , email        = genericServerT Email.handler
     , did          = genericServerT DID.handler
     , linkingRelay = genericServerT Relay.handler
-    , dataRoot     = genericServerT DataRoot.handler
+    , dataRoot     = genericServerT DataRoot.handlerV2
     }
 
 handlerV_ ::
@@ -87,7 +87,7 @@ handlerV_ =
     , did           = genericServerT DID.handler
     , exchangeKeys  = genericServerT ExchangeKey.handler
     , linkingRelay  = genericServerT Relay.handler
-    , dataRoot      = genericServerT DataRoot.handler
+    , dataRoot      = genericServerT DataRoot.handlerV_
     , passwordReset = Password.Reset.handler
     , verify        = Verify.handler
     }

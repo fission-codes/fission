@@ -69,7 +69,7 @@ Fission.Routes
                 User.RoutesV2
                   { create   = createUser
                   , dataRoot = fromServant @_ @(AsClientT ClientM) ->
-                      User.DataRoot.Routes
+                      User.DataRoot.RoutesV2
                         { get    = getDataRoot
                         , update = setDataRoot
                         }
