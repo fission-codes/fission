@@ -74,5 +74,6 @@ unstable.haskell.lib.buildStackProject {
 
   shellHook = ''
     export LANG=C.UTF8
+    echo "⚠️  Remember to override the nix.shell-path in stack.yaml ⚠️ "
   '';
 }

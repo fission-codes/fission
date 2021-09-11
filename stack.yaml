@@ -35,4 +35,4 @@ ghc-options:
 nix:
   enable:     true
   pure:       true
-  shell-file: shell.nix
+  shell-file: rosetta.nix
