@@ -1,4 +1,4 @@
-module Fission.Web.API.App.Types (Routes (..)) where
+module Fission.Web.API.App.Types (RoutesV_ (..), RoutesV2 (..)) where
 
 import qualified Network.IPFS.CID.Types                  as IPFS
 
@@ -11,24 +11,30 @@ import qualified Fission.Web.API.App.Destroy.Types       as Destroy
 import           Fission.Web.API.App.Index.Payload.Types
 import qualified Fission.Web.API.Auth.Types              as Auth
 
-data Routes mode = Routes
-  { index ::
-      mode
-      :- Summary "App index"
-      :> Description "A list of all of your apps and their associated domain names"
-      --
-      :> Auth.HigherOrder
-      :> Get '[JSON] (Map Natural Payload)
+data RoutesV2 mode = RoutesV2
+  { index   :: mode :- Index
+  , create  :: mode :- Create
+  , destroy :: mode :- ToServantApi Destroy.Routes
 
-  , create ::
+  , update ::
       mode
-      :- Summary "Create app"
-      :> Description "Creates a new app, assigns an initial subdomain, and sets an asset placeholder"
+      :- Summary     "Set app content"
+      :> Description "Update the content (CID) for an app"
       --
-      :> QueryParam "subdomain" App.Name
+      :> Capture    "App URL"   URL
+      :> Capture    "New CID"   IPFS.CID
+      :> QueryParam "copy-data" Bool
       --
       :> Auth.HigherOrder
-      :> PostAccepted '[JSON] URL
+      :> PutAccepted '[JSON] ()
+  }
+  deriving Generic
+
+
+data RoutesV_ mode = RoutesV_
+  { index   :: mode :- Index
+  , create  :: mode :- Create
+  , destroy :: mode :- ToServantApi Destroy.Routes
 
   , update ::
       mode
@@ -41,9 +47,21 @@ data Routes mode = Routes
       --
       :> Auth.HigherOrder
       :> PatchAccepted '[JSON] ()
-
-  , destroy ::
-      mode
-      :- ToServantApi Destroy.Routes
   }
   deriving Generic
+
+type Index
+  =  Summary "App index"
+  :> Description "A list of all of your apps and their associated domain names"
+  --
+  :> Auth.HigherOrder
+  :> Get '[JSON] (Map Natural Payload)
+
+type Create
+  =  Summary "Create app"
+  :> Description "Creates a new app, assigns an initial subdomain, and sets an asset placeholder"
+  --
+  :> QueryParam "subdomain" App.Name
+  --
+  :> Auth.HigherOrder
+  :> PostAccepted '[JSON] URL

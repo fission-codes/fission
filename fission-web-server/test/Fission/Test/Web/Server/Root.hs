@@ -10,7 +10,7 @@ spec :: Spec
 spec =
   describe "GET /" do
     with rootServer do
-      it "is always be successful" do
+      it "is always successful" do
         get "/" `shouldRespondWith` 200
 
       it "has an empty body'" do

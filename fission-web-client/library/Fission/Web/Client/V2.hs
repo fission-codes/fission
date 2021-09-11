@@ -49,7 +49,7 @@ Fission.Routes
         { api = fromServant @_ @(AsClientT ClientM) ->
             Fission.V2
               { app = fromServant @_ @(AsClientT ClientM) ->
-                  App.Routes
+                  App.RoutesV2
                     { index   = appIndex
                     , create  = createApp
                     , update  = updateApp

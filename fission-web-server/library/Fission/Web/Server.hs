@@ -139,6 +139,7 @@ server ::
 server appHost =
   Fission.Routes
     { v2
+    , heroku      = genericServerT Heroku.handler
     , latestDocs  = v2Docs
     , unversioned = serverV_
     , root        = pure NoContent
@@ -154,8 +155,7 @@ server appHost =
     serverV2 =
       genericServerT Fission.V2
         { ipfs   = genericServerT IPFS.handlerV2
-        , app    = genericServerT App.handler
-        , heroku = genericServerT Heroku.handler
+        , app    = genericServerT App.handlerV2
         , user   = genericServerT User.handlerV2
         , auth   = genericServerT Auth.UCAN.handler
       }
@@ -163,8 +163,7 @@ server appHost =
     serverV_ =
       genericServerT Fission.RoutesV_
         { ipfs       = genericServerT IPFS.handlerV_
-        , app        = genericServerT App.handler
-        , heroku     = genericServerT Heroku.handler
+        , app        = genericServerT App.handlerV_
         , user       = genericServerT User.handlerV_
         , dns        = genericServerT DNS.handler
         , auth       = genericServerT Auth.UCAN.handler
