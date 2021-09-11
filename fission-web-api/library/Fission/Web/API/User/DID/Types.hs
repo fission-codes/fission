@@ -1,4 +1,4 @@
-module Fission.Web.API.User.DID.Types (DID, SetAuthenticated, SetViaChallenge) where
+module Fission.Web.API.User.DID.Types (SetAuthenticated, SetViaChallenge, Routes (..)) where
 
 import           Fission.Challenge.Types
 import qualified Fission.Key                as Key
@@ -8,7 +8,11 @@ import           Fission.Web.API.Prelude    hiding (Set)
 
 import qualified Fission.Web.API.Auth.Types as Auth
 
-type DID = "did" :> (SetAuthenticated :<|> SetViaChallenge)
+data Routes mode = Routes
+  { setAuthenticated :: mode :- SetAuthenticated
+  , setViaChallenge  :: mode :- SetViaChallenge
+  }
+  deriving Generic
 
 type SetAuthenticated
   =  Summary "Update Public Key"

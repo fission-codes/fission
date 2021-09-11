@@ -1,8 +1,30 @@
-module Fission.Web.API.IPFS.Pin.Types (Pin) where
+module Fission.Web.API.IPFS.Pin.Types (Routes (..)) where
+
+import           Network.IPFS.CID.Types     as IPFS
 
 import           Fission.Web.API.Prelude
 
-import qualified Fission.Web.API.IPFS.Pin.Create.Types  as Pin
-import qualified Fission.Web.API.IPFS.Pin.Destroy.Types as Pin
+import qualified Fission.Web.API.Auth.Types as Auth
 
-type Pin = Pin.Create :<|> Pin.Destroy
+data Routes mode = Routes
+  { pin ::
+      mode
+      :- Summary "Pin CID"
+      :> Description "DEPRECATED ⛔ Pin an otherwise unassociated CID"
+      --
+      :> Capture "cid" IPFS.CID
+      --
+      :> Auth.HigherOrder
+      :> Put '[PlainText, OctetStream] NoContent
+
+  , unpin ::
+      mode
+      :- Summary "Unpin CID"
+      :> Description "DEPRECATED ⛔ Unpin an otherwise unassociated CID"
+      --
+      :> Capture "cid" IPFS.CID
+      --
+      :> Auth.HigherOrder
+      :> DeleteAccepted '[PlainText, OctetStream] NoContent
+  }
+  deriving Generic

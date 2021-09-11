@@ -10,7 +10,6 @@ import           Servant.Client
 import           Fission.Prelude
 
 import           Fission.Web.Client
-import qualified Fission.Web.Client.IPFS    as IPFS
 
 import qualified Fission.CLI.Display.Cursor as Cursor
 import qualified Fission.CLI.Display.Wait   as CLI.Wait
@@ -29,4 +28,4 @@ getPeers ::
 getPeers = do
   logDebug @Text "🌌📥 Getting peers remotely"
   Cursor.withHidden $ CLI.Wait.waitFor "Retrieving Fission Peer List..." do
-    ensureM $ sendRequest IPFS.getPeers
+    ensureM $ sendRequest getIPFSPeers

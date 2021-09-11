@@ -14,6 +14,7 @@ import qualified Data.Aeson                                      as JSON
 import qualified Data.Yaml                                       as YAML
 
 import           Servant
+import           Servant.API.Generic
 import qualified Servant.Ekg                                     as EKG
 
 import qualified System.Metrics                                  as EKG
@@ -41,6 +42,7 @@ import           Fission.Time
 import           Fission.User.DID.Types
 
 import           Fission.Web.API.Host.Types                      as Server
+import qualified Fission.Web.API.Types                           as Fission
 
 import qualified Fission.Web.Server.Types                        as Fission
 import qualified Fission.Web.Server.Types                        as Fission.Server
@@ -74,7 +76,7 @@ import           Fission.Web.Server.Environment.Types
 import qualified Fission.Web.Server.Environment.WNFS.Types       as WNFS
 import qualified Fission.Web.Server.Environment.WebApp.Types     as WebApp
 
-import           Fission.Web.Server.Internal.Orphanage.WebSocket ()
+import           Fission.Web.API.Internal.Orphanage.WebSocket    ()
 
 runInProdSimple :: Fission.Server () -> IO ()
 runInProdSimple action =
@@ -229,7 +231,7 @@ start middleware runner = do
     |> runner
     |> liftIO
 
-api :: Proxy Fission.Server.API
+api :: Proxy (ToServantApi Fission.Routes)
 api = Proxy
 
 mkSettings :: LogFunc -> Server.Port -> Settings

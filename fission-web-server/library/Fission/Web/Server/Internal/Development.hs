@@ -32,7 +32,6 @@ import           Fission.User.DID.Types
 import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote
 
-import           Fission.Web.Server
 import qualified Fission.Web.Server.AWS.Types              as AWS
 import qualified Fission.Web.Server.Email.SendInBlue.Types as SIB
 import qualified Fission.Web.Server.Relay.Store.Types      as Relay

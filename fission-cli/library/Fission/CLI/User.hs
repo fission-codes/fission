@@ -12,7 +12,6 @@ import           Fission.User.DID.Types
 
 import qualified Fission.Web.Auth.Token.Types              as Auth
 import           Fission.Web.Client
-import qualified Fission.Web.Client.User                   as User
 
 import           Fission.CLI.Environment
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
@@ -40,6 +39,6 @@ ensureNotLoggedIn = do
       return ()
 
     Right proof ->
-      attempt (sendAuthedRequest proof User.whoami) >>= \case
+      attempt (sendAuthedRequest proof whoAmI) >>= \case
         Right _ -> raise $ AlreadyExists @DID
         Left  _ -> return ()

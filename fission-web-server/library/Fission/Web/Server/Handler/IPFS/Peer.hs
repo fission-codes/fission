@@ -1,10 +1,10 @@
-module Fission.Web.Server.Handler.IPFS.Peer (get) where
+module Fission.Web.Server.Handler.IPFS.Peer (handler) where
 
-import           Servant
+import           Servant.Server.Generic
 
-import qualified Fission.Web.API.IPFS.Peer.Types as API.IPFS
+import qualified Fission.Web.API.IPFS.Peer.Types as IPFS.Peer
 import           Fission.Web.Server.IPFS.Linked
 
 -- | Get a list of valid IPFS addresses that a user could use to join our network
-get :: MonadLinkedIPFS m => ServerT API.IPFS.Peer m
-get = getLinkedPeers
+handler :: MonadLinkedIPFS m => IPFS.Peer.Routes (AsServerT m)
+handler = IPFS.Peer.Routes {index = getLinkedPeers}

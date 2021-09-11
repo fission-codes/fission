@@ -1,13 +1,12 @@
 module Fission.Web.Server.Handler.DNS (handler) where
 
-import           Database.Esqueleto
-import           Servant
+import           Servant.Server.Generic
 
-import           Fission.Prelude
+import           Fission.Prelude                        hiding (set)
 
 import           Fission.URL                            as URL
 
-import qualified Fission.Web.API.DNS.Types              as API
+import qualified Fission.Web.API.DNS.Types              as DNS
 
 import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.Error               as Web.Err
@@ -22,8 +21,10 @@ handler ::
   , MonadLogger   m
   , User.Modifier m
   )
-  => ServerT API.DNS m
-handler cid Authorization {about = Entity userID User {userUsername}} = do
-  now <- currentTime
-  Web.Err.ensureM $ User.setData userID cid now
-  return . DomainName $ textDisplay userUsername <> ".fission.name"
+  => DNS.Routes (AsServerT m)
+handler = DNS.Routes {..}
+  where
+    set cid Authorization {about = Entity userID User {userUsername}} = do
+      now <- currentTime
+      Web.Err.ensureM $ User.setData userID cid now
+      return . DomainName $ textDisplay userUsername <> ".fission.name"

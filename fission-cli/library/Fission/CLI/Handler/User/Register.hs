@@ -20,7 +20,6 @@ import           Fission.User.Username.Types
 import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                          as Client
-import qualified Fission.Web.Client.User                     as User
 
 import           Fission.User.DID.Types
 import           Fission.User.Email.Types
@@ -76,7 +75,7 @@ register maybeUsername maybeEmail = do
       createAccount maybeUsername maybeEmail
 
     Right proof ->
-      attempt (sendAuthedRequest proof User.whoami) >>= \case
+      attempt (sendAuthedRequest proof whoAmI) >>= \case
         Left _ ->
           createAccount maybeUsername maybeEmail
 
@@ -134,7 +133,7 @@ createAccount maybeUsername maybeEmail = do
       , exchangePK = Just exchangePK
       }
 
-  attempt (sendAuthedRequest RootCredential $ User.createWithDID form) >>= \case
+  attempt (sendAuthedRequest RootCredential $ createUser form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
       baseURL <- getRemoteBaseUrl

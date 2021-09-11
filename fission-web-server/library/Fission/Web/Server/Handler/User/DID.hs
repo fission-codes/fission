@@ -1,10 +1,12 @@
 module Fission.Web.Server.Handler.User.DID (handler) where
 
 import           Servant
+import           Servant.Server.Generic
 
 import           Fission.Prelude
 
 import qualified Fission.Web.API.User.DID.Types         as API
+import qualified Fission.Web.API.User.DID.Types         as DID
 
 import           Fission.Error
 import           Fission.Web.Server.Authorization.Types
@@ -23,45 +25,36 @@ handler ::
   , RecoveryChallenge.Retriever m
   , RecoveryChallenge.Destroyer m
   )
-  => ServerT API.DID m
+  => DID.Routes (AsServerT m)
 handler =
-       handlerAuthenticated
-  :<|> handlerViaChallenge
-
-
-handlerAuthenticated :: (MonadTime m, MonadLogger m, MonadThrow m, User.Modifier m) => ServerT ("did" :> API.SetAuthenticated) m
-handlerAuthenticated pk Authorization {about = Entity userID _} = do
-  now <- currentTime
-  Web.Error.ensureM $ User.updatePublicKey userID pk now
-  return NoContent
-
-
-handlerViaChallenge ::
-  ( MonadTime m
-  , MonadLogger m
-  , MonadThrow m
-  , User.Modifier m
-  , User.Retriever m
-  , RecoveryChallenge.Retriever m
-  , RecoveryChallenge.Destroyer m
-  )
-  => ServerT ("did" :> API.SetViaChallenge) m
-
-handlerViaChallenge pk username challenge = do
-  now <- currentTime
-
-  Entity userId _ <- Web.Error.ensureMaybe noSuchUsername =<< User.getByUsername username
-  challengeStored <- Web.Error.ensureM $ RecoveryChallenge.retrieve userId now
-
-  when (challengeStored /= challenge)
-    (Web.Error.throw (NotFound @UserRecoveryChallenge))
-
-  Web.Error.ensureM $ User.updatePublicKey userId pk now
-
-  RecoveryChallenge.destroyForUser userId
-
-  return NoContent
-
+  DID.Routes { setAuthenticated = handlerAuthenticated
+             , setViaChallenge  = handlerViaChallenge
+             }
   where
-    noSuchUsername =
-      err422 { errBody = "Couldn't find a user with such username" }
+
+    handlerAuthenticated :: (MonadTime m, MonadLogger m, MonadThrow m, User.Modifier m) => ServerT ("did" :> API.SetAuthenticated) m
+    handlerAuthenticated pk Authorization {about = Entity userID _} = do
+      now <- currentTime
+      Web.Error.ensureM $ User.updatePublicKey userID pk now
+      return NoContent
+
+
+
+    handlerViaChallenge pk username challenge = do
+      now <- currentTime
+
+      Entity userId _ <- Web.Error.ensureMaybe noSuchUsername =<< User.getByUsername username
+      challengeStored <- Web.Error.ensureM $ RecoveryChallenge.retrieve userId now
+
+      when (challengeStored /= challenge)
+        (Web.Error.throw (NotFound @UserRecoveryChallenge))
+
+      Web.Error.ensureM $ User.updatePublicKey userId pk now
+
+      RecoveryChallenge.destroyForUser userId
+
+      return NoContent
+
+      where
+        noSuchUsername =
+          err422 { errBody = "Couldn't find a user with such username" }

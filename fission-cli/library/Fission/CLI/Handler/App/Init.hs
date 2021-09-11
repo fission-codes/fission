@@ -7,12 +7,10 @@ import qualified System.Console.ANSI                       as ANSI
 
 import           Fission.Prelude
 
+import qualified Fission.App.Name                          as App
 import           Fission.Authorization.ServerDID
 import           Fission.Error.Types
 import qualified Fission.Internal.UTF8                     as UTF8
-import qualified Fission.Web.Client.App                    as App
-
-import qualified Fission.App.Name                          as App
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client
@@ -58,7 +56,7 @@ appInit appDir mayBuildDir' mayAppName = do
   logDebug @Text "appInit"
 
   proof <- getRootUserProof
-  attempt (sendAuthedRequest proof $ App.create mayAppName) >>= \case
+  attempt (sendAuthedRequest proof $ createApp mayAppName) >>= \case
     Left err -> do
       logDebug $ textDisplay err
       CLI.Error.put err $ textDisplay err

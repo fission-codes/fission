@@ -2,7 +2,7 @@ let
   sources  = import ./nix/sources.nix;
   commands = import ./nix/commands.nix;
 
-  nixos    = import sources.nixpkgs  {};
+  nixos    = import sources.nixos    {};
   darwin   = import sources.darwin   {};
   unstable = import sources.unstable {};
 
@@ -42,6 +42,7 @@ let
     ];
 
     haskell = [
+      unstable.ghc
       unstable.haskellPackages.implicit-hie
       unstable.haskell-language-server
       unstable.stack
