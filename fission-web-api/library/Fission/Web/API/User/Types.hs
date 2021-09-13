@@ -24,7 +24,7 @@ data RoutesV2 mode = RoutesV2
 
 data RoutesV_ mode = RoutesV_
   { create        :: mode :- ToServantApi Create.RoutesV_
-  , whoAmI        :: mode :- ToServantApi WhoAmI.Routes
+  , whoAmI        :: mode :- "whoami"             :> ToServantApi WhoAmI.Routes
   , email         :: mode :- "email"              :> ToServantApi Email.Routes
   , did           :: mode :- "did"                :> ToServantApi DID.Routes
   , exchangeKeys  :: mode :- "exchange" :> "keys" :> ToServantApi ExchangeKeys.Routes
