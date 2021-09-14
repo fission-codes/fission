@@ -13,8 +13,8 @@ data Token
   | Bearer Bearer.Token
   deriving (Show, Eq)
 
-instance Arbitrary Token where
-  arbitrary = oneof [Basic <$> arbitrary, Bearer <$> arbitrary]
+-- instance Arbitrary Token where
+--   arbitrary = oneof [Basic <$> arbitrary, Bearer <$> arbitrary]
 
 instance Display Token where
   textDisplay (Basic  token) = textDisplay token

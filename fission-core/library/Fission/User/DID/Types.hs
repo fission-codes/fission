@@ -73,21 +73,22 @@ RSA
 Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB})
 
 -}
-data DID = DID
-  { method    :: Method
-  , publicKey :: Key.Public
-  } deriving (Show, Eq)
+data DID
+  = DIDKey Key.Public
+  | DIDIon Text -- FIXME
+  deriving (Show, Eq)
 
 -- For FromJSON
 instance Ord DID where
   a `compare` b = textDisplay a `compare` textDisplay b
 
-instance Arbitrary DID where
-  arbitrary = do
-    publicKey <- arbitrary
-    method    <- arbitrary
-
-    return DID {..}
+-- instance Arbitrary DID where
+--   arbitrary = do
+--     -- FIXME
+--     publicKey <- arbitrary
+--     method    <- arbitrary
+--
+--     return DID {..}
 
 instance Hashable DID where
   hashWithSalt salt did = hashWithSalt salt $ textDisplay did
@@ -105,10 +106,11 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DID method pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
+  textDisplay (DIDIon ionTxt) = "did:ion:" <> ionTxt
+  textDisplay (DIDKey pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
     where
       header :: Text
-      header = "did:" <> textDisplay method <> ":" <> "z"
+      header = "did:key:z"
 
       multicodecW8 :: [Word8]
       multicodecW8 =
@@ -141,11 +143,14 @@ parseKeyW8s = parseJSON . toJSON . decodeUtf8Lenient
 
 parseText :: Text -> JSON.Parser DID
 parseText txt =
-  case Text.stripPrefix "did:key:z" txt of
-    Nothing ->
+  case (Text.stripPrefix "did:key:z" txt, Text.stripPrefix "did:ion:" txt) of
+    (Nothing, Nothing) ->
       fail $ show txt <> " does not have a valid did:key header"
 
-    Just fragment -> do
+    (_, Just ionTxt) ->
+      return $ DIDIon ionTxt
+
+    (Just fragment, _) -> do
       pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
         (0xed : 0x01 : edKeyW8s) ->
           if length edKeyW8s > 40
@@ -164,4 +169,5 @@ parseText txt =
         nope ->
           fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
-      return $ DID Key pk
+      return $ DIDKey pk
+

@@ -9,7 +9,7 @@ module Fission.Web.Auth.Token.JWT.Validation
   ) where
 
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
-import qualified Crypto.PubKey.Ed25519                            as Crypto.Ed25519
+import qualified Crypto.PubKey.Ed25519                            as Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
 
 import           Fission.Prelude
@@ -41,6 +41,12 @@ check ::
   -> m (Either JWT.Error JWT)
 check receiverDID rawContent jwt = do
   now <- currentTime
+
+  ionPKs <-
+    case receiverDID of
+      DIDKey _ -> return []
+      DIDIon ionTxt -> return [ undefined ] -- FIXME
+
   case checkTime now jwt of
     Left err ->
       return $ Left err
@@ -54,17 +60,18 @@ check' ::
   Proof.Resolver m
   => JWT.RawContent
   -> JWT
+  -> [Ed25519.PublicKey]
   -> UTCTime
   -> m (Either JWT.Error JWT)
-check' raw jwt now =
-  case pureChecks raw jwt of
+check' raw jwt ionPKs now =
+  case pureChecks raw jwt ionPKs of
     Left  err -> return $ Left err
     Right _   -> checkProof now jwt
 
-pureChecks :: JWT.RawContent -> JWT -> Either JWT.Error JWT
-pureChecks raw jwt = do
+pureChecks :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
+pureChecks raw jwt ionPKs = do
   _ <- checkVersion  jwt
-  checkSignature raw jwt
+  checkSignature raw jwt ionPKs
 
 checkReceiver :: DID -> JWT -> Either JWT.Error JWT
 checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} = do
@@ -78,8 +85,8 @@ checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
     then Right jwt
     else Left $ JWT.HeaderError UnsupportedVersion
 
-checkProof :: Proof.Resolver m => UTCTime -> JWT -> m (Either JWT.Error JWT)
-checkProof now jwt@JWT {claims = Claims {proof}} =
+checkProof :: Proof.Resolver m => UTCTime -> JWT -> [Ed25519.PublicKey] -> m (Either JWT.Error JWT)
+checkProof now jwt@JWT {claims = Claims {proof}} ionPKs =
   case proof of
     RootCredential ->
       return $ Right jwt
@@ -90,12 +97,12 @@ checkProof now jwt@JWT {claims = Claims {proof}} =
           return . Left . JWT.ClaimsError . ProofError . JWT.Proof.ResolverError $ err
 
         Right (rawProof, proofJWT) ->
-          check' rawProof proofJWT now <&> \case
+          check' rawProof proofJWT ionPKs now <&> \case
             Left err -> Left err
             Right _  -> checkDelegate proofJWT
 
     Nested rawProof proofJWT ->
-      check' rawProof proofJWT now <&> \case
+      check' rawProof proofJWT ionPKs now <&> \case
         Left err -> Left err
         Right _  -> checkDelegate proofJWT
 
@@ -111,10 +118,10 @@ checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} =
      | now < nbf -> Left $ JWT.ClaimsError TooEarly
      | otherwise -> Right jwt
 
-checkSignature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
-checkSignature rawContent jwt@JWT {sig} =
+checkSignature :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
+checkSignature rawContent jwt@JWT {sig} ionPKs =
   case sig of
-    Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt
+    Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt ionPKs
     Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent jwt rs256Sig
 
 checkRSA2048Signature ::
@@ -124,7 +131,7 @@ checkRSA2048Signature ::
   -> Either JWT.Error JWT
 checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSig) = do
   case publicKey of
-    RSAPublicKey pk ->
+    Right (RSAPublicKey pk) ->
       if Crypto.RSA.PKCS.verify (Just SHA256) pk content innerSig
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
@@ -134,18 +141,32 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
 
   where
     content = encodeUtf8 raw
-    Claims {sender = User.DID {publicKey}} = claims
+    -- Claims {sender = User.DID {publicKey}} = claims
+    publicKey =
+      case claims |> sender of
+        DIDIon _ -> Left undefined -- FIXME
+        DIDKey pk -> Right pk
 
-checkEd25519Signature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
-checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
-  case (publicKey, sig) of
-    (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->
-      if Crypto.Ed25519.verify pk (encodeUtf8 raw) edSig
+checkEd25519Signature :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
+checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} ionPKs =
+  let
+    checkEd sig pk =
+      if Ed25519.verify pk (encodeUtf8 raw) sig
         then Right jwt
         else Left $ JWT.SignatureError SignatureDoesNotMatch
+  in
+    case (sender, sig) of
+      (DIDKey (Ed25519PublicKey pk), Signature.Ed25519 edSig) ->
+        checkEd sig pk
 
-    (_, _) ->
-      Left $ JWT.SignatureError InvalidPublicKey
+      (DIDIon txt, Signature.Ed25519 edSig) ->
+        case filter isRight (checkEd sig <$> ionPKs) of
+          (Right x : _) -> Right x
+          _ -> Left $ JWT.SignatureError InvalidPublicKey
+
+      (_, _) ->
+        Left $ JWT.SignatureError InvalidPublicKey
 
   where
-    Claims {sender = User.DID {publicKey}} = claims
+    Claims {sender} = claims
+

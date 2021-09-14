@@ -16,7 +16,7 @@ newtype Oldstyle = Oldstyle { did :: DID }
   deriving stock (Show, Eq)
 
 instance Display Oldstyle where
-  textDisplay Oldstyle {did = DID Key (Ed25519PublicKey ed)} =
+  textDisplay Oldstyle {did = DIDKey (Ed25519PublicKey ed)} =
     mconcat
       [ "did:key:z"
       , forgetEncoding . UTF8.toBase58Text $ BS.pack (0xed : 0x01 : BS.unpack (encodeUtf8 $ textDisplay ed))

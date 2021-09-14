@@ -63,7 +63,7 @@ getRootDID ::
   -> m DID
 getRootDID fallbackPK = \case
   RootCredential ->
-    return $ DID Key fallbackPK
+    return $ DIDKey fallbackPK
 
   Nested _ jwt ->  do
     JWT {claims = JWT.Claims {sender}} <- ensureM $ getRoot jwt
@@ -123,10 +123,7 @@ mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT {..}
   where
     sig = signEd25519 header claims senderSK
 
-    sender = DID
-      { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic senderSK
-      , method    = DID.Key
-      }
+    sender = DIDKey (Key.Ed25519PublicKey $ Ed25519.toPublic senderSK)
 
     claims = JWT.Claims {..}
 

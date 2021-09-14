@@ -69,30 +69,30 @@ data JWT = JWT
   , sig    :: Signature.Signature
   } deriving (Show, Eq)
 
-instance Arbitrary JWT where
-  arbitrary = do
-    header   <- arbitrary
-    (pk, sk) <- case alg header of
-      Algorithm.RSA2048 -> do
-        RSA2048.Pair pk' sk' <- arbitrary
-        return (RSAPublicKey pk', Left sk')
-
-      Algorithm.Ed25519 -> do
-        sk' <- arbitrary
-        return (Ed25519PublicKey (toPublic sk'), Right sk')
-
-    claims' <- arbitrary
-
-    let
-      claims = claims' {sender = DID Key pk}
-
-      sig' = case sk of
-        Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
-        Right edSK -> Right $ signEd25519 header claims edSK
-
-    case sig' of
-      Left _    -> error "Unable to sign JWT"
-      Right sig -> return JWT {..}
+-- instance Arbitrary JWT where
+--   arbitrary = do
+--     header   <- arbitrary
+--     (pk, sk) <- case alg header of
+--       Algorithm.RSA2048 -> do
+--         RSA2048.Pair pk' sk' <- arbitrary
+--         return (RSAPublicKey pk', Left sk')
+--
+--       Algorithm.Ed25519 -> do
+--         sk' <- arbitrary
+--         return (Ed25519PublicKey (toPublic sk'), Right sk')
+--
+--     claims' <- arbitrary
+--
+--     let
+--       claims = claims' {sender = DID Key pk}
+--
+--       sig' = case sk of
+--         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
+--         Right edSK -> Right $ signEd25519 header claims edSK
+--
+--     case sig' of
+--       Left _    -> error "Unable to sign JWT"
+--       Right sig -> return JWT {..}
 
 instance ToJSON JWT where
   toJSON JWT {..} = String $ content <> "." <> textDisplay sig
@@ -169,24 +169,24 @@ instance Eq Claims where
 
       eqFacts = facts jwtA == facts jwtB
 
-instance Arbitrary Claims where
-  arbitrary = do
-    sender   <- arbitrary
-    resource <- arbitrary
-    potency  <- arbitrary
-    proof    <- arbitrary
-    facts    <- arbitrary
-    exp      <- arbitrary
-    nbf      <- arbitrary
-    pk       <- arbitrary
-
-    let
-      receiver = DID
-        { publicKey = pk
-        , method    = Key
-        }
-
-    return Claims {..}
+-- instance Arbitrary Claims where
+--   arbitrary = do
+--     sender   <- arbitrary
+--     resource <- arbitrary
+--     potency  <- arbitrary
+--     proof    <- arbitrary
+--     facts    <- arbitrary
+--     exp      <- arbitrary
+--     nbf      <- arbitrary
+--     pk       <- arbitrary
+--
+--     let
+--       receiver = DID
+--         { publicKey = pk
+--         , method    = Key
+--         }
+--
+--     return Claims {..}
 
 instance ToJSON Claims where
   toJSON Claims {..} = object
@@ -227,16 +227,16 @@ data Proof
   | Reference CID
   deriving (Show, Eq)
 
-instance Arbitrary Proof where
-  arbitrary = frequency
-    [ (1, nested)
-    , (5, pure RootCredential)
-    ]
-    where
-      nested = do
-        innerJWT@(JWT {..}) <- arbitrary
-        let rawContent = RawContent $ B64.URL.encodeJWT header claims
-        return $ Nested rawContent innerJWT
+-- instance Arbitrary Proof where
+--   arbitrary = frequency
+--     [ (1, nested)
+--     , (5, pure RootCredential)
+--     ]
+--     where
+--       nested = do
+--         innerJWT@(JWT {..}) <- arbitrary
+--         let rawContent = RawContent $ B64.URL.encodeJWT header claims
+--         return $ Nested rawContent innerJWT
 
 instance Display Proof where
   display = \case
