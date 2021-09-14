@@ -18,7 +18,10 @@ let
   server-port = 10235;
 
   deps = {
-    bench = [pkgs.wrk2];
+    bench = [
+      pkgs.wrk2
+      pkgs.nodejs
+    ];
 
     common = [ 
       pkgs.gnumake

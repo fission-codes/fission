@@ -24,8 +24,7 @@ import qualified Fission.Web.API.User.Types      as User
 data Routes mode = Routes
   { v2          :: mode :- "v2" :> ToServantApi RoutesV2
   , heroku      :: mode :- "heroku" :> "resources" :> ToServantApi Heroku.Routes
- --  , latestDocs  :: mode :- Docs FIXME
-  , v_docs :: mode :- Docs
+  , latestDocs  :: mode :- Docs
   , unversioned :: mode :- ToServantApi RoutesV_
   , root        :: mode :- Root
   }
@@ -40,10 +39,10 @@ data RoutesV2 mode = RoutesV2
   deriving Generic
 
 data V2 mode = V2
-  { ipfs :: mode :- "ipfs"                  :> ToServantApi IPFS.RoutesV2
-  , app  :: mode :- "app"                   :> ToServantApi App.RoutesV2
-  , user :: mode :- "user"                  :> ToServantApi User.RoutesV2
-  , auth :: mode :- "auth"   :> "ucan"      :> ToServantApi UCAN.Routes
+  { ipfs :: mode :- "ipfs"           :> ToServantApi IPFS.RoutesV2
+  , app  :: mode :- "app"            :> ToServantApi App.RoutesV2
+  , user :: mode :- "user"           :> ToServantApi User.RoutesV2
+  , auth :: mode :- "auth" :> "ucan" :> ToServantApi UCAN.Routes
   }
   deriving Generic
 
