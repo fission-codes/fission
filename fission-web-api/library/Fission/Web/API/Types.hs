@@ -24,8 +24,7 @@ import qualified Fission.Web.API.User.Types      as User
 data Routes mode = Routes
   { v2          :: mode :- "v2" :> ToServantApi RoutesV2
   , heroku      :: mode :- "heroku" :> "resources" :> ToServantApi Heroku.Routes
- --  , latestDocs  :: mode :- Docs FIXME
-  , v_docs :: mode :- Docs
+  , latestDocs  :: mode :- Docs
   , unversioned :: mode :- ToServantApi RoutesV_
   , root        :: mode :- Root
   }
