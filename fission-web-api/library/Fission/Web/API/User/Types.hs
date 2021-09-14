@@ -13,18 +13,17 @@ import           Fission.Web.API.User.Verify.Types
 import qualified Fission.Web.API.User.WhoAmI.Types         as WhoAmI
 
 data RoutesV2 mode = RoutesV2
-  { create       :: mode :- Create.WithDID
-  , dataRoot     :: mode :- "data"             :> ToServantApi DataRoot.RoutesV2
+  { dataRoot     :: mode :- "data"             :> ToServantApi DataRoot.RoutesV2
   , email        :: mode :- "email"            :> ToServantApi Email.Routes
   , did          :: mode :- "did"              :> ToServantApi DID.Routes
   , whoAmI       :: mode :- "whoami"           :> ToServantApi WhoAmI.Routes
   , linkingRelay :: mode :- "user"   :> "link" :> ToServantApi Relay.Routes
+  , create       :: mode :- Create.WithDID
   }
   deriving Generic
 
 data RoutesV_ mode = RoutesV_
-  { create        :: mode :- ToServantApi Create.RoutesV_
-  , whoAmI        :: mode :- "whoami"             :> ToServantApi WhoAmI.Routes
+  { whoAmI        :: mode :- "whoami"             :> ToServantApi WhoAmI.Routes
   , email         :: mode :- "email"              :> ToServantApi Email.Routes
   , did           :: mode :- "did"                :> ToServantApi DID.Routes
   , exchangeKeys  :: mode :- "exchange" :> "keys" :> ToServantApi ExchangeKeys.Routes
@@ -32,5 +31,6 @@ data RoutesV_ mode = RoutesV_
   , dataRoot      :: mode :- "data"               :> ToServantApi DataRoot.RoutesV_
   , passwordReset :: mode :- Password.Reset
   , verify        :: mode :- Verify
+  , create        :: mode :- ToServantApi Create.RoutesV_
   }
   deriving Generic

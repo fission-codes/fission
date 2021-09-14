@@ -140,7 +140,8 @@ server appHost =
   Fission.Routes
     { v2
     , heroku      = genericServerT Heroku.handler
-    , latestDocs  = v2Docs
+    -- , latestDocs  = v2Docs FIXME
+    , v_docs
     , unversioned = serverV_
     , root        = pure NoContent
     }
@@ -172,3 +173,6 @@ server appHost =
 
     v2Docs =
       Web.Swagger.handler fromHandler appHost Fission.version (Proxy @(ToServantApi Fission.RoutesV2))
+
+    v_docs =
+      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @(ToServantApi Fission.RoutesV_))
