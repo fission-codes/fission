@@ -140,7 +140,8 @@ server appHost =
   Fission.Routes
     { v2
     , heroku      = genericServerT Heroku.handler
-    , latestDocs  = v2Docs
+    -- , latestDocs  = v2Docs FIXME
+    , v_docs
     , unversioned = serverV_
     , root        = pure NoContent
     }
