@@ -16,7 +16,7 @@ import           Fission.Prelude
 
 import           Fission.Key                                      as Key
 import           Fission.SemVer.Types
-import           Fission.User.DID                                 as User
+import           Fission.User.DID                                 as DID
 
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 
@@ -44,8 +44,8 @@ check receiverDID rawContent jwt = do
 
   ionPKs <-
     case receiverDID of
-      DIDKey _ -> return []
-      DIDIon ionTxt -> return [ undefined ] -- FIXME
+      DID.Key _      -> return []
+      DID.ION ionTxt -> return [ undefined ] -- FIXME
 
   case checkTime now jwt of
     Left err ->
@@ -54,7 +54,7 @@ check receiverDID rawContent jwt = do
     Right _  ->
       case checkReceiver receiverDID jwt of
         Left  err -> return $ Left err
-        Right _   -> check' rawContent jwt now
+        Right _   -> check' rawContent jwt ionPKs now
 
 check' ::
   Proof.Resolver m
@@ -66,7 +66,7 @@ check' ::
 check' raw jwt ionPKs now =
   case pureChecks raw jwt ionPKs of
     Left  err -> return $ Left err
-    Right _   -> checkProof now jwt
+    Right _   -> checkProof now jwt ionPKs
 
 pureChecks :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
 pureChecks raw jwt ionPKs = do
@@ -141,32 +141,31 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
 
   where
     content = encodeUtf8 raw
-    -- Claims {sender = User.DID {publicKey}} = claims
+
     publicKey =
       case claims |> sender of
-        DIDIon _ -> Left undefined -- FIXME
-        DIDKey pk -> Right pk
+        DID.ION _  -> Left undefined -- FIXME
+        DID.Key pk -> Right pk
 
 checkEd25519Signature :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
 checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} ionPKs =
-  let
-    checkEd sig pk =
-      if Ed25519.verify pk (encodeUtf8 raw) sig
-        then Right jwt
-        else Left $ JWT.SignatureError SignatureDoesNotMatch
-  in
-    case (sender, sig) of
-      (DIDKey (Ed25519PublicKey pk), Signature.Ed25519 edSig) ->
-        checkEd sig pk
+  case (sender, sig) of
+    (DID.Key (Ed25519PublicKey pk), Signature.Ed25519 edSig) ->
+      checkEd edSig pk
 
-      (DIDIon txt, Signature.Ed25519 edSig) ->
-        case filter isRight (checkEd sig <$> ionPKs) of
-          (Right x : _) -> Right x
-          _ -> Left $ JWT.SignatureError InvalidPublicKey
+    (DID.ION _, Signature.Ed25519 edSig) ->
+      case filter isRight (checkEd edSig <$> ionPKs) of
+        (Right jwt' : _) -> Right jwt'
+        _                -> Left $ JWT.SignatureError InvalidPublicKey
 
-      (_, _) ->
-        Left $ JWT.SignatureError InvalidPublicKey
+    _ ->
+      Left $ JWT.SignatureError InvalidPublicKey
 
   where
     Claims {sender} = claims
 
+    checkEd :: Ed25519.Signature -> Ed25519.PublicKey -> Either JWT.Error JWT
+    checkEd edSig pk =
+      if Ed25519.verify pk (encodeUtf8 raw) edSig
+        then Right jwt
+        else Left $ JWT.SignatureError SignatureDoesNotMatch

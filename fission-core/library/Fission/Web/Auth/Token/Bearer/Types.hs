@@ -27,13 +27,13 @@ data Token = Token
 instance Ord Token where
   a `compare` b = textDisplay a `compare` textDisplay b
 
--- instance Arbitrary Token where
---   arbitrary = do
---     jwt@JWT {..} <- arbitrary
---     return Token
---       { jwt
---       , rawContent = RawContent $ B64.URL.encodeJWT header claims
---       }
+instance Arbitrary Token where
+  arbitrary = do
+    jwt@JWT {..} <- arbitrary
+    return Token
+      { jwt
+      , rawContent = RawContent $ B64.URL.encodeJWT header claims
+      }
 
 instance Display Token where
   textDisplay = toUrlPiece

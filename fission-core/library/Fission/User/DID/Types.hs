@@ -1,8 +1,4 @@
-module Fission.User.DID.Types
-  ( DID (..)
-  -- * Reexport
-  , module Fission.User.DID.Method.Types
-  ) where
+module Fission.User.DID.Types (DID (..)) where
 
 import qualified Data.Aeson.Types                  as JSON
 import           Data.Swagger
@@ -27,7 +23,6 @@ import qualified Fission.Internal.UTF8             as UTF8
 
 import           Fission.Error.AlreadyExists.Types
 import           Fission.Key                       as Key
-import           Fission.User.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
 
@@ -74,21 +69,19 @@ Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQ
 
 -}
 data DID
-  = DIDKey Key.Public
-  | DIDIon Text -- FIXME
+  = Key Key.Public
+  | ION Text -- FIXME
   deriving (Show, Eq)
 
 -- For FromJSON
 instance Ord DID where
   a `compare` b = textDisplay a `compare` textDisplay b
 
--- instance Arbitrary DID where
---   arbitrary = do
---     -- FIXME
---     publicKey <- arbitrary
---     method    <- arbitrary
---
---     return DID {..}
+instance Arbitrary DID where
+  arbitrary =
+    elements [True, False] >>= \case
+      True  -> Key <$> arbitrary
+      False -> ION <$> arbitrary
 
 instance Hashable DID where
   hashWithSalt salt did = hashWithSalt salt $ textDisplay did
@@ -106,8 +99,8 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DIDIon ionTxt) = "did:ion:" <> ionTxt
-  textDisplay (DIDKey pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
+  textDisplay (ION ionTxt) = "did:ion:" <> ionTxt
+  textDisplay (Key pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
     where
       header :: Text
       header = "did:key:z"
@@ -148,7 +141,7 @@ parseText txt =
       fail $ show txt <> " does not have a valid did:key header"
 
     (_, Just ionTxt) ->
-      return $ DIDIon ionTxt
+      return $ ION ionTxt
 
     (Just fragment, _) -> do
       pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of
@@ -169,5 +162,4 @@ parseText txt =
         nope ->
           fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
-      return $ DIDKey pk
-
+      return $ Key pk
