@@ -1,6 +1,7 @@
 module Fission.Web.Auth.Token.JWT.Validation
   ( check
   , check'
+  , checkWithION
   , pureChecks
   , checkTime
   , checkSignature
@@ -42,11 +43,6 @@ check ::
 check receiverDID rawContent jwt = do
   now <- currentTime
 
-  ionPKs <-
-    case receiverDID of
-      DID.Key _      -> return []
-      DID.ION ionTxt -> return [ undefined ] -- FIXME
-
   case checkTime now jwt of
     Left err ->
       return $ Left err
@@ -54,7 +50,23 @@ check receiverDID rawContent jwt = do
     Right _  ->
       case checkReceiver receiverDID jwt of
         Left  err -> return $ Left err
-        Right _   -> check' rawContent jwt ionPKs now
+        Right _   -> checkWithION receiverDID rawContent jwt now
+
+checkWithION ::
+  Proof.Resolver m
+  => DID
+  -> RawContent
+  -> JWT
+  -> UTCTime
+  -> m (Either JWT.Error JWT)
+checkWithION receiverDID rawContent jwt now = do
+  ionPKs <- case receiverDID of
+    DID.Key _      -> return []
+    DID.ION ionTxt -> return [ undefined ] -- FIXME
+
+  case checkReceiver receiverDID jwt of
+    Left  err -> return $ Left err
+    Right _   -> check' rawContent jwt ionPKs now
 
 check' ::
   Proof.Resolver m

@@ -17,6 +17,7 @@ import           Fission.Prelude
 
 import           Fission.Error                           as Error
 import           Fission.Key                             as Key
+import           Fission.User.DID.Types                  as DID
 import           Fission.User.Email.Types
 
 import qualified Fission.Platform.Heroku.Region.Types    as Heroku
@@ -40,14 +41,15 @@ createDB ::
   -> Email
   -> UTCTime
   -> Transaction m (Either Errors' UserId)
-createDB username pk email now =
+createDB username did email now =
   insertUnique user >>= \case
     Just userId -> return $ Right userId
     Nothing     -> determineConflict username (Just pk)
   where
     user =
       User
-        { userPublicKey     = Just pk
+        { userPublicKey
+        , userIonId
         , userExchangeKeys  = Just []
         , userUsername      = username
         , userEmail         = Just email
@@ -61,6 +63,11 @@ createDB username pk email now =
         , userInsertedAt    = now
         , userModifiedAt    = now
         }
+
+    (userPublicKey, userIonId) =
+      case did of
+        DID.Key pk  -> (Just pk, Nothing)
+        DID.Ion txt -> (Nothing, Just txt)
 
 createWithPasswordDB ::
      MonadIO m
@@ -93,7 +100,7 @@ createWithPasswordDB username password email now =
         |> insertUnique
         |> bind \case
           Just userId -> return $ Right userId
-          Nothing -> determineConflict username Nothing
+          Nothing     -> determineConflict username Nothing
 
 createWithHerokuDB ::
      MonadIO m

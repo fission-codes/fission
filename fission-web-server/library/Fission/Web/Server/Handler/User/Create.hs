@@ -45,9 +45,9 @@ withDID ::
   , Challenge.Creator m
   )
   => ServerT User.Create.WithDID m
-withDID User.Registration {username, email} DID {..} = do
+withDID User.Registration {username, email} did = do
   now       <- currentTime
-  userId    <- Web.Err.ensureM $ User.create username publicKey email now
+  userId    <- Web.Err.ensureM $ User.create username did email now
   challenge <- Web.Err.ensureM $ Challenge.create userId
   Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
   return NoContent

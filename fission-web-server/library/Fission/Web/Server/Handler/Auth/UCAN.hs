@@ -29,7 +29,7 @@ handler = UCAN.Routes { verify }
         JWT {claims = Claims {receiver, exp}} = jwt
 
       if ignoreTime
-        then Web.ensureM $ UCAN.check'         rawContent jwt exp
+        then Web.ensureM $ UCAN.checkWithION  receiver rawContent jwt exp
         else Web.ensureM $ UCAN.check receiver rawContent jwt
 
       return NoContent

@@ -5,7 +5,7 @@ import           Fission.Prelude
 import           Fission.Error.NotFound.Types
 
 import           Fission.Authorization.ServerDID
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                             as DID
 
 import           Fission.Web.Auth.Token.JWT                         as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver                as Proof
@@ -55,7 +55,10 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
     Left err ->
       throwM err
 
-    Right JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} ->
+    Right JWT {claims = JWT.Claims {sender = DID.ION txt}} ->
+      undefined -- FIXME
+
+    Right JWT {claims = JWT.Claims {sender = DID.Key pk}} ->
       runDB (User.getByPublicKey pk) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User
