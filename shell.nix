@@ -31,7 +31,7 @@
       pkgs.openssl.out
     ];
 
-      cli = [pkgs.ncurses.dev.out];
+    cli = [pkgs.ncurses.dev.out];
 
     data = [
       pkgs.ipfs
@@ -42,13 +42,13 @@
       pkgs.postgresql
     ];
 
-      haskell = [
-        unstable.ghc
-        unstable.haskellPackages.implicit-hie
-        unstable.haskell-language-server
-        unstable.stack
-        unstable.stylish-haskell
-      ];
+    haskell = [
+      unstable.ghc
+      unstable.haskellPackages.implicit-hie
+      unstable.haskell-language-server
+      unstable.stack
+      unstable.stylish-haskell
+    ];
 
     macos =
       if pkgs.stdenv.isDarwin then
