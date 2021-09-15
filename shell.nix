@@ -1,31 +1,32 @@
-let
-  sources  = import ./nix/sources.nix;
-  commands = import ./nix/commands.nix;
+{ rosetta ? false }:
+  let
+    sources  = import ./nix/sources.nix;
+    commands = import ./nix/commands.nix;
 
-  nixos    = import sources.nixos    {};
-  darwin   = import sources.darwin   {};
-  unstable = import sources.unstable {};
+    overrides = if rosetta then { system = "x86_64-darwin"; } else {};
 
-  pkgs  = if darwin.stdenv.isDarwin then darwin else nixos;
-  tasks = commands {
-    inherit pkgs;
-    inherit unstable;
-    inherit server-path;
-    inherit server-port;
-  };
+    nixos    = import sources.nixos    overrides;
+    darwin   = import sources.darwin   overrides;
+    unstable = import sources.unstable overrides;
 
-  server-path = "~/.local/bin/fission-server";
-  server-port = 10235;
+    pkgs  = if darwin.stdenv.isDarwin then darwin else nixos;
+    tasks = commands {
+      inherit pkgs;
+      inherit unstable;
+      inherit server-path;
+      inherit server-port;
+    };
 
-  deps = {
-    bench = [pkgs.wrk2];
+    server-path = "~/.local/bin/fission-server";
+    server-port = 10235;
 
-    common = [ 
-      pkgs.gnumake
-      unstable.niv
-    ];
+    deps = {
+      common = [
+        pkgs.gnumake
+        unstable.niv
+      ];
 
-    crypto = [ 
+    crypto = [
       pkgs.openssl.dev
       pkgs.openssl.out
     ];
@@ -34,7 +35,7 @@ let
 
     data = [
       pkgs.ipfs
-      pkgs.lzma.dev   
+      pkgs.lzma.dev
       pkgs.lzma.out
       pkgs.zlib.dev
       pkgs.zlib.out
@@ -55,24 +56,24 @@ let
           unstable.darwin.apple_sdk.frameworks.Foundation
           unstable.darwin.apple_sdk.frameworks.Cocoa
         ]
-      else 
+      else
         [];
   };
-in
 
-unstable.haskell.lib.buildStackProject {
-  name = "Fission";
-  nativeBuildInputs = builtins.concatLists [
-    deps.common 
-    deps.crypto
-    deps.cli
-    deps.data
-    deps.macos
-    deps.haskell
-    tasks
-  ];
+  in
+    unstable.haskell.lib.buildStackProject {
+      name = "Fission";
+      nativeBuildInputs = builtins.concatLists [
+        deps.common
+        deps.crypto
+        deps.cli
+        deps.data
+        deps.macos
+        deps.haskell
+        tasks
+      ];
 
-  shellHook = ''
-    export LANG=C.UTF8
-  '';
-}
+      shellHook = ''
+        export LANG=C.UTF8
+      '';
+    }

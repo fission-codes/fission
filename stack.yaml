@@ -1,4 +1,4 @@
-resolver: lts-18.9
+resolver: lts-18.10
 allow-newer: true
 
 packages:
@@ -35,4 +35,4 @@ ghc-options:
 nix:
   enable:     true
   pure:       true
-  shell-file: rosetta.nix
+  shell-file: shell.nix

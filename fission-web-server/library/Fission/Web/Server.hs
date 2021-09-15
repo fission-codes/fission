@@ -171,4 +171,4 @@ server appHost =
       }
 
     v2Docs =
-      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @(ToServantApi Fission.RoutesV2))
+      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v2" :> (ToServantApi Fission.RoutesV2)))
