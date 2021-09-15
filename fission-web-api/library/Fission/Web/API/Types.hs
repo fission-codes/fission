@@ -48,11 +48,11 @@ data V2 mode = V2
 
 -- DEPRECATED version
 data RoutesV_ mode = RoutesV_
-  { ipfs   :: mode :- "ipfs"                  :> ToServantApi IPFS.RoutesV_
-  , app    :: mode :- "app"                   :> ToServantApi App.RoutesV_
-  , user   :: mode :- "user"                  :> ToServantApi User.RoutesV_
-  , dns    :: mode :- "dns"                   :> ToServantApi DNS.Routes
-  , auth   :: mode :- "auth"   :> "ucan"      :> ToServantApi UCAN.Routes
+  { ipfs   :: mode :- "ipfs"           :> ToServantApi IPFS.RoutesV_
+  , app    :: mode :- "app"            :> ToServantApi App.RoutesV_
+  , user   :: mode :- "user"           :> ToServantApi User.RoutesV_
+  , dns    :: mode :- "dns"            :> ToServantApi DNS.Routes
+  , auth   :: mode :- "auth" :> "ucan" :> ToServantApi UCAN.Routes
 
   , ping ::
       mode
