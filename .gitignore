@@ -25,6 +25,8 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
+yarn.lock
+package.json
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml

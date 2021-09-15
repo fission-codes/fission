@@ -1,25 +1,29 @@
-let
-  sources  = import ./nix/sources.nix;
-  commands = import ./nix/commands.nix;
+{ rosetta ? false }:
+  let
+    sources  = import ./nix/sources.nix;
+    commands = import ./nix/commands.nix;
 
-  nixos    = import sources.nixos    {};
-  darwin   = import sources.darwin   {};
-  unstable = import sources.unstable {};
+    overrides = if rosetta then { system = "x86_64-darwin"; } else {};
 
-  pkgs  = if darwin.stdenv.isDarwin then darwin else nixos;
+    nixos    = import sources.nixos    overrides;
+    darwin   = import sources.darwin   overrides;
+    unstable = import sources.unstable overrides;
 
-in
-  pkgs.mkShell {
-    nativeBuildInputs = [
-      pkgs.wrk2
-      pkgs.nodejs
-      pkgs.yarn
-    ];
+    pkgs     = if darwin.stdenv.isDarwin then darwin else nixos;
+    loadtest = if pkgs.stdenv.isLinux then [pkgs.wrk2] else [];
 
-    shellHook = ''
-      export LANG=C.UTF8
+  in
+    pkgs.mkShell {
+      nativeBuildInputs = [
+        pkgs.nodejs
+        pkgs.yarn
+      ] ++ loadtest;
 
-      echo "Setting up openapi-diff"
-      yarn install openapi-diff
-    '';
-  }
+      shellHook = ''
+        export LANG=C.UTF8
+
+        echo " Setting up openapi-diff"
+        yarn add openapi-diff
+        alias openapi-diff="./node_modules/openapi-diff/bin/openapi-diff"
+      '';
+    }
