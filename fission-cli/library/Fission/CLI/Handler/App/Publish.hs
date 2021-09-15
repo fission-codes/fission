@@ -8,6 +8,7 @@ import           System.FSNotify                           as FS
 
 import           RIO.Directory
 import           Web.Browser
+import           Servant.Client
 
 import           Network.HTTP.Types.Status
 import qualified Network.IPFS.Process.Error                as IPFS.Process
@@ -27,7 +28,6 @@ import           Fission.URL
 import           Fission.Authorization.ServerDID
 import           Fission.Error.NotFound.Types
 
-import           Fission.Web.Auth.Token.JWT                as JWT
 import           Fission.Web.Auth.Token.Types
 
 import           Fission.Web.Client                        as Client
@@ -104,12 +104,15 @@ publish
 
         Right cid@(CID hash) -> do
           logDebug $ "📱 Directory CID is " <> hash
-          _     <- IPFS.Daemon.runDaemon
-          proof <- getRootUserProof
-          req   <- updateApp appURL cid (Just updateData) <$> Client.attachAuth proof
+          _ <- IPFS.Daemon.runDaemon
+
+          let
+            runUpdate cid' = do
+              proof <- getRootUserProof
+              updateApp appURL cid' (Just updateData) <$> Client.attachAuth proof
 
           logUser @Text "✈️  Pushing to remote"
-          retryOnStatus [status502] 100 req >>= \case
+          retryOnStatus [status502] 100 (runUpdate cid) >>= \case
             Left err -> do
               CLI.Error.put err "Server unable to sync data"
               raise err
@@ -128,7 +131,7 @@ publish
                     timeCache <- newTVar now
                     return (hashCache, timeCache)
 
-                  void $ handleTreeChanges runner proof appURL updateData timeCache hashCache watchMgr absBuildPath
+                  void $ handleTreeChanges runner runUpdate appURL updateData timeCache hashCache watchMgr absBuildPath
                   liftIO . forever $ threadDelay 1_000_000 -- Sleep main thread
 
               success appURL
@@ -136,15 +139,11 @@ publish
 handleTreeChanges ::
   ( MonadIO        m
   , MonadLogger    m
-  , MonadTime      m
   , MonadLocalIPFS m
   , MonadWebClient m
-  , MonadWebAuth   m Token
-  , MonadWebAuth   m Ed25519.SecretKey
-  , ServerDID      m
   )
   => (m () -> IO ())
-  -> JWT.Proof
+  -> (CID -> m (ClientM ()))
   -> URL
   -> Bool
   -> TVar UTCTime
@@ -152,7 +151,7 @@ handleTreeChanges ::
   -> WatchManager
   -> FilePath -- ^ Build dir
   -> IO StopListening
-handleTreeChanges runner userProof appURL copyFilesFlag timeCache hashCache watchMgr absDir =
+handleTreeChanges runner runUpdate appURL copyFilesFlag timeCache hashCache watchMgr absDir =
   FS.watchTree watchMgr absDir (\_ -> True) \_ ->
     runner do
       now <- getCurrentTime
@@ -190,9 +189,8 @@ handleTreeChanges runner userProof appURL copyFilesFlag timeCache hashCache watc
               Just oldHash -> do
                 logDebug $ "CID: " <> display oldHash <> " -> " <> display newHash
                 UTF8.putNewline
-                req <- updateApp appURL cid (Just copyFilesFlag) <$> attachAuth userProof
 
-                retryOnStatus [status502] 100 req >>= \case
+                retryOnStatus [status502] 100 (runUpdate cid) >>= \case
                   Left err -> CLI.Error.put err "Server unable to sync data"
                   Right _  -> success appURL
 

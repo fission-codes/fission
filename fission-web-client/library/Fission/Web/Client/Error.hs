@@ -3,30 +3,28 @@ module Fission.Web.Client.Error
   , checkStatus
   ) where
 
-import           Fission.Error
-import           Fission.Prelude           hiding (fromMaybe)
-
-import           Fission.Web.Client
 import           Network.HTTP.Types.Status
 import           Servant.Client
 
+import           Fission.Prelude           hiding (fromMaybe)
+
+import           Fission.Error
+import           Fission.Web.Client
 
 retryOnStatus ::
-  ( MonadWebClient m
-  , MonadLogger m
+  ( MonadLogger    m
+  , MonadWebClient m
   )
   => [Status]
   -> Natural
-  -> ClientM a
+  -> m (ClientM a)
   -> m (Either ClientError a)
-retryOnStatus retryOn times req =
-  retryOnErr (checkStatus retryOn) times (sendRequest req)
+retryOnStatus retryOn times mkReq =
+  retryOnErr (checkStatus retryOn) times do
+    req <- mkReq
+    sendRequest req
 
-checkStatus ::
-  MonadLogger m
-  => [Status]
-  -> Either ClientError a
-  -> m Bool
+checkStatus :: MonadLogger m => [Status] -> Either ClientError a -> m Bool
 checkStatus retryOn = \case
   Right _ ->
     return True
