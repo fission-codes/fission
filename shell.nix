@@ -26,39 +26,39 @@
         unstable.niv
       ];
 
-      crypto = [
-        pkgs.openssl.dev
-        pkgs.openssl.out
-      ];
+    crypto = [
+      pkgs.openssl.dev
+      pkgs.openssl.out
+    ];
 
-      cli = [pkgs.ncurses.dev.out];
+    cli = [pkgs.ncurses.dev.out];
 
-      data = [
-        pkgs.ipfs
-        pkgs.lzma.dev
-        pkgs.lzma.out
-        pkgs.zlib.dev
-        pkgs.zlib.out
-        pkgs.postgresql
-      ];
+    data = [
+      pkgs.ipfs
+      pkgs.lzma.dev
+      pkgs.lzma.out
+      pkgs.zlib.dev
+      pkgs.zlib.out
+      pkgs.postgresql
+    ];
 
-      haskell = [
-        unstable.ghc
-        unstable.haskellPackages.implicit-hie
-        unstable.haskell-language-server
-        unstable.stack
-        unstable.stylish-haskell
-      ];
+    haskell = [
+      unstable.ghc
+      unstable.haskellPackages.implicit-hie
+      unstable.haskell-language-server
+      unstable.stack
+      unstable.stylish-haskell
+    ];
 
-      macos =
-        if pkgs.stdenv.isDarwin then
-          [ unstable.darwin.apple_sdk.frameworks.CoreServices
-            unstable.darwin.apple_sdk.frameworks.Foundation
-            unstable.darwin.apple_sdk.frameworks.Cocoa
-          ]
-        else
-          [];
-    };
+    macos =
+      if pkgs.stdenv.isDarwin then
+        [ unstable.darwin.apple_sdk.frameworks.CoreServices
+          unstable.darwin.apple_sdk.frameworks.Foundation
+          unstable.darwin.apple_sdk.frameworks.Cocoa
+        ]
+      else
+        [];
+  };
 
   in
     unstable.haskell.lib.buildStackProject {
