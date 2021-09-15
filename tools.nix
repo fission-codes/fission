@@ -1,10 +1,8 @@
 { rosetta ? false }:
   let
-    sources  = import ./nix/sources.nix;
-    commands = import ./nix/commands.nix;
-
     overrides = if rosetta then { system = "x86_64-darwin"; } else {};
 
+    sources  = import ./nix/sources.nix;
     nixos    = import sources.nixos    overrides;
     darwin   = import sources.darwin   overrides;
     unstable = import sources.unstable overrides;
