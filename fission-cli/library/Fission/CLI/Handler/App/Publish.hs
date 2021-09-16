@@ -48,7 +48,7 @@ import           Fission.CLI.Environment                   (MonadEnvironment)
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
 -- | Sync the current working directory to the server over IPFS
-publish ::
+publish :: forall m .
   ( MonadIO          m
   , MonadCleanup     m
   , MonadLogger      m
@@ -107,9 +107,11 @@ publish
           _ <- IPFS.Daemon.runDaemon
 
           let
+            runUpdate :: CID -> m (ClientM ())
             runUpdate cid' = do
               proof <- getRootUserProof
-              updateApp appURL cid' (Just updateData) <$> Client.attachAuth proof
+              ucan  <- Client.attachAuth proof
+              return $ updateApp appURL cid' (Just updateData) ucan
 
           logUser @Text "✈️  Pushing to remote"
           retryOnStatus [status502] 100 (runUpdate cid) >>= \case
