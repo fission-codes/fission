@@ -2,7 +2,6 @@ module Fission.Test.Web.Server.Auth.Token.UCAN.Resource (spec) where
 
 import qualified Data.Aeson                                 as JSON
 
--- import qualified Fission.Internal.UTF8                      as UTF8
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.Test.Web.Server.Prelude

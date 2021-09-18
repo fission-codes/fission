@@ -4,7 +4,6 @@ import           Servant
 
 import           Fission.Internal.Mock
 import qualified Fission.Web.API.Types           as API
--- import           Fission.Web.Server.Mock.Config
 
 import           Fission.Test.Web.Server.Prelude
 
