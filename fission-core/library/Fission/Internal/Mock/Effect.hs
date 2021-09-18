@@ -5,7 +5,7 @@ module Fission.Internal.Mock.Effect
 
 import           Control.Monad.Writer
 
-import           Fission.Prelude                      hiding (log)
+import           Fission.Prelude                    hiding (log)
 
 import           Fission.Internal.Mock.Effect.Types
 

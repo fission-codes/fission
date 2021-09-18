@@ -1,4 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Fission.Internal.Mock.Types
@@ -8,6 +7,8 @@ module Fission.Internal.Mock.Types
   ) where
 
 import           Control.Monad.Catch                 as Catch
+import           Control.Monad.Logger
+import           Control.Monad.Time
 import           Control.Monad.Writer
 
 import           Servant.Client.Core

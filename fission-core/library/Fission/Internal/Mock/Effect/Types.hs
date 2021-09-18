@@ -8,11 +8,12 @@ module Fission.Internal.Mock.Effect.Types
   , RunRemoteIPFS (..)
   ) where
 
-import           Control.Monad.Logger
+import           Control.Monad.Logger as Logger
 import qualified Network.IPFS.Types   as IPFS
-import qualified RIO.ByteString.Lazy  as Lazy
 
 import           Fission.Prelude
+
+import qualified RIO.ByteString.Lazy  as Lazy
 
 data RunIO = RunIO
   deriving (Eq, Show)
@@ -26,7 +27,7 @@ data RunCatch = RunCatch
 data GetTime = GetTime
   deriving (Eq, Show)
 
-data LogMsg = LogMsg LogLevel LogStr
+data LogMsg = LogMsg Logger.LogLevel LogStr
   deriving (Eq, Show)
 
 data RunLocalIPFS = RunLocalIPFS

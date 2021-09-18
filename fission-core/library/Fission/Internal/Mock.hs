@@ -18,12 +18,9 @@ import           Fission.Internal.Mock.Types
 
 -- | Run the action described by a @Mock@
 runMock :: MonadIO m => cfg -> Mock effs cfg a -> m (Mock.Session effs a)
-runMock cfg action = do
-  action
-    |> unMock
-    |> runWriterT
-    |> runRIO cfg
-    |> fmap \(result, effectLog) -> Mock.Session {..}
+runMock cfg (Mock action) = toSession <$> runRIO cfg (runWriterT action)
+  where
+    toSession = \(result, effectLog) -> Mock.Session {..}
 
 runMockIO :: MonadIO m => cfg -> Mock effs cfg a -> m a
-runMockIO cfg (Mock action) = fmap fst . runRIO cfg $ runWriterT action
+runMockIO cfg (Mock action) = fst <$> runRIO cfg (runWriterT action)

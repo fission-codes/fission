@@ -1,6 +1,5 @@
 module Fission.Test.Web.Server.Prelude
   ( module Fission.Prelude
-  , module Fission.Web.Server.Mock
   --
   , module Test.Tasty
   , module Test.Tasty.Hspec
@@ -25,8 +24,6 @@ import           Test.QuickCheck            hiding (Result (..))
 import           Test.QuickCheck.Instances  ()
 
 import           Fission.Prelude            hiding (Result (..), log)
-
-import           Fission.Web.Server.Mock
 
 -- | Prop test with description
 itsProp :: (HasCallStack, Testable a) => String -> Int -> a -> SpecWith ()

@@ -1,8 +1,10 @@
 module Fission.Test.Web.Server.Error (spec) where
 
 import           Fission.Error
+import           Fission.Internal.Mock           as Mock
+import           Fission.Web.Server.Mock.Config
 
-import           Fission.Test.Web.Server.Prelude as Mock
+import           Fission.Test.Web.Server.Prelude
 
 spec :: Spec
 spec =
