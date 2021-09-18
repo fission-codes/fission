@@ -2,6 +2,7 @@ module Fission.Test.Web.Server.Root (spec) where
 
 import           Servant
 
+import           Fission.Internal.Mock
 import qualified Fission.Web.API.Types           as API
 
 import           Fission.Test.Web.Server.Prelude
@@ -21,7 +22,7 @@ spec =
           }
 
 rootServer :: IO Application
-rootServer = return . serve (Proxy @API.Root) $ runMockIO defaultConfig rootHandler
+rootServer = return . serve (Proxy @API.Root) $ runMockIO () rootHandler
 
-rootHandler :: Mock '[] NoContent -- i.e. this type enforces that it produces no effects
+rootHandler :: Mock '[] () NoContent -- i.e. this type enforces that it produces no effects
 rootHandler = return NoContent
