@@ -1,5 +1,4 @@
--- NB: move all of this stuff to /library. Seems pretty useful for local dev, too!
-module Fission.Web.Server.Mock.Session.Types (Session (..)) where
+module Fission.Internal.Mock.Session.Types (Session (..)) where
 
 import           Fission.Prelude
 
