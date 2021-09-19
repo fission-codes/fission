@@ -182,6 +182,24 @@ executables:
     # cc-options: -static
     # ld-options: -static -pthread
 
+tests:
+  fission-cli-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    dependencies:
+      - hspec
+      - hspec-core
+      - hspec-expectations
+      - fission-web-server
+      - QuickCheck
+      - quickcheck-instances
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+
 benchmarks:
   fission-cli-benchmark:
     main: Main.hs
