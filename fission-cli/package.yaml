@@ -186,7 +186,6 @@ tests:
   fission-cli-test:
     main: Main.hs
     source-dirs:
- #     - library
       - test
     dependencies:
       - fission-cli
