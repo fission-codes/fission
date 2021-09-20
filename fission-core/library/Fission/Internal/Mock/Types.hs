@@ -15,6 +15,7 @@ import           Servant.Client.Core
 
 import qualified Network.IPFS.Client.Pin             as Network.Pin
 import qualified Network.IPFS.File.Types             as File
+import           Network.IPFS.Local.Class
 import           Network.IPFS.Remote.Class
 import qualified Network.IPFS.Types                  as IPFS
 
@@ -68,6 +69,9 @@ instance (GetTime `IsMember` effs, HasField' "now" cfg UTCTime) => MonadTime (Mo
 instance LogMsg `IsMember` effs => MonadLogger (Mock effs cfg) where
   monadLoggerLog _loc _src lvl msg =
     Effect.log . LogMsg lvl $ toLogStr msg
+
+instance MonadLocalIPFS (Mock effs cfg) where
+  runLocal _ _ = return $ Right "IPFS CLI content"
 
 instance
   ( RunIO         `IsMember` effs

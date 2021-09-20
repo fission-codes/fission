@@ -4,6 +4,7 @@ module Fission.Internal.Mock.Effect.Types
   , RunCatch      (..)
   , GetTime       (..)
   , LogMsg        (..)
+  , Raised        (..)
   , RunLocalIPFS  (..)
   , RunRemoteIPFS (..)
   ) where
@@ -22,6 +23,9 @@ data RunThrow = RunThrow
   deriving (Eq, Show)
 
 data RunCatch = RunCatch
+  deriving (Eq, Show)
+
+data Raised = Raised
   deriving (Eq, Show)
 
 data GetTime = GetTime
