@@ -9,15 +9,24 @@ import qualified RIO.Text                            as Text
 import qualified Crypto.PubKey.Ed25519               as Ed25519
 import qualified Data.Yaml                           as YAML
 
-import           Network.HTTP.Client
+import qualified Network.HTTP.Client                 as HTTP
+import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error          as IPFS.Process
 import qualified Network.Wai.Handler.Warp            as Warp
-import           Servant.Client
 
-import           Fission.CLI.Handler.App.Publish
+import           Servant.API                         (AuthProtect, parseHeader,
+                                                      (:>))
+import           Servant.API.Generic
+import           Servant.Client
+import           Servant.Server
+import           Servant.Server.Experimental.Auth
+import           Servant.Server.Generic
+
 import           Fission.Error
-import           Fission.Internal.Mock               as Effect
 import           Fission.Internal.Mock               as Mock
+import           Fission.Internal.Mock.Effect        as Effect
+import           Fission.URL.Types
+import           Fission.Web.Auth.Token.JWT.Types
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 import           Fission.Web.Auth.Token.JWT          as JWT
@@ -25,7 +34,18 @@ import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client.Auth.Class
 import           Fission.Web.Client.Class
 
+import qualified Fission.Web.API.App.Types           as App
+import           Fission.Web.API.Types
+
+import           Fission.CLI.Handler.App.Publish
+
 import           Fission.Test.CLI.Prelude
+
+
+
+--------
+import qualified Network.HTTP.Client                 as HTTP
+import qualified Servant.Client.Internal.HttpClient  as I
 
 -----------
 -- Setup --
@@ -33,7 +53,7 @@ import           Fission.Test.CLI.Prelude
 
 data Config = Config
   { ed25519SK :: Ed25519.SecretKey
-  , webPort   :: Int
+  , webPort   :: Warp.Port
   }
 
 newtype MockPublish effs a = MockPublish
@@ -61,7 +81,7 @@ instance
   sendRequest clientM = do
     port'     <- asks webPort
     localhost <- parseBaseUrl "http://localhost"
-    manager   <- MockPublish . Mock . liftIO $ newManager defaultManagerSettings
+    manager   <- MockPublish . Mock . liftIO $ HTTP.newManager HTTP.defaultManagerSettings
     let clientEnv = mkClientEnv manager (localhost { baseUrlPort = port' })
 
     Effect.log WebRequest
@@ -102,14 +122,57 @@ instance MonadCleanup (MockPublish effs) where
 -- Tests --
 -----------
 
+type instance AuthServerData (AuthProtect "higher-order") = Token
+
 -- FIXME
-withUserApp :: (Warp.Port -> IO ()) -> IO ()
-withUserApp action =
-  Warp.testWithApplication (pure undefined) action
-  -- Warp.testWithApplication (pure userApp) action
+withWebApp :: (Warp.Port -> IO ()) -> IO ()
+withWebApp action = do
+  isSuccessVar <- newEmptyMVar
+
+  let
+    appUpdateTestHandler :: URL -> CID -> Maybe Bool -> Token -> IO ()
+    appUpdateTestHandler _ _ _ _ = do
+      tryReadMVar isSuccessVar >>= \case
+        Nothing ->  do
+          isSuccessVar `swapMVar` ()
+          throwM err502
+
+        Just () ->
+          return ()
+
+    authCtx :: Context '[AuthHandler HTTP.Request Token]
+    authCtx = authHandler' :. EmptyContext
+
+    authHandler' :: AuthHandler HTTP.Request Token
+    authHandler' =
+      mkAuthHandler \req ->
+        case lookup "authorization" (HTTP.requestHeaders req) of
+          Nothing ->
+            error "No auth token"
+
+          Just auth ->
+            case parseHeader auth of
+              Left errMsg -> error "Can't parse"
+              Right token -> return token
+
+    appHandler =
+      App.RoutesV2
+        { index   = undefined
+        , create  = undefined
+        , update  = undefined -- appUpdateTestHandler
+        , destroy = undefined
+        }
+
+    routeProxy :: Proxy ("v2" :> "api" :> "app" :> ToServantApi App.RoutesV2)
+    routeProxy = Proxy
+
+    testWebApp :: Application
+    testWebApp = serveWithContext routeProxy authCtx (genericServer appHandler)
+
+  Warp.testWithApplication (pure testWebApp) action
 
 spec =
-  around withUserApp do
+  around withWebApp do
     describe "Fission.CLI.Handler.App.Publish" do
       describe "runRequest" do
         it "retries with a different UCAN" \port -> do

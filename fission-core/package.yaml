@@ -163,17 +163,16 @@ tests:
   fission-core-test:
     main: Main.hs
     source-dirs:
-      - library
       - test
     dependencies:
       - base58string
       - binary
+      - fission-core
       - hspec
       - hspec-core
       - hspec-expectations
       - hspec-wai
       - hspec-wai-json
-      - fission-core
       - QuickCheck
       - quickcheck-instances
       - tasty

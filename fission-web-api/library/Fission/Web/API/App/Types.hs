@@ -30,7 +30,6 @@ data RoutesV2 mode = RoutesV2
   }
   deriving Generic
 
-
 data RoutesV_ mode = RoutesV_
   { index   :: mode :- Index
   , create  :: mode :- Create

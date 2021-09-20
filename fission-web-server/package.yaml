@@ -208,15 +208,14 @@ tests:
   fission-web-server-test:
     main: Main.hs
     source-dirs:
-      - library
       - test
     dependencies:
+      - fission-web-server
       - hspec
       - hspec-core
       - hspec-expectations
       - hspec-wai
       - hspec-wai-json
-      - fission-web-server
       - QuickCheck
       - quickcheck-instances
       - tasty

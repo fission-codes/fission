@@ -186,15 +186,16 @@ tests:
   fission-cli-test:
     main: Main.hs
     source-dirs:
-      - library
+ #     - library
       - test
     dependencies:
+      - fission-cli
       - hspec
       - hspec-core
       - hspec-expectations
-      - fission-web-server
       - QuickCheck
       - quickcheck-instances
+      - servant-server
       - tasty
       - tasty-hunit
       - tasty-hspec

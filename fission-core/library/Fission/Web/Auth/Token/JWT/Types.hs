@@ -30,7 +30,7 @@ import           Network.IPFS.CID.Types
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
 
-import qualified Servant.API as Servant
+import qualified Servant.API                                      as Servant
 
 import           Fission.Prelude
 
@@ -128,6 +128,12 @@ instance Servant.ToHttpApiData JWT where
       |> Lazy.toStrict
       |> decodeUtf8Lenient
       |> UTF8.stripQuotes
+
+instance Servant.FromHttpApiData JWT where
+  parseUrlPiece txt =
+    case eitherDecodeStrict $ encodeUtf8 txt of
+      Left errStr -> Left $ Text.pack errStr
+      Right val   -> Right val
 
 instance Display (NotFound JWT) where
   display _ = "Unable to find UCAN"
