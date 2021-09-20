@@ -146,7 +146,7 @@ withWebApp action = do
     authHandler' :: AuthHandler HTTP.Request Token
     authHandler' =
       mkAuthHandler \req ->
-        case lookup "authorization" (HTTP.requestHeaders req) of
+        case lookup "Authorization" (HTTP.requestHeaders req) of
           Nothing ->
             error "No auth token"
 
