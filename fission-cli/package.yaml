@@ -199,6 +199,7 @@ tests:
       - tasty-hunit
       - tasty-hspec
       - tasty-smallcheck
+      - wai
       - warp
 
 benchmarks:

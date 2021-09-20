@@ -14,8 +14,9 @@ import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error          as IPFS.Process
 import qualified Network.Wai.Handler.Warp            as Warp
 
-import           Servant.API                         (AuthProtect, parseHeader,
-                                                      (:>))
+import           Servant.API                         (AuthProtect,
+                                                      BasicAuthData (..),
+                                                      parseHeader, (:>))
 import           Servant.API.Generic
 import           Servant.Client
 import           Servant.Server
@@ -44,7 +45,10 @@ import           Fission.Test.CLI.Prelude
 
 
 --------
+import           Fission.Web.API.Auth.Types          as Auth
+import qualified Fission.Web.API.Heroku.Auth.Types   as Heroku
 import qualified Network.HTTP.Client                 as HTTP
+import qualified Network.Wai.Internal                as Wai
 import qualified Servant.Client.Internal.HttpClient  as I
 
 -----------
@@ -123,6 +127,7 @@ instance MonadCleanup (MockPublish effs) where
 -----------
 
 type instance AuthServerData (AuthProtect "higher-order") = Token
+type Checks = '[AuthHandler Wai.Request Token, BasicAuthCheck Heroku.Auth]
 
 -- FIXME
 withWebApp :: (Warp.Port -> IO ()) -> IO ()
@@ -130,7 +135,7 @@ withWebApp action = do
   isSuccessVar <- newEmptyMVar
 
   let
-    appUpdateTestHandler :: URL -> CID -> Maybe Bool -> Token -> IO ()
+    appUpdateTestHandler :: URL -> CID -> Maybe Bool -> Token -> Handler ()
     appUpdateTestHandler _ _ _ _ = do
       tryReadMVar isSuccessVar >>= \case
         Nothing ->  do
@@ -140,13 +145,16 @@ withWebApp action = do
         Just () ->
           return ()
 
-    authCtx :: Context '[AuthHandler HTTP.Request Token]
-    authCtx = authHandler' :. EmptyContext
+    authCtx :: Context Checks
+    authCtx = authHandler :. herokuAuth :. EmptyContext
 
-    authHandler' :: AuthHandler HTTP.Request Token
-    authHandler' =
+    herokuAuth :: BasicAuthCheck Heroku.Auth
+    herokuAuth = BasicAuthCheck \(BasicAuthData _ _) -> pure . Authorized $ Heroku.Auth "FAKE"
+
+    authHandler :: AuthHandler Wai.Request Token
+    authHandler =
       mkAuthHandler \req ->
-        case lookup "Authorization" (HTTP.requestHeaders req) of
+        case lookup "Authorization" (Wai.requestHeaders req) of
           Nothing ->
             error "No auth token"
 
@@ -156,10 +164,10 @@ withWebApp action = do
               Right token -> return token
 
     appHandler =
-      App.RoutesV2
+      genericServerT App.RoutesV2
         { index   = undefined
         , create  = undefined
-        , update  = undefined -- appUpdateTestHandler
+        , update  = appUpdateTestHandler
         , destroy = undefined
         }
 
@@ -167,7 +175,10 @@ withWebApp action = do
     routeProxy = Proxy
 
     testWebApp :: Application
-    testWebApp = serveWithContext routeProxy authCtx (genericServer appHandler)
+    testWebApp =
+      appHandler
+        --    |> hoistServerWithContext routeProxy (Proxy @Checks) identity
+        |> serveWithContext routeProxy authCtx
 
   Warp.testWithApplication (pure testWebApp) action
 
