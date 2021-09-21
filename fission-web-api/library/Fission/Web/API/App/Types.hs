@@ -1,4 +1,4 @@
-module Fission.Web.API.App.Types (RoutesV_ (..), RoutesV2 (..)) where
+module Fission.Web.API.App.Types (RoutesV_ (..), RoutesV2 (..), Update) where
 
 import qualified Network.IPFS.CID.Types                  as IPFS
 
@@ -14,38 +14,16 @@ import qualified Fission.Web.API.Auth.Types              as Auth
 data RoutesV2 mode = RoutesV2
   { index   :: mode :- Index
   , create  :: mode :- Create
+  , update  :: mode :- Update
   , destroy :: mode :- ToServantApi Destroy.Routes
-
-  , update ::
-      mode
-      :- Summary     "Set app content"
-      :> Description "Update the content (CID) for an app"
-      --
-      :> Capture    "App URL"   URL
-      :> Capture    "New CID"   IPFS.CID
-      :> QueryParam "copy-data" Bool
-      --
-      :> Auth.HigherOrder
-      :> PutAccepted '[JSON] ()
   }
   deriving Generic
 
 data RoutesV_ mode = RoutesV_
   { index   :: mode :- Index
   , create  :: mode :- Create
+  , update  :: mode :- Update
   , destroy :: mode :- ToServantApi Destroy.Routes
-
-  , update ::
-      mode
-      :- Summary     "Set app content"
-      :> Description "Update the content (CID) for an app"
-      --
-      :> Capture    "App URL"   URL
-      :> Capture    "New CID"   IPFS.CID
-      :> QueryParam "copy-data" Bool
-      --
-      :> Auth.HigherOrder
-      :> PatchAccepted '[JSON] ()
   }
   deriving Generic
 
@@ -64,3 +42,14 @@ type Create
   --
   :> Auth.HigherOrder
   :> PostAccepted '[JSON] URL
+
+type Update
+  =  Summary     "Set app content"
+  :> Description "Update the content (CID) for an app"
+  --
+  :> Capture    "App URL"   URL
+  :> Capture    "New CID"   IPFS.CID
+  :> QueryParam "copy-data" Bool
+  --
+  :> Auth.HigherOrder
+  :> PatchAccepted '[JSON] ()

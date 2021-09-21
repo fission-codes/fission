@@ -7,8 +7,8 @@ import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           System.FSNotify                           as FS
 
 import           RIO.Directory
-import           Web.Browser
 import           Servant.Client
+import           Web.Browser
 
 import           Network.HTTP.Types.Status
 import qualified Network.IPFS.Process.Error                as IPFS.Process
