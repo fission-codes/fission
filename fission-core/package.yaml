@@ -146,6 +146,7 @@ dependencies:
 
   ## Web ##
   - dns
+  - http-client
   - ipfs
   - mime-types
   - path-pieces

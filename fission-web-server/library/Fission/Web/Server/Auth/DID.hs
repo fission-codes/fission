@@ -1,5 +1,6 @@
 module Fission.Web.Server.Auth.DID (handler) where
 
+import qualified Network.HTTP.Client                   as HTTP
 import           Network.Wai
 
 import           Fission.Prelude
@@ -25,6 +26,7 @@ handler ::
   , MonadLogger  m
   , MonadThrow   m
   , MonadTime    m
+  , MonadIO      m
   )
   => Request
   -> m DID
@@ -32,7 +34,9 @@ handler req =
   case Token.get req of
     Right (Token.Bearer token@(Bearer.Token jwt rawContent)) -> do
       serverDID <- getServerDID
-      JWT.check serverDID rawContent jwt >>= \case
+      manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+
+      JWT.check manager serverDID rawContent jwt >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> textDisplay token
           Web.Error.throw err

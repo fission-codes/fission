@@ -21,6 +21,7 @@ import           Crypto.Random
 import qualified Data.Yaml                                   as YAML
 
 import qualified Network.DNS                                 as DNS
+import qualified Network.HTTP.Client                         as HTTP
 import           Network.IPFS.CID.Types
 import           Servant.Client.Core
 
@@ -148,6 +149,7 @@ type ConsumerConstraints m =
 consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> Maybe Username -> m Username
 consume signingSK baseURL optUsername = do
   logDebug @Text "🛂📥 Consuming log-in..."
+  manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
 
   username <- do
     case optUsername of
@@ -178,8 +180,9 @@ consume signingSK baseURL optUsername = do
           , sessionKey
           } <- secureListenJSON rsaConn
 
+
         logDebug @Text "🤝 Device linking handshake: Step 4"
-        ensureM $ UCAN.check sessionDID rawContent jwt
+        ensureM $ UCAN.check manager sessionDID rawContent jwt
 
         -- TODO waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
         ensure $ UCAN.containsFact jwt \facts ->
@@ -205,7 +208,7 @@ consume signingSK baseURL optUsername = do
         , readKey
         } <- secureListenJSON aesConn
 
-      ensureM $ UCAN.check myDID rawContent jwt
+      ensureM $ UCAN.check manager myDID rawContent jwt
       JWT {claims = JWT.Claims {sender}} <- ensureM $ getRoot jwt
 
       unless (sender == targetDID) do

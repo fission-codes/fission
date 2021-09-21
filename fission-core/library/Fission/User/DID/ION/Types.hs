@@ -5,7 +5,7 @@ import           Servant.API
 
 import           Fission.Prelude
 
-newtype ID = ID { ionID :: Text }
+newtype ID = ID { canonicalID :: Text }
   deriving (Eq, Show)
   deriving newtype ( Arbitrary
                    , Display

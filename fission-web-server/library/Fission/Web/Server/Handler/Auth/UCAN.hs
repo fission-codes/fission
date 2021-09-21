@@ -1,5 +1,6 @@
 module Fission.Web.Server.Handler.Auth.UCAN (handler) where
 
+import qualified Network.HTTP.Client                   as HTTP
 import           Servant
 import           Servant.Server.Generic
 
@@ -19,6 +20,7 @@ handler ::
   ( MonadTime      m
   , MonadLogger    m
   , MonadThrow     m
+  , MonadIO        m
   , Proof.Resolver m
   )
   => UCAN.Routes (AsServerT m)
@@ -28,8 +30,10 @@ handler = UCAN.Routes { verify }
       let
         JWT {claims = Claims {receiver, exp}} = jwt
 
+      manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+
       if ignoreTime
-        then Web.ensureM $ UCAN.checkWithION  receiver rawContent jwt exp
-        else Web.ensureM $ UCAN.check receiver rawContent jwt
+        then Web.ensureM $ UCAN.checkWithION manager receiver rawContent jwt exp
+        else Web.ensureM $ UCAN.check manager receiver rawContent jwt
 
       return NoContent

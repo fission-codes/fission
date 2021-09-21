@@ -1,5 +1,7 @@
 module Fission.Web.Server.Auth.Token.UCAN (handler) where
 
+import qualified Network.HTTP.Client                                as HTTP
+
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
@@ -27,6 +29,7 @@ import qualified Fission.Web.Server.User.Retriever                  as User
 handler ::
   ( MonadLogger      m
   , MonadThrow       m
+  , MonadIO          m
   , Resolver         m
   , ServerDID        m
   , MonadTime        m
@@ -37,7 +40,8 @@ handler ::
   -> m Authorization
 handler (Bearer.Token jwt rawContent) = do
   serverDID <- getServerDID
-  void . Web.Error.ensureM $ JWT.check serverDID rawContent jwt
+  manager   <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+  void . Web.Error.ensureM $ JWT.check manager serverDID rawContent jwt
   toAuthorization jwt
 
 toAuthorization ::

@@ -9,15 +9,20 @@ module Fission.Web.Auth.Token.JWT.Validation
   , checkRSA2048Signature
   ) where
 
+import qualified RIO.NonEmpty                                     as NonEmpty
+
 import           Crypto.Hash.Algorithms                           (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15                         as Crypto.RSA.PKCS
+
+import qualified Network.HTTP.Client                              as HTTP
 
 import           Fission.Prelude
 
 import           Fission.Key                                      as Key
 import           Fission.SemVer.Types
 import           Fission.User.DID                                 as DID
+import qualified Fission.User.DID.ION.Document                    as ION
 
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 
@@ -35,12 +40,14 @@ import           Fission.Web.Auth.Token.JWT.Signature.Types       as Signature
 check ::
   ( Proof.Resolver m
   , MonadTime      m
+  , MonadIO        m
   )
-  => DID
+  => HTTP.Manager
+  -> DID
   -> JWT.RawContent
   -> JWT
   -> m (Either JWT.Error JWT)
-check receiverDID rawContent jwt = do
+check manager receiverDID rawContent jwt = do
   now <- currentTime
 
   case checkTime now jwt of
@@ -50,19 +57,27 @@ check receiverDID rawContent jwt = do
     Right _  ->
       case checkReceiver receiverDID jwt of
         Left  err -> return $ Left err
-        Right _   -> checkWithION receiverDID rawContent jwt now
+        Right _   -> checkWithION manager receiverDID rawContent jwt now
 
 checkWithION ::
-  Proof.Resolver m
-  => DID
+  ( Proof.Resolver m
+  , MonadIO        m
+  )
+  => HTTP.Manager
+  -> DID
   -> RawContent
   -> JWT
   -> UTCTime
   -> m (Either JWT.Error JWT)
-checkWithION receiverDID rawContent jwt now = do
+checkWithION manager receiverDID rawContent jwt now = do
   ionPKs <- case receiverDID of
-    DID.Key _      -> return []
-    DID.ION ionTxt -> return [ undefined ] -- FIXME
+    DID.Key _ ->
+      return []
+
+    ion -> do
+      ION.getValidationPKs manager ion >>= \case
+        Left _                           -> return [] -- FIXME but close enough for demohack
+        Right (ION.ValidPKs nonEmptyPKs) -> return $ NonEmpty.toList nonEmptyPKs
 
   case checkReceiver receiverDID jwt of
     Left  err -> return $ Left err
