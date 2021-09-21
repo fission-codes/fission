@@ -66,7 +66,7 @@ HerokuAddOn
 
 User
   publicKey     Key.Public      Maybe
-  ion           ION.ID          Maybe
+  ionID         ION.ID          Maybe
 
   exchangeKeys  [RSA.PublicKey] Maybe -- Because Postgresql is being a pain
 
@@ -86,7 +86,7 @@ User
   insertedAt    UTCTime
   modifiedAt    UTCTime
 
-  UniqueIon       ion       !force
+  UniqueIon       ionID     !force
   UniquePublicKey publicKey !force
   UniqueUsername  username
   -- UniqueEmail     email     !force -- FIXME

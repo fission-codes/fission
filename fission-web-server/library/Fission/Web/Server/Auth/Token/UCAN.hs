@@ -59,11 +59,8 @@ toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
     Left err ->
       throwM err
 
-    Right JWT {claims = JWT.Claims {sender = DID.ION txt}} ->
-      undefined -- FIXME
-
-    Right JWT {claims = JWT.Claims {sender = DID.Key pk}} ->
-      runDB (User.getByPublicKey pk) >>= \case
+    Right JWT {claims = JWT.Claims {sender}} ->
+      runDB (User.getByDID sender) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User
 

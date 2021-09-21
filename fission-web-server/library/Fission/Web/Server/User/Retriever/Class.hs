@@ -6,6 +6,7 @@ import           Fission.Prelude
 
 import qualified Fission.Key                      as Key
 
+import           Fission.User.DID.Types           as DID
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
@@ -15,7 +16,7 @@ import           Fission.Web.Server.MonadDB.Types
 class Monad m => Retriever m where
   getById            :: UserId        -> m (Maybe (Entity User))
   getByUsername      :: Username      -> m (Maybe (Entity User))
-  getByPublicKey     :: Key.Public    -> m (Maybe (Entity User))
+  getByDID           :: DID           -> m (Maybe (Entity User))
   getByHerokuAddOnId :: HerokuAddOnId -> m (Maybe (Entity User))
   getByEmail         :: Email         -> m (Maybe (Entity User))
 
@@ -30,10 +31,17 @@ instance MonadIO m => Retriever (Transaction m) where
     , UserActive   ==. True
     ] []
 
-  getByPublicKey pk = selectFirst
-    [ UserPublicKey ==. Just pk
-    , UserActive    ==. True
-    ] []
+  getByDID (DID.Key pk) =
+    selectFirst
+      [ UserPublicKey ==. Just pk
+      , UserActive    ==. True
+      ] []
+
+  getByDID (DID.ION ion) =
+    selectFirst
+      [ UserIonID  ==. Just ion
+      , UserActive ==. True
+      ] []
 
   getByHerokuAddOnId addOnId = selectFirst
     [ UserHerokuAddOnId ==. Just addOnId

@@ -56,7 +56,7 @@ updateDidDB userID did now = do
 
     DID.ION ion ->
       update userID
-        [ UserIon        =. Just ion
+        [ UserIonID      =. Just ion
         , UserModifiedAt =. now
         ]
 

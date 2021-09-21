@@ -39,7 +39,6 @@ import           Fission.Prelude
 
 import           Fission.Internal.App
 import           Fission.Time
-import           Fission.User.DID.Types                          as DID
 
 import           Fission.Web.API.Host.Types                      as Server
 import qualified Fission.Web.API.Types                           as Fission
@@ -195,8 +194,6 @@ start middleware runner = do
   now <- currentTime
   cfg@Fission.Server.Config {..} <- ask
 
-  let DID.Key serverPK = fissionDID
-
   logDebug $ displayShow cfg
 
   runDB do
@@ -204,7 +201,7 @@ start middleware runner = do
     updateDBToLatest
 
     logInfo @Text "🙋 Ensuring default user is in DB"
-    userId <- User.getByPublicKey serverPK >>= \case
+    userId <- User.getByDID fissionDID >>= \case
       Just (Entity userId _) -> return userId
       Nothing -> Web.Error.ensureM $ User.createDB "fission" fissionDID "hello@fission.codes" now
 

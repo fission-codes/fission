@@ -497,7 +497,7 @@ instance Server.DID.Publicize Server where
 instance User.Retriever Server where
   getById            userId   = runDB $ User.getById userId
   getByUsername      username = runDB $ User.getByUsername username
-  getByPublicKey     pk       = runDB $ User.getByPublicKey pk
+  getByDID           did      = runDB $ User.getByDID did
   getByHerokuAddOnId hId      = runDB $ User.getByHerokuAddOnId hId
   getByEmail         email    = runDB $ User.getByEmail email
 

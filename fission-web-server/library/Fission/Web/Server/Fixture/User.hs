@@ -17,11 +17,11 @@ user = User
   { userEmail    = Just "test@fission.codes"
   , userUsername = "testUser"
   --
-  , userRole   = User.Roles.Regular
-  , userActive = True
+  , userRole      = User.Roles.Regular
+  , userActive    = True
   , userVerified  = False
   --
-  , userIon          = Nothing
+  , userIonID        = Nothing
   , userPublicKey    = Just Ed25519.pk
   , userExchangeKeys = Just [RSA2048.pk1]
   --

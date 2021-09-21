@@ -171,7 +171,7 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
 
     publicKey =
       case claims |> sender of
-        DID.ION _  -> Left undefined -- FIXME
+        DID.ION _  -> Left $ JWT.SignatureError InvalidPublicKey
         DID.Key pk -> Right pk
 
 checkEd25519Signature :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT

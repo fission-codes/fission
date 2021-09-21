@@ -49,7 +49,7 @@ createDB username did email now =
     user =
       User
         { userPublicKey
-        , userIon
+        , userIonID
         , userExchangeKeys  = Just []
         , userUsername      = username
         , userEmail         = Just email
@@ -64,7 +64,7 @@ createDB username did email now =
         , userModifiedAt    = now
         }
 
-    (userPublicKey, userIon) =
+    (userPublicKey, userIonID) =
       case did of
         DID.Key pk  -> (Just pk, Nothing)
         DID.ION ion -> (Nothing, Just ion)
@@ -84,7 +84,7 @@ createWithPasswordDB username password email now =
     Right secretDigest ->
       User
         { userPublicKey     = Nothing
-        , userIon           = Nothing
+        , userIonID         = Nothing
         , userExchangeKeys  = Just []
         , userUsername      = username
         , userEmail         = Just email
@@ -124,7 +124,7 @@ createWithHerokuDB herokuUUID herokuRegion username password now =
         Right secretDigest ->
           User
             { userPublicKey     = Nothing
-            , userIon           = Nothing
+            , userIonID         = Nothing
             , userExchangeKeys  = Just []
             , userUsername      = username
             , userEmail         = Nothing
