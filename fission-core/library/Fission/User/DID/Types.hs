@@ -70,7 +70,7 @@ Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQ
 
 -}
 data DID
-  = Key Key.Public
+  = Key Key.Public -- FIXME consider switching to RSAKey, EdKey, ION
   | ION ION.ID
   deriving (Show, Eq)
 

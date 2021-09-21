@@ -12,7 +12,7 @@ import           Fission.Prelude
 import           Fission.Error
 import           Fission.Key                                 as Key
 
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                      as DID
 import           Fission.User.Email.Types
 import qualified Fission.User.Username.Error                 as Username
 import           Fission.User.Username.Types
@@ -94,7 +94,7 @@ setup maybeOS maybeUsername maybeEmail maybeKeyFile = do
             Right username -> do
               baseURL <- getRemoteBaseUrl
               signingPK  <- Key.Store.fetchPublic (Proxy @SigningKey)
-              _ <- WNFS.create (DID Key $ Ed25519PublicKey signingPK) "/"
+              _ <- WNFS.create (DID.Key $ Ed25519PublicKey signingPK) "/"
               Env.init username baseURL Nothing
               Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"
 

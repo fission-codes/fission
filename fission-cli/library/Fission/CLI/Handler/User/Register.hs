@@ -21,7 +21,7 @@ import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                          as Client
 
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                      as DID
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
 import qualified Fission.User.Username.Error                 as Username

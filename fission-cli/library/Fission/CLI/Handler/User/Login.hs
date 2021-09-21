@@ -40,7 +40,7 @@ import qualified Fission.Key.Error                           as Key
 import qualified Fission.Key.Symmetric                       as Symmetric
 
 import           Fission.User.DID.NameService.Class          as DID
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                      as DID
 import           Fission.User.Username                       as Username
 
 import           Fission.Web.Client
@@ -158,7 +158,7 @@ consume signingSK baseURL optUsername = do
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
 
   let
-    myDID = DID Key (Ed25519PublicKey signingPK)
+    myDID = DID.Key (Ed25519PublicKey signingPK)
     topic = PubSub.Topic $ textDisplay targetDID
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
@@ -166,7 +166,7 @@ consume signingSK baseURL optUsername = do
     aesConn <- secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       let
         Secure.Connection {key = (pk, _sk)} = rsaConn
-        sessionDID = DID Key (RSAPublicKey pk)
+        sessionDID = DID.Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
       broadcastApiData conn sessionDID
@@ -273,13 +273,16 @@ produce signingSK baseURL = do
 
     secure conn () \(rsaConn@Secure.Connection {key = (_, sk)} :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       logDebug @Text "🤝 Device linking handshake: Step 2"
-      requestorTempDID@(DID _ tmpPK) <- listenRaw conn
+      requestorTempDID <- listenRaw conn
 
-      case tmpPK of
-        Ed25519PublicKey _ ->
+      case requestorTempDID of
+        DID.ION _ ->
+          error "ION is not a exchange key" -- FIXME
+
+        DID.Key (Ed25519PublicKey _) ->
           raise Asymmetric.Algorithm.Invalid
 
-        RSAPublicKey tmpRSA ->
+        DID.Key (RSAPublicKey tmpRSA) ->
           reattempt 10 do
             logDebug @Text "🤝 Device linking handshake: Step 3"
 
