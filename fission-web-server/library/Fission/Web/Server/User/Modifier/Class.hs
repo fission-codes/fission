@@ -16,6 +16,7 @@ import           Fission.Prelude
 import           Fission.Error
 import qualified Fission.Key                                        as Key
 import           Fission.URL
+import           Fission.User.DID.Types
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
@@ -41,11 +42,11 @@ class Monad m => Modifier m where
     -> UTCTime
     -> m (Either Password.FailedDigest Password)
 
-  updatePublicKey ::
+  updateDID ::
        UserId
-    -> Key.Public
+    -> DID
     -> UTCTime
-    -> m (Either Errors' Key.Public)
+    -> m (Either Errors' DID)
 
   addExchangeKey ::
        UserId

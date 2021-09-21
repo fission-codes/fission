@@ -21,6 +21,7 @@ user = User
   , userActive = True
   , userVerified  = False
   --
+  , userIon          = Nothing
   , userPublicKey    = Just Ed25519.pk
   , userExchangeKeys = Just [RSA2048.pk1]
   --

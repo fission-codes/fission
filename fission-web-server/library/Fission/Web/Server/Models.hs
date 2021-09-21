@@ -33,6 +33,7 @@ import           Fission.URL
 import           Fission.Error.NotFound.Types
 
 import           Fission.Challenge.Types
+import qualified Fission.User.DID.ION.Types                as ION
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
@@ -65,6 +66,8 @@ HerokuAddOn
 
 User
   publicKey     Key.Public      Maybe
+  ion           ION.ID          Maybe
+
   exchangeKeys  [RSA.PublicKey] Maybe -- Because Postgresql is being a pain
 
   email         Email           Maybe
@@ -83,8 +86,9 @@ User
   insertedAt    UTCTime
   modifiedAt    UTCTime
 
-  UniqueUsername  username
+  UniqueIon       ion       !force
   UniquePublicKey publicKey !force
+  UniqueUsername  username
   -- UniqueEmail     email     !force -- FIXME
 
   deriving Show Eq

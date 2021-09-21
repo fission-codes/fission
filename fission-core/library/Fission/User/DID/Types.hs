@@ -23,6 +23,7 @@ import qualified Fission.Internal.UTF8             as UTF8
 
 import           Fission.Error.AlreadyExists.Types
 import           Fission.Key                       as Key
+import qualified Fission.User.DID.ION.Types        as ION
 
 {- | A DID key, broken into its constituant parts
 
@@ -70,7 +71,7 @@ Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQ
 -}
 data DID
   = Key Key.Public
-  | ION Text -- FIXME
+  | ION ION.ID
   deriving (Show, Eq)
 
 -- For FromJSON
@@ -99,7 +100,7 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (ION ionTxt) = "did:ion:" <> ionTxt
+  textDisplay (ION ionTxt) = "did:ion:" <> textDisplay ionTxt
   textDisplay (Key pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
     where
       header :: Text
@@ -140,8 +141,8 @@ parseText txt =
     (Nothing, Nothing) ->
       fail $ show txt <> " does not have a valid did:key header"
 
-    (_, Just ionTxt) ->
-      return $ ION ionTxt
+    (_, Just ion) ->
+      return $ ION (ION.ID ion)
 
     (Just fragment, _) -> do
       pk <- case BS.unpack . BS58.BTC.toBytes $ BS58.BTC.fromText fragment of

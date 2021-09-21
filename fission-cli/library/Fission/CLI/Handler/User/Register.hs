@@ -123,7 +123,7 @@ createAccount maybeUsername maybeEmail = do
 
   exchangePK <- KeyStore.fetchPublic (Proxy @ExchangeKey)
   signingPK  <- KeyStore.fetchPublic (Proxy @SigningKey)
-  _          <- WNFS.create (DID Key $ Ed25519PublicKey signingPK) "/"
+  _          <- WNFS.create (DID.Key $ Ed25519PublicKey signingPK) "/"
 
   let
     form = Registration

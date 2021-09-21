@@ -5,16 +5,17 @@ import           Servant.Server.Generic
 
 import           Fission.Prelude
 
+import           Fission.Error
+import qualified Fission.User.DID.Types                 as DID
+
 import qualified Fission.Web.API.User.DID.Types         as API
 import qualified Fission.Web.API.User.DID.Types         as DID
 
-import           Fission.Error
 import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.Error               as Web.Error
 import           Fission.Web.Server.Models
 import qualified Fission.Web.Server.RecoveryChallenge   as RecoveryChallenge
 import qualified Fission.Web.Server.User                as User
-
 
 handler ::
   ( MonadTime m
@@ -31,14 +32,11 @@ handler =
              , setViaChallenge  = handlerViaChallenge
              }
   where
-
     handlerAuthenticated :: (MonadTime m, MonadLogger m, MonadThrow m, User.Modifier m) => ServerT ("did" :> API.SetAuthenticated) m
     handlerAuthenticated pk Authorization {about = Entity userID _} = do
       now <- currentTime
-      Web.Error.ensureM $ User.updatePublicKey userID pk now
+      Web.Error.ensureM $ User.updateDID userID (DID.Key pk) now
       return NoContent
-
-
 
     handlerViaChallenge pk username challenge = do
       now <- currentTime
@@ -49,12 +47,11 @@ handler =
       when (challengeStored /= challenge)
         (Web.Error.throw (NotFound @UserRecoveryChallenge))
 
-      Web.Error.ensureM $ User.updatePublicKey userId pk now
+      Web.Error.ensureM $ User.updateDID userId (DID.Key pk) now
 
       RecoveryChallenge.destroyForUser userId
 
       return NoContent
 
-      where
-        noSuchUsername =
-          err422 { errBody = "Couldn't find a user with such username" }
+    noSuchUsername =
+      err422 { errBody = "Couldn't find a user with such username" }

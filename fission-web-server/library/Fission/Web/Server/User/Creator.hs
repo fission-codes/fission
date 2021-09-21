@@ -37,19 +37,19 @@ import           Fission.Web.Server.User.Types
 createDB ::
      MonadIO m
   => Username
-  -> Key.Public
+  -> DID
   -> Email
   -> UTCTime
   -> Transaction m (Either Errors' UserId)
 createDB username did email now =
   insertUnique user >>= \case
     Just userId -> return $ Right userId
-    Nothing     -> determineConflict username (Just pk)
+    Nothing     -> determineConflict username (Just did)
   where
     user =
       User
         { userPublicKey
-        , userIonId
+        , userIon
         , userExchangeKeys  = Just []
         , userUsername      = username
         , userEmail         = Just email
@@ -64,10 +64,10 @@ createDB username did email now =
         , userModifiedAt    = now
         }
 
-    (userPublicKey, userIonId) =
+    (userPublicKey, userIon) =
       case did of
         DID.Key pk  -> (Just pk, Nothing)
-        DID.Ion txt -> (Nothing, Just txt)
+        DID.ION ion -> (Nothing, Just ion)
 
 createWithPasswordDB ::
      MonadIO m
@@ -84,6 +84,7 @@ createWithPasswordDB username password email now =
     Right secretDigest ->
       User
         { userPublicKey     = Nothing
+        , userIon           = Nothing
         , userExchangeKeys  = Just []
         , userUsername      = username
         , userEmail         = Just email
@@ -123,6 +124,7 @@ createWithHerokuDB herokuUUID herokuRegion username password now =
         Right secretDigest ->
           User
             { userPublicKey     = Nothing
+            , userIon           = Nothing
             , userExchangeKeys  = Just []
             , userUsername      = username
             , userEmail         = Nothing
@@ -141,27 +143,23 @@ createWithHerokuDB herokuUUID herokuRegion username password now =
               Just userID -> return $ Right userID
               Nothing     -> determineConflict username Nothing
 
-determineConflict ::
-  MonadIO m
-  => Username
-  -> Maybe Key.Public
-  -> Transaction m (Either Errors' a)
+-- | NOTE needs to be updated along with DB constraints
+--      because Postgres doesn't do this out of the box
+determineConflict :: MonadIO m => Username -> Maybe DID -> Transaction m (Either Errors' a)
+determineConflict username = \case
+  Nothing ->
+    return . Error.openLeft $ User.ConflictingUsername username
 
-determineConflict username Nothing =
-  return . Error.openLeft $ User.ConflictingUsername username
+  (Just did) -> do
+    conflUN <- getBy (UniqueUsername username) <&> fmap \_ ->
+      User.ConflictingUsername username
 
-determineConflict username (Just pk) = do
-  -- NOTE needs to be updated along with DB constraints
-  --      because Postgres doesn't do this out of the box
+    -- conflEmail TODO
 
-  conflUN <- getBy (UniqueUsername username) <&> fmap \_ ->
-    User.ConflictingUsername username
+    conflDID <- case did of
+      DID.Key pk  -> getBy (UniquePublicKey $ Just pk)  <&> fmap \_ -> User.ConflictingPublicKey pk
+      DID.ION ion -> getBy (UniqueIon       $ Just ion) <&> fmap \_ -> User.ConflictingION ion
 
-  conflPK <- getBy (UniquePublicKey $ Just pk) <&> fmap \_ ->
-    User.ConflictingPublicKey pk
-
-  -- conflEmail TODO
-
-  return case conflUN <|> conflPK of
-    Just err -> Error.openLeft err
-    Nothing  -> Error.openLeft err409 { errBody = "User already exists" }
+    return case conflUN <|> conflDID of
+      Just err -> Error.openLeft err
+      Nothing  -> Error.openLeft err409 { errBody = "User already exists" }

@@ -12,10 +12,10 @@ import qualified Network.IPFS.Get.Error                             as IPFS.Stat
 import           Fission.Prelude
 
 import           Fission.Error                                      as Error
-import           Fission.Key                                        as Key
 import qualified Fission.Platform.Heroku.Region.Types               as Heroku
 import           Fission.URL
 
+import           Fission.User.DID.Types
 import           Fission.User.Email.Types
 import           Fission.User.Username                              as Username
 
@@ -55,7 +55,7 @@ class Heroku.AddOn.Creator m => Creator m where
   -- | Create a new, timestamped entry
   create ::
        Username
-    -> Key.Public
+    -> DID
     -> Email
     -> UTCTime
     -> m (Either Errors' UserId)

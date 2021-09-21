@@ -502,13 +502,13 @@ instance User.Retriever Server where
   getByEmail         email    = runDB $ User.getByEmail email
 
 instance User.Creator Server where
-  create username pk email now =
-    runDB (User.createDB username pk email now) >>= \case
+  create username did email now =
+    runDB (User.createDB username did email now) >>= \case
       Left err ->
         return $ Left err
 
       Right userId ->
-        User.updatePublicKey userId pk now >>= \case
+        User.updateDID userId did now >>= \case
           Left err ->
             return $ Error.relaxedLeft err
 
@@ -560,23 +560,20 @@ instance User.Modifier Server where
         _ <- runDB $ User.updatePasswordDB uID secretDigest now
         return $ Right pass
 
-  updatePublicKey uID pk now =
-    runUserUpdate updatePK pkToText uID "_did"
-    where
-      updatePK = User.updatePublicKeyDB uID pk now
-      pkToText pk' = textDisplay (DID Key pk')
+  updateDID uID did now =
+    runUserUpdate (User.updateDidDB uID did now) textDisplay uID "_did"
 
   addExchangeKey uID key now =
     runUserUpdate addKey keysToText uID "_exchange"
     where
       addKey = User.addExchangeKeyDB uID key now
-      keysToText keys = Text.intercalate "," (textDisplay . DID Key . Key.RSAPublicKey <$> keys)
+      keysToText keys = Text.intercalate "," (textDisplay . DID.Key . Key.RSAPublicKey <$> keys)
 
   removeExchangeKey uID key now =
     runUserUpdate removeKey keysToText uID "_exchange"
     where
       removeKey = User.removeExchangeKeyDB uID key now
-      keysToText keys = Text.intercalate "," (textDisplay . DID Key . Key.RSAPublicKey <$> keys)
+      keysToText keys = Text.intercalate "," (textDisplay . DID.Key . Key.RSAPublicKey <$> keys)
 
   setData userId newCID now = do
     runDB (User.getById userId) >>= \case

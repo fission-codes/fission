@@ -1,6 +1,6 @@
 module Fission.Web.Server.User.Modifier
   ( updatePasswordDB
-  , updatePublicKeyDB
+  , updateDidDB
   , addExchangeKeyDB
   , removeExchangeKeyDB
   , setDataDB
@@ -20,6 +20,7 @@ import           Fission.Prelude
 
 import qualified Fission.Key                            as Key
 import           Fission.Security.Types
+import           Fission.User.DID.Types                 as DID
 
 import           Fission.Error
 
@@ -39,19 +40,27 @@ updatePasswordDB userId secretDigest now =
     , UserModifiedAt   =. now
     ]
 
-updatePublicKeyDB ::
+updateDidDB ::
      MonadIO m
   => UserId
-  -> Key.Public
+  -> DID
   -> UTCTime
-  -> Transaction m (Either Errors' Key.Public)
-updatePublicKeyDB userID pk now = do
-  update userID
-    [ UserPublicKey  =. Just pk
-    , UserModifiedAt =. now
-    ]
+  -> Transaction m (Either Errors' DID)
+updateDidDB userID did now = do
+  case did of
+    DID.Key pk ->
+      update userID
+        [ UserPublicKey  =. Just pk
+        , UserModifiedAt =. now
+        ]
 
-  return $ Right pk
+    DID.ION ion ->
+      update userID
+        [ UserIon        =. Just ion
+        , UserModifiedAt =. now
+        ]
+
+  return $ Right did
 
 addExchangeKeyDB ::
      MonadIO m
