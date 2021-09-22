@@ -21,7 +21,7 @@ import           Crypto.Random
 import qualified Data.Yaml                                   as YAML
 
 import qualified Network.DNS                                 as DNS
-import qualified Network.HTTP.Client                         as HTTP
+import qualified Network.HTTP.Client.TLS                     as HTTP
 import           Network.IPFS.CID.Types
 import           Servant.Client.Core
 
@@ -149,7 +149,7 @@ type ConsumerConstraints m =
 consume :: ConsumerConstraints m => Ed25519.SecretKey -> BaseUrl -> Maybe Username -> m Username
 consume signingSK baseURL optUsername = do
   logDebug @Text "🛂📥 Consuming log-in..."
-  manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+  manager <- liftIO $ HTTP.newTlsManager
 
   username <- do
     case optUsername of

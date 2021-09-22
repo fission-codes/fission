@@ -16,7 +16,7 @@ import           Fission.Web.Server.Fixture.Entity                      as Fixtu
 import           Fission.Web.Server.Fixture.User                        as Fixture
 import           Fission.Web.Server.Mock.Config
 
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                                 as DID
 import qualified Fission.Web.API.Heroku.Auth.Types                      as Heroku
 import           Fission.Web.Server.Auth
 import           Fission.Web.Server.Auth.Token.Basic.Class
@@ -36,28 +36,28 @@ import qualified Fission.Test.Web.Server.Auth.Signature.Ed25519         as Ed
 spec :: Spec
 spec =
   describe "Fission.Web.Auth" do
-    Token.spec
-    Bearer.spec
-    JWT.spec
-    Ed.spec
-    Resource.spec
-    Scope.spec
-
-    describe "mkAuth" do
-      (didResult, userResult, herokuResult) <- runIO setup
-
-      describe "value" do
-        context "user auth" do
-          it "uses the encapsulated function" do
-            fmap about userResult `shouldBe` Right (Fixture.entity Fixture.user)
-
-        context "DID auth" do
-          it "uses the encapsulated function" do
-            didResult `shouldBe` Right (DID Key Ed25519.pk)
-
-        context "heroku auth" do
-          it "uses the encapsulated function" do
-            herokuResult `shouldBe` Authorized (Heroku.Auth "FAKE HEROKU")
+--   Token.spec
+--     Bearer.spec
+     JWT.spec
+--     Ed.spec
+--     Resource.spec
+--     Scope.spec
+--
+--     describe "mkAuth" do
+--       (didResult, userResult, herokuResult) <- runIO setup
+--
+--       describe "value" do
+--         context "user auth" do
+--           it "uses the encapsulated function" do
+--             fmap about userResult `shouldBe` Right (Fixture.entity Fixture.user)
+--
+--         context "DID auth" do
+--           it "uses the encapsulated function" do
+--             didResult `shouldBe` Right (DID.Key Ed25519.pk)
+--
+--         context "heroku auth" do
+--           it "uses the encapsulated function" do
+--             herokuResult `shouldBe` Authorized (Heroku.Auth "FAKE HEROKU")
 
 type Effs =
   '[ GetAuthVerifier DID

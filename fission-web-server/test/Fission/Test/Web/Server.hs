@@ -10,5 +10,5 @@ spec :: Spec
 spec =
   describe "Fission.Web.Server" do
     Web.Auth.spec
-    Web.Root.spec
-    Error.spec
+    -- Web.Root.spec
+    -- Error.spec

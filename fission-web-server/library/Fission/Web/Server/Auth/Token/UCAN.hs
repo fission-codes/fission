@@ -1,6 +1,6 @@
 module Fission.Web.Server.Auth.Token.UCAN (handler) where
 
-import qualified Network.HTTP.Client                                as HTTP
+import qualified Network.HTTP.Client.TLS                            as HTTP
 
 import           Fission.Prelude
 
@@ -40,7 +40,7 @@ handler ::
   -> m Authorization
 handler (Bearer.Token jwt rawContent) = do
   serverDID <- getServerDID
-  manager   <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+  manager   <- liftIO $ HTTP.newTlsManager
   void . Web.Error.ensureM $ JWT.check manager serverDID rawContent jwt
   toAuthorization jwt
 

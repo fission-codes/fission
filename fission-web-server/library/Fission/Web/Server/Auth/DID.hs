@@ -1,6 +1,6 @@
 module Fission.Web.Server.Auth.DID (handler) where
 
-import qualified Network.HTTP.Client                   as HTTP
+import qualified Network.HTTP.Client.TLS               as HTTP
 import           Network.Wai
 
 import           Fission.Prelude
@@ -34,7 +34,7 @@ handler req =
   case Token.get req of
     Right (Token.Bearer token@(Bearer.Token jwt rawContent)) -> do
       serverDID <- getServerDID
-      manager <- liftIO $ HTTP.newManager HTTP.defaultManagerSettings
+      manager <- liftIO $ HTTP.newTlsManager
 
       JWT.check manager serverDID rawContent jwt >>= \case
         Left err -> do

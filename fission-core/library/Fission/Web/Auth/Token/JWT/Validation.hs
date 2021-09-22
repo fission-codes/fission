@@ -70,13 +70,13 @@ checkWithION ::
   -> UTCTime
   -> m (Either JWT.Error JWT)
 checkWithION manager receiverDID rawContent jwt now = do
-  ionPKs <- case receiverDID of
+  ionPKs <- case jwt |> claims |> sender of
     DID.Key _ ->
       return []
 
     ion -> do
       ION.getValidationPKs manager ion >>= \case
-        Left _                           -> return [] -- FIXME but close enough for demohack
+        Left err                         -> return [] -- FIXME but close enough for demohack
         Right (ION.ValidPKs nonEmptyPKs) -> return $ NonEmpty.toList nonEmptyPKs
 
   case checkReceiver receiverDID jwt of
