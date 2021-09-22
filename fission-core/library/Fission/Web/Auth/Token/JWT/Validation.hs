@@ -76,7 +76,7 @@ checkWithION manager receiverDID rawContent jwt now = do
 
     ion -> do
       ION.getValidationPKs manager ion >>= \case
-        Left err                         -> error $ show err --   return [] -- FIXME but close enough for demohack
+        Left err                         -> return [] -- FIXME but close enough for demohack
         Right (ION.ValidPKs nonEmptyPKs) -> return $ NonEmpty.toList nonEmptyPKs
 
   case checkReceiver receiverDID jwt of
@@ -183,7 +183,7 @@ checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} ionPKs =
     (DID.ION _, Signature.Ed25519 edSig) ->
       case filter isRight (checkEd edSig <$> ionPKs) of
         (Right jwt' : _) -> Right jwt'
-        _                -> error $ "BAD: " <> show ionPKs -- Left $ JWT.SignatureError InvalidPublicKey
+        _                -> Left $ JWT.SignatureError InvalidPublicKey
 
     _ ->
       Left $ JWT.SignatureError InvalidPublicKey
