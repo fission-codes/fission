@@ -7,6 +7,8 @@ import           Data.Foldable
 
 import           Fission.Prelude
 
+import qualified Fission.Internal.Base64.URL                  as B64.URL
+
 import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
 
 newtype ValidPKs = ValidPKs { pks :: NonEmpty Ed25519.PublicKey }
@@ -23,9 +25,10 @@ instance FromJSON ValidPKs where
         keyID <- keyMeta .: "id"
         jwk   <- keyMeta .: "publicKeyJwk"
 
-        curve :: Text              <- jwk .: "crv"
-        kty   :: Text              <- jwk .: "kty"
-        pk    :: Ed25519.PublicKey <- jwk .: "x"
+        curve    :: Text              <- jwk .: "crv"
+        kty      :: Text              <- jwk .: "kty"
+        pkB64url :: Text              <- jwk .: "x"
+        pk       :: Ed25519.PublicKey <- parseJSON . toJSON $ B64.URL.decode pkB64url
 
         case (curve, kty, keyID `elem` keyIDs) of
           ("Ed25519", "OKP", True) -> pure (pk : acc)

@@ -17,7 +17,7 @@ import           Fission.Web.Auth.Token.JWT.Resolver    as Proof
 spec :: Spec
 spec =
   describe "JWT Validation" do
-    return ()
+    -- return ()
     -- context "RSA 2048" do
       -- FIXME when we have a functioning real world case
       -- context "real world bearer token" do
@@ -30,20 +30,34 @@ spec =
       --     JWT.check Nested.Fixture.rawContent Nested.Fixture.jwtRSA2048
       --       `shouldBe` Nested.Fixture.InTimeBounds (pure $ Right Nested.Fixture.jwtRSA2048)
 
---     describe "ION" do
---       it "is valid" do   --    $ runIO do
---         mgr    <- HTTP.newTlsManager
---         result <- runIonic $ JWT.check mgr serverDID ionContent ionUCAN
---         result `shouldBe` Right ionUCAN
+     describe "ION" do
+       it "is valid 1" do   --    $ runIO do
+         mgr    <- HTTP.newTlsManager
+         result <- runIonic $ JWT.check mgr serverDID ionContent1 ionUCAN1
+         result `shouldBe` Right ionUCAN1
 
-ionContent :: JWT.RawContent
-ionContent = JWT.RawContent "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MDg5MTMsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlBWFl0WU9zRlBYSzlyRXc5eGJMand3UG42VmotVWlvRnZSUlgxM01CSU5lUSIsIm5iZiI6MTYzMjMyMjQ1MywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0"
+       it "is valid 2" do   --    $ runIO do
+         mgr    <- HTTP.newTlsManager
+         result <- runIonic $ JWT.check mgr serverDID ionContent2 ionUCAN2
+         result `shouldBe` Right ionUCAN2
 
-ionRaw :: ByteString
-ionRaw = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MDg5MTMsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlBWFl0WU9zRlBYSzlyRXc5eGJMand3UG42VmotVWlvRnZSUlgxM01CSU5lUSIsIm5iZiI6MTYzMjMyMjQ1MywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0.oJ1S6j2nwSR3w6PC_pJnQ4FJjifq8SZKJx4kTcMkEGhghSkZdto5qNLpXQZ5UXGw8NPgdWw0AVszQVvxcdikCA"
+ionContent1 :: JWT.RawContent
+ionContent1 = JWT.RawContent "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MDg5MTMsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlBWFl0WU9zRlBYSzlyRXc5eGJMand3UG42VmotVWlvRnZSUlgxM01CSU5lUSIsIm5iZiI6MTYzMjMyMjQ1MywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0"
 
-ionUCAN :: JWT
-Just ionUCAN = JSON.decodeStrict ("\""<> ionRaw <> "\"")
+ionRaw1 :: ByteString
+ionRaw1 = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MDg5MTMsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlBWFl0WU9zRlBYSzlyRXc5eGJMand3UG42VmotVWlvRnZSUlgxM01CSU5lUSIsIm5iZiI6MTYzMjMyMjQ1MywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0.oJ1S6j2nwSR3w6PC_pJnQ4FJjifq8SZKJx4kTcMkEGhghSkZdto5qNLpXQZ5UXGw8NPgdWw0AVszQVvxcdikCA"
+
+ionUCAN1 :: JWT
+Just ionUCAN1 = JSON.decodeStrict ("\""<> ionRaw1 <> "\"")
+
+ionContent2 :: JWT.RawContent
+ionContent2 = JWT.RawContent "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MjI1ODcsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlCMUthMkxSMjZPT3J0bUJqX0pjUnVSaGdHTm03R0dBRURIUkUtWUZSNHlqUSIsIm5iZiI6MTYzMjMzNjEyNywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0" -- "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MTgyNDcsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlCWTJkMGxuaWxEelZfVlB4VGYteWgtemNJamJ3bWNBY2gtYVZ2Q3MwX0NBZyIsIm5iZiI6MTYzMjMzMTc4NywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0"
+
+ionRaw2 :: ByteString
+ionRaw2 = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MjI1ODcsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlCMUthMkxSMjZPT3J0bUJqX0pjUnVSaGdHTm03R0dBRURIUkUtWUZSNHlqUSIsIm5iZiI6MTYzMjMzNjEyNywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0.iYUd8rT5DbCnVv631gjOmi6nqx10Td05YqLNII8l3NAatdqL5ZY-LTJLkd2iylzYEhqNy_y4rIQqjmxhj0A3AA" -- "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsInVhdiI6IjEuMC4wIn0.eyJhdWQiOiJkaWQ6a2V5OnpTdEVacHpTTXRUdDlrMnZzemd2Q3dGNGZMUVFTeUExNVc1QVE0ejNBUjZCeDRlRko1Y3JKRmJ1R3hLbWJtYTQiLCJleHAiOjE2MzI0MTgyNDcsImZjdCI6W10sImlzcyI6ImRpZDppb246RWlCWTJkMGxuaWxEelZfVlB4VGYteWgtemNJamJ3bWNBY2gtYVZ2Q3MwX0NBZyIsIm5iZiI6MTYzMjMzMTc4NywicHJmIjpudWxsLCJwdGMiOiJBUFBFTkQiLCJyc2MiOiIqIn0.hCqQ7AqQIAlJ-3NRHeqpe0wwQ1UEH2Bt9i0RpE1TcpJQV8bPBdve3C0tHu_sFWj4x8MdY5Hbf7O0-grtddeVCA"
+
+ionUCAN2 :: JWT
+Just ionUCAN2 = JSON.decodeStrict ("\""<> ionRaw2 <> "\"")
 
 newtype IONIC a = IONIC { runIonic :: IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadTime)
