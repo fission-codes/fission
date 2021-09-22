@@ -70,35 +70,37 @@ checkWithION ::
   -> UTCTime
   -> m (Either JWT.Error JWT)
 checkWithION manager receiverDID rawContent jwt now = do
-  ionPKs <- case jwt |> claims |> sender of
-    DID.Key _ ->
-      return []
+  case checkReceiver receiverDID jwt of
+    Left  err -> return $ Left err
+    Right _   -> check' manager rawContent jwt now
+
+check' ::
+  ( Proof.Resolver m, MonadIO m)
+  => HTTP.Manager
+  -> JWT.RawContent
+  -> JWT
+  -> UTCTime
+  -> m (Either JWT.Error JWT)
+check' manager raw jwt now = do
+  mayIonPKs <- case jwt |> claims |> sender of
+    DID.Key key ->
+      case key of
+        RSAPublicKey _      -> pure Nothing
+        Ed25519PublicKey pk -> pure $ NonEmpty.nonEmpty [pk]
 
     ion -> do
       ION.getValidationPKs manager ion >>= \case
-        Left err                         -> return [] -- FIXME but close enough for demohack
-        Right (ION.ValidPKs nonEmptyPKs) -> return $ NonEmpty.toList nonEmptyPKs
+        Left err                         -> error "DEMO FAIL" -- return [] -- FIXME but close enough for demohack
+        Right (ION.ValidPKs nonEmptyPKs) -> return $ Just nonEmptyPKs -- return $ NonEmpty.toList nonEmptyPKs
 
-  case checkReceiver receiverDID jwt of
+  case pureChecks raw jwt mayIonPKs of
     Left  err -> return $ Left err
-    Right _   -> check' rawContent jwt ionPKs now
+    Right _   -> checkProof manager now jwt mayIonPKs
 
-check' ::
-  Proof.Resolver m
-  => JWT.RawContent
-  -> JWT
-  -> [Ed25519.PublicKey]
-  -> UTCTime
-  -> m (Either JWT.Error JWT)
-check' raw jwt ionPKs now =
-  case pureChecks raw jwt ionPKs of
-    Left  err -> return $ Left err
-    Right _   -> checkProof now jwt ionPKs
-
-pureChecks :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
-pureChecks raw jwt ionPKs = do
+pureChecks :: JWT.RawContent -> JWT -> Maybe (NonEmpty Ed25519.PublicKey) -> Either JWT.Error JWT
+pureChecks raw jwt mayIonPKs = do
   _ <- checkVersion  jwt
-  checkSignature raw jwt ionPKs
+  checkSignature raw jwt mayIonPKs
 
 checkReceiver :: DID -> JWT -> Either JWT.Error JWT
 checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} = do
@@ -112,8 +114,16 @@ checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
     then Right jwt
     else Left $ JWT.HeaderError UnsupportedVersion
 
-checkProof :: Proof.Resolver m => UTCTime -> JWT -> [Ed25519.PublicKey] -> m (Either JWT.Error JWT)
-checkProof now jwt@JWT {claims = Claims {proof}} ionPKs =
+checkProof ::
+  ( Proof.Resolver m
+  , MonadIO        m
+  )
+  => HTTP.Manager
+  -> UTCTime
+  -> JWT
+  -> Maybe (NonEmpty Ed25519.PublicKey)
+  -> m (Either JWT.Error JWT)
+checkProof manager now jwt@JWT {claims = Claims {proof}} mayIonPKs =
   case proof of
     RootCredential ->
       return $ Right jwt
@@ -124,12 +134,12 @@ checkProof now jwt@JWT {claims = Claims {proof}} ionPKs =
           return . Left . JWT.ClaimsError . ProofError . JWT.Proof.ResolverError $ err
 
         Right (rawProof, proofJWT) ->
-          check' rawProof proofJWT ionPKs now <&> \case
+          check' manager rawProof proofJWT now <&> \case -- FIXME with ION
             Left err -> Left err
             Right _  -> checkDelegate proofJWT
 
-    Nested rawProof proofJWT ->
-      check' rawProof proofJWT ionPKs now <&> \case
+    Nested rawProof proofJWT -> do
+      check' manager rawProof proofJWT now <&> \case
         Left err -> Left err
         Right _  -> checkDelegate proofJWT
 
@@ -145,11 +155,12 @@ checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} =
      | now < nbf -> Left $ JWT.ClaimsError TooEarly
      | otherwise -> Right jwt
 
-checkSignature :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
-checkSignature rawContent jwt@JWT {sig} ionPKs =
-  case sig of
-    Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt ionPKs
-    Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent jwt rs256Sig
+checkSignature :: JWT.RawContent -> JWT -> Maybe (NonEmpty Ed25519.PublicKey) -> Either JWT.Error JWT
+checkSignature rawContent jwt@JWT {sig} mayIonPKs =
+  case (sig, mayIonPKs) of
+    (Signature.Ed25519 _       , Just ionPKs) -> checkEd25519Signature rawContent jwt ionPKs
+    (Signature.RS256   rs256Sig, Nothing    ) -> checkRSA2048Signature rawContent jwt rs256Sig
+    wrong -> error $ "signature mismatch" <> show wrong <> " / " <> show jwt
 
 checkRSA2048Signature ::
      JWT.RawContent
@@ -171,22 +182,22 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
 
     publicKey =
       case claims |> sender of
-        DID.ION _  -> Left $ JWT.SignatureError InvalidPublicKey
+        DID.ION _  -> error "RSA signature called with Ed25519" -- Left $ JWT.SignatureError InvalidPublicKey
         DID.Key pk -> Right pk
 
-checkEd25519Signature :: JWT.RawContent -> JWT -> [Ed25519.PublicKey] -> Either JWT.Error JWT
+checkEd25519Signature :: JWT.RawContent -> JWT -> NonEmpty Ed25519.PublicKey -> Either JWT.Error JWT
 checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} ionPKs =
   case (sender, sig) of
     (DID.Key (Ed25519PublicKey pk), Signature.Ed25519 edSig) ->
       checkEd edSig pk
 
     (DID.ION _, Signature.Ed25519 edSig) ->
-      case filter isRight (checkEd edSig <$> ionPKs) of
+      case filter isRight (checkEd edSig <$> NonEmpty.toList ionPKs) of
         (Right jwt' : _) -> Right jwt'
-        _                -> Left $ JWT.SignatureError InvalidPublicKey
+        _                -> error $ "ION FAIL: " <> show ionPKs -- Left $ JWT.SignatureError InvalidPublicKey
 
     _ ->
-      Left $ JWT.SignatureError InvalidPublicKey
+      error "NOT ION" -- Left $ JWT.SignatureError InvalidPublicKey
 
   where
     Claims {sender} = claims
