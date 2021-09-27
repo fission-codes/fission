@@ -23,7 +23,7 @@ import           Fission.Error.NotFound.Types
 import qualified Fission.IPFS.Error.Types                  as IPFS
 import qualified Fission.JSON                              as JSON
 import qualified Fission.Key                               as Key
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                    as DID
 
 import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as JWT.Resolver
 import           Fission.Web.Auth.Token.JWT.Types
@@ -152,13 +152,8 @@ mkConnected inCfg ipfsTimeout = do
 
           let
             ignoredFiles = Environment.ignored config
-
-            cliDID = DID
-              { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
-              , method    = Key
-              }
-
-            cfg = Config { httpManager = getField @"httpManager" inCfg, ..}
+            cliDID       = DID.Key (Key.Ed25519PublicKey $ Ed25519.toPublic secretKey)
+            cfg          = Config { httpManager = getField @"httpManager" inCfg, ..}
 
           Context.run cfg do
             logDebug @Text "Attempting user verification"

@@ -21,7 +21,7 @@ import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                          as Client
 
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                      as DID
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
 import qualified Fission.User.Username.Error                 as Username
@@ -123,7 +123,7 @@ createAccount maybeUsername maybeEmail = do
 
   exchangePK <- KeyStore.fetchPublic (Proxy @ExchangeKey)
   signingPK  <- KeyStore.fetchPublic (Proxy @SigningKey)
-  _          <- WNFS.create (DID Key $ Ed25519PublicKey signingPK) "/"
+  _          <- WNFS.create (DID.Key $ Ed25519PublicKey signingPK) "/"
 
   let
     form = Registration

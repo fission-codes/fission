@@ -30,7 +30,7 @@ import           Network.IPFS.CID.Types
 import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
 
-import qualified Servant.API as Servant
+import qualified Servant.API                                      as Servant
 
 import           Fission.Prelude
 
@@ -44,7 +44,7 @@ import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
 import qualified Fission.Internal.UTF8                            as UTF8
 
 import           Fission.Authorization.Potency.Types
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                           as DID
 
 import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.JWT.Header.Types          (Header (..))
@@ -84,7 +84,7 @@ instance Arbitrary JWT where
     claims' <- arbitrary
 
     let
-      claims = claims' {sender = DID Key pk}
+      claims = claims' {sender = DID.Key pk}
 
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
@@ -180,11 +180,7 @@ instance Arbitrary Claims where
     nbf      <- arbitrary
     pk       <- arbitrary
 
-    let
-      receiver = DID
-        { publicKey = pk
-        , method    = Key
-        }
+    let receiver = DID.Key pk
 
     return Claims {..}
 

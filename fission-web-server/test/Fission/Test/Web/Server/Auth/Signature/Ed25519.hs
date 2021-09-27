@@ -9,7 +9,7 @@ import           Fission.Key.Asymmetric.Algorithm.Types
 import qualified Fission.Web.Auth.Token.JWT.RawContent  as JWT
 
 import qualified Fission.Key                            as Key
-import           Fission.User.DID
+import           Fission.User.DID                       as DID
 
 import qualified Fission.Internal.Base64.URL            as B64.URL
 
@@ -26,11 +26,7 @@ spec =
           claims'    = claims { sender = did }
           sig'       = signEd25519 header' claims' sk
           rawContent = JWT.RawContent $ B64.URL.encodeJWT header' claims'
-
-          did = DID
-            { publicKey = Key.Ed25519PublicKey pk
-            , method    = Key
-            }
+          did        = DID.Key $ Key.Ed25519PublicKey pk
 
           jwt' = jwt
             { header = header'

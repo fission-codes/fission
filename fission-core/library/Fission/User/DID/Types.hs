@@ -1,8 +1,4 @@
-module Fission.User.DID.Types
-  ( DID (..)
-  -- * Reexport
-  , module Fission.User.DID.Method.Types
-  ) where
+module Fission.User.DID.Types (DID (..)) where
 
 import qualified RIO.ByteString.Lazy               as Lazy
 
@@ -30,7 +26,6 @@ import qualified Fission.Internal.UTF8             as UTF8
 
 import           Fission.Error.AlreadyExists.Types
 import           Fission.Key                       as Key
-import           Fission.User.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
 
@@ -76,21 +71,17 @@ RSA
 Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB})
 
 -}
-data DID = DID
-  { method    :: Method
-  , publicKey :: Key.Public
-  } deriving (Show, Eq)
+newtype DID
+  = Key Key.Public
+  -- More varieties here later
+  deriving (Show, Eq)
 
 -- For FromJSON
 instance Ord DID where
   a `compare` b = textDisplay a `compare` textDisplay b
 
 instance Arbitrary DID where
-  arbitrary = do
-    publicKey <- arbitrary
-    method    <- arbitrary
-
-    return DID {..}
+  arbitrary = Key <$> arbitrary
 
 instance Hashable DID where
   hashWithSalt salt did = hashWithSalt salt $ textDisplay did
@@ -108,11 +99,8 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DID method pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
+  textDisplay (Key pk) = "did:key:z" <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
     where
-      header :: Text
-      header = "did:" <> textDisplay method <> ":" <> "z"
-
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
@@ -170,4 +158,4 @@ parseText txt =
         nope ->
           fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
-      return $ DID Key pk
+      return $ Key pk

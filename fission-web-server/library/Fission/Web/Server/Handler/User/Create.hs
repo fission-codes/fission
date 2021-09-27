@@ -9,7 +9,7 @@ import           Servant.Server.Generic
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                     as DID
 
 import qualified Fission.Web.API.User.Create.Types          as User.Create
 
@@ -45,7 +45,7 @@ withDID ::
   , Challenge.Creator m
   )
   => ServerT User.Create.WithDID m
-withDID User.Registration {username, email} DID {..} = do
+withDID User.Registration {username, email} (DID.Key publicKey) = do
   now       <- currentTime
   userId    <- Web.Err.ensureM $ User.create username publicKey email now
   challenge <- Web.Err.ensureM $ Challenge.create userId

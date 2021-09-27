@@ -15,7 +15,7 @@ import           Fission.Prelude
 
 import           Fission.Authorization.Potency.Types
 import           Fission.URL.Types                                as URL
-import           Fission.User.DID.Types
+import           Fission.User.DID.Types                           as DID
 
 import           Fission.Internal.Fixture.Key.Ed25519             as Fixture.Ed25519
 import           Fission.Internal.Fixture.Time                    as Fixture
@@ -38,11 +38,7 @@ defaultConfig :: Config
 defaultConfig = Config
   { now             = agesAgo
   , linkedPeers     = pure $ IPFS.Peer "ipv4/fakepeeraddress"
-  , didVerifier     = mkAuthHandler \_ ->
-      return $ DID
-        { publicKey = pk
-        , method    = Key
-        }
+  , didVerifier     = mkAuthHandler  \_ -> return $ DID.Key pk
   , userVerifier    = mkAuthHandler  \_ -> pure $ Fixture.entity Fixture.user
   , authVerifier    = mkAuthHandler  \_ -> authZ
   , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized $ Heroku.Auth "FAKE HEROKU"
@@ -67,13 +63,8 @@ defaultConfig = Config
 
 authZ :: Monad m => m Authorization
 authZ = return Authorization
-    { sender   = Right did
+    { sender   = Right $ DID.Key Fixture.Ed25519.pk
     , about    = Fixture.entity Fixture.user
     , potency  = AppendOnly
     , resource = Subset $ FissionFileSystem "/test/"
     }
-    where
-      did = DID
-        { publicKey = Fixture.Ed25519.pk
-        , method    = Key
-        }

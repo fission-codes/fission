@@ -16,7 +16,7 @@ import           Fission.Prelude
 
 import           Fission.Key                                      as Key
 import           Fission.SemVer.Types
-import           Fission.User.DID                                 as User
+import           Fission.User.DID                                 as DID
 
 import           Fission.Web.Auth.Token.JWT.Resolver              as Proof
 
@@ -134,7 +134,7 @@ checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSi
 
   where
     content = encodeUtf8 raw
-    Claims {sender = User.DID {publicKey}} = claims
+    Claims {sender = DID.Key publicKey} = claims
 
 checkEd25519Signature :: JWT.RawContent -> JWT -> Either JWT.Error JWT
 checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
@@ -148,4 +148,4 @@ checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
       Left $ JWT.SignatureError InvalidPublicKey
 
   where
-    Claims {sender = User.DID {publicKey}} = claims
+    Claims {sender = DID.Key publicKey} = claims
