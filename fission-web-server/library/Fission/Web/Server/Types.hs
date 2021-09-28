@@ -469,8 +469,7 @@ instance Server.DID.Publicize Server where
     let
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
-
-      txtRecordValue = textDisplay $ DID.Oldstyle did
+      txtRecordValue = textDisplay $ DID.Oldstyle did -- FIXME
 
     if mockRoute53
       then do
