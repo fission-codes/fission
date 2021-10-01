@@ -29,14 +29,14 @@ purge url = do
   let status = responseStatusCode resp
   if status >= 400
     then do
-      logError $ "FAILED PURGE!"
+      logError @Text "FAILED PURGE!"
       return . Left . Varnish.Error $ toServerError status
 
     else do
-      logInfo "SUCCESS!!"
+      logInfo @Text "SUCCESS!!"
       return $ Right ()
 
-purgeMany :: forall m . MonadHttp m => [URL] -> m (Either Varnish.BatchErrors ())
+purgeMany :: forall m . (MonadLogger m, MonadHttp m) => [URL] -> m (Either Varnish.BatchErrors ())
 purgeMany urls =
   foldM mAcc (Right ()) urls
   where
