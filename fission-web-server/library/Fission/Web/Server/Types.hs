@@ -97,7 +97,7 @@ import qualified Fission.Web.Auth.Token.JWT.RawContent             as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
 
 import           Fission.Authorization.ServerDID.Class
-import qualified Fission.Web.Server.Internal.NGINX.Purge           as NGINX
+import qualified Fission.Web.Server.Internal.Varnish.Purge           as Varnish
 
 import           Fission.Web.Server.App.Content                    as App.Content
 import           Fission.Web.Server.App.Domain                     as App.Domain
@@ -713,7 +713,7 @@ instance App.Modifier Server where
                                             , subdomain  = appDomainSubdomain
                                             }
 
-                            NGINX.purgeMany urls >>= \case
+                            Varnish.purgeMany urls >>= \case
                               Left err -> return $ openLeft err
                               Right _  -> return $ Right appId
 
@@ -729,7 +729,7 @@ instance App.Destroyer Server where
             return $ Left errs
 
           Right _ -> do
-            NGINX.purgeMany urls >>= \case
+            Varnish.purgeMany urls >>= \case
               Left errs -> do
                 -- Just warn and continue
                 logWarn $ textDisplay errs

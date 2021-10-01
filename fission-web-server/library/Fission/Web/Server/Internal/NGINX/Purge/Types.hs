@@ -1,6 +1,6 @@
--- | Purge method, for NGINX cache busting
+-- | Purge method, for Varnish cache busting
 
-module Fission.Web.Server.Internal.NGINX.Purge.Types (PURGE (..)) where
+module Fission.Web.Server.Internal.Varnish.Purge.Types (PURGE (..)) where
 
 import           Network.HTTP.Req
 

@@ -34,7 +34,7 @@ import           Fission.Web.Auth.Token.JWT.Proof.Error             as JWT.Proof
 import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resolver
 import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
 
-import qualified Fission.Web.Server.Internal.NGINX.Purge.Error      as NGINX
+import qualified Fission.Web.Server.Internal.Varnish.Purge.Error      as Varnish
 
 import           Fission.Internal.Orphanage.ClientError             ()
 
@@ -187,8 +187,8 @@ instance ToServerError JWT.Error where
     ClaimsError    err -> toServerError err
     SignatureError err -> toServerError err
 
-instance ToServerError NGINX.Error where
-  toServerError = NGINX.serverError
+instance ToServerError Varnish.Error where
+  toServerError = Varnish.serverError
 
-instance ToServerError NGINX.BatchErrors where
-  toServerError (NGINX.BatchErrors errs) = NonEmpty.head errs
+instance ToServerError Varnish.BatchErrors where
+  toServerError (Varnish.BatchErrors errs) = NonEmpty.head errs

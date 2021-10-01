@@ -1,4 +1,4 @@
-module Fission.Web.Server.Internal.NGINX.Purge.Error
+module Fission.Web.Server.Internal.Varnish.Purge.Error
   ( Error (..)
   , BatchErrors (..)
   ) where
@@ -18,7 +18,7 @@ newtype Error = Error { serverError :: ServerError }
   deriving anyclass Exception
 
 instance Display Error where
-  display (Error err) = "NGINX.Error=" <> display err
+  display (Error err) = "Varnish.Error=" <> display err
 
 ---------------------------------------------------------------------------------
 
@@ -27,4 +27,4 @@ newtype BatchErrors = BatchErrors { serverErrors :: NonEmpty ServerError }
   deriving anyclass Exception
 
 instance Display BatchErrors where
-  display (BatchErrors errs) = "NGINX.BatchErrors=" <> display (NonEmpty.toList errs)
+  display (BatchErrors errs) = "Varnish.BatchErrors=" <> display (NonEmpty.toList errs)
