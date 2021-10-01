@@ -713,8 +713,12 @@ instance App.Modifier Server where
                                             }
 
                             Varnish.purgeMany urls >>= \case
-                              Left err -> return $ openLeft err
-                              Right _  -> return $ Right appId
+                              Left err -> do
+                                logError $ "Unable to purge HTTP cache: " <> textDisplay err
+                                return $ openLeft err
+
+                              Right _ ->
+                                return $ Right appId
 
 instance App.Destroyer Server where
   destroy uId appId now =
