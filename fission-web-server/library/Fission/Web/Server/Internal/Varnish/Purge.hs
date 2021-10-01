@@ -24,8 +24,9 @@ import           Fission.Web.Server.Internal.Varnish.Purge.Types
 -- Varnish docs: https://docs.nginx.com/nginx/admin-guide/content-cache/content-caching/#purge_request
 purge :: (MonadLogger m, MonadHttp m) => URL -> m (Either Varnish.Error ())
 purge url = do
-  resp <- req PURGE (https $ textDisplay url) NoReqBody ignoreResponse mempty
-  logInfo $ "🔥 Purging cache for " <> textDisplay url <> "/*"
+  let url' = textDisplay url <> "/*"
+  resp <- req PURGE (https url') NoReqBody ignoreResponse mempty
+  logInfo $ "🔥 Purging cache for " <> url'
   let status = responseStatusCode resp
   if status >= 400
     then do
