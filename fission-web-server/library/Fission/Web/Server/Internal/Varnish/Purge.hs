@@ -26,7 +26,7 @@ purge :: (MonadLogger m, MonadHttp m) => URL -> m (Either Varnish.Error ())
 purge url = do
   let url' = https (textDisplay url) /: "*"
   resp <- req PURGE url' NoReqBody ignoreResponse mempty
-  logInfo $ "🔥 Purging cache for " <> displayShow url'
+  logInfo $ "🔥 Purging cache for " <> renderUrl url'
   let status = responseStatusCode resp
   if status >= 400
     then do
