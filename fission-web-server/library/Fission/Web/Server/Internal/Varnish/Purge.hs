@@ -29,7 +29,7 @@ purge url = do
   let status = responseStatusCode resp
   if status >= 400
     then do
-      logError $ "FAILED PURGE!""
+      logError $ "FAILED PURGE!"
       return . Left . Varnish.Error $ toServerError status
 
     else do
