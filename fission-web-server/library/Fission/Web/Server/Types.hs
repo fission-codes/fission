@@ -54,9 +54,7 @@ import           Fission.Web.API.Host.Types
 import           Fission.DNS                                       as DNS
 import           Fission.URL                                       as URL
 
-import           Fission.Web.API.Host.Types
 import           Fission.Web.Async
-
 import qualified Fission.Web.Server.App                            as App
 import qualified Fission.Web.Server.App.Destroyer                  as App.Destroyer
 import qualified Fission.Web.Server.Error                          as Web.Error

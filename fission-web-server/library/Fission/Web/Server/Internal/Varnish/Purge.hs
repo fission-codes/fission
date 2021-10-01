@@ -25,7 +25,7 @@ import           Fission.Web.Server.Internal.Varnish.Purge.Types
 purge :: (MonadLogger m, MonadHttp m) => URL -> m (Either Varnish.Error ())
 purge url = do
   resp <- req PURGE (https $ textDisplay url) NoReqBody ignoreResponse mempty
-  logInfo $ "🔥 Purging cache for " <> textDisplay url
+  logInfo $ "🔥 Purging cache for " <> textDisplay url <> "/*"
   let status = responseStatusCode resp
   if status >= 400
     then do
