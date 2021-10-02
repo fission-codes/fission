@@ -16,11 +16,8 @@ module Fission.Web.Server.Mock.Effect.Types
   , DestroyLoosePin    (..)
   ) where
 
-import qualified Network.IPFS.Types          as IPFS
-import qualified RIO.ByteString.Lazy         as Lazy
-
-import           Control.Monad.Logger
 import           Data.UUID                   as UUID
+import qualified Network.IPFS.Types          as IPFS
 
 import           Fission.Prelude
 

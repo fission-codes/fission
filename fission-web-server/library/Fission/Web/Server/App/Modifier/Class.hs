@@ -6,8 +6,6 @@ module Fission.Web.Server.App.Modifier.Class
 import qualified Network.IPFS.Add.Error                             as IPFS.Pin
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Get.Error                             as IPFS.Stat
-
-import           Servant.Client
 import           Servant.Server
 
 import           Fission.Prelude                                    hiding (on)

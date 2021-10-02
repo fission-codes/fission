@@ -4,8 +4,6 @@ module Fission.Web.Server.App.Destroyer.Class
   ) where
 
 import           Database.Esqueleto
-
-import           Servant.Client
 import           Servant.Server
 
 import           Fission.Prelude
