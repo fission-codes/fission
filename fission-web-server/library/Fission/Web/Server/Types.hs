@@ -306,14 +306,14 @@ instance MonadHTTPCache Server where
     BaseUrl {..} <- asks httpCacheURL
 
     let
-      hostHeader  = encodeUtf8 $ textDisplay url
-      cacheUrlTxt = Text.pack baseUrlHost <> ":" <> textDisplay baseUrlPort
-      path        = Text.pack baseUrlPath
+      hostHeader   = encodeUtf8 $ textDisplay url
+      cacheUrlTxt  = Text.pack baseUrlHost
+      path         = Text.pack baseUrlPath
 
     logInfo $ "🔥 Purging cache for " <> display url
     resp <- case baseUrlScheme of
-      Client.Http  -> req PURGE (http  cacheUrlTxt /: path) NoReqBody bsResponse (header "Host" hostHeader)
-      Client.Https -> req PURGE (https cacheUrlTxt /: path) NoReqBody bsResponse (header "Host" hostHeader)
+      Client.Http  -> req PURGE (http  cacheUrlTxt /: path) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
+      Client.Https -> req PURGE (https cacheUrlTxt /: path) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
 
     let
       status =
