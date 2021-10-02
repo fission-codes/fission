@@ -101,6 +101,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
 
   where
     ipfsHttpManager = httpManager
+    httpCacheURL = BaseUrl Https "mycache.example" 1066 ""
 
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")

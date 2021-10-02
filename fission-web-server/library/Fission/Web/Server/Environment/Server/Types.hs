@@ -1,6 +1,8 @@
 -- | Server config
 module Fission.Web.Server.Environment.Server.Types (Environment (..)) where
 
+import           Servant.Client                      (BaseUrl)
+
 import           Fission.Prelude
 
 import qualified Fission.Web.API.Host.Types          as Web
@@ -16,6 +18,7 @@ data Environment = Environment
   , port         :: Web.Port         -- ^ Web app's port
   , isTLS        :: Bool             -- ^ Run over TLS
   , useEKG       :: Bool             -- ^ Run with EKG
+  , httpCacheURL :: BaseUrl          -- ^ HTTP invalidation cache
   , pretty       :: Bool             -- ^ Pretty-print requests
   , sentryDSN    :: Maybe Sentry.DSN -- ^ Sentry DSN key
   , serverZoneID :: AWS.ZoneID       -- ^ Hosted Zone of this server (runfission.com at time of writing)
@@ -29,6 +32,7 @@ instance FromJSON Environment where
     useEKG       <- obj .:? "ekg"    .!= False
     port         <- obj .:? "port"   .!= Web.Port if isTLS then 443 else 80
     host         <- obj .:  "host"
+    httpCacheURL <- obj .:  "http_cache_url"
     environment  <- obj .:  "environment"
     serverZoneID <- obj .:  "zone_id"
 

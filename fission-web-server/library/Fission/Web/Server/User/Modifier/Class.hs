@@ -31,6 +31,7 @@ type Errors' = OpenUnion
    , IPFS.Pin.Error
    , IPFS.Stat.Error
 
+   , HTTP.Cache.ResponseError
    , ServerError
    , InvalidURL
    ]
