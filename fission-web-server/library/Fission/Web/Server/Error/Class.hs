@@ -3,7 +3,6 @@
 module Fission.Web.Server.Error.Class (ToServerError (..)) where
 
 import qualified RIO.ByteString.Lazy                                as Lazy
-import qualified RIO.NonEmpty                                       as NonEmpty
 
 import           Servant.Client                                     (ClientError (..))
 import           Servant.Server                                     as Server
@@ -24,6 +23,7 @@ import           Fission.Error.InvalidURL.Types
 import           Fission.Error.NotFound.Types
 
 import           Fission.Web.Auth.Error                             as Web.Auth
+import qualified Fission.Web.Server.HTTP.Cache.Error                as HTTP.Cache
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 
@@ -33,8 +33,6 @@ import           Fission.Web.Auth.Token.JWT.Header.Error            as JWT.Heade
 import           Fission.Web.Auth.Token.JWT.Proof.Error             as JWT.Proof
 import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resolver
 import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
-
-import qualified Fission.Web.Server.Internal.Varnish.Purge.Error      as Varnish
 
 import           Fission.Internal.Orphanage.ClientError             ()
 
@@ -187,8 +185,5 @@ instance ToServerError JWT.Error where
     ClaimsError    err -> toServerError err
     SignatureError err -> toServerError err
 
-instance ToServerError Varnish.Error where
-  toServerError = Varnish.serverError
-
-instance ToServerError Varnish.BatchErrors where
-  toServerError (Varnish.BatchErrors errs) = NonEmpty.head errs
+instance ToServerError HTTP.Cache.BatchErrors where
+  toServerError errs = err502 {errBody = displayLazyBS errs}

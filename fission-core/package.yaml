@@ -149,6 +149,7 @@ dependencies:
   - ipfs
   - mime-types
   - path-pieces
+  - req
   - servant
   - servant-client
   - servant-client-core

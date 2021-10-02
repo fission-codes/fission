@@ -3,6 +3,7 @@ module Fission.Web.Server.Config.Types (Config (..)) where
 
 import qualified Network.HTTP.Client                       as HTTP
 import           Network.IPFS.CID.Types
+import           Servant.Client.Core
 
 import qualified Network.AWS.Auth                          as AWS
 import qualified Network.HostName                          as Network
@@ -36,6 +37,8 @@ data Config = Config
   , tlsManager                     :: HTTP.Manager
   , ipfsHttpManager                :: HTTP.Manager
   , dbPool                         :: Pool SqlBackend
+  --
+  , httpCacheURL                   :: BaseUrl
   --
   , ipfsPath                       :: IPFS.BinPath
   , ipfsURLs                       :: NonEmpty IPFS.URL
@@ -83,6 +86,8 @@ instance Show Config where
     , "  tlsManager                     = **SOME HTTP/TLS MANAGER**"
     , "  ipfsHttpManager                = **SOME HTTP/TLS MANAGER**"
     , "  dbPool                         = " <> show dbPool
+    --
+    , "  httpCacheURL                   = " <> show httpCacheURL
     --
     , "  ipfsPath                       = " <> show ipfsPath
     , "  ipfsURLs                       = " <> show ipfsURLs

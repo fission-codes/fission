@@ -4,6 +4,8 @@ module Fission.Web.Server.App.Destroyer.Class
   ) where
 
 import           Database.Esqueleto
+
+import           Servant.Client
 import           Servant.Server
 
 import           Fission.Prelude
@@ -13,13 +15,13 @@ import           Fission.URL
 
 import qualified Fission.Web.Server.AWS.Zone.Types                  as AWS
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
-import qualified Fission.Web.Server.Internal.Varnish.Purge            as Varnish
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
 import           Fission.Web.Server.Ownership
 
 import qualified Fission.Web.Server.App.Domain.Retriever            as AppDomain
 import qualified Fission.Web.Server.App.Retriever                   as App
+import qualified Fission.Web.Server.HTTP.Cache.Error                as HTTP.Cache
 
 type Errors' = OpenUnion
   '[ NotFound            App
@@ -30,7 +32,7 @@ type Errors' = OpenUnion
 
    , NotFound AWS.ZoneID
 
-   , Varnish.Error
+   , HTTP.Cache.BatchErrors
    , ServerError
    ]
 

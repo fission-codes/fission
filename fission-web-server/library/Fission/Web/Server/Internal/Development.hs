@@ -181,6 +181,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar mach
 
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
+    httpCacheURL = BaseUrl Https "mycache.example" 1066 ""
 
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"

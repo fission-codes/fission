@@ -23,7 +23,7 @@ import qualified Servant.Client.Streaming                          as Stream
 import           Servant.Server.Experimental.Auth
 import qualified Servant.Types.SourceT                             as Stream
 
-import qualified Network.HTTP.Req                                  as HTTP
+import           Network.HTTP.Req                                  as HTTP
 
 import           Network.AWS                                       as AWS hiding
                                                                           (Request,
@@ -46,10 +46,11 @@ import           Fission.Error.GenericError.Types
 import qualified Fission.JSON.Error                                as JSON
 import           Fission.Time
 
-import           Fission.Web.Server.AWS.Types                      as AWS
-import           Fission.Web.Server.Models
-import qualified Fission.Web.Server.DID.Publicize.Class            as Server.DID
 import           Fission.Web.API.Host.Types
+import           Fission.Web.Purge.Types
+import           Fission.Web.Server.AWS.Types                      as AWS
+import qualified Fission.Web.Server.DID.Publicize.Class            as Server.DID
+import           Fission.Web.Server.Models
 
 import           Fission.DNS                                       as DNS
 import           Fission.URL                                       as URL
@@ -58,6 +59,8 @@ import           Fission.Web.Async
 import qualified Fission.Web.Server.App                            as App
 import qualified Fission.Web.Server.App.Destroyer                  as App.Destroyer
 import qualified Fission.Web.Server.Error                          as Web.Error
+import           Fission.Web.Server.HTTP.Cache                     as HTTP.Cache
+import           Fission.Web.Server.StatusCode.Types
 import           Fission.Web.Server.WNFS                           as WNFS
 
 import           Fission.Web.Server.IPFS.Cluster                   as Cluster
@@ -94,7 +97,6 @@ import qualified Fission.Web.Auth.Token.JWT.RawContent             as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
 
 import           Fission.Authorization.ServerDID.Class
-import qualified Fission.Web.Server.Internal.Varnish.Purge           as Varnish
 
 import           Fission.Web.Server.App.Content                    as App.Content
 import           Fission.Web.Server.App.Domain                     as App.Domain
@@ -103,7 +105,7 @@ import           Fission.Web.Server.Challenge                      as Challenge
 import qualified Fission.Web.Server.Domain                         as Domain
 import qualified Fission.Web.Server.Email                          as Email
 import           Fission.Web.Server.Email.Class
-import           Fission.Web.Server.RecoveryChallenge      as RecoveryChallenge
+import           Fission.Web.Server.RecoveryChallenge              as RecoveryChallenge
 
 import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Relay.Store.Class
@@ -175,10 +177,10 @@ instance MonadRoute53 Server where
             return $ Left err
 
           Right recordSet -> do
-            req <- createChangeRequest zoneTxt recordSet
+            reqst <- createChangeRequest zoneTxt recordSet
 
             AWS.within NorthVirginia do
-              resp <- send req
+              resp <- send reqst
               return $ validate resp
 
     where
@@ -207,10 +209,10 @@ instance MonadRoute53 Server where
         changeRecordMock
 
       else do
-        req <- createChangeRequest zoneTxt
+        reqst <- createChangeRequest zoneTxt
 
         awsResp <- AWS.within NorthVirginia do
-          resp <- send req
+          resp <- send reqst
           return $ validate resp
 
         case awsResp of
@@ -257,13 +259,17 @@ instance MonadRoute53 Server where
 
   get url (ZoneID zoneID) = do
     let
-      urlTxt = textShow url
-      req = listResourceRecordSets (ResourceId zoneID)
-        |> lrrsMaxItems ?~ "1"
-        |> lrrsStartRecordName ?~ urlTxt
+      urlTxt =
+        textShow url
+
+      reqst =
+        ResourceId zoneID
+          |> listResourceRecordSets
+          |> lrrsMaxItems ?~ "1"
+          |> lrrsStartRecordName ?~ urlTxt
 
     awsResp <- AWS.within NorthVirginia do
-      resp <- send req
+      resp <- send reqst
       return $ validate resp
 
     case awsResp of
@@ -294,6 +300,32 @@ instance MonadWNFS Server where
           Just vals -> return $ Right $ extractCID vals
     where
       extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
+
+instance MonadHTTPCache Server where
+  purgeURL url = do
+    let
+      hostHeader = header "Host" (encodeUtf8 $ textDisplay url)
+
+    logInfo $ "🔥 Purging cache for " <> display url
+    cacheURL <- asks httpCacheURL
+    resp     <- req PURGE (https $ textDisplay cacheURL) NoReqBody bsResponse hostHeader
+
+    let
+      status =
+        HTTP.responseStatusCode resp
+
+      body =
+        case HTTP.responseStatusMessage resp of
+          "" -> Nothing
+          bs -> Just bs
+
+    if status >= 400
+      then do
+        logError $ "💧 Purge failed for " <> display url
+        return . Left $ HTTP.Cache.ResponseError { url, body, statusCode = StatusCode status }
+
+      else
+        return $ Right ()
 
 instance MonadDNSLink Server where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
@@ -438,14 +470,14 @@ instance MonadBasicAuth Heroku.Auth Server where
 instance MonadAuth DID Server where
   getVerifier = do
     cfg <- ask
-    return $ mkAuthHandler \req ->
-      toHandler (runRIO cfg) . unServer $ Auth.DID.handler req
+    return $ mkAuthHandler \reqst ->
+      toHandler (runRIO cfg) . unServer $ Auth.DID.handler reqst
 
 instance MonadAuth Authorization Server where
   getVerifier = do
     cfg <- ask
-    return $ mkAuthHandler \req ->
-      toHandler (runRIO cfg) . unServer $ Auth.Token.handler req
+    return $ mkAuthHandler \reqst ->
+      toHandler (runRIO cfg) . unServer $ Auth.Token.handler reqst
 
 instance App.Domain.Initializer Server where
   initial = asks baseAppDomain
@@ -710,10 +742,10 @@ instance App.Modifier Server where
                                             , subdomain  = appDomainSubdomain
                                             }
 
-                            Varnish.purgeMany urls >>= \case
-                              Left err -> do
-                                logError $ "Unable to purge HTTP cache: " <> textDisplay err
-                                return $ openLeft err
+                            HTTP.Cache.purgeMany urls >>= \case
+                              Left errs -> do
+                                logError $ "Unable to purge HTTP cache: " <> display errs
+                                return $ openLeft errs
 
                               Right _ ->
                                 return $ Right appId
@@ -730,7 +762,7 @@ instance App.Destroyer Server where
             return $ Left errs
 
           Right _ -> do
-            Varnish.purgeMany urls >>= \case
+            HTTP.Cache.purgeMany urls >>= \case
               Left errs -> do
                 -- Just warn and continue
                 logWarn $ textDisplay errs
