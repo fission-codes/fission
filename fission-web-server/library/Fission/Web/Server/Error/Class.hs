@@ -3,6 +3,7 @@
 module Fission.Web.Server.Error.Class (ToServerError (..)) where
 
 import qualified RIO.ByteString.Lazy                                as Lazy
+import qualified RIO.Text                                           as Text
 
 import           Servant.Client                                     (ClientError (..))
 import           Servant.Server                                     as Server
@@ -185,5 +186,17 @@ instance ToServerError JWT.Error where
     ClaimsError    err -> toServerError err
     SignatureError err -> toServerError err
 
+instance ToServerError HTTP.Cache.ResponseError where
+  toServerError HTTP.Cache.ResponseError {..} =
+    err502 { errBody = "Unable to invalidate HTTP cache for " <> displayLazyBS url }
+
 instance ToServerError HTTP.Cache.BatchErrors where
-  toServerError errs = err502 {errBody = displayLazyBS errs}
+  toServerError HTTP.Cache.BatchErrors {errors} =
+    err502 { errBody = "Unable to cache invalidate: " <> displayLazyBS urls }
+    where
+      urls =
+        errors
+          |> toList
+          |> fmap HTTP.Cache.url
+          |> fmap textDisplay
+          |> Text.intercalate ", "
