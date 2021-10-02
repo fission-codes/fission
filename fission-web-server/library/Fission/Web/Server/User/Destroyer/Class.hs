@@ -3,8 +3,7 @@ module Fission.Web.Server.User.Destroyer.Class (Destroyer (..)) where
 import           Database.Esqueleto
 
 import           Fission.Prelude                                    hiding
-                                                                     (Value,
-                                                                     set)
+                                                                    (Value, set)
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models

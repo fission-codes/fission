@@ -23,6 +23,7 @@ import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 
 import qualified Fission.Web.Server.App.Domain                      as App.Domain
+import qualified Fission.Web.Server.HTTP.Cache.Error                as HTTP.Cache
 import qualified Fission.Web.Server.Heroku.AddOn.Creator            as Heroku.AddOn
 
 import qualified Fission.Web.Server.User.Creator.Error              as User
@@ -47,6 +48,7 @@ type Errors' = OpenUnion
    , IPFS.Pin.Error
    , IPFS.Stat.Error
 
+   , HTTP.Cache.ResponseError
    , InvalidURL
    , ServerError
    ]

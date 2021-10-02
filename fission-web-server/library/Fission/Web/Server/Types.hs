@@ -306,14 +306,13 @@ instance MonadHTTPCache Server where
     BaseUrl {..} <- asks httpCacheURL
 
     let
-      hostHeader   = encodeUtf8 $ textDisplay url
-      cacheUrlTxt  = Text.pack baseUrlHost
-      path         = Text.pack baseUrlPath
+      hostHeader  = encodeUtf8 $ textDisplay url
+      cacheUrlTxt = Text.pack baseUrlHost
 
     logInfo $ "🔥 Purging cache for " <> display url
     resp <- case baseUrlScheme of
-      Client.Http  -> req PURGE (http  cacheUrlTxt /: path) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
-      Client.Https -> req PURGE (https cacheUrlTxt /: path) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
+      Client.Http  -> req PURGE (http  cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
+      Client.Https -> req PURGE (https cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
 
     let
       status =
@@ -644,7 +643,7 @@ instance User.Modifier Server where
             return . Error.openLeft . IPFS.Pin.IPFSDaemonErr $ textDisplay err
 
           Right _ -> do
-            zoneID <- asks userZoneID
+            zoneID         <- asks userZoneID
             userDataDomain <- asks userRootDomain
 
             let
@@ -659,11 +658,39 @@ instance User.Modifier Server where
 
               Right size -> do
                 DNSLink.set userId url zoneID newCID >>= \case
-                  Left err -> return $ Error.relaxedLeft err
-                  Right _  -> Right <$> runDB (User.setDataDB userId newCID size now)
+                  Left err ->
+                    return $ Error.relaxedLeft err
+
+                  Right _ -> do
+                    runDB (User.setDataDB userId newCID size now)
+                    HTTP.Cache.purgeURL url -- Ignore failure, but gets logged
+                    return $ Right ()
+
+
+mkUserFilesURL :: DomainName -> User.Username -> URL
+mkUserFilesURL dataDomain username =
+  URL
+    { domainName = dataDomain
+    , subdomain  = Just $ Subdomain (textDisplay username <> ".files")
+    }
 
 instance User.Destroyer Server where
-  deactivate requestorId userId = runDB $ User.deactivate requestorId userId
+  deactivate requestorId userId = do
+    mayUser <- runDB do
+      user <- User.getById userId
+      User.deactivate requestorId userId
+      return user
+
+    case mayUser of
+      Nothing ->
+        logWarn $ "Unable to purge unknown user's DNS: " <> display userId
+
+      Just (Entity _ User {userUsername}) -> do
+        userDataDomain <- asks userRootDomain
+        HTTP.Cache.purgeURL $ mkUserFilesURL userDataDomain userUsername
+        return ()
+
+    return $ Right ()
 
 instance App.Retriever Server where
   byId    uId appId = runDB $ App.byId    uId appId
@@ -748,12 +775,8 @@ instance App.Modifier Server where
                                             }
 
                             HTTP.Cache.purgeMany urls >>= \case
-                              Left errs -> do
-                                logError $ "Unable to purge HTTP cache: " <> display errs
-                                return $ openLeft errs
-
-                              Right _ ->
-                                return $ Right appId
+                              Left errs -> return $ openLeft errs
+                              Right _   -> return $ Right appId
 
 instance App.Destroyer Server where
   destroy uId appId now =
@@ -767,14 +790,8 @@ instance App.Destroyer Server where
             return $ Left errs
 
           Right _ -> do
-            HTTP.Cache.purgeMany urls >>= \case
-              Left errs -> do
-                -- Just warn and continue
-                logWarn $ textDisplay errs
-                return $ Right urls
-
-              Right _ ->
-                return $ Right urls
+            HTTP.Cache.purgeMany urls -- Ignore and continue, but does get logged
+            return $ Right urls
 
   destroyByURL uId domainName maySubdomain now =
     runDB (App.destroyByURL uId domainName maySubdomain now) >>= \case
