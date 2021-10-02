@@ -18,7 +18,7 @@ import           System.Random                                     as Random
 import           Database.Esqueleto                                as SQL hiding
                                                                           ((<&>))
 
-import           Servant.Client
+import           Servant.Client                                    as Client
 import qualified Servant.Client.Streaming                          as Stream
 import           Servant.Server.Experimental.Auth
 import qualified Servant.Types.SourceT                             as Stream
@@ -303,12 +303,16 @@ instance MonadWNFS Server where
 
 instance MonadHTTPCache Server where
   purgeURL url = do
+    BaseUrl {..} <- asks httpCacheURL
+
     let
-      hostHeader = header "Host" (encodeUtf8 $ textDisplay url)
+      hostHeader  = encodeUtf8 $ textDisplay url
+      cacheUrlTxt = Text.pack baseUrlHost <> ":" <> textDisplay baseUrlPort <> "/" <> Text.pack baseUrlPath
 
     logInfo $ "🔥 Purging cache for " <> display url
-    cacheURL <- asks httpCacheURL
-    resp     <- req PURGE (https $ textDisplay cacheURL) NoReqBody bsResponse hostHeader
+    resp <- case baseUrlScheme of
+      Client.Http  -> req PURGE (http  cacheUrlTxt) NoReqBody bsResponse (header "Host" hostHeader)
+      Client.Https -> req PURGE (https cacheUrlTxt) NoReqBody bsResponse (header "Host" hostHeader)
 
     let
       status =
