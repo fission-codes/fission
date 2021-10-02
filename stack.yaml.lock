@@ -40,12 +40,21 @@ packages:
   original:
     hackage: hfsevents-0.1.6
 - completed:
+<<<<<<< HEAD
     hackage: ipfs-1.4.0@sha256:1a6f8b8ec4d8cf1e1bd8f5ed7a2a1a0758855c1304d3dc60101ec1ca16dacf69,6207
     pantry-tree:
       size: 4350
       sha256: 114e26db47980b29a3ce3635e0e36fe1d866e8c77fb854063cf872abe638135b
   original:
     hackage: ipfs-1.4.0
+=======
+    hackage: ipfs-1.3.2@sha256:b6c6ef2fc868958deba513b7bbc0e6e8df98d2389793459cfdbc170e51448a0e,6249
+    pantry-tree:
+      size: 4349
+      sha256: 3df2a5a1cb0ba0b33fef1949e550af868b7ee3afb796e00babb46a9d041ecffa
+  original:
+    hackage: ipfs-1.3.2
+>>>>>>> 818d7e66 (Bump ipfs library)
 - completed:
     hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
     pantry-tree:

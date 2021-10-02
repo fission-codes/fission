@@ -7,6 +7,7 @@ packages:
   - fission-web-api
   - fission-web-client
   - fission-web-server
+  - ipfs
 
 extra-deps:
   - amazonka-1.6.1
@@ -14,7 +15,6 @@ extra-deps:
   - cryptostore-0.2.1.0
   - dimensions-2.1.1.0
   - hfsevents-0.1.6
-  - ipfs-1.4.0
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.4.2.1

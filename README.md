@@ -10,6 +10,9 @@ Seamlessly deploy websites and store secure user data
 This project can build multiple binaries. Please refer to the README for the specific package (e.g. fission-cli, fission-core). Here is how the projects are related to each other:
 
 ```
+               ipfs
+                 ^
+                 |
            fission-core
                  ^
                  |
