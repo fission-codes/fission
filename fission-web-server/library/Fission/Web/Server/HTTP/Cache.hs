@@ -1,5 +1,5 @@
 module Fission.Web.Server.HTTP.Cache
-  ( purgeMany
+  ( banMany
   , module Fission.Web.Server.HTTP.Cache.Class
   , module Fission.Web.Server.HTTP.Cache.Error
   ) where
@@ -12,12 +12,12 @@ import           Fission.URL
 import           Fission.Web.Server.HTTP.Cache.Class
 import           Fission.Web.Server.HTTP.Cache.Error
 
-purgeMany :: MonadHTTPCache m => [URL] -> m (Either BatchErrors ())
-purgeMany urls =
+banMany :: MonadHTTPCache m => [URL] -> m (Either BatchErrors ())
+banMany urls =
   foldM mAcc (Right ()) urls
   where
     mAcc acc url =
-      purgeURL url >>= \case
+      banURL url >>= \case
         Right () ->
           return acc
 

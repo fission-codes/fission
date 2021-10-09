@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 resolver: lts-18.14
+=======
+resolver: lts-18.13
+>>>>>>> 6da88087 (Swap to BAN)
 allow-newer: true
 
 packages:

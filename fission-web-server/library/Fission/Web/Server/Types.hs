@@ -47,7 +47,7 @@ import qualified Fission.JSON.Error                                as JSON
 import           Fission.Time
 
 import           Fission.Web.API.Host.Types
-import           Fission.Web.Purge.Types
+import           Fission.Web.Ban.Types
 import           Fission.Web.Server.AWS.Types                      as AWS
 import qualified Fission.Web.Server.DID.Publicize.Class            as Server.DID
 import           Fission.Web.Server.Models
@@ -302,7 +302,7 @@ instance MonadWNFS Server where
       extractCID = IPFS.CID . Text.dropPrefix "\"dnslink=/ipfs/" . Text.dropSuffix "\"" . NonEmpty.head
 
 instance MonadHTTPCache Server where
-  purgeURL url = do
+  banURL url = do
     BaseUrl {..} <- asks httpCacheURL
 
     let
@@ -311,8 +311,8 @@ instance MonadHTTPCache Server where
 
     logInfo $ "🔥 Purging cache for " <> display url
     resp <- case baseUrlScheme of
-      Client.Http  -> req PURGE (http  cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
-      Client.Https -> req PURGE (https cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
+      Client.Http  -> req BAN (http  cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
+      Client.Https -> req BAN (https cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
 
     let
       status =
@@ -325,7 +325,7 @@ instance MonadHTTPCache Server where
 
     if status >= 400
       then do
-        logError $ "💧 Purge failed for " <> display url
+        logError $ "💧 Ban failed for " <> display url
         return . Left $ HTTP.Cache.ResponseError { url, body, statusCode = StatusCode status }
 
       else
@@ -663,7 +663,7 @@ instance User.Modifier Server where
 
                   Right _ -> do
                     runDB (User.setDataDB userId newCID size now)
-                    HTTP.Cache.purgeURL url -- Ignore failure, but gets logged
+                    HTTP.Cache.banURL url -- Ignore failure, but gets logged
                     return $ Right ()
 
 
@@ -683,11 +683,11 @@ instance User.Destroyer Server where
 
     case mayUser of
       Nothing ->
-        logWarn $ "Unable to purge unknown user's DNS: " <> display userId
+        logWarn $ "Unable to ban unknown user's DNS: " <> display userId
 
       Just (Entity _ User {userUsername}) -> do
         userDataDomain <- asks userRootDomain
-        HTTP.Cache.purgeURL $ mkUserFilesURL userDataDomain userUsername
+        HTTP.Cache.banURL $ mkUserFilesURL userDataDomain userUsername
         return ()
 
     return $ Right ()
@@ -774,7 +774,7 @@ instance App.Modifier Server where
                                             , subdomain  = appDomainSubdomain
                                             }
 
-                            HTTP.Cache.purgeMany urls >>= \case
+                            HTTP.Cache.banMany urls >>= \case
                               Left errs -> return $ openLeft errs
                               Right _   -> return $ Right appId
 
@@ -790,7 +790,7 @@ instance App.Destroyer Server where
             return $ Left errs
 
           Right _ -> do
-            HTTP.Cache.purgeMany urls -- Ignore and continue, but does get logged
+            HTTP.Cache.banMany urls -- Ignore and continue, but does get logged
             return $ Right urls
 
   destroyByURL uId domainName maySubdomain now =

@@ -8,5 +8,5 @@ import           Fission.URL
 import           Fission.Web.Server.HTTP.Cache.Error
 
 class Monad m => MonadHTTPCache m where
-  -- | Purge all pages under a URL
-  purgeURL :: URL -> m (Either ResponseError ())
+  -- | Ban all pages under a URL
+  banURL :: URL -> m (Either ResponseError ())
