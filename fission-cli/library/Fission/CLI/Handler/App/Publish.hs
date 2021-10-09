@@ -7,8 +7,8 @@ import qualified Crypto.PubKey.Ed25519                     as Ed25519
 import           System.FSNotify                           as FS
 
 import           RIO.Directory
-import           Web.Browser
 import           Servant.Client
+import           Web.Browser
 
 import           Network.HTTP.Types.Status
 import qualified Network.IPFS.Process.Error                as IPFS.Process
@@ -37,7 +37,10 @@ import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
 
 import qualified Fission.CLI.IPFS.Add                      as CLI.IPFS.Add
+import           Fission.CLI.IPFS.Connect
 import           Fission.CLI.IPFS.Daemon                   as IPFS.Daemon
+import           Fission.CLI.IPFS.Peers                    as Peers
+import           Fission.IPFS.Error.Types                  as IPFS
 
 import           Fission.CLI.App.Environment               as App
 import           Fission.CLI.Parser.Open.Types
@@ -49,23 +52,25 @@ import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
 -- | Sync the current working directory to the server over IPFS
 publish :: forall m .
-  ( MonadIO          m
-  , MonadCleanup     m
-  , MonadLogger      m
-  , MonadLocalIPFS   m
-  , MonadIPFSDaemon  m
-  , UCAN.MonadStore  m
-  , MonadEnvironment m
-  , MonadRemote      m
-  , MonadWebClient   m
-  , MonadTime        m
-  , MonadWebAuth     m Token
-  , MonadWebAuth     m Ed25519.SecretKey
-  , ServerDID        m
+  ( MonadIO             m
+  , MonadBaseControl IO m
+  , MonadCleanup        m
+  , MonadLogger         m
+  , MonadLocalIPFS      m
+  , MonadIPFSDaemon     m
+  , UCAN.MonadStore     m
+  , MonadEnvironment    m
+  , MonadRemote         m
+  , MonadWebClient      m
+  , MonadTime           m
+  , MonadWebAuth        m Token
+  , MonadWebAuth        m Ed25519.SecretKey
+  , ServerDID           m
   , m `Raises` YAML.ParseException
   , m `Raises` ClientError
-  , m `Raises` IPFS.Process.Error
   , m `Raises` NotFound FilePath
+  , m `Raises` IPFS.Process.Error
+  , m `Raises` IPFS.UnableToConnect
   , Show (OpenUnion (Errors m))
   , CheckErrors m
   )
@@ -104,11 +109,15 @@ publish
 
         Right cid@(CID hash) -> do
           logDebug $ "📱 Directory CID is " <> hash
-          _ <- IPFS.Daemon.runDaemon
+          _     <- IPFS.Daemon.runDaemon
+          peers <- Peers.getPeers
 
           let
             runUpdate :: CID -> m (ClientM ())
             runUpdate cid' = do
+              swarmDisconnect peers
+              swarmConnectWithRetry peers 25
+
               proof <- getRootUserProof
               ucan  <- Client.attachAuth proof
               return $ updateApp appURL cid' (Just updateData) ucan
