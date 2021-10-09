@@ -309,7 +309,7 @@ instance MonadHTTPCache Server where
       hostHeader  = encodeUtf8 $ textDisplay url
       cacheUrlTxt = Text.pack baseUrlHost
 
-    logInfo $ "🔥 Purging cache for " <> display url
+    logInfo $ "🔥 Banning cache for " <> display url
     resp <- case baseUrlScheme of
       Client.Http  -> req BAN (http  cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
       Client.Https -> req BAN (https cacheUrlTxt /~ baseUrlPath) NoReqBody bsResponse (HTTP.port baseUrlPort <> header "Host" hostHeader)
