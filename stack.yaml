@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 resolver: lts-18.14
 =======
 resolver: lts-18.13
 >>>>>>> 6da88087 (Swap to BAN)
+=======
+resolver: lts-18.14
+>>>>>>> 5e69738b (Update ipfs package)
 allow-newer: true
 
 packages:
@@ -19,6 +23,10 @@ extra-deps:
   - cryptostore-0.2.1.0
   - dimensions-2.1.1.0
   - hfsevents-0.1.6
+<<<<<<< HEAD
+=======
+  - ipfs-1.4.0
+>>>>>>> 5e69738b (Update ipfs package)
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.4.2.1
