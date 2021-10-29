@@ -92,6 +92,7 @@ dependencies:
   - network-ip
   - regex-compat
   - rio
+  - scientific
   - servant
   - servant-client
   - servant-multipart

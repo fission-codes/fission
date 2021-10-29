@@ -4,6 +4,7 @@ module Network.IPFS.Stat.Types
   ) where
 
 import qualified Data.Aeson.Types as JSON
+import           Data.Scientific
 
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.Stat.Error
@@ -31,8 +32,8 @@ instance FromJSON Stat where
 
     return Stat {..}
 
-detectOverflow :: Text -> JSON.Parser (Either OverflowDetected Bytes)
-detectOverflow raw = checkOverflow <|> checkBytes
+detectOverflow :: Scientific -> JSON.Parser (Either OverflowDetected Bytes)
+detectOverflow num = checkOverflow <|> checkBytes
   where
-    checkOverflow = Left  <$> parseJSON (JSON.String raw)
-    checkBytes    = Right <$> parseJSON (JSON.String raw)
+    checkOverflow = Left  <$> parseJSON (JSON.Number num)
+    checkBytes    = Right <$> parseJSON (JSON.Number num)
