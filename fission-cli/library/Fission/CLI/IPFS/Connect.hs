@@ -1,6 +1,7 @@
 -- | Module for connecting to the Fission IPFS service
 module Fission.CLI.IPFS.Connect
   ( swarmConnectWithRetry
+  , swarmDisconnect
   , couldNotSwarmConnect
   ) where
 
@@ -53,6 +54,23 @@ swarmConnectWithRetry peers retries = do
           retryPeers <- Peers.getPeers
           UTF8.putText "🛰 🔁 Unable to connect to the Fission IPFS peer, trying again...\n"
           swarmConnectWithRetry retryPeers (retries - 1)
+
+swarmDisconnect ::
+  ( MonadIO             m
+  , MonadBaseControl IO m
+  , MonadLogger         m
+  , MonadLocalIPFS      m
+  )
+  => NonEmpty IPFS.Peer
+  -> m ()
+swarmDisconnect peers = do
+  logDebug @Text "🌌🔌 Disconnecting peers"
+
+  liftBaseWith \runInBase ->
+    forConcurrently peers \peer ->
+      runInBase $ IPFS.Peer.disconnect peer
+
+  return ()
 
 connectTo :: forall m .
   ( MonadIO             m
