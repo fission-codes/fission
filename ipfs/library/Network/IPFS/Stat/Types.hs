@@ -3,6 +3,8 @@ module Network.IPFS.Stat.Types
   , module Network.IPFS.Stat.Error
   ) where
 
+import qualified Data.Aeson.Types as JSON
+
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.Stat.Error
 
@@ -19,9 +21,9 @@ data Stat = Stat
 
 instance FromJSON Stat where
   parseJSON = withObject "Stat" \obj -> do
-    blockSize      <- obj .: "BlockSize"
-    cumulativeSize <- obj .: "CumulativeSize"
-    dataSize       <- obj .: "DataSize"
+    blockSize      <- detectOverflow =<< obj .: "BlockSize"
+    cumulativeSize <- detectOverflow =<< obj .: "CumulativeSize"
+    dataSize       <- detectOverflow =<< obj .: "DataSize"
 
     hash           <- obj .: "Hash"
     linksSize      <- obj .: "LinksSize"
@@ -29,3 +31,8 @@ instance FromJSON Stat where
 
     return Stat {..}
 
+detectOverflow :: Text -> JSON.Parser (Either OverflowDetected Bytes)
+detectOverflow raw = checkOverflow <|> checkBytes
+  where
+    checkOverflow = Left  <$> parseJSON (JSON.String raw)
+    checkBytes    = Right <$> parseJSON (JSON.String raw)
