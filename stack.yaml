@@ -24,9 +24,12 @@ extra-deps:
   - dimensions-2.1.1.0
   - hfsevents-0.1.6
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   - ipfs-1.4.0
 >>>>>>> 5e69738b (Update ipfs package)
+=======
+>>>>>>> 7976afff (Move ipfs-haskell into this repo, fix(?) response type)
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.4.2.1

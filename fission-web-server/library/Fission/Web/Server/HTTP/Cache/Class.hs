@@ -1,7 +1,5 @@
 module Fission.Web.Server.HTTP.Cache.Class (MonadHTTPCache (..)) where
 
-import           Servant.Client
-
 import           Fission.Prelude
 
 import           Fission.URL
