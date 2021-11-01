@@ -1,0 +1,122 @@
+name: ipfs
+version: '1.4.1'
+synopsis: Access IPFS locally and remotely
+description: Interact with the IPFS network by shelling out to a local IPFS node or communicating via the HTTP interface of a remote IPFS node.
+category: Network
+author:
+  - Brooklyn Zelenka
+  - Daniel Holmgren
+  - Steven Vandevelde
+  - James Walker
+maintainer:
+  - brooklyn@fission.codes
+  - daniel@fission.codes
+  - steven@fission.codes
+  - james@fission.codes
+copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
+license: Apache-2.0
+license-file: LICENSE
+github: fission-suite/ipfs-haskell
+tested-with: GHC==8.10.7
+extra-source-files:
+  - README.md
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Warn about too much
+  - -Wredundant-constraints
+  # Prettier Development
+  - -fhide-source-paths
+
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DuplicateRecordFields
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - KindSignatures
+  - LambdaCase
+  - LiberalTypeSynonyms
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - OverloadedLabels
+  - OverloadedLists
+  - PostfixOperators
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+  - TemplateHaskell
+  - TypeOperators
+  - ViewPatterns
+
+dependencies:
+  - aeson
+  - base < 5
+  - bytestring
+  - envy
+  - flow
+  - Glob
+  - http-media
+  - lens
+  - monad-logger
+  - network-ip
+  - regex-compat
+  - rio
+  - scientific
+  - servant
+  - servant-client
+  - servant-multipart
+  - servant-multipart-api
+  - servant-multipart-client
+  - swagger2
+  - text
+  - vector
+
+library:
+  source-dirs: library
+
+  generated-exposed-modules:
+    - Paths_ipfs
+
+tests:
+  ipfs-doctest:
+    main: Main.hs
+    source-dirs: test/doctest
+    dependencies:
+      - directory
+      - directory-tree
+      - doctest
+      - Glob
+      - lens-aeson
+      - QuickCheck
+      - yaml

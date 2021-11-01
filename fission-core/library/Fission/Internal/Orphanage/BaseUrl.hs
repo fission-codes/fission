@@ -10,7 +10,7 @@ import           Servant.Client.Core as Client
 import           Fission.Prelude
 
 instance Display BaseUrl where
-  textDisplay = Text.pack . show
+  textDisplay = Text.pack . showBaseUrl
 
 instance Arbitrary BaseUrl where
   arbitrary = do
