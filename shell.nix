@@ -22,19 +22,18 @@
 
     deps = {
       common = [
-        # pkgs.gnumake
         unstable.niv
       ];
 
     crypto = [
-      unstable.openssl.dev
-      unstable.openssl.out
+      pkgs.openssl.dev
+      pkgs.openssl.out
     ];
 
     cli = [pkgs.ncurses.dev.out];
 
     data = [
- #     pkgs.ipfs_0_9
+      pkgs.ipfs
       pkgs.lzma.dev
       pkgs.lzma.out
       pkgs.zlib.dev
@@ -43,11 +42,9 @@
     ];
 
     haskell = [
-      # unstable.ghc
-      # unstable.haskellPackages.implicit-hie
-      # unstable.haskell-language-server
-      # unstable.stack
-      # unstable.stylish-haskell
+      unstable.haskell-language-server
+      unstable.stack
+      unstable.stylish-haskell
     ];
 
     macos =

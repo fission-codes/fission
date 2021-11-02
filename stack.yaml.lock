@@ -104,3 +104,7 @@ packages:
     hackage: github-0.27
 snapshots:
 - completed:
+    size: 586069
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/14.yaml
+    sha256: 87842ecbaa8ca9cee59a7e6be52369dbed82ed075cb4e0d152614a627e8fd488
+  original: lts-18.14
