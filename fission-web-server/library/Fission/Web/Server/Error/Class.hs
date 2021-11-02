@@ -91,14 +91,20 @@ instance ToServerError Get.Error where
     Get.InvalidCID txt ->
       err422 { errBody = displayLazyBS txt }
 
+    Get.TimedOut (CID hash) txt ->
+      err504 { errBody = "IPFS timed out looking for " <> displayLazyBS hash <> " / Detail: " <> displayLazyBS txt}
+
+    Get.WebError clientErr ->
+      err504 { errBody = "Remote IPFS error: " <> displayLazyBS clientErr }
+
+    Get.SizeError clientErr ->
+      err504 { errBody = "IPFS Size Error" <> displayLazyBS clientErr }
+
     Get.UnexpectedOutput txt ->
       err502 { errBody = "Unexpected IPFS result: " <> displayLazyBS txt }
 
     Get.UnknownErr txt ->
       err502 { errBody = "Unknown IPFS error" <> displayLazyBS txt}
-
-    Get.TimedOut (CID hash) txt ->
-      err504 { errBody = "IPFS timed out looking for " <> displayLazyBS hash <> " / Detail: " <> displayLazyBS txt}
 
 instance ToServerError Add.Error where
   toServerError = \case
@@ -110,9 +116,10 @@ instance ToServerError Add.Error where
 
 instance ToServerError Peer.Error where
   toServerError = \case
-    Peer.DecodeFailure _ -> err500 { errBody = "Peer list decode error" }
-    Peer.CannotConnect _ -> err503 { errBody = "Unable to connect to peer" }
-    Peer.UnknownErr    _ -> err500 { errBody = "Unknown peer list error" }
+    Peer.DecodeFailure    _ -> err500 { errBody = "Peer list decode error" }
+    Peer.CannotConnect    _ -> err503 { errBody = "Unable to connect to peer" }
+    Peer.CannotDisconnect _ -> err502 { errBody = "Unable to disconnect from peer" }
+    Peer.UnknownErr       _ -> err500 { errBody = "Unknown peer list error" }
 
 instance ToServerError IPFS.Linearization where
   toServerError _ = err500 { errBody = "Unable to linearize IPFS result" }

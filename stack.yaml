@@ -1,5 +1,5 @@
-resolver: lts-18.13
-allow-newer: true
+resolver: lts-18.14
+allow-newer: true # Needed for servant-ekg
 
 packages:
   - fission-cli
@@ -7,6 +7,7 @@ packages:
   - fission-web-api
   - fission-web-client
   - fission-web-server
+  - ipfs
 
 extra-deps:
   - amazonka-1.6.1
@@ -14,20 +15,17 @@ extra-deps:
   - cryptostore-0.2.1.0
   - dimensions-2.1.1.0
   - hfsevents-0.1.6
-  - ipfs-1.4.0
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
   - rescue-0.4.2.1
-  - servant-ekg-0.3.1 # Needs the allow-newer
+  - servant-ekg-0.3.1
   - servant-multipart-client-0.12.1
   - servant-swagger-ui-redoc-0.3.4.1.22.3
   - servant-websockets-2.0.0
   - unliftio-core-0.1.2.0
 
   # Waiting for github to make it back into Stackage LTS 18
-  - github-0.26
-  - base16-bytestring-0.1.1.7
-  - http-link-header-1.0.3.1
+  - github-0.27
 
 ghc-options:
   "$everything": -haddock

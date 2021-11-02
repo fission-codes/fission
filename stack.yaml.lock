@@ -40,13 +40,6 @@ packages:
   original:
     hackage: hfsevents-0.1.6
 - completed:
-    hackage: ipfs-1.4.0@sha256:1a6f8b8ec4d8cf1e1bd8f5ed7a2a1a0758855c1304d3dc60101ec1ca16dacf69,6207
-    pantry-tree:
-      size: 4350
-      sha256: 114e26db47980b29a3ce3635e0e36fe1d866e8c77fb854063cf872abe638135b
-  original:
-    hackage: ipfs-1.4.0
-- completed:
     hackage: lzma-clib-5.2.2@sha256:25eb43d5fd8a8ab58380f475b91fb1fa907381f8a81c8d8ba63ba428d97ae0cc,4900
     pantry-tree:
       size: 11577
@@ -103,29 +96,15 @@ packages:
   original:
     hackage: unliftio-core-0.1.2.0
 - completed:
-    hackage: github-0.26@sha256:a9d4046325c3eb28cdc7bef2c3f5bb213328caeae0b7dce6f51de655f0bffaa1,7162
+    hackage: github-0.27@sha256:074e69ad24b94b1199331b156e5373e9d4fa4a4452e02217f3539fe94a21a838,6995
     pantry-tree:
-      size: 7511
-      sha256: b71aab2984b268030c9e2617043575681134c1fe60dffbd5596e659c0a3e9aec
+      size: 7838
+      sha256: b1c7b80c48aa78664cbf787ca3752d7e0389e32ad12c7912680ed10fd5c513ec
   original:
-    hackage: github-0.26
-- completed:
-    hackage: base16-bytestring-0.1.1.7@sha256:0021256a9628971c08da95cb8f4d0d72192f3bb8a7b30b55c080562d17c43dd3,2231
-    pantry-tree:
-      size: 454
-      sha256: 2dc99cd67293b09204098202d0bdcdcf89d2b8c69ce6c8f4e31deadbdab2a7f9
-  original:
-    hackage: base16-bytestring-0.1.1.7
-- completed:
-    hackage: http-link-header-1.0.3.1@sha256:9917c26635a46eff5d36c5344a4ae42fad2b5de79c0e300363bddd5eec66facd,1937
-    pantry-tree:
-      size: 990
-      sha256: 155feaf856daf5b55491048c8c4726ba765a8fe79263ebdbfc82f6c385a15715
-  original:
-    hackage: http-link-header-1.0.3.1
+    hackage: github-0.27
 snapshots:
 - completed:
-    size: 586268
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/13.yaml
-    sha256: d9e658a22cfe8d87a64fdf219885f942fef5fe2bcb156a9800174911c5da2443
-  original: lts-18.13
+    size: 586069
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/14.yaml
+    sha256: 87842ecbaa8ca9cee59a7e6be52369dbed82ed075cb4e0d152614a627e8fd488
+  original: lts-18.14
