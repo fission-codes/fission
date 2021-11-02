@@ -1,5 +1,5 @@
 name: ipfs
-version: '1.4.1'
+version: '1.4.2'
 synopsis: Access IPFS locally and remotely
 description: Interact with the IPFS network by shelling out to a local IPFS node or communicating via the HTTP interface of a remote IPFS node.
 category: Network
