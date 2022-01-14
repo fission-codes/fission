@@ -56,3 +56,12 @@ cradle:
 
     - path: "fission-web-server/benchmark/Paths_fission_web_server.hs"
       component: "fission-web-server:bench:fission-web-server-benchmark"
+    
+    - path: "ipfs/library"
+      component: "ipfs:lib"
+
+    - path: "ipfs/library"
+      component: "ipfs:test:ipfs-doctest"
+
+    - path: "ipfs/test/doctest"
+      component: "ipfs:test:ipfs-doctest"
