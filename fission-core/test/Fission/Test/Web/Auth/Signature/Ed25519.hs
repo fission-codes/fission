@@ -1,4 +1,4 @@
-module Fission.Test.Web.Server.Auth.Signature.Ed25519 (spec) where
+module Fission.Test.Web.Auth.Signature.Ed25519 (spec) where
 
 import qualified Crypto.PubKey.Ed25519                  as Ed25519
 

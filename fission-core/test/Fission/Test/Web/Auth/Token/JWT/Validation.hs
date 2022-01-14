@@ -1,4 +1,4 @@
-module Fission.Test.Web.Server.Auth.Token.JWT.Validation (spec) where
+module Fission.Test.Web.Auth.Token.JWT.Validation (spec) where
 
 -- import qualified Fission.Internal.Fixture.Bearer       as Fixture
 -- import qualified Fission.Internal.Fixture.Bearer.Nested as Nested.Fixture

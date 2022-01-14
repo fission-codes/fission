@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
-module Fission.Test.Web.Server.Auth.Token.Bearer (spec) where
+module Fission.Test.Web.Auth.Token.Bearer (spec) where
 
 import qualified Data.Aeson                          as JSON
 import qualified Data.ByteString.Lazy.Char8          as Lazy.Char8

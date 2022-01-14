@@ -1,17 +1,17 @@
-module Fission.Test.Web.Server.Auth.Token.JWT (spec) where
+module Fission.Test.Web.Auth.Token.JWT (spec) where
 
-import qualified Data.Aeson                                        as JSON
-import qualified Data.ByteString.Lazy.Char8                        as Lazy.Char8
-import qualified RIO.ByteString.Lazy                               as Lazy
+import qualified Data.Aeson                                 as JSON
+import qualified Data.ByteString.Lazy.Char8                 as Lazy.Char8
+import qualified RIO.ByteString.Lazy                        as Lazy
 import           Servant.API
 
+import qualified Fission.Internal.UTF8                      as UTF8
 import           Fission.Web.Auth.Token.JWT
-import qualified Fission.Internal.UTF8                     as UTF8
 
-import qualified Fission.Test.Web.Server.Auth.Token.JWT.Validation as Validation
 import           Fission.Test.Prelude
+import qualified Fission.Test.Web.Auth.Token.JWT.Validation as Validation
 
-import qualified Fission.Test.Web.Server.Auth.Token.JWT.Proof      as Proof
+import qualified Fission.Test.Web.Auth.Token.JWT.Proof      as Proof
 
 spec :: Spec
 spec =

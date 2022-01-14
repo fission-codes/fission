@@ -9,13 +9,13 @@ import qualified Fission.Test.Internal.UTF8 as UTF8
 import qualified Fission.Test.Random        as Random
 import qualified Fission.Test.URL           as URL
 import qualified Fission.Test.User.DID      as DID
-import qualified Fission.Test.Web.Server.Auth.Token.Bearer              as Bearer
-import qualified Fission.Test.Web.Server.Auth.Token.JWT                 as JWT
+import qualified Fission.Test.Web.Auth.Token.Bearer              as Bearer
+import qualified Fission.Test.Web.Auth.Token.JWT                 as JWT
 
-import qualified Fission.Test.Web.Server.Auth.Token.UCAN.Resource       as Resource
-import qualified Fission.Test.Web.Server.Auth.Token.UCAN.Resource.Scope as Scope
+import qualified Fission.Test.Web.Auth.Token.UCAN.Resource       as Resource
+import qualified Fission.Test.Web.Auth.Token.UCAN.Resource.Scope as Scope
 
-import qualified Fission.Test.Web.Server.Auth.Signature.Ed25519         as Ed
+import qualified Fission.Test.Web.Auth.Signature.Ed25519         as Ed
 
 spec :: Spec
 spec =

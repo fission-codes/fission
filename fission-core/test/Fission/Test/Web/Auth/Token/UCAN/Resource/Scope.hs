@@ -1,4 +1,4 @@
-module Fission.Test.Web.Server.Auth.Token.UCAN.Resource.Scope (spec) where
+module Fission.Test.Web.Auth.Token.UCAN.Resource.Scope (spec) where
 
 import qualified Data.Aeson                                       as JSON
 
