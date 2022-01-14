@@ -23,25 +23,13 @@ import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Authorization.Types
 
 import qualified Fission.Test.Web.Server.Auth.Token                     as Token
-import qualified Fission.Test.Web.Server.Auth.Token.Bearer              as Bearer
-import qualified Fission.Test.Web.Server.Auth.Token.JWT                 as JWT
 
 import           Fission.Test.Web.Server.Prelude
-
-import qualified Fission.Test.Web.Server.Auth.Token.UCAN.Resource       as Resource
-import qualified Fission.Test.Web.Server.Auth.Token.UCAN.Resource.Scope as Scope
-
-import qualified Fission.Test.Web.Server.Auth.Signature.Ed25519         as Ed
 
 spec :: Spec
 spec =
   describe "Fission.Web.Auth" do
     Token.spec
-    Bearer.spec
-    JWT.spec
-    Ed.spec
-    Resource.spec
-    Scope.spec
 
     describe "mkAuth" do
       (didResult, userResult, herokuResult) <- runIO setup

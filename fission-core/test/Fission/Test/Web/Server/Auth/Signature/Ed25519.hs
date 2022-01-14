@@ -13,7 +13,7 @@ import           Fission.User.DID
 
 import qualified Fission.Internal.Base64.URL            as B64.URL
 
-import           Fission.Test.Web.Server.Prelude
+import           Fission.Test.Prelude
 
 spec :: Spec
 spec =

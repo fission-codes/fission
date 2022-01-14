@@ -5,7 +5,7 @@ module Fission.Test.Web.Server.Auth.Token.JWT.Validation (spec) where
 
 -- import qualified Fission.Web.Auth.Token.JWT.Validation as JWT
 
-import           Fission.Test.Web.Server.Prelude
+import           Fission.Test.Prelude
 
 spec :: Spec
 spec =

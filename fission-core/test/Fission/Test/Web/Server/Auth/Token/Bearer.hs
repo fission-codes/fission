@@ -12,7 +12,7 @@ import           Fission.Web.Auth.Token.JWT
 -- import qualified Fission.Internal.Fixture.Bearer     as Bearer
 import qualified Fission.Internal.UTF8               as UTF8
 
-import           Fission.Test.Web.Server.Prelude
+import           Fission.Test.Prelude
 
 spec :: Spec
 spec =

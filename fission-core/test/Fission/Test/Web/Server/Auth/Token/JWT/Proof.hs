@@ -4,7 +4,7 @@ import qualified Data.Aeson                      as JSON
 
 import           Fission.Web.Auth.Token.JWT
 
-import           Fission.Test.Web.Server.Prelude
+import           Fission.Test.Prelude
 
 spec :: Spec
 spec =
