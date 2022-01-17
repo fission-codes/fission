@@ -1,13 +1,13 @@
 -- | Module for DEPRECATED Ed25519 DID encoding format
 module Web.DID.Oldstyle.Types (Oldstyle (..)) where
 
-import qualified RIO.ByteString                as BS
+import qualified RIO.ByteString        as BS
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8         as UTF8
+import qualified Fission.Internal.UTF8 as UTF8
 
-import           Fission.Key                   as Key
+import           Fission.Key           as Key
 import           Web.DID.Method.Types
 import           Web.DID.Types
 

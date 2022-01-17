@@ -1,4 +1,4 @@
-module Fission.SemVer.Types (SemVer (..)) where
+module Web.SemVer.Types (SemVer (..)) where
 
 import qualified RIO.Text        as Text
 

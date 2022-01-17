@@ -1,14 +1,14 @@
 module Fission.Authorization
   ( latestVersion
   -- * Reexports
-  , module Fission.Authorization.Potency.Types
+  , module Web.JWT.Potency.Types
   , module Fission.Authorization.ServerDID
   ) where
 
-import           Fission.Authorization.Potency.Types
 import           Fission.Authorization.ServerDID
 
-import           Fission.SemVer.Types
+import           Web.JWT.Potency.Types
+import           Web.SemVer.Types
 
 latestVersion :: SemVer
 latestVersion = SemVer 1 0 0

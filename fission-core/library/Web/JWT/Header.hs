@@ -6,11 +6,11 @@ module Web.JWT.Header
 import           Fission.Prelude
 
 import           Fission.Key.Asymmetric.Algorithm.Types
-import           Fission.SemVer.Types
+import           Web.SemVer.Types
 
 import           Web.JWT.Header.Types
 
-import qualified Web.JWT.Header.Typ.Types as Typ
+import qualified Web.JWT.Header.Typ.Types               as Typ
 
 newEd25519 :: Header
 newEd25519 =

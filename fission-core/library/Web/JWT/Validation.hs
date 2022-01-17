@@ -15,8 +15,8 @@ import qualified Crypto.PubKey.RSA.PKCS15      as Crypto.RSA.PKCS
 import           Fission.Prelude
 
 import           Fission.Key                   as Key
-import           Fission.SemVer.Types
 import           Web.DID.Types                 as User
+import           Web.SemVer.Types
 
 import           Web.JWT.Resolver              as Proof
 

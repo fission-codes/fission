@@ -1,4 +1,4 @@
-module Fission.Authorization.Potency.Types (Potency (..)) where
+module Web.JWT.Potency.Types (Potency (..)) where
 
 import qualified RIO.Text as Text
 

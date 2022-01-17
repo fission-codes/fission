@@ -9,12 +9,12 @@ module Web.JWT.Header.Types
   ) where
 
 import           Fission.Prelude
-import           Fission.SemVer.Types
 
 import           Fission.Key.Asymmetric.Algorithm.Types
 
 import           Web.JWT.Header.Cty.Types
 import           Web.JWT.Header.Typ.Types
+import           Web.SemVer.Types
 
 data Header = Header
   { typ :: Typ       -- ^ Standard JWT '"typ"' field

@@ -43,8 +43,8 @@ import qualified Fission.Internal.Base64.URL                      as B64.URL
 import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
 import qualified Fission.Internal.UTF8                            as UTF8
 
-import           Fission.Authorization.Potency.Types
 import           Web.DID.Types
+import           Web.JWT.Potency.Types
 
 import           Web.JWT.Header.Types                             (Header (..))
 import qualified Web.JWT.RawContent                               as JWT
