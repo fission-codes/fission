@@ -23,8 +23,6 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8             as UTF8
-
 import           Crypto.Key.Asymmetric             as Key (Public (..))
 import           Fission.Error.AlreadyExists.Types
 import           Web.DID.Method.Types
@@ -105,7 +103,7 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DID method pk) = header <> forgetEncoding (UTF8.toBase58Text $ BS.pack multicodecW8)
+  textDisplay (DID method pk) = header <> BS58.BTC.toText (BS58.BTC.fromBytes $ BS.pack multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"

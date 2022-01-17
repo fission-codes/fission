@@ -8,7 +8,6 @@ import           Network.IPFS.Bytes.Types
 
 import           Database.Persist.Class
 import           Database.Persist.Sql
-import           Database.Persist.Types
 
 
 instance PersistField Bytes where
