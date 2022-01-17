@@ -1,6 +1,6 @@
 -- | Cryptographic key algorithms
 
-module Fission.Key.Asymmetric.Algorithm.Types (Algorithm (..)) where
+module Crypto.Key.Asymmetric.Algorithm.Types (Algorithm (..)) where
 
 import           Data.Swagger
 import           Database.Persist.Sql

@@ -10,7 +10,7 @@ module Web.JWT.Header.Types
 
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Algorithm.Types
+import           Crypto.Key.Asymmetric.Algorithm.Types
 
 import           Web.JWT.Header.Cty.Types
 import           Web.JWT.Header.Typ.Types

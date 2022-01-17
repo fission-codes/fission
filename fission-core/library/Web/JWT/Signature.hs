@@ -4,12 +4,12 @@ module Web.JWT.Signature
   , module Web.JWT.Signature.Types
   ) where
 
-import qualified Data.Aeson.Types as JSON
+import qualified Data.Aeson.Types                      as JSON
 
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Algorithm.Types     as Algorithm
-import           Web.JWT.Signature.Types as Signature
+import           Crypto.Key.Asymmetric.Algorithm.Types as Algorithm
+import           Web.JWT.Signature.Types               as Signature
 
 -- Reexport
 

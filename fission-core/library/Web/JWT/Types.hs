@@ -37,10 +37,10 @@ import           Fission.Prelude
 import           Fission.Error.NotFound.Types
 
 import           Fission.Key                                      as Key
-import qualified Fission.Key.Asymmetric.Algorithm.Types           as Algorithm
 
+import qualified Crypto.Key.Asymmetric.Algorithm.Types            as Algorithm
+import qualified Crypto.Key.Asymmetric.RSA2048.Pair.Types         as RSA2048
 import qualified Fission.Internal.Base64.URL                      as B64.URL
-import qualified Fission.Internal.RSA2048.Pair.Types              as RSA2048
 import qualified Fission.Internal.UTF8                            as UTF8
 
 import           Web.DID.Types

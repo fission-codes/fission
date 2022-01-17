@@ -1,4 +1,4 @@
-module Fission.Key.Asymmetric.Public.Types (Public (..)) where
+module Crypto.Key.Asymmetric.Public.Types (Public (..)) where
 
 import qualified Crypto.PubKey.Ed25519                        as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA                            as Crypto.RSA
@@ -11,7 +11,7 @@ import           Servant.API
 
 import           Fission.Prelude                              hiding (length)
 
-import           Fission.Internal.RSA2048.Pair.Types          as Pair
+import           Crypto.Key.Asymmetric.RSA2048.Pair.Types     as Pair
 
 import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
 import           Fission.Internal.Orphanage.RSA2048.Public    ()

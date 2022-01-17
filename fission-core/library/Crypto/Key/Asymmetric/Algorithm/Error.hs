@@ -1,4 +1,4 @@
-module Fission.Key.Asymmetric.Algorithm.Error (Invalid (..)) where
+module Crypto.Key.Asymmetric.Algorithm.Error (Invalid (..)) where
 
 import           Fission.Prelude
 

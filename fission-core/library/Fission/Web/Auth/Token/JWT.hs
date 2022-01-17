@@ -19,9 +19,9 @@ import           Fission.Prelude
 import qualified Fission.Key                                      as Key
 
 import           Fission.Authorization                            as Authorization
-import           Fission.Key.Asymmetric.Algorithm.Types           as Key
 
-import qualified Fission.Key.Asymmetric.Public.Types              as Asymmetric
+import           Crypto.Key.Asymmetric.Algorithm.Types            as Key
+import qualified Crypto.Key.Asymmetric.Public.Types               as Asymmetric
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 

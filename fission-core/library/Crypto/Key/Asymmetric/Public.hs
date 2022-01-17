@@ -1,4 +1,4 @@
-module Fission.Key.Asymmetric.Public (genRSA2048) where
+module Crypto.Key.Asymmetric.Public (genRSA2048) where
 
 import qualified Crypto.PubKey.RSA                          as RSA
 import qualified OpenSSL.RSA                                as OpenSSL

@@ -26,7 +26,7 @@ import           Fission.Prelude
 import qualified Fission.Internal.UTF8             as UTF8
 
 import           Fission.Error.AlreadyExists.Types
-import           Fission.Key.Asymmetric            as Key (Public (..))
+import           Crypto.Key.Asymmetric            as Key (Public (..))
 import           Web.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
