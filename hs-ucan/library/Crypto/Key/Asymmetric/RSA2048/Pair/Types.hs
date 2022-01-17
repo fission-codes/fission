@@ -11,7 +11,8 @@ module Crypto.Key.Asymmetric.RSA2048.Pair.Types
 
 import           Crypto.PubKey.RSA
 
-import           Fission.Prelude
+import           RIO
+import Test.QuickCheck
 
 data Pair = Pair
   { pk :: PublicKey

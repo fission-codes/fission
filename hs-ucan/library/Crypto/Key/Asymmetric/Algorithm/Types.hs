@@ -2,12 +2,15 @@
 
 module Crypto.Key.Asymmetric.Algorithm.Types (Algorithm (..)) where
 
-import           Data.Swagger
-import           Database.Persist.Sql
-
+import RIO
 import qualified RIO.Text             as Text
 
-import           Fission.Prelude
+import Test.QuickCheck
+import Data.Aeson
+import Control.Lens ((?~))
+
+import           Data.Swagger
+import           Database.Persist.Sql
 
 -- | Cryptographic key algorithms (assymmetric)
 data Algorithm
@@ -43,9 +46,9 @@ instance PersistField Algorithm where
 instance ToSchema Algorithm where
   declareNamedSchema _ =
     mempty
-      |> type_ ?~ SwaggerString
-      |> NamedSchema (Just "PublicKeyAlgorithm")
-      |> pure
+      & type_ ?~ SwaggerString
+      & NamedSchema (Just "PublicKeyAlgorithm")
+      & pure
 
 instance PersistFieldSql Algorithm where
   sqlType _pxy = SqlString

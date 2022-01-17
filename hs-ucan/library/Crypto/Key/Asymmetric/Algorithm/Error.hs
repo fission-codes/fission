@@ -1,6 +1,6 @@
 module Crypto.Key.Asymmetric.Algorithm.Error (Invalid (..)) where
 
-import           Fission.Prelude
+import           RIO
 
 data Invalid = Invalid
   deriving (Show, Eq, Exception)
