@@ -4,8 +4,8 @@ module Fission.Web.Auth.Token.Bearer.Types
   , BareToken (..)
   ) where
 
-import qualified RIO.ByteString.Lazy                   as Lazy
-import qualified RIO.Text                              as Text
+import qualified RIO.ByteString.Lazy         as Lazy
+import qualified RIO.Text                    as Text
 
 import           Data.Aeson.Types
 import           Data.Swagger
@@ -13,10 +13,10 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.Base64.URL           as B64.URL
+import qualified Fission.Internal.Base64.URL as B64.URL
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
-import           Fission.Web.Auth.Token.JWT.Types
+import qualified Web.JWT.RawContent          as JWT
+import           Web.JWT.Types
 
 data Token = Token
   { jwt        :: JWT            -- ^ The actual token

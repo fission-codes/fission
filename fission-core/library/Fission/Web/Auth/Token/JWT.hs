@@ -7,8 +7,8 @@ module Fission.Web.Auth.Token.JWT
   , simpleWNFS
   , proveWNFS
   , prettyPrintGrants
-  , module Fission.Web.Auth.Token.JWT.Types
-  , module Fission.Web.Auth.Token.JWT.Error
+  , module Web.JWT.Types
+  , module Web.JWT.Error
   ) where
 
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
@@ -17,7 +17,6 @@ import qualified RIO.Text                                         as Text
 import           Fission.Prelude
 
 import qualified Fission.Key                                      as Key
-import           Fission.User.DID                                 as DID
 
 import           Fission.Authorization                            as Authorization
 import           Fission.Key.Asymmetric.Algorithm.Types           as Key
@@ -27,17 +26,19 @@ import qualified Fission.Key.Asymmetric.Public.Types              as Asymmetric
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 import           Fission.Web.Auth.Token.JWT.Fact.Types
-import qualified Fission.Web.Auth.Token.JWT.Header.Typ.Types      as JWT.Typ
-import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Class        as Proof
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error        as Resolver
-import           Fission.Web.Auth.Token.JWT.Types                 as JWT
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+
+import           Web.DID.Types                                    as DID
+import qualified Web.JWT.Header.Typ.Types                         as JWT.Typ
+import qualified Web.JWT.Resolver                                 as JWT
+import qualified Web.JWT.Resolver.Class                           as Proof
+import qualified Web.JWT.Resolver.Error                           as Resolver
+import           Web.JWT.Types                                    as JWT
 
 -- Reexports
 
-import           Fission.Web.Auth.Token.JWT.Error
-import           Fission.Web.Auth.Token.JWT.Types
+import           Web.JWT.Error
+import           Web.JWT.Types
 
 getRoot :: JWT.Resolver m => JWT -> m (Either Resolver.Error JWT)
 getRoot jwt@JWT {claims = Claims {proof}} =

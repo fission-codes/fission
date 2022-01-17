@@ -20,7 +20,7 @@ import           Fission.Prelude
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 import           Fission.Web.Auth.Token.JWT            as JWT
 
-import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
+import           Web.JWT.Resolver                      as Proof
 
 newtype InTimeBounds a = InTimeBounds { unwrap :: Identity a }
   deriving newtype
