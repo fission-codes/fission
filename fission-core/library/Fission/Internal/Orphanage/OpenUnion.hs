@@ -2,8 +2,8 @@
 
 module Fission.Internal.Orphanage.OpenUnion () where
 
-import RIO
-import Data.WorldPeace
+import           Data.WorldPeace
+import           RIO
 
 instance Display (OpenUnion '[]) where
   -- As a base case for the type-level recursion only. Essentially @Void@.

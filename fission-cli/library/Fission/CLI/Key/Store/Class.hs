@@ -22,7 +22,7 @@ import           Fission.CLI.Environment.Path
 import           Fission.CLI.Key.Store.Types
 
 import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
-import           Fission.Internal.Orphanage.RSA2048.Private   ()
+import           Ucan.Internal.Orphanage.RSA2048.Private   ()
 
 class
   ( MonadRandom m

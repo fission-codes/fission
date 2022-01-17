@@ -2,8 +2,8 @@
 
 module Web.JWT.Header.Typ.Types (Typ (..)) where
 
-import qualified RIO.Text as Text
 import           Fission.Prelude
+import qualified RIO.Text        as Text
 
 data Typ
   = JWT

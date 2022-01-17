@@ -1,7 +1,7 @@
 module Fission.Text.Encoded.Class (ToEncoded (..)) where
 
 import           RIO
-import qualified RIO.ByteString.Lazy as Lazy
+import qualified RIO.ByteString.Lazy         as Lazy
 
 import           Fission.Text.Encoded.Types
 import           Fission.Text.Encoding.Types

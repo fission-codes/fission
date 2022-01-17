@@ -2,18 +2,18 @@
 
 module Ucan.Internal.Orphanage.Ed25519.Signature () where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text                   as Text
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519       as Ed25519
+import qualified Crypto.PubKey.Ed25519      as Ed25519
 
-import qualified Data.ByteString.Base64.URL  as BS.B64.URL
+import qualified Data.ByteString.Base64.URL as BS.B64.URL
 
 import           Fission.Prelude
 
-import qualified Ucan.Internal.Base64     as Base64
-import qualified Ucan.Internal.Base64.URL as Base64.URL
-import qualified Ucan.Internal.Crypto     as Crypto
+import qualified Ucan.Internal.Base64       as Base64
+import qualified Ucan.Internal.Base64.URL   as Base64.URL
+import qualified Ucan.Internal.Crypto       as Crypto
 
 instance Display Ed25519.Signature where
   textDisplay sig =

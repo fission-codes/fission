@@ -4,9 +4,9 @@ module Fission.Security.Types
   , SecretDigest
   ) where
 
-import Data.Swagger
+import           Data.Swagger
 
-import Fission.Prelude
+import           Fission.Prelude
 
 -- | A text digest
 type SecretDigest = Text

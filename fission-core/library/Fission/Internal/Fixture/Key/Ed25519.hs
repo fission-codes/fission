@@ -7,8 +7,8 @@ module Fission.Internal.Fixture.Key.Ed25519
 
 import           Servant.API
 
+import qualified Fission.Key     as Key
 import           Fission.Prelude
-import qualified Fission.Key as Key
 
 pk :: Key.Public
 Right pk = parseUrlPiece rawPK

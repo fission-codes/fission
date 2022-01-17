@@ -4,7 +4,7 @@ module Ucan.Internal.Crypto
   ) where
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519 as Crypto.Ed25519
+import qualified Crypto.PubKey.Ed25519         as Crypto.Ed25519
 
 import           Ucan.Internal.Base64.Scrubbed as B64.Scrubbed
 

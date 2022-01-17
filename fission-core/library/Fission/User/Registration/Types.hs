@@ -1,8 +1,8 @@
 module Fission.User.Registration.Types ( Registration(..) ) where
 
-import qualified Crypto.PubKey.RSA                         as RSA
+import qualified Crypto.PubKey.RSA                      as RSA
 
-import           Data.Swagger                              hiding (email)
+import           Data.Swagger                           hiding (email)
 
 import           Fission.Prelude
 

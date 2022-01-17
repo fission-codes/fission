@@ -1,6 +1,6 @@
 module Web.JWT.Potency.Types (Potency (..)) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text        as Text
 
 import           Fission.Prelude
 

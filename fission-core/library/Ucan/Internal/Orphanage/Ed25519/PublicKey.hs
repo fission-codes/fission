@@ -3,10 +3,10 @@
 module Ucan.Internal.Orphanage.Ed25519.PublicKey () where
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519                        as Ed25519
+import qualified Crypto.PubKey.Ed25519                     as Ed25519
 
-import qualified Data.ByteString.Base64                       as BS64
-import qualified RIO.Text                                     as Text
+import qualified Data.ByteString.Base64                    as BS64
+import qualified RIO.Text                                  as Text
 
 import           Servant.API
 

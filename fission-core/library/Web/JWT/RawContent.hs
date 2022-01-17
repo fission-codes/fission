@@ -3,11 +3,11 @@ module Web.JWT.RawContent
   , module Web.JWT.RawContent.Types
   ) where
 
-import qualified RIO.Text                                    as Text
+import qualified RIO.Text                 as Text
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.UTF8 as UTF8
+import qualified Fission.Internal.UTF8    as UTF8
 
 import           Web.JWT.RawContent.Types
 

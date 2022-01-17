@@ -1,17 +1,17 @@
 module Crypto.Key.Asymmetric.Public.Types (Public (..)) where
 
-import qualified Crypto.PubKey.Ed25519                        as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA                            as Crypto.RSA
+import qualified Crypto.PubKey.Ed25519                     as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA                         as Crypto.RSA
 
 import           Data.Swagger
 import           Database.Persist.Sql
 
-import qualified RIO.Text                                     as Text
+import qualified RIO.Text                                  as Text
 import           Servant.API
 
-import           Fission.Prelude                              hiding (length)
+import           Fission.Prelude                           hiding (length)
 
-import           Crypto.Key.Asymmetric.RSA2048.Pair.Types     as Pair
+import           Crypto.Key.Asymmetric.RSA2048.Pair.Types  as Pair
 
 import           Ucan.Internal.Orphanage.Ed25519.PublicKey ()
 import           Ucan.Internal.Orphanage.RSA2048.Public    ()

@@ -2,7 +2,7 @@
 
 module Web.JWT.Header.Cty.Types (Cty (..)) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 {- |
 

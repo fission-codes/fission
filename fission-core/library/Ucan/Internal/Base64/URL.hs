@@ -9,17 +9,17 @@ module Ucan.Internal.Base64.URL
   , addPadding
   ) where
 
-import qualified Data.Aeson              as JSON
+import qualified Data.Aeson           as JSON
 import           Data.Word8
 
-import qualified RIO.ByteString          as Strict
-import qualified RIO.ByteString          as BS
-import qualified RIO.ByteString.Lazy     as Lazy
+import qualified RIO.ByteString       as BS
+import qualified RIO.ByteString       as Strict
+import qualified RIO.ByteString.Lazy  as Lazy
 
-import qualified RIO.List                as List
-import qualified RIO.Text.Partial        as Text.Partial
+import qualified RIO.List             as List
+import qualified RIO.Text.Partial     as Text.Partial
 
-import           Fission.Prelude         hiding (decode, encode)
+import           Fission.Prelude      hiding (decode, encode)
 
 import qualified Ucan.Internal.Base64 as B64
 
