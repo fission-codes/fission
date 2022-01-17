@@ -5,7 +5,7 @@ import qualified OpenSSL.RSA                                as OpenSSL
 
 import           Fission.Prelude
 
-import           Fission.Internal.Orphanage.RSA2048.Private ()
+import           Ucan.Internal.Orphanage.RSA2048.Private ()
 
 genRSA2048 :: MonadIO m => m RSA.PrivateKey
 genRSA2048 = do

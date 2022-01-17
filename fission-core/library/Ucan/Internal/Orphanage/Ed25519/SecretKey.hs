@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.Ed25519.SecretKey () where
+module Ucan.Internal.Orphanage.Ed25519.SecretKey () where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
 import qualified System.IO.Unsafe      as Unsafe

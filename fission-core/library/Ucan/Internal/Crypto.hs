@@ -1,4 +1,4 @@
-module Fission.Internal.Crypto
+module Ucan.Internal.Crypto
   ( base64ToEd25519Signature
   , base64ToEd25519PK
   ) where
@@ -6,8 +6,9 @@ module Fission.Internal.Crypto
 import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519 as Crypto.Ed25519
 
+import           Ucan.Internal.Base64.Scrubbed as B64.Scrubbed
+
 import           Fission.Prelude
-import           Fission.Internal.Base64.Scrubbed as B64.Scrubbed
 
 base64ToEd25519Signature :: ByteString -> CryptoFailable Crypto.Ed25519.Signature
 base64ToEd25519Signature = Crypto.Ed25519.signature . B64.Scrubbed.scrubB64

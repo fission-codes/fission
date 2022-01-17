@@ -1,6 +1,6 @@
 -- | Helpers for working with Base64URL-encoded strings
 
-module Fission.Internal.Base64.URL
+module Ucan.Internal.Base64.URL
   ( decode
   , encode
   , encodeBS
@@ -21,8 +21,7 @@ import qualified RIO.Text.Partial        as Text.Partial
 
 import           Fission.Prelude         hiding (decode, encode)
 
-import qualified Fission.Internal.Base64 as B64
-import qualified Fission.Internal.UTF8   as UTF8
+import qualified Ucan.Internal.Base64 as B64
 
 -- | Go from Base64URL to Base64
 decode :: Text -> Text
@@ -43,11 +42,16 @@ encodeJWT :: (ToJSON a, ToJSON b) => a -> b -> Text
 encodeJWT a b = decodeUtf8Lenient $ encodeJWTPart a <> "." <> encodeJWTPart b
 
 encodeJWTPart :: ToJSON a => a -> ByteString
-encodeJWTPart = UTF8.stripPadding . encodeBS . B64.toB64ByteString . Lazy.toStrict . dropWrapper "\"" . JSON.encode
+encodeJWTPart = stripPadding . encodeBS . B64.toB64ByteString . Lazy.toStrict . dropWrapper "\"" . JSON.encode
   where
     dropWrapper wrapper bs = dropSuffix wrapper $ dropPrefix wrapper bs
     dropPrefix  prefix  bs = maybe bs identity $ Lazy.stripPrefix prefix bs
     dropSuffix  suffix  bs = maybe bs identity $ Lazy.stripSuffix suffix bs
+    stripOptionalSuffixBS sfx bs = maybe bs identity $ Strict.stripSuffix sfx bs
+    stripPadding  =
+        stripOptionalSuffixBS "=" -- per RFC7515
+      . stripOptionalSuffixBS "=" -- incase they trail
+      . stripOptionalSuffixBS "=" -- incase they trail
 
 addPadding :: ByteString -> ByteString
 addPadding bs = BS.pack padded

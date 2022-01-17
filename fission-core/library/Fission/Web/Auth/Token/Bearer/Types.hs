@@ -13,7 +13,7 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.Base64.URL as B64.URL
+import qualified Ucan.Internal.Base64.URL as B64.URL
 
 import qualified Web.JWT.RawContent          as JWT
 import           Web.JWT.Types

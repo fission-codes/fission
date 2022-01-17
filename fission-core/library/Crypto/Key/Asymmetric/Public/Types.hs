@@ -13,8 +13,8 @@ import           Fission.Prelude                              hiding (length)
 
 import           Crypto.Key.Asymmetric.RSA2048.Pair.Types     as Pair
 
-import           Fission.Internal.Orphanage.Ed25519.PublicKey ()
-import           Fission.Internal.Orphanage.RSA2048.Public    ()
+import           Ucan.Internal.Orphanage.Ed25519.PublicKey ()
+import           Ucan.Internal.Orphanage.RSA2048.Public    ()
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey

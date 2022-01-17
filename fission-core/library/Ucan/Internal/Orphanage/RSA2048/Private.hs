@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.RSA2048.Private () where
+module Ucan.Internal.Orphanage.RSA2048.Private () where
 
 import qualified RIO.ByteString.Lazy as Lazy
 

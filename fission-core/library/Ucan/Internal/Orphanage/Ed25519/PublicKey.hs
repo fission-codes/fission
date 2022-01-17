@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.Ed25519.PublicKey () where
+module Ucan.Internal.Orphanage.Ed25519.PublicKey () where
 
 import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519                        as Ed25519
@@ -10,8 +10,9 @@ import qualified RIO.Text                                     as Text
 
 import           Servant.API
 
-import qualified Fission.Internal.Base64                      as B64
-import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import qualified Ucan.Internal.Base64                      as B64
+import           Ucan.Internal.Orphanage.Ed25519.SecretKey ()
+
 import           Fission.Prelude
 
 instance Display Ed25519.PublicKey where

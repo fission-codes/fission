@@ -1,6 +1,6 @@
 -- | "Scrubbed bytes" don't show up in the console
 
-module Fission.Internal.Base64.Scrubbed
+module Ucan.Internal.Base64.Scrubbed
   ( scrub
   , scrubB64
 

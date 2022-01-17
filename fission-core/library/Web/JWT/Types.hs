@@ -40,7 +40,7 @@ import           Fission.Key                                      as Key
 
 import qualified Crypto.Key.Asymmetric.Algorithm.Types            as Algorithm
 import qualified Crypto.Key.Asymmetric.RSA2048.Pair.Types         as RSA2048
-import qualified Fission.Internal.Base64.URL                      as B64.URL
+import qualified Ucan.Internal.Base64.URL                      as B64.URL
 import qualified Fission.Internal.UTF8                            as UTF8
 
 import           Web.DID.Types
@@ -55,7 +55,7 @@ import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import           Fission.Internal.Orphanage.Ed25519.SecretKey     ()
+import           Ucan.Internal.Orphanage.Ed25519.SecretKey     ()
 
 -- Reexports
 

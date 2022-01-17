@@ -5,7 +5,7 @@ module Web.JWT.Header.Types
 
   -- * Reexports
 
-  , module Fission.Key.Asymmetric.Algorithm.Types
+  , module Crypto.Key.Asymmetric.Algorithm.Types
   ) where
 
 import           Fission.Prelude

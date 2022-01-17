@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.Ed25519.Signature () where
+module Ucan.Internal.Orphanage.Ed25519.Signature () where
+
+import qualified RIO.Text as Text
 
 import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519       as Ed25519
@@ -9,10 +11,9 @@ import qualified Data.ByteString.Base64.URL  as BS.B64.URL
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.Base64     as Base64
-import qualified Fission.Internal.Base64.URL as Base64.URL
-import qualified Fission.Internal.Crypto     as Crypto
-import qualified Fission.Internal.UTF8       as UTF8
+import qualified Ucan.Internal.Base64     as Base64
+import qualified Ucan.Internal.Base64.URL as Base64.URL
+import qualified Ucan.Internal.Crypto     as Crypto
 
 instance Display Ed25519.Signature where
   textDisplay sig =
@@ -21,11 +22,14 @@ instance Display Ed25519.Signature where
       |> BS.B64.URL.encodeUnpadded
       |> decodeUtf8Lenient
       -- Initial human readable text
-      |> UTF8.stripOptionalPrefix "Signature \""
-      |> UTF8.stripOptionalPrefix "\""
+      |> stripOptionalPrefix "Signature \""
+      |> stripOptionalPrefix "\""
       -- End quotes
-      |> UTF8.stripOptionalSuffix "\""
-      |> UTF8.stripOptionalSuffix "\""
+      |> stripOptionalSuffix "\""
+      |> stripOptionalSuffix "\""
+    where
+      stripOptionalPrefix pfx txt = maybe txt identity $ Text.stripPrefix pfx txt
+      stripOptionalSuffix sfx txt = maybe txt identity $ Text.stripSuffix sfx txt
 
 instance ToJSON Ed25519.Signature where
   toJSON = String . textDisplay

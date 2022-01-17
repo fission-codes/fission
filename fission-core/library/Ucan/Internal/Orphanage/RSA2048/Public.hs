@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.RSA2048.Public () where
+module Ucan.Internal.Orphanage.RSA2048.Public () where
 
 import qualified System.IO.Unsafe         as Unsafe
 

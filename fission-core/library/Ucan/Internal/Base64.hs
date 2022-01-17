@@ -1,4 +1,4 @@
-module Fission.Internal.Base64
+module Ucan.Internal.Base64
   ( toB64ByteString
   , toByteString
   ) where

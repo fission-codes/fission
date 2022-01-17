@@ -7,7 +7,7 @@ import           Fission.Prelude
 
 import qualified Fission.Internal.UTF8 as UTF8
 
-import           Fission.Key           as Key
+import           Crypto.Key.Asymmetric as Key
 import           Web.DID.Method.Types
 import           Web.DID.Types
 

@@ -6,7 +6,7 @@ import           Data.ByteArray
 
 import           Fission.Prelude                              hiding (length)
 
-import           Fission.Internal.Orphanage.Ed25519.Signature ()
+import           Ucan.Internal.Orphanage.Ed25519.Signature ()
 import qualified Web.JWT.Signature.RS256.Types                as RS256
 
 data Signature
