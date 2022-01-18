@@ -146,6 +146,7 @@ dependencies:
 
   ## Web ##
   - dns
+  - hs-ucan
   - ipfs
   - mime-types
   - path-pieces

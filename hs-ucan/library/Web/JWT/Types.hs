@@ -69,6 +69,9 @@ data JWT fct rsc = JWT
   , sig    :: Signature.Signature
   } deriving (Show, Eq)
 
+instance (Show fct, Show rsc) => Display (JWT fct rsc) where
+  textDisplay = Text.pack . show
+
 instance
   ( Arbitrary fct
   , Arbitrary rsc

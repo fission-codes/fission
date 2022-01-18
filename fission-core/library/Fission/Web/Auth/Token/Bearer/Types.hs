@@ -16,7 +16,9 @@ import           Fission.Prelude
 import qualified Ucan.Internal.Base64.URL as B64.URL
 
 import qualified Web.JWT.RawContent       as JWT
-import           Web.JWT.Types
+import qualified Web.JWT.Types as JWT
+
+import Fission.Web.Auth.Token.JWT.Types
 
 data Token = Token
   { jwt        :: JWT            -- ^ The actual token
@@ -29,17 +31,17 @@ instance Ord Token where
 
 instance Arbitrary Token where
   arbitrary = do
-    jwt@JWT {..} <- arbitrary
+    jwt@(FissionJWT (JWT.JWT {..})) <- arbitrary
     return Token
       { jwt
-      , rawContent = RawContent $ B64.URL.encodeJWT header claims
+      , rawContent = JWT.RawContent $ B64.URL.encodeJWT header claims
       }
 
 instance Display Token where
   textDisplay = toUrlPiece
 
 instance ToJSON Token where
-  toJSON Token {jwt = JWT {sig}, rawContent} =
+  toJSON Token {jwt = FissionJWT (JWT.JWT {sig}), rawContent} =
     String $ "Bearer " <> textDisplay rawContent <> "." <> textDisplay sig
 
 instance FromJSON Token where
@@ -76,11 +78,11 @@ newtype BareToken = BareToken Token
   deriving (Eq, Show)
 
 instance Display BareToken where
-  textDisplay (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  textDisplay (BareToken Token {jwt = FissionJWT (JWT.JWT {sig}), rawContent}) =
     utf8BuilderToText $ display rawContent <> "." <> display sig
 
 instance ToJSON BareToken where
-  toJSON (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  toJSON (BareToken Token {jwt = FissionJWT (JWT.JWT {sig}), rawContent}) =
     String $ textDisplay rawContent <> "." <> textDisplay sig
 
 instance FromJSON BareToken where
@@ -89,11 +91,11 @@ instance FromJSON BareToken where
     return $ BareToken Token { jwt, rawContent = JWT.contentOf txt }
 
 instance MimeRender PlainText BareToken where
-  mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  mimeRender _ (BareToken Token {jwt = FissionJWT (JWT.JWT {sig}), rawContent}) =
     buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeRender OctetStream BareToken where
-  mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  mimeRender _ (BareToken Token {jwt = FissionJWT (JWT.JWT {sig}), rawContent}) =
     buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeUnrender PlainText BareToken  where

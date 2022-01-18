@@ -14,8 +14,8 @@ import           Servant.API
 
 
 import           Fission.Authorization.ServerDID.Class
-import qualified Fission.Internal.Time                 as Time
 import           Fission.Prelude
+import qualified Ucan.Internal.Time                 as Time
 
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 import           Fission.Web.Auth.Token.JWT            as JWT
@@ -31,7 +31,7 @@ newtype InTimeBounds a = InTimeBounds { unwrap :: Identity a }
     , Show
     )
 
-instance Proof.Resolver InTimeBounds where
+instance Proof.Resolver InTimeBounds Fact (Scope Resource) where
   resolve = error "shouldn't hit this in our specific case"
 
 instance ServerDID InTimeBounds where

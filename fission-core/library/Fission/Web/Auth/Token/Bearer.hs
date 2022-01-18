@@ -7,6 +7,8 @@ module Fission.Web.Auth.Token.Bearer
 
 import qualified RIO.ByteString.Lazy                 as Lazy
 
+import qualified Web.JWT.Types as JWT
+
 import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.JWT
@@ -22,5 +24,5 @@ fromJWT jwt =
         }
 
 toProof :: Maybe Token -> Proof
-toProof Nothing           = RootCredential
-toProof (Just Token {..}) = Nested rawContent jwt
+toProof Nothing           = JWT.RootCredential
+toProof (Just Token {..}) = JWT.Nested rawContent (unFissionJWT jwt)

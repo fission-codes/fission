@@ -6,6 +6,11 @@ import           Fission.Error.NotFound.Types
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
+import qualified RIO.Text as Text
+import qualified Data.Bits                                        as Bits
+import qualified RIO.ByteString                                   as BS
+import qualified RIO.List                                         as List
+
 import Web.JWT.Proof.Class
 
 data Resource
@@ -55,7 +60,7 @@ instance FromJSON Resource where
 instance Display (NotFound Resource) where
   display _ = "No UCAN resource provided (closed UCAN)"
 
-instance ResourceSemantics Resource Error where
+instance ResourceSemantics Resource where
   canDelegate rsc rscProof =
     case (rsc, rscProof) of
       (FissionFileSystem path, FissionFileSystem proofPath) ->

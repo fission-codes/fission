@@ -7,8 +7,12 @@ module Fission.Web.Auth.Token.JWT
   , simpleWNFS
   , proveWNFS
   , prettyPrintGrants
-  , module Web.JWT.Types
+  , module Fission.Web.Auth.Token.JWT.Types
+  , module Fission.Web.Auth.Token.JWT.Fact.Types
+  , module Fission.Web.Auth.Token.UCAN.Resource.Types
+  , module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
   , module Web.JWT.Error
+  , module Web.JWT.RawContent
   ) where
 
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
@@ -23,39 +27,39 @@ import           Fission.Authorization                            as Authorizati
 import           Crypto.Key.Asymmetric.Algorithm.Types            as Key
 import qualified Crypto.Key.Asymmetric.Public.Types               as Asymmetric
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
-
-import           Fission.Web.Auth.Token.JWT.Fact.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-
 import           Web.DID.Types                                    as DID
 import qualified Web.JWT.Header.Typ.Types                         as JWT.Typ
 import qualified Web.JWT.Resolver                                 as JWT
 import qualified Web.JWT.Resolver.Class                           as Proof
 import qualified Web.JWT.Resolver.Error                           as Resolver
-import           Web.JWT.Types                                    as JWT
+import qualified Web.JWT.Types                                    as JWT
+
+import           Fission.Web.Auth.Token.JWT.Types
+import           Fission.Web.Auth.Token.JWT.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 -- Reexports
 
 import           Web.JWT.Error
-import           Web.JWT.Types
+import Web.JWT.RawContent
 
-getRoot :: JWT.Resolver m => JWT -> m (Either Resolver.Error JWT)
-getRoot jwt@JWT {claims = Claims {proof}} =
+getRoot :: JWT.Resolver m Fact (Scope Resource) => JWT -> m (Either Resolver.Error JWT)
+getRoot jwt@(FissionJWT (JWT.JWT {claims = JWT.Claims {proof}})) =
   case proof of
-    RootCredential ->
+    JWT.RootCredential ->
       return $ Right jwt
 
-    Nested _ proofJWT ->
-      getRoot proofJWT
+    JWT.Nested _ proofJWT ->
+      getRoot (FissionJWT proofJWT)
 
-    Reference cid ->
+    JWT.Reference cid ->
       Proof.resolve cid >>= \case
-        Right (_, proofJWT) -> getRoot proofJWT
+        Right (_, proofJWT) -> getRoot (FissionJWT proofJWT)
         Left err            -> return $ Left err
 
 getRootDID ::
-  ( JWT.Resolver m
+  ( JWT.Resolver m Fact (Scope Resource)
   , MonadRaise   m
   , m `Raises` Resolver.Error
   )
@@ -63,15 +67,15 @@ getRootDID ::
   -> Proof
   -> m DID
 getRootDID fallbackPK = \case
-  RootCredential ->
+  JWT.RootCredential ->
     return $ DID Key fallbackPK
 
-  Nested _ jwt ->  do
-    JWT {claims = JWT.Claims {sender}} <- ensureM $ getRoot jwt
+  JWT.Nested _ jwt ->  do
+    FissionJWT (JWT.JWT {claims = JWT.Claims {sender}}) <- ensureM $ getRoot (FissionJWT jwt)
     return sender
 
-  Reference cid -> do
-    (_, JWT {claims = JWT.Claims {proof}}) <- ensureM $ Proof.resolve cid
+  JWT.Reference cid -> do
+    (_, JWT.JWT {claims = JWT.Claims {proof}}) <- ensureM $ Proof.resolve cid
     getRootDID fallbackPK proof
 
 simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
@@ -120,9 +124,9 @@ mkUCAN ::
   -> Potency
   -> Proof
   -> JWT
-mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT {..}
+mkUCAN receiver senderSK nbf exp facts resource potency proof = FissionJWT $ JWT.JWT {..}
   where
-    sig = signEd25519 header claims senderSK
+    sig = JWT.signEd25519 header claims senderSK
 
     sender = DID
       { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic senderSK
@@ -139,7 +143,7 @@ mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT {..}
       }
 
 prettyPrintGrants :: JWT -> Text
-prettyPrintGrants JWT {claims = JWT.Claims {..}} =
+prettyPrintGrants (FissionJWT (JWT.JWT {claims = JWT.Claims {..}})) =
   mconcat
     [ textDisplay potency
     , " "

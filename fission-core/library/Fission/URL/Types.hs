@@ -18,7 +18,6 @@ import           Fission.URL.Path.Types
 import           Fission.URL.Subdomain.Types
 
 
-import Ucan.Error.NotFound.Types
 import           Ucan.Error.AlreadyExists.Types
 
 data URL = URL
@@ -41,9 +40,6 @@ instance Display URL where
 
 instance Display (AlreadyExists URL) where
   display _ = "URL already exists"
-
-instance Display (NotFound URL) where
-  display _ = "URL not found in system"
 
 instance Show URL where
   show = Text.unpack . textDisplay

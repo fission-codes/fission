@@ -19,14 +19,15 @@ import qualified Data.X509                as X509
 import           Data.Swagger
 import           Database.Persist
 
-import           RIO
+import           RIO                      hiding (exp)
 import qualified RIO.Text                 as Text
 
 import           Control.Lens             ((?~))
 import           Data.Aeson
 import           Test.QuickCheck
 
-import           Servant.API
+import           Servant.API              (FromHttpApiData (parseUrlPiece),
+                                           ToHttpApiData (toUrlPiece))
 
 instance Arbitrary RSA.PublicKey where
   arbitrary = do
