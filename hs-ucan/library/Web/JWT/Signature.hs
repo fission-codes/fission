@@ -4,9 +4,10 @@ module Web.JWT.Signature
   , module Web.JWT.Signature.Types
   ) where
 
+import           Data.Aeson
 import qualified Data.Aeson.Types                      as JSON
 
-import           Fission.Prelude
+import           RIO
 
 import           Crypto.Key.Asymmetric.Algorithm.Types as Algorithm
 import           Web.JWT.Signature.Types               as Signature

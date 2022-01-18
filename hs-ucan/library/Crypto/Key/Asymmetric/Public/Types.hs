@@ -6,10 +6,12 @@ import qualified Crypto.PubKey.RSA                         as Crypto.RSA
 import           Data.Swagger
 import           Database.Persist.Sql
 
+import           Control.Lens                              ((?~))
+import           Data.Aeson
+import           RIO
 import qualified RIO.Text                                  as Text
 import           Servant.API
-
-import           Fission.Prelude                           hiding (length)
+import           Test.QuickCheck
 
 import           Crypto.Key.Asymmetric.RSA2048.Pair.Types  as Pair
 
@@ -71,7 +73,7 @@ instance PersistFieldSql Public where
 instance ToSchema Public where
   declareNamedSchema _ =
     mempty
-      |> type_ ?~ SwaggerString
-      |> description ?~ "A public key"
-      |> NamedSchema (Just "PublicKey")
-      |> pure
+      & type_ ?~ SwaggerString
+      & description ?~ "A public key"
+      & NamedSchema (Just "PublicKey")
+      & pure

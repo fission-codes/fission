@@ -12,7 +12,7 @@ module Crypto.Key.Asymmetric.RSA2048.Pair.Types
 import           Crypto.PubKey.RSA
 
 import           RIO
-import Test.QuickCheck
+import           Test.QuickCheck
 
 data Pair = Pair
   { pk :: PublicKey

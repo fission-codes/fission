@@ -2,7 +2,9 @@
 
 module Web.JWT.Header.Cty.Types (Cty (..)) where
 
-import           Fission.Prelude
+import           Data.Aeson
+import           RIO
+import           Test.QuickCheck
 
 {- |
 

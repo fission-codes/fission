@@ -3,14 +3,13 @@ module Web.JWT.RawContent
   , module Web.JWT.RawContent.Types
   ) where
 
+import           RIO
 import qualified RIO.Text                 as Text
-
-import           Fission.Prelude
-
-import qualified Fission.Internal.UTF8    as UTF8
 
 import           Web.JWT.RawContent.Types
 
 -- | Smart constructor for 'RawContent'
 contentOf :: Text -> RawContent
-contentOf = RawContent . UTF8.stripOptionalPrefix "\"" . Text.dropEnd 1 . Text.dropWhileEnd (not . (== '.'))
+contentOf = RawContent . stripOptionalPrefix "\"" . Text.dropEnd 1 . Text.dropWhileEnd (not . (== '.'))
+  where
+    stripOptionalPrefix pfx txt = maybe txt id $ Text.stripPrefix pfx txt

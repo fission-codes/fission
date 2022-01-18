@@ -13,7 +13,9 @@ import           Servant.API
 import qualified Ucan.Internal.Base64                      as B64
 import           Ucan.Internal.Orphanage.Ed25519.SecretKey ()
 
-import           Fission.Prelude
+import           Data.Aeson
+import           RIO
+import           Test.QuickCheck
 
 instance Display Ed25519.PublicKey where
   textDisplay = decodeUtf8Lenient . B64.toB64ByteString

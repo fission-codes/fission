@@ -2,12 +2,12 @@
 
 module Crypto.Key.Asymmetric.Algorithm.Types (Algorithm (..)) where
 
-import RIO
+import           RIO
 import qualified RIO.Text             as Text
 
-import Test.QuickCheck
-import Data.Aeson
-import Control.Lens ((?~))
+import           Control.Lens         ((?~))
+import           Data.Aeson
+import           Test.QuickCheck
 
 import           Data.Swagger
 import           Database.Persist.Sql

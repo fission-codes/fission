@@ -1,9 +1,9 @@
 module Web.JWT.Resolver.Error (Error (..)) where
 
 import           Network.IPFS.CID.Types
+import           RIO
 import           Servant.Client.Core
-
-import           Fission.Prelude
+import           Ucan.Internal.Orphanage.ClientError ()
 
 data Error
   = CannotResolve CID ClientError

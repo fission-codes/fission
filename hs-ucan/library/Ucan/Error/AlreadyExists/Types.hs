@@ -1,8 +1,7 @@
-module Fission.Error.AlreadyExists.Types (AlreadyExists (..)) where
+module Ucan.Error.AlreadyExists.Types (AlreadyExists (..)) where
 
 import qualified Crypto.PubKey.Ed25519 as Ed25519
-
-import           Fission.Prelude
+import           RIO
 
 data AlreadyExists entity
   = AlreadyExists

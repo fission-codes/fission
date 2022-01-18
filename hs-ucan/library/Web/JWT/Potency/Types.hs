@@ -1,8 +1,10 @@
 module Web.JWT.Potency.Types (Potency (..)) where
 
+import           RIO
 import qualified RIO.Text        as Text
 
-import           Fission.Prelude
+import           Data.Aeson
+import           Test.QuickCheck
 
 {-
 Maybe appending to the private side requires update permissions?
@@ -33,7 +35,7 @@ instance ToJSON Potency where
 
 instance FromJSON Potency where
   parseJSON Null = pure AuthNOnly
-  parseJSON str  = str |> withText "AuthZ.Potency" \txt ->
+  parseJSON str  = str & withText "AuthZ.Potency" \txt ->
     case Text.toUpper txt of
       "APPEND"     -> pure AppendOnly
       "DESTROY"    -> pure Destructive

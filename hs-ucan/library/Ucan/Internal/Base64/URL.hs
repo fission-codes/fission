@@ -9,17 +9,17 @@ module Ucan.Internal.Base64.URL
   , addPadding
   ) where
 
+import           Data.Aeson           (ToJSON)
 import qualified Data.Aeson           as JSON
 import           Data.Word8
 
+import           RIO
 import qualified RIO.ByteString       as BS
 import qualified RIO.ByteString       as Strict
 import qualified RIO.ByteString.Lazy  as Lazy
-
+import qualified RIO.Char             as Char
 import qualified RIO.List             as List
 import qualified RIO.Text.Partial     as Text.Partial
-
-import           Fission.Prelude      hiding (decode, encode)
 
 import qualified Ucan.Internal.Base64 as B64
 
@@ -45,9 +45,9 @@ encodeJWTPart :: ToJSON a => a -> ByteString
 encodeJWTPart = stripPadding . encodeBS . B64.toB64ByteString . Lazy.toStrict . dropWrapper "\"" . JSON.encode
   where
     dropWrapper wrapper bs = dropSuffix wrapper $ dropPrefix wrapper bs
-    dropPrefix  prefix  bs = maybe bs identity $ Lazy.stripPrefix prefix bs
-    dropSuffix  suffix  bs = maybe bs identity $ Lazy.stripSuffix suffix bs
-    stripOptionalSuffixBS sfx bs = maybe bs identity $ Strict.stripSuffix sfx bs
+    dropPrefix  prefix  bs = maybe bs id $ Lazy.stripPrefix prefix bs
+    dropSuffix  suffix  bs = maybe bs id $ Lazy.stripSuffix suffix bs
+    stripOptionalSuffixBS sfx bs = maybe bs id $ Strict.stripSuffix sfx bs
     stripPadding  =
         stripOptionalSuffixBS "=" -- per RFC7515
       . stripOptionalSuffixBS "=" -- incase they trail
@@ -60,4 +60,4 @@ addPadding bs = BS.pack padded
     n = rem (BS.length bs) 4
 
     padded :: [Word8]
-    padded = BS.unpack bs <> take n (List.repeat . fromIntegral $ ord '=')
+    padded = BS.unpack bs <> take n (List.repeat . fromIntegral $ Char.ord '=')

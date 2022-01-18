@@ -8,7 +8,10 @@ module Web.JWT.Header.Types
   , module Crypto.Key.Asymmetric.Algorithm.Types
   ) where
 
-import           Fission.Prelude
+import           RIO
+
+import           Data.Aeson
+import           Test.QuickCheck
 
 import           Crypto.Key.Asymmetric.Algorithm.Types
 

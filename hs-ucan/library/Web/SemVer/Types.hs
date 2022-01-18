@@ -1,8 +1,11 @@
 module Web.SemVer.Types (SemVer (..)) where
 
+import           RIO
 import qualified RIO.Text        as Text
 
-import           Fission.Prelude
+import           Data.Aeson
+import           Test.QuickCheck
+
 
 -- | Semver broken out by part
 data SemVer = SemVer

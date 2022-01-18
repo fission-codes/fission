@@ -19,11 +19,14 @@ import qualified Data.X509                as X509
 import           Data.Swagger
 import           Database.Persist
 
+import           RIO
 import qualified RIO.Text                 as Text
 
-import           Servant.API
+import           Control.Lens             ((?~))
+import           Data.Aeson
+import           Test.QuickCheck
 
-import           Fission.Prelude
+import           Servant.API
 
 instance Arbitrary RSA.PublicKey where
   arbitrary = do
@@ -33,13 +36,13 @@ instance Arbitrary RSA.PublicKey where
 instance Display RSA.PublicKey where
   textDisplay pk =
     X509.PubKeyRSA pk
-      |> X509.pubKeyToPEM
-      |> PEM.pemWriteBS
-      |> decodeUtf8Lenient
-      |> Text.strip
-      |> Text.dropPrefix pemHeader
-      |> Text.dropSuffix pemFooter
-      |> Text.filter (/= '\n')
+      & X509.pubKeyToPEM
+      & PEM.pemWriteBS
+      & decodeUtf8Lenient
+      & Text.strip
+      & Text.dropPrefix pemHeader
+      & Text.dropSuffix pemFooter
+      & Text.filter (/= '\n')
 
 instance ToHttpApiData RSA.PublicKey where
   toUrlPiece = textDisplay
@@ -70,15 +73,15 @@ instance PersistField RSA.PublicKey where
     Left $ "Invalid Persistent RSA PK: " <> Text.pack (show other)
 
 instance ToParamSchema RSA.PublicKey where
-  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+  toParamSchema _ = mempty & type_ ?~ SwaggerString
 
 instance ToSchema RSA.PublicKey where
   declareNamedSchema _ =
     mempty
-      |> type_ ?~ SwaggerString
-      |> description ?~ "An RSA public key"
-      |> NamedSchema (Just "RSA.PublicKey")
-      |> pure
+      & type_ ?~ SwaggerString
+      & description ?~ "An RSA public key"
+      & NamedSchema (Just "RSA.PublicKey")
+      & pure
 
 pemHeader :: Text
 pemHeader = "-----BEGIN PUBLIC KEY-----"

@@ -37,3 +37,6 @@ instance Display (NotFound Ed25519.SecretKey) where
 
 instance Display (NotFound CID) where
   display _ = "Unable to find CID"
+
+instance Display (NotFound JWT) where
+  display _ = "Unable to find UCAN"

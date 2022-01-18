@@ -4,7 +4,8 @@ import qualified Crypto.PubKey.Ed25519                     as Ed25519
 
 import           Data.ByteArray
 
-import           Fission.Prelude                           hiding (length)
+import           Data.Aeson
+import           RIO                                       hiding (length)
 
 import           Ucan.Internal.Orphanage.Ed25519.Signature ()
 import qualified Web.JWT.Signature.RS256.Types             as RS256

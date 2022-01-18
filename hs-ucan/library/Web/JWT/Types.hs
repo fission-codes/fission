@@ -32,15 +32,13 @@ import qualified RIO.Text                                         as Text
 
 import qualified Servant.API                                      as Servant
 
-import           Fission.Prelude
+import           RIO
 
-import           Fission.Error.NotFound.Types
-
-import           Fission.Key                                      as Key
+import           Crypto.Key.Asymmetric                                      as Key
 
 import qualified Crypto.Key.Asymmetric.Algorithm.Types            as Algorithm
 import qualified Crypto.Key.Asymmetric.RSA2048.Pair.Types         as RSA2048
-import qualified Fission.Internal.UTF8                            as UTF8
+import qualified Ucan.Internal.UTF8                            as UTF8
 import qualified Ucan.Internal.Base64.URL                         as B64.URL
 
 import           Web.DID.Types
@@ -128,9 +126,6 @@ instance Servant.ToHttpApiData JWT where
       |> Lazy.toStrict
       |> decodeUtf8Lenient
       |> UTF8.stripQuotes
-
-instance Display (NotFound JWT) where
-  display _ = "Unable to find UCAN"
 
 ------------
 -- Claims --

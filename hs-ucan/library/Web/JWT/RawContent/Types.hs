@@ -1,6 +1,7 @@
 module Web.JWT.RawContent.Types (RawContent (..)) where
 
-import           Fission.Prelude
+import           Data.Aeson
+import           RIO
 
 -- | Newtype wrapper for raw content (i.e. the part that gets signed & verified)
 newtype RawContent = RawContent { unRawContent :: Text }

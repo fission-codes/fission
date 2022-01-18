@@ -4,27 +4,32 @@ module Web.DID.Types
   , module Web.DID.Method.Types
   ) where
 
-import qualified Data.Aeson.Types                  as JSON
+import           Data.Aeson                     as JSON
+import qualified Data.Aeson.Types               as JSON
 import           Data.Swagger
 
-import           Data.Base58String.Bitcoin         as BS58.BTC
-import           Data.Binary                       hiding (encode)
-import qualified Data.ByteArray                    as BA
-import qualified Data.ByteString.Base64            as BS64
-import           Data.Hashable                     (Hashable (..))
+import           Control.Lens                   ((?~))
+import           Test.QuickCheck
+
+import           Data.Base58String.Bitcoin      as BS58.BTC
+import           Data.Binary                    hiding (encode)
+import qualified Data.ByteArray                 as BA
+import qualified Data.ByteString.Base64         as BS64
+import           Data.Hashable                  (Hashable (..))
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519             as Ed25519
+import qualified Crypto.PubKey.Ed25519          as Ed25519
 
-import qualified RIO.ByteString                    as BS
-import qualified RIO.Text                          as Text
+import           RIO
+import qualified RIO.ByteString                 as BS
+import qualified RIO.Text                       as Text
+
+import qualified Ucan.Internal.UTF8             as UTF8
 
 import           Servant.API
 
-import           Fission.Prelude
-
-import           Crypto.Key.Asymmetric             as Key (Public (..))
-import           Fission.Error.AlreadyExists.Types
+import           Crypto.Key.Asymmetric          as Key (Public (..))
+import           Ucan.Error.AlreadyExists.Types
 import           Web.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
@@ -91,7 +96,7 @@ instance Hashable DID where
   hashWithSalt salt did = hashWithSalt salt $ textDisplay did
 
 instance ToParamSchema DID where
-  toParamSchema _ = mempty |> type_ ?~ SwaggerString
+  toParamSchema _ = mempty & type_ ?~ SwaggerString
 
 instance ToHttpApiData DID where
   toUrlPiece = textDisplay
@@ -103,7 +108,7 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DID method pk) = header <> BS58.BTC.toText (BS58.BTC.fromBytes $ BS.pack multicodecW8)
+  textDisplay (DID method pk) = header <> UTF8.toBase58Text (BS.pack multicodecW8)
     where
       header :: Text
       header = "did:" <> textDisplay method <> ":" <> "z"

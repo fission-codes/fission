@@ -3,7 +3,10 @@ module Web.JWT.Signature.RS256.Types (Signature (..)) where
 import           Data.ByteArray
 import qualified Data.ByteString.Base64.URL as B64.URL
 
-import           Fission.Prelude            hiding (length)
+import           Data.Aeson
+import           RIO                        hiding (length)
+import           Test.QuickCheck
+import           Test.QuickCheck.Instances  ()
 
 newtype Signature = Signature { unSignature :: ByteString }
   deriving (Eq, Show)

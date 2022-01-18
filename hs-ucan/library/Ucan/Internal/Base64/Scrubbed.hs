@@ -11,9 +11,8 @@ module Ucan.Internal.Base64.Scrubbed
 
 import qualified Data.ByteArray         as BA
 import qualified Data.ByteString.Base64 as BS64
+import           RIO
 import qualified RIO.ByteString         as BS
-
-import           Fission.Prelude
 
 -- Reexports
 

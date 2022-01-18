@@ -2,7 +2,10 @@
 
 module Ucan.Internal.Orphanage.RSA2048.Private () where
 
+import           RIO
 import qualified RIO.ByteString.Lazy as Lazy
+
+import           Test.QuickCheck
 
 import           Data.Binary         as Binary
 import           Data.ByteArray      as ByteArray
@@ -12,8 +15,6 @@ import qualified Crypto.PubKey.RSA   as RSA
 import qualified OpenSSL.RSA         as OpenSSL
 
 import qualified System.IO.Unsafe    as Unsafe
-
-import           Fission.Prelude
 
 instance Arbitrary RSA.PrivateKey where
   arbitrary =

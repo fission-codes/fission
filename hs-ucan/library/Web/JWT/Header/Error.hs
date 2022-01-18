@@ -1,6 +1,6 @@
 module Web.JWT.Header.Error (Error (..)) where
 
-import           Fission.Prelude
+import           RIO
 
 data Error
   = UnsupportedVersion

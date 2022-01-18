@@ -1,6 +1,8 @@
 module Web.DID.Method.Types (Method (..)) where
 
-import           Fission.Prelude
+import           Data.Aeson
+import           RIO
+import           Test.QuickCheck
 
 data Method
   = Key

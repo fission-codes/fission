@@ -2,9 +2,7 @@ module Crypto.Key.Asymmetric.Public (genRSA2048) where
 
 import qualified Crypto.PubKey.RSA                       as RSA
 import qualified OpenSSL.RSA                             as OpenSSL
-
-import           Fission.Prelude
-
+import           RIO
 import           Ucan.Internal.Orphanage.RSA2048.Private ()
 
 genRSA2048 :: MonadIO m => m RSA.PrivateKey

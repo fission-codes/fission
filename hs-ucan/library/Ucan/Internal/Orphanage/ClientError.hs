@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Fission.Internal.Orphanage.ClientError () where
+module Ucan.Internal.Orphanage.ClientError () where
 
 import           RIO
 
