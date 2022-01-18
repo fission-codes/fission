@@ -29,7 +29,6 @@ import qualified Ucan.Internal.UTF8             as UTF8
 import           Servant.API
 
 import           Crypto.Key.Asymmetric          as Key (Public (..))
-import           Ucan.Error.AlreadyExists.Types
 import           Web.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
@@ -129,9 +128,6 @@ instance ToJSON DID where
 
 instance FromJSON DID where
   parseJSON = withText "DID" parseText
-
-instance Display (AlreadyExists DID) where
-  display _ = "DID already exists / account already created"
 
 instance ToJSONKey DID where
   toJSONKey = JSON.toJSONKeyText textDisplay

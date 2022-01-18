@@ -17,8 +17,7 @@ import           Fission.URL.DomainName.Types
 import           Fission.URL.Path.Types
 import           Fission.URL.Subdomain.Types
 
-
-import           Ucan.Error.AlreadyExists.Types
+import           Fission.Error.AlreadyExists.Types
 
 data URL = URL
   { domainName :: DomainName
