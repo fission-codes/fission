@@ -28,6 +28,6 @@ jsonRSA2048Sig :: Text
 jsonRSA2048Sig = "fe_x_Z7iR8oOzQK3fC39RwhaFgKXwVQGQHrVoJIfwSHEDZXvtH7fQKS5lc-cgj7Xw508AkjYUf8tEXm6RS223f_ZJHjcf6YwaKQYrJsV7fFfnAB6yYIar7l5bjUTr0yW003wpZLv-WXwGV3AIA7-nqVajLOkgSnCR6NIhF7L9jD-RhVJ-GzqpdKCHHFDQeDgf0twZ4OVpccnZPJSe7st7YzW3p7FhSHnsnFTR5YRflYGDlYH517eSeBAqlludWSlrhnROMObW9B1GFHh_Ye53ougxv31xIlD-OCF13PiiIxJT935w0ttAVfqq7ESiNPuzpUSxqn-Qkp5a-h81UDSxw"
 
 tokenRSA2048 :: Bearer.Token
-jwtRSA2048   :: JWT
+jwtRSA2048   :: FissionJWT
 
 Right tokenRSA2048@(Bearer.Token jwtRSA2048 _) = parseUrlPiece jsonRSA2048

@@ -2,7 +2,6 @@ module Fission.Web.Auth.Token.UCAN.Resource.Types (Resource (..)) where
 
 import           Fission.Prelude
 
-import           Fission.Error.NotFound.Types
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
@@ -56,9 +55,6 @@ instance FromJSON Resource where
     case wnfs <|> floofs <|> app <|> url of
       Just parsed -> return parsed
       Nothing     -> fail "Does not match any known Fission resource"
-
-instance Display (NotFound Resource) where
-  display _ = "No UCAN resource provided (closed UCAN)"
 
 instance ResourceSemantics Resource where
   canDelegate rsc rscProof =

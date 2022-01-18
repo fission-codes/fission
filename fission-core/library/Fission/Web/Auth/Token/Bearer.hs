@@ -17,7 +17,7 @@ import           Fission.Web.Auth.Token.JWT
 
 import           Fission.Web.Auth.Token.Bearer.Types
 
-fromJWT :: JWT -> Token
+fromJWT :: FissionJWT -> Token
 fromJWT jwt =
   Token { jwt
         , rawContent = contentOf . decodeUtf8Lenient . Lazy.toStrict $ encode jwt
@@ -25,4 +25,4 @@ fromJWT jwt =
 
 toProof :: Maybe Token -> Proof
 toProof Nothing           = JWT.RootCredential
-toProof (Just Token {..}) = JWT.Nested rawContent (unFissionJWT jwt)
+toProof (Just Token {..}) = JWT.Nested rawContent jwt

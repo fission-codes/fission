@@ -44,18 +44,18 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Web.JWT.Error
 import           Web.JWT.RawContent
 
-getRoot :: JWT.Resolver m Fact (Scope Resource) => JWT -> m (Either Resolver.Error JWT)
-getRoot jwt@(FissionJWT (JWT.JWT {claims = JWT.Claims {proof}})) =
+getRoot :: JWT.Resolver m Fact (Scope Resource) => FissionJWT -> m (Either Resolver.Error FissionJWT)
+getRoot jwt@JWT.JWT {claims = JWT.Claims {proof}} =
   case proof of
     JWT.RootCredential ->
       return $ Right jwt
 
     JWT.Nested _ proofJWT ->
-      getRoot (FissionJWT proofJWT)
+      getRoot proofJWT
 
     JWT.Reference cid ->
       Proof.resolve cid >>= \case
-        Right (_, proofJWT) -> getRoot (FissionJWT proofJWT)
+        Right (_, proofJWT) -> getRoot proofJWT
         Left err            -> return $ Left err
 
 getRootDID ::
@@ -71,14 +71,14 @@ getRootDID fallbackPK = \case
     return $ DID Key fallbackPK
 
   JWT.Nested _ jwt ->  do
-    FissionJWT (JWT.JWT {claims = JWT.Claims {sender}}) <- ensureM $ getRoot (FissionJWT jwt)
+    JWT.JWT {claims = JWT.Claims {sender}} <- ensureM $ getRoot jwt
     return sender
 
   JWT.Reference cid -> do
     (_, JWT.JWT {claims = JWT.Claims {proof}}) <- ensureM $ Proof.resolve cid
     getRootDID fallbackPK proof
 
-simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
+simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> FissionJWT
 simpleWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
@@ -89,7 +89,7 @@ simpleWNFS now receiverDID sk facts proof =
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
 
-proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> JWT
+proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> FissionJWT
 proveWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
@@ -100,14 +100,14 @@ proveWNFS now receiverDID sk facts proof =
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
 
-delegateAppendAll :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> JWT
+delegateAppendAll :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> FissionJWT
 delegateAppendAll targetDID sk proof now =
   mkUCAN targetDID sk start expire [] (Just Complete) AppendOnly proof
   where
     start  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expire = addUTCTime (nominalDay * 365 * 255)         now
 
-delegateSuperUser :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> JWT
+delegateSuperUser :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> FissionJWT
 delegateSuperUser targetDID sk proof now =
   mkUCAN targetDID sk start expire [] (Just Complete) SuperUser proof
   where
@@ -123,8 +123,8 @@ mkUCAN ::
   -> Maybe (Scope Resource)
   -> Potency
   -> Proof
-  -> JWT
-mkUCAN receiver senderSK nbf exp facts resource potency proof = FissionJWT $ JWT.JWT {..}
+  -> FissionJWT
+mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT.JWT {..}
   where
     sig = JWT.signEd25519 header claims senderSK
 
@@ -142,8 +142,8 @@ mkUCAN receiver senderSK nbf exp facts resource potency proof = FissionJWT $ JWT
       , uav = Authorization.latestVersion
       }
 
-prettyPrintGrants :: JWT -> Text
-prettyPrintGrants (FissionJWT (JWT.JWT {claims = JWT.Claims {..}})) =
+prettyPrintGrants :: FissionJWT -> Text
+prettyPrintGrants JWT.JWT {claims = JWT.Claims {..}} =
   mconcat
     [ textDisplay potency
     , " "
