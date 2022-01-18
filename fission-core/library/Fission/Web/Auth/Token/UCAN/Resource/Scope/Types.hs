@@ -2,10 +2,18 @@ module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types (Scope (..)) where
 
 import           Fission.Prelude
 
+import Web.JWT.Proof.Class
+
+
 data Scope subset
   = Complete
   | Subset subset
   deriving (Eq, Ord, Show)
+
+instance ResourceSemantics rsc => ResourceSemantics (Scope rsc) where
+  Complete          `canDelegate` _            = True
+  (Subset _)        `canDelegate` Complete     = False
+  (Subset rscProof) `canDelegate` (Subset rsc) = rscProof `canDelegate` rsc
 
 instance Arbitrary subset => Arbitrary (Scope subset) where
   arbitrary =

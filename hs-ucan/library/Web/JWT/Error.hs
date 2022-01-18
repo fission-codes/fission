@@ -1,6 +1,7 @@
 module Web.JWT.Error (Error (..)) where
 
-import           Fission.Prelude
+import           RIO
+import Data.Aeson
 
 import qualified Web.JWT.Claims.Error    as Claims
 import qualified Web.JWT.Header.Error    as Header

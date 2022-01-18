@@ -1,6 +1,6 @@
 module Web.JWT.Proof.Error (Error (..)) where
 
-import           Fission.Prelude
+import           RIO
 
 import qualified Web.JWT.Resolver as JWT.Resolver
 

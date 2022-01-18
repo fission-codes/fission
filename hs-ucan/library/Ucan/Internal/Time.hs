@@ -1,4 +1,4 @@
-module Fission.Internal.Time
+module Ucan.Internal.Time
   ( roundUTC
   , toSeconds
   , fromSeconds

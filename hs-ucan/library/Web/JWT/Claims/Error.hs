@@ -1,6 +1,6 @@
 module Web.JWT.Claims.Error (Error (..)) where
 
-import           Fission.Prelude
+import           RIO
 
 import qualified Web.JWT.Proof.Error as Proof
 

@@ -8,60 +8,57 @@ module Web.JWT.Proof
   -- * Reexport
 
   , module Web.JWT.Proof.Error
+  , module Web.JWT.Proof.Class
   ) where
 
-import           Fission.Prelude
+import           RIO hiding (exp)
 
+import           Web.JWT.Proof.Class
 import           Web.JWT.Proof.Error
-import           Web.JWT.Proof.WNFS
 import           Web.JWT.Types                                    as JWT
 
-import           Fission.Web.Auth.Token.JWT.Fact.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
-delegatedInBounds :: JWT -> JWT -> Either Error JWT
+delegatedInBounds :: ResourceSemantics rsc => JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
 delegatedInBounds  jwt prfJWT = do
   signaturesMatch  jwt prfJWT
   resourceInSubset jwt prfJWT
   potencyInSubset  jwt prfJWT
   timeInSubset     jwt prfJWT
 
-signaturesMatch :: JWT -> JWT -> Either Error JWT
+signaturesMatch :: JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
 signaturesMatch jwt prfJWT =
-  if (jwt |> claims |> sender) == (prfJWT |> claims |> receiver)
+  if (jwt & claims & sender) == (prfJWT & claims & receiver)
     then Right jwt
     else Left InvalidSignatureChain
 
-resourceInSubset :: JWT -> JWT -> Either Error JWT
+resourceInSubset :: ResourceSemantics rsc => JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
 resourceInSubset jwt prfJWT =
-  case ((jwt |> claims |> resource), (prfJWT |> claims |> resource)) of
-    (Nothing,           _)                      -> Right jwt
-    (_,                 Just Complete)          -> Right jwt
-    (Just (Subset rsc), Just (Subset rscProof)) -> compareSubsets jwt rsc rscProof
-    _                                           -> Left ScopeOutOfBounds
+  if (prfJWT & claims & resource) `canDelegate` (jwt & claims & resource)
+    then Right jwt
+    else Left ScopeOutOfBounds
 
-potencyInSubset :: JWT -> JWT -> Either Error JWT
+potencyInSubset :: JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
 potencyInSubset jwt prfJWT =
-  if (jwt |> claims |> potency) <= (prfJWT |> claims |> potency)
+  if (jwt & claims & potency) <= (prfJWT & claims & potency)
     then Right jwt
     else Left PotencyEscelation
 
-timeInSubset :: JWT -> JWT -> Either Error JWT
+timeInSubset :: JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
 timeInSubset jwt prfJWT =
   if startBoundry && expiryBoundry
     then Right jwt
     else Left TimeNotSubset
 
   where
-    startBoundry  = (jwt |> claims |> nbf) >= (prfJWT |> claims |> nbf)
-    expiryBoundry = (jwt |> claims |> exp) <= (prfJWT |> claims |> exp)
+    startBoundry  = (jwt & claims & nbf) >= (prfJWT & claims & nbf)
+    expiryBoundry = (jwt & claims & exp) <= (prfJWT & claims & exp)
 
-containsFact :: JWT -> ([Fact] -> Either Error ()) -> Either Error JWT
+containsFact :: JWT fct rsc -> ([fct] -> Either Error ()) -> Either Error (JWT fct rsc)
 containsFact jwt factChecker =
   jwt
-    |> claims
-    |> facts
-    |> factChecker
-    |> \case
+    & claims
+    & facts
+    & factChecker
+    & \case
         Left err -> Left err
         Right () -> Right jwt
