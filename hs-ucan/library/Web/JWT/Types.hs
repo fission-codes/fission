@@ -33,8 +33,8 @@ import qualified RIO.Text                                  as Text
 
 import qualified Servant.API                               as Servant
 
-import           RIO hiding (exp)
-import RIO.Time
+import           RIO                                       hiding (exp)
+import           RIO.Time
 
 
 import           Test.QuickCheck
@@ -44,8 +44,8 @@ import           Crypto.Key.Asymmetric                     as Key
 import qualified Crypto.Key.Asymmetric.Algorithm.Types     as Algorithm
 import qualified Crypto.Key.Asymmetric.RSA2048.Pair.Types  as RSA2048
 import qualified Ucan.Internal.Base64.URL                  as B64.URL
+import           Ucan.Internal.Time
 import qualified Ucan.Internal.UTF8                        as UTF8
-import Ucan.Internal.Time
 
 import           Web.DID.Types
 import           Web.JWT.Potency.Types
@@ -176,7 +176,7 @@ instance (Eq fct, Eq rsc) => Eq (Claims fct rsc) where
 
       eqFacts = facts jwtA == facts jwtB
 
-instance 
+instance
   ( Arbitrary fct
   , Arbitrary rsc
   , ToJSON fct

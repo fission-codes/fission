@@ -3,7 +3,7 @@ module Web.JWT.Header
   , module Web.JWT.Header.Types
   ) where
 
-import RIO
+import           RIO
 
 import           Crypto.Key.Asymmetric.Algorithm.Types
 import           Web.SemVer.Types

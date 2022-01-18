@@ -2,7 +2,7 @@ module Web.JWT.Proof.Class
   ( ResourceSemantics(..)
   ) where
 
-import RIO
+import           RIO
 
 class ResourceSemantics rsc where
   canDelegate :: rsc -> rsc -> Bool

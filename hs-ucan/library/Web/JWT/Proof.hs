@@ -11,11 +11,11 @@ module Web.JWT.Proof
   , module Web.JWT.Proof.Class
   ) where
 
-import           RIO hiding (exp)
+import           RIO                 hiding (exp)
 
 import           Web.JWT.Proof.Class
 import           Web.JWT.Proof.Error
-import           Web.JWT.Types                                    as JWT
+import           Web.JWT.Types       as JWT
 
 
 delegatedInBounds :: ResourceSemantics rsc => JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)

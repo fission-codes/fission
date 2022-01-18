@@ -12,12 +12,12 @@ import           Crypto.Hash.Algorithms        (SHA256 (..))
 import qualified Crypto.PubKey.Ed25519         as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15      as Crypto.RSA.PKCS
 
-import           RIO hiding (exp)
-import RIO.Time
+import           RIO                           hiding (exp)
+import           RIO.Time
 
-import Control.Monad.Time
+import           Control.Monad.Time
 
-import           Crypto.Key.Asymmetric                   as Key
+import           Crypto.Key.Asymmetric         as Key
 import           Web.DID.Types                 as User
 import           Web.SemVer.Types
 
