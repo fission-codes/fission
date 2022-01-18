@@ -66,13 +66,14 @@ spec =
             result `shouldBe` jwt
 
 isValidChar :: Word8 -> Bool
-isValidChar w8 = Lazy.elem w8 (" " <> validB64URLChars)
+isValidChar w8 = Lazy.elem w8 (" " <> validEncodedJWTChars)
 
-validB64URLChars :: Lazy.ByteString
-validB64URLChars = Lazy.Char8.pack chars
+validEncodedJWTChars :: Lazy.ByteString
+validEncodedJWTChars = Lazy.Char8.pack (base64URLChars <> ["."]) -- dot is used as a separator in JWTs
   where
-    chars :: [Char]
-    chars = ['a'..'z']
-         <> ['A'..'Z']
-         <> ['0'..'9']
-         <> ['_', '-', '.']
+    base64URLChars :: [Char]
+    base64URLChars =
+         ['a'..'z']
+      <> ['A'..'Z']
+      <> ['0'..'9']
+      <> ['_', '-']
