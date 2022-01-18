@@ -34,15 +34,15 @@ import qualified Web.JWT.Resolver.Class                           as Proof
 import qualified Web.JWT.Resolver.Error                           as Resolver
 import qualified Web.JWT.Types                                    as JWT
 
-import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.JWT.Fact.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 -- Reexports
 
 import           Web.JWT.Error
-import Web.JWT.RawContent
+import           Web.JWT.RawContent
 
 getRoot :: JWT.Resolver m Fact (Scope Resource) => JWT -> m (Either Resolver.Error JWT)
 getRoot jwt@(FissionJWT (JWT.JWT {claims = JWT.Claims {proof}})) =

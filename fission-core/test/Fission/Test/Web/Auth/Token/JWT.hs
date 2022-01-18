@@ -1,17 +1,21 @@
 module Fission.Test.Web.Auth.Token.JWT (spec) where
 
-import qualified Data.Aeson                                 as JSON
-import qualified Data.ByteString.Lazy.Char8                 as Lazy.Char8
-import qualified RIO.ByteString.Lazy                        as Lazy
+import qualified Data.Aeson                                       as JSON
+import qualified Data.ByteString.Lazy.Char8                       as Lazy.Char8
+import qualified RIO.ByteString.Lazy                              as Lazy
 import           Servant.API
 
-import qualified Fission.Internal.UTF8                      as UTF8
-import           Fission.Web.Auth.Token.JWT
+import qualified Fission.Internal.UTF8                            as UTF8
+-- import           Fission.Web.Auth.Token.JWT
+import           Fission.Web.Auth.Token.JWT.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Web.JWT.Types
 
 import           Fission.Test.Prelude
-import qualified Fission.Test.Web.Auth.Token.JWT.Validation as Validation
+import qualified Fission.Test.Web.Auth.Token.JWT.Validation       as Validation
 
-import qualified Fission.Test.Web.Auth.Token.JWT.Proof      as Proof
+import qualified Fission.Test.Web.Auth.Token.JWT.Proof            as Proof
 
 spec :: Spec
 spec =
@@ -20,7 +24,7 @@ spec =
     Validation.spec
 
     describe "Header serialization" do
-      itsProp' "text serialization is unquoted JSON" \(jwt :: JWT) ->
+      itsProp' "text serialization is unquoted JSON" \(jwt :: JWT Fact (Scope Resource)) ->
         jwt
           |> toUrlPiece
           |> UTF8.wrapIn "\""
@@ -29,17 +33,17 @@ spec =
           |> shouldBe (JSON.encode jwt)
 
     describe "JSON serialization" do
-      itsProp' "serialized is isomorphic to ADT" \(jwt :: JWT) ->
+      itsProp' "serialized is isomorphic to ADT" \(jwt :: JWT Fact (Scope Resource)) ->
         JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
 
       describe "format" do
-        itsProp' "contains exactly two '.'s" \(jwt :: JWT) ->
+        itsProp' "contains exactly two '.'s" \(jwt :: JWT Fact (Scope Resource)) ->
           jwt
             |> JSON.encode
             |> Lazy.count (fromIntegral $ ord '.')
             |> shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(jwt :: JWT) ->
+        itsProp' "contains only valid base64 URL characters" \(jwt :: JWT Fact (Scope Resource)) ->
           let
             encoded = JSON.encode jwt
           in

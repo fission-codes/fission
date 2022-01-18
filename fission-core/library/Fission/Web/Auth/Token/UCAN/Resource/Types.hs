@@ -6,12 +6,12 @@ import           Fission.Error.NotFound.Types
 import           Fission.URL
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
-import qualified RIO.Text as Text
 import qualified Data.Bits                                        as Bits
 import qualified RIO.ByteString                                   as BS
 import qualified RIO.List                                         as List
+import qualified RIO.Text                                         as Text
 
-import Web.JWT.Proof.Class
+import           Web.JWT.Proof.Class
 
 data Resource
   = FissionFileSystem Text -- More efficent than FilePath

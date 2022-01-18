@@ -116,7 +116,7 @@ import           Test.QuickCheck.Instances                   ()
 import           Fission.Text.Encoded
 import           Fission.Unit.Prefix
 
-import           Ucan.Internal.Orphanage.ClientError      ()
+import           Ucan.Internal.Orphanage.ClientError         ()
 import           Ucan.Internal.Time
 
 import           Fission.Internal.Log

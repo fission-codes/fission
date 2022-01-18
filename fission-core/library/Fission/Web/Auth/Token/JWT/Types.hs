@@ -3,10 +3,10 @@ module Fission.Web.Auth.Token.JWT.Types (JWT(..), Proof) where
 import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.JWT.Fact.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import Fission.Error.NotFound.Types
+import           Fission.Error.NotFound.Types
 
 import qualified Web.JWT.Types                                    as JWT
 

@@ -15,7 +15,7 @@ import           Servant.API
 
 import           Fission.Authorization.ServerDID.Class
 import           Fission.Prelude
-import qualified Ucan.Internal.Time                 as Time
+import qualified Ucan.Internal.Time                    as Time
 
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 import           Fission.Web.Auth.Token.JWT            as JWT

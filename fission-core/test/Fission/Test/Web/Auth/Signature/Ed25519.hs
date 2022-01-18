@@ -1,17 +1,20 @@
 module Fission.Test.Web.Auth.Signature.Ed25519 (spec) where
 
-import qualified Crypto.PubKey.Ed25519                  as Ed25519
+import qualified Crypto.PubKey.Ed25519                            as Ed25519
+import           Fission.Web.Auth.Token.JWT.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import           Fission.Web.Auth.Token.JWT
-import           Fission.Web.Auth.Token.JWT.Validation
+import           Web.JWT.Types
+import           Web.JWT.Validation
 
-import           Fission.Key.Asymmetric.Algorithm.Types
-import qualified Fission.Web.Auth.Token.JWT.RawContent  as JWT
+import           Crypto.Key.Asymmetric.Algorithm.Types
+import qualified Web.JWT.RawContent                               as JWT
 
-import qualified Fission.Key                            as Key
-import           Fission.User.DID
+import qualified Crypto.Key.Asymmetric                            as Key
+import           Web.DID.Types
 
-import qualified Fission.Internal.Base64.URL            as B64.URL
+import qualified Ucan.Internal.Base64.URL                         as B64.URL
 
 import           Fission.Test.Prelude
 
@@ -19,7 +22,7 @@ spec :: Spec
 spec =
   describe "Fission.Web.Auth.Signature.Ed25519" do
     describe "signature verification" do
-      itsProp' "verifies" \(jwt@JWT {..}, sk) ->
+      itsProp' "verifies" \(jwt@JWT {..} :: JWT Fact (Scope Resource), sk) ->
         let
           pk         = Ed25519.toPublic sk
           header'    = header { alg = Ed25519 }

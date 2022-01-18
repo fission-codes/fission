@@ -130,9 +130,7 @@ instance (FromJSON fct, FromJSON rsc) => FromJSON (JWT fct rsc) where
       jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
 
 instance
-  ( Servant.ToHttpApiData fct
-  , Servant.ToHttpApiData rsc
-  , ToJSON fct
+  ( ToJSON fct
   , ToJSON rsc
   ) => Servant.ToHttpApiData (JWT fct rsc) where
   toUrlPiece jwt =
