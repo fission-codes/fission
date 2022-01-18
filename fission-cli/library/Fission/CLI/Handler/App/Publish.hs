@@ -125,7 +125,15 @@ publish
           logUser @Text "✈️  Pushing to remote"
           retryOnStatus [status502] 100 (runUpdate cid) >>= \case
             Left err -> do
-              CLI.Error.put err "Server unable to sync data"
+              let errMsg =
+                    case err of
+                      FailureResponse _ (responseStatusCode -> status) | status == status404 ->
+                        "The app has not yet been registered. Please delete your fission.yaml and run `fission app register --name some-name`"
+
+                      _ ->
+                        "Server unable to sync data"
+
+              CLI.Error.put err errMsg
               raise err
 
             Right _ -> do
