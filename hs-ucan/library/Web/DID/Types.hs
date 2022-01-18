@@ -4,31 +4,31 @@ module Web.DID.Types
   , module Web.DID.Method.Types
   ) where
 
-import           Data.Aeson                     as JSON
-import qualified Data.Aeson.Types               as JSON
+import           Data.Aeson                as JSON
+import qualified Data.Aeson.Types          as JSON
 import           Data.Swagger
 
-import           Control.Lens                   ((?~))
+import           Control.Lens              ((?~))
 import           Test.QuickCheck
 
-import           Data.Base58String.Bitcoin      as BS58.BTC
-import           Data.Binary                    hiding (encode)
-import qualified Data.ByteArray                 as BA
-import qualified Data.ByteString.Base64         as BS64
-import           Data.Hashable                  (Hashable (..))
+import           Data.Base58String.Bitcoin as BS58.BTC
+import           Data.Binary               hiding (encode)
+import qualified Data.ByteArray            as BA
+import qualified Data.ByteString.Base64    as BS64
+import           Data.Hashable             (Hashable (..))
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519          as Ed25519
+import qualified Crypto.PubKey.Ed25519     as Ed25519
 
 import           RIO
-import qualified RIO.ByteString                 as BS
-import qualified RIO.Text                       as Text
+import qualified RIO.ByteString            as BS
+import qualified RIO.Text                  as Text
 
-import qualified Ucan.Internal.UTF8             as UTF8
+import qualified Ucan.Internal.UTF8        as UTF8
 
 import           Servant.API
 
-import           Crypto.Key.Asymmetric          as Key (Public (..))
+import           Crypto.Key.Asymmetric     as Key (Public (..))
 import           Web.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts

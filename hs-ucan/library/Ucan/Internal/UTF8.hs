@@ -1,12 +1,7 @@
 -- | UTF8 text helpers
 module Ucan.Internal.UTF8
   ( Textable (..)
-  , putText
-  , putTextLn
-  , putNewline
-  , displayLazyBS
   , toBase58Text
-  , fromRawBytes
   , stripOptionalPrefix
   , stripOptionalPrefixBS
   , stripOptionalPrefixLazyBS
@@ -20,8 +15,6 @@ module Ucan.Internal.UTF8
   , stripN
   , stripNBS
   , stripNewline
-  , textShow
-  , wrapIn
   ) where
 
 import           Data.Base58String.Bitcoin as BS58.BTC
@@ -40,12 +33,6 @@ instance Textable ByteString where
 
 instance Textable Lazy.ByteString where
   encode = encode . Lazy.toStrict
-
-displayLazyBS :: Display a => a -> Lazy.ByteString
-displayLazyBS = Lazy.fromStrict . encodeUtf8 . textDisplay
-
-fromRawBytes :: [Word8] -> Text
-fromRawBytes = decodeUtf8Lenient . Strict.pack
 
 -- | Convert any binary object to 'Text'
 --
@@ -90,10 +77,6 @@ stripQuotesLazyBS = stripOptionalPrefixLazyBS "\"" . stripOptionalSuffixLazyBS "
 stripNewline :: Lazy.ByteString -> Lazy.ByteString
 stripNewline bs = fromMaybe bs $ Lazy.stripSuffix "\n" bs
 
--- | Show text.
-textShow :: Show a => a -> Text
-textShow = textDisplay . displayShow
-
 -- | Remove a number of characters from the beginning and the end of a lazy `ByteString`.
 stripNBS :: Natural -> Lazy.ByteString -> Lazy.ByteString
 stripNBS n bs =
@@ -110,18 +93,3 @@ stripN n = Text.dropEnd i . Text.drop i
   where
     i :: Int
     i = fromIntegral n
-
--- | Helper for printing 'Text' to a console
-putText :: MonadIO m => Text -> m ()
-putText = Strict.putStr . encodeUtf8
-
--- | Helper for printing Text' to a console with a newline at the end
-putTextLn :: MonadIO m => Text -> m ()
-putTextLn txt = putText $ txt <> "\n"
-
-putNewline :: MonadIO m => m ()
-putNewline = putText "\n"
-
--- | Wrap text with some other piece of text
-wrapIn :: Semigroup s => s -> s -> s
-wrapIn wrapper txt = wrapper <> txt <> wrapper

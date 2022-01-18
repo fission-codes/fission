@@ -5,11 +5,11 @@ module Fission.URL.Types
   , module Fission.URL.Path.Types
   ) where
 
-import           Data.Swagger                   hiding (URL)
+import           Data.Swagger                      hiding (URL)
 import           Servant.API
 
-import qualified RIO.List                       as List
-import qualified RIO.Text                       as Text
+import qualified RIO.List                          as List
+import qualified RIO.Text                          as Text
 
 import           Fission.Prelude
 
