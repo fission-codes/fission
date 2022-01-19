@@ -27,12 +27,12 @@ import           Crypto.Key.Asymmetric.Algorithm.Types            as Key
 import qualified Crypto.Key.Asymmetric.Public.Types               as Asymmetric
 
 import           Web.DID.Types                                    as DID
+import qualified Web.Ucan                                         as Ucan
 import qualified Web.Ucan.Header.Typ.Types                        as Ucan.Typ
 import qualified Web.Ucan.Resolver                                as Ucan
 import qualified Web.Ucan.Resolver.Class                          as Proof
 import qualified Web.Ucan.Resolver.Error                          as Resolver
 import           Web.Ucan.Types                                   as Ucan
-import qualified Web.Ucan as Ucan
 
 import           Fission.Web.Auth.Token.Ucan.Fact.Types
 import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types

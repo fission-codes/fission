@@ -15,7 +15,7 @@ import qualified Crypto.PubKey.RSA.PKCS15       as Crypto.RSA.PKCS
 import           RIO                            hiding (exp)
 import           RIO.Time
 
-import Data.Aeson
+import           Data.Aeson
 
 import           Control.Monad.Time
 
@@ -29,10 +29,10 @@ import           Web.Ucan.Claims.Error
 import           Web.Ucan.Header.Error
 import           Web.Ucan.Signature.Error
 
+import           Web.Ucan                       as Ucan
 import           Web.Ucan.Error                 as Ucan
 import           Web.Ucan.Proof                 as Ucan.Proof
 import           Web.Ucan.Types                 as Ucan
-import           Web.Ucan as Ucan
 
 import qualified Web.Ucan.Signature.RS256.Types as RS256
 import           Web.Ucan.Signature.Types       as Signature
