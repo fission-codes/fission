@@ -18,7 +18,7 @@ import qualified Network.IPFS.Types                        as IPFS
 
 import           Web.DID.Types
 
-import qualified Web.Ucan.Resolver.Error                   as Ucan.Resolver
+import qualified Web.UCAN.Resolver.Error                   as UCAN.Resolver
 
 
 import           Fission.Prelude
@@ -28,7 +28,7 @@ import           Fission.Error.NotFound.Types
 import qualified Fission.IPFS.Error.Types                  as IPFS
 import qualified Fission.JSON                              as JSON
 import qualified Fission.Key                               as Key
-import           Fission.Web.Auth.Token.Ucan.Types
+import           Fission.Web.Auth.Token.UCAN.Types
 
 import           Fission.Web.Client                        as Client
 
@@ -54,8 +54,8 @@ type BaseErrs =
    , Key.Error
    , IPFS.Process.Error
    , IPFS.Add.Error
-   , Ucan.Resolver.Error
-   , NotFound Ucan
+   , UCAN.Resolver.Error
+   , NotFound UCAN
    , NotFound FilePath
    , ClientError
    , SomeException

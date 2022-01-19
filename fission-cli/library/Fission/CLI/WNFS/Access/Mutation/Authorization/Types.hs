@@ -4,10 +4,10 @@ import qualified Crypto.PubKey.Ed25519             as Ed25519
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.Ucan.Types
-import           Web.Ucan.RawContent.Types         as Ucan
+import           Fission.Web.Auth.Token.UCAN.Types
+import           Web.UCAN.RawContent.Types         as UCAN
 
 data Authorization
   = Root Ed25519.SecretKey
-  | Delegated Ucan Ucan.RawContent
+  | Delegated UCAN UCAN.RawContent
   deriving (Show, Eq)

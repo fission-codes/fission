@@ -48,10 +48,10 @@ import qualified Wuss                                              as WSS
 import qualified Crypto.Key.Asymmetric.Public                      as Asymmetric
 
 import           Web.DID.Types
-import           Web.Ucan.Internal.Orphanage.ClientError           ()
-import           Web.Ucan.Resolver                                 as Ucan
-import qualified Web.Ucan.Resolver.Error                           as Ucan.Resolver
-import qualified Web.Ucan.Types                                    as Ucan
+import           Web.UCAN.Internal.Orphanage.ClientError           ()
+import           Web.UCAN.Resolver                                 as UCAN
+import qualified Web.UCAN.Resolver.Error                           as UCAN.Resolver
+import qualified Web.UCAN.Types                                    as UCAN
 
 import           Fission.Prelude                                   hiding (mask,
                                                                     uninterruptibleMask)
@@ -84,8 +84,8 @@ import           Fission.CLI.Environment.Path
 
 import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
 import           Fission.Web.Auth.Token.Types
-import qualified Fission.Web.Auth.Token.Ucan                       as Ucan
-import           Fission.Web.Auth.Token.Ucan.Types                 as Ucan
+import qualified Fission.Web.Auth.Token.UCAN                       as UCAN
+import           Fission.Web.Auth.Token.UCAN.Types                 as UCAN
 
 import           Fission.Key.EncryptedWith.Types
 import qualified Fission.Key.IV.Error                              as IV
@@ -240,7 +240,7 @@ instance
   , Display (OpenUnion errs)
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
-  insert token@Bearer.Token {jwt = Ucan.Ucan {sig}, rawContent = Ucan.RawContent ogContent} = do
+  insert token@Bearer.Token {jwt = UCAN.UCAN {sig}, rawContent = UCAN.RawContent ogContent} = do
     logDebug @Text "🛂💾 Adding UCAN to store"
     storePath      <- ucanStorePath
     store          <- WebNative.Mutation.Auth.getAll
@@ -320,9 +320,9 @@ instance
   , NotFound FilePath          `IsMember` errs
   , Process.Error              `IsMember` errs
   , SomeException              `IsMember` errs
-  , Ucan.Resolver.Error        `IsMember` errs
+  , UCAN.Resolver.Error        `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
-  , NotFound Ucan              `IsMember` errs
+  , NotFound UCAN              `IsMember` errs
   , IPFS.Add.Error             `IsMember` errs
   , Contains errs errs
 
@@ -345,24 +345,24 @@ instance
     proof     <- do
       attempt Env.get >>= \case
         Left _ -> do
-          return Ucan.RootCredential
+          return UCAN.RootCredential
 
         Right Env {rootProof} ->
           case rootProof of
             Nothing -> do
-              return Ucan.RootCredential
+              return UCAN.RootCredential
 
             Just cid -> do
               store <- WebNative.Mutation.Auth.getAll
               case store !? cid of
-                Nothing                -> raise  $ NotFound @Ucan
-                Just Bearer.Token {..} -> return $ Ucan.Nested rawContent jwt
+                Nothing                -> raise  $ NotFound @UCAN
+                Just Bearer.Token {..} -> return $ UCAN.Nested rawContent jwt
 
     logDebug $ "🧾🛂 Proof: " <> display proof
 
     let
       jwt =
-        Ucan.delegateAppendAll serverDID sk proof now
+        UCAN.delegateAppendAll serverDID sk proof now
 
       rawContent =
         jwt
@@ -371,7 +371,7 @@ instance
           |> decodeUtf8Lenient
           |> Text.dropPrefix "\""
           |> Text.dropSuffix "\""
-          |> Ucan.contentOf
+          |> UCAN.contentOf
 
       token =
         Bearer Bearer.Token {..}
@@ -814,7 +814,7 @@ instance
   , Contains errs errs
   , MonadIPFSIgnore (FissionCLI errs cfg)
   )
-  => Ucan.Resolver (FissionCLI errs cfg) where
+  => UCAN.Resolver (FissionCLI errs cfg) where
   resolve cid@(IPFS.CID hash') = do
     _ <- IPFS.Daemon.runDaemon
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash') <&> \case
@@ -822,7 +822,7 @@ instance
         Left $ CannotResolve cid (ConnectionError $ toException errMsg)
 
       Right (Lazy.toStrict -> resolvedBS) ->
-          Right (Ucan.contentOf (decodeUtf8Lenient resolvedBS))
+          Right (UCAN.contentOf (decodeUtf8Lenient resolvedBS))
 
 instance MonadEnvironment (FissionCLI errs cfg) where
   getGlobalPath = do

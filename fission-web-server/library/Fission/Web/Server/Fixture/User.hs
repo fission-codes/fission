@@ -3,7 +3,7 @@ module Fission.Web.Server.Fixture.User (user) where
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
-import qualified Web.Ucan.Internal.RSA2048.Pair.Types as RSA2048
+import qualified Web.UCAN.Internal.RSA2048.Pair.Types as RSA2048
 
 import           Fission.Prelude
 

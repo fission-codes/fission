@@ -9,7 +9,7 @@ module Fission.Internal.UTF8
   , toBase58Text
   , textShow
   , wrapIn
-  , module Web.Ucan.Internal.UTF8
+  , module Web.UCAN.Internal.UTF8
   ) where
 
 import           Data.Binary            hiding (encode)
@@ -20,8 +20,8 @@ import qualified RIO.ByteString.Lazy    as Lazy
 
 import           Fission.Text.Encoded
 
-import           Web.Ucan.Internal.UTF8 hiding (toBase58Text)
-import qualified Web.Ucan.Internal.UTF8 as UTF8
+import           Web.UCAN.Internal.UTF8 hiding (toBase58Text)
+import qualified Web.UCAN.Internal.UTF8 as UTF8
 
 displayLazyBS :: Display a => a -> Lazy.ByteString
 displayLazyBS = Lazy.fromStrict . encodeUtf8 . textDisplay

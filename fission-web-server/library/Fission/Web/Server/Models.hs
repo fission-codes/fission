@@ -21,7 +21,7 @@ import           Data.UUID
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
-import           Web.Ucan.Internal.Orphanage.RSA2048.Public ()
+import           Web.UCAN.Internal.Orphanage.RSA2048.Public ()
 
 import qualified Fission.Internal.UTF8                      as UTF8
 import           Fission.Prelude

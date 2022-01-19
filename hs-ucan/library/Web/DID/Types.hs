@@ -24,7 +24,7 @@ import           RIO
 import qualified RIO.ByteString            as BS
 import qualified RIO.Text                  as Text
 
-import qualified Web.Ucan.Internal.UTF8    as UTF8
+import qualified Web.UCAN.Internal.UTF8    as UTF8
 
 import           Servant.API
 

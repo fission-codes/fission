@@ -14,10 +14,10 @@ import           Servant
 import           Fission.Prelude
 
 import           Fission.User.Username.Types                      as Username
-import           Web.Ucan.Potency.Types
+import           Web.UCAN.Potency.Types
 
 import qualified Fission.Web.Auth.Token.Basic.Types               as Auth.Basic
-import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import           Fission.Web.Server.Error                         as Web.Err
 import           Fission.Web.Server.Models

@@ -15,8 +15,8 @@ import           Fission.URL
 
 import           Fission.Key.Symmetric.Types
 
-import           Fission.Web.Auth.Token.Ucan.Resource.Types
-import           Fission.Web.Auth.Token.Ucan.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Types
 
 import           Web.DID.Types
 
@@ -45,7 +45,7 @@ instance Display (NotFound Ed25519.SecretKey) where
 instance Display (NotFound CID) where
   display _ = "Unable to find CID"
 
-instance Display (NotFound Ucan) where
+instance Display (NotFound UCAN) where
   display _ = "Unable to find UCAN"
 
 instance Display (NotFound (Key AES256)) where

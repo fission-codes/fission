@@ -4,9 +4,9 @@ import           Network.Wai
 
 import           Web.DID.Types
 
-import           Web.Ucan.Resolver                   as Ucan
-import qualified Web.Ucan.Types                      as Ucan
-import qualified Web.Ucan.Validation                 as Ucan
+import           Web.UCAN.Resolver                   as UCAN
+import qualified Web.UCAN.Types                      as UCAN
+import qualified Web.UCAN.Validation                 as UCAN
 
 import           Fission.Prelude
 
@@ -22,7 +22,7 @@ import qualified Fission.Web.Server.Auth.Token       as Token
 -- | Auth handler for registering DIDs
 -- Ensures properly formatted token but *does not check against DB*
 handler ::
-  ( Ucan.Resolver m
+  ( UCAN.Resolver m
   , ServerDID    m
   , MonadLogger  m
   , MonadThrow   m
@@ -34,12 +34,12 @@ handler req =
   case Token.get req of
     Right (Token.Bearer token@(Bearer.Token jwt rawContent)) -> do
       serverDID <- getServerDID
-      Ucan.check serverDID rawContent jwt >>= \case
+      UCAN.check serverDID rawContent jwt >>= \case
         Left err -> do
           logWarn $ "Failed registration with token " <> textDisplay token
           Web.Error.throw err
 
-        Right Ucan.Ucan {claims = Ucan.Claims {sender}} ->
+        Right UCAN.UCAN {claims = UCAN.Claims {sender}} ->
           return sender
 
     Right token@(Token.Basic _) -> do

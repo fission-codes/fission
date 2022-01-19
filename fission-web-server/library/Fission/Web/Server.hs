@@ -8,7 +8,7 @@ import           Servant
 import           Servant.API.Generic
 import           Servant.Server.Generic
 
-import qualified Web.Ucan.Resolver                            as Proof
+import qualified Web.UCAN.Resolver                            as Proof
 
 import           Fission.Prelude
 

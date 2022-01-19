@@ -13,15 +13,15 @@ import           Fission.Prelude
 import           Fission.Error.NotFound.Types
 import           Web.DID.Types
 
-import           Fission.Web.Auth.Token.Ucan                     as Ucan
-import qualified Fission.Web.Auth.Token.Ucan.Types               as Fission
+import           Fission.Web.Auth.Token.UCAN                     as UCAN
+import qualified Fission.Web.Auth.Token.UCAN.Types               as Fission
 
-import qualified Web.Ucan.Resolver                               as Ucan
-import qualified Web.Ucan.Resolver.Error                         as Resolver
-import           Web.Ucan.Types
+import qualified Web.UCAN.Resolver                               as UCAN
+import qualified Web.UCAN.Resolver.Error                         as Resolver
+import           Web.UCAN.Types
 
 import           Fission.Web.Auth.Token.Bearer                   as Bearer
-import           Fission.Web.Auth.Token.Ucan.Resource.Types      as UCAN
+import           Fission.Web.Auth.Token.UCAN.Resource.Types      as UCAN
 
 import           Fission.CLI.Environment                         as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store.Class
@@ -59,7 +59,7 @@ getRootUserProof = Bearer.toProof <$> getRootUCAN
 getBy :: forall m.
   ( MonadStore   m
   , MonadRaise   m
-  , Ucan.Resolver m
+  , UCAN.Resolver m
   , m `Raises` Resolver.Error
   , m `Raises` NotFound Bearer.Token
   )
@@ -75,8 +75,8 @@ getBy did matcher = do
 
   where
     normalizedMatcher :: Bearer.Token -> m Bool
-    normalizedMatcher Bearer.Token {jwt = jwt@Ucan {claims = Claims {resource}}} = do
-      Ucan {claims = Claims {sender}} <- ensureM $ Ucan.getRoot jwt
+    normalizedMatcher Bearer.Token {jwt = jwt@UCAN {claims = Claims {resource}}} = do
+      UCAN {claims = Claims {sender}} <- ensureM $ UCAN.getRoot jwt
       if sender == did
         then
           case resource of

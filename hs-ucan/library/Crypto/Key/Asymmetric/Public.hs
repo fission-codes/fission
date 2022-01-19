@@ -3,7 +3,7 @@ module Crypto.Key.Asymmetric.Public (genRSA2048) where
 import qualified Crypto.PubKey.RSA                           as RSA
 import qualified OpenSSL.RSA                                 as OpenSSL
 import           RIO
-import           Web.Ucan.Internal.Orphanage.RSA2048.Private ()
+import           Web.UCAN.Internal.Orphanage.RSA2048.Private ()
 
 genRSA2048 :: MonadIO m => m RSA.PrivateKey
 genRSA2048 = do

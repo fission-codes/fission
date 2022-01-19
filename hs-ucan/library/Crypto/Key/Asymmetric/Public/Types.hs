@@ -13,10 +13,10 @@ import qualified RIO.Text                                      as Text
 import           Servant.API
 import           Test.QuickCheck
 
-import           Web.Ucan.Internal.RSA2048.Pair.Types          as Pair
+import           Web.UCAN.Internal.RSA2048.Pair.Types          as Pair
 
-import           Web.Ucan.Internal.Orphanage.Ed25519.PublicKey ()
-import           Web.Ucan.Internal.Orphanage.RSA2048.Public    ()
+import           Web.UCAN.Internal.Orphanage.Ed25519.PublicKey ()
+import           Web.UCAN.Internal.Orphanage.RSA2048.Public    ()
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey

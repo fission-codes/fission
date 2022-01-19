@@ -21,7 +21,7 @@ import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                          as Client
 
 import           Web.DID.Types
-import qualified Web.Ucan.Types                              as Ucan
+import qualified Web.UCAN.Types                              as UCAN
 
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
@@ -134,7 +134,7 @@ createAccount maybeUsername maybeEmail = do
       , exchangePK = Just exchangePK
       }
 
-  attempt (sendAuthedRequest Ucan.RootCredential $ createUser form) >>= \case
+  attempt (sendAuthedRequest UCAN.RootCredential $ createUser form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
       baseURL <- getRemoteBaseUrl

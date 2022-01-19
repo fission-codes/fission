@@ -1,9 +1,9 @@
 module Fission.Web.Server.Auth.Token.UCAN (handler) where
 
 import           Web.DID.Types
-import           Web.Ucan.Resolver                                  as Ucan
-import qualified Web.Ucan.Types                                     as Ucan
-import qualified Web.Ucan.Validation                                as Ucan
+import           Web.UCAN.Resolver                                  as UCAN
+import qualified Web.UCAN.Types                                     as UCAN
+import qualified Web.UCAN.Validation                                as UCAN
 
 import           Fission.Prelude
 
@@ -12,9 +12,9 @@ import           Fission.Error.NotFound.Types
 import           Fission.Authorization.ServerDID
 
 import qualified Fission.Web.Auth.Token.Bearer.Types                as Bearer
-import qualified Fission.Web.Auth.Token.Ucan                        as Ucan
-import           Fission.Web.Auth.Token.Ucan.Resource.Types
-import           Fission.Web.Auth.Token.Ucan.Types
+import qualified Fission.Web.Auth.Token.UCAN                        as UCAN
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Types
 
 import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.Error                           as Web.Error
@@ -38,25 +38,25 @@ handler ::
   -> m Authorization
 handler (Bearer.Token jwt rawContent) = do
   serverDID <- getServerDID
-  void . Web.Error.ensureM $ Ucan.check serverDID rawContent jwt
+  void . Web.Error.ensureM $ UCAN.check serverDID rawContent jwt
   toAuthorization jwt
 
 toAuthorization ::
-  ( Ucan.Resolver     m
+  ( UCAN.Resolver     m
   , MonadThrow       m
   , MonadLogger      m
   , MonadDB        t m
   , User.Retriever t
   )
-  => Ucan
+  => UCAN
   -> m Authorization
-toAuthorization jwt@Ucan.Ucan {claims = Ucan.Claims {..}} = do
+toAuthorization jwt@UCAN.UCAN {claims = UCAN.Claims {..}} = do
   logDebug @Text "🛂 Authorizing UCAN..."
-  Ucan.getRoot jwt >>= \case
+  UCAN.getRoot jwt >>= \case
     Left err ->
       throwM err
 
-    Right Ucan.Ucan {claims = Ucan.Claims {sender = DID {publicKey = pk}}} ->
+    Right UCAN.UCAN {claims = UCAN.Claims {sender = DID {publicKey = pk}}} ->
       runDB (User.getByPublicKey pk) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User

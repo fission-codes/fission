@@ -8,7 +8,7 @@ import           Network.DNS                                 as DNS
 import           Servant.Client
 
 import           Web.DID.Types
-import qualified Web.Ucan.Types                              as Ucan
+import qualified Web.UCAN.Types                              as UCAN
 
 
 import           Fission.Prelude
@@ -88,7 +88,7 @@ setup maybeOS maybeUsername maybeEmail maybeKeyFile = do
           logDebug $ "🔑 Got a Keyfile: " <> keyFile
           Key.Store.fromFile (Proxy @SigningKey) keyFile
 
-          attempt (sendAuthedRequest Ucan.RootCredential whoAmI) >>= \case
+          attempt (sendAuthedRequest UCAN.RootCredential whoAmI) >>= \case
             Left err -> do
               CLI.Error.put err "Invalid key file provided."
               raise err

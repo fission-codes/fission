@@ -7,7 +7,7 @@ import qualified Data.ByteString.Lazy.Char8          as Lazy.Char8
 import qualified RIO.ByteString.Lazy                 as Lazy
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import qualified Fission.Web.Auth.Token.Ucan.Types   as Fission
+import qualified Fission.Web.Auth.Token.UCAN.Types   as Fission
 
 -- import qualified Fission.Internal.Fixture.Bearer     as Bearer
 import qualified Fission.Internal.UTF8               as UTF8
@@ -53,7 +53,7 @@ spec =
 
       describe "incoming" do
         describe "Postel's Law" do
-          itsProp' "lowercase 'bearer'" \(jwt :: Fission.Ucan) -> do
+          itsProp' "lowercase 'bearer'" \(jwt :: Fission.UCAN) -> do
             let
               jwt' :: Lazy.ByteString
               jwt' = UTF8.stripQuotesLazyBS (JSON.encode jwt)

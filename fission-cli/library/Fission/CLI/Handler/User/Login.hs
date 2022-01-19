@@ -49,16 +49,16 @@ import qualified Fission.Web.Serialization                   as Web.Serializatio
 -- 🛂 JWT/UCAN
 
 import           Web.DID.Types
-import qualified Web.Ucan.Claims.Error                       as Ucan.Claims
-import qualified Web.Ucan.Proof                              as Ucan.Proof
-import qualified Web.Ucan.Resolver.Class                     as Ucan
-import qualified Web.Ucan.Resolver.Error                     as Ucan.Resolver
-import qualified Web.Ucan.Types                              as Ucan
-import qualified Web.Ucan.Validation                         as Ucan
+import qualified Web.UCAN.Claims.Error                       as UCAN.Claims
+import qualified Web.UCAN.Proof                              as UCAN.Proof
+import qualified Web.UCAN.Resolver.Class                     as UCAN
+import qualified Web.UCAN.Resolver.Error                     as UCAN.Resolver
+import qualified Web.UCAN.Types                              as UCAN
+import qualified Web.UCAN.Validation                         as UCAN
 
 import           Fission.Web.Auth.Token.Bearer               as Bearer
 import           Fission.Web.Auth.Token.Types                as Web
-import           Fission.Web.Auth.Token.Ucan                 as Ucan
+import           Fission.Web.Auth.Token.UCAN                 as UCAN
 
 -- 📟 CLI
 
@@ -119,7 +119,7 @@ type ConsumerConstraints m =
   , MonadEnvironment m
   , MonadNameService m
   , MonadWebClient   m
-  , Ucan.Resolver     m
+  , UCAN.Resolver     m
 
   , WebNative.FileSystem.Auth.Store.MonadStore m
   , WebNative.Mutation.Store.MonadStore        m
@@ -135,11 +135,11 @@ type ConsumerConstraints m =
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError
   , m `Raises` JSON.Error
-  , m `Raises` Ucan.Error
-  , m `Raises` Ucan.Proof.Error
+  , m `Raises` UCAN.Error
+  , m `Raises` UCAN.Proof.Error
   , m `Raises` NotFound DID
   , m `Raises` SecurePayload.Error
-  , m `Raises` Ucan.Resolver.Error
+  , m `Raises` UCAN.Resolver.Error
   , m `Raises` Username.Invalid
 
   , Show (OpenUnion (Errors m))
@@ -180,13 +180,13 @@ consume signingSK baseURL optUsername = do
           } <- secureListenJSON rsaConn
 
         logDebug @Text "🤝 Device linking handshake: Step 4"
-        ensureM $ Ucan.check sessionDID rawContent jwt
+        ensureM $ UCAN.check sessionDID rawContent jwt
 
         -- TODO waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
-        ensure $ Ucan.Proof.containsFact jwt \facts ->
+        ensure $ UCAN.Proof.containsFact jwt \facts ->
           if SessionKey sessionKey `elem` facts
             then Right ()
-            else Left Ucan.Proof.MissingExpectedFact
+            else Left UCAN.Proof.MissingExpectedFact
 
         return Secure.Connection {conn, key = sessionKey}
 
@@ -206,11 +206,11 @@ consume signingSK baseURL optUsername = do
         , readKey
         } <- secureListenJSON aesConn
 
-      ensureM $ Ucan.check myDID rawContent jwt
-      Ucan.Ucan {claims = Ucan.Claims {sender}} <- ensureM $ getRoot jwt
+      ensureM $ UCAN.check myDID rawContent jwt
+      UCAN.UCAN {claims = UCAN.Claims {sender}} <- ensureM $ getRoot jwt
 
       unless (sender == targetDID) do
-        raise $ Ucan.ClaimsError Ucan.Claims.IncorrectSender
+        raise $ UCAN.ClaimsError UCAN.Claims.IncorrectSender
 
       _   <- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
       cid <- WebNative.Mutation.Store.insert bearer
@@ -229,7 +229,7 @@ type ProducerConstraints m =
   , MonadWebAuth     m Web.Token
   , MonadWebAuth     m Ed25519.SecretKey
   , ServerDID        m
-  , Ucan.Resolver    m
+  , UCAN.Resolver    m
 
   , WebNative.FileSystem.Auth.Store.MonadStore m
   , WebNative.Mutation.Store.MonadStore        m
@@ -250,7 +250,7 @@ type ProducerConstraints m =
   , m `Raises` NotFound (Symmetric.Key AES256)
   , m `Raises` Web.Serialization.Error
   , m `Raises` SecurePayload.Error
-  , m `Raises` Ucan.Resolver.Error
+  , m `Raises` UCAN.Resolver.Error
   , m `Raises` Mismatch PIN
   , m `Raises` ClientError
   , m `Raises` Status Denied
@@ -310,7 +310,7 @@ produce signingSK baseURL = do
                   attempt (WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/") >>= \case
                     Left _ ->
                       case rootProof of
-                        Ucan.RootCredential -> WebNative.FileSystem.Auth.Store.create rootDID "/"
+                        UCAN.RootCredential -> WebNative.FileSystem.Auth.Store.create rootDID "/"
                         _                   -> raise $ NotFound @(Symmetric.Key AES256)
 
                     Right (_, key) ->
@@ -320,7 +320,7 @@ produce signingSK baseURL = do
                   jwt    = delegateSuperUser requestorDID signingSK rootProof now
                   bearer = Bearer.fromJWT jwt
 
-                accessOK <- reaskYN $ "🧞 Grant access? " <> Ucan.prettyPrintGrants jwt
+                accessOK <- reaskYN $ "🧞 Grant access? " <> UCAN.prettyPrintGrants jwt
                 unless accessOK $ raise (Status Denied)
 
                 aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}

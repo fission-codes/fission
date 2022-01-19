@@ -19,9 +19,9 @@ import           Servant.Client.Core
 import qualified Crypto.Key.Asymmetric.Algorithm.Error as Asymmetric.Algorithm
 
 import           Web.DID.Types
-import qualified Web.Ucan.Error                        as Ucan
-import qualified Web.Ucan.Proof.Error                  as Ucan.Proof
-import qualified Web.Ucan.Resolver.Error               as Ucan.Resolver
+import qualified Web.UCAN.Error                        as UCAN
+import qualified Web.UCAN.Proof.Error                  as UCAN.Proof
+import qualified Web.UCAN.Resolver.Error               as UCAN.Resolver
 
 
 import           Fission.Prelude
@@ -36,7 +36,7 @@ import qualified Fission.Key.Error                     as Key
 import qualified Fission.Key.IV.Error                  as IV
 import qualified Fission.Key.Symmetric                 as Symmetric
 
-import           Fission.Web.Auth.Token.Ucan.Types
+import           Fission.Web.Auth.Token.UCAN.Types
 import qualified Fission.Web.Serialization             as Web.Serialization
 
 import           Fission.CLI.Environment               as Env
@@ -67,8 +67,8 @@ type Errs
      , IV.GenError
      , JSON.Error
      --
-     , Ucan.Error
-     , Ucan.Proof.Error
+     , UCAN.Error
+     , UCAN.Proof.Error
      --
      , Key.Error
      , Mismatch PIN
@@ -80,7 +80,7 @@ type Errs
      , NotFound DID
      , NotFound Ed25519.SecretKey
      , NotFound FilePath
-     , NotFound Ucan
+     , NotFound UCAN
      , NotFound URL
      , NotFound [IPFS.Peer]
      , NotRegistered
@@ -89,7 +89,7 @@ type Errs
      , RSA.Error
      --
      , SecurePayload.Error
-     , Ucan.Resolver.Error
+     , UCAN.Resolver.Error
      --
      , Username.Invalid
      , Web.Serialization.Error

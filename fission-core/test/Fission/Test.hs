@@ -10,11 +10,9 @@ import qualified Fission.Test.Random                             as Random
 import qualified Fission.Test.URL                                as URL
 import qualified Fission.Test.User.DID                           as DID
 import qualified Fission.Test.Web.Auth.Token.Bearer              as Bearer
-import qualified Fission.Test.Web.Auth.Token.JWT                 as JWT
-
-import qualified Fission.Test.Web.Auth.Token.Ucan.Resource       as Resource
-import qualified Fission.Test.Web.Auth.Token.Ucan.Resource.Scope as Scope
-
+import qualified Fission.Test.Web.Auth.Token.UCAN                as UCAN
+import qualified Fission.Test.Web.Auth.Token.UCAN.Resource       as Resource
+import qualified Fission.Test.Web.Auth.Token.UCAN.Resource.Scope as Scope
 import qualified Fission.Test.Web.Auth.Signature.Ed25519         as Ed
 
 spec :: Spec
@@ -31,6 +29,6 @@ spec =
     -- UCAN tests
     Bearer.spec
     Ed.spec
-    JWT.spec
+    UCAN.spec
     Resource.spec
     Scope.spec

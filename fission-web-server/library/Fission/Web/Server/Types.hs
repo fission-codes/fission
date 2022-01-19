@@ -36,8 +36,8 @@ import qualified Network.IPFS.Types                        as IPFS
 import qualified Web.DID.Oldstyle.Types                    as DID
 import           Web.DID.Types                             as DID
 
-import qualified Web.Ucan.RawContent                       as Ucan
-import           Web.Ucan.Resolver                         as Ucan
+import qualified Web.UCAN.RawContent                       as UCAN
+import           Web.UCAN.Resolver                         as UCAN
 
 import           Fission.Prelude
 
@@ -441,14 +441,14 @@ instance App.Domain.Initializer Server where
 instance App.Content.Initializer Server where
   placeholder = asks appPlaceholder
 
-instance Ucan.Resolver Server where
+instance UCAN.Resolver Server where
   resolve cid =
     IPFS.ipfsCat cid <&> \case
       Left clientErr ->
         Left (CannotResolve cid clientErr)
 
       Right (Serialized resolvedLBS) ->
-        Right (Ucan.contentOf (decodeUtf8Lenient (Lazy.toStrict resolvedLBS)))
+        Right (UCAN.contentOf (decodeUtf8Lenient (Lazy.toStrict resolvedLBS)))
 
 instance ServerDID Server where
   getServerDID = asks fissionDID

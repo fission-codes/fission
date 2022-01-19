@@ -10,7 +10,7 @@ import           Fission.User.Email.Types
 import           Fission.User.Password.Types
 import           Fission.User.Username.Types
 
-import           Web.Ucan.Internal.Orphanage.RSA2048.Public ()
+import           Web.UCAN.Internal.Orphanage.RSA2048.Public ()
 
 data Registration = Registration
   { username   :: Username

@@ -25,8 +25,8 @@ import           Fission.Key.Error                 as Key
 import           Fission.CLI.File
 import qualified Fission.CLI.Key.Store.Class       as KeyStore
 
-import qualified Web.Ucan.Internal.Base64          as B64
-import qualified Web.Ucan.Internal.Base64.Scrubbed as B64.Scrubbed
+import qualified Web.UCAN.Internal.Base64          as B64
+import qualified Web.UCAN.Internal.Base64.Scrubbed as B64.Scrubbed
 
 -- 🔁 Reexports
 
