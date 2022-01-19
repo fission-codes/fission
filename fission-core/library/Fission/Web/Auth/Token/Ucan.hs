@@ -32,6 +32,7 @@ import qualified Web.Ucan.Resolver                                as Ucan
 import qualified Web.Ucan.Resolver.Class                          as Proof
 import qualified Web.Ucan.Resolver.Error                          as Resolver
 import           Web.Ucan.Types                                   as Ucan
+import qualified Web.Ucan as Ucan
 
 import           Fission.Web.Auth.Token.Ucan.Fact.Types
 import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
@@ -43,7 +44,7 @@ import qualified Fission.Web.Auth.Token.Ucan.Types                as Fission
 import           Web.Ucan.Error
 import           Web.Ucan.RawContent
 
-getRoot :: Ucan.Resolver m Fact (Scope Resource) => Fission.Ucan -> m (Either Resolver.Error Fission.Ucan)
+getRoot :: Ucan.Resolver m => Fission.Ucan -> m (Either Resolver.Error Fission.Ucan)
 getRoot ucan@Ucan {claims = Claims {proof}} =
   case proof of
     RootCredential ->
@@ -52,14 +53,19 @@ getRoot ucan@Ucan {claims = Claims {proof}} =
     Nested _ proofUcan ->
       getRoot proofUcan
 
-    Reference cid ->
-      Proof.resolve cid >>= \case
-        Right (_, proofUcan) -> getRoot proofUcan
-        Left err             -> return $ Left err
+    Reference cid -> do
+      resolved <- Proof.resolve cid
+      case resolved of
+        Left err -> return $ Left err
+        Right rawContent ->
+          case Ucan.fromRawContent rawContent of
+            Left err -> return $ Left err
+            Right proofUcan ->
+              getRoot proofUcan
 
 getRootDID ::
-  ( Ucan.Resolver m Fact (Scope Resource)
-  , MonadRaise   m
+  ( Ucan.Resolver m
+  , MonadRaise    m
   , m `Raises` Resolver.Error
   )
   => Asymmetric.Public
@@ -74,8 +80,11 @@ getRootDID fallbackPK = \case
     return sender
 
   Reference cid -> do
-    (_, Ucan {claims = Claims {proof}}) <- ensureM $ Proof.resolve cid
-    getRootDID fallbackPK proof
+    rawContent <- ensureM $ Proof.resolve cid
+    case Ucan.fromRawContent rawContent of
+      Left err -> raise err
+      Right Ucan {claims = Claims {proof}} ->
+        getRootDID fallbackPK proof
 
 simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Fission.Proof -> Fission.Ucan
 simpleWNFS now receiverDID sk facts proof =

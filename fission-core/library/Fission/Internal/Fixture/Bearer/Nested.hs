@@ -32,7 +32,7 @@ newtype InTimeBounds a = InTimeBounds { unwrap :: Identity a }
     , Show
     )
 
-instance Proof.Resolver InTimeBounds Fact (Scope Resource) where
+instance Proof.Resolver InTimeBounds where
   resolve = error "shouldn't hit this in our specific case"
 
 instance ServerDID InTimeBounds where

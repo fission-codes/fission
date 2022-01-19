@@ -15,6 +15,8 @@ import qualified Crypto.PubKey.RSA.PKCS15       as Crypto.RSA.PKCS
 import           RIO                            hiding (exp)
 import           RIO.Time
 
+import Data.Aeson
+
 import           Control.Monad.Time
 
 import           Crypto.Key.Asymmetric          as Key
@@ -30,12 +32,15 @@ import           Web.Ucan.Signature.Error
 import           Web.Ucan.Error                 as Ucan
 import           Web.Ucan.Proof                 as Ucan.Proof
 import           Web.Ucan.Types                 as Ucan
+import           Web.Ucan as Ucan
 
 import qualified Web.Ucan.Signature.RS256.Types as RS256
 import           Web.Ucan.Signature.Types       as Signature
 
 check ::
-  ( Proof.Resolver m fct rsc
+  ( Proof.Resolver m
+  , FromJSON fct
+  , FromJSON rsc
   , Ucan.Proof.ResourceSemantics rsc
   , MonadTime      m
   )
@@ -55,7 +60,9 @@ check receiverDID rawContent ucan = do
         Right _   -> check' rawContent ucan now
 
 check' ::
-  ( Proof.Resolver m fct rsc
+  ( Proof.Resolver m
+  , FromJSON fct
+  , FromJSON rsc
   , Ucan.Proof.ResourceSemantics rsc
   )
   => Ucan.RawContent
@@ -85,7 +92,9 @@ checkVersion ucan@Ucan { header = Ucan.Header {uav = SemVer mjr mnr pch}} =
     else Left $ Ucan.HeaderError UnsupportedVersion
 
 checkProof ::
-  ( Proof.Resolver m fct rsc
+  ( Proof.Resolver m
+  , FromJSON fct
+  , FromJSON rsc
   , Ucan.Proof.ResourceSemantics rsc
   )
   => UTCTime -> Ucan fct rsc -> m (Either Ucan.Error (Ucan fct rsc))
@@ -99,10 +108,13 @@ checkProof now ucan@Ucan {claims = Claims {proof}} =
         Left err ->
           return . Left . Ucan.ClaimsError . ProofError . Ucan.Proof.ResolverError $ err
 
-        Right (rawProof, proofUcan) ->
-          check' rawProof proofUcan now <&> \case
-            Left err -> Left err
-            Right _  -> checkDelegate proofUcan
+        Right rawProof -> do
+          case Ucan.fromRawContent rawProof of
+            Left _          -> return $ Left Ucan.ParseError
+            Right proofUcan ->
+              check' rawProof proofUcan now <&> \case
+                Left err -> Left err
+                Right _  -> checkDelegate proofUcan
 
     Nested rawProof proofUcan ->
       check' rawProof proofUcan now <&> \case

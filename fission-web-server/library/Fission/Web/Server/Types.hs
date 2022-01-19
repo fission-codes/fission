@@ -451,6 +451,7 @@ instance JWT.Resolver Server where
         let
           resolvedBS = Lazy.toStrict resolvedLBS
         in
+          -- JWT.contentOf (decodeUtf8Lenient resolvedBS) & Ucan.fromRawContent
           case eitherDecodeStrict resolvedBS of
             Left  _   -> return . Left $ InvalidJWT resolvedBS
             Right jwt -> return $ Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
