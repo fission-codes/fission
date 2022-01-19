@@ -10,7 +10,7 @@ import qualified RIO.ByteString                                   as BS
 import qualified RIO.List                                         as List
 import qualified RIO.Text                                         as Text
 
-import           Web.JWT.Proof.Class
+import           Web.Ucan.Proof.Class
 
 data Resource
   = FissionFileSystem Text -- More efficent than FilePath

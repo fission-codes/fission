@@ -10,7 +10,7 @@ import qualified Fission.Internal.UTF8                            as UTF8
 import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
-import           Web.JWT.Types
+import           Web.Ucan.Types
 
 import           Fission.Test.Prelude
 import qualified Fission.Test.Web.Auth.Token.JWT.Validation       as Validation

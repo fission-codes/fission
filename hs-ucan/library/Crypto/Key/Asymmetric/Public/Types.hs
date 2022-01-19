@@ -1,22 +1,22 @@
 module Crypto.Key.Asymmetric.Public.Types (Public (..)) where
 
-import qualified Crypto.PubKey.Ed25519                     as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA                         as Crypto.RSA
+import qualified Crypto.PubKey.Ed25519                         as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA                             as Crypto.RSA
 
 import           Data.Swagger
 import           Database.Persist.Sql
 
-import           Control.Lens                              ((?~))
+import           Control.Lens                                  ((?~))
 import           Data.Aeson
 import           RIO
-import qualified RIO.Text                                  as Text
+import qualified RIO.Text                                      as Text
 import           Servant.API
 import           Test.QuickCheck
 
-import           Crypto.Key.Asymmetric.RSA2048.Pair.Types  as Pair
+import           Crypto.Key.Asymmetric.RSA2048.Pair.Types      as Pair
 
-import           Ucan.Internal.Orphanage.Ed25519.PublicKey ()
-import           Ucan.Internal.Orphanage.RSA2048.Public    ()
+import           Web.Ucan.Internal.Orphanage.Ed25519.PublicKey ()
+import           Web.Ucan.Internal.Orphanage.RSA2048.Public    ()
 
 data Public
   = Ed25519PublicKey Crypto.Ed25519.PublicKey

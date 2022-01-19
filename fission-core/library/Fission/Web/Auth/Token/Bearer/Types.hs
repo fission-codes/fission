@@ -13,10 +13,10 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import qualified Ucan.Internal.Base64.URL         as B64.URL
+import qualified Web.Ucan.Internal.Base64.URL     as B64.URL
 
-import qualified Web.JWT.RawContent               as JWT
-import qualified Web.JWT.Types                    as JWT
+import qualified Web.Ucan.RawContent              as JWT
+import qualified Web.Ucan.Types                   as JWT
 
 import           Fission.Web.Auth.Token.JWT.Types
 

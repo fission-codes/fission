@@ -1,8 +1,8 @@
 module Fission.User.Registration.Types ( Registration(..) ) where
 
-import qualified Crypto.PubKey.RSA                      as RSA
+import qualified Crypto.PubKey.RSA                          as RSA
 
-import           Data.Swagger                           hiding (email)
+import           Data.Swagger                               hiding (email)
 
 import           Fission.Prelude
 
@@ -10,7 +10,7 @@ import           Fission.User.Email.Types
 import           Fission.User.Password.Types
 import           Fission.User.Username.Types
 
-import           Ucan.Internal.Orphanage.RSA2048.Public ()
+import           Web.Ucan.Internal.Orphanage.RSA2048.Public ()
 
 data Registration = Registration
   { username   :: Username

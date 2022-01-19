@@ -5,16 +5,16 @@ import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
-import           Web.JWT.Types
-import           Web.JWT.Validation
+import           Web.Ucan.Types
+import           Web.Ucan.Validation
 
 import           Crypto.Key.Asymmetric.Algorithm.Types
-import qualified Web.JWT.RawContent                               as JWT
+import qualified Web.Ucan.RawContent                              as JWT
 
 import qualified Crypto.Key.Asymmetric                            as Key
 import           Web.DID.Types
 
-import qualified Ucan.Internal.Base64.URL                         as B64.URL
+import qualified Web.Ucan.Internal.Base64.URL                     as B64.URL
 
 import           Fission.Test.Prelude
 

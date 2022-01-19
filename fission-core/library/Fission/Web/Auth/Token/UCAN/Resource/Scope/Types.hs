@@ -2,7 +2,7 @@ module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types (Scope (..)) where
 
 import           Fission.Prelude
 
-import           Web.JWT.Proof.Class
+import           Web.Ucan.Proof.Class
 
 
 data Scope subset

@@ -15,12 +15,12 @@ import           Servant.API
 
 import           Fission.Authorization.ServerDID.Class
 import           Fission.Prelude
-import qualified Ucan.Internal.Time                    as Time
+import qualified Web.Ucan.Internal.Time                as Time
 
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 import           Fission.Web.Auth.Token.JWT            as JWT
 
-import           Web.JWT.Resolver                      as Proof
+import           Web.Ucan.Resolver                     as Proof
 
 newtype InTimeBounds a = InTimeBounds { unwrap :: Identity a }
   deriving newtype

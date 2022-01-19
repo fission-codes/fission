@@ -11,8 +11,8 @@ module Fission.Web.Auth.Token.JWT
   , module Fission.Web.Auth.Token.JWT.Fact.Types
   , module Fission.Web.Auth.Token.UCAN.Resource.Types
   , module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-  , module Web.JWT.Error
-  , module Web.JWT.RawContent
+  , module Web.Ucan.Error
+  , module Web.Ucan.RawContent
   ) where
 
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
@@ -28,11 +28,11 @@ import           Crypto.Key.Asymmetric.Algorithm.Types            as Key
 import qualified Crypto.Key.Asymmetric.Public.Types               as Asymmetric
 
 import           Web.DID.Types                                    as DID
-import qualified Web.JWT.Header.Typ.Types                         as JWT.Typ
-import qualified Web.JWT.Resolver                                 as JWT
-import qualified Web.JWT.Resolver.Class                           as Proof
-import qualified Web.JWT.Resolver.Error                           as Resolver
-import qualified Web.JWT.Types                                    as JWT
+import qualified Web.Ucan.Header.Typ.Types                        as JWT.Typ
+import qualified Web.Ucan.Resolver                                as JWT
+import qualified Web.Ucan.Resolver.Class                          as Proof
+import qualified Web.Ucan.Resolver.Error                          as Resolver
+import qualified Web.Ucan.Types                                   as JWT
 
 import           Fission.Web.Auth.Token.JWT.Fact.Types
 import           Fission.Web.Auth.Token.JWT.Types
@@ -41,8 +41,8 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Types
 
 -- Reexports
 
-import           Web.JWT.Error
-import           Web.JWT.RawContent
+import           Web.Ucan.Error
+import           Web.Ucan.RawContent
 
 getRoot :: JWT.Resolver m Fact (Scope Resource) => FissionJWT -> m (Either Resolver.Error FissionJWT)
 getRoot jwt@JWT.JWT {claims = JWT.Claims {proof}} =

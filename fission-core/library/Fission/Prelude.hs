@@ -28,7 +28,7 @@ module Fission.Prelude
   , module Fission.Unit.Prefix
   , module Fission.Internal.Log
 
-  , module Ucan.Internal.Time
+  , module Web.Ucan.Internal.Time
 
   , module Flow
 
@@ -116,8 +116,8 @@ import           Test.QuickCheck.Instances                   ()
 import           Fission.Text.Encoded
 import           Fission.Unit.Prefix
 
-import           Ucan.Internal.Orphanage.ClientError         ()
-import           Ucan.Internal.Time
+import           Web.Ucan.Internal.Orphanage.ClientError     ()
+import           Web.Ucan.Internal.Time
 
 import           Fission.Internal.Log
 import           Fission.Internal.Orphanage.OpenUnion        ()

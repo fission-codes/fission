@@ -7,7 +7,7 @@ module Fission.Web.Auth.Token.Bearer
 
 import qualified RIO.ByteString.Lazy                 as Lazy
 
-import qualified Web.JWT.Types                       as JWT
+import qualified Web.Ucan.Types                      as JWT
 
 import           Fission.Prelude
 

@@ -12,7 +12,7 @@ import qualified Network.IPFS.Types     as IPFS
 import           Fission.Prelude
 import           Fission.URL
 
-import Web.DID.Types
+import           Web.DID.Types
 
 data NotFound entity
   = NotFound
