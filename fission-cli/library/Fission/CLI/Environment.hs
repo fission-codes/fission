@@ -33,8 +33,8 @@ import           Fission.Error.Types
 
 import           Fission.Web.Client
 
-import           Fission.User.DID.Types
 import           Fission.User.Username.Types
+import           Web.DID.Types
 
 import qualified Fission.CLI.Display.Error     as CLI.Error
 import           Fission.CLI.IPFS.Peers        as Peers

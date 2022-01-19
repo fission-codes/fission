@@ -5,7 +5,7 @@ import           Fission.Prelude
 import           Fission.Error.NotFound.Types
 
 import           Fission.Authorization.ServerDID
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Web.Auth.Token.JWT                         as JWT
 import           Fission.Web.Auth.Token.JWT.Resolver                as Proof

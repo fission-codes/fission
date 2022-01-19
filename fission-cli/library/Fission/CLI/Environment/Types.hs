@@ -7,8 +7,8 @@ import           Fission.Prelude
 
 import           Fission.Error.Types
 
-import           Fission.User.DID.Types
 import           Fission.User.Username.Types
+import           Web.DID.Types
 
 -- | "Global" environment
 data Env = Env

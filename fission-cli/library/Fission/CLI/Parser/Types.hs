@@ -4,8 +4,8 @@ import qualified RIO.Text                         as Text
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
 import           Fission.Web.API.Remote
+import           Web.DID.Types
 
 import           Fission.CLI.Parser.Command.Types
 import           Fission.CLI.Parser.Verbose.Types

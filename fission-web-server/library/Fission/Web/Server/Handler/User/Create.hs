@@ -9,7 +9,7 @@ import           Servant.Server.Generic
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import qualified Fission.Web.API.User.Create.Types          as User.Create
 

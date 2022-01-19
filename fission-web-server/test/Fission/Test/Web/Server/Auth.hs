@@ -16,7 +16,7 @@ import           Fission.Web.Server.Fixture.Entity                      as Fixtu
 import           Fission.Web.Server.Fixture.User                        as Fixture
 import           Fission.Web.Server.Mock.Config
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 import qualified Fission.Web.API.Heroku.Auth.Types                      as Heroku
 import           Fission.Web.Server.Auth
 import           Fission.Web.Server.Auth.Token.Basic.Class

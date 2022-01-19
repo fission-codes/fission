@@ -1,27 +1,27 @@
 module Fission.CLI.Key.Store.Class (MonadKeyStore (..)) where
 
-import qualified RIO.ByteString.Lazy                          as Lazy
-import           RIO.FilePath                                 ((</>))
+import qualified RIO.ByteString.Lazy                           as Lazy
+import           RIO.FilePath                                  ((</>))
 
-import           Data.Binary                                  as Binary
-import           Data.ByteArray                               as ByteArray
+import           Data.Binary                                   as Binary
+import           Data.ByteArray                                as ByteArray
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519                        as Ed25519
-import qualified Crypto.PubKey.RSA                            as RSA
+import           Crypto.Key.Asymmetric.Public
+import qualified Crypto.PubKey.Ed25519                         as Ed25519
+import qualified Crypto.PubKey.RSA                             as RSA
 import           Crypto.Random.Types
 
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Public
-import           Fission.Key.Error                            as Key
+import           Fission.Key.Error                             as Key
 
 import           Fission.CLI.Environment.Class
 import           Fission.CLI.Environment.Path
 
 import           Fission.CLI.Key.Store.Types
 
-import           Fission.Internal.Orphanage.Ed25519.SecretKey ()
+import           Web.Ucan.Internal.Orphanage.Ed25519.SecretKey ()
 import           Web.Ucan.Internal.Orphanage.RSA2048.Private   ()
 
 class

@@ -256,7 +256,7 @@ instance
         let rawContent = RawContent $ B64.URL.encodeJWT header claims
         return $ Nested rawContent innerUcan
 
-instance (Display fct, Display rsc) => Display (Proof fct rsc) where
+instance Display (Proof fct rsc) where
   display = \case
     RootCredential -> "RootCredential"
     Nested raw _   -> "Nested "    <> display raw

@@ -4,7 +4,7 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.CLI.PIN.Types
 

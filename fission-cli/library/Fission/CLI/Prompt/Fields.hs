@@ -3,17 +3,17 @@ module Fission.CLI.Prompt.Fields
   , getRequiredSecret
   ) where
 
-import qualified Data.ByteString.UTF8  as UTF8
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Char8          as BS
+import qualified Data.ByteString.UTF8           as UTF8
 
 import           System.Console.Haskeline
 
+import qualified Fission.Internal.UTF8          as UTF8
 import           Fission.Prelude
-import qualified Fission.Internal.UTF8 as UTF8
 
+import qualified Fission.CLI.Display.Error      as CLI.Error
 import qualified Fission.CLI.Prompt             as Prompt
 import qualified Fission.CLI.Prompt.Error.Types as Prompt.Error
-import qualified Fission.CLI.Display.Error      as CLI.Error
 
 -- | Prompt a user for a value and do not accept an empty value
 getRequired :: (MonadIO m, MonadLogger m) => ByteString -> m ByteString

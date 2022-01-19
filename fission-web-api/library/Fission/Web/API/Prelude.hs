@@ -13,4 +13,4 @@ import           Servant.API
 import           Servant.API.Generic
 import           Servant.Client
 
-import           Control.Lens   ((?~))
+import           Control.Lens        ((?~))

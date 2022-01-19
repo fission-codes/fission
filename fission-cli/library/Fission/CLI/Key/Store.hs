@@ -15,18 +15,18 @@ module Fission.CLI.Key.Store
   , module Fission.CLI.Key.Store.Types
   ) where
 
-import qualified Data.ByteArray                   as ByteArray
+import qualified Data.ByteArray                    as ByteArray
 import           RIO.Directory
 
 import           Fission.Prelude
 
-import           Fission.Key.Error                as Key
+import           Fission.Key.Error                 as Key
 
 import           Fission.CLI.File
-import qualified Fission.CLI.Key.Store.Class      as KeyStore
+import qualified Fission.CLI.Key.Store.Class       as KeyStore
 
-import qualified Fission.Internal.Base64          as B64
-import qualified Fission.Internal.Base64.Scrubbed as B64.Scrubbed
+import qualified Web.Ucan.Internal.Base64          as B64
+import qualified Web.Ucan.Internal.Base64.Scrubbed as B64.Scrubbed
 
 -- 🔁 Reexports
 

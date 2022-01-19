@@ -17,7 +17,7 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Prelude
 
 import           Fission.URL                            as URL
-import           Fission.User.DID.Types
+import           Web.DID.Types
 import qualified Fission.Web.API.Heroku.Auth.Types      as Heroku
 
 import           Fission.Web.Server.Authorization.Types

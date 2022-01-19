@@ -13,11 +13,13 @@ import           Fission.Prelude
 import           Fission.Authorization               as Authorization
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT          as JWT
+import           Fission.Web.Auth.Token.Ucan         as Ucan
+import qualified Fission.Web.Auth.Token.Ucan.Types   as Fission
 
 import           Fission.Web.Client.Auth
 
-import qualified Fission.Internal.Base64.URL         as Base64.URL
+import qualified Web.Ucan.Internal.Base64.URL        as Base64.URL
+import           Web.Ucan.Types
 
 -- NOTE Probably can be changed to `hoistClientMonad` at call site
 mkAuthReq ::
@@ -25,7 +27,7 @@ mkAuthReq ::
   , ServerDID m
   , MonadWebAuth m Ed25519.SecretKey
   )
-  => JWT.Proof
+  => Fission.Proof
   -> m (Request -> Request)
 mkAuthReq proof = do
   now        <- currentTime
@@ -33,7 +35,7 @@ mkAuthReq proof = do
   sk         <- getAuth
 
   let
-    jwt@JWT{header, claims} = JWT.simpleWNFS now fissionDID sk [] proof
+    jwt@Ucan{header, claims} = Ucan.simpleWNFS now fissionDID sk [] proof
     raw                     = RawContent $ Base64.URL.encodeJWT header claims
     encoded                 = toUrlPiece $ Bearer.Token jwt raw
 

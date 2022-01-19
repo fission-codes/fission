@@ -2,7 +2,7 @@ module Fission.Web.Server.Relay.Store.Types (Store (..)) where
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 import           Fission.Web.Server.Relay.Channel.Types
 
 newtype Store = Store { getRelays :: HashMap DID ChannelIn }

@@ -32,7 +32,6 @@ import           Web.Ucan.Signature.Error
 import           Web.Ucan                       as Ucan
 import           Web.Ucan.Error                 as Ucan
 import           Web.Ucan.Proof                 as Ucan.Proof
-import           Web.Ucan.Types                 as Ucan
 
 import qualified Web.Ucan.Signature.RS256.Types as RS256
 import           Web.Ucan.Signature.Types       as Signature

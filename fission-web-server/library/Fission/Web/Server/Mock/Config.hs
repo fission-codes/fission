@@ -15,7 +15,7 @@ import           Fission.Prelude
 
 import           Fission.Authorization.Potency.Types
 import           Fission.URL.Types                                as URL
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Internal.Fixture.Key.Ed25519             as Fixture.Ed25519
 import           Fission.Internal.Fixture.Time                    as Fixture

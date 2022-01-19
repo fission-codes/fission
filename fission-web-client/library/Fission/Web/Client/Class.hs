@@ -1,7 +1,7 @@
 module Fission.Web.Client.Class (MonadWebClient (..)) where
 
-import           Servant.Client
 import           Fission.Prelude
+import           Servant.Client
 
 class Monad m => MonadWebClient m where
   sendRequest :: ClientM a -> m (Either ClientError a)

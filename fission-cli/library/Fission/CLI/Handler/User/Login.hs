@@ -24,6 +24,9 @@ import qualified Network.DNS                                 as DNS
 import           Network.IPFS.CID.Types
 import           Servant.Client.Core
 
+import qualified Crypto.Key.Asymmetric.Algorithm.Error       as Asymmetric.Algorithm
+import           Crypto.Key.Asymmetric.Public.Types
+
 -- ⚛️  Fission
 
 import           Fission.Prelude
@@ -34,13 +37,10 @@ import           Fission.Error.Types
 import qualified Fission.JSON                                as JSON
 
 import           Fission.Authorization.ServerDID.Class
-import qualified Fission.Key.Asymmetric.Algorithm.Error      as Asymmetric.Algorithm
-import           Fission.Key.Asymmetric.Public.Types
 import qualified Fission.Key.Error                           as Key
 import qualified Fission.Key.Symmetric                       as Symmetric
 
 import           Fission.User.DID.NameService.Class          as DID
-import           Fission.User.DID.Types
 import           Fission.User.Username                       as Username
 
 import           Fission.Web.Client
@@ -48,16 +48,17 @@ import qualified Fission.Web.Serialization                   as Web.Serializatio
 
 -- 🛂 JWT/UCAN
 
+import           Web.DID.Types
+import qualified Web.Ucan.Claims.Error                       as Ucan.Claims
+import qualified Web.Ucan.Proof                              as Ucan.Proof
+import qualified Web.Ucan.Resolver.Class                     as Ucan
+import qualified Web.Ucan.Resolver.Error                     as Ucan.Resolver
+import qualified Web.Ucan.Types                              as Ucan
+import qualified Web.Ucan.Validation                         as Ucan
+
 import           Fission.Web.Auth.Token.Bearer               as Bearer
-import           Fission.Web.Auth.Token.JWT                  as JWT
-import qualified Fission.Web.Auth.Token.JWT.Claims.Error     as JWT.Claims
-import           Fission.Web.Auth.Token.JWT.Fact.Types
-import qualified Fission.Web.Auth.Token.JWT.Proof            as UCAN
-import qualified Fission.Web.Auth.Token.JWT.Proof.Error      as JWT.Proof
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Class   as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error   as UCAN.Resolver
-import qualified Fission.Web.Auth.Token.JWT.Validation       as UCAN
 import           Fission.Web.Auth.Token.Types                as Web
+import           Fission.Web.Auth.Token.Ucan                 as Ucan
 
 -- 📟 CLI
 
@@ -118,7 +119,7 @@ type ConsumerConstraints m =
   , MonadEnvironment m
   , MonadNameService m
   , MonadWebClient   m
-  , JWT.Resolver     m
+  , Ucan.Resolver     m
 
   , WebNative.FileSystem.Auth.Store.MonadStore m
   , WebNative.Mutation.Store.MonadStore        m
@@ -134,11 +135,11 @@ type ConsumerConstraints m =
   , m `Raises` ClientError
   , m `Raises` DNS.DNSError
   , m `Raises` JSON.Error
-  , m `Raises` JWT.Error
-  , m `Raises` JWT.Proof.Error
+  , m `Raises` Ucan.Error
+  , m `Raises` Ucan.Proof.Error
   , m `Raises` NotFound DID
   , m `Raises` SecurePayload.Error
-  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` Ucan.Resolver.Error
   , m `Raises` Username.Invalid
 
   , Show (OpenUnion (Errors m))
@@ -179,13 +180,13 @@ consume signingSK baseURL optUsername = do
           } <- secureListenJSON rsaConn
 
         logDebug @Text "🤝 Device linking handshake: Step 4"
-        ensureM $ UCAN.check sessionDID rawContent jwt
+        ensureM $ Ucan.check sessionDID rawContent jwt
 
         -- TODO waiting on FE to not send an append UCAN -- case (jwt |> claims |> potency) == AuthNOnly of
-        ensure $ UCAN.containsFact jwt \facts ->
+        ensure $ Ucan.Proof.containsFact jwt \facts ->
           if SessionKey sessionKey `elem` facts
             then Right ()
-            else Left JWT.Proof.MissingExpectedFact
+            else Left Ucan.Proof.MissingExpectedFact
 
         return Secure.Connection {conn, key = sessionKey}
 
@@ -205,11 +206,11 @@ consume signingSK baseURL optUsername = do
         , readKey
         } <- secureListenJSON aesConn
 
-      ensureM $ UCAN.check myDID rawContent jwt
-      JWT {claims = JWT.Claims {sender}} <- ensureM $ getRoot jwt
+      ensureM $ Ucan.check myDID rawContent jwt
+      Ucan.Ucan {claims = Ucan.Claims {sender}} <- ensureM $ getRoot jwt
 
       unless (sender == targetDID) do
-        raise $ JWT.ClaimsError JWT.Claims.IncorrectSender
+        raise $ Ucan.ClaimsError Ucan.Claims.IncorrectSender
 
       _   <- WebNative.FileSystem.Auth.Store.set targetDID "/" readKey
       cid <- WebNative.Mutation.Store.insert bearer
@@ -228,7 +229,7 @@ type ProducerConstraints m =
   , MonadWebAuth     m Web.Token
   , MonadWebAuth     m Ed25519.SecretKey
   , ServerDID        m
-  , JWT.Resolver     m
+  , Ucan.Resolver    m
 
   , WebNative.FileSystem.Auth.Store.MonadStore m
   , WebNative.Mutation.Store.MonadStore        m
@@ -249,7 +250,7 @@ type ProducerConstraints m =
   , m `Raises` NotFound (Symmetric.Key AES256)
   , m `Raises` Web.Serialization.Error
   , m `Raises` SecurePayload.Error
-  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` Ucan.Resolver.Error
   , m `Raises` Mismatch PIN
   , m `Raises` ClientError
   , m `Raises` Status Denied
@@ -309,8 +310,8 @@ produce signingSK baseURL = do
                   attempt (WebNative.FileSystem.Auth.Store.getMostPrivileged rootDID "/") >>= \case
                     Left _ ->
                       case rootProof of
-                        RootCredential -> WebNative.FileSystem.Auth.Store.create rootDID "/"
-                        _              -> raise $ NotFound @(Symmetric.Key AES256)
+                        Ucan.RootCredential -> WebNative.FileSystem.Auth.Store.create rootDID "/"
+                        _                   -> raise $ NotFound @(Symmetric.Key AES256)
 
                     Right (_, key) ->
                       return key
@@ -319,7 +320,7 @@ produce signingSK baseURL = do
                   jwt    = delegateSuperUser requestorDID signingSK rootProof now
                   bearer = Bearer.fromJWT jwt
 
-                accessOK <- reaskYN $ "🧞 Grant access? " <> JWT.prettyPrintGrants jwt
+                accessOK <- reaskYN $ "🧞 Grant access? " <> Ucan.prettyPrintGrants jwt
                 unless accessOK $ raise (Status Denied)
 
                 aesConn `secureBroadcastJSON` User.Link.Payload {bearer, readKey}

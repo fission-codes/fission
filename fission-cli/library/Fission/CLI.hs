@@ -17,7 +17,7 @@ import qualified Network.IPFS.URL.Types                             as IPFS
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import qualified Fission.CLI.Internal.ServerDID                     as ServerDID
 

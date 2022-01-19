@@ -5,7 +5,7 @@ import           Network.Wai
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
 import           Fission.Web.Auth.Token.JWT            as JWT

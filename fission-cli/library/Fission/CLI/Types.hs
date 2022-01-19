@@ -45,6 +45,14 @@ import           Servant.API                                       hiding
 import           Servant.Client
 import qualified Wuss                                              as WSS
 
+import qualified Crypto.Key.Asymmetric.Public                      as Asymmetric
+
+import           Web.DID.Types
+import           Web.Ucan.Internal.Orphanage.ClientError           ()
+import           Web.Ucan.Resolver                                 as Ucan
+import qualified Web.Ucan.Resolver.Error                           as Ucan.Resolver
+import qualified Web.Ucan.Types                                    as Ucan
+
 import           Fission.Prelude                                   hiding (mask,
                                                                     uninterruptibleMask)
 
@@ -55,7 +63,6 @@ import           Fission.Error.NotFound.Types
 
 import qualified Fission.JSON                                      as JSON
 import qualified Fission.Key.Error                                 as Key
-import           Fission.User.DID.Types
 import           Fission.Web.Client.HTTP.Class
 
 import qualified Fission.CLI.Base.Types                            as Base
@@ -76,9 +83,10 @@ import           Fission.CLI.Environment                           as Env
 import           Fission.CLI.Environment.Path
 
 import qualified Fission.Web.Auth.Token.Bearer.Types               as Bearer
-import           Fission.Web.Auth.Token.JWT                        as JWT
+import           Fission.Web.Auth.Token.Types
+import qualified Fission.Web.Auth.Token.Ucan                       as Ucan
+import           Fission.Web.Auth.Token.Ucan.Types                 as Ucan
 
-import qualified Fission.Key.Asymmetric.Public                     as Asymmetric
 import           Fission.Key.EncryptedWith.Types
 import qualified Fission.Key.IV.Error                              as IV
 import qualified Fission.Key.Symmetric                             as Symmetric
@@ -86,13 +94,7 @@ import qualified Fission.Key.Symmetric                             as Symmetric
 import           Fission.User.DID.NameService.Class                as DID
 import           Fission.User.Username
 
-import           Fission.Web.Auth.Token.JWT.Resolver               as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver               as JWT.Resolver
-import           Fission.Web.Auth.Token.Types
-
 import           Fission.Web.Client
-
-import           Fission.Internal.Orphanage.CID                    ()
 
 import           Fission.CLI.PubSub
 import           Fission.CLI.Remote
@@ -107,7 +109,7 @@ import qualified Fission.CLI.PubSub.Secure.Session.Handshake.Types as PubSub
 import qualified Fission.CLI.PubSub.Secure.Session.Types           as PubSub
 
 import           Fission.Internal.Orphanage.BaseUrl                ()
-import           Fission.Internal.Orphanage.ClientError            ()
+import           Fission.Internal.Orphanage.CID                    ()
 import           Fission.Internal.Orphanage.DNS.DNSError           ()
 import           Fission.Internal.Orphanage.OpenUnion              ()
 
@@ -238,7 +240,7 @@ instance
   , Display (OpenUnion errs)
   )
   => WebNative.Mutation.Auth.MonadStore (FissionCLI errs cfg) where
-  insert token@Bearer.Token {jwt = JWT {sig}, rawContent = RawContent ogContent} = do
+  insert token@Bearer.Token {jwt = Ucan.Ucan {sig}, rawContent = Ucan.RawContent ogContent} = do
     logDebug @Text "🛂💾 Adding UCAN to store"
     storePath      <- ucanStorePath
     store          <- WebNative.Mutation.Auth.getAll
@@ -318,9 +320,9 @@ instance
   , NotFound FilePath          `IsMember` errs
   , Process.Error              `IsMember` errs
   , SomeException              `IsMember` errs
-  , JWT.Resolver.Error         `IsMember` errs
+  , Ucan.Resolver.Error        `IsMember` errs
   , NotFound Ed25519.SecretKey `IsMember` errs
-  , NotFound JWT               `IsMember` errs
+  , NotFound Ucan              `IsMember` errs
   , IPFS.Add.Error             `IsMember` errs
   , Contains errs errs
 
@@ -343,24 +345,24 @@ instance
     proof     <- do
       attempt Env.get >>= \case
         Left _ -> do
-          return RootCredential
+          return Ucan.RootCredential
 
         Right Env {rootProof} ->
           case rootProof of
             Nothing -> do
-              return RootCredential
+              return Ucan.RootCredential
 
             Just cid -> do
               store <- WebNative.Mutation.Auth.getAll
               case store !? cid of
-                Nothing                -> raise  $ NotFound @JWT
-                Just Bearer.Token {..} -> return $ Nested rawContent jwt
+                Nothing                -> raise  $ NotFound @Ucan
+                Just Bearer.Token {..} -> return $ Ucan.Nested rawContent jwt
 
     logDebug $ "🧾🛂 Proof: " <> display proof
 
     let
       jwt =
-        JWT.delegateAppendAll serverDID sk proof now
+        Ucan.delegateAppendAll serverDID sk proof now
 
       rawContent =
         jwt
@@ -369,7 +371,7 @@ instance
           |> decodeUtf8Lenient
           |> Text.dropPrefix "\""
           |> Text.dropSuffix "\""
-          |> JWT.contentOf
+          |> Ucan.contentOf
 
       token =
         Bearer Bearer.Token {..}
@@ -812,7 +814,7 @@ instance
   , Contains errs errs
   , MonadIPFSIgnore (FissionCLI errs cfg)
   )
-  => JWT.Resolver (FissionCLI errs cfg) where
+  => Ucan.Resolver (FissionCLI errs cfg) where
   resolve cid@(IPFS.CID hash') = do
     _ <- IPFS.Daemon.runDaemon
     IPFS.runLocal ["cat"] (Lazy.fromStrict $ encodeUtf8 hash') <&> \case
@@ -820,9 +822,7 @@ instance
         Left $ CannotResolve cid (ConnectionError $ toException errMsg)
 
       Right (Lazy.toStrict -> resolvedBS) ->
-        case eitherDecodeStrict resolvedBS of
-          Left  _   -> Left $ InvalidJWT resolvedBS
-          Right jwt -> Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
+          Right (Ucan.contentOf (decodeUtf8Lenient resolvedBS))
 
 instance MonadEnvironment (FissionCLI errs cfg) where
   getGlobalPath = do
