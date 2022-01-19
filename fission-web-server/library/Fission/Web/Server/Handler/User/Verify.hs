@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 module Fission.Web.Server.Handler.User.Verify (handler) where
 
 import           Servant

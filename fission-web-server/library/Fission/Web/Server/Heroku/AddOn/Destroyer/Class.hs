@@ -1,7 +1,7 @@
 module Fission.Web.Server.Heroku.AddOn.Destroyer.Class (Destroyer (..)) where
 
 import           Data.UUID                        (UUID)
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Fission.Prelude
 

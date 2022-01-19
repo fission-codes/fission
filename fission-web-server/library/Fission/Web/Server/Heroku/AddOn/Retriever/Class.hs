@@ -1,7 +1,7 @@
 module Fission.Web.Server.Heroku.AddOn.Retriever.Class (Retriever (..)) where
 
 import           Data.UUID                        (UUID)
-import           Database.Esqueleto               hiding (update, (=.))
+import           Database.Esqueleto.Legacy        hiding (update, (=.))
 import qualified Database.Persist                 as P
 
 import           Fission.Prelude

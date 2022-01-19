@@ -3,7 +3,7 @@ module Fission.Web.Server.App.Domain.Associator.Class
   , Errors'
   ) where
 
-import           Database.Esqueleto                                 (Checkmark (..),
+import           Database.Esqueleto.Legacy                          (Checkmark (..),
                                                                      insertUnique,
                                                                      insert_)
 

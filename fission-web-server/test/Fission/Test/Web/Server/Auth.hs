@@ -6,23 +6,23 @@ import           Servant.Server.Experimental.Auth
 
 import           Test.Tasty.Hspec
 
-import qualified Fission.Internal.Fixture.Key.Ed25519                   as Ed25519
-import           Fission.Internal.Mock                                  as Mock
+import qualified Fission.Internal.Fixture.Key.Ed25519      as Ed25519
+import           Fission.Internal.Mock                     as Mock
 
 import           Fission.Web.Server.Auth.Class
 import           Fission.Web.Server.Models
 
-import           Fission.Web.Server.Fixture.Entity                      as Fixture
-import           Fission.Web.Server.Fixture.User                        as Fixture
+import           Fission.Web.Server.Fixture.Entity         as Fixture
+import           Fission.Web.Server.Fixture.User           as Fixture
 import           Fission.Web.Server.Mock.Config
 
-import           Web.DID.Types
-import qualified Fission.Web.API.Heroku.Auth.Types                      as Heroku
+import qualified Fission.Web.API.Heroku.Auth.Types         as Heroku
 import           Fission.Web.Server.Auth
 import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Authorization.Types
+import           Web.DID.Types
 
-import qualified Fission.Test.Web.Server.Auth.Token                     as Token
+import qualified Fission.Test.Web.Server.Auth.Token        as Token
 
 import           Fission.Test.Web.Server.Prelude
 

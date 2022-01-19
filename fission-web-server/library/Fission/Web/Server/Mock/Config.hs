@@ -11,19 +11,20 @@ import qualified Network.IPFS.Types                               as IPFS
 import           Servant
 import           Servant.Server.Experimental.Auth
 
+import           Web.DID.Types
+
 import           Fission.Prelude
 
-import           Fission.Authorization.Potency.Types
 import           Fission.URL.Types                                as URL
-import           Web.DID.Types
+import           Web.Ucan.Potency.Types
 
 import           Fission.Internal.Fixture.Key.Ed25519             as Fixture.Ed25519
 import           Fission.Internal.Fixture.Time                    as Fixture
 
 import qualified Fission.Web.API.Heroku.Auth.Types                as Heroku
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Types
 
 import           Fission.Web.Server.Fixture.Entity                as Fixture
 import           Fission.Web.Server.Fixture.User                  as Fixture

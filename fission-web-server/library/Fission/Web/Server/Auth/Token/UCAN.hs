@@ -1,20 +1,21 @@
 module Fission.Web.Server.Auth.Token.UCAN (handler) where
 
+import           Web.DID.Types
+import           Web.Ucan.Resolver                                  as Ucan
+import qualified Web.Ucan.Types                                     as Ucan
+import qualified Web.Ucan.Validation                                as Ucan
+
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
 
 import           Fission.Authorization.ServerDID
-import           Web.DID.Types
-
-import           Fission.Web.Auth.Token.JWT                         as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver                as Proof
-import qualified Fission.Web.Auth.Token.JWT.Validation              as JWT
 
 import qualified Fission.Web.Auth.Token.Bearer.Types                as Bearer
-import           Fission.Web.Auth.Token.JWT.Resolver                as JWT
+import qualified Fission.Web.Auth.Token.Ucan                        as Ucan
+import           Fission.Web.Auth.Token.Ucan.Resource.Types
+import           Fission.Web.Auth.Token.Ucan.Types
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.Error                           as Web.Error
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
@@ -37,25 +38,25 @@ handler ::
   -> m Authorization
 handler (Bearer.Token jwt rawContent) = do
   serverDID <- getServerDID
-  void . Web.Error.ensureM $ JWT.check serverDID rawContent jwt
+  void . Web.Error.ensureM $ Ucan.check serverDID rawContent jwt
   toAuthorization jwt
 
 toAuthorization ::
-  ( JWT.Resolver     m
+  ( Ucan.Resolver     m
   , MonadThrow       m
   , MonadLogger      m
   , MonadDB        t m
   , User.Retriever t
   )
-  => JWT
+  => Ucan
   -> m Authorization
-toAuthorization jwt@JWT {claims = JWT.Claims {..}} = do
+toAuthorization jwt@Ucan.Ucan {claims = Ucan.Claims {..}} = do
   logDebug @Text "🛂 Authorizing UCAN..."
-  getRoot jwt >>= \case
+  Ucan.getRoot jwt >>= \case
     Left err ->
       throwM err
 
-    Right JWT {claims = JWT.Claims {sender = DID {publicKey = pk}}} ->
+    Right Ucan.Ucan {claims = Ucan.Claims {sender = DID {publicKey = pk}}} ->
       runDB (User.getByPublicKey pk) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User

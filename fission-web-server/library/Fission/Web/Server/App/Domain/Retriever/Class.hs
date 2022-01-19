@@ -3,8 +3,8 @@ module Fission.Web.Server.App.Domain.Retriever.Class
   , Errors'
   ) where
 
-import           Database.Esqueleto                                 hiding
-                                                                     ((<&>))
+import           Database.Esqueleto.Legacy                          hiding
+                                                                    ((<&>))
 import qualified Database.Persist                                   as P
 
 import           Fission.Prelude                                    hiding (on)

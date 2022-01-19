@@ -8,7 +8,7 @@ module Fission.Web.Server.Storage.PostgreSQL
 import qualified Data.ByteString.Char8                                      as BS8
 import           Data.Pool
 
-import           Database.Esqueleto                                         (SqlBackend,
+import           Database.Esqueleto.Legacy                                  (SqlBackend,
                                                                              runMigration)
 import           Database.Persist.Postgresql                                (withPostgresqlPool)
 

@@ -3,7 +3,7 @@ module Fission.Web.Server.App.Domain.Dissociator.Class
   , Errors'
   ) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Fission.Prelude
 

@@ -1,6 +1,6 @@
 module Fission.Web.Server.Ownership.Class (Owned (..)) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Fission.Web.Server.Models
 

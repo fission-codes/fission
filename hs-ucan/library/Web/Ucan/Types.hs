@@ -42,8 +42,8 @@ import           Test.QuickCheck
 import           Crypto.Key.Asymmetric                         as Key
 
 import qualified Crypto.Key.Asymmetric.Algorithm.Types         as Algorithm
-import qualified Crypto.Key.Asymmetric.RSA2048.Pair.Types      as RSA2048
 import qualified Web.Ucan.Internal.Base64.URL                  as B64.URL
+import qualified Web.Ucan.Internal.RSA2048.Pair.Types          as RSA2048
 import           Web.Ucan.Internal.Time
 import qualified Web.Ucan.Internal.UTF8                        as UTF8
 

@@ -8,12 +8,12 @@ import           Servant
 import           Servant.API.Generic
 import           Servant.Server.Generic
 
+import qualified Web.Ucan.Resolver                            as Proof
+
 import           Fission.Prelude
 
 import qualified Fission.Web.API.Host.Types                   as Web
 import qualified Fission.Web.API.Types                        as Fission
-
-import qualified Fission.Web.Auth.Token.JWT.Resolver          as Proof
 
 import qualified Fission.Web.Server.Auth                      as Auth
 import qualified Fission.Web.Server.Challenge                 as Challenge

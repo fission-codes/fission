@@ -1,4 +1,4 @@
-module Crypto.Key.Asymmetric.RSA2048.Pair.Types
+module Web.Ucan.Internal.RSA2048.Pair.Types
   ( Pair (..)
   , pregenerated
   , pk1

@@ -13,8 +13,8 @@ import           RIO.Set                              as Set
 
 import           Fission.Prelude
 
-import           Web.DID.Types
 import           Fission.Web.Server.Relay.Channel
+import           Web.DID.Types
 
 import           Fission.Web.Server.Relay.Store.Class
 import           Fission.Web.Server.Relay.Store.Types

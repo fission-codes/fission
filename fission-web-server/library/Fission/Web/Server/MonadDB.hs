@@ -10,7 +10,7 @@ module Fission.Web.Server.MonadDB
 import           Control.Monad.Logger
 import           Control.Monad.Time
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           RIO                              hiding (logError)
 import           RIO.Time

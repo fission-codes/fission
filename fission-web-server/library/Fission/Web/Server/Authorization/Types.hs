@@ -10,13 +10,13 @@ import qualified RIO.Text                                         as Text
 import           Servant.API
 import           Servant.Server.Experimental.Auth
 
+import           Web.DID.Types
+import           Web.Ucan.Potency.Types
+
 import           Fission.Prelude
 
-import           Fission.Authorization.Potency.Types
-import           Fission.User.DID
-
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Types
 
 import           Fission.Web.Server.Models
 

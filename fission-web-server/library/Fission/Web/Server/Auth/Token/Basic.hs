@@ -8,16 +8,16 @@ import qualified Data.ByteString.Base64                           as Base64
 import qualified Data.ByteString.Char8                            as Ch
 
 import           Crypto.BCrypt
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Potency.Types
 import           Fission.User.Username.Types                      as Username
+import           Web.Ucan.Potency.Types
 
 import qualified Fission.Web.Auth.Token.Basic.Types               as Auth.Basic
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
 
 import           Fission.Web.Server.Error                         as Web.Err
 import           Fission.Web.Server.Models

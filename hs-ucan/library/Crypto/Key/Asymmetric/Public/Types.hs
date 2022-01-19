@@ -13,7 +13,7 @@ import qualified RIO.Text                                      as Text
 import           Servant.API
 import           Test.QuickCheck
 
-import           Crypto.Key.Asymmetric.RSA2048.Pair.Types      as Pair
+import           Web.Ucan.Internal.RSA2048.Pair.Types          as Pair
 
 import           Web.Ucan.Internal.Orphanage.Ed25519.PublicKey ()
 import           Web.Ucan.Internal.Orphanage.RSA2048.Public    ()

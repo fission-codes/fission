@@ -3,11 +3,12 @@ module Fission.Web.Server.Fixture.User (user) where
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
+import qualified Web.Ucan.Internal.RSA2048.Pair.Types as RSA2048
+
 import           Fission.Prelude
 
 import qualified Fission.Internal.Fixture.Key.Ed25519 as Ed25519
 import           Fission.Internal.Fixture.Time
-import qualified Fission.Internal.RSA2048.Pair.Types  as RSA2048
 
 import           Fission.Web.Server.Models
 import qualified Fission.Web.Server.User.Role.Types   as User.Roles

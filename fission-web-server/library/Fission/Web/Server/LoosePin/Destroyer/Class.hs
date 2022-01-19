@@ -1,7 +1,7 @@
 -- | Database mutations for 'LoosePin's
 module Fission.Web.Server.LoosePin.Destroyer.Class (Destroyer (..)) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Network.IPFS.CID.Types           as IPFS.CID
 
 import           Fission.Prelude

@@ -1,6 +1,6 @@
 module Fission.Web.Server.Challenge.Creator.Class (Creator (..)) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Fission.Prelude
 
