@@ -1,4 +1,4 @@
-module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types (Scope (..)) where
+module Fission.Web.Auth.Token.Ucan.Resource.Scope.Types (Scope (..)) where
 
 import           Fission.Prelude
 

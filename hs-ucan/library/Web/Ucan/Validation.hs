@@ -27,135 +27,135 @@ import           Web.Ucan.Claims.Error
 import           Web.Ucan.Header.Error
 import           Web.Ucan.Signature.Error
 
-import           Web.Ucan.Error                 as JWT
-import           Web.Ucan.Proof                 as JWT.Proof
-import           Web.Ucan.Types                 as JWT
+import           Web.Ucan.Error                 as Ucan
+import           Web.Ucan.Proof                 as Ucan.Proof
+import           Web.Ucan.Types                 as Ucan
 
 import qualified Web.Ucan.Signature.RS256.Types as RS256
 import           Web.Ucan.Signature.Types       as Signature
 
 check ::
   ( Proof.Resolver m fct rsc
-  , JWT.Proof.ResourceSemantics rsc
+  , Ucan.Proof.ResourceSemantics rsc
   , MonadTime      m
   )
   => DID
-  -> JWT.RawContent
-  -> JWT fct rsc
-  -> m (Either JWT.Error (JWT fct rsc))
-check receiverDID rawContent jwt = do
+  -> Ucan.RawContent
+  -> Ucan fct rsc
+  -> m (Either Ucan.Error (Ucan fct rsc))
+check receiverDID rawContent ucan = do
   now <- currentTime
-  case checkTime now jwt of
+  case checkTime now ucan of
     Left err ->
       return $ Left err
 
     Right _  ->
-      case checkReceiver receiverDID jwt of
+      case checkReceiver receiverDID ucan of
         Left  err -> return $ Left err
-        Right _   -> check' rawContent jwt now
+        Right _   -> check' rawContent ucan now
 
 check' ::
   ( Proof.Resolver m fct rsc
-  , JWT.Proof.ResourceSemantics rsc
+  , Ucan.Proof.ResourceSemantics rsc
   )
-  => JWT.RawContent
-  -> JWT fct rsc
+  => Ucan.RawContent
+  -> Ucan fct rsc
   -> UTCTime
-  -> m (Either JWT.Error (JWT fct rsc))
-check' raw jwt now =
-  case pureChecks raw jwt of
+  -> m (Either Ucan.Error (Ucan fct rsc))
+check' raw ucan now =
+  case pureChecks raw ucan of
     Left  err -> return $ Left err
-    Right _   -> checkProof now jwt
+    Right _   -> checkProof now ucan
 
-pureChecks :: JWT.RawContent -> JWT fct rsc -> Either JWT.Error (JWT fct rsc)
-pureChecks raw jwt = do
-  _ <- checkVersion  jwt
-  checkSignature raw jwt
+pureChecks :: Ucan.RawContent -> Ucan fct rsc -> Either Ucan.Error (Ucan fct rsc)
+pureChecks raw ucan = do
+  _ <- checkVersion  ucan
+  checkSignature raw ucan
 
-checkReceiver :: DID -> JWT fct rsc -> Either JWT.Error (JWT fct rsc)
-checkReceiver recipientDID jwt@JWT {claims = JWT.Claims {receiver}} = do
+checkReceiver :: DID -> Ucan fct rsc -> Either Ucan.Error (Ucan fct rsc)
+checkReceiver recipientDID ucan@Ucan {claims = Ucan.Claims {receiver}} = do
   if receiver == recipientDID
-    then Right jwt
+    then Right ucan
     else Left $ ClaimsError IncorrectReceiver
 
-checkVersion :: JWT fct rsc -> Either JWT.Error (JWT fct rsc)
-checkVersion jwt@JWT { header = JWT.Header {uav = SemVer mjr mnr pch}} =
+checkVersion :: Ucan fct rsc -> Either Ucan.Error (Ucan fct rsc)
+checkVersion ucan@Ucan { header = Ucan.Header {uav = SemVer mjr mnr pch}} =
   if mjr == 1 && mnr >= 0 && pch >= 0
-    then Right jwt
-    else Left $ JWT.HeaderError UnsupportedVersion
+    then Right ucan
+    else Left $ Ucan.HeaderError UnsupportedVersion
 
 checkProof ::
   ( Proof.Resolver m fct rsc
-  , JWT.Proof.ResourceSemantics rsc
+  , Ucan.Proof.ResourceSemantics rsc
   )
-  => UTCTime -> JWT fct rsc -> m (Either JWT.Error (JWT fct rsc))
-checkProof now jwt@JWT {claims = Claims {proof}} =
+  => UTCTime -> Ucan fct rsc -> m (Either Ucan.Error (Ucan fct rsc))
+checkProof now ucan@Ucan {claims = Claims {proof}} =
   case proof of
     RootCredential ->
-      return $ Right jwt
+      return $ Right ucan
 
     Reference cid ->
       Proof.resolve cid >>= \case
         Left err ->
-          return . Left . JWT.ClaimsError . ProofError . JWT.Proof.ResolverError $ err
+          return . Left . Ucan.ClaimsError . ProofError . Ucan.Proof.ResolverError $ err
 
-        Right (rawProof, proofJWT) ->
-          check' rawProof proofJWT now <&> \case
+        Right (rawProof, proofUcan) ->
+          check' rawProof proofUcan now <&> \case
             Left err -> Left err
-            Right _  -> checkDelegate proofJWT
+            Right _  -> checkDelegate proofUcan
 
-    Nested rawProof proofJWT ->
-      check' rawProof proofJWT now <&> \case
+    Nested rawProof proofUcan ->
+      check' rawProof proofUcan now <&> \case
         Left err -> Left err
-        Right _  -> checkDelegate proofJWT
+        Right _  -> checkDelegate proofUcan
 
     where
-      checkDelegate proofJWT =
-        case JWT.Proof.delegatedInBounds jwt proofJWT of
-          Left err -> Left . JWT.ClaimsError $ ProofError err
-          Right _  -> Right jwt
+      checkDelegate proofUcan =
+        case Ucan.Proof.delegatedInBounds ucan proofUcan of
+          Left err -> Left . Ucan.ClaimsError $ ProofError err
+          Right _  -> Right ucan
 
-checkTime :: UTCTime -> JWT fct rsc -> Either JWT.Error (JWT fct rsc)
-checkTime now jwt@JWT {claims = JWT.Claims { exp, nbf }} =
-  if | now > exp -> Left $ JWT.ClaimsError Expired
-     | now < nbf -> Left $ JWT.ClaimsError TooEarly
-     | otherwise -> Right jwt
+checkTime :: UTCTime -> Ucan fct rsc -> Either Ucan.Error (Ucan fct rsc)
+checkTime now ucan@Ucan {claims = Ucan.Claims { exp, nbf }} =
+  if | now > exp -> Left $ Ucan.ClaimsError Expired
+     | now < nbf -> Left $ Ucan.ClaimsError TooEarly
+     | otherwise -> Right ucan
 
-checkSignature :: JWT.RawContent -> JWT fct rsc -> Either JWT.Error (JWT fct rsc)
-checkSignature rawContent jwt@JWT {sig} =
+checkSignature :: Ucan.RawContent -> Ucan fct rsc -> Either Ucan.Error (Ucan fct rsc)
+checkSignature rawContent ucan@Ucan {sig} =
   case sig of
-    Signature.Ed25519 _        -> checkEd25519Signature rawContent jwt
-    Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent jwt rs256Sig
+    Signature.Ed25519 _        -> checkEd25519Signature rawContent ucan
+    Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent ucan rs256Sig
 
 checkRSA2048Signature ::
-     JWT.RawContent
-  -> JWT fct rsc
+     Ucan.RawContent
+  -> Ucan fct rsc
   -> RS256.Signature
-  -> Either JWT.Error (JWT fct rsc)
-checkRSA2048Signature (JWT.RawContent raw) jwt@JWT {..} (RS256.Signature innerSig) = do
+  -> Either Ucan.Error (Ucan fct rsc)
+checkRSA2048Signature (Ucan.RawContent raw) ucan@Ucan {..} (RS256.Signature innerSig) = do
   case publicKey of
     RSAPublicKey pk ->
       if Crypto.RSA.PKCS.verify (Just SHA256) pk content innerSig
-        then Right jwt
-        else Left $ JWT.SignatureError SignatureDoesNotMatch
+        then Right ucan
+        else Left $ Ucan.SignatureError SignatureDoesNotMatch
 
     _ ->
-      Left $ JWT.SignatureError InvalidPublicKey
+      Left $ Ucan.SignatureError InvalidPublicKey
 
   where
     content = encodeUtf8 raw
     Claims {sender = User.DID {publicKey}} = claims
 
-checkEd25519Signature :: JWT.RawContent -> JWT fct rsc -> Either JWT.Error (JWT fct rsc)
-checkEd25519Signature (JWT.RawContent raw) jwt@JWT {..} =
+checkEd25519Signature :: Ucan.RawContent -> Ucan fct rsc -> Either Ucan.Error (Ucan fct rsc)
+checkEd25519Signature (Ucan.RawContent raw) ucan@Ucan {..} =
   case (publicKey, sig) of
     (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->
       if Crypto.Ed25519.verify pk (encodeUtf8 raw) edSig
-        then Right jwt
-        else Left $ JWT.SignatureError SignatureDoesNotMatch
+        then Right ucan
+        else Left $ Ucan.SignatureError SignatureDoesNotMatch
 
     (_, _) ->
-      Left $ JWT.SignatureError InvalidPublicKey
+      Left $ Ucan.SignatureError InvalidPublicKey
 
   where
     Claims {sender = User.DID {publicKey}} = claims

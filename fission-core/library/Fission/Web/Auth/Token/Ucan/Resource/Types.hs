@@ -1,9 +1,9 @@
-module Fission.Web.Auth.Token.UCAN.Resource.Types (Resource (..)) where
+module Fission.Web.Auth.Token.Ucan.Resource.Types (Resource (..)) where
 
 import           Fission.Prelude
 
 import           Fission.URL
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
 
 import qualified Data.Bits                                        as Bits
 import qualified RIO.ByteString                                   as BS

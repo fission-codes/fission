@@ -1,8 +1,8 @@
-module Fission.Test.Web.Auth.Token.UCAN.Resource.Scope (spec) where
+module Fission.Test.Web.Auth.Token.Ucan.Resource.Scope (spec) where
 
 import qualified Data.Aeson                                       as JSON
 
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
 
 import           Fission.Test.Prelude
 

@@ -1,5 +1,5 @@
 module Web.Ucan.Types
-  ( JWT    (..)
+  ( Ucan   (..)
   , Claims (..)
   , Proof  (..)
 
@@ -51,7 +51,7 @@ import           Web.DID.Types
 import           Web.Ucan.Potency.Types
 
 import           Web.Ucan.Header.Types                         (Header (..))
-import qualified Web.Ucan.RawContent                           as JWT
+import qualified Web.Ucan.RawContent                           as Ucan
 import           Web.Ucan.Signature                            as Signature
 import qualified Web.Ucan.Signature.RS256.Types                as RS256
 
@@ -63,13 +63,13 @@ import           Web.Ucan.RawContent
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
-data JWT fct rsc = JWT
+data Ucan fct rsc = Ucan
   { header :: Header
   , claims :: Claims fct rsc
   , sig    :: Signature.Signature
   } deriving (Show, Eq)
 
-instance (Show fct, Show rsc) => Display (JWT fct rsc) where
+instance (Show fct, Show rsc) => Display (Ucan fct rsc) where
   textDisplay = Text.pack . show
 
 instance
@@ -77,7 +77,7 @@ instance
   , Arbitrary rsc
   , ToJSON fct
   , ToJSON rsc
-  ) => Arbitrary (JWT fct rsc) where
+  ) => Arbitrary (Ucan fct rsc) where
   arbitrary = do
     header   <- arbitrary
     (pk, sk) <- case alg header of
@@ -99,11 +99,11 @@ instance
         Right edSK -> Right $ signEd25519 header claims edSK
 
     case sig' of
-      Left _    -> error "Unable to sign JWT"
-      Right sig -> return JWT {..}
+      Left _    -> error "Unable to sign Ucan"
+      Right sig -> return Ucan {..}
 
-instance (ToJSON fct, ToJSON rsc) => ToJSON (JWT fct rsc) where
-  toJSON JWT {..} = String $ content <> "." <> textDisplay sig
+instance (ToJSON fct, ToJSON rsc) => ToJSON (Ucan fct rsc) where
+  toJSON Ucan {..} = String $ content <> "." <> textDisplay sig
     where
       content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
 
@@ -115,14 +115,14 @@ instance (ToJSON fct, ToJSON rsc) => ToJSON (JWT fct rsc) where
           & BS.B64.URL.encode
           & UTF8.stripPadding
 
-instance (FromJSON fct, FromJSON rsc) => FromJSON (JWT fct rsc) where
-  parseJSON = withText "JWT.Token" \txt ->
+instance (FromJSON fct, FromJSON rsc) => FromJSON (Ucan fct rsc) where
+  parseJSON = withText "Ucan.Token" \txt ->
     case Text.split (== '.') txt of
       [rawHeader, rawClaims, rawSig] -> do
         header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
         claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
         sig    <- Signature.parse (alg header) (toJSON rawSig)
-        return JWT {..}
+        return Ucan {..}
 
       _ ->
         fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
@@ -132,9 +132,9 @@ instance (FromJSON fct, FromJSON rsc) => FromJSON (JWT fct rsc) where
 instance
   ( ToJSON fct
   , ToJSON rsc
-  ) => Servant.ToHttpApiData (JWT fct rsc) where
-  toUrlPiece jwt =
-    jwt
+  ) => Servant.ToHttpApiData (Ucan fct rsc) where
+  toUrlPiece ucan =
+    ucan
       & encode
       & Lazy.toStrict
       & decodeUtf8Lenient
@@ -236,7 +236,7 @@ instance (FromJSON fct, FromJSON rsc) => FromJSON (Claims fct rsc) where
 
 data Proof fct rsc
   = RootCredential
-  | Nested    JWT.RawContent (JWT fct rsc)
+  | Nested    Ucan.RawContent (Ucan fct rsc)
   | Reference CID
   deriving (Show, Eq)
 
@@ -252,9 +252,9 @@ instance
     ]
     where
       nested = do
-        innerJWT@(JWT {..}) <- arbitrary
+        innerUcan@(Ucan {..}) <- arbitrary
         let rawContent = RawContent $ B64.URL.encodeJWT header claims
-        return $ Nested rawContent innerJWT
+        return $ Nested rawContent innerUcan
 
 instance (Display fct, Display rsc) => Display (Proof fct rsc) where
   display = \case
@@ -270,7 +270,7 @@ instance (ToJSON fct, ToJSON rsc) => ToJSON (Proof fct rsc) where
     Reference cid ->
       toJSON cid
 
-    Nested (JWT.RawContent raw) JWT {sig} ->
+    Nested (Ucan.RawContent raw) Ucan {sig} ->
       String (raw <> "." <> textDisplay sig)
 
 instance (FromJSON fct, FromJSON rsc) => FromJSON (Proof fct rsc) where
@@ -279,7 +279,7 @@ instance (FromJSON fct, FromJSON rsc) => FromJSON (Proof fct rsc) where
     where
       resolver txt =
         if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
-          then Nested (JWT.contentOf txt) <$> parseJSON val
+          then Nested (Ucan.contentOf txt) <$> parseJSON val
           else Reference <$> parseJSON val
 
 -----------------------

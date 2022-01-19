@@ -1,4 +1,4 @@
-module Fission.Web.Auth.Token.JWT
+module Fission.Web.Auth.Token.Ucan
   ( getRoot
   , getRootDID
   , mkUCAN
@@ -7,10 +7,9 @@ module Fission.Web.Auth.Token.JWT
   , simpleWNFS
   , proveWNFS
   , prettyPrintGrants
-  , module Fission.Web.Auth.Token.JWT.Types
-  , module Fission.Web.Auth.Token.JWT.Fact.Types
-  , module Fission.Web.Auth.Token.UCAN.Resource.Types
-  , module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+  , module Fission.Web.Auth.Token.Ucan.Fact.Types
+  , module Fission.Web.Auth.Token.Ucan.Resource.Types
+  , module Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
   , module Web.Ucan.Error
   , module Web.Ucan.RawContent
   ) where
@@ -28,57 +27,57 @@ import           Crypto.Key.Asymmetric.Algorithm.Types            as Key
 import qualified Crypto.Key.Asymmetric.Public.Types               as Asymmetric
 
 import           Web.DID.Types                                    as DID
-import qualified Web.Ucan.Header.Typ.Types                        as JWT.Typ
-import qualified Web.Ucan.Resolver                                as JWT
+import qualified Web.Ucan.Header.Typ.Types                        as Ucan.Typ
+import qualified Web.Ucan.Resolver                                as Ucan
 import qualified Web.Ucan.Resolver.Class                          as Proof
 import qualified Web.Ucan.Resolver.Error                          as Resolver
-import qualified Web.Ucan.Types                                   as JWT
+import           Web.Ucan.Types                                   as Ucan
 
-import           Fission.Web.Auth.Token.JWT.Fact.Types
-import           Fission.Web.Auth.Token.JWT.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.Ucan.Fact.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Types
+import qualified Fission.Web.Auth.Token.Ucan.Types                as Fission
 
 -- Reexports
 
 import           Web.Ucan.Error
 import           Web.Ucan.RawContent
 
-getRoot :: JWT.Resolver m Fact (Scope Resource) => FissionJWT -> m (Either Resolver.Error FissionJWT)
-getRoot jwt@JWT.JWT {claims = JWT.Claims {proof}} =
+getRoot :: Ucan.Resolver m Fact (Scope Resource) => Fission.Ucan -> m (Either Resolver.Error Fission.Ucan)
+getRoot ucan@Ucan {claims = Claims {proof}} =
   case proof of
-    JWT.RootCredential ->
-      return $ Right jwt
+    RootCredential ->
+      return $ Right ucan
 
-    JWT.Nested _ proofJWT ->
-      getRoot proofJWT
+    Nested _ proofUcan ->
+      getRoot proofUcan
 
-    JWT.Reference cid ->
+    Reference cid ->
       Proof.resolve cid >>= \case
-        Right (_, proofJWT) -> getRoot proofJWT
-        Left err            -> return $ Left err
+        Right (_, proofUcan) -> getRoot proofUcan
+        Left err             -> return $ Left err
 
 getRootDID ::
-  ( JWT.Resolver m Fact (Scope Resource)
+  ( Ucan.Resolver m Fact (Scope Resource)
   , MonadRaise   m
   , m `Raises` Resolver.Error
   )
   => Asymmetric.Public
-  -> Proof
+  -> Fission.Proof
   -> m DID
 getRootDID fallbackPK = \case
-  JWT.RootCredential ->
+  RootCredential ->
     return $ DID Key fallbackPK
 
-  JWT.Nested _ jwt ->  do
-    JWT.JWT {claims = JWT.Claims {sender}} <- ensureM $ getRoot jwt
+  Nested _ ucan ->  do
+    Ucan {claims = Claims {sender}} <- ensureM $ getRoot ucan
     return sender
 
-  JWT.Reference cid -> do
-    (_, JWT.JWT {claims = JWT.Claims {proof}}) <- ensureM $ Proof.resolve cid
+  Reference cid -> do
+    (_, Ucan {claims = Claims {proof}}) <- ensureM $ Proof.resolve cid
     getRootDID fallbackPK proof
 
-simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> FissionJWT
+simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Fission.Proof -> Fission.Ucan
 simpleWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
@@ -89,7 +88,7 @@ simpleWNFS now receiverDID sk facts proof =
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
 
-proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Proof -> FissionJWT
+proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Fission.Proof -> Fission.Ucan
 proveWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
@@ -100,14 +99,14 @@ proveWNFS now receiverDID sk facts proof =
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
 
-delegateAppendAll :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> FissionJWT
+delegateAppendAll :: DID -> Ed25519.SecretKey -> Fission.Proof -> UTCTime -> Fission.Ucan
 delegateAppendAll targetDID sk proof now =
   mkUCAN targetDID sk start expire [] (Just Complete) AppendOnly proof
   where
     start  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expire = addUTCTime (nominalDay * 365 * 255)         now
 
-delegateSuperUser :: DID -> Ed25519.SecretKey -> Proof -> UTCTime -> FissionJWT
+delegateSuperUser :: DID -> Ed25519.SecretKey -> Fission.Proof -> UTCTime -> Fission.Ucan
 delegateSuperUser targetDID sk proof now =
   mkUCAN targetDID sk start expire [] (Just Complete) SuperUser proof
   where
@@ -122,28 +121,28 @@ mkUCAN ::
   -> [Fact]
   -> Maybe (Scope Resource)
   -> Potency
-  -> Proof
-  -> FissionJWT
-mkUCAN receiver senderSK nbf exp facts resource potency proof = JWT.JWT {..}
+  -> Fission.Proof
+  -> Fission.Ucan
+mkUCAN receiver senderSK nbf exp facts resource potency proof = Ucan {..}
   where
-    sig = JWT.signEd25519 header claims senderSK
+    sig = signEd25519 header claims senderSK
 
     sender = DID
       { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic senderSK
       , method    = DID.Key
       }
 
-    claims = JWT.Claims {..}
+    claims = Claims {..}
 
-    header = JWT.Header
-      { typ = JWT.Typ.JWT
+    header = Header
+      { typ = Ucan.Typ.JWT
       , alg = Key.Ed25519
       , cty = Nothing
       , uav = Authorization.latestVersion
       }
 
-prettyPrintGrants :: FissionJWT -> Text
-prettyPrintGrants JWT.JWT {claims = JWT.Claims {..}} =
+prettyPrintGrants :: Fission.Ucan -> Text
+prettyPrintGrants Ucan {claims = Claims {..}} =
   mconcat
     [ textDisplay potency
     , " "

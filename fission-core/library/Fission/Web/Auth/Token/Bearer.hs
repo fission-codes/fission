@@ -7,22 +7,23 @@ module Fission.Web.Auth.Token.Bearer
 
 import qualified RIO.ByteString.Lazy                 as Lazy
 
-import qualified Web.Ucan.Types                      as JWT
+import qualified Web.Ucan.Types                      as Ucan
 
 import           Fission.Prelude
 
-import           Fission.Web.Auth.Token.JWT
+import           Fission.Web.Auth.Token.Ucan         as Ucan
+import           Fission.Web.Auth.Token.Ucan.Types   as Fission
 
 -- Reexport
 
 import           Fission.Web.Auth.Token.Bearer.Types
 
-fromJWT :: FissionJWT -> Token
+fromJWT :: Fission.Ucan -> Token
 fromJWT jwt =
   Token { jwt
         , rawContent = contentOf . decodeUtf8Lenient . Lazy.toStrict $ encode jwt
         }
 
 toProof :: Maybe Token -> Proof
-toProof Nothing           = JWT.RootCredential
-toProof (Just Token {..}) = JWT.Nested rawContent jwt
+toProof Nothing           = Ucan.RootCredential
+toProof (Just Token {..}) = Ucan.Nested rawContent jwt

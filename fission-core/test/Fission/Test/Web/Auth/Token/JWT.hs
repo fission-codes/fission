@@ -6,10 +6,9 @@ import qualified RIO.ByteString.Lazy                              as Lazy
 import           Servant.API
 
 import qualified Fission.Internal.UTF8                            as UTF8
--- import           Fission.Web.Auth.Token.JWT
-import           Fission.Web.Auth.Token.JWT.Fact.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.Ucan.Fact.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Scope.Types
+import           Fission.Web.Auth.Token.Ucan.Resource.Types
 import           Web.Ucan.Types
 
 import           Fission.Test.Prelude
@@ -24,28 +23,28 @@ spec =
     Validation.spec
 
     describe "Header serialization" do
-      itsProp' "text serialization is unquoted JSON" \(jwt :: JWT Fact (Scope Resource)) ->
-        jwt
+      itsProp' "text serialization is unquoted JSON" \(ucan :: Ucan Fact (Scope Resource)) ->
+        ucan
           |> toUrlPiece
           |> UTF8.wrapIn "\""
           |> encodeUtf8
           |> Lazy.fromStrict
-          |> shouldBe (JSON.encode jwt)
+          |> shouldBe (JSON.encode ucan)
 
     describe "JSON serialization" do
-      itsProp' "serialized is isomorphic to ADT" \(jwt :: JWT Fact (Scope Resource)) ->
-        JSON.eitherDecode (JSON.encode jwt) `shouldBe` Right jwt
+      itsProp' "serialized is isomorphic to ADT" \(ucan :: Ucan Fact (Scope Resource)) ->
+        JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan
 
       describe "format" do
-        itsProp' "contains exactly two '.'s" \(jwt :: JWT Fact (Scope Resource)) ->
-          jwt
+        itsProp' "contains exactly two '.'s" \(ucan :: Ucan Fact (Scope Resource)) ->
+          ucan
             |> JSON.encode
             |> Lazy.count (fromIntegral $ ord '.')
             |> shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(jwt :: JWT Fact (Scope Resource)) ->
+        itsProp' "contains only valid base64 URL characters" \(ucan :: Ucan Fact (Scope Resource)) ->
           let
-            encoded = JSON.encode jwt
+            encoded = JSON.encode ucan
           in
             encoded
               |> Lazy.take (Lazy.length encoded - 2)
@@ -54,13 +53,14 @@ spec =
               |> shouldBe mempty
 
 isValidChar :: Word8 -> Bool
-isValidChar w8 = Lazy.elem w8 validB64URLChars
+isValidChar w8 = Lazy.elem w8 (" " <> validEncodedJWTChars)
 
-validB64URLChars :: Lazy.ByteString
-validB64URLChars = Lazy.Char8.pack chars
+validEncodedJWTChars :: Lazy.ByteString
+validEncodedJWTChars = Lazy.Char8.pack (base64URLChars <> ['.']) -- dot is used as a separator in JWTs
   where
-    chars :: [Char]
-    chars = ['a'..'z']
-         <> ['A'..'Z']
-         <> ['0'..'9']
-         <> ['_', '-', '.']
+    base64URLChars :: [Char]
+    base64URLChars =
+         ['a'..'z']
+      <> ['A'..'Z']
+      <> ['0'..'9']
+      <> ['_', '-']

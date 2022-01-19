@@ -1,8 +1,8 @@
 module Fission.Test.Web.Auth.Token.JWT.Proof (spec) where
 
-import qualified Data.Aeson                 as JSON
+import qualified Data.Aeson                        as JSON
 
-import           Fission.Web.Auth.Token.JWT
+import           Fission.Web.Auth.Token.Ucan.Types
 
 import           Fission.Test.Prelude
 

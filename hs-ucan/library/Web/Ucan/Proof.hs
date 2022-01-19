@@ -15,50 +15,50 @@ import           RIO                  hiding (exp)
 
 import           Web.Ucan.Proof.Class
 import           Web.Ucan.Proof.Error
-import           Web.Ucan.Types       as JWT
+import           Web.Ucan.Types       as Ucan
 
 
-delegatedInBounds :: ResourceSemantics rsc => JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
-delegatedInBounds  jwt prfJWT = do
-  signaturesMatch  jwt prfJWT
-  resourceInSubset jwt prfJWT
-  potencyInSubset  jwt prfJWT
-  timeInSubset     jwt prfJWT
+delegatedInBounds :: ResourceSemantics rsc => Ucan fct rsc -> Ucan fct rsc -> Either Error (Ucan fct rsc)
+delegatedInBounds  ucan prfUcan = do
+  signaturesMatch  ucan prfUcan
+  resourceInSubset ucan prfUcan
+  potencyInSubset  ucan prfUcan
+  timeInSubset     ucan prfUcan
 
-signaturesMatch :: JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
-signaturesMatch jwt prfJWT =
-  if (jwt & claims & sender) == (prfJWT & claims & receiver)
-    then Right jwt
+signaturesMatch :: Ucan fct rsc -> Ucan fct rsc -> Either Error (Ucan fct rsc)
+signaturesMatch ucan prfUcan =
+  if (ucan & claims & sender) == (prfUcan & claims & receiver)
+    then Right ucan
     else Left InvalidSignatureChain
 
-resourceInSubset :: ResourceSemantics rsc => JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
-resourceInSubset jwt prfJWT =
-  if (prfJWT & claims & resource) `canDelegate` (jwt & claims & resource)
-    then Right jwt
+resourceInSubset :: ResourceSemantics rsc => Ucan fct rsc -> Ucan fct rsc -> Either Error (Ucan fct rsc)
+resourceInSubset ucan prfUcan =
+  if (prfUcan & claims & resource) `canDelegate` (ucan & claims & resource)
+    then Right ucan
     else Left ScopeOutOfBounds
 
-potencyInSubset :: JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
-potencyInSubset jwt prfJWT =
-  if (jwt & claims & potency) <= (prfJWT & claims & potency)
-    then Right jwt
+potencyInSubset :: Ucan fct rsc -> Ucan fct rsc -> Either Error (Ucan fct rsc)
+potencyInSubset ucan prfUcan =
+  if (ucan & claims & potency) <= (prfUcan & claims & potency)
+    then Right ucan
     else Left PotencyEscelation
 
-timeInSubset :: JWT fct rsc -> JWT fct rsc -> Either Error (JWT fct rsc)
-timeInSubset jwt prfJWT =
+timeInSubset :: Ucan fct rsc -> Ucan fct rsc -> Either Error (Ucan fct rsc)
+timeInSubset ucan prfUcan =
   if startBoundry && expiryBoundry
-    then Right jwt
+    then Right ucan
     else Left TimeNotSubset
 
   where
-    startBoundry  = (jwt & claims & nbf) >= (prfJWT & claims & nbf)
-    expiryBoundry = (jwt & claims & exp) <= (prfJWT & claims & exp)
+    startBoundry  = (ucan & claims & nbf) >= (prfUcan & claims & nbf)
+    expiryBoundry = (ucan & claims & exp) <= (prfUcan & claims & exp)
 
-containsFact :: JWT fct rsc -> ([fct] -> Either Error ()) -> Either Error (JWT fct rsc)
-containsFact jwt factChecker =
-  jwt
+containsFact :: Ucan fct rsc -> ([fct] -> Either Error ()) -> Either Error (Ucan fct rsc)
+containsFact ucan factChecker =
+  ucan
     & claims
     & facts
     & factChecker
     & \case
         Left err -> Left err
-        Right () -> Right jwt
+        Right () -> Right ucan

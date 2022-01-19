@@ -7,7 +7,7 @@ import qualified Data.ByteString.Lazy.Char8          as Lazy.Char8
 import qualified RIO.ByteString.Lazy                 as Lazy
 
 import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
-import           Fission.Web.Auth.Token.JWT
+import qualified Fission.Web.Auth.Token.Ucan.Types   as Fission
 
 -- import qualified Fission.Internal.Fixture.Bearer     as Bearer
 import qualified Fission.Internal.UTF8               as UTF8
@@ -53,7 +53,7 @@ spec =
 
       describe "incoming" do
         describe "Postel's Law" do
-          itsProp' "lowercase 'bearer'" \(jwt :: JWT) -> do
+          itsProp' "lowercase 'bearer'" \(jwt :: Fission.Ucan) -> do
             let
               jwt' :: Lazy.ByteString
               jwt' = UTF8.stripQuotesLazyBS (JSON.encode jwt)
@@ -69,7 +69,7 @@ isValidChar :: Word8 -> Bool
 isValidChar w8 = Lazy.elem w8 (" " <> validEncodedJWTChars)
 
 validEncodedJWTChars :: Lazy.ByteString
-validEncodedJWTChars = Lazy.Char8.pack (base64URLChars <> ["."]) -- dot is used as a separator in JWTs
+validEncodedJWTChars = Lazy.Char8.pack (base64URLChars <> ['.']) -- dot is used as a separator in JWTs
   where
     base64URLChars :: [Char]
     base64URLChars =

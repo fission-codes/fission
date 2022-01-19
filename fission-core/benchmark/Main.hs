@@ -11,7 +11,7 @@ import           Servant.Client.Core.ClientError
 import qualified Fission.Internal.UTF8                 as UTF8
 
 import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
-import           Fission.Web.Auth.Token.JWT.Types      as JWT
+import           Fission.Web.Auth.Token.Ucan.Types      as JWT
 import           Fission.Web.Auth.Token.JWT.Validation
 
 import           Fission.Web.Auth.Token.JWT.Resolver   as Proof

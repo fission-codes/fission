@@ -1,4 +1,4 @@
-module Fission.Web.Auth.Token.JWT.Fact.Types (Fact (..)) where
+module Fission.Web.Auth.Token.Ucan.Fact.Types (Fact (..)) where
 
 import           Crypto.Cipher.AES           (AES256)
 import qualified RIO.Text                    as Text
