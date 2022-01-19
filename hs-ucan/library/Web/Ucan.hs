@@ -3,11 +3,11 @@ module Web.Ucan
   , module Web.Ucan.Types
   ) where
 
-import           Data.Aeson
-import           RIO
+import RIO
+import Data.Aeson
 
-import           Web.Ucan.Resolver.Error as Resolver
-import           Web.Ucan.Types
+import Web.Ucan.Types
+import Web.Ucan.Resolver.Error as Resolver
 
 
 fromRawContent :: (FromJSON fct, FromJSON rsc) => RawContent -> Either Resolver.Error (Ucan fct rsc)
