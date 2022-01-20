@@ -21,7 +21,6 @@ import qualified Web.UCAN.Resolver.Error                         as Resolver
 import           Web.UCAN.Types
 
 import           Fission.Web.Auth.Token.Bearer                   as Bearer
-import           Fission.Web.Auth.Token.UCAN.Resource.Types      as UCAN
 
 import           Fission.CLI.Environment                         as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store.Class

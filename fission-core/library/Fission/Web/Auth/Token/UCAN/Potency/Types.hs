@@ -6,6 +6,8 @@ import qualified RIO.Text        as Text
 import           Data.Aeson
 import           Test.QuickCheck
 
+import           Web.UCAN.Proof.Class
+
 {-
 Maybe appending to the private side requires update permissions?
 Since we can't validate the actual internal paths, you'd need at least
@@ -17,7 +19,7 @@ data Potency
   = AppendOnly  -- ^ Append new files
   | Destructive -- ^ Overwrite / destroy. "Ownership is the right to destroy"
   | SuperUser   -- ^ i.e. SuperUser -- Financial, major account settings, &c
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Enum)
 
 instance Display (Maybe Potency) where
   textDisplay = Text.pack . show
@@ -38,3 +40,6 @@ instance FromJSON Potency where
       "DESTROY"    -> pure Destructive
       "SUPER_USER" -> pure SuperUser
       nope -> fail $ show nope <> " is not a valid authorization potency"
+
+instance ResourceSemantics Potency where
+  proofPtc `canDelegate` ptc = fromEnum proofPtc >= fromEnum ptc
