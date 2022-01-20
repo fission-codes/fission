@@ -159,26 +159,23 @@ dependencies:
 library:
   source-dirs: library
 
-# tests:
-#   hs-ucan-test:
-#     main: Main.hs
-#     source-dirs:
-#       - library
-#       - test
-#     dependencies:
-#       - base58string
-#       - binary
-#       - hspec
-#       - hspec-core
-#       - hspec-expectations
-#       - hspec-wai
-#       - hspec-wai-json
-#       - hs-ucan
-#       - QuickCheck
-#       - quickcheck-instances
-#       - tasty
-#       - tasty-hunit
-#       - tasty-hspec
-#       - tasty-smallcheck
-#       - tasty-rerun
-#       - transformers
+tests:
+  hs-ucan-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    dependencies:
+      - base58string
+      - binary
+      - hspec
+      - hspec-core
+      - hspec-expectations
+      - hs-ucan
+      - QuickCheck
+      - quickcheck-instances
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun
