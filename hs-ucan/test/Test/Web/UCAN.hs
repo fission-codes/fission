@@ -3,7 +3,7 @@ module Test.Web.UCAN (spec) where
 import qualified Data.Aeson                        as JSON
 import qualified Data.ByteString.Lazy.Char8        as Lazy.Char8
 import qualified RIO.ByteString.Lazy               as Lazy
-import qualified Web.UCAN.Internal.UTF8            as UTF8
+import qualified RIO.Char                          as Char
 import           Web.UCAN.Types
 
 import           Test.Web.UCAN.Prelude
@@ -23,7 +23,7 @@ spec =
         itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Resource Potency) ->
           ucan
             & JSON.encode
-            & Lazy.count (fromIntegral $ ord '.')
+            & Lazy.count (fromIntegral $ Char.ord '.')
             & shouldBe 2
 
         itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Resource Potency) ->
