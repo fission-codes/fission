@@ -10,7 +10,13 @@ import           Web.UCAN.Resolver.Error as Resolver
 import           Web.UCAN.Types
 
 
-fromRawContent :: (FromJSON fct, FromJSON rsc) => RawContent -> Either Resolver.Error (UCAN fct rsc)
+fromRawContent ::
+  ( FromJSON fct
+  , FromJSON rsc
+  , FromJSON ptc
+  )
+  => RawContent
+  -> Either Resolver.Error (UCAN fct rsc ptc)
 fromRawContent rawContent =
   case decodeStrict rawContentBS of
     Nothing   -> Left (InvalidJWT rawContentBS)

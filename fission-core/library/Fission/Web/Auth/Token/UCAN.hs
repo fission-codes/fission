@@ -90,7 +90,7 @@ simpleWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Fission.Proof -> 
 simpleWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
-    potency  = AppendOnly
+    potency  = Just AppendOnly
     resource = Just (Subset (FissionFileSystem "/"))
 
     -- Accounting for minor clock drift
@@ -101,7 +101,7 @@ proveWNFS :: UTCTime -> DID -> Ed25519.SecretKey -> [Fact] -> Fission.Proof -> F
 proveWNFS now receiverDID sk facts proof =
   mkUCAN receiverDID sk begin expiry facts resource potency proof
   where
-    potency  = AuthNOnly
+    potency  = Nothing
     resource = Nothing
 
     -- Accounting for minor clock drift
@@ -110,14 +110,14 @@ proveWNFS now receiverDID sk facts proof =
 
 delegateAppendAll :: DID -> Ed25519.SecretKey -> Fission.Proof -> UTCTime -> Fission.UCAN
 delegateAppendAll targetDID sk proof now =
-  mkUCAN targetDID sk start expire [] (Just Complete) AppendOnly proof
+  mkUCAN targetDID sk start expire [] (Just Complete) (Just AppendOnly) proof
   where
     start  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expire = addUTCTime (nominalDay * 365 * 255)         now
 
 delegateSuperUser :: DID -> Ed25519.SecretKey -> Fission.Proof -> UTCTime -> Fission.UCAN
 delegateSuperUser targetDID sk proof now =
-  mkUCAN targetDID sk start expire [] (Just Complete) SuperUser proof
+  mkUCAN targetDID sk start expire [] (Just Complete) (Just SuperUser) proof
   where
     start  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expire = addUTCTime (nominalDay * 365 * 255)         now
@@ -129,7 +129,7 @@ mkUCAN ::
   -> UTCTime
   -> [Fact]
   -> Maybe (Scope Resource)
-  -> Potency
+  -> Maybe Potency
   -> Fission.Proof
   -> Fission.UCAN
 mkUCAN receiver senderSK nbf exp facts resource potency proof = UCAN {..}

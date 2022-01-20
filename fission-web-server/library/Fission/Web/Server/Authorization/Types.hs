@@ -11,7 +11,7 @@ import           Servant.API
 import           Servant.Server.Experimental.Auth
 
 import           Web.DID.Types
-import           Web.UCAN.Potency.Types
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
 import           Fission.Prelude
 

@@ -38,15 +38,17 @@ import           Web.UCAN.Signature.Types       as Signature
 
 check ::
   ( Proof.Resolver m
+  , MonadTime      m
   , FromJSON fct
   , FromJSON rsc
+  , FromJSON ptc
   , UCAN.Proof.ResourceSemantics rsc
-  , MonadTime      m
+  , UCAN.Proof.ResourceSemantics ptc
   )
   => DID
   -> UCAN.RawContent
-  -> UCAN fct rsc
-  -> m (Either UCAN.Error (UCAN fct rsc))
+  -> UCAN fct rsc ptc
+  -> m (Either UCAN.Error (UCAN fct rsc ptc))
 check receiverDID rawContent ucan = do
   now <- currentTime
   case checkTime now ucan of
@@ -62,29 +64,31 @@ check' ::
   ( Proof.Resolver m
   , FromJSON fct
   , FromJSON rsc
+  , FromJSON ptc
   , UCAN.Proof.ResourceSemantics rsc
+  , UCAN.Proof.ResourceSemantics ptc
   )
   => UCAN.RawContent
-  -> UCAN fct rsc
+  -> UCAN fct rsc ptc
   -> UTCTime
-  -> m (Either UCAN.Error (UCAN fct rsc))
+  -> m (Either UCAN.Error (UCAN fct rsc ptc))
 check' raw ucan now =
   case pureChecks raw ucan of
     Left  err -> return $ Left err
     Right _   -> checkProof now ucan
 
-pureChecks :: UCAN.RawContent -> UCAN fct rsc -> Either UCAN.Error (UCAN fct rsc)
+pureChecks :: UCAN.RawContent -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 pureChecks raw ucan = do
   _ <- checkVersion  ucan
   checkSignature raw ucan
 
-checkReceiver :: DID -> UCAN fct rsc -> Either UCAN.Error (UCAN fct rsc)
+checkReceiver :: DID -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkReceiver recipientDID ucan@UCAN {claims = UCAN.Claims {receiver}} = do
   if receiver == recipientDID
     then Right ucan
     else Left $ ClaimsError IncorrectReceiver
 
-checkVersion :: UCAN fct rsc -> Either UCAN.Error (UCAN fct rsc)
+checkVersion :: UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkVersion ucan@UCAN { header = UCAN.Header {uav = SemVer mjr mnr pch}} =
   if mjr == 1 && mnr >= 0 && pch >= 0
     then Right ucan
@@ -94,9 +98,11 @@ checkProof ::
   ( Proof.Resolver m
   , FromJSON fct
   , FromJSON rsc
+  , FromJSON ptc
   , UCAN.Proof.ResourceSemantics rsc
+  , UCAN.Proof.ResourceSemantics ptc
   )
-  => UTCTime -> UCAN fct rsc -> m (Either UCAN.Error (UCAN fct rsc))
+  => UTCTime -> UCAN fct rsc ptc -> m (Either UCAN.Error (UCAN fct rsc ptc))
 checkProof now ucan@UCAN {claims = Claims {proof}} =
   case proof of
     RootCredential ->
@@ -126,13 +132,13 @@ checkProof now ucan@UCAN {claims = Claims {proof}} =
           Left err -> Left . UCAN.ClaimsError $ ProofError err
           Right _  -> Right ucan
 
-checkTime :: UTCTime -> UCAN fct rsc -> Either UCAN.Error (UCAN fct rsc)
+checkTime :: UTCTime -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkTime now ucan@UCAN {claims = UCAN.Claims { exp, nbf }} =
   if | now > exp -> Left $ UCAN.ClaimsError Expired
      | now < nbf -> Left $ UCAN.ClaimsError TooEarly
      | otherwise -> Right ucan
 
-checkSignature :: UCAN.RawContent -> UCAN fct rsc -> Either UCAN.Error (UCAN fct rsc)
+checkSignature :: UCAN.RawContent -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkSignature rawContent ucan@UCAN {sig} =
   case sig of
     Signature.Ed25519 _        -> checkEd25519Signature rawContent ucan
@@ -140,9 +146,9 @@ checkSignature rawContent ucan@UCAN {sig} =
 
 checkRSA2048Signature ::
      UCAN.RawContent
-  -> UCAN fct rsc
+  -> UCAN fct rsc ptc
   -> RS256.Signature
-  -> Either UCAN.Error (UCAN fct rsc)
+  -> Either UCAN.Error (UCAN fct rsc ptc)
 checkRSA2048Signature (UCAN.RawContent raw) ucan@UCAN {..} (RS256.Signature innerSig) = do
   case publicKey of
     RSAPublicKey pk ->
@@ -157,7 +163,7 @@ checkRSA2048Signature (UCAN.RawContent raw) ucan@UCAN {..} (RS256.Signature inne
     content = encodeUtf8 raw
     Claims {sender = User.DID {publicKey}} = claims
 
-checkEd25519Signature :: UCAN.RawContent -> UCAN fct rsc -> Either UCAN.Error (UCAN fct rsc)
+checkEd25519Signature :: UCAN.RawContent -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkEd25519Signature (UCAN.RawContent raw) ucan@UCAN {..} =
   case (publicKey, sig) of
     (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->

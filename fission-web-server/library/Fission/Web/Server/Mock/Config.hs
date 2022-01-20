@@ -16,7 +16,7 @@ import           Web.DID.Types
 import           Fission.Prelude
 
 import           Fission.URL.Types                                as URL
-import           Web.UCAN.Potency.Types
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
 import           Fission.Internal.Fixture.Key.Ed25519             as Fixture.Ed25519
 import           Fission.Internal.Fixture.Time                    as Fixture

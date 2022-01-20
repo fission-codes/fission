@@ -14,7 +14,7 @@ import           Servant
 import           Fission.Prelude
 
 import           Fission.User.Username.Types                      as Username
-import           Web.UCAN.Potency.Types
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
 import qualified Fission.Web.Auth.Token.Basic.Types               as Auth.Basic
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types

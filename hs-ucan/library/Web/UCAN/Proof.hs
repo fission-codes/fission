@@ -18,32 +18,38 @@ import           Web.UCAN.Proof.Error
 import           Web.UCAN.Types       as UCAN
 
 
-delegatedInBounds :: ResourceSemantics rsc => UCAN fct rsc -> UCAN fct rsc -> Either Error (UCAN fct rsc)
+delegatedInBounds ::
+  ( ResourceSemantics rsc
+  , ResourceSemantics ptc
+  )
+  => UCAN fct rsc ptc
+  -> UCAN fct rsc ptc
+  -> Either Error (UCAN fct rsc ptc)
 delegatedInBounds  ucan prfUCAN = do
   signaturesMatch  ucan prfUCAN
   resourceInSubset ucan prfUCAN
   potencyInSubset  ucan prfUCAN
   timeInSubset     ucan prfUCAN
 
-signaturesMatch :: UCAN fct rsc -> UCAN fct rsc -> Either Error (UCAN fct rsc)
+signaturesMatch :: UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
 signaturesMatch ucan prfUCAN =
   if (ucan & claims & sender) == (prfUCAN & claims & receiver)
     then Right ucan
     else Left InvalidSignatureChain
 
-resourceInSubset :: ResourceSemantics rsc => UCAN fct rsc -> UCAN fct rsc -> Either Error (UCAN fct rsc)
+resourceInSubset :: ResourceSemantics rsc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
 resourceInSubset ucan prfUCAN =
   if (prfUCAN & claims & resource) `canDelegate` (ucan & claims & resource)
     then Right ucan
     else Left ScopeOutOfBounds
 
-potencyInSubset :: UCAN fct rsc -> UCAN fct rsc -> Either Error (UCAN fct rsc)
+potencyInSubset :: ResourceSemantics ptc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
 potencyInSubset ucan prfUCAN =
-  if (ucan & claims & potency) <= (prfUCAN & claims & potency)
+  if (prfUCAN & claims & potency) `canDelegate` (ucan & claims & potency)
     then Right ucan
     else Left PotencyEscelation
 
-timeInSubset :: UCAN fct rsc -> UCAN fct rsc -> Either Error (UCAN fct rsc)
+timeInSubset :: UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
 timeInSubset ucan prfUCAN =
   if startBoundry && expiryBoundry
     then Right ucan
@@ -53,7 +59,7 @@ timeInSubset ucan prfUCAN =
     startBoundry  = (ucan & claims & nbf) >= (prfUCAN & claims & nbf)
     expiryBoundry = (ucan & claims & exp) <= (prfUCAN & claims & exp)
 
-containsFact :: UCAN fct rsc -> ([fct] -> Either Error ()) -> Either Error (UCAN fct rsc)
+containsFact :: UCAN fct rsc ptc -> ([fct] -> Either Error ()) -> Either Error (UCAN fct rsc ptc)
 containsFact ucan factChecker =
   ucan
     & claims
