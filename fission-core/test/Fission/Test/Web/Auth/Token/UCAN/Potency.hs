@@ -1,9 +1,9 @@
 module Fission.Test.Web.Auth.Token.UCAN.Potency (spec) where
 
 import qualified Data.Aeson                                as JSON
-import           Data.Bits                                 (xor)
 
 import           Web.UCAN.Proof.Class
+import qualified Web.UCAN.Proof.Properties                 as Proof.Properties
 
 import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
@@ -23,13 +23,14 @@ spec =
       it "Destructive canDelegate AppendOnly" do
         Destructive `canDelegate` AppendOnly `shouldBe` True
 
-    describe "properties" do
-      itsProp' "potency can't delegate out of thin air" \(potency :: Potency) -> do
-        Nothing `canDelegate` Just potency `shouldBe` False
+    describe "has partial order properties on DelegationSemantics" do
 
-      itsProp' "potency can delegate is reflexive" \(potency :: Potency) -> do
-        potency `canDelegate` potency `shouldBe` True
+      itsProp' "x canDelegate x"
+        (Proof.Properties.reflexive @(Maybe Potency))
 
-      itsProp' "reverses sign when swapped, except when equal" \((ptc1, ptc2) :: (Potency, Potency)) -> do
-        -- "xor (ptc1 != ptc2)" means "swap sign, if they're not equal"
-        ptc1 `canDelegate` ptc2 `shouldBe` ((ptc2 `canDelegate` ptc1) `xor` (ptc1 /= ptc2))
+      itsProp' "if x canDelegate y and y canDelegate x then x == y"
+        (Proof.Properties.antisymmetric @(Maybe Potency))
+
+      itsProp' "if x canDelegate y and y canDelegate z then x canDelegate z"
+        (Proof.Properties.transitive @(Maybe Potency))
+

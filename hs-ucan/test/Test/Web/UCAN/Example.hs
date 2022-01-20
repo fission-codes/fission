@@ -4,10 +4,10 @@ module Test.Web.UCAN.Example
   , Potency(..)
   ) where
 
-import qualified RIO.Text as Text
-import Test.Web.UCAN.Prelude
+import qualified RIO.Text              as Text
+import           Test.Web.UCAN.Prelude
 
-import Web.UCAN.Proof.Class
+import           Web.UCAN.Proof.Class
 
 data Resource
   = OnlyOneThing
@@ -25,12 +25,12 @@ data Potency
 
 -- You can either look or touch. You can only do both when you're SuperUser.
 instance DelegationSemantics Potency where
-  SuperUser `canDelegate` _ = True
-  _ `canDelegate` SuperUser = False
-  CanLook `canDelegate` CanLook = True
-  CanLook `canDelegate` _ = False
+  SuperUser `canDelegate` _       = True
+  _ `canDelegate` SuperUser       = False
+  CanLook `canDelegate` CanLook   = True
+  CanLook `canDelegate` _         = False
   CanTouch `canDelegate` CanTouch = True
-  CanTouch `canDelegate` _ = False
+  CanTouch `canDelegate` _        = False
 
 instance Arbitrary Resource where
   arbitrary = elements [OnlyOneThing, OnlySome, Everything]

@@ -19,7 +19,7 @@ instance DelegationSemantics rsc => DelegationSemantics (Maybe rsc) where
 
 newtype GreaterDelegatesMore a = GreaterDelegatesMore a
 newtype SmallerDelegatesMore a = SmallerDelegatesMore a
-  
+
 instance Ord a => DelegationSemantics (GreaterDelegatesMore a) where
   (GreaterDelegatesMore a) `canDelegate` (GreaterDelegatesMore b) = a >= b
 
