@@ -19,8 +19,8 @@ import           Web.UCAN.Types       as UCAN
 
 
 delegatedInBounds ::
-  ( ResourceSemantics rsc
-  , ResourceSemantics ptc
+  ( DelegationSemantics rsc
+  , DelegationSemantics ptc
   )
   => UCAN fct rsc ptc
   -> UCAN fct rsc ptc
@@ -37,13 +37,13 @@ signaturesMatch ucan prfUCAN =
     then Right ucan
     else Left InvalidSignatureChain
 
-resourceInSubset :: ResourceSemantics rsc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
+resourceInSubset :: DelegationSemantics rsc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
 resourceInSubset ucan prfUCAN =
   if (prfUCAN & claims & resource) `canDelegate` (ucan & claims & resource)
     then Right ucan
     else Left ScopeOutOfBounds
 
-potencyInSubset :: ResourceSemantics ptc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
+potencyInSubset :: DelegationSemantics ptc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
 potencyInSubset ucan prfUCAN =
   if (prfUCAN & claims & potency) `canDelegate` (ucan & claims & potency)
     then Right ucan

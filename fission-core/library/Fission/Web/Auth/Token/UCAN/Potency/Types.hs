@@ -41,5 +41,5 @@ instance FromJSON Potency where
       "SUPER_USER" -> pure SuperUser
       nope -> fail $ show nope <> " is not a valid authorization potency"
 
-instance ResourceSemantics Potency where
+instance DelegationSemantics Potency where
   proofPtc `canDelegate` ptc = fromEnum proofPtc >= fromEnum ptc

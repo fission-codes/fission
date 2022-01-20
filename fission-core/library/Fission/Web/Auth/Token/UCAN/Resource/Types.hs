@@ -56,7 +56,7 @@ instance FromJSON Resource where
       Just parsed -> return parsed
       Nothing     -> fail "Does not match any known Fission resource"
 
-instance ResourceSemantics Resource where
+instance DelegationSemantics Resource where
   canDelegate rsc rscProof =
     case (rsc, rscProof) of
       (FissionFileSystem path, FissionFileSystem proofPath) ->

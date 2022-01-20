@@ -42,8 +42,8 @@ check ::
   , FromJSON fct
   , FromJSON rsc
   , FromJSON ptc
-  , UCAN.Proof.ResourceSemantics rsc
-  , UCAN.Proof.ResourceSemantics ptc
+  , UCAN.Proof.DelegationSemantics rsc
+  , UCAN.Proof.DelegationSemantics ptc
   )
   => DID
   -> UCAN.RawContent
@@ -65,8 +65,8 @@ check' ::
   , FromJSON fct
   , FromJSON rsc
   , FromJSON ptc
-  , UCAN.Proof.ResourceSemantics rsc
-  , UCAN.Proof.ResourceSemantics ptc
+  , UCAN.Proof.DelegationSemantics rsc
+  , UCAN.Proof.DelegationSemantics ptc
   )
   => UCAN.RawContent
   -> UCAN fct rsc ptc
@@ -99,8 +99,8 @@ checkProof ::
   , FromJSON fct
   , FromJSON rsc
   , FromJSON ptc
-  , UCAN.Proof.ResourceSemantics rsc
-  , UCAN.Proof.ResourceSemantics ptc
+  , UCAN.Proof.DelegationSemantics rsc
+  , UCAN.Proof.DelegationSemantics ptc
   )
   => UTCTime -> UCAN fct rsc ptc -> m (Either UCAN.Error (UCAN fct rsc ptc))
 checkProof now ucan@UCAN {claims = Claims {proof}} =

@@ -10,7 +10,7 @@ data Scope subset
   | Subset subset
   deriving (Eq, Ord, Show)
 
-instance ResourceSemantics rsc => ResourceSemantics (Scope rsc) where
+instance DelegationSemantics rsc => DelegationSemantics (Scope rsc) where
   Complete          `canDelegate` _            = True
   (Subset _)        `canDelegate` Complete     = False
   (Subset rscProof) `canDelegate` (Subset rsc) = rscProof `canDelegate` rsc
