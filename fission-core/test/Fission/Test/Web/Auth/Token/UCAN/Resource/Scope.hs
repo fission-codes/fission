@@ -11,4 +11,5 @@ spec =
   describe "Resource Scope" do
     describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(scope :: Scope Text) ->
-        JSON.eitherDecode (JSON.encode scope) `shouldBe` Right scope
+        scope /= Subset "*" ==> -- JSON.encode Complete == JSON.encode (Subset "*"). So we filter it out
+          JSON.eitherDecode (JSON.encode scope) `shouldBe` Right scope
