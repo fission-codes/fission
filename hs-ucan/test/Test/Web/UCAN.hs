@@ -26,7 +26,7 @@ spec =
             |> Lazy.count (fromIntegral $ ord '.')
             |> shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(ucan :: Fission.UCAN) ->
+        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Resource Potency) ->
           let
             encoded = JSON.encode ucan
           in
