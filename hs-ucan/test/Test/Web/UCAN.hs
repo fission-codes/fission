@@ -22,19 +22,19 @@ spec =
       describe "format" do
         itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Resource Potency) ->
           ucan
-            |> JSON.encode
-            |> Lazy.count (fromIntegral $ ord '.')
-            |> shouldBe 2
+            & JSON.encode
+            & Lazy.count (fromIntegral $ ord '.')
+            & shouldBe 2
 
         itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Resource Potency) ->
           let
             encoded = JSON.encode ucan
           in
             encoded
-              |> Lazy.take (Lazy.length encoded - 2)
-              |> Lazy.drop 2
-              |> Lazy.filter (not . isValidChar)
-              |> shouldBe mempty
+              & Lazy.take (Lazy.length encoded - 2)
+              & Lazy.drop 2
+              & Lazy.filter (not . isValidChar)
+              & shouldBe mempty
 
     describe "DelegationSemantics" do
       describe "Resource" do
