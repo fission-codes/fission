@@ -1,8 +1,8 @@
 module Main (main) where
 
-import           Web.UCAN.Test.Prelude
+import           Test.Web.UCAN.Prelude
 
-import qualified Web.UCAN.Test         as UCAN
+import qualified Test.Web.UCAN         as UCAN
 
 
 main :: IO ()

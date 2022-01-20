@@ -1,4 +1,4 @@
-module Web.UCAN.Test.Prelude
+module Test.Web.UCAN.Prelude
   ( module RIO
   , module Data.Aeson
 
