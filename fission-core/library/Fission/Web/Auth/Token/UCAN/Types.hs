@@ -1,9 +1,9 @@
 module Fission.Web.Auth.Token.UCAN.Types (UCAN, Proof) where
 
 import           Fission.Web.Auth.Token.UCAN.Fact.Types
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
-import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
 import qualified Web.UCAN.Types                                   as UCAN
 

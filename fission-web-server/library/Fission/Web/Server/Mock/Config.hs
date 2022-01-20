@@ -70,7 +70,7 @@ authZ :: Monad m => m Authorization
 authZ = return Authorization
     { sender   = Right did
     , about    = Fixture.entity Fixture.user
-    , potency  = AppendOnly
+    , potency  = Just AppendOnly
     , resource = Subset $ FissionFileSystem "/test/"
     }
     where

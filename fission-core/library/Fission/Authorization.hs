@@ -7,8 +7,8 @@ module Fission.Authorization
 
 import           Fission.Authorization.ServerDID
 
-import           Web.SemVer.Types
 import           Fission.Web.Auth.Token.UCAN.Potency.Types
+import           Web.SemVer.Types
 
 latestVersion :: SemVer
 latestVersion = SemVer 1 0 0

@@ -1,7 +1,7 @@
 module Fission.Web.Auth.Token.UCAN.Potency.Types (Potency (..)) where
 
 import           RIO
-import qualified RIO.Text        as Text
+import qualified RIO.Text             as Text
 
 import           Data.Aeson
 import           Test.QuickCheck

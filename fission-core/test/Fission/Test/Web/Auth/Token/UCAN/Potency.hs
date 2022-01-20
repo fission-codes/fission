@@ -1,9 +1,9 @@
 module Fission.Test.Web.Auth.Token.UCAN.Potency (spec) where
 
-import Data.Bits (xor)
-import qualified Data.Aeson                                 as JSON
+import qualified Data.Aeson                                as JSON
+import           Data.Bits                                 (xor)
 
-import Web.UCAN.Proof.Class
+import           Web.UCAN.Proof.Class
 
 import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
@@ -19,7 +19,7 @@ spec =
     describe "order" do
       it "SuperUser canDelegate Destructive" do
         SuperUser `canDelegate` Destructive `shouldBe` True
-      
+
       it "Destructive canDelegate AppendOnly" do
         Destructive `canDelegate` AppendOnly `shouldBe` True
 

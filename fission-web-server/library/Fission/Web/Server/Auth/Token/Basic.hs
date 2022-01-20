@@ -72,7 +72,7 @@ checkUser (BasicAuthData rawUsername password) =
               return $ Right Authorization
                 { about    = user
                 , sender   = Left Heroku
-                , potency  = SuperUser
+                , potency  = Just SuperUser
                 , resource = Complete
                 }
 

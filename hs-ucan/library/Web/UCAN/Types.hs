@@ -50,10 +50,10 @@ import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
 
 import qualified Web.UCAN.Internal.Base64.URL                  as B64.URL
+import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
 import qualified Web.UCAN.Internal.RSA2048.Pair.Types          as RSA2048
 import           Web.UCAN.Internal.Time
 import qualified Web.UCAN.Internal.UTF8                        as UTF8
-import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
 
 
 -- Reexports
