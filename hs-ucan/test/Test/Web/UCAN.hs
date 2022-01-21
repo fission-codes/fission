@@ -6,7 +6,7 @@ import qualified RIO.ByteString.Lazy               as Lazy
 import qualified RIO.Char                          as Char
 import           Web.UCAN.Types
 
-import           Test.Web.UCAN.Prelude
+import           Test.Prelude
 
 import qualified Test.Web.UCAN.DelegationSemantics as DelegationSemantics
 import           Test.Web.UCAN.Example
@@ -14,7 +14,7 @@ import           Test.Web.UCAN.Example
 
 spec :: Spec
 spec =
-  describe "Web.UCAN" do
+  describe "UCAN" do
     describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Resource Potency) ->
         JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan

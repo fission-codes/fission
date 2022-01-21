@@ -7,7 +7,7 @@ module Test.Web.UCAN.DelegationSemantics
   , partialOrderProperties
   ) where
 
-import           Test.Web.UCAN.Prelude
+import           Test.Prelude
 
 import           Web.UCAN.Proof.Class
 import           Web.UCAN.Proof.Properties
