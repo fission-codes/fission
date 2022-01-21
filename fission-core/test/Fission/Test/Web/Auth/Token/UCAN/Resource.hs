@@ -19,11 +19,11 @@ spec =
 
     describe "has partial order properties on DelegationSemantics" do
 
-      itsProp' "x canDelegate x"
-        (Proof.Properties.reflexive @(Scope Resource))
+      itsProp' "x canDelegate x" $
+        Proof.Properties.reflexive @(Scope Resource)
 
-      itsProp' "if x canDelegate y and y canDelegate x then x == y"
-        (Proof.Properties.antisymmetric @(Scope Resource))
+      itsProp' "if x canDelegate y and y canDelegate x then x == y" $
+        Proof.Properties.antisymmetric @(Scope Resource)
 
-      itsProp' "if x canDelegate y and y canDelegate z then x canDelegate z"
-        (Proof.Properties.transitive @(Scope Resource))
+      itsProp' "if x canDelegate y and y canDelegate z then x canDelegate z" $
+        Proof.Properties.transitive @(Scope Resource)
