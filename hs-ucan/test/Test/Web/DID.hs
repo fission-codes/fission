@@ -55,6 +55,12 @@ spec =
             `shouldBe`
             Success (Right False)
 
+      describe "RSA" do
+        it "parses" $
+          JSON.fromJSON @DID (JSON.String rsaDIDEncoded) `shouldSatisfy` \case
+            Success _ -> True
+            Error _   -> False
+
 
 runSignatureTest :: Alg.Algorithm -> Text -> ByteString -> Text -> JSON.Result (Either Signature.Error Bool)
 runSignatureTest alg didEncoded signedData sigEncoded =
@@ -87,3 +93,6 @@ bobDIDEncoded = "did:key:z6MkffDZCkCTWreg8868fG1FGFogcJj5X6PY93pPcWDn9bob"
 
 bobHelloWorldSignature :: Text
 bobHelloWorldSignature = "PV9pjuzha64gVXCUHghTN3aa6r1lKFOdmH4OJPshDBEgqATA06jWojW377RQQClOyWqRmaNkjQ93UyJvteP9Cg"
+
+rsaDIDEncoded :: Text
+rsaDIDEncoded = "did:key:z4MXj1wBzi9jUstyNvmiK5WLRRL4rr9UvzPxhry1CudCLKWLyMbP1WoTwDfttBTpxDKf5hAJEjqNbeYx2EEvrJmSWHAu7TJRPTrE3QodbMfRvRNRDyYvaN1FSQus2ziS1rWXwAi5Gpc16bY3JwjyLCPJLfdRWHZhRXiay5FWEkfoSKy6aftnzAvqNkKBg2AxgzGMinR6d1WiH4w5mEXFtUeZkeo4uwtRTd8rD9BoVaHVkGwJkksDybE23CsBNXiNfbweFVRcwfTMhcQsTsYhUWDcSC6QE3zt9h4Rsrj7XRYdwYSK5bc1qFRsg5HULKBp2uZ1gcayiW2FqHFcMRjBieC4LnSMSD1AZB1WUncVRbPpVkn1UGhCU"
