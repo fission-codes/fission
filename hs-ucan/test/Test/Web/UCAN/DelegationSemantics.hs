@@ -24,11 +24,11 @@ partialOrderProperties ::
 partialOrderProperties = do
   describe "has partial order properties on DelegationSemantics" do
 
-    itsProp' "x canDelegate x"
-      (reflexive @res)
+    itsProp' "x canDelegate x" $
+      reflexive @res
 
-    itsProp' "if x canDelegate y and y canDelegate x then x == y"
-      (antisymmetric @res)
+    itsProp' "if x canDelegate y and y canDelegate x then x == y" $
+      antisymmetric @res
 
-    itsProp' "if x canDelegate y and y canDelegate z then x canDelegate z"
-      (transitive @res)
+    itsProp' "if x canDelegate y and y canDelegate z then x canDelegate z" $
+      transitive @res
