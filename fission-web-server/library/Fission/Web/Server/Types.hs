@@ -443,12 +443,12 @@ instance App.Content.Initializer Server where
 
 instance UCAN.Resolver Server where
   resolve cid =
-    IPFS.ipfsCat cid <&> \case
+    IPFS.ipfsCat cid >>= \case
       Left clientErr ->
-        Left (CannotResolve cid clientErr)
+        return $ Left $ CannotResolve cid clientErr
 
       Right (Serialized resolvedLBS) ->
-        Right (UCAN.contentOf (decodeUtf8Lenient (Lazy.toStrict resolvedLBS)))
+        return $ Right $ UCAN.contentOf $ decodeUtf8Lenient $ Lazy.toStrict resolvedLBS
 
 instance ServerDID Server where
   getServerDID = asks fissionDID
