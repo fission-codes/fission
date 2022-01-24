@@ -31,7 +31,7 @@ spec =
             expected :: Lazy.ByteString
             expected = "did:key:z13V3Sog2YaUKhdGCmgx9UZuW1o1ShFJYc6DvGYe7NTt689NoL2RtpVs65Zw899YrTN9WuxdEEDm54YxWuQHQvcKfkZwa8HTgokHxGDPEmNLhvh69zUMEP4zjuARQ3T8bMUumkSLGpxNe1bfQX624ef45GhWb3S9HM3gvAJ7Qftm8iqnDQVcxwKHjmkV4hveKMTix4bTRhieVHi1oqU4QCVy4QPWpAAympuCP9dAoJFxSP6TNBLY9vPKLazsg7XcFov6UuLWsEaxJ5SomCpDx181mEgW2qTug5oQbrJwExbD9CMgXHLVDE2QgLoQMmgsrPevX57dH715NXC2uY6vo2mYCzRY4KuDRUsrkuYCkewL8q2oK1BEDVvi3Sg8pbC9QYQ5mMiHf8uxiHxTAmPedv8"
           in
-            encode (DID Key rsaKey) `shouldBe` "\"" <> expected <> "\""
+            encode (DID.Key rsaKey) `shouldBe` "\"" <> expected <> "\""
 
       describe "Ed25519" do
         it "serializes to a well-known value"
@@ -39,25 +39,25 @@ spec =
             expected :: Text
             expected = "did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsXCnLH7q9yw4QgNPULDmDKB"
           in
-            encode (DID Key edKey) `shouldBe` JSON.encode expected
+            encode (DID.Key edKey) `shouldBe` JSON.encode expected
 
         itsProp' "deserialize . serialize ~ id" \(ed25519pk :: Ed25519.PublicKey) ->
-          decode (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe`
-            Just (DID Key $ Ed25519PublicKey ed25519pk)
+          decode (encode . DID.Key $ Ed25519PublicKey ed25519pk) `shouldBe`
+            Just (DID.Key $ Ed25519PublicKey ed25519pk)
 
         itsProp' "lengths is always 56" \(ed25519pk :: Ed25519.PublicKey) ->
-          Lazy.length (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe` 56 + 2 -- extra 2 for quotes because JSON
+          Lazy.length (encode . DID.Key $ Ed25519PublicKey ed25519pk) `shouldBe` 56 + 2 -- extra 2 for quotes because JSON
 
         itsProp' "always starts with 'did:key:z6Mk'" \(ed25519pk :: Ed25519.PublicKey) ->
-          Lazy.take 13 (encode . DID Key $ Ed25519PublicKey ed25519pk) `shouldBe` "\"did:key:z6Mk"
+          Lazy.take 13 (encode . DID.Key $ Ed25519PublicKey ed25519pk) `shouldBe` "\"did:key:z6Mk"
 
         describe "Legacy (AKA `Oldstyle`)" do
           it "deserializes to a well-known value" $
             eitherDecodeStrict ("\"" <> encodeUtf8 oldstyleEdKey <> "\"")
-              `shouldBe` Right (DID Key edKey)
+              `shouldBe` Right (DID.Key edKey)
 
           it "can be manually set to display in the Oldstyle format" $
-            textDisplay Oldstyle { did = DID Key edKey } `shouldBe` oldstyleEdKey
+            textDisplay Oldstyle { did = DID.Key edKey } `shouldBe` oldstyleEdKey
 
       itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
         JSON.decode (JSON.encode did) `shouldBe` Just did
@@ -165,12 +165,12 @@ Right edKey = parseUrlPiece "Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4="
 
 isEd25519DidKey :: Either String DID -> Bool
 isEd25519DidKey = \case
-  Right (DID Key (Ed25519PublicKey _)) -> True
+  Right (DID.Key (Ed25519PublicKey _)) -> True
   _                                    -> False
 
 isRSADidKey :: Either String DID -> Bool
 isRSADidKey = \case
-  Right (DID Key (RSAPublicKey _)) -> True
+  Right (DID.Key (RSAPublicKey _)) -> True
   _                                -> False
 
 testVectorsW3CEdKey :: [(Natural, Text)]

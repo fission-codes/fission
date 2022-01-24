@@ -1,7 +1,5 @@
 module Web.DID.Types
   ( DID (..)
-  -- * Reexport
-  , module Web.DID.Method.Types
   ) where
 
 import           Data.Aeson                as JSON
@@ -15,6 +13,7 @@ import           Data.Base58String.Bitcoin as BS58.BTC
 import           Data.Binary               hiding (encode)
 import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Base64    as BS64
+import qualified Data.ByteString.Builder   as Builder
 import           Data.Hashable             (Hashable (..))
 
 import           Crypto.Error
@@ -22,6 +21,7 @@ import qualified Crypto.PubKey.Ed25519     as Ed25519
 
 import           RIO
 import qualified RIO.ByteString            as BS
+import qualified RIO.ByteString.Lazy       as Lazy
 import qualified RIO.Text                  as Text
 
 import qualified Web.UCAN.Internal.UTF8    as UTF8
@@ -29,7 +29,6 @@ import qualified Web.UCAN.Internal.UTF8    as UTF8
 import           Servant.API
 
 import           Crypto.Key.Asymmetric     as Key (Public (..))
-import           Web.DID.Method.Types
 
 {- | A DID key, broken into its constituant parts
 
@@ -75,21 +74,17 @@ RSA
 Right (DID {method = Key, publicKey = MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB})
 
 -}
-data DID = DID
-  { method    :: Method
-  , publicKey :: Key.Public
-  } deriving (Show, Eq)
+data DID
+  = Key Key.Public
+  -- More varieties here later
+  deriving (Show, Eq)
 
 -- For FromJSON
 instance Ord DID where
   a `compare` b = textDisplay a `compare` textDisplay b
 
 instance Arbitrary DID where
-  arbitrary = do
-    publicKey <- arbitrary
-    method    <- arbitrary
-
-    return DID {..}
+  arbitrary = Key <$> arbitrary
 
 instance Hashable DID where
   hashWithSalt salt did = hashWithSalt salt $ textDisplay did
@@ -107,21 +102,16 @@ instance FromHttpApiData DID where
       Right val -> Right val
 
 instance Display DID where -- NOTE `pk` here is base2, not base58
-  textDisplay (DID method pk) = header <> UTF8.toBase58Text (BS.pack multicodecW8)
+  textDisplay (Key pk) = "did:key:z" <> UTF8.toBase58Text (BS.pack multicodecW8)
     where
-      header :: Text
-      header = "did:" <> textDisplay method <> ":" <> "z"
-
       multicodecW8 :: [Word8]
       multicodecW8 =
         case pk of
-          Ed25519PublicKey ed  -> 0xed : 0x01 : BS.unpack (BA.convert ed)
-          RSAPublicKey     rsa -> 0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
-                               {-   ^     ^     ^
-                                    |     |     |
-                                    |    "expect 373 Bytes", encoded in the mixed-endian format
-                                  "raw"
-                              -}
+          Ed25519PublicKey ed ->
+            0xed : 0x01 : BS.unpack (BA.convert ed)
+
+          RSAPublicKey rsa ->
+            0x12 : 0x05 : BS.unpack (Lazy.toStrict . Builder.toLazyByteString . getUtf8Builder $ display rsa)
 
 instance ToJSON DID where
   toJSON = String . textDisplay
@@ -163,4 +153,4 @@ parseText txt =
         nope ->
           fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
 
-      return $ DID Key pk
+      return $ Key pk

@@ -2,8 +2,8 @@ module Main (main) where
 
 import           Test.Prelude
 
-import qualified Test.Web.UCAN         as UCAN
-import qualified Test.Web.DID as DID
+import qualified Test.Web.DID  as DID
+import qualified Test.Web.UCAN as UCAN
 
 
 main :: IO ()

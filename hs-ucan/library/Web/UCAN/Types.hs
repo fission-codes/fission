@@ -42,7 +42,7 @@ import           Test.QuickCheck
 import           Crypto.Key.Asymmetric                         as Key
 import qualified Crypto.Key.Asymmetric.Algorithm.Types         as Algorithm
 
-import           Web.DID.Types
+import           Web.DID.Types                                 as DID
 
 import           Web.UCAN.Header.Types                         (Header (..))
 import qualified Web.UCAN.RawContent                           as UCAN
@@ -93,7 +93,7 @@ instance
     claims' <- arbitrary
 
     let
-      claims = claims' {sender = DID Key pk}
+      claims = claims' {sender = DID.Key pk}
 
       sig' = case sk of
         Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
@@ -197,11 +197,7 @@ instance
     nbf      <- arbitrary
     pk       <- arbitrary
 
-    let
-      receiver = DID
-        { publicKey = pk
-        , method    = Key
-        }
+    let receiver = DID.Key pk
 
     return Claims {..}
 
