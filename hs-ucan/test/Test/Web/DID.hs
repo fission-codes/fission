@@ -59,9 +59,6 @@ spec =
           it "can be manually set to display in the Oldstyle format" $
             textDisplay Oldstyle { did = DID.Key edKey } `shouldBe` oldstyleEdKey
 
-      itsProp' "serialized is isomorphic to ADT" \(did :: DID) ->
-        JSON.decode (JSON.encode did) `shouldBe` Just did
-
       itsProp' "is a base58 encoded Key DID" \(did :: DID) ->
         Lazy.isPrefixOf "\"did:key:z" (JSON.encode did)
 
