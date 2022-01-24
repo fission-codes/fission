@@ -22,7 +22,6 @@
 
     deps = {
       common = [
-        pkgs.gnumake
         unstable.niv
       ];
 
@@ -43,8 +42,6 @@
     ];
 
     haskell = [
-      unstable.ghc
-      unstable.haskellPackages.implicit-hie
       unstable.haskell-language-server
       unstable.stack
       unstable.stylish-haskell
