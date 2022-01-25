@@ -11,7 +11,7 @@ import qualified Network.IPFS.Types                               as IPFS
 import           Servant
 import           Servant.Server.Experimental.Auth
 
-import           Web.DID.Types
+import           Web.DID.Types                                    as DID
 
 import           Fission.Prelude
 
@@ -39,11 +39,7 @@ defaultConfig :: Config
 defaultConfig = Config
   { now             = agesAgo
   , linkedPeers     = pure $ IPFS.Peer "ipv4/fakepeeraddress"
-  , didVerifier     = mkAuthHandler \_ ->
-      return $ DID
-        { publicKey = pk
-        , method    = Key
-        }
+  , didVerifier     = mkAuthHandler \_ -> pure $ DID.Key pk
   , userVerifier    = mkAuthHandler  \_ -> pure $ Fixture.entity Fixture.user
   , authVerifier    = mkAuthHandler  \_ -> authZ
   , herokuVerifier  = BasicAuthCheck \_ -> pure . Authorized $ Heroku.Auth "FAKE HEROKU"
@@ -68,13 +64,8 @@ defaultConfig = Config
 
 authZ :: Monad m => m Authorization
 authZ = return Authorization
-    { sender   = Right did
+    { sender   = Right $ DID.Key $ Fixture.Ed25519.pk
     , about    = Fixture.entity Fixture.user
     , potency  = Just AppendOnly
     , resource = Subset $ FissionFileSystem "/test/"
     }
-    where
-      did = DID
-        { publicKey = Fixture.Ed25519.pk
-        , method    = Key
-        }

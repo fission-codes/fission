@@ -1,6 +1,6 @@
 module Fission.Web.Server.Auth.Token.UCAN (handler) where
 
-import           Web.DID.Types
+import           Web.DID.Types                                      as DID
 import           Web.UCAN.Resolver                                  as UCAN
 import qualified Web.UCAN.Types                                     as UCAN
 import qualified Web.UCAN.Validation                                as UCAN
@@ -42,7 +42,7 @@ handler (Bearer.Token jwt rawContent) = do
   toAuthorization jwt
 
 toAuthorization ::
-  ( UCAN.Resolver     m
+  ( UCAN.Resolver    m
   , MonadThrow       m
   , MonadLogger      m
   , MonadDB        t m
@@ -56,7 +56,7 @@ toAuthorization jwt@UCAN.UCAN {claims = UCAN.Claims {..}} = do
     Left err ->
       throwM err
 
-    Right UCAN.UCAN {claims = UCAN.Claims {sender = DID {publicKey = pk}}} ->
+    Right UCAN.UCAN {claims = UCAN.Claims {sender = DID.Key pk}} ->
       runDB (User.getByPublicKey pk) >>= \case
         Nothing ->
           Web.Error.throw $ NotFound @User
