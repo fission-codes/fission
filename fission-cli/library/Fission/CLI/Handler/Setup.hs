@@ -7,7 +7,7 @@ import           RIO.FilePath
 import           Network.DNS                                 as DNS
 import           Servant.Client
 
-import           Web.DID.Types
+import           Web.DID.Types                               as DID
 import qualified Web.UCAN.Types                              as UCAN
 
 
@@ -96,7 +96,7 @@ setup maybeOS maybeUsername maybeEmail maybeKeyFile = do
             Right username -> do
               baseURL <- getRemoteBaseUrl
               signingPK  <- Key.Store.fetchPublic (Proxy @SigningKey)
-              _ <- WNFS.create (DID Key $ Key.Ed25519PublicKey signingPK) "/"
+              _ <- WNFS.create (DID.Key $ Key.Ed25519PublicKey signingPK) "/"
               Env.init username baseURL Nothing
               Display.putOk $ "Done! Welcome to Fission, " <> textDisplay username <> " ✨"
 

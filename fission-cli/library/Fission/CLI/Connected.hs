@@ -16,7 +16,7 @@ import qualified Network.IPFS.Process.Error                as IPFS.Process
 import qualified Network.IPFS.Timeout.Types                as IPFS
 import qualified Network.IPFS.Types                        as IPFS
 
-import           Web.DID.Types
+import           Web.DID.Types                             as DID
 
 import qualified Web.UCAN.Resolver.Error                   as UCAN.Resolver
 
@@ -155,10 +155,7 @@ mkConnected inCfg ipfsTimeout = do
           let
             ignoredFiles = Environment.ignored config
 
-            cliDID = DID
-              { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
-              , method    = Key
-              }
+            cliDID = DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic secretKey
 
             cfg = Config { httpManager = getField @"httpManager" inCfg, ..}
 
