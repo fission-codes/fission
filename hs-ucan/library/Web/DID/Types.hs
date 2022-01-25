@@ -2,33 +2,32 @@ module Web.DID.Types
   ( DID (..)
   ) where
 
-import           Data.Aeson                as JSON
-import qualified Data.Aeson.Types          as JSON
+import           Data.Aeson                   as JSON
+import qualified Data.Aeson.Types             as JSON
 import           Data.Swagger
 
-import           Control.Lens              ((?~))
+import           Control.Lens                 ((?~))
 import           Test.QuickCheck
 
-import           Data.Base58String.Bitcoin as BS58.BTC
-import           Data.Binary               hiding (encode)
-import qualified Data.ByteArray            as BA
-import qualified Data.ByteString.Base64    as BS64
-import qualified Data.ByteString.Builder   as Builder
-import           Data.Hashable             (Hashable (..))
+import           Data.Base58String.Bitcoin    as BS58.BTC
+import           Data.Binary                  hiding (encode)
+import qualified Data.ByteArray               as BA
+import qualified Data.ByteString.Base64       as BS64
+import           Data.Hashable                (Hashable (..))
 
 import           Crypto.Error
-import qualified Crypto.PubKey.Ed25519     as Ed25519
+import qualified Crypto.PubKey.Ed25519        as Ed25519
 
 import           RIO
-import qualified RIO.ByteString            as BS
-import qualified RIO.ByteString.Lazy       as Lazy
-import qualified RIO.Text                  as Text
+import qualified RIO.ByteString               as BS
+import qualified RIO.Text                     as Text
 
-import qualified Web.UCAN.Internal.UTF8    as UTF8
+import qualified Web.UCAN.Internal.UTF8       as UTF8
 
 import           Servant.API
 
-import           Crypto.Key.Asymmetric     as Key (Public (..))
+import           Crypto.Key.Asymmetric        as Key (Public (..))
+import qualified Crypto.Key.Asymmetric.Public as Public
 
 {- | A DID key, broken into its constituant parts
 
@@ -111,7 +110,7 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
             0xed : 0x01 : BS.unpack (BA.convert ed)
 
           RSAPublicKey rsa ->
-            0x12 : 0x05 : BS.unpack (Lazy.toStrict . Builder.toLazyByteString . getUtf8Builder $ display rsa)
+            0x85 : 0x24 : BS.unpack (Public.encodeASN1DERRSAPublicKey rsa)
 
 instance ToJSON DID where
   toJSON = String . textDisplay
@@ -147,6 +146,12 @@ parseText txt =
                 CryptoFailed cryptoError -> fail $ "Unable to parse Ed25519 key: " <> show cryptoError
                 CryptoPassed edPK -> return $ Ed25519PublicKey edPK
 
+        (0x85 : 0x24 : rsaASNPublicKeyW8s) ->
+          case Public.decodeASN1DERRSAPublicKey $ BS.pack rsaASNPublicKeyW8s of
+            Right pk -> pure $ RSAPublicKey pk
+            Left err -> fail err
+
+        -- Backwards compatibility
         (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
           RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
 

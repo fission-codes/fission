@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-module Test.Web.DID (spec) where
+module Test.Web.DID (spec, rsaKey) where
 
 import           Data.Aeson                            as JSON
 import qualified Data.Aeson.Types                      as JSON
