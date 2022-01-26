@@ -10,7 +10,7 @@ module Fission.Web.Client
   , module Fission.Web.Client.V2
   ) where
 
-import qualified Crypto.PubKey.Ed25519                  as Ed25519
+import qualified Crypto.PubKey.Ed25519                   as Ed25519
 
 import           Servant.Client
 import           Servant.Client.Core
@@ -18,14 +18,14 @@ import           Servant.Client.Core
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
-import           Fission.Web.Auth.Token.JWT             as JWT
+import           Fission.Web.Auth.Token.UCAN.Types       as UCAN
 
 import           Fission.Web.Client.Auth
 import           Fission.Web.Client.Class
 import           Fission.Web.Client.JWT
 import           Fission.Web.Client.V2
 
-import           Fission.Internal.Orphanage.ClientError ()
+import           Web.UCAN.Internal.Orphanage.ClientError ()
 
 sendRequestM ::
   ( MonadWebClient m
@@ -45,7 +45,7 @@ sendAuthedRequest ::
   , MonadRaise     m
   , m `Raises` ClientError
   )
-  => JWT.Proof
+  => UCAN.Proof
   -> (AuthenticatedRequest auth -> ClientM a)
   -> m a
 sendAuthedRequest proof req = do
@@ -58,7 +58,7 @@ attachAuth ::
   , MonadWebAuth m (AuthClientData auth)
   , MonadWebAuth m Ed25519.SecretKey
   )
-  => JWT.Proof
+  => UCAN.Proof
   -> m (AuthenticatedRequest auth) -- (Client ClientM api)
 attachAuth proof = do
   auth    <- getAuth

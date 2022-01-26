@@ -1,7 +1,7 @@
 module Fission.Web.Server.App.Retriever.Class (Retriever (..)) where
 
-import           Database.Esqueleto                                 hiding
-                                                                     ((<&>))
+import           Database.Esqueleto.Legacy                          hiding
+                                                                    ((<&>))
 
 import           Fission.Prelude                                    hiding (on)
 

@@ -1,0 +1,181 @@
+name: hs-ucan
+version: '0.0.1.0'
+category: API
+author:
+  - Brooklyn Zelenka
+  - Daniel Holmgren
+  - Steven Vandevelde
+  - James Walker
+  - Brian Ginsburg
+  - Philipp Krüger
+maintainer:
+  - brooklyn@fission.codes
+  - daniel@fission.codes
+  - steven@fission.codes
+  - james@fission.codes
+  - brian@fission.codes
+  - philipp@fission.codes
+copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
+license: AGPL-3.0-or-later
+license-file: LICENSE
+github: fission-suite/fission
+tested-with: GHC==8.10.7
+extra-source-files:
+  - README.md
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  # Warn about too little
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wpartial-fields
+  # Warn about too much
+  - -Wredundant-constraints
+  # Prettier Development
+  - -fhide-source-paths
+
+default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DuplicateRecordFields
+  - EmptyDataDecls
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - LiberalTypeSynonyms
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - NumericUnderscores
+  - OverloadedStrings
+  - OverloadedLabels
+  - OverloadedLists
+  - PostfixOperators
+  - PackageImports
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+  - TypeOperators
+  - ViewPatterns
+
+dependencies:
+  ## Base ##
+  - base
+  - flow
+  - rio
+  - rio-orphans
+
+  ## Capabilties ##
+  - data-has
+  - monad-control
+  - monad-logger
+  - monad-time
+  - mtl
+
+  ## Command Line ##
+  - envy
+
+  ## Cryptography ##
+  - cryptonite
+  - cryptostore
+  - HsOpenSSL
+  - pem
+  - RSA
+
+  ## Data ##
+  - aeson
+  - aeson-casing
+  - asn1-encoding
+  - asn1-types
+  - base58string
+  - base64-bytestring
+  - binary
+  - bytestring
+  - generic-lens
+  - hashable
+  - lens
+  - memory
+  - QuickCheck
+  - quickcheck-instances
+  - random-bytestring
+  - time
+  - uuid
+  - word8
+  - world-peace
+  - yaml
+
+  ## Database ##
+  - esqueleto
+  - persistent
+
+  ## Error Handling ##
+  - exceptions
+  - rescue
+
+  ## File System ##
+  - file-embed
+  - Glob
+
+  ## Web ##
+  - dns
+  - ipfs
+  - mime-types
+  - path-pieces
+  - servant
+  - servant-client
+  - servant-client-core
+  - servant-swagger
+  - swagger2
+  - x509
+
+library:
+  source-dirs: library
+
+tests:
+  hs-ucan-test:
+    main: Main.hs
+    source-dirs:
+      - library
+      - test
+    dependencies:
+      - base58string
+      - binary
+      - hspec
+      - hspec-core
+      - hspec-expectations
+      - hs-ucan
+      - QuickCheck
+      - quickcheck-instances
+      - tasty
+      - tasty-hunit
+      - tasty-hspec
+      - tasty-smallcheck
+      - tasty-rerun

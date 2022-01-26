@@ -2,9 +2,11 @@
 
 module Fission.Key
   ( -- * Reexports
-    module Fission.Key.Asymmetric
+    module Crypto.Key.Asymmetric
   , module Fission.Key.Error
+  , module Fission.Key.Symmetric
   ) where
 
-import           Fission.Key.Asymmetric
+import           Crypto.Key.Asymmetric
 import           Fission.Key.Error
+import           Fission.Key.Symmetric

@@ -9,10 +9,10 @@ spec =
   describe "Fission.Internal.Bool" do
     describe "truthy" do
       context "t" $
-        it "is truthy" $ truthy "t" `shouldBe` True
+        it "is truthy" $ truthy ("t" :: String) `shouldBe` True
 
       context "f" $
-        it "is not truthy" $ truthy "f" `shouldBe` False
+        it "is not truthy" $ truthy ("f" :: String) `shouldBe` False
 
       context "on" $
         it "is truthy" $ truthy ("on" :: Text) `shouldBe` True

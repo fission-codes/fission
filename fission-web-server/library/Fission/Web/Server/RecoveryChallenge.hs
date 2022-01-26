@@ -13,8 +13,8 @@ import           Fission.Prelude
 import           Fission.Challenge.Types
 
 import           Fission.Web.Server.RecoveryChallenge.Creator.Class
-import           Fission.Web.Server.RecoveryChallenge.Retriever.Class
 import           Fission.Web.Server.RecoveryChallenge.Destroyer.Class
+import           Fission.Web.Server.RecoveryChallenge.Retriever.Class
 
 
 recoveryLink :: Text -> Challenge -> Text

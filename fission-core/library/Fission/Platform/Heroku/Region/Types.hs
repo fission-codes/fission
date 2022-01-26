@@ -1,9 +1,9 @@
 module Fission.Platform.Heroku.Region.Types (Region (..)) where
 
+import           Data.Swagger         as Swagger
 import           Database.Persist.Sql
-import           Data.Swagger as Swagger
 
-import qualified RIO.Text as Text
+import qualified RIO.Text             as Text
 
 import           Fission.Prelude
 

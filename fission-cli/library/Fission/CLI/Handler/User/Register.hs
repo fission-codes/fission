@@ -14,14 +14,15 @@ import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.Types
-import           Fission.Key                                 as Key
+import qualified Fission.Key                                 as Key
 import           Fission.User.Username.Types
 
-import           Fission.Web.Auth.Token.JWT.Types
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                          as Client
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
+import qualified Web.UCAN.Types                              as UCAN
+
 import           Fission.User.Email.Types
 import           Fission.User.Registration.Types
 import qualified Fission.User.Username.Error                 as Username
@@ -123,7 +124,7 @@ createAccount maybeUsername maybeEmail = do
 
   exchangePK <- KeyStore.fetchPublic (Proxy @ExchangeKey)
   signingPK  <- KeyStore.fetchPublic (Proxy @SigningKey)
-  _          <- WNFS.create (DID Key $ Ed25519PublicKey signingPK) "/"
+  _          <- WNFS.create (DID Key $ Key.Ed25519PublicKey signingPK) "/"
 
   let
     form = Registration
@@ -133,7 +134,7 @@ createAccount maybeUsername maybeEmail = do
       , exchangePK = Just exchangePK
       }
 
-  attempt (sendAuthedRequest RootCredential $ createUser form) >>= \case
+  attempt (sendAuthedRequest UCAN.RootCredential $ createUser form) >>= \case
     Right _ok -> do
       CLI.Success.putOk "Registration successful! Head over to your email to confirm your account."
       baseURL <- getRemoteBaseUrl

@@ -1,7 +1,7 @@
 -- | Authorization types; primarily more semantic aliases
 module Fission.Web.Auth.Token.Basic.Types (Token (..)) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text        as Text
 import           Servant.API
 
 import           Fission.Prelude

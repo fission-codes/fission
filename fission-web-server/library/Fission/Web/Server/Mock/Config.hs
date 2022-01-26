@@ -11,11 +11,12 @@ import qualified Network.IPFS.Types                               as IPFS
 import           Servant
 import           Servant.Server.Experimental.Auth
 
+import           Web.DID.Types
+
 import           Fission.Prelude
 
-import           Fission.Authorization.Potency.Types
 import           Fission.URL.Types                                as URL
-import           Fission.User.DID.Types
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
 import           Fission.Internal.Fixture.Key.Ed25519             as Fixture.Ed25519
 import           Fission.Internal.Fixture.Time                    as Fixture
@@ -69,7 +70,7 @@ authZ :: Monad m => m Authorization
 authZ = return Authorization
     { sender   = Right did
     , about    = Fixture.entity Fixture.user
-    , potency  = AppendOnly
+    , potency  = Just AppendOnly
     , resource = Subset $ FissionFileSystem "/test/"
     }
     where

@@ -3,17 +3,17 @@ module Fission.Web.Server.Handler.Auth.UCAN (handler) where
 import           Servant
 import           Servant.Server.Generic
 
+import           Web.UCAN.Resolver                   as Proof
+import           Web.UCAN.Types
+import qualified Web.UCAN.Validation                 as UCAN
+
 import           Fission.Prelude
 
-import qualified Fission.Web.Auth.Token.Bearer.Types   as Bearer
+import qualified Fission.Web.Auth.Token.Bearer.Types as Bearer
 
-import           Fission.Web.Auth.Token.JWT.Resolver   as Proof
-import           Fission.Web.Auth.Token.JWT.Types
-import qualified Fission.Web.Auth.Token.JWT.Validation as UCAN
+import qualified Fission.Web.API.Auth.UCAN.Types     as UCAN
 
-import qualified Fission.Web.API.Auth.UCAN.Types       as UCAN
-
-import qualified Fission.Web.Server.Error              as Web
+import qualified Fission.Web.Server.Error            as Web
 
 handler ::
   ( MonadTime      m
@@ -26,7 +26,7 @@ handler = UCAN.Routes { verify }
   where
     verify (Bearer.BareToken Bearer.Token {rawContent, jwt}) ignoreTime = do
       let
-        JWT {claims = Claims {receiver, exp}} = jwt
+        UCAN {claims = Claims {receiver, exp}} = jwt
 
       if ignoreTime
         then Web.ensureM $ UCAN.check'         rawContent jwt exp

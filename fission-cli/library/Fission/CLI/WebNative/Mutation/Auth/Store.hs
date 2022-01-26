@@ -5,23 +5,24 @@ module Fission.CLI.WebNative.Mutation.Auth.Store
   , module Fission.CLI.WebNative.Mutation.Auth.Store.Class
   ) where
 
-import qualified Data.Yaml                                        as YAML
-import           RIO.Map                                          as Map
+import qualified Data.Yaml                                       as YAML
+import           RIO.Map                                         as Map
 
 import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
-import           Fission.Web.Auth.Token.JWT                       as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT
-import qualified Fission.Web.Auth.Token.JWT.Resolver              as JWT.Resolver
+import           Fission.Web.Auth.Token.UCAN                     as UCAN
+import qualified Fission.Web.Auth.Token.UCAN.Types               as Fission
 
-import           Fission.Web.Auth.Token.Bearer                    as Bearer
-import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
-import           Fission.Web.Auth.Token.UCAN.Resource.Types       as UCAN
+import qualified Web.UCAN.Resolver                               as UCAN
+import qualified Web.UCAN.Resolver.Error                         as Resolver
+import           Web.UCAN.Types
 
-import           Fission.CLI.Environment                          as Env
+import           Fission.Web.Auth.Token.Bearer                   as Bearer
+
+import           Fission.CLI.Environment                         as Env
 import           Fission.CLI.WebNative.Mutation.Auth.Store.Class
 
 getRootUCAN ::
@@ -51,14 +52,14 @@ getRootUserProof ::
   , m `Raises` NotFound FilePath
   , m `Raises` YAML.ParseException
   )
-  => m JWT.Proof
+  => m Fission.Proof
 getRootUserProof = Bearer.toProof <$> getRootUCAN
 
 getBy :: forall m.
   ( MonadStore   m
-  , JWT.Resolver m
   , MonadRaise   m
-  , m `Raises` JWT.Resolver.Error
+  , UCAN.Resolver m
+  , m `Raises` Resolver.Error
   , m `Raises` NotFound Bearer.Token
   )
   => DID
@@ -73,8 +74,8 @@ getBy did matcher = do
 
   where
     normalizedMatcher :: Bearer.Token -> m Bool
-    normalizedMatcher Bearer.Token {jwt = jwt@JWT {claims = JWT.Claims {resource}}} = do
-      JWT {claims = JWT.Claims {sender}} <- ensureM $ JWT.getRoot jwt
+    normalizedMatcher Bearer.Token {jwt = jwt@UCAN {claims = Claims {resource}}} = do
+      UCAN {claims = Claims {sender}} <- ensureM $ UCAN.getRoot jwt
       if sender == did
         then
           case resource of

@@ -8,7 +8,7 @@ module Fission.Web.Server.User.Creator
 
 
 import           Data.UUID                               (UUID)
-import           Database.Esqueleto                      hiding ((<&>))
+import           Database.Esqueleto.Legacy               hiding ((<&>))
 
 import           Network.IPFS.Bytes.Types
 import           Servant
@@ -93,7 +93,7 @@ createWithPasswordDB username password email now =
         |> insertUnique
         |> bind \case
           Just userId -> return $ Right userId
-          Nothing -> determineConflict username Nothing
+          Nothing     -> determineConflict username Nothing
 
 createWithHerokuDB ::
      MonadIO m

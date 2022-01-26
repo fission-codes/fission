@@ -1,6 +1,6 @@
 module Fission.Text.Encoding.Types (Encoding (..)) where
 
-import RIO
+import           RIO
 
 -- | Encodings, intended for use at the type level
 data Encoding

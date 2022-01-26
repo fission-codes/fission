@@ -4,7 +4,7 @@ module Fission.Web.Server.Environment.Auth.Types (Environment (..)) where
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 newtype Environment = Environment { fissionDID :: DID }
   deriving (Show, Eq)

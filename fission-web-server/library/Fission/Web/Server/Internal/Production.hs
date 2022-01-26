@@ -39,7 +39,7 @@ import           Fission.Prelude
 
 import           Fission.Internal.App
 import           Fission.Time
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Web.API.Host.Types                      as Server
 import qualified Fission.Web.API.Types                           as Fission

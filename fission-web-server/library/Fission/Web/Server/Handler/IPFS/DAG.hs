@@ -1,6 +1,6 @@
 module Fission.Web.Server.Handler.IPFS.DAG (handler) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Network.IPFS
 import qualified Network.IPFS.Client.DAG.Put.Types      as IPFS.DAG

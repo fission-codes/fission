@@ -27,7 +27,7 @@ import           Fission.Prelude
 import           Fission.Internal.Fixture.Key.Ed25519      as Fixture.Ed25519
 
 import           Fission.URL.Types
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote

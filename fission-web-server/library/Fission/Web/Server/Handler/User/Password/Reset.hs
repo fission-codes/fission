@@ -1,6 +1,6 @@
 module Fission.Web.Server.Handler.User.Password.Reset (handler) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Servant
 
 import           Fission.Prelude

@@ -11,7 +11,7 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Prelude
 
 import           Fission.Internal.Mock                  as Effect
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Web.Server.Authorization.Types
 import           Fission.Web.Server.Mock.Config         as Mock

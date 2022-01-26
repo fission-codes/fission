@@ -1,6 +1,6 @@
 module Fission.Web.Server.Handler.IPFS.CID (handler) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Servant.Server.Generic
 
 import           Fission.Prelude

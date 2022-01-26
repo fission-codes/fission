@@ -145,6 +145,7 @@ dependencies:
   ## Web ##
   - dns
   - github
+  - hs-ucan
   - http-client
   - http-client-tls
   - http-types
@@ -192,7 +193,6 @@ tests:
       - hspec
       - hspec-core
       - hspec-expectations
-      - fission-web-server
       - QuickCheck
       - quickcheck-instances
       - tasty

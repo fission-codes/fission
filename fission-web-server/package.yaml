@@ -159,6 +159,7 @@ dependencies:
   - servant-ekg
 
   ## Web ##
+  - hs-ucan
   - http-client
   - http-client-tls
   - http-media

@@ -1,6 +1,6 @@
 module Fission.Web.Server.Handler.IPFS.Pin (handler) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Servant
 import           Servant.Server.Generic

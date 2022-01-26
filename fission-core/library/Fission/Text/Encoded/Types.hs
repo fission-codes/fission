@@ -3,8 +3,8 @@ module Fission.Text.Encoded.Types (Encoded (..)) where
 import           Data.Kind
 
 import           RIO
-import qualified RIO.ByteString.Lazy as Lazy
-import qualified RIO.Text as Text
+import qualified RIO.ByteString.Lazy         as Lazy
+import qualified RIO.Text                    as Text
 
 import           Fission.Text.Encoding.Types
 

@@ -8,7 +8,7 @@ import           Network.IPFS.Types      as IPFS
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.CLI.Remote
 

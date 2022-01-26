@@ -11,7 +11,7 @@ import qualified RIO.List                                  as List
 import qualified RIO.Map                                   as Map
 import qualified RIO.Text                                  as Text
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Client                       as IPFS

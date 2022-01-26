@@ -14,6 +14,8 @@ import qualified Network.IPFS.Add.Error                             as Add
 import qualified Network.IPFS.Get.Error                             as Get
 import qualified Network.IPFS.Peer.Error                            as Peer
 
+import           Web.UCAN.Internal.Orphanage.ClientError            ()
+
 import           Fission.Prelude
 
 import qualified Fission.User.Username.Error                        as Username
@@ -26,14 +28,13 @@ import           Fission.Web.Auth.Error                             as Web.Auth
 
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 
-import           Fission.Web.Auth.Token.JWT.Claims.Error            as JWT.Claims
-import           Fission.Web.Auth.Token.JWT.Error                   as JWT
-import           Fission.Web.Auth.Token.JWT.Header.Error            as JWT.Header
-import           Fission.Web.Auth.Token.JWT.Proof.Error             as JWT.Proof
-import           Fission.Web.Auth.Token.JWT.Resolver.Error          as JWT.Resolver
-import           Fission.Web.Auth.Token.JWT.Signature.Error         as JWT.Signature
+import           Web.UCAN.Claims.Error                              as UCAN.Claims
+import           Web.UCAN.Error                                     as UCAN
+import           Web.UCAN.Header.Error                              as UCAN.Header
+import           Web.UCAN.Proof.Error                               as UCAN.Proof
+import           Web.UCAN.Resolver.Error                            as UCAN.Resolver
+import           Web.UCAN.Signature.Error                           as UCAN.Signature
 
-import           Fission.Internal.Orphanage.ClientError             ()
 
 class ToServerError err where
   toServerError :: err -> ServerError
@@ -154,20 +155,20 @@ instance ToServerError Username.Invalid where
 instance ToServerError Web.Auth.Error where
   toServerError err = err401 { errBody = displayLazyBS err }
 
-instance ToServerError JWT.Header.Error where
+instance ToServerError UCAN.Header.Error where
   toServerError = \case
     UnsupportedAlgorithm -> err422 { errBody = displayLazyBS UnsupportedAlgorithm }
     UnsupportedVersion   -> err404 { errBody = displayLazyBS UnsupportedVersion   }
 
-instance ToServerError JWT.Resolver.Error where
+instance ToServerError UCAN.Resolver.Error where
   toServerError = \case
     err@(CannotResolve _ _) -> err504 { errBody = displayLazyBS err }
     err@(InvalidJWT _)      -> err422 { errBody = displayLazyBS err }
 
-instance ToServerError JWT.Signature.Error where
+instance ToServerError UCAN.Signature.Error where
   toServerError err = err422 { errBody = displayLazyBS err }
 
-instance ToServerError JWT.Proof.Error where
+instance ToServerError UCAN.Proof.Error where
   toServerError = \case
     ResolverError err     -> toServerError err
     ScopeOutOfBounds      -> err422 { errBody = displayLazyBS ScopeOutOfBounds      }
@@ -176,7 +177,7 @@ instance ToServerError JWT.Proof.Error where
     MissingExpectedFact   -> err422 { errBody = displayLazyBS MissingExpectedFact   }
     InvalidSignatureChain -> err422 { errBody = displayLazyBS InvalidSignatureChain }
 
-instance ToServerError JWT.Claims.Error where
+instance ToServerError UCAN.Claims.Error where
   toServerError = \case
     ProofError    err -> toServerError err
     IncorrectReceiver -> err422 { errBody = displayLazyBS IncorrectReceiver }
@@ -184,7 +185,7 @@ instance ToServerError JWT.Claims.Error where
     TooEarly          -> err401 { errBody = displayLazyBS TooEarly }
     IncorrectSender   -> err401 { errBody = displayLazyBS IncorrectSender }
 
-instance ToServerError JWT.Error where
+instance ToServerError UCAN.Error where
   toServerError = \case
     ParseError         -> err400 { errBody = displayLazyBS ParseError }
     HeaderError    err -> toServerError err

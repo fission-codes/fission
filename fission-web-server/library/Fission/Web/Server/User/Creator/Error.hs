@@ -2,9 +2,10 @@ module Fission.Web.Server.User.Creator.Error (AlreadyExists (..)) where
 
 import           Servant.Server
 
+import           Crypto.Key.Asymmetric.Public.Types as Key
+
 import           Fission.Prelude
 
-import           Fission.Key.Asymmetric.Public.Types as Key
 import           Fission.User.Username.Types
 
 import           Fission.Web.Server.Error

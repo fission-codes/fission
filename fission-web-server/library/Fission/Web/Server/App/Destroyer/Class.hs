@@ -3,7 +3,7 @@ module Fission.Web.Server.App.Destroyer.Class
   , Errors'
   ) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Servant.Server
 
 import           Fission.Prelude
