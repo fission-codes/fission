@@ -14,7 +14,7 @@ import           Database.Persist.Sql                      (SqlBackend)
 import           Fission.Prelude
 
 import           Fission.URL.Types                         as URL
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote                    (Remote)

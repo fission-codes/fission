@@ -6,8 +6,8 @@ module Fission.CLI.Prompt
   , reaskWithError
   ) where
 
-import qualified RIO.List             as List
 import           RIO.ByteString        as BS hiding (map, pack)
+import qualified RIO.List              as List
 
 import           Fission.Prelude
 

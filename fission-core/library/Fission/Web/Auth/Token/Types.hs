@@ -1,6 +1,6 @@
 module Fission.Web.Auth.Token.Types (Token (..)) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text                            as Text
 import           Servant.API
 
 import           Fission.Prelude

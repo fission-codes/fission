@@ -8,13 +8,13 @@ import qualified Data.ByteString.Base64                           as Base64
 import qualified Data.ByteString.Char8                            as Ch
 
 import           Crypto.BCrypt
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Servant
 
 import           Fission.Prelude
 
-import           Fission.Authorization.Potency.Types
 import           Fission.User.Username.Types                      as Username
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
 
 import qualified Fission.Web.Auth.Token.Basic.Types               as Auth.Basic
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
@@ -72,7 +72,7 @@ checkUser (BasicAuthData rawUsername password) =
               return $ Right Authorization
                 { about    = user
                 , sender   = Left Heroku
-                , potency  = SuperUser
+                , potency  = Just SuperUser
                 , resource = Complete
                 }
 

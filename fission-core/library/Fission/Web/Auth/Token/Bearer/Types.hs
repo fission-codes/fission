@@ -4,8 +4,8 @@ module Fission.Web.Auth.Token.Bearer.Types
   , BareToken (..)
   ) where
 
-import qualified RIO.ByteString.Lazy                   as Lazy
-import qualified RIO.Text                              as Text
+import qualified RIO.ByteString.Lazy               as Lazy
+import qualified RIO.Text                          as Text
 
 import           Data.Aeson.Types
 import           Data.Swagger
@@ -13,14 +13,14 @@ import           Servant.API
 
 import           Fission.Prelude
 
-import qualified Fission.Internal.Base64.URL           as B64.URL
+import qualified Web.UCAN.Internal.Base64.URL      as B64.URL
+import           Web.UCAN.Types                    as UCAN
 
-import qualified Fission.Web.Auth.Token.JWT.RawContent as JWT
-import           Fission.Web.Auth.Token.JWT.Types
+import qualified Fission.Web.Auth.Token.UCAN.Types as Fission
 
 data Token = Token
-  { jwt        :: JWT            -- ^ The actual token
-  , rawContent :: JWT.RawContent -- ^ Primarily to pass in to the verifier
+  { jwt        :: Fission.UCAN    -- ^ The actual token
+  , rawContent :: UCAN.RawContent -- ^ Primarily to pass in to the verifier
   }
   deriving (Show, Eq)
 
@@ -29,17 +29,17 @@ instance Ord Token where
 
 instance Arbitrary Token where
   arbitrary = do
-    jwt@JWT {..} <- arbitrary
+    jwt@UCAN {..} <- arbitrary
     return Token
       { jwt
-      , rawContent = RawContent $ B64.URL.encodeJWT header claims
+      , rawContent = UCAN.RawContent $ B64.URL.encodeJWT header claims
       }
 
 instance Display Token where
   textDisplay = toUrlPiece
 
 instance ToJSON Token where
-  toJSON Token {jwt = JWT {sig}, rawContent} =
+  toJSON Token {jwt = UCAN {sig}, rawContent} =
     String $ "Bearer " <> textDisplay rawContent <> "." <> textDisplay sig
 
 instance FromJSON Token where
@@ -47,7 +47,7 @@ instance FromJSON Token where
     case Text.stripPrefix "Bearer " txt <|> Text.stripPrefix "bearer " txt of
       Just rawToken -> do
         jwt <- parseJSON $ toJSON rawToken
-        return Token { jwt, rawContent = JWT.contentOf rawToken }
+        return Token { jwt, rawContent = UCAN.contentOf rawToken }
 
       Nothing ->
         fail $ Text.unpack txt <> " is missing the `Bearer ` prefix"
@@ -62,7 +62,7 @@ instance FromHttpApiData Token where
       Just rawToken ->
         case eitherDecodeStrict . encodeUtf8 $ "\"" <> rawToken <> "\"" of
           Left  str -> Left $ Text.pack str
-          Right jwt -> Right Token { jwt, rawContent = JWT.contentOf rawToken }
+          Right jwt -> Right Token { jwt, rawContent = UCAN.contentOf rawToken }
 
       Nothing ->
         Left $ txt <> " is missing the `Bearer ` prefix"
@@ -76,24 +76,24 @@ newtype BareToken = BareToken Token
   deriving (Eq, Show)
 
 instance Display BareToken where
-  textDisplay (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  textDisplay (BareToken Token {jwt = UCAN {sig}, rawContent}) =
     utf8BuilderToText $ display rawContent <> "." <> display sig
 
 instance ToJSON BareToken where
-  toJSON (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  toJSON (BareToken Token {jwt = UCAN {sig}, rawContent}) =
     String $ textDisplay rawContent <> "." <> textDisplay sig
 
 instance FromJSON BareToken where
   parseJSON = withText "Bearer Token" \txt -> do
     jwt <- parseJSON $ toJSON txt
-    return $ BareToken Token { jwt, rawContent = JWT.contentOf txt }
+    return $ BareToken Token { jwt, rawContent = UCAN.contentOf txt }
 
 instance MimeRender PlainText BareToken where
-  mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  mimeRender _ (BareToken Token {jwt = UCAN {sig}, rawContent}) =
     buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeRender OctetStream BareToken where
-  mimeRender _ (BareToken Token {jwt = JWT {sig}, rawContent}) =
+  mimeRender _ (BareToken Token {jwt = UCAN {sig}, rawContent}) =
     buildLazyByteString $ display rawContent <> "." <> display sig
 
 instance MimeUnrender PlainText BareToken  where

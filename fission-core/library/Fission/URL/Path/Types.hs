@@ -1,6 +1,6 @@
 module Fission.URL.Path.Types (Path (..)) where
 
-import qualified RIO.Text as Text
+import qualified RIO.Text        as Text
 
 import           Fission.Prelude
 

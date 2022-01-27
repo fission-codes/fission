@@ -14,7 +14,7 @@ import qualified RIO.Text                                  as Text
 
 import           System.Random                             as Random
 
-import           Database.Esqueleto                        as SQL hiding ((<&>))
+import           Database.Esqueleto.Legacy                 as SQL hiding ((<&>))
 
 import           Servant.Client
 import qualified Servant.Client.Streaming                  as Stream
@@ -32,6 +32,12 @@ import           Network.IPFS.Client.Streaming.Pin
 import           Network.IPFS.File.Types
 import qualified Network.IPFS.Stat                         as IPFS.Stat
 import qualified Network.IPFS.Types                        as IPFS
+
+import qualified Web.DID.Oldstyle.Types                    as DID
+import           Web.DID.Types                             as DID
+
+import qualified Web.UCAN.RawContent                       as UCAN
+import           Web.UCAN.Resolver                         as UCAN
 
 import           Fission.Prelude
 
@@ -75,9 +81,6 @@ import qualified Fission.Web.Server.Auth.Token             as Auth.Token
 import           Fission.Web.Server.Handler
 import           Fission.Web.Server.Reflective             as Reflective
 
-import           Fission.User.DID                          as DID
-import qualified Fission.User.DID.Oldstyle.Types           as DID
-
 import qualified Fission.Web.Server.User                   as User
 import           Fission.Web.Server.User.Creator.Class
 import qualified Fission.Web.Server.User.Modifier.Class    as User.Modifier
@@ -86,9 +89,6 @@ import qualified Fission.Web.Server.User.Password          as Password
 import qualified Fission.Key                               as Key
 
 import           Fission.Web.Server.MonadDB
-
-import qualified Fission.Web.Auth.Token.JWT.RawContent     as JWT
-import           Fission.Web.Auth.Token.JWT.Resolver       as JWT
 
 import           Fission.Authorization.ServerDID.Class
 
@@ -441,19 +441,14 @@ instance App.Domain.Initializer Server where
 instance App.Content.Initializer Server where
   placeholder = asks appPlaceholder
 
-instance JWT.Resolver Server where
+instance UCAN.Resolver Server where
   resolve cid =
     IPFS.ipfsCat cid >>= \case
       Left clientErr ->
-        return . Left $ CannotResolve cid clientErr
+        return $ Left $ CannotResolve cid clientErr
 
       Right (Serialized resolvedLBS) ->
-        let
-          resolvedBS = Lazy.toStrict resolvedLBS
-        in
-          case eitherDecodeStrict resolvedBS of
-            Left  _   -> return . Left $ InvalidJWT resolvedBS
-            Right jwt -> return $ Right (JWT.contentOf (decodeUtf8Lenient resolvedBS), jwt)
+        return $ Right $ UCAN.contentOf $ decodeUtf8Lenient $ Lazy.toStrict resolvedLBS
 
 instance ServerDID Server where
   getServerDID = asks fissionDID

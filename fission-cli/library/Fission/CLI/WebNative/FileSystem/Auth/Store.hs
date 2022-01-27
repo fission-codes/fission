@@ -15,7 +15,7 @@ import           Fission.Prelude
 
 import           Fission.Error.NotFound.Types
 import qualified Fission.Key.Symmetric                             as Symmetric
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import qualified Fission.CLI.WebNative.FileSystem.Auth.Store.Class as WNFS.Auth
 import           Fission.CLI.WebNative.FileSystem.Auth.Store.Types

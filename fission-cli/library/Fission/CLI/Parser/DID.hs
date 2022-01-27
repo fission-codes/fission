@@ -7,7 +7,7 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 parser :: Parser (Maybe DID)
 parser =

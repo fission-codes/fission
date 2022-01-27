@@ -10,10 +10,10 @@ import qualified RIO.Text                                         as Text
 import           Servant.API
 import           Servant.Server.Experimental.Auth
 
-import           Fission.Prelude
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
+import           Web.DID.Types
 
-import           Fission.Authorization.Potency.Types
-import           Fission.User.DID
+import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
@@ -27,7 +27,7 @@ data Heroku = Heroku
 data Authorization = Authorization
   { sender   :: Either Heroku DID
   , about    :: Entity User
-  , potency  :: Potency
+  , potency  :: Maybe Potency -- Nothing indicates "just used for signature checking"
   , resource :: Scope Resource
   } deriving (Show, Eq)
 

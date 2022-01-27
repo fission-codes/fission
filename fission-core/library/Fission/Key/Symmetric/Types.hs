@@ -1,16 +1,14 @@
 module Fission.Key.Symmetric.Types (Key (..)) where
 
-import qualified System.IO.Unsafe             as Unsafe
+import qualified System.IO.Unsafe           as Unsafe
 
-import qualified Data.ByteString.Base64       as Base64
+import qualified Data.ByteString.Base64     as Base64
 
-import           Crypto.Cipher.AES            (AES256)
-import           Crypto.Cipher.Types          (blockSize)
+import           Crypto.Cipher.AES          (AES256)
+import           Crypto.Cipher.Types        (blockSize)
 import           Crypto.Random.Types
 
 import           Fission.Prelude
-
-import           Fission.Error.NotFound.Types
 
 import           Fission.Key.GenData.Family
 
@@ -35,6 +33,3 @@ instance FromJSON (Key AES256) where
     case Base64.decode $ encodeUtf8 txt of
       Left  errMsg -> fail $ "Unable to decode AES key: " <> errMsg
       Right keyBS  -> return $ Key keyBS
-
-instance Display (NotFound (Key AES256)) where
-  display _ = "Unable to find AES256 key"

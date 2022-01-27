@@ -2,8 +2,8 @@
 
 module Fission.Internal.Orphanage.Serilaized () where
 
+import           Network.IPFS.File.Types              as File
 import           RIO
-import           Network.IPFS.File.Types as File
 
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances.ByteString ()

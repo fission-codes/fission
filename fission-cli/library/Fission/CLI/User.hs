@@ -8,7 +8,7 @@ import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
 import           Fission.Error.Types
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import qualified Fission.Web.Auth.Token.Types              as Auth
 import           Fission.Web.Client

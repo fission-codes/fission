@@ -1,6 +1,6 @@
 module Fission.Web.Server.LoosePin.Retriever.Class (Retriever (..)) where
 
-import           Database.Esqueleto               hiding (update, (=.))
+import           Database.Esqueleto.Legacy        hiding (update, (=.))
 import           Network.IPFS.CID.Types
 
 import           Fission.Prelude

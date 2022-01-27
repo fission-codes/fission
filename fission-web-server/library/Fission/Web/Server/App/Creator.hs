@@ -7,7 +7,7 @@ module Fission.Web.Server.App.Creator
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
-import           Database.Esqueleto                   hiding ((<&>))
+import           Database.Esqueleto.Legacy            hiding ((<&>))
 
 import           Fission.Prelude
 

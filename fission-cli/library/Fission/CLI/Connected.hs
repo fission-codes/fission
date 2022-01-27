@@ -16,6 +16,11 @@ import qualified Network.IPFS.Process.Error                as IPFS.Process
 import qualified Network.IPFS.Timeout.Types                as IPFS
 import qualified Network.IPFS.Types                        as IPFS
 
+import           Web.DID.Types
+
+import qualified Web.UCAN.Resolver.Error                   as UCAN.Resolver
+
+
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID
@@ -23,10 +28,7 @@ import           Fission.Error.NotFound.Types
 import qualified Fission.IPFS.Error.Types                  as IPFS
 import qualified Fission.JSON                              as JSON
 import qualified Fission.Key                               as Key
-import           Fission.User.DID.Types
-
-import qualified Fission.Web.Auth.Token.JWT.Resolver.Error as JWT.Resolver
-import           Fission.Web.Auth.Token.JWT.Types
+import           Fission.Web.Auth.Token.UCAN.Types
 
 import           Fission.Web.Client                        as Client
 
@@ -52,8 +54,8 @@ type BaseErrs =
    , Key.Error
    , IPFS.Process.Error
    , IPFS.Add.Error
-   , JWT.Resolver.Error
-   , NotFound JWT
+   , UCAN.Resolver.Error
+   , NotFound UCAN
    , NotFound FilePath
    , ClientError
    , SomeException

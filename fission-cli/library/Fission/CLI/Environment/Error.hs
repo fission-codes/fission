@@ -1,6 +1,6 @@
 module Fission.CLI.Environment.Error (Env(..)) where
 
-import Fission.Prelude
+import           Fission.Prelude
 
 data Env
   = EnvNotFound

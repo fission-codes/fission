@@ -4,7 +4,7 @@ module Fission.CLI.Internal.ServerDID (fallback) where
 
 import           Fission.Prelude
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 fallback :: DID
 fallback =

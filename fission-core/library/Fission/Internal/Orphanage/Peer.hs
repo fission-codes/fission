@@ -2,7 +2,7 @@
 
 module Fission.Internal.Orphanage.Peer () where
 
-import qualified Network.IPFS.Types  as IPFS
+import qualified Network.IPFS.Types as IPFS
 
 import           Fission.Prelude
 

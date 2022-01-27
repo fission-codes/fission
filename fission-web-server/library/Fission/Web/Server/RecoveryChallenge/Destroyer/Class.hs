@@ -1,6 +1,6 @@
 module Fission.Web.Server.RecoveryChallenge.Destroyer.Class (Destroyer (..)) where
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 
 import           Fission.Prelude
 

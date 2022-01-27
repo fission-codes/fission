@@ -9,7 +9,7 @@ module Fission.Web.Server.Models where
 
 import           Fission.Error.AlreadyExists.Types
 
-import qualified Crypto.PubKey.RSA                         as RSA
+import qualified Crypto.PubKey.RSA                          as RSA
 
 import           Database.Persist.Postgresql
 import           Database.Persist.TH
@@ -21,13 +21,15 @@ import           Data.UUID
 import           Network.IPFS.Bytes.Types
 import           Network.IPFS.CID.Types
 
-import qualified Fission.Internal.UTF8                     as UTF8
+import           Web.UCAN.Internal.Orphanage.RSA2048.Public ()
+
+import qualified Fission.Internal.UTF8                      as UTF8
 import           Fission.Prelude
 
 import           Fission.Platform.Heroku.Region.Types
 import           Fission.Security
 
-import qualified Fission.Key                               as Key
+import qualified Fission.Key                                as Key
 import           Fission.URL
 
 import           Fission.Error.NotFound.Types
@@ -36,14 +38,13 @@ import           Fission.Challenge.Types
 import           Fission.User.Email.Types
 import           Fission.User.Username.Types
 
-import qualified Fission.Web.Server.AWS.Zone.Types         as AWS
+import qualified Fission.Web.Server.AWS.Zone.Types          as AWS
 import           Fission.Web.Server.User.Role.Types
 
-import           Fission.Internal.Orphanage.Bytes          ()
-import           Fission.Internal.Orphanage.RSA2048.Public ()
-import           Fission.Internal.Orphanage.UUID           ()
+import           Fission.Internal.Orphanage.Bytes           ()
+import           Fission.Internal.Orphanage.UUID            ()
 
-import           Fission.Web.Server.Internal.Orphanage.CID ()
+import           Fission.Web.Server.Internal.Orphanage.CID  ()
 
 share
   [ mkPersist       sqlSettings

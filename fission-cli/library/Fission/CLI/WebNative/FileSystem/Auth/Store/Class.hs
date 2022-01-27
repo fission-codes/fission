@@ -5,7 +5,7 @@ import           Crypto.Cipher.AES           (AES256)
 import           Fission.Prelude
 
 import qualified Fission.Key.Symmetric.Types as Symmetric
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 class Monad m => MonadStore m where
   set            :: DID -> FilePath -> Symmetric.Key AES256 -> m ()

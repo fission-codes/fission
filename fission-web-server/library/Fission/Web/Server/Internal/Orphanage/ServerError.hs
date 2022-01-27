@@ -3,7 +3,7 @@
 module Fission.Web.Server.Internal.Orphanage.ServerError () where
 
 import           RIO
-import qualified RIO.Text as Text
+import qualified RIO.Text       as Text
 
 import           Servant.Server
 

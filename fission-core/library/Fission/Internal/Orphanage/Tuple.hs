@@ -2,8 +2,8 @@
 
 module Fission.Internal.Orphanage.Tuple () where
 
-import Control.Lens    (_1)
-import Fission.Prelude
+import           Control.Lens    (_1)
+import           Fission.Prelude
 
 instance HasLogFunc (LogFunc, b) where
   logFuncL = _1

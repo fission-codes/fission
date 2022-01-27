@@ -7,7 +7,7 @@ import           Network.IPFS.File.Types                as File
 import           Network.IPFS.Process.Error             as Process
 import qualified Network.IPFS.Types                     as IPFS
 
-import           Database.Esqueleto
+import           Database.Esqueleto.Legacy
 import           Network.Wai                            as Wai
 
 import           Servant
@@ -17,11 +17,11 @@ import           Servant.Server.Experimental.Auth
 import           Fission.Prelude
 
 import           Fission.URL                            as URL
-import           Fission.User.DID.Types
 import qualified Fission.Web.API.Heroku.Auth.Types      as Heroku
+import           Web.DID.Types
 
-import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.AWS.Types           as AWS
+import           Fission.Web.Server.Authorization.Types
 import qualified Fission.Web.Server.IPFS.DNSLink.Class  as DNSLink
 import           Fission.Web.Server.Models
 

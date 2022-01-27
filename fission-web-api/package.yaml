@@ -105,6 +105,7 @@ dependencies:
   - fission-core
 
   ## Web ##
+  - hs-ucan
   - http-media
   - ipfs
   - servant

@@ -3,7 +3,7 @@
 import           Servant.API.Generic
 import           Servant.API.WebSocket
 
-import           Fission.User.DID.Types
+import           Web.DID.Types
 
 import           Fission.Web.API.Prelude
 

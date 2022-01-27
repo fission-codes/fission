@@ -7,11 +7,12 @@ module Fission.Web.Server.Auth.Token
 import           Network.Wai
 import           Servant.API
 
+import qualified Web.UCAN.Resolver                      as UCAN
+
 import           Fission.Prelude
 
 import           Fission.Authorization.ServerDID.Class
 
-import qualified Fission.Web.Auth.Token.JWT.Resolver    as JWT
 
 import qualified Fission.Web.Server.Auth.Error          as Auth
 import qualified Fission.Web.Server.Auth.Token.Basic    as Basic
@@ -28,7 +29,7 @@ import qualified Fission.Web.Server.User                as User
 --   Uses basic auth for "Basic" tokens
 --   Uses our custom JWT auth for "Bearer" tokens
 handler ::
-  ( JWT.Resolver     m
+  ( UCAN.Resolver     m
   , ServerDID        m
   , MonadLogger      m
   , MonadThrow       m

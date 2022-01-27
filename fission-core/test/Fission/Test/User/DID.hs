@@ -2,15 +2,15 @@
 
 module Fission.Test.User.DID (spec) where
 
-import qualified Crypto.PubKey.Ed25519           as Ed25519
-import qualified Data.Aeson                      as JSON
+import qualified Crypto.PubKey.Ed25519  as Ed25519
+import qualified Data.Aeson             as JSON
 
-import qualified RIO.ByteString.Lazy             as Lazy
+import qualified RIO.ByteString.Lazy    as Lazy
 import           Servant.API
 
-import           Fission.Key                     as Key
-import           Fission.User.DID
-import           Fission.User.DID.Oldstyle.Types
+import           Crypto.Key.Asymmetric  as Key
+import           Web.DID.Oldstyle.Types
+import           Web.DID.Types
 
 import           Fission.Test.Prelude
 

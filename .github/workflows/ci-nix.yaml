@@ -21,7 +21,7 @@ jobs:
       name: 📤 Checkout
       if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/main'
 
-    - uses: cachix/install-nix-action@v13
+    - uses: cachix/install-nix-action@v16
       name: ❄️  Set up Nix
       with:
         nix_path: nixpkgs=channel:nixos-unstable
