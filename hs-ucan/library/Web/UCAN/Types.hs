@@ -24,6 +24,7 @@ import           Crypto.PubKey.Ed25519                         (toPublic)
 import qualified Crypto.PubKey.Ed25519                         as Ed25519
 
 import           Data.Aeson
+import qualified Data.Aeson.Types                              as JSON
 import qualified Data.ByteString.Base64.URL                    as BS.B64.URL
 
 import           Network.IPFS.CID.Types
@@ -117,18 +118,7 @@ instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (UCAN fct rsc ptc) where
           & UTF8.stripPadding
 
 instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (UCAN fct rsc ptc) where
-  parseJSON = withText "UCAN.Token" \txt ->
-    case Text.split (== '.') txt of
-      [rawHeader, rawClaims, rawSig] -> do
-        header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
-        claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
-        sig    <- Signature.parse (alg header) (toJSON rawSig)
-        return UCAN {..}
-
-      _ ->
-        fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
-    where
-      jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
+  parseJSON = parseUcanV_0_3
 
 instance
   ( ToJSON fct
@@ -216,19 +206,8 @@ instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (Claims fct rsc ptc) whe
     ]
 
 instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (Claims fct rsc ptc) where
-  parseJSON = withObject "JWT.Payload" \obj -> do
-    sender   <- obj .: "iss"
-    receiver <- obj .: "aud"
-    --
-    resource <- obj .:  "rsc" .!= Nothing
-    potency  <- obj .:  "ptc" .!= Nothing
-    proof    <- obj .:? "prf" .!= RootCredential
-    facts    <- obj .:? "fct" .!= []
-    --
-    nbf <- fromSeconds <$> obj .: "nbf"
-    exp <- fromSeconds <$> obj .: "exp"
+  parseJSON = parseClaimsV_0_3
 
-    return Claims {..}
 
 -----------
 -- Proof --
@@ -276,13 +255,7 @@ instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (Proof fct rsc ptc) wher
       String (raw <> "." <> textDisplay sig)
 
 instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (Proof fct rsc ptc) where
-  parseJSON Null = return RootCredential
-  parseJSON val  = withText "Credential Proof" resolver val
-    where
-      resolver txt =
-        if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
-          then Nested (UCAN.contentOf txt) <$> parseJSON val
-          else Reference <$> parseJSON val
+  parseJSON = parseProofV_0_3
 
 -----------------------
 -- Signature Helpers --
@@ -314,3 +287,48 @@ signRS256 header claims sk =
   RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 $ B64.URL.encodeJWT header claims) <&> \case
     Left err  -> Left err
     Right sig -> Right . Signature.RS256 $ RS256.Signature sig
+
+
+-----------------------------
+-- Backwards-compatibility --
+-----------------------------
+
+parseClaimsV_0_3 :: (FromJSON rsc, FromJSON ptc, FromJSON fct) => Value -> JSON.Parser (Claims fct rsc ptc)
+parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
+  sender   <- obj .: "iss"
+  receiver <- obj .: "aud"
+  --
+  resource <- obj .:  "rsc" .!= Nothing
+  potency  <- obj .:  "ptc" .!= Nothing
+  proof    <- obj .:? "prf" .!= RootCredential
+  facts    <- obj .:? "fct" .!= []
+  --
+  nbf <- fromSeconds <$> obj .: "nbf"
+  exp <- fromSeconds <$> obj .: "exp"
+
+  return Claims {..}
+
+
+parseProofV_0_3 :: (FromJSON fct, FromJSON rsc, FromJSON ptc) => Value -> JSON.Parser (Proof fct rsc ptc)
+parseProofV_0_3 Null = return RootCredential
+parseProofV_0_3 val  = withText "Credential Proof" resolver val
+  where
+    resolver txt =
+      if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
+        then Nested (UCAN.contentOf txt) <$> parseJSON val
+        else Reference <$> parseJSON val
+
+
+parseUcanV_0_3 :: (FromJSON fct, FromJSON rsc, FromJSON ptc) => Value -> JSON.Parser (UCAN fct rsc ptc)
+parseUcanV_0_3 = withText "UCAN.Token" \txt ->
+  case Text.split (== '.') txt of
+    [rawHeader, rawClaims, rawSig] -> do
+      header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
+      claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
+      sig    <- Signature.parse (alg header) (toJSON rawSig)
+      return UCAN {..}
+
+    _ ->
+      fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
+  where
+    jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8

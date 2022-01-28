@@ -3,6 +3,7 @@
 module Web.UCAN.Header.Cty.Types (Cty (..)) where
 
 import           Data.Aeson
+import qualified Data.Aeson.Types as JSON
 import           RIO
 import           Test.QuickCheck
 
@@ -39,7 +40,11 @@ instance ToJSON Cty where
   toJSON JWT = String "JWT"
 
 instance FromJSON Cty where
-  parseJSON = withText "JWT.Header.Cty" \case
+  parseJSON = parseCtxV_0_3
+
+
+parseCtxV_0_3 :: Value -> JSON.Parser Cty
+parseCtxV_0_3 = withText "JWT.Header.Cty" \case
     "JWT" -> return JWT
     "jwt" -> return JWT
     other -> fail $ show other <> "is not a valid JWT 'cty' value for Fission"
