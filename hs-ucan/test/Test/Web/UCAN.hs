@@ -6,7 +6,7 @@ import qualified RIO.ByteString.Lazy               as Lazy
 import qualified RIO.Char                          as Char
 import           Web.UCAN.Types
 
-import           Test.Prelude
+import           Test.Web.UCAN.Prelude
 
 import qualified Test.Web.UCAN.DelegationSemantics as DelegationSemantics
 import           Test.Web.UCAN.Example

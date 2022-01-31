@@ -1,6 +1,6 @@
 module Main (main) where
 
-import           Test.Prelude
+import           Test.Web.UCAN.Prelude
 
 import qualified Test.Web.DID  as DID
 import qualified Test.Web.UCAN as UCAN

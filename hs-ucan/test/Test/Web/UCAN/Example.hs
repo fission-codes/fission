@@ -5,7 +5,7 @@ module Test.Web.UCAN.Example
   ) where
 
 import qualified RIO.Text             as Text
-import           Test.Prelude
+import           Test.Web.UCAN.Prelude
 
 import           Web.UCAN.Proof.Class
 

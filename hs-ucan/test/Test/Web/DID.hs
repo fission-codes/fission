@@ -12,7 +12,7 @@ import           Crypto.Key.Asymmetric                 as Key
 import qualified Crypto.Key.Asymmetric.Algorithm.Types as Alg
 import qualified Crypto.PubKey.Ed25519                 as Ed25519
 
-import           Test.Prelude
+import           Test.Web.UCAN.Prelude
 
 import           Web.DID.Oldstyle.Types
 import           Web.DID.Types                         as DID
