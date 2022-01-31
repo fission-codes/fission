@@ -1,5 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-
 module Fission.Web.Client
   ( sendRequestM
   , sendAuthedRequest
