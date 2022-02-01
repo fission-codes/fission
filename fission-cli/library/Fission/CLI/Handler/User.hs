@@ -1,10 +1,11 @@
 module Fission.CLI.Handler.User (interpret) where
 
-import           Fission.Error
 import           Fission.Prelude
 
 import qualified Fission.CLI.Base.Types                      as Base
+
 import qualified Fission.CLI.Display.Error                   as CLI.Error
+import           Fission.CLI.Error.Types
 
 import           Fission.CLI.Environment                     as Env
 import           Fission.CLI.Types
@@ -33,9 +34,9 @@ interpret cmd = do
       return ()
 
     WhoAmI _ ->
-      attempt Env.get >>= \case
+      attemptM Env.alreadySetup \case
         Left errs ->
-          case openUnionMatch @(NotFound FilePath) errs of
+          case openUnionMatch @NotSetup errs of
             Just err -> do
               CLI.Error.put err "Fission is installed, but you are not logged in. Please run `fission login`"
               raise errs

@@ -1,5 +1,6 @@
 module Fission.CLI.Error.Types
   ( NotRegistered (..)
+  , NotSetup      (..)
   , NoKeyFile     (..)
   ) where
 
@@ -10,6 +11,14 @@ data NotRegistered = NotRegistered
 
 instance Display NotRegistered where
   display NotRegistered = "Not registered"
+
+----------
+
+data NotSetup = NotSetup
+  deriving (Show, Eq, Exception)
+
+instance Display NotSetup where
+  display NotSetup = "Not setup"
 
 ----------
 

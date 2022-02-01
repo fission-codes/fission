@@ -59,6 +59,7 @@ type BaseErrs =
    , SomeException
    , IPFS.UnableToConnect
    , NotRegistered
+   , NotSetup
    , NotFound [IPFS.Peer]
    , NotFound Ed25519.SecretKey
    ]

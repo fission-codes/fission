@@ -82,6 +82,7 @@ type Errs
      , NotFound URL
      , NotFound [IPFS.Peer]
      , NotRegistered
+     , NotSetup
      --
      , OS.Unsupported
      , RSA.Error
