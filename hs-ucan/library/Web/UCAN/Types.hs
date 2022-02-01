@@ -1,7 +1,8 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Web.UCAN.Types
-  ( UCAN   (..)
+  ( UCAN (..)
   , Claims (..)
-  , Proof  (..)
+  , EncodedProof  (..)
 
   , signEd25519
   , signRS256
@@ -26,16 +27,18 @@ import qualified Crypto.PubKey.Ed25519                         as Ed25519
 import           Data.Aeson
 import qualified Data.Aeson.Types                              as JSON
 import qualified Data.ByteString.Base64.URL                    as BS.B64.URL
+import qualified Data.Text.Encoding.Base64.URL                 as Text.B64.URL
 
 import           Network.IPFS.CID.Types
 
+import           Control.Monad                                 (replicateM)
+import           RIO                                           hiding (exp)
 import qualified RIO.ByteString.Lazy                           as Lazy
 import qualified RIO.Text                                      as Text
+import           RIO.Time
 
 import qualified Servant.API                                   as Servant
 
-import           RIO                                           hiding (exp)
-import           RIO.Time
 
 import           Test.QuickCheck
 
@@ -46,7 +49,6 @@ import qualified Crypto.Key.Asymmetric.Algorithm.Types         as Algorithm
 import           Web.DID.Types                                 as DID
 
 import           Web.UCAN.Header.Types                         (Header (..))
-import qualified Web.UCAN.RawContent                           as UCAN
 import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
 
@@ -61,25 +63,28 @@ import qualified Web.UCAN.Internal.UTF8                        as UTF8
 
 import           Web.UCAN.RawContent
 
+
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
-data UCAN fct rsc ptc = UCAN
-  { header :: Header
-  , claims :: Claims fct rsc ptc
-  , sig    :: Signature.Signature
-  } deriving (Show, Eq)
+data UCAN fct cap = UCAN
+  { header     :: Header
+  , claims     :: Claims fct cap
+  , signedData :: RawContent
+  , sig        :: Signature.Signature
+  } deriving (Show, Eq, Functor)
 
-instance (Show fct, Show rsc, Show ptc) => Display (UCAN fct rsc ptc) where
-  textDisplay = Text.pack . show
+
+instance Display (UCAN fct cap) where
+  textDisplay UCAN{..} =
+    textDisplay signedData <> "." <> textDisplay sig
+
 
 instance
   ( Arbitrary fct
-  , Arbitrary rsc
-  , Arbitrary ptc
+  , Arbitrary cap
   , ToJSON fct
-  , ToJSON rsc
-  , ToJSON ptc
-  ) => Arbitrary (UCAN fct rsc ptc) where
+  , ToJSON cap
+  ) => Arbitrary (UCAN fct cap) where
   arbitrary = do
     header   <- arbitrary
     (pk, sk) <- case alg header of
@@ -93,18 +98,21 @@ instance
 
     claims' <- arbitrary
 
-    let
-      claims = claims' {sender = DID.Key pk}
+    let claims = claims' {sender = DID.Key pk}
 
-      sig' = case sk of
-        Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
-        Right edSK -> Right $ signEd25519 header claims edSK
+    return case sk of
+      Left rsaSK ->
+        case Unsafe.unsafePerformIO $ signRS256 header claims rsaSK of
+          Left err   -> error $ "Unable to sign UCAN: " <> show err
+          Right ucan -> ucan
 
-    case sig' of
-      Left _    -> error "Unable to sign UCAN"
-      Right sig -> return UCAN {..}
+      Right edSK ->
+        signEd25519 header claims edSK
 
-instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (UCAN fct rsc ptc) where
+instance
+  ( ToJSON fct
+  , ToJSON cap
+  ) => ToJSON (UCAN fct cap) where
   toJSON UCAN {..} = String $ content <> "." <> textDisplay sig
     where
       content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
@@ -114,17 +122,19 @@ instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (UCAN fct rsc ptc) where
           & encode
           & Lazy.toStrict
           & UTF8.stripQuotesBS
-          & BS.B64.URL.encode
+          & BS.B64.URL.encodeBase64'
           & UTF8.stripPadding
 
-instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (UCAN fct rsc ptc) where
+instance
+  ( FromJSON fct
+  , FromJSON cap
+  ) => FromJSON (UCAN fct cap) where
   parseJSON = parseUcanV_0_3
 
 instance
   ( ToJSON fct
-  , ToJSON rsc
-  , ToJSON ptc
-  ) => Servant.ToHttpApiData (UCAN fct rsc ptc) where
+  , ToJSON cap
+  ) => Servant.ToHttpApiData (UCAN fct cap) where
   toUrlPiece ucan =
     ucan
       & encode
@@ -136,76 +146,88 @@ instance
 -- Claims --
 ------------
 
-data Claims fct rsc ptc = Claims
+data Claims fct cap = Claims
   -- Dramatis Personae
-  { sender   :: DID
-  , receiver :: DID
+  { sender      :: DID
+  , receiver    :: DID
   -- Authorization Target
-  , resource :: Maybe rsc
-  , potency  :: Maybe ptc
-  , proof    :: Proof fct rsc ptc
+  , attenuation :: [cap]
+  , proofs      :: [EncodedProof]
   -- 0.3.1
-  , facts    :: [fct]
+  , facts       :: [fct]
   -- Temporal Bounds
-  , exp      :: UTCTime
-  , nbf      :: UTCTime
-  } deriving Show
+  , exp         :: UTCTime
+  , nbf         :: UTCTime
+  , nnc         :: Maybe Nonce
+  } deriving (Show, Functor)
 
-instance (Show fct, Show rsc, Show ptc) => Display (Claims fct rsc ptc) where
+instance (Show fct, Show cap) => Display (Claims fct cap) where
   textDisplay = Text.pack . show
 
-instance (Eq fct, Eq rsc, Eq ptc) => Eq (Claims fct rsc ptc) where
-  jwtA == jwtB = eqWho && eqAuth && eqTime && eqFacts
+instance (Eq fct, Eq cap) => Eq (Claims fct cap) where
+  jwtA == jwtB = eqWho && eqAuth && eqTime && eqFacts && eqNonce
     where
       eqWho = sender jwtA == sender   jwtB
          && receiver jwtA == receiver jwtB
 
-      eqAuth = resource jwtA == resource jwtB
-             &&   proof jwtA == proof    jwtB
-             && potency jwtA == potency  jwtB
+      eqAuth = attenuation jwtA == attenuation jwtB
+             &&     proofs jwtA == proofs      jwtB
 
       eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
             && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
 
       eqFacts = facts jwtA == facts jwtB
 
+      eqNonce = nnc jwtA == nnc jwtB
+
 instance
   ( Arbitrary fct
-  , Arbitrary rsc
-  , Arbitrary ptc
+  , Arbitrary cap
   , ToJSON fct
-  , ToJSON rsc
-  , ToJSON ptc
-  ) => Arbitrary (Claims fct rsc ptc) where
+  , ToJSON cap
+  ) => Arbitrary (Claims fct cap) where
   arbitrary = do
-    sender   <- arbitrary
-    resource <- arbitrary
-    potency  <- arbitrary
-    proof    <- arbitrary
-    facts    <- arbitrary
-    exp      <- arbitrary
-    nbf      <- arbitrary
-    pk       <- arbitrary
-
-    let receiver = DID.Key pk
+    sender      <- arbitrary
+    receiver    <- DID.Key <$> arbitrary
+    attenuation <- arbitrary
+    proofs      <- map (Nested . textDisplay) <$> arbitraryProofs
+    facts       <- arbitrary
+    exp         <- arbitrary
+    nbf         <- arbitrary
+    nnc         <- arbitrary
 
     return Claims {..}
+    where
+      arbitraryProofs :: Gen [UCAN fct cap]
+      arbitraryProofs =
+        -- try to generate deep rather than wide UCANs
+        frequency
+          [ (1,  replicateM 2 arbitrary)
+          , (4,  replicateM 1 arbitrary)
+          , (20, replicateM 0 arbitrary)
+          ]
 
-instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (Claims fct rsc ptc) where
+instance
+  ( ToJSON fct
+  , ToJSON cap
+  ) => ToJSON (Claims fct cap) where
   toJSON Claims {..} = object
     [ "iss" .= sender
     , "aud" .= receiver
     --
-    , "prf" .= proof
-    , "ptc" .= potency
-    , "rsc" .= resource
+    , "prf" .= proofs
+    , "att" .= attenuation
     , "fct" .= facts
     --
     , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
+    , "nnc" .= nnc
     ]
 
-instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (Claims fct rsc ptc) where
+instance
+  ( FromJSON fct
+  , FromJSON cap
+  ) => FromJSON (Claims fct cap) where
   parseJSON = parseClaimsV_0_3
 
 
@@ -213,122 +235,155 @@ instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (Claims fct rsc 
 -- Proof --
 -----------
 
-data Proof fct rsc ptc
-  = RootCredential
-  | Nested    UCAN.RawContent (UCAN fct rsc ptc)
+data EncodedProof
+  = Nested    Text
   | Reference CID
   deriving (Show, Eq)
 
-instance
-  ( Arbitrary fct
-  , Arbitrary rsc
-  , Arbitrary ptc
-  , ToJSON fct
-  , ToJSON rsc
-  , ToJSON ptc
-  ) => Arbitrary (Proof fct rsc ptc) where
-  arbitrary = frequency
-    [ (1, nested)
-    , (5, pure RootCredential)
-    ]
-    where
-      nested = do
-        innerUCAN@(UCAN {..}) <- arbitrary
-        let rawContent = RawContent $ B64.URL.encodeJWT header claims
-        return $ Nested rawContent innerUCAN
 
-instance Display (Proof fct rsc ptc) where
+instance Display EncodedProof where
   display = \case
-    RootCredential -> "RootCredential"
-    Nested raw _   -> "Nested "    <> display raw
-    Reference cid  -> "Reference " <> display cid
+    Nested raw    -> "Nested "    <> display raw
+    Reference cid -> "Reference " <> display cid
 
-instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (Proof fct rsc ptc) where
+instance ToJSON EncodedProof where
   toJSON = \case
-    RootCredential ->
-      Null
-
     Reference cid ->
       toJSON cid
 
-    Nested (UCAN.RawContent raw) UCAN {sig} ->
-      String (raw <> "." <> textDisplay sig)
+    Nested raw ->
+      String raw
 
-instance (FromJSON fct, FromJSON rsc, FromJSON ptc) => FromJSON (Proof fct rsc ptc) where
-  parseJSON = parseProofV_0_3
+instance FromJSON EncodedProof where
+  parseJSON val =
+    val
+      & withText "Credential Proof" \txt ->
+        if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
+          then pure $ Nested txt
+          else Reference <$> parseJSON val
+
+
+-----------
+-- Nonce --
+-----------
+
+newtype Nonce = Nonce { unNonce :: Text }
+  deriving (Eq, Show, Ord)
+
+instance Arbitrary Nonce where
+  arbitrary = Nonce . Text.pack <$> replicateM 6 (elements chars)
+    where
+      chars =
+        ['A'..'Z']
+        <> ['a'..'z']
+        <> ['0'..'9']
+
+instance FromJSON Nonce where
+  parseJSON = withText "UCAN Nonce" (pure . Nonce)
+
+instance ToJSON Nonce where
+  toJSON = String . unNonce
+
+
 
 -----------------------
 -- Signature Helpers --
 -----------------------
 
+
 signEd25519 ::
   ( ToJSON fct
-  , ToJSON rsc
-  , ToJSON ptc
+  , ToJSON cap
   )
   => Header
-  -> Claims fct rsc ptc
+  -> Claims fct cap
   -> Ed25519.SecretKey
-  -> Signature.Signature
-signEd25519 header claims sk =
-  Signature.Ed25519 . Key.signWith sk . encodeUtf8 $ B64.URL.encodeJWT header claims
+  -> UCAN fct cap
+signEd25519 header claims sk = UCAN{..}
+  where
+    raw        = B64.URL.encodeJWT header claims
+    signedData = RawContent raw
+    sig        = Signature.Ed25519 $ Key.signWith sk $ encodeUtf8 raw
 
 signRS256 ::
   ( MonadRandom m
   , ToJSON fct
-  , ToJSON rsc
-  , ToJSON ptc
+  , ToJSON cap
   )
   => Header
-  -> Claims fct rsc ptc
+  -> Claims fct cap
   -> RSA.PrivateKey
-  -> m (Either RSA.Error Signature.Signature)
-signRS256 header claims sk =
-  RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 $ B64.URL.encodeJWT header claims) <&> \case
-    Left err  -> Left err
-    Right sig -> Right . Signature.RS256 $ RS256.Signature sig
+  -> m (Either RSA.Error (UCAN fct cap))
+signRS256 header claims sk = do
+  let raw = B64.URL.encodeJWT header claims
+      signedData = RawContent raw
+  sigResult <- RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 raw)
+  case sigResult of
+    Left err -> return $ Left err
+    Right s  ->
+      let sig = Signature.RS256 $ RS256.Signature s
+      in return $ Right UCAN {..}
 
 
 -----------------------------
 -- Backwards-compatibility --
 -----------------------------
 
-parseClaimsV_0_3 :: (FromJSON rsc, FromJSON ptc, FromJSON fct) => Value -> JSON.Parser (Claims fct rsc ptc)
+parseClaimsV_0_3 ::
+  ( FromJSON fct
+  , FromJSON cap
+  ) => Value -> JSON.Parser (Claims fct cap)
 parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
   sender   <- obj .: "iss"
   receiver <- obj .: "aud"
   --
   resource <- obj .:  "rsc" .!= Nothing
   potency  <- obj .:  "ptc" .!= Nothing
-  proof    <- obj .:? "prf" .!= RootCredential
+  proof    <- obj .:  "prf" .!= Nothing
   facts    <- obj .:? "fct" .!= []
   --
   nbf <- fromSeconds <$> obj .: "nbf"
   exp <- fromSeconds <$> obj .: "exp"
 
-  return Claims {..}
+  attenuation <- case (resource, potency) of
+    (Just rsc, Just pot) -> do
+      capability <- parseJSON $ JSON.object
+        [ ("rsc", rsc)
+        , ("cap", pot)
+        ]
+      pure [capability]
+
+    _ ->
+      pure []
+
+  return Claims
+    { sender = sender
+    , receiver = receiver
+    , attenuation = attenuation
+    , proofs = maybeToList proof
+    , facts = facts
+    , nbf = nbf
+    , exp = exp
+    , nnc = Nothing
+    }
 
 
-parseProofV_0_3 :: (FromJSON fct, FromJSON rsc, FromJSON ptc) => Value -> JSON.Parser (Proof fct rsc ptc)
-parseProofV_0_3 Null = return RootCredential
-parseProofV_0_3 val  = withText "Credential Proof" resolver val
-  where
-    resolver txt =
-      if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
-        then Nested (UCAN.contentOf txt) <$> parseJSON val
-        else Reference <$> parseJSON val
-
-
-parseUcanV_0_3 :: (FromJSON fct, FromJSON rsc, FromJSON ptc) => Value -> JSON.Parser (UCAN fct rsc ptc)
+parseUcanV_0_3 ::
+  ( FromJSON fct
+  , FromJSON cap
+  ) => Value -> JSON.Parser (UCAN fct cap)
 parseUcanV_0_3 = withText "UCAN.Token" \txt ->
   case Text.split (== '.') txt of
     [rawHeader, rawClaims, rawSig] -> do
       header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
-      claims <- withEmbeddedJSON "Claims" parseJSON $ jsonify rawClaims
+      claims <- withEmbeddedJSON "Claims" parseClaimsV_0_3 $ jsonify rawClaims
+      let
+        raw = rawHeader <> "." <> rawClaims
+        signedData = RawContent raw
       sig    <- Signature.parse (alg header) (toJSON rawSig)
       return UCAN {..}
 
     _ ->
       fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
   where
-    jsonify = toJSON . decodeUtf8Lenient . BS.B64.URL.decodeLenient . encodeUtf8
+    jsonify = toJSON . Text.B64.URL.decodeBase64Lenient

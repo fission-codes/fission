@@ -4,23 +4,24 @@ module Web.UCAN.Internal.Orphanage.Ed25519.Signature () where
 
 import           Data.Aeson
 import           RIO
+import qualified RIO.ByteString               as BS
 import qualified RIO.Text                     as Text
 
 import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519        as Ed25519
 
+import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Base64.URL   as BS.B64.URL
 
-import qualified Web.UCAN.Internal.Base64     as Base64
 import qualified Web.UCAN.Internal.Base64.URL as Base64.URL
 import qualified Web.UCAN.Internal.Crypto     as Crypto
 
 instance Display Ed25519.Signature where
   textDisplay sig =
     sig
-      & Base64.toByteString
-      & BS.B64.URL.encodeUnpadded
-      & decodeUtf8Lenient
+      & BA.unpack
+      & BS.pack
+      & BS.B64.URL.encodeBase64Unpadded
       -- Initial human readable text
       & stripOptionalPrefix "Signature \""
       & stripOptionalPrefix "\""
