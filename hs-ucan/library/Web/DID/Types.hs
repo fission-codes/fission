@@ -154,9 +154,9 @@ parseText txt =
 
         -- Backwards compatibility
         (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-          RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
+          RSAPublicKey <$> parseKeyW8s (BS64.encodeBase64' $ BS.pack rsaKeyW8s)
 
         nope ->
-          fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
+          fail . show . BS64.encodeBase64' $ BS.pack nope <> " is not an acceptable did:key"
 
       return $ Key pk
