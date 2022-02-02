@@ -177,8 +177,8 @@ data Claims fct cap = Claims
   , proofs      :: [Proof]
   , facts       :: [fct]
   -- Temporal Bounds
-  , exp         :: UTCTime
-  , nbf         :: UTCTime
+  , expiration  :: UTCTime
+  , notBefore   :: Maybe UTCTime
   , nonce       :: Maybe Nonce
   } deriving (Show, Functor)
 
@@ -192,10 +192,10 @@ instance (Eq fct, Eq cap) => Eq (Claims fct cap) where
          && receiver jwtA == receiver jwtB
 
       eqAuth = attenuation jwtA == attenuation jwtB
-             &&     proofs jwtA == proofs      jwtB
+            &&      proofs jwtA == proofs      jwtB
 
-      eqTime = roundUTC (exp jwtA) == roundUTC (exp jwtB)
-            && roundUTC (nbf jwtA) == roundUTC (nbf jwtB)
+      eqTime = roundUTC (expiration jwtA) ==      roundUTC (expiration jwtB)
+       && fmap roundUTC (notBefore  jwtA) == fmap roundUTC (notBefore  jwtB)
 
       eqFacts = facts jwtA == facts jwtB
 
@@ -213,8 +213,8 @@ instance
     attenuation <- arbitrary
     proofs      <- map (Nested . textDisplay) <$> arbitraryProofs
     facts       <- arbitrary
-    exp         <- arbitrary
-    nbf         <- arbitrary
+    expiration  <- arbitrary
+    notBefore   <- arbitrary
     nonce       <- arbitrary
 
     return Claims {..}
@@ -240,8 +240,8 @@ instance
     , "att" .= attenuation
     , "fct" .= facts
     --
-    , "nbf" .= toSeconds nbf
-    , "exp" .= toSeconds exp
+    , "exp" .=      toSeconds expiration
+    , "nbf" .= fmap toSeconds notBefore
     , "nnc" .= nonce
     ]
 
@@ -257,8 +257,8 @@ instance
     proofs      <- obj .:  "prf"
     facts       <- obj .:? "fct" .!= []
     --
-    nbf <- fromSeconds <$> obj .: "nbf"
-    exp <- fromSeconds <$> obj .: "exp"
+    expiration <-      fromSeconds <$> obj .:  "exp"
+    notBefore  <- fmap fromSeconds <$> obj .:? "nbf" .!= Nothing
     --
     nonce <- obj .:? "nnc" .!= Nothing
 
@@ -376,8 +376,8 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
   proof    <- obj .:  "prf" .!= Nothing
   facts    <- obj .:? "fct" .!= []
   --
-  nbf <- fromSeconds <$> obj .: "nbf"
-  exp <- fromSeconds <$> obj .: "exp"
+  expiration <- fromSeconds <$> obj .: "exp"
+  notBefore  <- fromSeconds <$> obj .: "nbf"
 
   attenuation <- case (resource, potency) of
     (Just rsc, Just pot) -> do
@@ -396,7 +396,7 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
     , attenuation = attenuation
     , proofs = maybeToList proof
     , facts = facts
-    , nbf = nbf
-    , exp = exp
+    , notBefore = Just notBefore
+    , expiration = expiration
     , nonce = Nothing
     }
