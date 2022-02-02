@@ -144,7 +144,7 @@ instance
         let
           raw = rawHeader <> "." <> rawClaims
           signedData = RawContent raw
-        sig    <- Signature.parse (alg header) (toJSON rawSig)
+        sig <- Signature.parse (alg header) (toJSON rawSig)
 
         return UCAN {..}
 
@@ -215,7 +215,7 @@ instance
     facts       <- arbitrary
     exp         <- arbitrary
     nbf         <- arbitrary
-    nonce         <- arbitrary
+    nonce       <- arbitrary
 
     return Claims {..}
     where
@@ -249,7 +249,20 @@ instance
   ( FromJSON fct
   , FromJSON cap
   ) => FromJSON (Claims fct cap) where
-  parseJSON = parseClaimsV_0_3
+  parseJSON = withObject "JWT.Payload" \obj -> do
+    sender   <- obj .: "iss"
+    receiver <- obj .: "aud"
+    --
+    attenuation <- obj .:? "att" .!= []
+    proofs      <- obj .:  "prf"
+    facts       <- obj .:? "fct" .!= []
+    --
+    nbf <- fromSeconds <$> obj .: "nbf"
+    exp <- fromSeconds <$> obj .: "exp"
+    --
+    nonce <- obj .:? "nnc" .!= Nothing
+
+    return Claims {..}
 
 
 -----------
