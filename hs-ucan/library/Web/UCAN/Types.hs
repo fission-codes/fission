@@ -61,6 +61,7 @@ import qualified Web.UCAN.Internal.UTF8                        as UTF8
 
 -- Reexports
 
+import           Web.SemVer.Types
 import           Web.UCAN.RawContent
 
 
@@ -129,7 +130,28 @@ instance
   ( FromJSON fct
   , FromJSON cap
   ) => FromJSON (UCAN fct cap) where
-  parseJSON = parseUcanV_0_3
+  parseJSON = withText "UCAN.Token" \txt ->
+    case Text.split (== '.') txt of
+      [rawHeader, rawClaims, rawSig] -> do
+        header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
+
+        let parseClaims = case ucv header of
+              SemVer 0 3 _ -> parseClaimsV_0_3
+              _            -> parseJSON
+
+        claims <- withEmbeddedJSON "Claims" parseClaims $ jsonify rawClaims
+
+        let
+          raw = rawHeader <> "." <> rawClaims
+          signedData = RawContent raw
+        sig    <- Signature.parse (alg header) (toJSON rawSig)
+
+        return UCAN {..}
+
+      _ ->
+        fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
+    where
+      jsonify = toJSON . Text.B64.URL.decodeBase64Lenient
 
 instance
   ( ToJSON fct
@@ -365,24 +387,3 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
     , exp = exp
     , nonce = Nothing
     }
-
-
-parseUcanV_0_3 ::
-  ( FromJSON fct
-  , FromJSON cap
-  ) => Value -> JSON.Parser (UCAN fct cap)
-parseUcanV_0_3 = withText "UCAN.Token" \txt ->
-  case Text.split (== '.') txt of
-    [rawHeader, rawClaims, rawSig] -> do
-      header <- withEmbeddedJSON "Header" parseJSON $ jsonify rawHeader
-      claims <- withEmbeddedJSON "Claims" parseClaimsV_0_3 $ jsonify rawClaims
-      let
-        raw = rawHeader <> "." <> rawClaims
-        signedData = RawContent raw
-      sig    <- Signature.parse (alg header) (toJSON rawSig)
-      return UCAN {..}
-
-    _ ->
-      fail $ "Wrong number of JWT segments in:  " <> Text.unpack txt
-  where
-    jsonify = toJSON . Text.B64.URL.decodeBase64Lenient
