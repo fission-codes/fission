@@ -2,7 +2,7 @@
 module Web.UCAN.Types
   ( UCAN (..)
   , Claims (..)
-  , EncodedProof  (..)
+  , Proof  (..)
 
   , signEd25519
   , signRS256
@@ -152,13 +152,12 @@ data Claims fct cap = Claims
   , receiver    :: DID
   -- Authorization Target
   , attenuation :: [cap]
-  , proofs      :: [EncodedProof]
-  -- 0.3.1
+  , proofs      :: [Proof]
   , facts       :: [fct]
   -- Temporal Bounds
   , exp         :: UTCTime
   , nbf         :: UTCTime
-  , nnc         :: Maybe Nonce
+  , nonce       :: Maybe Nonce
   } deriving (Show, Functor)
 
 instance (Show fct, Show cap) => Display (Claims fct cap) where
@@ -178,7 +177,7 @@ instance (Eq fct, Eq cap) => Eq (Claims fct cap) where
 
       eqFacts = facts jwtA == facts jwtB
 
-      eqNonce = nnc jwtA == nnc jwtB
+      eqNonce = nonce jwtA == nonce jwtB
 
 instance
   ( Arbitrary fct
@@ -194,7 +193,7 @@ instance
     facts       <- arbitrary
     exp         <- arbitrary
     nbf         <- arbitrary
-    nnc         <- arbitrary
+    nonce         <- arbitrary
 
     return Claims {..}
     where
@@ -221,7 +220,7 @@ instance
     --
     , "nbf" .= toSeconds nbf
     , "exp" .= toSeconds exp
-    , "nnc" .= nnc
+    , "nnc" .= nonce
     ]
 
 instance
@@ -235,18 +234,18 @@ instance
 -- Proof --
 -----------
 
-data EncodedProof
+data Proof
   = Nested    Text
   | Reference CID
   deriving (Show, Eq)
 
 
-instance Display EncodedProof where
+instance Display Proof where
   display = \case
     Nested raw    -> "Nested "    <> display raw
     Reference cid -> "Reference " <> display cid
 
-instance ToJSON EncodedProof where
+instance ToJSON Proof where
   toJSON = \case
     Reference cid ->
       toJSON cid
@@ -254,7 +253,7 @@ instance ToJSON EncodedProof where
     Nested raw ->
       String raw
 
-instance FromJSON EncodedProof where
+instance FromJSON Proof where
   parseJSON val =
     val
       & withText "Credential Proof" \txt ->
@@ -364,7 +363,7 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
     , facts = facts
     , nbf = nbf
     , exp = exp
-    , nnc = Nothing
+    , nonce = Nothing
     }
 
 
