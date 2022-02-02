@@ -2,6 +2,7 @@
 
 module Web.UCAN.Header.Types
   ( Header    (..)
+  , ucanVersion
 
   -- * Reexports
 
@@ -11,41 +12,56 @@ module Web.UCAN.Header.Types
 import           RIO
 
 import           Data.Aeson
+import qualified Data.Aeson.Types                      as JSON
 import           Test.QuickCheck
 
 import           Crypto.Key.Asymmetric.Algorithm.Types
 
 import           Web.SemVer.Types
-import           Web.UCAN.Header.Cty.Types
 import           Web.UCAN.Header.Typ.Types
 
 data Header = Header
   { typ :: Typ       -- ^ Standard JWT '"typ"' field
   , alg :: Algorithm -- ^ Standard JWT '"alg"' field
-  , cty :: Maybe Cty -- ^ Standard JWT '"cty"' field. Set to '"JWT"' if there's a recursive JWT in the claims
-  , uav :: SemVer    -- ^ UCAN Version, mainly to state assumptions
+  , ucv :: SemVer    -- ^ UCAN Version, mainly to state assumptions
   } deriving (Show, Eq)
 
 instance Arbitrary Header where
   arbitrary = do
     typ <- arbitrary
     alg <- arbitrary
-    cty <- arbitrary
-    uav <- SemVer 0 <$> ((1 +) <$> arbitrary) <*> arbitrary
+    let ucv = ucanVersion
     return Header {..}
 
 instance ToJSON Header where
   toJSON Header {..} = object
     [ "typ" .= typ
     , "alg" .= alg
-    , "cty" .= cty
-    , "uav" .= uav
+    , "ucv" .= ucv
     ]
 
 instance FromJSON Header where
-  parseJSON = withObject "JWT.Header" \obj -> do
-    typ <- obj .:  "typ"
-    alg <- obj .:  "alg"
-    cty <- obj .:? "cty"
-    uav <- obj .:  "uav"
-    return Header {..}
+  parseJSON val =
+        parseWithUcv val
+    <|> parseWithUav val
+
+
+parseWithUcv :: Value -> JSON.Parser Header
+parseWithUcv = withObject "JWT.Header" \obj -> do
+  typ <- obj .: "typ"
+  alg <- obj .: "alg"
+  ucv <- obj .: "ucv"
+  return Header {..}
+
+
+parseWithUav :: Value -> JSON.Parser Header
+parseWithUav = withObject "JWT.Header" \obj -> do
+  typ           <- obj .: "typ"
+  alg           <- obj .: "alg"
+  (_ :: SemVer) <- obj .: "uav"
+  let ucv = SemVer 0 3 1 -- we assume uav ucans are ucv 0.3.1
+  return Header {..}
+
+
+ucanVersion :: SemVer
+ucanVersion = SemVer 0 7 0
