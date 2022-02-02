@@ -19,6 +19,8 @@ import           Web.DID.Types
 import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote                    (Remote)
 
+import qualified Fission.Web.Server.PowerDNS.Types         as PowerDNS
+
 import qualified Fission.Web.Server.AWS.Types              as AWS
 
 import qualified Fission.Web.Server.Heroku.ID.Types        as Heroku
@@ -48,6 +50,9 @@ data Config = Config
   , awsAccessKey                   :: AWS.AccessKey
   , awsSecretKey                   :: AWS.SecretKey
   , awsMockRoute53                 :: AWS.MockRoute53
+  --
+  , pdnsURL                        :: PowerDNS.URL
+  , pdnsApiKey                     :: PowerDNS.ApiKey
   --
   , baseAppDomain                  :: URL.DomainName
   , baseAppZoneID                  :: AWS.ZoneID

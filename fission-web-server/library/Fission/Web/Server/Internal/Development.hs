@@ -130,6 +130,9 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
     awsMockRoute53 = AWS.MockRoute53 True
 
+    pdnsURL        = "SOME_URL"
+    pdnsApiKey     = "SOME_API_KEY"
+
     baseAppDomain  = DomainName "appdomain.com"
 
     appPlaceholder = IPFS.CID "QmAppPlaceholder"
@@ -205,6 +208,9 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar mach
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
     awsMockRoute53 = AWS.MockRoute53 True
+
+    pdnsURL        = "DEFAULT_URL"
+    pdnsApiKey     = "DEFAULT_API_KEY"
 
     baseAppDomain  = DomainName "appdomain.com"
 
