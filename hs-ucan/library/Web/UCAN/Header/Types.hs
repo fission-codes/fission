@@ -3,6 +3,7 @@
 module Web.UCAN.Header.Types
   ( Header    (..)
   , ucanVersion
+  , isSupportedVersion
 
   -- * Reexports
 
@@ -65,3 +66,9 @@ parseWithUav = withObject "JWT.Header" \obj -> do
 
 ucanVersion :: SemVer
 ucanVersion = SemVer 0 7 0
+
+isSupportedVersion :: SemVer -> Bool
+isSupportedVersion = \case
+  SemVer 0 7 _ -> True
+  SemVer 0 3 _ -> True
+  _            -> False

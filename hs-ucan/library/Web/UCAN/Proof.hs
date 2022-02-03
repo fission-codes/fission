@@ -1,8 +1,6 @@
 module Web.UCAN.Proof
   ( delegatedInBounds
   , signaturesMatch
-  , resourceInSubset
-  , potencyInSubset
   , containsFact
 
   -- * Reexport
@@ -19,47 +17,20 @@ import           Web.UCAN.Types       as UCAN
 
 
 delegatedInBounds ::
-  ( DelegationSemantics rsc
-  , DelegationSemantics ptc
-  )
-  => UCAN fct rsc ptc
-  -> UCAN fct rsc ptc
-  -> Either Error (UCAN fct rsc ptc)
+  DelegationSemantics cap
+  => UCAN fct cap
+  -> UCAN fct cap
+  -> Either Error (UCAN fct cap)
 delegatedInBounds  ucan prfUCAN = do
   signaturesMatch  ucan prfUCAN
-  resourceInSubset ucan prfUCAN
-  potencyInSubset  ucan prfUCAN
-  timeInSubset     ucan prfUCAN
 
-signaturesMatch :: UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
+signaturesMatch :: UCAN fct cap -> UCAN fct cap -> Either Error (UCAN fct cap)
 signaturesMatch ucan prfUCAN =
   if (ucan & claims & sender) == (prfUCAN & claims & receiver)
     then Right ucan
     else Left InvalidSignatureChain
 
-resourceInSubset :: DelegationSemantics rsc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
-resourceInSubset ucan prfUCAN =
-  if (prfUCAN & claims & resource) `canDelegate` (ucan & claims & resource)
-    then Right ucan
-    else Left ScopeOutOfBounds
-
-potencyInSubset :: DelegationSemantics ptc => UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
-potencyInSubset ucan prfUCAN =
-  if (prfUCAN & claims & potency) `canDelegate` (ucan & claims & potency)
-    then Right ucan
-    else Left PotencyEscelation
-
-timeInSubset :: UCAN fct rsc ptc -> UCAN fct rsc ptc -> Either Error (UCAN fct rsc ptc)
-timeInSubset ucan prfUCAN =
-  if startBoundry && expiryBoundry
-    then Right ucan
-    else Left TimeNotSubset
-
-  where
-    startBoundry  = (ucan & claims & nbf) >= (prfUCAN & claims & nbf)
-    expiryBoundry = (ucan & claims & exp) <= (prfUCAN & claims & exp)
-
-containsFact :: UCAN fct rsc ptc -> ([fct] -> Either Error ()) -> Either Error (UCAN fct rsc ptc)
+containsFact :: UCAN fct cap -> ([fct] -> Either Error ()) -> Either Error (UCAN fct cap)
 containsFact ucan factChecker =
   ucan
     & claims

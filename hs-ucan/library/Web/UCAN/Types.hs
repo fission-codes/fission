@@ -71,13 +71,13 @@ data UCAN fct cap = UCAN
   { header     :: Header
   , claims     :: Claims fct cap
   , signedData :: RawContent
-  , sig        :: Signature.Signature
+  , signature  :: Signature.Signature
   } deriving (Show, Eq, Functor)
 
 
 instance Display (UCAN fct cap) where
   textDisplay UCAN{..} =
-    textDisplay signedData <> "." <> textDisplay sig
+    textDisplay signedData <> "." <> textDisplay signature
 
 
 instance
@@ -114,7 +114,7 @@ instance
   ( ToJSON fct
   , ToJSON cap
   ) => ToJSON (UCAN fct cap) where
-  toJSON UCAN {..} = String $ content <> "." <> textDisplay sig
+  toJSON UCAN {..} = String $ content <> "." <> textDisplay signature
     where
       content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
 
@@ -144,7 +144,7 @@ instance
         let
           raw = rawHeader <> "." <> rawClaims
           signedData = RawContent raw
-        sig <- Signature.parse (alg header) (toJSON rawSig)
+        signature <- Signature.parse (alg header) (toJSON rawSig)
 
         return UCAN {..}
 
@@ -337,7 +337,7 @@ signEd25519 header claims sk = UCAN{..}
   where
     raw        = B64.URL.encodeJWT header claims
     signedData = RawContent raw
-    sig        = Signature.Ed25519 $ Key.signWith sk $ encodeUtf8 raw
+    signature  = Signature.Ed25519 $ Key.signWith sk $ encodeUtf8 raw
 
 signRS256 ::
   ( MonadRandom m
@@ -355,7 +355,7 @@ signRS256 header claims sk = do
   case sigResult of
     Left err -> return $ Left err
     Right s  ->
-      let sig = Signature.RS256 $ RS256.Signature s
+      let signature = Signature.RS256 $ RS256.Signature s
       in return $ Right UCAN {..}
 
 
