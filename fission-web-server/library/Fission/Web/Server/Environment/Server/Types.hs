@@ -18,7 +18,7 @@ data Environment = Environment
   , useEKG       :: Bool             -- ^ Run with EKG
   , pretty       :: Bool             -- ^ Pretty-print requests
   , sentryDSN    :: Maybe Sentry.DSN -- ^ Sentry DSN key
-  , serverZoneID :: AWS.ZoneID       -- ^ Hosted Zone of this server (runfission.com at time of writing)
+  , serverZoneID :: AWS.ZoneID        -- ^ Hosted Zone of this server (runfission.com at time of writing)
   } deriving Show
 
 instance FromJSON Environment where

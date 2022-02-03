@@ -1,5 +1,5 @@
 name: fission-web-server
-version: '2.17.0.0'
+version: "2.17.0.0"
 category: API
 author:
   - Brooklyn Zelenka
@@ -151,6 +151,7 @@ dependencies:
   - amazonka-core
   - amazonka-route53
   - hostname
+  - powerdns
 
   ## Monitoring
   - ekg-core

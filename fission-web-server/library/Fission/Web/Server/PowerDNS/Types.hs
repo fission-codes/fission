@@ -12,9 +12,15 @@ newtype URL = URL { getUrl :: Text }
                    , IsString
                    )
 
+instance Display URL where
+  textDisplay = getUrl
+
 newtype ApiKey = ApiKey { getApiKey :: Text }
   deriving newtype ( Eq
                    , Show
                    , FromJSON
                    , IsString
                    )
+
+instance Display ApiKey where
+  textDisplay = getApiKey

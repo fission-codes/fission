@@ -96,6 +96,13 @@ packages:
   original:
     hackage: unliftio-core-0.1.2.0
 - completed:
+    hackage: powerdns-0.2.2@sha256:2e0d152c26e31127adcec24525c51c40faca04de8c67d1a914050d1882968871,2601
+    pantry-tree:
+      size: 828
+      sha256: a768e597f56bafe2c1b367dae70375ba86417f4ce82babbd9a6e3eb0512b0fd6
+  original:
+    hackage: powerdns-0.2.2
+- completed:
     hackage: github-0.27@sha256:074e69ad24b94b1199331b156e5373e9d4fa4a4452e02217f3539fe94a21a838,6995
     pantry-tree:
       size: 7838
