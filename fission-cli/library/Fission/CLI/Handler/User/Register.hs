@@ -20,7 +20,7 @@ import           Fission.User.Username.Types
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Client                          as Client
 
-import           Web.DID.Types
+import           Web.DID.Types                               as DID
 import qualified Web.UCAN.Types                              as UCAN
 
 import           Fission.User.Email.Types
@@ -124,7 +124,7 @@ createAccount maybeUsername maybeEmail = do
 
   exchangePK <- KeyStore.fetchPublic (Proxy @ExchangeKey)
   signingPK  <- KeyStore.fetchPublic (Proxy @SigningKey)
-  _          <- WNFS.create (DID Key $ Key.Ed25519PublicKey signingPK) "/"
+  _          <- WNFS.create (DID.Key $ Key.Ed25519PublicKey signingPK) "/"
 
   let
     form = Registration

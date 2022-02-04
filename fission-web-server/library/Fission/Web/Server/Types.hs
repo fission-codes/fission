@@ -559,19 +559,19 @@ instance User.Modifier Server where
     runUserUpdate updatePK pkToText uID "_did"
     where
       updatePK = User.updatePublicKeyDB uID pk now
-      pkToText pk' = textDisplay (DID Key pk')
+      pkToText pk' = textDisplay (DID.Key pk')
 
   addExchangeKey uID key now =
     runUserUpdate addKey keysToText uID "_exchange"
     where
       addKey = User.addExchangeKeyDB uID key now
-      keysToText keys = Text.intercalate "," (textDisplay . DID Key . Key.RSAPublicKey <$> keys)
+      keysToText keys = Text.intercalate "," (textDisplay . DID.Key . Key.RSAPublicKey <$> keys)
 
   removeExchangeKey uID key now =
     runUserUpdate removeKey keysToText uID "_exchange"
     where
       removeKey = User.removeExchangeKeyDB uID key now
-      keysToText keys = Text.intercalate "," (textDisplay . DID Key . Key.RSAPublicKey <$> keys)
+      keysToText keys = Text.intercalate "," (textDisplay . DID.Key . Key.RSAPublicKey <$> keys)
 
   setData userId newCID now = do
     runDB (User.getById userId) >>= \case

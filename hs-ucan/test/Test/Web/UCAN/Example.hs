@@ -4,7 +4,7 @@ module Test.Web.UCAN.Example
   , Potency(..)
   ) where
 
-import qualified RIO.Text              as Text
+import qualified RIO.Text             as Text
 import           Test.Web.UCAN.Prelude
 
 import           Web.UCAN.Proof.Class

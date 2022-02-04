@@ -48,7 +48,7 @@ import qualified Fission.Web.Serialization                   as Web.Serializatio
 
 -- 🛂 JWT/UCAN
 
-import           Web.DID.Types
+import           Web.DID.Types                               as DID
 import qualified Web.UCAN.Claims.Error                       as UCAN.Claims
 import qualified Web.UCAN.Proof                              as UCAN.Proof
 import qualified Web.UCAN.Resolver.Class                     as UCAN
@@ -159,7 +159,7 @@ consume signingSK baseURL optUsername = do
   signingPK <- Key.Store.toPublic (Proxy @SigningKey) signingSK
 
   let
-    myDID = DID Key (Ed25519PublicKey signingPK)
+    myDID = DID.Key (Ed25519PublicKey signingPK)
     topic = PubSub.Topic $ textDisplay targetDID
 
   PubSub.connect baseURL topic \conn -> reattempt 10 do
@@ -167,7 +167,7 @@ consume signingSK baseURL optUsername = do
     aesConn <- secure conn () \(rsaConn :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       let
         Secure.Connection {key = (pk, _sk)} = rsaConn
-        sessionDID = DID Key (RSAPublicKey pk)
+        sessionDID = DID.Key (RSAPublicKey pk)
 
       logDebug @Text "🤝 Device linking handshake: Step 2"
       broadcastApiData conn sessionDID
@@ -274,7 +274,7 @@ produce signingSK baseURL = do
 
     secure conn () \(rsaConn@Secure.Connection {key = (_, sk)} :: Secure.Connection m (RSA.PublicKey, RSA.PrivateKey)) -> reattempt 10 do
       logDebug @Text "🤝 Device linking handshake: Step 2"
-      requestorTempDID@(DID _ tmpPK) <- listenRaw conn
+      requestorTempDID@(DID.Key tmpPK) <- listenRaw conn
 
       case tmpPK of
         Ed25519PublicKey _ ->
