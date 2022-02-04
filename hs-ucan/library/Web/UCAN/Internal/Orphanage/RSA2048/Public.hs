@@ -14,7 +14,6 @@ import qualified Data.ASN1.Types          as ASN1
 import qualified Data.PEM                 as PEM
 
 import qualified Data.ByteString.Base64   as BS64
-import qualified Data.ByteString.Builder  as Builder
 import qualified Data.X509                as X509
 
 import           Data.Swagger
@@ -36,14 +35,15 @@ instance Arbitrary RSA.PublicKey where
     return . fst . Unsafe.unsafePerformIO $ RSA.generate 2048 exp
 
 instance Display RSA.PublicKey where
-  display pk =
-    pk
-      & X509.PubKeyRSA
+  textDisplay pk =
+    X509.PubKeyRSA pk
       & X509.pubKeyToPEM
-      & PEM.pemContent
-      & BS64.decodeLenient
-      & Builder.byteString
-      & Utf8Builder
+      & PEM.pemWriteBS
+      & decodeUtf8Lenient
+      & Text.strip
+      & Text.dropPrefix pemHeader
+      & Text.dropSuffix pemFooter
+      & Text.filter (/= '\n')
 
 instance ToHttpApiData RSA.PublicKey where
   toUrlPiece = textDisplay
@@ -83,3 +83,9 @@ instance ToSchema RSA.PublicKey where
       & description ?~ "An RSA public key"
       & NamedSchema (Just "RSA.PublicKey")
       & pure
+
+pemHeader :: Text
+pemHeader = "-----BEGIN PUBLIC KEY-----"
+
+pemFooter :: Text
+pemFooter = "-----END PUBLIC KEY-----"

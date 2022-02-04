@@ -110,7 +110,8 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
             0xed : 0x01 : BS.unpack (BA.convert ed)
 
           RSAPublicKey rsa ->
-            0x85 : 0x24 : BS.unpack (Public.encodeASN1DERRSAPublicKey rsa)
+            -- breaking change, but spec-adhering format: 0x85 : 0x24 : BS.unpack (Public.encodeASN1DERRSAPublicKey rsa)
+            0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
 
 instance ToJSON DID where
   toJSON = String . textDisplay
