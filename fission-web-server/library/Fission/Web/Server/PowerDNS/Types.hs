@@ -24,3 +24,4 @@ newtype ApiKey = ApiKey { getApiKey :: Text }
 
 instance Display ApiKey where
   textDisplay = getApiKey
+

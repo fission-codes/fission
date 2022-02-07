@@ -32,6 +32,9 @@ import           Network.AWS.Route53
 
 import           Network.HTTP.Client                       (defaultManagerSettings,
                                                             newManager)
+import           Network.HTTP.Client.TLS
+
+import           PowerDNS.API.Servers                      (ObjectType (TyRecord))
 import           PowerDNS.API.Zones
 import qualified PowerDNS.Client                           as PDNS
 
@@ -152,15 +155,20 @@ instance MonadDB (Transaction Server) Server where
 instance MonadRelayStore Server where
   getStoreVar = asks linkRelayStoreVar
 
-instance MonadAWS Server where
-  liftAWS awsAction = do
-    accessKey <- asks awsAccessKey
-    secretKey <- asks awsSecretKey
-    env       <- newEnv $ FromKeys accessKey secretKey
-
-    runResourceT $ runAWS env awsAction
-
 instance MonadPowerDNS Server where
+  getClientEnv = do
+    apiUrl <- asks pdnsURL
+    apiKey <- asks pdnsApiKey
+    uri <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
+    let
+      rawHTTPSettings =
+        case baseUrlScheme uri of
+          Http  -> defaultManagerSettings
+          Https -> tlsManagerSettings
+
+    mgr <- liftIO $ newManager rawHTTPSettings
+    return $ PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
+
   set recType url zoneTxt contents ttl = do
     logDebug $ mconcat
       [ "Set DNS "
@@ -170,12 +178,8 @@ instance MonadPowerDNS Server where
       , " to "
       , displayShow contents
       ]
-    apiUrl <- asks pdnsURL
-    apiKey <- asks pdnsApiKey
-    uri <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
-    mgr <- liftIO $ newManager defaultManagerSettings
+    clientEnv <- getClientEnv
     let
-      clientEnv = PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
       rrset = RRSets [RRSet { rrset_name = Text.append (textDisplay url) "."
                       , rrset_type = recType
                       , rrset_ttl = ttl
@@ -203,6 +207,58 @@ instance MonadPowerDNS Server where
       format :: PowerDNS.API.Zones.RecordType -> Text -> Text
       format TXT = UTF8.wrapIn "\""
       format _   = identity
+
+  get url _ = do
+    logDebug $ "PowerDNS.get for " <> textDisplay url
+    clientEnv <- getClientEnv
+    resp <- liftIO $ runClientM (PDNS.search "localhost" (textDisplay url) 1 (Just TyRecord)) clientEnv
+    case resp of
+      Left err -> do
+        logWarn @Text "PowerDNS.get failed"
+        return . Left $ Web.Error.toServerError err
+      Right good -> do
+        logDebug @Text "PowerDNS.get succeeded"
+        return $ Right good
+
+  clear url zoneID = do
+    logDebug $ "PowerDNS.clear " <> textDisplay url
+    results <- PowerDNS.get url zoneID
+    case results of
+      Left err -> do
+        return $ Left err
+      Right searchResults -> do
+        mapM_ removeResult searchResults
+        return $ Right ()
+    where
+      removeResult :: (MonadIO m, MonadPowerDNS m) => PDNS.SearchResult -> m ()
+      removeResult searchResult = do
+        clientEnv <- getClientEnv
+        let
+          recType = convertType (PDNS.sr_type searchResult)
+          rrset = RRSets [RRSet { rrset_name = PDNS.sr_name searchResult
+                      , rrset_type = recType
+                      , rrset_ttl = 10
+                      , rrset_changetype = Just PowerDNS.API.Zones.Delete
+                      , rrset_records = Nothing
+                      , rrset_comments = Nothing
+          }]
+        _ <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneID rrset) clientEnv
+        return ()
+
+      convertType :: Text -> PowerDNS.API.Zones.RecordType
+      convertType "CNAME" = CNAME
+      convertType "TXT"   = TXT
+      convertType _       = PowerDNS.API.Zones.A
+
+
+instance MonadAWS Server where
+  liftAWS awsAction = do
+    accessKey <- asks awsAccessKey
+    secretKey <- asks awsSecretKey
+    env       <- newEnv $ FromKeys accessKey secretKey
+
+    runResourceT $ runAWS env awsAction
+
 
 instance MonadRoute53 Server where
   clear url (ZoneID zoneTxt) = do
@@ -328,12 +384,12 @@ instance MonadWNFS Server where
         , subdomain  = Just . URL.Subdomain $ "_dnslink." <> textDisplay username <> ".files"
         }
 
-    Route53.get url zoneID >>= \case
+    PowerDNS.get url (textDisplay zoneID) >>= \case
       Left err ->
         return $ Left err
 
-      Right rrs ->
-        case Route53.getValuesFromRecords rrs of
+      Right results ->
+        case PowerDNS.getValuesFromRecords results of
           Nothing   -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just vals -> return $ Right $ extractCID vals
     where
