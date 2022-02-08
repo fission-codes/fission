@@ -1,9 +1,12 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Web.UCAN.Proof.Class
   ( DelegationSemantics(..)
   , GreaterDelegatesMore(..)
   , SmallerDelegatesMore(..)
+  , EqualCanDelegate(..)
   ) where
 
+import           Data.Coerce
 import           RIO
 
 class DelegationSemantics rsc where
@@ -19,9 +22,13 @@ instance DelegationSemantics rsc => DelegationSemantics (Maybe rsc) where
 
 newtype GreaterDelegatesMore a = GreaterDelegatesMore a
 newtype SmallerDelegatesMore a = SmallerDelegatesMore a
+newtype EqualCanDelegate a = EqualCanDelegate a
 
 instance Ord a => DelegationSemantics (GreaterDelegatesMore a) where
-  (GreaterDelegatesMore a) `canDelegate` (GreaterDelegatesMore b) = a >= b
+  canDelegate = coerce @(a -> a -> Bool) (>=)
 
 instance Ord a => DelegationSemantics (SmallerDelegatesMore a) where
-  (SmallerDelegatesMore a) `canDelegate` (SmallerDelegatesMore b) = a <= b
+  canDelegate = coerce @(a -> a -> Bool) (<=)
+
+instance Eq a => DelegationSemantics (EqualCanDelegate a) where
+  canDelegate = coerce @(a -> a -> Bool) (==)

@@ -8,4 +8,6 @@ import qualified System.IO.Unsafe      as Unsafe
 import           Test.QuickCheck
 
 instance Arbitrary Ed25519.SecretKey where
-  arbitrary = return . Unsafe.unsafePerformIO $ Ed25519.generateSecretKey
+  -- introducing a lambda to make sure we're calling generateSecretKey more than once!
+  arbitrary = sized (\_ -> return . Unsafe.unsafePerformIO $ Ed25519.generateSecretKey)
+  {-# NOINLINE arbitrary #-}
