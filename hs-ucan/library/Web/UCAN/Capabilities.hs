@@ -1,8 +1,6 @@
-{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Web.UCAN.Capabilities
   ( Witness(..)
-  , TestCap(..)
   , capabilities
   ) where
 
@@ -17,13 +15,6 @@ import           Web.UCAN.Proof
 import           Web.UCAN.Resolver.Class
 import           Web.UCAN.Types
 
-
-
-newtype TestCap = TestCap Text
-  deriving DelegationSemantics via (EqualCanDelegate Text)
-  deriving newtype FromJSON
-  deriving newtype ToJSON
-  deriving stock (Show, Eq, Ord)
 
 data Witness fct cap
   = WitnessParenthood
@@ -95,7 +86,7 @@ tryDelegating cap fromProofs = do
     parse token =
       case fromJSON $ String token of
         Success a -> return $ Just a
-        _ -> return Nothing
+        _         -> return Nothing
 
     makeDelegationWitness :: UCAN fct cap -> Witness fct cap -> Witness fct cap
     makeDelegationWitness ucan delegation =

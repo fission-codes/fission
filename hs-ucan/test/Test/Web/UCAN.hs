@@ -8,6 +8,7 @@ import           Web.UCAN.Types
 
 import           Test.Web.UCAN.Prelude
 
+import qualified Test.Web.UCAN.Attenuation         as Attenuation
 import qualified Test.Web.UCAN.DelegationSemantics as DelegationSemantics
 import           Test.Web.UCAN.Example
 
@@ -15,18 +16,20 @@ import           Test.Web.UCAN.Example
 spec :: Spec
 spec =
   describe "UCAN" do
+    Attenuation.spec
+
     describe "serialization" do
-      itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Resource Potency) ->
+      itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Capability) ->
         JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan
 
       describe "format" do
-        itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Resource Potency) ->
+        itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Capability) ->
           ucan
             & JSON.encode
             & Lazy.count (fromIntegral $ Char.ord '.')
             & shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Resource Potency) ->
+        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Capability) ->
           let
             encoded = JSON.encode ucan
           in
@@ -37,6 +40,9 @@ spec =
               & shouldBe mempty
 
     describe "DelegationSemantics" do
+      describe "Capability" do
+        DelegationSemantics.partialOrderProperties @Capability
+
       describe "Resource" do
         DelegationSemantics.partialOrderProperties @Resource
 
