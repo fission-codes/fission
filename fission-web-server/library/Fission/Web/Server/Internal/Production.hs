@@ -15,6 +15,9 @@ import qualified Data.Yaml                                       as YAML
 
 import           Servant
 import           Servant.API.Generic
+import           Servant.Client                                  (Scheme (Http, Https),
+                                                                  baseUrlScheme,
+                                                                  parseBaseUrl)
 import qualified Servant.Ekg                                     as EKG
 
 import qualified System.Metrics                                  as EKG
@@ -140,6 +143,7 @@ runInProd overrideVerbose action = do
   putStrLnIO "   🕷️  Setting up HTTP manager"
   putStrLnIO "      🎛️  Configuring..."
 
+  pdnsURI <- parseBaseUrl $ Text.unpack (textDisplay pdnsURL)
   let
     httpSettings = HTTP.defaultManagerSettings
       { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout
@@ -157,6 +161,11 @@ runInProd overrideVerbose action = do
       , HTTP.managerConnCount       = 1000
       }
 
+    pdnsHttpSettings =
+        case baseUrlScheme pdnsURI of
+          Http  -> HTTP.defaultManagerSettings
+          Https -> HTTP.tlsManagerSettings
+
   putStrLnIO "      📞🌐 Creating base HTTP client manager"
   httpManager <- HTTP.newManager httpSettings
 
@@ -165,6 +174,9 @@ runInProd overrideVerbose action = do
 
   putStrLnIO "      🙈🌐 Creating TLS client manager"
   tlsManager <- HTTP.newManager tlsHttpSettings
+
+  putStrLnIO "      📛🌐 Creating pDNS client manager"
+  pdnsHttpManager <- HTTP.newManager pdnsHttpSettings
 
   putStrLnIO "   💂 Configuring optional Sentry middleware"
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host environment) sentryDSN

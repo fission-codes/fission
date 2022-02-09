@@ -156,19 +156,6 @@ instance MonadRelayStore Server where
   getStoreVar = asks linkRelayStoreVar
 
 instance MonadPowerDNS Server where
-  getClientEnv = do
-    apiUrl <- asks pdnsURL
-    apiKey <- asks pdnsApiKey
-    uri <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
-    let
-      rawHTTPSettings =
-        case baseUrlScheme uri of
-          Http  -> defaultManagerSettings
-          Https -> tlsManagerSettings
-
-    mgr <- liftIO $ newManager rawHTTPSettings
-    return $ PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
-
   set recType url zoneTxt contents ttl = do
     logDebug $ mconcat
       [ "Set DNS "
@@ -178,16 +165,18 @@ instance MonadPowerDNS Server where
       , " to "
       , displayShow contents
       ]
-    clientEnv <- getClientEnv
+    clientEnv <- pdnsClientEnv
     let
-      rrset = RRSets [RRSet { rrset_name = Text.append (textDisplay url) "."
-                      , rrset_type = recType
-                      , rrset_ttl = ttl
-                      , rrset_changetype = Just Replace
-                      , rrset_records = Just $ formatRecords contents
-                      , rrset_comments = Nothing
-      }]
-    resp <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneTxt rrset) clientEnv
+      rrset =
+        RRSet { rrset_name = Text.append (textDisplay url) "."
+              , rrset_type = recType
+              , rrset_ttl = ttl
+              , rrset_changetype = Just Replace
+              , rrset_records = Just $ formatRecords contents
+              , rrset_comments = Nothing
+              }
+      rrsets = RRSets [rrset]
+    resp <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneTxt rrsets) clientEnv
     case resp of
       Left err -> do
         logWarn @Text "PowerDNS.set failed"
@@ -210,7 +199,7 @@ instance MonadPowerDNS Server where
 
   get url _ = do
     logDebug $ "PowerDNS.get for " <> textDisplay url
-    clientEnv <- getClientEnv
+    clientEnv <- pdnsClientEnv
     resp <- liftIO $ runClientM (PDNS.search "localhost" (textDisplay url) 1 (Just TyRecord)) clientEnv
     case resp of
       Left err -> do
@@ -230,19 +219,21 @@ instance MonadPowerDNS Server where
         mapM_ removeResult searchResults
         return $ Right ()
     where
-      removeResult :: (MonadIO m, MonadPowerDNS m) => PDNS.SearchResult -> m ()
+      removeResult :: (MonadIO m, MonadReader Config m, MonadThrow m) => PDNS.SearchResult -> m ()
       removeResult searchResult = do
-        clientEnv <- getClientEnv
+        clientEnv <- pdnsClientEnv
         let
-          recType = convertType (PDNS.sr_type searchResult)
-          rrset = RRSets [RRSet { rrset_name = PDNS.sr_name searchResult
-                      , rrset_type = recType
-                      , rrset_ttl = 10
-                      , rrset_changetype = Just PowerDNS.API.Zones.Delete
-                      , rrset_records = Nothing
-                      , rrset_comments = Nothing
-          }]
-        _ <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneID rrset) clientEnv
+          recType = convertType $ PDNS.sr_type searchResult
+          rrset =
+            RRSet { rrset_name = PDNS.sr_name searchResult
+                  , rrset_type = recType
+                  , rrset_ttl = 10
+                  , rrset_changetype = Just PowerDNS.API.Zones.Delete
+                  , rrset_records = Nothing
+                  , rrset_comments = Nothing
+                  }
+          rrsets = RRSets [rrset]
+        _ <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneID rrsets) clientEnv
         return ()
 
       convertType :: Text -> PowerDNS.API.Zones.RecordType
@@ -250,6 +241,19 @@ instance MonadPowerDNS Server where
       convertType "TXT"   = TXT
       convertType _       = PowerDNS.API.Zones.A
 
+pdnsClientEnv :: (MonadReader Config m, MonadThrow m, MonadIO m) => m ClientEnv
+pdnsClientEnv = do
+  apiUrl <- asks pdnsURL
+  apiKey <- asks pdnsApiKey
+  uri <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
+  let
+    rawHTTPSettings =
+      case baseUrlScheme uri of
+        Http  -> defaultManagerSettings
+        Https -> tlsManagerSettings
+
+  mgr <- liftIO $ newManager rawHTTPSettings
+  return $ PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
 
 instance MonadAWS Server where
   liftAWS awsAction = do
@@ -397,7 +401,7 @@ instance MonadWNFS Server where
 
 instance MonadDNSLink Server where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
-    PowerDNS.set CNAME url (textDisplay zoneID) (pure $ Text.append (textDisplay gateway) ".") 86400 >>= \case
+    PowerDNS.set CNAME url (textDisplay zoneID) (pure $ textDisplay gateway <> ".") 86400 >>= \case
       Left err ->
         return $ Error.openLeft err
 

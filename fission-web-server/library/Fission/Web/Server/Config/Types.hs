@@ -37,6 +37,7 @@ data Config = Config
   , httpManager                    :: HTTP.Manager
   , tlsManager                     :: HTTP.Manager
   , ipfsHttpManager                :: HTTP.Manager
+  , pdnsHttpManager                :: HTTP.Manager
   , dbPool                         :: Pool SqlBackend
   --
   , ipfsPath                       :: IPFS.BinPath
@@ -87,6 +88,7 @@ instance Show Config where
     , "  httpManager                    = **SOME HTTP MANAGER**"
     , "  tlsManager                     = **SOME HTTP/TLS MANAGER**"
     , "  ipfsHttpManager                = **SOME HTTP/TLS MANAGER**"
+    , "  pdnsHttpManager                = **SOME HTTP/TLS MANAGER**"
     , "  dbPool                         = " <> show dbPool
     --
     , "  ipfsPath                       = " <> show ipfsPath
