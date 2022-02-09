@@ -48,7 +48,9 @@ import qualified Crypto.Key.Asymmetric.Algorithm.Types         as Algorithm
 
 import           Web.DID.Types                                 as DID
 
-import           Web.UCAN.Header.Types                         (Header (..))
+import qualified Web.UCAN.Header.Typ.Types                     as Typ
+import           Web.UCAN.Header.Types
+
 import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
 
@@ -87,8 +89,8 @@ instance
   , ToJSON cap
   ) => Arbitrary (UCAN fct cap) where
   arbitrary = do
-    header   <- arbitrary
-    (pk, sk) <- case alg header of
+    algorithm <- elements [Algorithm.RSA2048, Algorithm.Ed25519]
+    (pk, sk) <- case algorithm of
       Algorithm.RSA2048 -> do
         RSA2048.Pair pk' sk' <- arbitrary
         return (RSAPublicKey pk', Left sk')
@@ -103,12 +105,12 @@ instance
 
     return case sk of
       Left rsaSK ->
-        case Unsafe.unsafePerformIO $ signRS256 header claims rsaSK of
+        case Unsafe.unsafePerformIO $ signRS256 rsaSK claims of
           Left err   -> error $ "Unable to sign UCAN: " <> show err
           Right ucan -> ucan
 
       Right edSK ->
-        signEd25519 header claims edSK
+        signEd25519 edSK claims
 
 instance
   ( ToJSON fct
@@ -329,12 +331,12 @@ signEd25519 ::
   ( ToJSON fct
   , ToJSON cap
   )
-  => Header
+  => Ed25519.SecretKey
   -> Claims fct cap
-  -> Ed25519.SecretKey
   -> UCAN fct cap
-signEd25519 header claims sk = UCAN{..}
+signEd25519 sk claims = UCAN{..}
   where
+    header     = Header { typ = Typ.JWT, alg = Algorithm.Ed25519, ucv = ucanVersion }
     raw        = B64.URL.encodeJWT header claims
     signedData = RawContent raw
     signature  = Signature.Ed25519 $ Key.signWith sk $ encodeUtf8 raw
@@ -344,13 +346,13 @@ signRS256 ::
   , ToJSON fct
   , ToJSON cap
   )
-  => Header
+  => RSA.PrivateKey
   -> Claims fct cap
-  -> RSA.PrivateKey
   -> m (Either RSA.Error (UCAN fct cap))
-signRS256 header claims sk = do
+signRS256 sk claims = do
   let raw = B64.URL.encodeJWT header claims
       signedData = RawContent raw
+      header = Header { typ = Typ.JWT, alg = Algorithm.RSA2048, ucv = ucanVersion }
   sigResult <- RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 raw)
   case sigResult of
     Left err -> return $ Left err
