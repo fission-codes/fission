@@ -26,8 +26,6 @@ import           Servant.Client
 import           Fission.DNS                               as DNS
 import           Fission.URL                               as URL
 import           Fission.User.Username.Types
-import           Fission.Web.Server.App                    as App
-import           Fission.Web.Server.App.Domain             as App.Domain
 import qualified Fission.Web.Server.IPFS.Cluster           as Cluster
 import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
 import           Fission.Web.Server.Models
@@ -54,12 +52,12 @@ deleteByUsername userNameTxt =
         Nothing                -> error "User doesn't exist"
 
 ---
-syncDNS :: Server()
+syncDNS :: Server ()
 syncDNS = do
   users <- getUserData
   apps <- getAppData
-  mapM_ setUserDNS users
-  mapM_ setAppDNS apps
+  forM_ users setUserDNS
+  forM_ apps setAppDNS
 
 getUserData :: Server [Entity User]
 getUserData = do
@@ -75,7 +73,7 @@ getAppData = do
       SQL.on $ appDomain ^. AppDomainAppId ==. app ^. AppId
       return (app, appDomain)
 
-setUserDNS :: Entity User -> Server()
+setUserDNS :: Entity User -> Server ()
 setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = do
   zoneID <- asks userZoneID
   domainName <- asks userRootDomain
@@ -85,6 +83,7 @@ setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = 
     segments = case userPublicKey of
       Nothing   -> pure ""
       Just pkey -> DNS.splitRecord $ textDisplay (DID Key pkey)
+
   PowerDNS.set PDNS.TXT url (textDisplay zoneID) segments 10 >>= \case
     Left _ -> return ()
     Right _ -> do
@@ -98,6 +97,7 @@ setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = 
           , subdomain  = Just $ Subdomain (textDisplay userUsername  <> ".files")
           }
         userPublic = userFilesUrl `WithPath` ["public"]
+
       DNSLink.follow userId userUrl zoneID userPublic >>= \case
         Left _ -> return ()
         Right _ -> do
@@ -106,7 +106,7 @@ setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = 
             Right _ ->
               logDebug $ "Successfully updated " <> textDisplay userUsername
 
-setAppDNS :: (Entity App, Entity AppDomain) -> Server()
+setAppDNS :: (Entity App, Entity AppDomain) -> Server ()
 setAppDNS (Entity _ App {appOwnerId, appCid}, Entity _ AppDomain {appDomainDomainName, appDomainSubdomain}) = do
   zoneID     <- asks baseAppZoneID
   let
@@ -114,11 +114,14 @@ setAppDNS (Entity _ App {appOwnerId, appCid}, Entity _ AppDomain {appDomainDomai
       { domainName = appDomainDomainName
       , subdomain = appDomainSubdomain
       }
+
   DNSLink.set appOwnerId url zoneID appCid >>= \case
     Left _ -> return ()
     Right _ ->
       logDebug $ "Successfully updated " <> show appDomainSubdomain
+
 ---
+
 ensureAllPinned :: Server ()
 ensureAllPinned = do
   cfg         <- ask

@@ -1,6 +1,7 @@
 module Fission.Web.Server.PowerDNS
   ( module Fission.Web.Server.PowerDNS.Class
-  , getValuesFromRecords) where
+  , getValuesFromRecords
+  ) where
 
 import           Fission.Prelude
 import           Fission.Web.Server.PowerDNS.Class

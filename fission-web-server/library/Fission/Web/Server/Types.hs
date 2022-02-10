@@ -176,8 +176,8 @@ instance MonadPowerDNS Server where
               , rrset_comments = Nothing
               }
       rrsets = RRSets [rrset]
-    resp <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneTxt rrsets) clientEnv
-    case resp of
+
+    liftIO (runClientM (PDNS.updateRecords "localhost" zoneTxt rrsets) clientEnv) >>= \case
       Left err -> do
         logWarn @Text "PowerDNS.set failed"
         return . Left $ Web.Error.toServerError err
@@ -187,7 +187,7 @@ instance MonadPowerDNS Server where
     where
       formatRecords :: NonEmpty Text -> [Record]
       formatRecords values =
-        fmap newRecord (toList values)
+        newRecord <$> toList values
 
       newRecord :: Text -> Record
       newRecord content =
@@ -211,15 +211,14 @@ instance MonadPowerDNS Server where
 
   clear url zoneID = do
     logDebug $ "PowerDNS.clear " <> textDisplay url
-    results <- PowerDNS.get url zoneID
-    case results of
+    PowerDNS.get url zoneID >>= \case
       Left err -> do
         return $ Left err
       Right searchResults -> do
         mapM_ removeResult searchResults
         return $ Right ()
     where
-      removeResult :: (MonadIO m, MonadReader Config m, MonadThrow m) => PDNS.SearchResult -> m ()
+      removeResult :: PDNS.SearchResult -> Server ()
       removeResult searchResult = do
         clientEnv <- pdnsClientEnv
         let
@@ -241,18 +240,12 @@ instance MonadPowerDNS Server where
       convertType "TXT"   = TXT
       convertType _       = PowerDNS.API.Zones.A
 
-pdnsClientEnv :: (MonadReader Config m, MonadThrow m, MonadIO m) => m ClientEnv
+pdnsClientEnv :: (MonadReader Config m, MonadThrow m) => m ClientEnv
 pdnsClientEnv = do
   apiUrl <- asks pdnsURL
   apiKey <- asks pdnsApiKey
+  mgr <- asks pdnsHttpManager
   uri <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
-  let
-    rawHTTPSettings =
-      case baseUrlScheme uri of
-        Http  -> defaultManagerSettings
-        Https -> tlsManagerSettings
-
-  mgr <- liftIO $ newManager rawHTTPSettings
   return $ PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
 
 instance MonadAWS Server where
