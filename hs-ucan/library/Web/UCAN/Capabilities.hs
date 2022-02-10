@@ -2,108 +2,153 @@
 module Web.UCAN.Capabilities
   ( Witness(..)
   , capabilities
+  , checkWitness
   ) where
 
 import           Data.Aeson
 
 import           RIO
-import qualified RIO.List                as List
 
-import           Data.Monoid
+import           RIO.Time
 import           Web.DID.Types
 import           Web.UCAN.Proof
 import           Web.UCAN.Resolver.Class
-import           Web.UCAN.Types
+import           Web.UCAN.Types          (UCAN)
+import qualified Web.UCAN.Types          as UCAN
 
 
 data Witness fct cap
   = WitnessParenthood
     { capability :: cap
+    , expiration :: UTCTime
+    , notBefore  :: Maybe UTCTime
     , originator :: DID
     }
   | WitnessDelegation
     { capability :: cap
+    , expiration :: UTCTime
+    , notBefore  :: Maybe UTCTime
     , proof      :: UCAN fct cap
     , delegation :: Witness fct cap
     }
-  deriving (Show, Eq)
   --  | WitnessRightsAmplification
   --   { capability    :: cap
+  --   , expiration    :: UTCTime
+  --   , notBefore     :: Maybe UTCTime
   --   , amplifiedFrom :: NonEmpty (Witness fct cap, UCAN fct cap)
   --   }
+  deriving (Show, Eq)
 
 
 capabilities ::
   ( DelegationSemantics cap
+  , Eq cap
   , FromJSON fct
   , FromJSON cap
   , Resolver m
   )
   => UCAN fct cap
   -> m [Witness fct cap]
-capabilities UCAN{ claims = Claims{..} } = do
-  forM attenuation \capability ->
+capabilities UCAN.UCAN{ claims = UCAN.Claims{..} } = do
+  -- TODO: Consider walking the *proofs first* and then the capabilities.
+  -- That way we don't parse proofs N times.
+  -- We could then also move proof parsing into this function
+  concat <$> forM attenuation \capability ->
     tryDelegating capability proofs >>= \case
-      Just witness ->
-        return witness
+      [] ->
+        return
+          [ WitnessParenthood
+            { capability = capability
+            , expiration = expiration
+            , notBefore  = notBefore
+            , originator = sender
+            }
+          ]
 
-      Nothing ->
-        return WitnessParenthood
-          { capability = capability
-          , originator = sender
-          }
+      witnesses ->
+        return witnesses
+
 
 tryDelegating ::
   forall fct cap m .
   ( DelegationSemantics cap
+  , Eq cap
   , FromJSON fct
   , FromJSON cap
   , Resolver m
   )
   => cap
-  -> [Proof]
-  -> m (Maybe (Witness fct cap))
+  -> [UCAN.Proof]
+  -> m [Witness fct cap]
 tryDelegating cap fromProofs = do
-  let
-    andThen :: m (Maybe a) -> (a -> m (Maybe b)) -> m (Maybe b)
-    andThen mma fmb = do
-      ma <- mma
-      case ma of
-        Nothing -> return Nothing
-        Just a ->
-          fmb a
+  candidates <- fromProofs
+    & traverse \prf -> do
+      resolveToken prf >>= \case
+        Nothing -> return [] -- TODO return [Error.FailedToResolve prf]
+        Just token ->
+          case fromJSON $ String token of
+            Error _ -> return [] -- TODO return [Error.FailedToParse token]
+            Success proof -> do
+              -- TODO return Error.InvalidProof if proof doesn't match.
+              caps <- capabilities proof
+              return $ makeDelegations proof caps
 
-    resolveProof :: Proof -> m (Maybe Text)
-    resolveProof = \case
-      Nested text -> return $ Just text
-      Reference cid -> do
+  return $ concat candidates
+  where
+    resolveToken :: UCAN.Proof -> m (Maybe Text)
+    resolveToken = \case
+      UCAN.Nested text -> return $ Just text
+      UCAN.Reference cid -> do
         resolved <- resolve cid
         case resolved of
           Left _   -> return Nothing
           Right bs -> return $ Just $ decodeUtf8Lenient bs
 
-    parse :: Text -> m (Maybe (UCAN fct cap))
-    parse token =
-      case fromJSON $ String token of
-        Success a -> return $ Just a
-        _         -> return Nothing
-
     makeDelegationWitness :: UCAN fct cap -> Witness fct cap -> Witness fct cap
     makeDelegationWitness ucan delegation =
       WitnessDelegation
         { capability = cap
+        , expiration = min (UCAN.expiration (UCAN.claims ucan)) (expiration delegation)
+        , notBefore = min <$> UCAN.notBefore (UCAN.claims ucan) <*> notBefore delegation
         , proof = ucan
         , delegation = delegation
         }
 
-    findWitness :: UCAN fct cap -> m (Maybe (Witness fct cap))
-    findWitness ucan = do
-      caps <- capabilities ucan
-      return $ makeDelegationWitness ucan <$> List.find (\witness -> capability witness `canDelegate` cap) caps
+    makeDelegations :: UCAN fct cap -> [Witness fct cap] -> [Witness fct cap]
+    makeDelegations ucan =
+      filter (checkWitnessIntegrity ucan) . map (makeDelegationWitness ucan)
 
-  candidates <- fromProofs
-    & traverse \prf -> resolveProof prf
-      `andThen` parse
-      `andThen` findWitness
 
-  return $ getFirst $ foldMap First candidates
+
+checkWitnessIntegrity :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Witness fct cap -> Bool
+checkWitnessIntegrity UCAN.UCAN{ claims = ucanClaims } = \case
+  WitnessParenthood{..} ->
+    -- parenthood
+    originator == UCAN.sender ucanClaims
+    -- Capability integrity
+    && any (== capability) (UCAN.attenuation ucanClaims)
+    -- Time bounds
+    && expiration <= UCAN.expiration ucanClaims
+    && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
+
+  WitnessDelegation{ proof = UCAN.UCAN{ claims = proofClaims }, .. } ->
+    -- Proof integrity
+         UCAN.sender ucanClaims
+    == UCAN.receiver proofClaims
+    -- Capability integrity
+    && any (== capability) (UCAN.attenuation ucanClaims)
+    -- Delegation ability
+    && any (`canDelegate` capability) (UCAN.attenuation proofClaims)
+    -- Time bounds
+    && expiration <= UCAN.expiration ucanClaims
+    && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
+
+
+checkWitness :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Witness fct cap -> Bool
+checkWitness ucan witness =
+  checkWitnessIntegrity ucan witness
+  && case witness of
+    WitnessDelegation{..} ->
+      checkWitness proof delegation
+
+    _ -> True
