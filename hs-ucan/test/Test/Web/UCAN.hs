@@ -14,7 +14,7 @@ import           Test.Web.UCAN.Example
 
 spec :: Spec
 spec =
-  describe "Web.UCAN" do
+  describe "UCAN" do
     describe "serialization" do
       itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Resource Potency) ->
         JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan

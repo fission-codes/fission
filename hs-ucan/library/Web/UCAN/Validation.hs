@@ -20,7 +20,7 @@ import           Data.Aeson
 import           Control.Monad.Time
 
 import           Crypto.Key.Asymmetric          as Key
-import           Web.DID.Types                  as User
+import           Web.DID.Types                  as DID
 import           Web.SemVer.Types
 
 import           Web.UCAN.Resolver              as Proof
@@ -161,7 +161,7 @@ checkRSA2048Signature (UCAN.RawContent raw) ucan@UCAN {..} (RS256.Signature inne
 
   where
     content = encodeUtf8 raw
-    Claims {sender = User.DID {publicKey}} = claims
+    Claims {sender = DID.Key publicKey} = claims
 
 checkEd25519Signature :: UCAN.RawContent -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkEd25519Signature (UCAN.RawContent raw) ucan@UCAN {..} =
@@ -175,4 +175,4 @@ checkEd25519Signature (UCAN.RawContent raw) ucan@UCAN {..} =
       Left $ UCAN.SignatureError InvalidPublicKey
 
   where
-    Claims {sender = User.DID {publicKey}} = claims
+    Claims {sender = DID.Key publicKey} = claims

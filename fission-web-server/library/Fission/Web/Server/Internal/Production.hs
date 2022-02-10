@@ -42,7 +42,7 @@ import           Fission.Prelude
 
 import           Fission.Internal.App
 import           Fission.Time
-import           Web.DID.Types
+import           Web.DID.Types                                   as DID
 
 import           Fission.Web.API.Host.Types                      as Server
 import qualified Fission.Web.API.Types                           as Fission
@@ -212,7 +212,7 @@ start middleware runner = do
   now <- currentTime
   cfg@Fission.Server.Config {..} <- ask
 
-  let DID _ serverPK = fissionDID
+  let DID.Key serverPK = fissionDID
 
   logDebug $ displayShow cfg
 

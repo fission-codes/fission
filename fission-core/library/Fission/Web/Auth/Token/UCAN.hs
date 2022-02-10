@@ -73,7 +73,7 @@ getRootDID ::
   -> m DID
 getRootDID fallbackPK = \case
   RootCredential ->
-    return $ DID Key fallbackPK
+    return $ DID.Key fallbackPK
 
   Nested _ ucan ->  do
     UCAN {claims = Claims {sender}} <- ensureM $ getRoot ucan
@@ -135,14 +135,8 @@ mkUCAN ::
 mkUCAN receiver senderSK nbf exp facts resource potency proof = UCAN {..}
   where
     sig = signEd25519 header claims senderSK
-
-    sender = DID
-      { publicKey = Key.Ed25519PublicKey $ Ed25519.toPublic senderSK
-      , method    = DID.Key
-      }
-
+    sender = DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic senderSK
     claims = Claims {..}
-
     header = Header
       { typ = UCAN.Typ.JWT
       , alg = Key.Ed25519

@@ -27,7 +27,7 @@ import           Fission.Prelude
 import           Fission.Internal.Fixture.Key.Ed25519      as Fixture.Ed25519
 
 import           Fission.URL.Types
-import           Web.DID.Types
+import           Web.DID.Types                             as DID
 
 import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote
@@ -109,10 +109,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
-    fissionDID = DID
-      { publicKey = Fixture.Ed25519.pk
-      , method    = Key
-      }
+    fissionDID = DID.Key $ Fixture.Ed25519.pk
 
     environment = LocalDev
 
@@ -191,10 +188,7 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar mach
     herokuID       = Hku.ID       "HEROKU_ID"
     herokuPassword = Hku.Password "HEROKU_PASSWORD"
 
-    fissionDID = DID
-      { publicKey = Fixture.Ed25519.pk
-      , method    = Key
-      }
+    fissionDID = DID.Key $ Fixture.Ed25519.pk
 
     ipfsPath        = "/usr/local/bin/ipfs"
     ipfsURLs        = Partial.fromJust $ nonEmpty [IPFS.URL $ BaseUrl Http "localhost" 5001 ""]

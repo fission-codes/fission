@@ -20,7 +20,7 @@ import qualified Fission.Web.API.Heroku.Auth.Types         as Heroku
 import           Fission.Web.Server.Auth
 import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Authorization.Types
-import           Web.DID.Types
+import           Web.DID.Types                             as DID
 
 import qualified Fission.Test.Web.Server.Auth.Token        as Token
 
@@ -41,7 +41,7 @@ spec =
 
         context "DID auth" do
           it "uses the encapsulated function" do
-            didResult `shouldBe` Right (DID Key Ed25519.pk)
+            didResult `shouldBe` Right (DID.Key Ed25519.pk)
 
         context "heroku auth" do
           it "uses the encapsulated function" do

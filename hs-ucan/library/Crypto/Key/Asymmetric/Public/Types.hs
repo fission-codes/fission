@@ -24,7 +24,9 @@ data Public
   deriving Eq
 
 instance Show Public where
-  show = Text.unpack . textDisplay
+  show = \case
+    Ed25519PublicKey ed -> Text.unpack $ textDisplay ed
+    RSAPublicKey     pk -> show pk
 
 instance Display Public where
   textDisplay (Ed25519PublicKey pk) = textDisplay pk
