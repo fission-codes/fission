@@ -1,6 +1,7 @@
 -- | Helper tasks for support
 module Fission.Web.Server.Internal.Tasks
   ( deleteByUsername
+  , syncDNS
   , ensureAllPinned
   , pinAllToCluster
   , getAllDBPins
@@ -11,26 +12,34 @@ import qualified RIO.List                                  as List
 import qualified RIO.Map                                   as Map
 import qualified RIO.Text                                  as Text
 
-import           Database.Esqueleto.Legacy
+import           Database.Esqueleto.Legacy                 as SQL
 
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Client                       as IPFS
 import qualified Network.IPFS.URL.Types                    as IPFS
 
+import           Fission.Prelude
+import qualified PowerDNS.Client                           as PDNS
 import           Servant.API
 import           Servant.Client
 
-import           Fission.Prelude
-
+import           Fission.DNS                               as DNS
+import           Fission.URL                               as URL
 import           Fission.User.Username.Types
-
+import           Fission.Web.Server.App                    as App
+import           Fission.Web.Server.App.Domain             as App.Domain
 import qualified Fission.Web.Server.IPFS.Cluster           as Cluster
+import           Fission.Web.Server.IPFS.DNSLink           as DNSLink
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB
+import           Fission.Web.Server.PowerDNS               as PowerDNS
 import           Fission.Web.Server.Types
 import qualified Fission.Web.Server.User                   as User
 
 import           Fission.Web.Server.Internal.Orphanage.CID ()
+import           Web.DID.Types                             as DID (DID (DID),
+                                                                   Method (Key))
+
 
 deleteByUsername :: Text -> Server ()
 deleteByUsername userNameTxt =
@@ -45,7 +54,71 @@ deleteByUsername userNameTxt =
         Nothing                -> error "User doesn't exist"
 
 ---
+syncDNS :: Server()
+syncDNS = do
+  users <- getUserData
+  apps <- getAppData
+  mapM_ setUserDNS users
+  mapM_ setAppDNS apps
 
+getUserData :: Server [Entity User]
+getUserData = do
+  runDB do
+    select $ from \user -> do
+      where_ $ SQL.isNothing (user ^. UserSecretDigest)
+      return user
+
+getAppData :: Server [(Entity App, Entity AppDomain)]
+getAppData = do
+  runDB do
+    select $ from \(app `InnerJoin` appDomain) -> do
+      SQL.on $ appDomain ^. AppDomainAppId ==. app ^. AppId
+      return (app, appDomain)
+
+setUserDNS :: Entity User -> Server()
+setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = do
+  zoneID <- asks userZoneID
+  domainName <- asks userRootDomain
+  let
+    unSubDom = Subdomain $ textDisplay userUsername
+    url      = URL {domainName, subdomain = Just (Subdomain "_did") <> Just unSubDom}
+    segments = case userPublicKey of
+      Nothing   -> pure ""
+      Just pkey -> DNS.splitRecord $ textDisplay (DID Key pkey)
+  PowerDNS.set PDNS.TXT url (textDisplay zoneID) segments 10 >>= \case
+    Left _ -> return ()
+    Right _ -> do
+      let
+        userUrl = URL
+          { domainName
+          , subdomain = Just . Subdomain $ textDisplay userUsername
+          }
+        userFilesUrl = URL
+          { domainName
+          , subdomain  = Just $ Subdomain (textDisplay userUsername  <> ".files")
+          }
+        userPublic = userFilesUrl `WithPath` ["public"]
+      DNSLink.follow userId userUrl zoneID userPublic >>= \case
+        Left _ -> return ()
+        Right _ -> do
+          DNSLink.set userId userFilesUrl zoneID userDataRoot >>= \case
+            Left _ -> return ()
+            Right _ ->
+              logDebug $ "Successfully updated " <> textDisplay userUsername
+
+setAppDNS :: (Entity App, Entity AppDomain) -> Server()
+setAppDNS (Entity _ App {appOwnerId, appCid}, Entity _ AppDomain {appDomainDomainName, appDomainSubdomain}) = do
+  zoneID     <- asks baseAppZoneID
+  let
+    url = URL
+      { domainName = appDomainDomainName
+      , subdomain = appDomainSubdomain
+      }
+  DNSLink.set appOwnerId url zoneID appCid >>= \case
+    Left _ -> return ()
+    Right _ ->
+      logDebug $ "Successfully updated " <> show appDomainSubdomain
+---
 ensureAllPinned :: Server ()
 ensureAllPinned = do
   cfg         <- ask
