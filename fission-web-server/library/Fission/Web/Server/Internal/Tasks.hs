@@ -18,10 +18,11 @@ import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Client                       as IPFS
 import qualified Network.IPFS.URL.Types                    as IPFS
 
-import           Fission.Prelude
 import qualified PowerDNS.Client                           as PDNS
 import           Servant.API
 import           Servant.Client
+
+import           Fission.Prelude
 
 import           Fission.DNS                               as DNS
 import           Fission.URL                               as URL
@@ -85,7 +86,7 @@ setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = 
     segments =
       case userPublicKey of
         Nothing   -> pure ""
-        Just pkey -> DNS.splitRecord $ textDisplay (DID Key pkey)
+        Just pkey -> DNS.splitRecord $ textDisplay (DID.Key pkey)
 
   PowerDNS.set PDNS.TXT url (textDisplay zoneID) segments 10 >>= \case
     Left _ ->

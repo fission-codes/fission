@@ -8,11 +8,7 @@ import           Control.Monad.Catch                       hiding (finally)
 import           Control.Monad.Except
 
 import qualified RIO.ByteString.Lazy                       as Lazy
-import           RIO.NonEmpty                              as NonEmpty (NonEmpty,
-                                                                        filter,
-                                                                        head,
-                                                                        length,
-                                                                        nonEmpty)
+import qualified RIO.NonEmpty                              as NonEmpty
 import           RIO.NonEmpty.Partial                      as NonEmpty.Partial
 import qualified RIO.Text                                  as Text
 
@@ -29,10 +25,6 @@ import           Network.AWS                               as AWS hiding
                                                                   (Request,
                                                                    Seconds)
 import           Network.AWS.Route53
-
-import           Network.HTTP.Client                       (defaultManagerSettings,
-                                                            newManager)
-import           Network.HTTP.Client.TLS
 
 import           PowerDNS.API.Servers                      (ObjectType (..))
 import           PowerDNS.API.Zones
@@ -104,8 +96,6 @@ import qualified Fission.Key                               as Key
 
 import           Fission.Authorization.ServerDID.Class
 import           Fission.Web.Server.MonadDB
-import           Fission.Web.Server.MonadDB.Class          (MonadDB (..))
-import           Fission.Web.Server.MonadDB.Types          (Transaction)
 
 import           Fission.Web.Server.App.Content            as App.Content
 import           Fission.Web.Server.App.Domain             as App.Domain
@@ -457,7 +447,7 @@ instance IPFS.MonadRemoteIPFS Server where
             return $ Right val'
 
           Left err -> do
-            case nonEmpty $ NonEmpty.filter (/= IPFS.URL url) remotes of
+            case NonEmpty.nonEmpty $ NonEmpty.filter (/= IPFS.URL url) remotes of
               Nothing -> do
                 logError @Text "🌌🚨 All remote IPFS nodes failed"
                 return $ Left err
