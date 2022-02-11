@@ -9,8 +9,8 @@ module Test.Web.UCAN.DelegationSemantics
 
 import           Test.Web.UCAN.Prelude
 
-import           Web.UCAN.Proof.Class
-import           Web.UCAN.Proof.Properties
+import           Web.UCAN.Witness.Class
+import           Web.UCAN.Witness.Properties
 
 
 partialOrderProperties ::

@@ -1,11 +1,11 @@
-module Web.UCAN.Proof.Properties
+module Web.UCAN.Witness.Properties
   ( reflexive
   , antisymmetric
   , transitive
   ) where
 
 import           RIO
-import           Web.UCAN.Proof.Class
+import           Web.UCAN.Witness.Class
 
 
 reflexive :: DelegationSemantics res => res -> Bool

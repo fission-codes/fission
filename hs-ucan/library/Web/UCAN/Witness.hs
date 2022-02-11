@@ -1,18 +1,18 @@
-module Web.UCAN.Proof
+module Web.UCAN.Witness
   ( delegatedInBounds
   , signaturesMatch
   , containsFact
 
   -- * Reexport
 
-  , module Web.UCAN.Proof.Error
-  , module Web.UCAN.Proof.Class
+  , module Web.UCAN.Witness.Error
+  , module Web.UCAN.Witness.Class
   ) where
 
 import           RIO                  hiding (exp)
 
-import           Web.UCAN.Proof.Class
-import           Web.UCAN.Proof.Error
+import           Web.UCAN.Witness.Class
+import           Web.UCAN.Witness.Error
 import           Web.UCAN.Types       as UCAN
 
 
@@ -21,12 +21,12 @@ delegatedInBounds ::
   => UCAN fct cap
   -> UCAN fct cap
   -> Either Error (UCAN fct cap)
-delegatedInBounds  ucan prfUCAN = do
-  signaturesMatch  ucan prfUCAN
+delegatedInBounds ucan witness = do
+  signaturesMatch ucan witness
 
 signaturesMatch :: UCAN fct cap -> UCAN fct cap -> Either Error (UCAN fct cap)
-signaturesMatch ucan prfUCAN =
-  if (ucan & claims & sender) == (prfUCAN & claims & receiver)
+signaturesMatch ucan witness =
+  if (ucan & claims & sender) == (witness & claims & receiver)
     then Right ucan
     else Left InvalidSignatureChain
 

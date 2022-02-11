@@ -11,7 +11,7 @@ import           RIO
 
 import           RIO.Time
 import           Web.DID.Types
-import           Web.UCAN.Proof
+import           Web.UCAN.Witness
 import           Web.UCAN.Resolver.Class
 import           Web.UCAN.Types          (UCAN)
 import qualified Web.UCAN.Types          as UCAN
@@ -78,7 +78,7 @@ tryDelegating ::
   , Resolver m
   )
   => cap
-  -> [UCAN.Proof]
+  -> [UCAN.Witness]
   -> m [Witness fct cap]
 tryDelegating cap fromProofs = do
   candidates <- fromProofs
@@ -95,7 +95,7 @@ tryDelegating cap fromProofs = do
 
   return $ concat candidates
   where
-    resolveToken :: UCAN.Proof -> m (Maybe Text)
+    resolveToken :: UCAN.Witness -> m (Maybe Text)
     resolveToken = \case
       UCAN.Nested text -> return $ Just text
       UCAN.Reference cid -> do
