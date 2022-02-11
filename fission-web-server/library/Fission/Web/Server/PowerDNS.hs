@@ -8,6 +8,4 @@ import           Fission.Web.Server.PowerDNS.Class
 import           PowerDNS.Client                   as PDNS
 
 getValuesFromRecords :: [SearchResult] -> Maybe (NonEmpty Text)
-getValuesFromRecords rrs = case rrs of
-  []      -> Nothing
-  (h : _) -> Just . pure $ PDNS.sr_content h
+getValuesFromRecords rrs = nonEmpty (PDNS.sr_content <$> rrs)

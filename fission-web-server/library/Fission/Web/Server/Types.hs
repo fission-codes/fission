@@ -34,7 +34,7 @@ import           Network.HTTP.Client                       (defaultManagerSettin
                                                             newManager)
 import           Network.HTTP.Client.TLS
 
-import           PowerDNS.API.Servers                      (ObjectType (TyRecord))
+import           PowerDNS.API.Servers                      (ObjectType (..))
 import           PowerDNS.API.Zones
 import qualified PowerDNS.Client                           as PDNS
 
@@ -165,7 +165,9 @@ instance MonadPowerDNS Server where
       , " to "
       , displayShow contents
       ]
+
     clientEnv <- pdnsClientEnv
+
     let
       rrset =
         RRSet { rrset_name = Text.append (textDisplay url) "."
@@ -175,15 +177,18 @@ instance MonadPowerDNS Server where
               , rrset_records = Just $ formatRecords contents
               , rrset_comments = Nothing
               }
+
       rrsets = RRSets [rrset]
 
     liftIO (runClientM (PDNS.updateRecords "localhost" zoneTxt rrsets) clientEnv) >>= \case
       Left err -> do
         logWarn @Text "PowerDNS.set failed"
         return . Left $ Web.Error.toServerError err
+
       Right good -> do
         logDebug @Text "PowerDNS.set succeeded"
         return $ Right good
+
     where
       formatRecords :: NonEmpty Text -> [Record]
       formatRecords values =
@@ -191,7 +196,9 @@ instance MonadPowerDNS Server where
 
       newRecord :: Text -> Record
       newRecord content =
-        Record { record_content = format recType content, record_disabled = False }
+        Record { record_content  = format recType content
+               , record_disabled = False
+               }
 
       format :: PowerDNS.API.Zones.RecordType -> Text -> Text
       format TXT = UTF8.wrapIn "\""
@@ -200,11 +207,12 @@ instance MonadPowerDNS Server where
   get url _ = do
     logDebug $ "PowerDNS.get for " <> textDisplay url
     clientEnv <- pdnsClientEnv
-    resp <- liftIO $ runClientM (PDNS.search "localhost" (textDisplay url) 1 (Just TyRecord)) clientEnv
+    resp      <- liftIO $ runClientM (PDNS.search "localhost" (textDisplay url) 1 (Just TyRecord)) clientEnv
     case resp of
       Left err -> do
         logWarn @Text "PowerDNS.get failed"
         return . Left $ Web.Error.toServerError err
+
       Right good -> do
         logDebug @Text "PowerDNS.get succeeded"
         return $ Right good
@@ -214,9 +222,11 @@ instance MonadPowerDNS Server where
     PowerDNS.get url zoneID >>= \case
       Left err -> do
         return $ Left err
+
       Right searchResults -> do
         mapM_ removeResult searchResults
         return $ Right ()
+
     where
       removeResult :: PDNS.SearchResult -> Server ()
       removeResult searchResult = do
@@ -231,9 +241,10 @@ instance MonadPowerDNS Server where
                   , rrset_records = Nothing
                   , rrset_comments = Nothing
                   }
+
           rrsets = RRSets [rrset]
-        _ <- liftIO $ runClientM (PDNS.updateRecords "localhost" zoneID rrsets) clientEnv
-        return ()
+
+        void . liftIO $ runClientM (PDNS.updateRecords "localhost" zoneID rrsets) clientEnv
 
       convertType :: Text -> PowerDNS.API.Zones.RecordType
       convertType "CNAME" = CNAME
@@ -244,8 +255,8 @@ pdnsClientEnv :: (MonadReader Config m, MonadThrow m) => m ClientEnv
 pdnsClientEnv = do
   apiUrl <- asks pdnsURL
   apiKey <- asks pdnsApiKey
-  mgr <- asks pdnsHttpManager
-  uri <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
+  mgr    <- asks pdnsHttpManager
+  uri    <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
   return $ PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
 
 instance MonadAWS Server where
@@ -255,7 +266,6 @@ instance MonadAWS Server where
     env       <- newEnv $ FromKeys accessKey secretKey
 
     runResourceT $ runAWS env awsAction
-
 
 instance MonadRoute53 Server where
   clear url (ZoneID zoneTxt) = do
@@ -570,14 +580,11 @@ instance Server.DID.Publicize Server where
     let
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
-
       txtRecordValue = textDisplay $ DID.Oldstyle did
 
-    PowerDNS.set TXT txtRecordURL (textDisplay zoneID) (pure txtRecordValue) 10 <&> \case
-      Left err ->
-        Left err
-      Right _ -> do
-        ok
+    PowerDNS.set TXT txtRecordURL (textDisplay zoneID) (pure txtRecordValue) 10 >>= \case
+      Left err -> return $ Left err
+      Right _  -> return ok
 
 instance User.Retriever Server where
   getById            userId   = runDB $ User.getById userId

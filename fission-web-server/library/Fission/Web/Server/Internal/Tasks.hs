@@ -35,8 +35,7 @@ import           Fission.Web.Server.Types
 import qualified Fission.Web.Server.User                   as User
 
 import           Fission.Web.Server.Internal.Orphanage.CID ()
-import           Web.DID.Types                             as DID (DID (DID),
-                                                                   Method (Key))
+import qualified Web.DID.Types                             as DID
 
 
 deleteByUsername :: Text -> Server ()
@@ -52,6 +51,7 @@ deleteByUsername userNameTxt =
         Nothing                -> error "User doesn't exist"
 
 ---
+
 syncDNS :: Server ()
 syncDNS = do
   users <- getUserData
@@ -60,14 +60,14 @@ syncDNS = do
   forM_ apps setAppDNS
 
 getUserData :: Server [Entity User]
-getUserData = do
+getUserData =
   runDB do
     select $ from \user -> do
       where_ $ SQL.isNothing (user ^. UserSecretDigest)
       return user
 
 getAppData :: Server [(Entity App, Entity AppDomain)]
-getAppData = do
+getAppData =
   runDB do
     select $ from \(app `InnerJoin` appDomain) -> do
       SQL.on $ appDomain ^. AppDomainAppId ==. app ^. AppId
@@ -75,40 +75,52 @@ getAppData = do
 
 setUserDNS :: Entity User -> Server ()
 setUserDNS (Entity userId User { userUsername, userPublicKey, userDataRoot }) = do
-  zoneID <- asks userZoneID
+  zoneID     <- asks userZoneID
   domainName <- asks userRootDomain
+
   let
     unSubDom = Subdomain $ textDisplay userUsername
     url      = URL {domainName, subdomain = Just (Subdomain "_did") <> Just unSubDom}
-    segments = case userPublicKey of
-      Nothing   -> pure ""
-      Just pkey -> DNS.splitRecord $ textDisplay (DID Key pkey)
+
+    segments =
+      case userPublicKey of
+        Nothing   -> pure ""
+        Just pkey -> DNS.splitRecord $ textDisplay (DID Key pkey)
 
   PowerDNS.set PDNS.TXT url (textDisplay zoneID) segments 10 >>= \case
-    Left _ -> return ()
+    Left _ ->
+      return ()
+
     Right _ -> do
       let
         userUrl = URL
           { domainName
           , subdomain = Just . Subdomain $ textDisplay userUsername
           }
+
         userFilesUrl = URL
           { domainName
           , subdomain  = Just $ Subdomain (textDisplay userUsername  <> ".files")
           }
+
         userPublic = userFilesUrl `WithPath` ["public"]
 
       DNSLink.follow userId userUrl zoneID userPublic >>= \case
-        Left _ -> return ()
-        Right _ -> do
+        Left _ ->
+          return ()
+
+        Right _ ->
           DNSLink.set userId userFilesUrl zoneID userDataRoot >>= \case
-            Left _ -> return ()
+            Left _ ->
+              return ()
+
             Right _ ->
               logDebug $ "Successfully updated " <> textDisplay userUsername
 
 setAppDNS :: (Entity App, Entity AppDomain) -> Server ()
 setAppDNS (Entity _ App {appOwnerId, appCid}, Entity _ AppDomain {appDomainDomainName, appDomainSubdomain}) = do
-  zoneID     <- asks baseAppZoneID
+  zoneID <- asks baseAppZoneID
+
   let
     url = URL
       { domainName = appDomainDomainName
@@ -116,9 +128,8 @@ setAppDNS (Entity _ App {appOwnerId, appCid}, Entity _ AppDomain {appDomainDomai
       }
 
   DNSLink.set appOwnerId url zoneID appCid >>= \case
-    Left _ -> return ()
-    Right _ ->
-      logDebug $ "Successfully updated " <> show appDomainSubdomain
+    Left  _ -> return ()
+    Right _ -> logDebug $ "Successfully updated " <> show appDomainSubdomain
 
 ---
 

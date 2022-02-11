@@ -15,7 +15,7 @@ import qualified Data.Yaml                                       as YAML
 
 import           Servant
 import           Servant.API.Generic
-import           Servant.Client                                  (Scheme (Http, Https),
+import           Servant.Client                                  (Scheme (..),
                                                                   baseUrlScheme,
                                                                   parseBaseUrl)
 import qualified Servant.Ekg                                     as EKG

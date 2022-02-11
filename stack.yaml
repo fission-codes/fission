@@ -1,4 +1,4 @@
-resolver: lts-18.14
+resolver: lts-18.24
 allow-newer: true # Needed for servant-ekg
 
 packages:
