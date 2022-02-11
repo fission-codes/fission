@@ -101,6 +101,7 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
 
   where
     ipfsHttpManager = httpManager
+    pdnsHttpManager = httpManager
 
     host         = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
@@ -126,6 +127,9 @@ run logFunc dbPool processCtx httpManager tlsManager action = do
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
     awsMockRoute53 = AWS.MockRoute53 True
+
+    pdnsURL        = "SOME_URL"
+    pdnsApiKey     = "SOME_API_KEY"
 
     baseAppDomain  = DomainName "appdomain.com"
 
@@ -175,6 +179,8 @@ mkConfig ::
 mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar machineName = Config {..}
   where
     ipfsHttpManager = httpManager
+    pdnsHttpManager = httpManager
+
 
     host = Host $ BaseUrl Https "mycoolapp.io" 443 ""
     liveDriveURL = URL "fission.codes" (Just $ Subdomain "drive")
@@ -199,6 +205,9 @@ mkConfig dbPool processCtx httpManager tlsManager logFunc linkRelayStoreVar mach
     awsAccessKey   = "SOME_AWS_ACCESS_KEY"
     awsSecretKey   = "SOME_AWS_SECRET_KEY"
     awsMockRoute53 = AWS.MockRoute53 True
+
+    pdnsURL        = "DEFAULT_URL"
+    pdnsApiKey     = "DEFAULT_API_KEY"
 
     baseAppDomain  = DomainName "appdomain.com"
 

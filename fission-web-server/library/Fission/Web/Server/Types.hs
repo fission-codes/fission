@@ -8,7 +8,7 @@ import           Control.Monad.Catch                       hiding (finally)
 import           Control.Monad.Except
 
 import qualified RIO.ByteString.Lazy                       as Lazy
-import           RIO.NonEmpty                              as NonEmpty
+import qualified RIO.NonEmpty                              as NonEmpty
 import           RIO.NonEmpty.Partial                      as NonEmpty.Partial
 import qualified RIO.Text                                  as Text
 
@@ -25,6 +25,11 @@ import           Network.AWS                               as AWS hiding
                                                                   (Request,
                                                                    Seconds)
 import           Network.AWS.Route53
+
+import           PowerDNS.API.Servers                      (ObjectType (..))
+import           PowerDNS.API.Zones
+import qualified PowerDNS.Client                           as PDNS
+
 
 import qualified Network.IPFS                              as IPFS
 import qualified Network.IPFS.Add.Error                    as IPFS.Pin
@@ -73,6 +78,7 @@ import           Fission.Web.Server.Heroku.Types           as Heroku
 import           Fission.Web.Server.AWS                    as AWS
 import           Fission.Web.Server.AWS.Route53            as Route53
 import           Fission.Web.Server.Authorization.Types
+import           Fission.Web.Server.PowerDNS               as PowerDNS
 
 import           Fission.Web.Server.Auth                   as Auth
 import qualified Fission.Web.Server.Auth.DID               as Auth.DID
@@ -88,9 +94,8 @@ import qualified Fission.Web.Server.User.Password          as Password
 
 import qualified Fission.Key                               as Key
 
-import           Fission.Web.Server.MonadDB
-
 import           Fission.Authorization.ServerDID.Class
+import           Fission.Web.Server.MonadDB
 
 import           Fission.Web.Server.App.Content            as App.Content
 import           Fission.Web.Server.App.Domain             as App.Domain
@@ -140,6 +145,110 @@ instance MonadDB (Transaction Server) Server where
 instance MonadRelayStore Server where
   getStoreVar = asks linkRelayStoreVar
 
+instance MonadPowerDNS Server where
+  set recType url zoneTxt contents ttl = do
+    logDebug $ mconcat
+      [ "Set DNS "
+      , displayShow recType
+      , " Record "
+      , displayShow url
+      , " to "
+      , displayShow contents
+      ]
+
+    clientEnv <- pdnsClientEnv
+
+    let
+      rrset =
+        RRSet { rrset_name = Text.append (textDisplay url) "."
+              , rrset_type = recType
+              , rrset_ttl = ttl
+              , rrset_changetype = Just Replace
+              , rrset_records = Just $ formatRecords contents
+              , rrset_comments = Nothing
+              }
+
+      rrsets = RRSets [rrset]
+
+    liftIO (runClientM (PDNS.updateRecords "localhost" zoneTxt rrsets) clientEnv) >>= \case
+      Left err -> do
+        logWarn @Text "PowerDNS.set failed"
+        return . Left $ Web.Error.toServerError err
+
+      Right good -> do
+        logDebug @Text "PowerDNS.set succeeded"
+        return $ Right good
+
+    where
+      formatRecords :: NonEmpty Text -> [Record]
+      formatRecords values =
+        newRecord <$> toList values
+
+      newRecord :: Text -> Record
+      newRecord content =
+        Record { record_content  = format recType content
+               , record_disabled = False
+               }
+
+      format :: PowerDNS.API.Zones.RecordType -> Text -> Text
+      format TXT = UTF8.wrapIn "\""
+      format _   = identity
+
+  get url _ = do
+    logDebug $ "PowerDNS.get for " <> textDisplay url
+    clientEnv <- pdnsClientEnv
+    resp      <- liftIO $ runClientM (PDNS.search "localhost" (textDisplay url) 1 (Just TyRecord)) clientEnv
+    case resp of
+      Left err -> do
+        logWarn @Text "PowerDNS.get failed"
+        return . Left $ Web.Error.toServerError err
+
+      Right good -> do
+        logDebug @Text "PowerDNS.get succeeded"
+        return $ Right good
+
+  clear url zoneID = do
+    logDebug $ "PowerDNS.clear " <> textDisplay url
+    PowerDNS.get url zoneID >>= \case
+      Left err -> do
+        return $ Left err
+
+      Right searchResults -> do
+        mapM_ removeResult searchResults
+        return $ Right ()
+
+    where
+      removeResult :: PDNS.SearchResult -> Server ()
+      removeResult searchResult = do
+        clientEnv <- pdnsClientEnv
+        let
+          recType = convertType $ PDNS.sr_type searchResult
+          rrset =
+            RRSet { rrset_name = PDNS.sr_name searchResult
+                  , rrset_type = recType
+                  , rrset_ttl = 10
+                  , rrset_changetype = Just PowerDNS.API.Zones.Delete
+                  , rrset_records = Nothing
+                  , rrset_comments = Nothing
+                  }
+
+          rrsets = RRSets [rrset]
+
+        void . liftIO $ runClientM (PDNS.updateRecords "localhost" zoneID rrsets) clientEnv
+
+      convertType :: Text -> PowerDNS.API.Zones.RecordType
+      convertType "CNAME" = CNAME
+      convertType "TXT"   = TXT
+      convertType _       = PowerDNS.API.Zones.A
+
+pdnsClientEnv :: (MonadReader Config m, MonadThrow m) => m ClientEnv
+pdnsClientEnv = do
+  apiUrl <- asks pdnsURL
+  apiKey <- asks pdnsApiKey
+  mgr    <- asks pdnsHttpManager
+  uri    <- parseBaseUrl $ Text.unpack (textDisplay apiUrl)
+  return $ PDNS.applyXApiKey (textDisplay apiKey) (mkClientEnv mgr uri)
+
 instance MonadAWS Server where
   liftAWS awsAction = do
     accessKey <- asks awsAccessKey
@@ -182,7 +291,7 @@ instance MonadRoute53 Server where
       -- | Create the AWS change request for Route53
       createChangeRequest zoneID recordSet = do
         let
-          batch  = changeBatch . pure $ change Delete recordSet
+          batch  = changeBatch . pure $ change Network.AWS.Route53.Delete recordSet
 
         return $ changeResourceRecordSets (ResourceId zoneID) batch
 
@@ -229,7 +338,7 @@ instance MonadRoute53 Server where
           |> rrsTTL ?~ ttl
           |> rrsResourceRecords ?~ (resourceRecord . format recType <$> values)
 
-      format :: RecordType -> Text -> Text
+      format :: Network.AWS.Route53.RecordType -> Text -> Text
       format Txt = UTF8.wrapIn "\""
       format _   = identity
 
@@ -272,12 +381,12 @@ instance MonadWNFS Server where
         , subdomain  = Just . URL.Subdomain $ "_dnslink." <> textDisplay username <> ".files"
         }
 
-    Route53.get url zoneID >>= \case
+    PowerDNS.get url (textDisplay zoneID) >>= \case
       Left err ->
         return $ Left err
 
-      Right rrs ->
-        case Route53.getValuesFromRecords rrs of
+      Right results ->
+        case PowerDNS.getValuesFromRecords results of
           Nothing   -> return . Left $ Web.Error.toServerError (404 :: Int)
           Just vals -> return $ Right $ extractCID vals
     where
@@ -285,12 +394,12 @@ instance MonadWNFS Server where
 
 instance MonadDNSLink Server where
   set _userId url@URL {..} zoneID (IPFS.CID hash) = do
-    Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
+    PowerDNS.set CNAME url (textDisplay zoneID) (pure $ textDisplay gateway <> ".") 86400 >>= \case
       Left err ->
         return $ Error.openLeft err
 
       Right _ ->
-        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
+        PowerDNS.set TXT dnsLinkURL (textDisplay zoneID) (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right url
 
@@ -300,12 +409,12 @@ instance MonadDNSLink Server where
       dnsLink    = "dnslink=/ipfs/" <> hash
 
   follow _userId url@URL {..} zoneID followeeURL = do
-    Route53.set Cname url zoneID (pure $ textDisplay gateway) 86400 >>= \case
+    PowerDNS.set CNAME url (textDisplay zoneID) (pure $ Text.append (textDisplay gateway) ".") 86400 >>= \case
       Left err ->
         return $ Error.openLeft err
 
       Right _ ->
-        Route53.set Txt dnsLinkURL zoneID (pure dnsLink) 10 <&> \case
+        PowerDNS.set TXT dnsLinkURL (textDisplay zoneID) (pure dnsLink) 10 <&> \case
           Left err -> Error.openLeft err
           Right _  -> Right ()
 
@@ -338,7 +447,7 @@ instance IPFS.MonadRemoteIPFS Server where
             return $ Right val'
 
           Left err -> do
-            case nonEmpty $ NonEmpty.filter (/= IPFS.URL url) remotes of
+            case NonEmpty.nonEmpty $ NonEmpty.filter (/= IPFS.URL url) remotes of
               Nothing -> do
                 logError @Text "🌌🚨 All remote IPFS nodes failed"
                 return $ Left err
@@ -455,39 +564,17 @@ instance ServerDID Server where
 
 instance Server.DID.Publicize Server where
   publicize = do
-    AWS.MockRoute53 mockRoute53 <- asks awsMockRoute53
-
     Host host <- Reflective.getHost
     did       <- getServerDID
     zoneID    <- asks serverZoneID
-
     let
       ourURL         = URL (URL.DomainName . Text.pack $ baseUrlHost host) Nothing
       txtRecordURL   = URL.prefix' (URL.Subdomain "_did") ourURL
-
       txtRecordValue = textDisplay $ DID.Oldstyle did
 
-    if mockRoute53
-      then do
-        logInfo $ mconcat
-          [ "MOCK: Setting DNS setting "
-          , textDisplay txtRecordURL
-          , " to "
-          , txtRecordValue
-          ]
-
-        return ok
-
-      else
-        Route53.set Txt txtRecordURL zoneID (pure txtRecordValue) 10 <&> \case
-          Left err ->
-            Left err
-
-          Right resp -> do
-            let status' = view crrsrsResponseStatus resp
-            if status' < 300
-              then ok
-              else Left $ Web.Error.toServerError status'
+    PowerDNS.set TXT txtRecordURL (textDisplay zoneID) (pure txtRecordValue) 10 >>= \case
+      Left err -> return $ Left err
+      Right _  -> return ok
 
 instance User.Retriever Server where
   getById            userId   = runDB $ User.getById userId
@@ -817,6 +904,7 @@ runUserUpdate updateDB dbValToTxt uID subdomain =
             url      = URL {domainName, subdomain = Just (Subdomain subdomain) <> Just unSubDom}
             segments = DNS.splitRecord $ dbValToTxt dbVal
 
-          Route53.set Txt url zoneID segments 10 >>= \case
+          PowerDNS.set TXT url (textDisplay zoneID) segments 10 >>= \case
             Left serverErr -> return $ Error.openLeft serverErr
             Right _        -> return $ Right dbVal
+

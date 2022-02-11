@@ -1,4 +1,4 @@
-resolver: lts-18.14
+resolver: lts-18.24
 allow-newer: true # Needed for servant-ekg
 
 packages:
@@ -24,6 +24,7 @@ extra-deps:
   - servant-swagger-ui-redoc-0.3.4.1.22.3
   - servant-websockets-2.0.0
   - unliftio-core-0.1.2.0
+  - powerdns-0.2.2
 
   # Waiting for github to make it back into Stackage LTS 18
   - github-0.27
@@ -32,6 +33,6 @@ ghc-options:
   "$everything": -haddock
 
 nix:
-  enable:     true
-  pure:       true
+  enable: true
+  pure: true
   shell-file: shell.nix

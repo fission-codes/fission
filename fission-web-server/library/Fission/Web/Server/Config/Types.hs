@@ -19,6 +19,8 @@ import           Web.DID.Types
 import           Fission.Web.API.Host.Types
 import           Fission.Web.API.Remote                    (Remote)
 
+import qualified Fission.Web.Server.PowerDNS.Types         as PowerDNS
+
 import qualified Fission.Web.Server.AWS.Types              as AWS
 
 import qualified Fission.Web.Server.Heroku.ID.Types        as Heroku
@@ -35,6 +37,7 @@ data Config = Config
   , httpManager                    :: HTTP.Manager
   , tlsManager                     :: HTTP.Manager
   , ipfsHttpManager                :: HTTP.Manager
+  , pdnsHttpManager                :: HTTP.Manager
   , dbPool                         :: Pool SqlBackend
   --
   , ipfsPath                       :: IPFS.BinPath
@@ -48,6 +51,9 @@ data Config = Config
   , awsAccessKey                   :: AWS.AccessKey
   , awsSecretKey                   :: AWS.SecretKey
   , awsMockRoute53                 :: AWS.MockRoute53
+  --
+  , pdnsURL                        :: PowerDNS.URL
+  , pdnsApiKey                     :: PowerDNS.ApiKey
   --
   , baseAppDomain                  :: URL.DomainName
   , baseAppZoneID                  :: AWS.ZoneID
@@ -82,6 +88,7 @@ instance Show Config where
     , "  httpManager                    = **SOME HTTP MANAGER**"
     , "  tlsManager                     = **SOME HTTP/TLS MANAGER**"
     , "  ipfsHttpManager                = **SOME HTTP/TLS MANAGER**"
+    , "  pdnsHttpManager                = **SOME HTTP/TLS MANAGER**"
     , "  dbPool                         = " <> show dbPool
     --
     , "  ipfsPath                       = " <> show ipfsPath

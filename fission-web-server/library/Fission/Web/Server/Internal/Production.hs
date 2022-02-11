@@ -15,6 +15,9 @@ import qualified Data.Yaml                                       as YAML
 
 import           Servant
 import           Servant.API.Generic
+import           Servant.Client                                  (Scheme (..),
+                                                                  baseUrlScheme,
+                                                                  parseBaseUrl)
 import qualified Servant.Ekg                                     as EKG
 
 import qualified System.Metrics                                  as EKG
@@ -69,6 +72,7 @@ import qualified Fission.Web.Server.Sentry                       as Sentry
 import qualified Fission.Web.Server.Environment.AWS.Types        as AWS
 import qualified Fission.Web.Server.Environment.Auth.Types       as Auth
 import           Fission.Web.Server.Environment.IPFS.Types       as IPFS
+import qualified Fission.Web.Server.Environment.PowerDNS.Types   as PowerDNS
 import qualified Fission.Web.Server.Environment.SendInBlue.Types as SendInBlue
 import qualified Fission.Web.Server.Environment.Server.Types     as Server
 import qualified Fission.Web.Server.Environment.Storage.Types    as Storage
@@ -108,6 +112,7 @@ runInProd overrideVerbose action = do
     Storage.Environment    {..} = env |> storage
     WebApp.Environment     {..} = env |> webApp
     SendInBlue.Environment {..} = env |> sendInBlue
+    PowerDNS.Environment   {..} = env |> pdns
 
     herokuID       = Hku.ID       . encodeUtf8 $ Hku.id manifest
     herokuPassword = Hku.Password . encodeUtf8 . Hku.password $ Hku.api manifest
@@ -120,6 +125,9 @@ runInProd overrideVerbose action = do
     awsAccessKey   = accessKey
     awsSecretKey   = secretKey
     awsMockRoute53 = mockRoute53
+
+    pdnsURL    = apiURL
+    pdnsApiKey = apiKey
 
     userZoneID     = baseUserDataZoneID
     userRootDomain = baseUserDataRootDomain
@@ -135,6 +143,7 @@ runInProd overrideVerbose action = do
   putStrLnIO "   🕷️  Setting up HTTP manager"
   putStrLnIO "      🎛️  Configuring..."
 
+  pdnsURI <- parseBaseUrl $ Text.unpack (textDisplay pdnsURL)
   let
     httpSettings = HTTP.defaultManagerSettings
       { HTTP.managerResponseTimeout = HTTP.responseTimeoutMicro clientTimeout
@@ -152,6 +161,11 @@ runInProd overrideVerbose action = do
       , HTTP.managerConnCount       = 1000
       }
 
+    pdnsHttpSettings =
+        case baseUrlScheme pdnsURI of
+          Http  -> HTTP.defaultManagerSettings
+          Https -> HTTP.tlsManagerSettings
+
   putStrLnIO "      📞🌐 Creating base HTTP client manager"
   httpManager <- HTTP.newManager httpSettings
 
@@ -160,6 +174,9 @@ runInProd overrideVerbose action = do
 
   putStrLnIO "      🙈🌐 Creating TLS client manager"
   tlsManager <- HTTP.newManager tlsHttpSettings
+
+  putStrLnIO "      📛🌐 Creating pDNS client manager"
+  pdnsHttpManager <- HTTP.newManager pdnsHttpSettings
 
   putStrLnIO "   💂 Configuring optional Sentry middleware"
   condSentryLogger <- maybe (pure mempty) (Sentry.mkLogger host environment) sentryDSN
