@@ -21,7 +21,7 @@ import           Crypto.Key.Asymmetric          as Key
 import           Web.DID.Types                  as DID
 import           Web.SemVer.Types
 
-import           Web.UCAN.Resolver              as Proof
+import           Web.UCAN.Resolver              as Witness
 
 import           Web.UCAN.Claims.Error
 import           Web.UCAN.Header.Error
@@ -29,7 +29,7 @@ import           Web.UCAN.Signature.Error
 
 import           Web.UCAN                       as UCAN
 import           Web.UCAN.Error                 as UCAN
-import           Web.UCAN.Proof                 as UCAN.Proof
+import           Web.UCAN.Witness               as UCAN.Witness
 
 import           Web.UCAN.Header
 import qualified Web.UCAN.Signature.RS256.Types as RS256
@@ -37,11 +37,11 @@ import           Web.UCAN.Signature.Types       as Signature
 
 
 -- check ::
---   ( Proof.Resolver m
+--   ( Witness.Resolver m
 --   , MonadTime      m
 --   , FromJSON fct
 --   , FromJSON cap
---   , UCAN.Proof.DelegationSemantics cap
+--   , UCAN.Witness.DelegationSemantics cap
 --   )
 --   => DID
 --   -> UCAN fct cap
@@ -58,10 +58,10 @@ import           Web.UCAN.Signature.Types       as Signature
 --         Right _   -> check' rawContent ucan now
 
 -- check' ::
---   ( Proof.Resolver m
+--   ( Witness.Resolver m
 --   , FromJSON fct
 --   , FromJSON cap
---   , UCAN.Proof.DelegationSemantics cap
+--   , UCAN.Witness.DelegationSemantics cap
 --   )
 --   => UCAN fct cap
 --   -> UTCTime
@@ -69,7 +69,7 @@ import           Web.UCAN.Signature.Types       as Signature
 -- check' raw ucan now =
 --   case pureChecks raw ucan of
 --     Left  err -> return $ Left err
---     Right _   -> checkProof now ucan
+--     Right _   -> checkWitness now ucan
 
 pureChecks :: UCAN fct cap -> Either UCAN.Error (UCAN fct cap)
 pureChecks ucan = do
@@ -88,39 +88,39 @@ checkVersion ucan@UCAN { header = UCAN.Header {ucv} } =
     then Right ucan
     else Left $ UCAN.HeaderError UnsupportedVersion
 
--- checkProof ::
---   ( Proof.Resolver m
+-- checkWitness ::
+--   ( Witness.Resolver m
 --   , FromJSON fct
 --   , FromJSON rsc
 --   , FromJSON ptc
---   , UCAN.Proof.DelegationSemantics rsc
---   , UCAN.Proof.DelegationSemantics ptc
+--   , UCAN.Witness.DelegationSemantics rsc
+--   , UCAN.Witness.DelegationSemantics ptc
 --   )
 --   => UTCTime -> UCAN fct rsc ptc -> m (Either UCAN.Error (UCAN fct rsc ptc))
--- checkProof now ucan@UCAN {claims = Claims {proofs}} =
+-- checkWitness now ucan@UCAN {claims = Claims {proofs}} =
 --   case proof of
 --     Reference cid ->
---       Proof.resolve cid >>= \case
+--       Witness.resolve cid >>= \case
 --         Left err ->
---           return . Left . UCAN.ClaimsError . ProofError . UCAN.Proof.ResolverError $ err
+--           return . Left . UCAN.ClaimsError . WitnessError . UCAN.Witness.ResolverError $ err
 
---         Right rawProof -> do
---           case eitherDecode $ decodeUtf8 rawProof of
+--         Right rawWitness -> do
+--           case eitherDecode $ decodeUtf8 rawWitness of
 --             Left _          -> return $ Left UCAN.ParseError
 --             Right proofUCAN ->
---               check' rawProof proofUCAN now <&> \case
+--               check' rawWitness proofUCAN now <&> \case
 --                 Left err -> Left err
 --                 Right _  -> checkDelegate proofUCAN
 
---     Nested rawProof proofUCAN ->
---       check' rawProof proofUCAN now <&> \case
+--     Nested rawWitness proofUCAN ->
+--       check' rawWitness proofUCAN now <&> \case
 --         Left err -> Left err
 --         Right _  -> checkDelegate proofUCAN
 
 --     where
 --       checkDelegate proofUCAN =
---         case UCAN.Proof.delegatedInBounds ucan proofUCAN of
---           Left err -> Left . UCAN.ClaimsError $ ProofError err
+--         case UCAN.Witness.delegatedInBounds ucan proofUCAN of
+--           Left err -> Left . UCAN.ClaimsError $ WitnessError err
 --           Right _  -> Right ucan
 
 checkTime :: UTCTime -> UCAN fct cap -> Either UCAN.Error (UCAN fct cap)

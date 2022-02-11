@@ -1,4 +1,4 @@
-module Web.UCAN.Proof.Error (Error (..)) where
+module Web.UCAN.Witness.Error (Error (..)) where
 
 import           RIO
 

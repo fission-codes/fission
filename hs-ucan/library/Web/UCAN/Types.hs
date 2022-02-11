@@ -2,7 +2,7 @@
 module Web.UCAN.Types
   ( UCAN (..)
   , Claims (..)
-  , Proof  (..)
+  , Witness  (..)
 
   , signEd25519
   , signRS256
@@ -176,7 +176,7 @@ data Claims fct cap = Claims
   , receiver    :: DID
   -- Authorization Target
   , attenuation :: [cap]
-  , proofs      :: [Proof]
+  , proofs      :: [Witness]
   , facts       :: [fct]
   -- Temporal Bounds
   , expiration  :: UTCTime
@@ -213,7 +213,7 @@ instance
     sender      <- arbitrary
     receiver    <- DID.Key <$> arbitrary
     attenuation <- arbitrary
-    proofs      <- map (Nested . textDisplay) <$> arbitraryProofs
+    proofs      <- map (Nested . textDisplay) <$> arbitraryWitnesss
     facts       <- arbitrary
     expiration  <- arbitrary
     notBefore   <- arbitrary
@@ -221,8 +221,8 @@ instance
 
     return Claims {..}
     where
-      arbitraryProofs :: Gen [UCAN fct cap]
-      arbitraryProofs =
+      arbitraryWitnesss :: Gen [UCAN fct cap]
+      arbitraryWitnesss =
         -- try to generate deep rather than wide UCANs
         frequency
           [ (1,  replicateM 2 arbitrary)
@@ -268,21 +268,21 @@ instance
 
 
 -----------
--- Proof --
+-- Witness --
 -----------
 
-data Proof
+data Witness
   = Nested    Text
   | Reference CID
   deriving (Show, Eq)
 
 
-instance Display Proof where
+instance Display Witness where
   display = \case
     Nested raw    -> "Nested "    <> display raw
     Reference cid -> "Reference " <> display cid
 
-instance ToJSON Proof where
+instance ToJSON Witness where
   toJSON = \case
     Reference cid ->
       toJSON cid
@@ -290,10 +290,10 @@ instance ToJSON Proof where
     Nested raw ->
       String raw
 
-instance FromJSON Proof where
+instance FromJSON Witness where
   parseJSON val =
     val
-      & withText "Credential Proof" \txt ->
+      & withText "Credential Witness" \txt ->
         if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
           then pure $ Nested txt
           else Reference <$> parseJSON val

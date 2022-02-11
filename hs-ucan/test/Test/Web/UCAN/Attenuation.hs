@@ -20,3 +20,7 @@ spec =
               _                   -> False
         all isParenthoodWitness witnesses `shouldBe` True
 
+      itsProp' "produces only valid witnesses" \(ucan :: UCAN () Capability) -> do
+        witnesses <- capabilities ucan
+        all (checkWitness ucan) witnesses `shouldBe` True
+

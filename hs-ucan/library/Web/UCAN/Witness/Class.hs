@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Web.UCAN.Proof.Class
+module Web.UCAN.Witness.Class
   ( DelegationSemantics(..)
   , GreaterDelegatesMore(..)
   , SmallerDelegatesMore(..)
@@ -13,10 +13,10 @@ class DelegationSemantics rsc where
   canDelegate :: rsc -> rsc -> Bool
 
 instance DelegationSemantics rsc => DelegationSemantics (Maybe rsc) where
-  Nothing         `canDelegate` Nothing    = True
-  Nothing         `canDelegate` _          = False
-  _               `canDelegate` Nothing    = True
-  (Just rscProof) `canDelegate` (Just rsc) = rscProof `canDelegate` rsc
+  Nothing           `canDelegate` Nothing    = True
+  Nothing           `canDelegate` _          = False
+  _                 `canDelegate` Nothing    = True
+  (Just rscWitness) `canDelegate` (Just rsc) = rscWitness `canDelegate` rsc
 
 -- For deriving via
 
