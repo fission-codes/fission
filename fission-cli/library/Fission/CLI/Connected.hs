@@ -61,6 +61,7 @@ type BaseErrs =
    , SomeException
    , IPFS.UnableToConnect
    , NotRegistered
+   , NotSetup
    , NotFound [IPFS.Peer]
    , NotFound Ed25519.SecretKey
    ]
@@ -164,7 +165,7 @@ mkConnected inCfg ipfsTimeout = do
             proof <- getRootUserProof
             attempt (sendAuthedRequest proof whoAmI) >>= \case
               Left err -> do
-                CLI.Error.put err "Not registered. Please run: fission user login"
+                CLI.Error.put err "Not registered. Please run `fission user login`"
                 raise NotRegistered
 
               Right username -> do

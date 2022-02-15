@@ -7,6 +7,7 @@ module Fission.CLI.Environment
   , getOrRetrievePeers
   , absPath
   , fetchServerDID
+  , alreadySetup
 
   -- * Reexport
 
@@ -15,6 +16,7 @@ module Fission.CLI.Environment
   ) where
 
 import qualified Data.ByteString.Char8         as BS8
+import           Data.Function
 import qualified Data.List.NonEmpty            as NonEmpty
 import qualified Data.Yaml                     as YAML
 
@@ -37,6 +39,7 @@ import           Fission.User.Username.Types
 import           Web.DID.Types
 
 import qualified Fission.CLI.Display.Error     as CLI.Error
+import           Fission.CLI.Error.Types
 import           Fission.CLI.IPFS.Peers        as Peers
 import           Fission.CLI.Key.Store         as KeyStore
 import qualified Fission.CLI.YAML              as YAML
@@ -194,3 +197,21 @@ fetchServerDID fissionURL = do
         Right serverDID -> do
           logDebug $ "DID retrieved " <> textDisplay serverDID
           return serverDID
+
+alreadySetup ::
+  ( MonadRescue      m
+  , MonadLogger      m
+  , MonadIO          m
+  , MonadEnvironment m
+  , m `Raises` YAML.ParseException
+  , m `Raises` NotFound FilePath
+  , m `Raises` NotSetup
+  )
+  => m ()
+alreadySetup =
+  attemptM get \case
+    Left _ ->
+      raise NotSetup
+
+    Right _ ->
+      return ()

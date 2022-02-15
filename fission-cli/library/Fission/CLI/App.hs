@@ -14,6 +14,8 @@ import           Fission.CLI.Connected                   as Connected
 
 import           Fission.CLI.App.Environment             as App.Env
 import qualified Fission.CLI.Display.Error               as CLI.Error
+import           Fission.CLI.Environment                 as CLI.Env hiding (Env)
+import           Fission.CLI.Error.Types
 import qualified Fission.CLI.Handler                     as Handler
 import           Fission.CLI.Handler.Error.Types         (Errs)
 
@@ -44,21 +46,32 @@ interpret baseCfg cmd = do
         run' :: FissionCLI errs Connected.Config () -> FissionCLI errs Base.Config ()
         run' = ensureM . Connected.run baseCfg timeoutSeconds
 
-      attempt App.Env.read >>= \case
-        Right Env {appURL} -> do
-          UTF8.putTextLn $ "App already set up at " <> textDisplay appURL
-          logDebug . textDisplay $ AlreadyExists @URL
-          raise $ AlreadyExists @URL
-
-        Left errs -> do
-          case openUnionMatch @(NotFound FilePath) errs of
-            Just _ -> do
-              logDebug @Text "Setting up new app"
-              run' $ Handler.appInit appDir buildDir mayAppName
-
-            Nothing -> do
-              logError @Text "Problem setting up new app"
+      attempt CLI.Env.alreadySetup >>= \case
+        Left errs ->
+          case openUnionMatch @NotSetup errs of
+            Just err -> do
+              CLI.Error.put err "Fission is installed, but you are not logged in. Please run `fission login`"
               raise errs
+
+            Nothing ->
+              raise errs
+
+        Right _ ->
+          attempt App.Env.read >>= \case
+            Right Env {appURL} -> do
+              UTF8.putTextLn $ "App already set up at " <> textDisplay appURL
+              logDebug . textDisplay $ AlreadyExists @URL
+              raise $ AlreadyExists @URL
+
+            Left errs -> do
+              case openUnionMatch @(NotFound FilePath) errs of
+                Just _ -> do
+                  logDebug @Text "Setting up new app"
+                  run' $ Handler.appInit appDir buildDir mayAppName
+
+                Nothing -> do
+                  logError @Text "Problem setting up new app"
+                  raise errs
 
     Up App.Up.Options {open, watch, updateDNS, updateData, filePath, ipfsCfg = IPFS.Config {..}} -> do
       let
