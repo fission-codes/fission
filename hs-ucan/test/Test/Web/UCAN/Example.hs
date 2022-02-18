@@ -5,10 +5,10 @@ module Test.Web.UCAN.Example
   , Potency(..)
   ) where
 
-import qualified RIO.Text             as Text
+import qualified RIO.Text               as Text
 import           Test.Prelude
 
-import           Web.UCAN.Proof.Class
+import           Web.UCAN.Witness.Class
 
 
 data Capability
