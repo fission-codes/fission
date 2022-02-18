@@ -8,7 +8,7 @@ module Web.UCAN.Capabilities
 
 import           Data.Aeson
 
-import           RIO
+import           RIO                         hiding (exp, to)
 
 import           RIO.Time
 import           Web.DID.Types
@@ -60,43 +60,19 @@ capabilities ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
   viaDelegation <- concatForM proofs \witnessRef ->
     attempt (resolveToken witnessRef) \witnessResolved ->
       attempt (return (parseToken witnessResolved)) \witness -> do
-        -- TODO check witness <-> parent relationship, produce errors
-        witnessCapabilities <- capabilities witness
-        concatForM attenuation \capability ->
-          concatForM witnessCapabilities \case
-            Left _ -> return []
-            Right proof ->
-              let delegationProof = makeDelegationProof capability ucan proof
-              in if checkProofLayer ucan delegationProof then
-                return [Right delegationProof]
-              else
-                return []
+        attempt (return (checkDelegation witness ucan)) \() -> do
+          witnessCapabilities <- capabilities witness
+          concatForM attenuation \cap ->
+            concatForM witnessCapabilities \case
+              Left _ -> return []
+              Right proof ->
+                let delegationProof = makeDelegationProof cap ucan proof
+                in if capability proof `canDelegate` cap then
+                  return [Right delegationProof]
+                else
+                  return []
 
   return (viaParenthood <> viaDelegation)
-
-
-checkProofLayer :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Proof fct cap -> Bool
-checkProofLayer UCAN.UCAN{ claims = ucanClaims } = \case
-  ProofParenthood{..} ->
-    -- parenthood
-    originator == UCAN.sender ucanClaims
-    -- Capability integrity
-    && any (== capability) (UCAN.attenuation ucanClaims)
-    -- Time bounds
-    && expiration <= UCAN.expiration ucanClaims
-    && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
-
-  ProofDelegation{ witness = UCAN.UCAN{ claims = witnessClaims }, .. } ->
-    -- Proof integrity
-         UCAN.sender ucanClaims
-    == UCAN.receiver witnessClaims
-    -- Capability integrity
-    && any (== capability) (UCAN.attenuation ucanClaims)
-    -- Delegation ability
-    && any (`canDelegate` capability) (UCAN.attenuation witnessClaims)
-    -- Time bounds
-    && expiration <= UCAN.expiration ucanClaims
-    && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
 
 
 checkProof :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Proof fct cap -> Bool
@@ -140,6 +116,63 @@ parseToken token =
   case fromJSON $ String token of
     Error e       -> Left $ ParseError e
     Success proof -> Right proof
+
+
+checkProofLayer :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Proof fct cap -> Bool
+checkProofLayer UCAN.UCAN{ claims = ucanClaims } = \case
+  ProofParenthood{..} ->
+    -- parenthood
+    originator == UCAN.sender ucanClaims
+    -- Capability integrity
+    && any (== capability) (UCAN.attenuation ucanClaims)
+    -- Time bounds
+    && expiration <= UCAN.expiration ucanClaims
+    && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
+
+  ProofDelegation{ witness = UCAN.UCAN{ claims = witnessClaims }, .. } ->
+    -- Proof integrity
+         UCAN.sender ucanClaims
+    == UCAN.receiver witnessClaims
+    -- Capability integrity
+    && any (== capability) (UCAN.attenuation ucanClaims)
+    -- Delegation ability
+    && any (`canDelegate` capability) (UCAN.attenuation witnessClaims)
+    -- Time bounds
+    && expiration <= UCAN.expiration ucanClaims
+    && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
+
+
+checkDelegation :: UCAN fct cap -> UCAN fct cap -> Either Error ()
+checkDelegation UCAN.UCAN{ claims = from } UCAN.UCAN{ claims = to } = do
+  () <- senderReceiverMatch
+  () <- expirationBeforeNotBefore
+  () <- notBeforeAfterExpiration
+  return ()
+  where
+    receiver = UCAN.receiver from
+    sender = UCAN.sender to
+
+    senderReceiverMatch =
+      if sender == receiver then
+        Right ()
+      else
+        Left (DelegationIssuerAudienceMismatch sender receiver)
+
+    expirationBeforeNotBefore =
+      case (UCAN.expiration from, UCAN.notBefore to) of
+        (exp, Just nbf) | exp <= nbf ->
+          Left $ DelegationNotBeforeWitnessExpired nbf exp
+
+        _ ->
+          Right ()
+
+    notBeforeAfterExpiration =
+      case (UCAN.notBefore from, UCAN.expiration to) of
+        (Just nbf, exp) | nbf >= exp ->
+          Left $ DelegationExpiresAfterNotBefore exp nbf
+
+        _ ->
+          Right ()
 
 
 makeDelegationProof :: cap -> UCAN fct cap -> Proof fct cap -> Proof fct cap
