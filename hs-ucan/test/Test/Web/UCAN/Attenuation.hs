@@ -13,14 +13,18 @@ spec :: Spec
 spec =
   describe "Attenuation" do
     describe "capabilities" do
-      itsProp' "produces parenthood witnesses on UCANs without proofs" \(ucan :: UCAN () Capability) -> do
-        witnesses <- capabilities ucan{ claims = (claims ucan){ proofs = [] } }
+      itsProp' "produces parenthood proofs on UCANs without proofs" \(ucan :: UCAN () Capability) -> do
+        proofs <- capabilities ucan{ claims = (claims ucan){ proofs = [] } }
         let isParenthoodWitness = \case
-              WitnessParenthood{} -> True
-              _                   -> False
-        all isParenthoodWitness witnesses `shouldBe` True
+              Right ProofParenthood{} -> True
+              _                       -> False
+        all isParenthoodWitness proofs `shouldBe` True
 
-      itsProp' "produces only valid witnesses" \(ucan :: UCAN () Capability) -> do
-        witnesses <- capabilities ucan
-        all (checkWitness ucan) witnesses `shouldBe` True
+      itsProp' "produces only valid proofs" \(ucan :: UCAN () Capability) -> do
+        proofs <- capabilities ucan
+        all
+          (\case
+            Right proof -> checkProof ucan proof
+            Left _      -> True
+          ) proofs `shouldBe` True
 

@@ -5,4 +5,4 @@ import           Test.Prelude
 import           Web.UCAN.Resolver
 
 instance Resolver IO where
-  resolve _ = return $ Left $ InvalidJWT ""
+  resolve _ = return $ Left undefined
