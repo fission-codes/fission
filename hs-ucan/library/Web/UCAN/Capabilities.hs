@@ -4,6 +4,7 @@ module Web.UCAN.Capabilities
   , capabilities
   , capabilitiesStream
   , checkProof
+  , originator
   , module Web.UCAN.Capabilities.Error
   ) where
 
@@ -29,7 +30,7 @@ data Proof fct cap
     { capability :: cap
     , expiration :: UTCTime
     , notBefore  :: Maybe UTCTime
-    , originator :: DID
+    , orig       :: DID
     }
   | ProofDelegation
     { capability :: cap
@@ -56,7 +57,10 @@ capabilities ::
   )
   => UCAN fct cap
   -> m [Either Error (Proof fct cap)]
-capabilities = ListT.toReverseList . capabilitiesStream
+capabilities =
+  -- toReverseList because order doesn't really matter
+  -- and this way we get it in the order they're produced
+  ListT.toReverseList . capabilitiesStream
 
 
 capabilitiesStream ::
@@ -74,7 +78,7 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
     viaParenthood :: ListT m (Either Error (Proof fct cap))
     viaParenthood = do
       capability <- ListT.fromFoldable attenuation
-      return $ Right ProofParenthood { originator = sender, .. }
+      return $ Right ProofParenthood { orig = sender, .. }
 
   viaParenthood <|> do
     witnessRef <- ListT.fromFoldable proofs
@@ -99,6 +103,11 @@ checkProof ucan proof =
 
     _ -> True
 
+
+originator :: Proof fct cap -> DID
+originator = \case
+  ProofParenthood{..} -> orig
+  ProofDelegation{..} -> originator delegation
 
 
 -- ㊙️
@@ -141,7 +150,7 @@ checkProofLayer :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Proof fc
 checkProofLayer UCAN.UCAN{ claims = ucanClaims } = \case
   ProofParenthood{..} ->
     -- parenthood
-    originator == UCAN.sender ucanClaims
+    orig == UCAN.sender ucanClaims
     -- Capability integrity
     && any (== capability) (UCAN.attenuation ucanClaims)
     -- Time bounds
