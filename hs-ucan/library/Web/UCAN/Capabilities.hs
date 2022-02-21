@@ -2,15 +2,18 @@
 module Web.UCAN.Capabilities
   ( Proof(..)
   , capabilities
+  , capabilitiesStream
   , checkProof
   , module Web.UCAN.Capabilities.Error
   ) where
 
 import           Data.Aeson
 
+import           ListT                       (ListT)
+import qualified ListT
 import           RIO                         hiding (exp, to)
-
 import           RIO.Time
+
 import           Web.DID.Types
 import           Web.UCAN.Resolver.Class
 import           Web.UCAN.Types              (UCAN)
@@ -53,26 +56,38 @@ capabilities ::
   )
   => UCAN fct cap
   -> m [Either Error (Proof fct cap)]
-capabilities ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
-  let viaParenthood = attenuation & map \capability ->
-        Right ProofParenthood { originator = sender, .. }
+capabilities = ListT.toReverseList . capabilitiesStream
 
-  viaDelegation <- concatForM proofs \witnessRef ->
-    attempt (resolveToken witnessRef) \witnessResolved ->
-      attempt (return (parseToken witnessResolved)) \witness -> do
-        attempt (return (checkDelegation witness ucan)) \() -> do
-          witnessCapabilities <- capabilities witness
-          concatForM attenuation \cap ->
-            concatForM witnessCapabilities \case
-              Left _ -> return []
-              Right proof ->
-                let delegationProof = makeDelegationProof cap ucan proof
-                in if capability proof `canDelegate` cap then
-                  return [Right delegationProof]
-                else
-                  return []
 
-  return (viaParenthood <> viaDelegation)
+capabilitiesStream ::
+  forall cap fct m.
+  ( DelegationSemantics cap
+  , Eq cap
+  , FromJSON fct
+  , FromJSON cap
+  , Resolver m
+  )
+  => UCAN fct cap
+  -> ListT m (Either Error (Proof fct cap))
+capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
+  let
+    viaParenthood :: ListT m (Either Error (Proof fct cap))
+    viaParenthood = do
+      capability <- ListT.fromFoldable attenuation
+      return $ Right ProofParenthood { originator = sender, .. }
+
+  viaParenthood <|> do
+    witnessRef <- ListT.fromFoldable proofs
+    liftAttempt (resolveToken witnessRef) \witnessResolved ->
+      attempt (parseToken witnessResolved) \witness -> do
+        attempt (checkDelegation witness ucan) \() -> do
+          cap <- ListT.fromFoldable attenuation
+          capabilitiesStream witness >>= \case
+            Left e -> return $ Left e
+            Right proof -> do
+              let delegationProof = makeDelegationProof cap ucan proof
+              guard $ capability proof `canDelegate` cap
+              return $ Right delegationProof
 
 
 checkProof :: (DelegationSemantics cap, Eq cap) => UCAN fct cap -> Proof fct cap -> Bool
@@ -89,16 +104,20 @@ checkProof ucan proof =
 -- ㊙️
 
 
--- TODO: Make more efficient, don't traverse twice
-concatForM :: Monad m => [a] -> (a -> m [b]) -> m [b]
-concatForM ls f = concat <$> mapM f ls
-
-
-attempt :: Monad m => m (Either a b) -> (b -> m [Either a c]) -> m [Either a c]
-attempt action f = do
-  action >>= \case
+-- | Either return the error from the action as a single element in the stream
+--   or take that element and return another stream of values
+liftAttempt :: Monad m => m (Either e a) -> (a -> ListT m (Either e b)) -> ListT m (Either e b)
+liftAttempt action f =
+  lift action >>= \case
     Right a -> f a
-    Left e  -> return [Left e]
+    Left e  -> return (Left e)
+
+
+attempt :: Monad m => Either e a -> (a -> ListT m (Either e b)) -> ListT m (Either e b)
+attempt failable f =
+  case failable of
+    Right a -> f a
+    Left e  -> return (Left e)
 
 
 resolveToken :: Resolver m => UCAN.Witness -> m (Either Error Text)
