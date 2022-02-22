@@ -4,7 +4,7 @@ module Test.Web.UCAN.DelegationSemantics
   ( reflexive
   , antisymmetric
   , transitive
-  , partialOrderProperties
+  , itHasPartialOrderProperties
   ) where
 
 import           Test.Web.UCAN.Prelude
@@ -13,7 +13,7 @@ import           Web.UCAN.Witness.Class
 import           Web.UCAN.Witness.Properties
 
 
-partialOrderProperties ::
+itHasPartialOrderProperties ::
   forall res .
   ( Eq res
   , DelegationSemantics res
@@ -21,7 +21,7 @@ partialOrderProperties ::
   , Show res
   )
   => Spec
-partialOrderProperties = do
+itHasPartialOrderProperties = do
   describe "has partial order properties on DelegationSemantics" do
 
     itsProp' "x canDelegate x" $

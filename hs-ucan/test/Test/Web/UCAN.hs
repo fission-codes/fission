@@ -41,16 +41,16 @@ spec =
 
     describe "DelegationSemantics" do
       describe "Capability" do
-        DelegationSemantics.partialOrderProperties @Capability
+        DelegationSemantics.itHasPartialOrderProperties @Capability
 
       describe "Resource" do
-        DelegationSemantics.partialOrderProperties @Resource
+        DelegationSemantics.itHasPartialOrderProperties @Resource
 
       describe "Potency" do
-        DelegationSemantics.partialOrderProperties @Potency
+        DelegationSemantics.itHasPartialOrderProperties @Potency
 
       describe "Maybe _" do
-        DelegationSemantics.partialOrderProperties @(Maybe Potency)
+        DelegationSemantics.itHasPartialOrderProperties @(Maybe Potency)
 
 
 isValidChar :: Word8 -> Bool
