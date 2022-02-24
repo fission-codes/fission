@@ -587,4 +587,5 @@ MigrationBackup/
 
 # End of https://www.gitignore.io/api/vim,emacs,sublimetext,visualstudio
 
-
+fission-web-server/data/
+fission-web-server/.env
