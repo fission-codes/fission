@@ -27,6 +27,14 @@ services:
       - "53:53"
       - "53:53/udp"
       - "8082:8082" # HTTP API for the recursor
+  ipfs:
+    image: ipfs/go-ipfs:v0.11.0
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ./data/ipfs:/data/ipfs
 networks:
   default:
     driver: bridge
