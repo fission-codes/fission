@@ -86,6 +86,10 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
       attempt (parseToken witnessResolved) \witness -> do
         attempt (checkDelegation witness ucan) \() -> do
           cap <- ListT.fromFoldable attenuation
+          -- v0.8.1:
+          -- If cap is something like prf:x, thent get prf:x and essentially replace cap with each of the caps in the prf(s)
+          -- If cap is something like as:<did>:* then check that proofs also contain either as:<did>:* or my:* and the issuer matches
+          -- If cap is anything else, just do the normal canDelegate thing.
           capabilitiesStream witness >>= \case
             Left e -> return $ Left e
             Right proof -> do
