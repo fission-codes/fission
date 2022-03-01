@@ -29,6 +29,11 @@ import qualified Data.Aeson.Types                              as JSON
 import qualified Data.ByteString.Base64.URL                    as BS.B64.URL
 import qualified Data.Text.Encoding.Base64.URL                 as Text.B64.URL
 
+import           Text.URI                                      (URI)
+import qualified Text.URI                                      as URI
+
+import qualified Data.Attoparsec.Text                          as Parse
+
 import           Network.IPFS.CID.Types
 
 import           Control.Monad                                 (replicateM)
@@ -48,8 +53,9 @@ import qualified Crypto.Key.Asymmetric.Algorithm.Types         as Algorithm
 
 import           Web.DID.Types                                 as DID
 
+import           Web.SemVer.Types
 import qualified Web.UCAN.Header.Typ.Types                     as Typ
-import           Web.UCAN.Header.Types
+import           Web.UCAN.Witness.Class
 
 import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
@@ -63,31 +69,33 @@ import qualified Web.UCAN.Internal.UTF8                        as UTF8
 
 -- Reexports
 
-import           Web.SemVer.Types
+import           Web.UCAN.Header.Types
 import           Web.UCAN.RawContent
 
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
 --     and some specifics (claims, etc) for Fission's use case
-data UCAN fct cap = UCAN
+data UCAN fct res abl = UCAN
   { header     :: Header
-  , claims     :: Claims fct cap
+  , claims     :: Claims fct res abl
   , signedData :: RawContent
   , signature  :: Signature.Signature
-  } deriving (Show, Eq, Functor)
+  } deriving (Show, Eq)
 
 
-instance Display (UCAN fct cap) where
+instance Display (UCAN fct res abl) where
   textDisplay UCAN{..} =
     textDisplay signedData <> "." <> textDisplay signature
 
 
 instance
   ( Arbitrary fct
-  , Arbitrary cap
+  , Arbitrary res
+  , Arbitrary abl
   , ToJSON fct
-  , ToJSON cap
-  ) => Arbitrary (UCAN fct cap) where
+  , Display res
+  , Display abl
+  ) => Arbitrary (UCAN fct res abl) where
   arbitrary = do
     algorithm <- elements [Algorithm.RSA2048, Algorithm.Ed25519]
     (pk, sk) <- case algorithm of
@@ -114,11 +122,12 @@ instance
 
 instance
   ( ToJSON fct
-  , ToJSON cap
-  ) => ToJSON (UCAN fct cap) where
+  , Display res
+  , Display abl
+  ) => ToJSON (UCAN fct res abl) where
   toJSON UCAN {..} = String $ content <> "." <> textDisplay signature
     where
-      content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 claims
+      content = decodeUtf8Lenient $ encodeB64 header <> "." <> encodeB64 (jsonFromClaims claims)
 
       encodeB64 jsonable =
         jsonable
@@ -130,8 +139,9 @@ instance
 
 instance
   ( FromJSON fct
-  , FromJSON cap
-  ) => FromJSON (UCAN fct cap) where
+  , FromJSON res
+  , FromJSON abl
+  ) => FromJSON (UCAN fct res abl) where
   parseJSON = withText "UCAN.Token" \txt ->
     case Text.split (== '.') txt of
       [rawHeader, rawClaims, rawSig] -> do
@@ -157,8 +167,9 @@ instance
 
 instance
   ( ToJSON fct
-  , ToJSON cap
-  ) => Servant.ToHttpApiData (UCAN fct cap) where
+  , Display res
+  , Display abl
+  ) => Servant.ToHttpApiData (UCAN fct res abl) where
   toUrlPiece ucan =
     ucan
       & encode
@@ -170,24 +181,24 @@ instance
 -- Claims --
 ------------
 
-data Claims fct cap = Claims
+data Claims fct cap abl = Claims
   -- Dramatis Personae
   { sender      :: DID
   , receiver    :: DID
   -- Authorization Target
-  , attenuation :: [cap]
+  , attenuation :: [Capability cap abl]
   , proofs      :: [Witness]
   , facts       :: [fct]
   -- Temporal Bounds
   , expiration  :: UTCTime
   , notBefore   :: Maybe UTCTime
   , nonce       :: Maybe Nonce
-  } deriving (Show, Functor)
+  } deriving (Show)
 
-instance (Show fct, Show cap) => Display (Claims fct cap) where
+instance (Show fct, Show cap, Show abl) => Display (Claims fct cap abl) where
   textDisplay = Text.pack . show
 
-instance (Eq fct, Eq cap) => Eq (Claims fct cap) where
+instance (Eq fct, Eq cap, Eq abl) => Eq (Claims fct cap abl) where
   jwtA == jwtB = eqWho && eqAuth && eqTime && eqFacts && eqNonce
     where
       eqWho = sender jwtA == sender   jwtB
@@ -205,10 +216,12 @@ instance (Eq fct, Eq cap) => Eq (Claims fct cap) where
 
 instance
   ( Arbitrary fct
-  , Arbitrary cap
+  , Arbitrary res
+  , Arbitrary abl
   , ToJSON fct
-  , ToJSON cap
-  ) => Arbitrary (Claims fct cap) where
+  , Display res
+  , Display abl
+  ) => Arbitrary (Claims fct res abl) where
   arbitrary = do
     sender      <- arbitrary
     receiver    <- DID.Key <$> arbitrary
@@ -221,7 +234,7 @@ instance
 
     return Claims {..}
     where
-      arbitraryWitnesss :: Gen [UCAN fct cap]
+      arbitraryWitnesss :: Gen [UCAN fct res abl]
       arbitraryWitnesss =
         -- try to generate deep rather than wide UCANs
         frequency
@@ -230,16 +243,17 @@ instance
           , (20, replicateM 0 arbitrary)
           ]
 
-instance
+jsonFromClaims ::
   ( ToJSON fct
-  , ToJSON cap
-  ) => ToJSON (Claims fct cap) where
-  toJSON Claims {..} = object
+  , Display res
+  , Display abl
+  ) => Claims fct res abl -> JSON.Value
+jsonFromClaims Claims {..} = object
     [ "iss" .= sender
     , "aud" .= receiver
     --
     , "prf" .= proofs
-    , "att" .= attenuation
+    , "att" .= toJSON (map (jsonFromCapability sender) attenuation)
     , "fct" .= facts
     --
     , "exp" .=      toSeconds expiration
@@ -250,12 +264,13 @@ instance
 instance
   ( FromJSON fct
   , FromJSON cap
-  ) => FromJSON (Claims fct cap) where
+  , FromJSON abl
+  ) => FromJSON (Claims fct cap abl) where
   parseJSON = withObject "JWT.Payload" \obj -> do
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
     --
-    attenuation <- obj .:? "att" .!= []
+    attenuation <- JSON.explicitParseField (traverse (parseCapability sender)) obj "att" .!= []
     proofs      <- obj .:  "prf"
     facts       <- obj .:? "fct" .!= []
     --
@@ -267,9 +282,150 @@ instance
     return Claims {..}
 
 
------------
+------------------
+-- Capabilities --
+------------------
+
+-- | A representation of capabilities in UCANs.
+data Capability resource ability
+  = CapResource resource (Ability ability)
+  | CapOwnedResources (OwnedResources ability)
+  | CapProofRedelegation ProofRedelegation
+  deriving (Show, Eq)
+
+-- | The "wnfs/APPEND" part in a capability, e.g. { with: "wnfs://...", can: "wnfs/APPEND" }
+data Ability ability
+  = SuperUser       -- ^ represents can: "*"
+  | Ability ability -- ^ represents any other can: "scope/action" pair
+  deriving (Show, Eq)
+
+-- | Represents resources of the form "my:<ability>" or "as:<did>:<ability>".
+-- | Both are represented as all resources from a particular DID.
+-- | In case of "my:<ability>" this DID is taken from the UCAN's issuer that this is parsed from.
+data OwnedResources ability
+  = OwnedResources DID (OwnershipScope ability)
+  deriving (Show, Eq)
+
+-- | Represents the set of abilities referred to in "my:<ability>"
+-- | or "as:<did>:<ability>" capabilities.
+data OwnershipScope ability
+  = All
+    -- ^ the "*" in "my:*". The whole capability *must* be "{ with: "my:*", can: "*" }" or the equivalent with "as:..."
+  | OnlyScheme (URI.RText 'URI.Scheme) ability
+    -- ^ e.g. the "wnfs" in "my:wnfs" or "as:<did>:wnfs"
+  deriving (Show, Eq)
+
+-- | Represents the "with" in e.g. { with: "prf:*", can: "ucan/DELEGATE" }
+data ProofRedelegation
+  = RedelegateAllProofs     -- ^ prf:*
+  | RedelegateProof Natural -- ^ e.g. prf:0 or prf:10
+  deriving (Show, Eq)
+
+
+instance DelegationSemantics ability => DelegationSemantics (OwnershipScope ability) where
+  All `canDelegate` _   = True
+  _   `canDelegate` All = False
+  (OnlyScheme aScheme aAbility) `canDelegate` (OnlyScheme bScheme bAbility) =
+    aScheme == bScheme && aAbility `canDelegate` bAbility
+
+instance DelegationSemantics ability => DelegationSemantics (OwnedResources ability) where
+  (OwnedResources aDID aScope) `canDelegate` (OwnedResources bDID bScope) =
+    aDID == bDID && aScope `canDelegate` bScope
+
+instance (Arbitrary res, Arbitrary abl) => Arbitrary (Capability res abl) where
+  arbitrary =
+    oneof
+      [ CapResource <$> arbitrary <*> arbitrary
+      , CapOwnedResources <$> arbitrary
+      , CapProofRedelegation <$> arbitrary
+      ]
+
+instance Arbitrary ProofRedelegation where
+  arbitrary =
+    oneof
+      [ pure RedelegateAllProofs
+      , RedelegateProof <$> arbitrary
+      ]
+
+instance Arbitrary ability => Arbitrary (OwnershipScope ability) where
+  arbitrary =
+    oneof
+      [ pure All
+      , OnlyScheme <$> arbitrary <*> arbitrary
+      ]
+
+instance Arbitrary ability => Arbitrary (OwnedResources ability) where
+  arbitrary = OwnedResources <$> arbitrary <*> arbitrary
+
+instance ToJSON ProofRedelegation where
+  toJSON RedelegateAllProofs = object
+    [ "with" .= String "prf:*"
+    , "can"  .= String "ucan/DELEGATE"
+    ]
+  toJSON (RedelegateProof n) = object
+    [ "with" .= String ("prf:" <> Text.pack (show n))
+    , "can"  .= String "ucan/DELEGATE"
+    ]
+
+instance Display ability => Display (Ability ability) where
+  textDisplay SuperUser = "*"
+  textDisplay (Ability ability) = textDisplay ability
+
+instance Arbitrary ability => Arbitrary (Ability ability) where
+  arbitrary =
+    frequency
+      [ (5, return SuperUser)
+      , (1, Ability <$> arbitrary)
+      ]
+
+jsonFromCapability :: (Display res, Display abl) => DID -> Capability res abl -> JSON.Value
+jsonFromCapability issuer = \case
+  CapProofRedelegation redel ->
+    toJSON redel
+
+  CapResource res ability ->
+    object
+      [ "with" .= String (textDisplay res)
+      , "can"  .= String (textDisplay ability)
+      ]
+
+  CapOwnedResources (OwnedResources did scope) ->
+    object
+      [ "with" .= String (myOrAs <> schemeOrStar)
+      , "can"  .= case scope of
+          All                  -> String "*"
+          OnlyScheme _ ability -> String $ textDisplay ability
+      ]
+    where
+      myOrAs = if did == issuer then "my:" else "as:" <> textDisplay did <> ":"
+      schemeOrStar = case scope of
+        All                 -> "*"
+        OnlyScheme scheme _ -> URI.unRText scheme
+
+parseCapability :: (FromJSON res, FromJSON abl) => DID -> JSON.Value -> JSON.Parser (Capability res abl)
+parseCapability issuer = withObject "UCAN.Capability" \obj -> do
+  withField <- obj .: "with"
+  canField  <- obj .: "can"
+
+  case (withField, canField) of
+    (String "my:*", String "*") ->
+      return $ CapOwnedResources $ OwnedResources issuer All
+
+    (String "prf:*", String ucanDelegate ) | Text.toLower ucanDelegate == "ucan/delegate" ->
+      return $ CapProofRedelegation RedelegateAllProofs
+
+    (String my, String ability) | "my:" `Text.isPrefixOf` my ->
+      undefined
+
+    (String with, String can) ->
+      undefined
+
+    _ ->
+      fail "'with' and 'can' fields must be strings"
+
+-------------
 -- Witness --
------------
+-------------
 
 data Witness
   = Nested    Text
@@ -330,14 +486,15 @@ instance ToJSON Nonce where
 signEd25519 ::
   ( ToJSON fct
   , ToJSON cap
+  , Display abl
   )
   => Ed25519.SecretKey
-  -> Claims fct cap
-  -> UCAN fct cap
+  -> Claims fct cap abl
+  -> UCAN fct cap abl
 signEd25519 sk claims = UCAN{..}
   where
     header     = Header { typ = Typ.JWT, alg = Algorithm.Ed25519, ucv = ucanVersion }
-    raw        = B64.URL.encodeJWT header claims
+    raw        = B64.URL.encodeJWT header (jsonFromClaims claims)
     signedData = RawContent raw
     signature  = Signature.Ed25519 $ Key.signWith sk $ encodeUtf8 raw
 
@@ -345,12 +502,13 @@ signRS256 ::
   ( MonadRandom m
   , ToJSON fct
   , ToJSON cap
+  , Display abl
   )
   => RSA.PrivateKey
-  -> Claims fct cap
-  -> m (Either RSA.Error (UCAN fct cap))
+  -> Claims fct cap abl
+  -> m (Either RSA.Error (UCAN fct cap abl))
 signRS256 sk claims = do
-  let raw = B64.URL.encodeJWT header claims
+  let raw = B64.URL.encodeJWT header (jsonFromClaims claims)
       signedData = RawContent raw
       header = Header { typ = Typ.JWT, alg = Algorithm.RSA2048, ucv = ucanVersion }
   sigResult <- RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 raw)
@@ -367,8 +525,9 @@ signRS256 sk claims = do
 
 parseClaimsV_0_3 ::
   ( FromJSON fct
-  , FromJSON cap
-  ) => Value -> JSON.Parser (Claims fct cap)
+  , FromJSON rsc
+  , FromJSON abl
+  ) => Value -> JSON.Parser (Claims fct rsc abl)
 parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
   sender   <- obj .: "iss"
   receiver <- obj .: "aud"
@@ -382,21 +541,36 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
   notBefore  <- fromSeconds <$> obj .: "nbf"
 
   attenuation <- case (resource, potency) of
+    (Just "*", _) ->
+      case attenuation . claims <$> proof of
+        Just [CapOwnedResources res] ->
+          return [CapOwnedResources res]
+
+        Nothing ->
+          return [CapOwnedResources (OwnedResources sender All)]
+
+        _ ->
+          return []
+
     (Just rsc, Just pot) -> do
-      capability <- parseJSON $ JSON.object
-        [ ("rsc", rsc)
-        , ("cap", pot)
-        ]
-      pure [capability]
+      -- TODO Somewhat of a hack to support backwards compatibility for capabilities
+      -- probably needs special-casing for a WNFS capability
+      let obj = object
+            [ ("rsc", rsc)
+            , ("pot", pot)
+            ]
+      resource <- parseJSON obj
+      ability <- parseJSON obj
+      return [CapResource resource ability]
 
     _ ->
-      pure []
+      return []
 
   return Claims
     { sender = sender
     , receiver = receiver
     , attenuation = attenuation
-    , proofs = maybeToList proof
+    , proofs = [] -- TODO maybeToList proof
     , facts = facts
     , notBefore = Just notBefore
     , expiration = expiration

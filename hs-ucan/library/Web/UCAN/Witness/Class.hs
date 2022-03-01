@@ -9,14 +9,14 @@ module Web.UCAN.Witness.Class
 import           Data.Coerce
 import           RIO
 
-class DelegationSemantics rsc where
-  canDelegate :: rsc -> rsc -> Bool
+class DelegationSemantics cap where
+  canDelegate :: cap -> cap -> Bool
 
-instance DelegationSemantics rsc => DelegationSemantics (Maybe rsc) where
+instance DelegationSemantics cap => DelegationSemantics (Maybe cap) where
   Nothing           `canDelegate` Nothing    = True
   Nothing           `canDelegate` _          = False
   _                 `canDelegate` Nothing    = True
-  (Just rscWitness) `canDelegate` (Just rsc) = rscWitness `canDelegate` rsc
+  (Just capWitness) `canDelegate` (Just cap) = capWitness `canDelegate` cap
 
 -- For deriving via
 

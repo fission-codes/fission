@@ -149,6 +149,7 @@ dependencies:
   - dns
   - ipfs
   - mime-types
+  - modern-uri
   - path-pieces
   - servant
   - servant-client
