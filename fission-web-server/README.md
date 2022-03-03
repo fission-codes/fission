@@ -56,7 +56,7 @@ To mimic the full "fission stack" for local development, you can use the include
    - on macOS: this is under System Preferences > Network > Advanced.
    - on Linux: Add `nameserver 127.0.0.1` to `/etc/resolv.conf`
   
-You can now build / run the haskell server. The included `env.yaml.example` is configured to work with the local docker setup.
+You can now build / run the haskell server. The included `server.yaml.example` is configured to work with the local docker setup.
 
 #### Local DNS troubleshooting 
 
