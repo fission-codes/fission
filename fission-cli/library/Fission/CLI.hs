@@ -63,6 +63,7 @@ cli = do
         Http  -> defaultManagerSettings
         Https -> tlsManagerSettings
 
+  tlsManager <- liftIO $ HTTP.newManager tlsManagerSettings
   httpManager <- liftIO $ HTTP.newManager rawHTTPSettings
     { managerResponseTimeout = responseTimeoutMicro 1_800_000_000 }
 

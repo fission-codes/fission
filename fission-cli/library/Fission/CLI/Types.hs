@@ -191,13 +191,13 @@ instance
   , Display (OpenUnion errs)
   , IsMember SomeException errs
 
-  , HasField' "httpManager" cfg HTTP.Manager
+  , HasField' "tlsManager"  cfg HTTP.Manager
   , HasLogFunc              cfg
   )
   => MonadGitHub (FissionCLI errs cfg) where
   sendRequest req =
     CLI.withLoader 50_000 do
-      manager <- asks $ getField @"httpManager"
+      manager <- asks $ getField @"tlsManager"
 
       logDebug @Text "🐱🐙 Making request to GitHub"
       liftIO . runClientM req . mkClientEnv manager $ BaseUrl Https "github.com" 443 ""
