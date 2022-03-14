@@ -101,8 +101,8 @@ runInProd overrideVerbose action = do
   putStrLnIO "   📥 Loading Heroku addon manifest..."
   Just manifest <- JSON.decodeFileStrict "./addon-manifest.json"
 
-  putStrLnIO "   📥 Loading the Fission Server's env.yaml"
-  env <- YAML.decodeFileThrow  "./env.yaml"
+  putStrLnIO "   📥 Loading the Fission Server's server.yaml"
+  env <- YAML.decodeFileThrow  "./server.yaml"
 
   let
     AWS.Environment        {..} = env |> aws

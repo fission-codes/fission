@@ -14,6 +14,7 @@ result
 yesod-devel/*
 addon-manifest.json
 env.yaml
+server.yaml
 domain-key.txt
 domain-crt.txt
 
@@ -587,4 +588,5 @@ MigrationBackup/
 
 # End of https://www.gitignore.io/api/vim,emacs,sublimetext,visualstudio
 
-
+fission-web-server/data/
+fission-web-server/.env
