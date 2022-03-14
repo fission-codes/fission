@@ -15,6 +15,7 @@ import           Fission.CLI.Remote
 -- | The configuration used for the CLI application
 data Config = Config
   { httpManager   :: HTTP.Manager
+  , tlsManager    :: HTTP.Manager
   , ipfsTimeout   :: IPFS.Timeout
   , ipfsURL       :: IPFS.URL
   , remote        :: Remote
