@@ -115,6 +115,7 @@ dependencies:
   - aeson-casing
   - asn1-encoding
   - asn1-types
+  - attoparsec
   - base58string
   - base64
   - binary

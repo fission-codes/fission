@@ -1,9 +1,11 @@
 module Web.DID.Types
   ( DID (..)
+  , parse
   ) where
 
 import           Data.Aeson                   as JSON
 import qualified Data.Aeson.Types             as JSON
+import qualified Data.Attoparsec.Text         as Parse
 import           Data.Swagger
 
 import           Control.Lens                 ((?~))
@@ -159,3 +161,18 @@ parseText txt =
           fail . show . BS64.encodeBase64' $ BS.pack nope <> " is not an acceptable did:key"
 
       return $ Key pk
+
+parse :: Parse.Parser DID
+parse = do
+  prefix <- Parse.string "did:key:z"
+  base64 <- Parse.takeWhile1 (`elem` base64URLChars)
+  case JSON.parse parseText $ prefix <> base64 of
+    JSON.Success did -> return did
+    JSON.Error err   -> fail err
+  where
+    base64URLChars :: [Char]
+    base64URLChars =
+         ['a'..'z']
+      <> ['A'..'Z']
+      <> ['0'..'9']
+      <> ['_', '-']

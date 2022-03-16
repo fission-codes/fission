@@ -3,6 +3,10 @@ module Web.UCAN.Types
   ( UCAN (..)
   , Claims (..)
   , Witness  (..)
+  , Capability (..)
+  , OwnedResources (..)
+  , Ability (..)
+  , ProofRedelegation (..)
 
   , signEd25519
   , signRS256
@@ -29,7 +33,6 @@ import qualified Data.Aeson.Types                              as JSON
 import qualified Data.ByteString.Base64.URL                    as BS.B64.URL
 import qualified Data.Text.Encoding.Base64.URL                 as Text.B64.URL
 
-import           Text.URI                                      (URI)
 import qualified Text.URI                                      as URI
 
 import qualified Data.Attoparsec.Text                          as Parse
@@ -39,6 +42,7 @@ import           Network.IPFS.CID.Types
 import           Control.Monad                                 (replicateM)
 import           RIO                                           hiding (exp)
 import qualified RIO.ByteString.Lazy                           as Lazy
+import qualified RIO.Char                                      as Char
 import qualified RIO.Text                                      as Text
 import           RIO.Time
 
@@ -253,7 +257,7 @@ jsonFromClaims Claims {..} = object
     , "aud" .= receiver
     --
     , "prf" .= proofs
-    , "att" .= toJSON (map (jsonFromCapability sender) attenuation)
+    , "att" .= attenuation
     , "fct" .= facts
     --
     , "exp" .=      toSeconds expiration
@@ -270,7 +274,7 @@ instance
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
     --
-    attenuation <- JSON.explicitParseField (traverse (parseCapability sender)) obj "att" .!= []
+    attenuation <- obj .:? "att" .!= []
     proofs      <- obj .:  "prf"
     facts       <- obj .:? "fct" .!= []
     --
@@ -293,17 +297,16 @@ data Capability resource ability
   | CapProofRedelegation ProofRedelegation
   deriving (Show, Eq)
 
--- | The "wnfs/APPEND" part in a capability, e.g. { with: "wnfs://...", can: "wnfs/APPEND" }
+-- | The "wnfs/APPEND" part of a capability as in { with: "wnfs://...", can: "wnfs/APPEND" }
 data Ability ability
   = SuperUser       -- ^ represents can: "*"
   | Ability ability -- ^ represents any other can: "scope/action" pair
   deriving (Show, Eq)
 
--- | Represents resources of the form "my:<ability>" or "as:<did>:<ability>".
--- | Both are represented as all resources from a particular DID.
--- | In case of "my:<ability>" this DID is taken from the UCAN's issuer that this is parsed from.
+-- | Represents resources of the form "my:<ability>" or "as:<did>:<ability>" and their associated ability
 data OwnedResources ability
-  = OwnedResources DID (OwnershipScope ability)
+  = OwnedAll (Maybe DID)
+  | Owned (Maybe DID) (URI.RText 'URI.Scheme) ability
   deriving (Show, Eq)
 
 -- | Represents the set of abilities referred to in "my:<ability>"
@@ -328,9 +331,10 @@ instance DelegationSemantics ability => DelegationSemantics (OwnershipScope abil
   (OnlyScheme aScheme aAbility) `canDelegate` (OnlyScheme bScheme bAbility) =
     aScheme == bScheme && aAbility `canDelegate` bAbility
 
-instance DelegationSemantics ability => DelegationSemantics (OwnedResources ability) where
-  (OwnedResources aDID aScope) `canDelegate` (OwnedResources bDID bScope) =
-    aDID == bDID && aScope `canDelegate` bScope
+instance DelegationSemantics ability => DelegationSemantics (Ability ability) where
+  SuperUser   `canDelegate` _           = True
+  _           `canDelegate` SuperUser   = False
+  (Ability a) `canDelegate` (Ability b) = a `canDelegate` b
 
 instance (Arbitrary res, Arbitrary abl) => Arbitrary (Capability res abl) where
   arbitrary =
@@ -355,7 +359,11 @@ instance Arbitrary ability => Arbitrary (OwnershipScope ability) where
       ]
 
 instance Arbitrary ability => Arbitrary (OwnedResources ability) where
-  arbitrary = OwnedResources <$> arbitrary <*> arbitrary
+  arbitrary =
+    oneof
+      [ OwnedAll <$> arbitrary
+      , Owned <$> arbitrary <*> arbitrary <*> arbitrary
+      ]
 
 instance ToJSON ProofRedelegation where
   toJSON RedelegateAllProofs = object
@@ -368,7 +376,7 @@ instance ToJSON ProofRedelegation where
     ]
 
 instance Display ability => Display (Ability ability) where
-  textDisplay SuperUser = "*"
+  textDisplay SuperUser         = "*"
   textDisplay (Ability ability) = textDisplay ability
 
 instance Arbitrary ability => Arbitrary (Ability ability) where
@@ -378,50 +386,126 @@ instance Arbitrary ability => Arbitrary (Ability ability) where
       , (1, Ability <$> arbitrary)
       ]
 
-jsonFromCapability :: (Display res, Display abl) => DID -> Capability res abl -> JSON.Value
-jsonFromCapability issuer = \case
-  CapProofRedelegation redel ->
-    toJSON redel
+instance FromJSON abl => FromJSON (Ability abl) where
+  parseJSON value = value & withObject "UCAN.Ability" \obj -> do
+    (can :: Text) <- obj .: "can"
+    if can == "*"
+      then return SuperUser
+      else parseJSON value
 
-  CapResource res ability ->
-    object
-      [ "with" .= String (textDisplay res)
-      , "can"  .= String (textDisplay ability)
-      ]
+instance Display ability => ToJSON (OwnedResources ability) where
+  toJSON (OwnedAll maybeDID) = object
+    [ "with" .= String (myOrAsPrefix maybeDID)
+    , "can"  .= String "*"
+    ]
+  toJSON (Owned maybeDID scheme ability) = object
+    [ "with" .= String (myOrAsPrefix maybeDID <> URI.unRText scheme)
+    , "can"  .= String (textDisplay ability)
+    ]
 
-  CapOwnedResources (OwnedResources did scope) ->
-    object
-      [ "with" .= String (myOrAs <> schemeOrStar)
-      , "can"  .= case scope of
-          All                  -> String "*"
-          OnlyScheme _ ability -> String $ textDisplay ability
-      ]
-    where
-      myOrAs = if did == issuer then "my:" else "as:" <> textDisplay did <> ":"
-      schemeOrStar = case scope of
-        All                 -> "*"
-        OnlyScheme scheme _ -> URI.unRText scheme
+myOrAsPrefix :: Maybe DID -> Text
+myOrAsPrefix = \case
+  Just did -> "as:" <> textDisplay did <> ":"
+  Nothing  -> "my:"
 
-parseCapability :: (FromJSON res, FromJSON abl) => DID -> JSON.Value -> JSON.Parser (Capability res abl)
-parseCapability issuer = withObject "UCAN.Capability" \obj -> do
-  withField <- obj .: "with"
-  canField  <- obj .: "can"
 
-  case (withField, canField) of
-    (String "my:*", String "*") ->
-      return $ CapOwnedResources $ OwnedResources issuer All
+instance (Display res, Display abl) => ToJSON (Capability res abl) where
+  toJSON = \case
+    CapResource res ability ->
+      object
+        [ "with" .= String (textDisplay res)
+        , "can"  .= String (textDisplay ability)
+        ]
 
-    (String "prf:*", String ucanDelegate ) | Text.toLower ucanDelegate == "ucan/delegate" ->
-      return $ CapProofRedelegation RedelegateAllProofs
+    CapOwnedResources owned ->
+      toJSON owned
 
-    (String my, String ability) | "my:" `Text.isPrefixOf` my ->
-      undefined
+    CapProofRedelegation redel ->
+      toJSON redel
 
-    (String with, String can) ->
-      undefined
+data AsOrMyOrPrf
+  = My (Maybe (URI.RText 'URI.Scheme))
+  | As DID (Maybe (URI.RText 'URI.Scheme))
+  | Prf (Maybe Natural)
 
-    _ ->
-      fail "'with' and 'can' fields must be strings"
+parseScheme :: Parse.Parser (URI.RText 'URI.Scheme)
+parseScheme = do
+  x <- Parse.satisfy (\c -> Char.isAscii c || Char.isAlpha c)
+  xs <- Parse.takeWhile (\c -> Char.isAscii c || Char.isAlphaNum c || c `elem` ("+-." :: String))
+  case URI.mkScheme $ Text.singleton x <> xs of
+    Right scheme   -> return scheme
+    Left exception -> fail $ "Can't parse scheme: " <> show exception
+
+parseStarOr :: Parse.Parser a -> Parse.Parser (Maybe a)
+parseStarOr alternative =
+  let parseStar = fmap (const Nothing) $ Parse.char '*'
+  in fmap Just alternative <|> parseStar
+
+
+data MAP = M | A | P
+
+parseAsOrMyOrPrf :: Parse.Parser AsOrMyOrPrf
+parseAsOrMyOrPrf = do
+  prefix <- Parse.string "my:"  *> return M
+        <|> Parse.string "as:"  *> return A
+        <|> Parse.string "prf:" *> return P
+  case prefix of
+    P -> Prf <$> parseStarOr Parse.decimal
+    M -> My  <$> parseStarOr parseScheme
+    A -> As  <$> DID.parse <*> parseStarOr parseScheme
+
+
+instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
+  parseJSON = withObject "UCAN.Capability" \obj -> do
+    withField <- obj .: "with"
+    canField  <- obj .: "can"
+
+    case (withField, canField) of
+      (String with, String can) ->
+        case Parse.parseOnly (parseAsOrMyOrPrf <* Parse.endOfInput) with of
+          Right (My Nothing) -> do
+            when (can /= "*") do
+              fail "The 'my:*' resource must have the ability set to '*'"
+
+            return $ CapOwnedResources $ OwnedAll Nothing
+
+          Right (As did Nothing) -> do
+            when (can /= "*") do
+              fail "They 'as:<did>:*' resource must have the ability set to '*'"
+
+            return $ CapOwnedResources $ OwnedAll $ Just did
+
+          Right (My (Just scheme)) -> do
+            unless (Text.toLower (URI.unRText scheme) `Text.isPrefixOf` Text.toLower can) do
+              fail "The 'can' field must start with the same scheme as the 'my' field specifies"
+
+            -- TODO Figure out exactly how to slice this problem. Where do we allow the ability parser to parse?
+            ability <- parseJSON canField
+            return $ CapOwnedResources $ Owned Nothing scheme ability
+
+          Right (As did (Just scheme)) -> do
+            unless (Text.toLower (URI.unRText scheme) `Text.isPrefixOf` Text.toLower can) do
+              fail "The 'can' field must start with the same scheme as the 'as' field specifies"
+
+            -- TODO see above
+            ability <- parseJSON canField
+            return $ CapOwnedResources $ Owned (Just did) scheme ability
+
+          Right (Prf idx) -> do
+            when (Text.toLower can /= "ucan/delegate") do
+              fail "The 'prf' resource must have the ability set to 'ucan/DELEGATE'"
+
+            return $ CapProofRedelegation $ maybe RedelegateAllProofs RedelegateProof idx
+
+          Left _ -> do
+            -- TODO see above
+            resource <- parseJSON withField
+            ability <- parseJSON canField
+            return $ CapResource resource ability
+
+      _ ->
+        fail "'with' and 'can' fields must be strings"
+
 
 -------------
 -- Witness --
@@ -485,12 +569,12 @@ instance ToJSON Nonce where
 
 signEd25519 ::
   ( ToJSON fct
-  , ToJSON cap
+  , Display res
   , Display abl
   )
   => Ed25519.SecretKey
-  -> Claims fct cap abl
-  -> UCAN fct cap abl
+  -> Claims fct res abl
+  -> UCAN fct res abl
 signEd25519 sk claims = UCAN{..}
   where
     header     = Header { typ = Typ.JWT, alg = Algorithm.Ed25519, ucv = ucanVersion }
@@ -501,12 +585,12 @@ signEd25519 sk claims = UCAN{..}
 signRS256 ::
   ( MonadRandom m
   , ToJSON fct
-  , ToJSON cap
+  , Display res
   , Display abl
   )
   => RSA.PrivateKey
-  -> Claims fct cap abl
-  -> m (Either RSA.Error (UCAN fct cap abl))
+  -> Claims fct res abl
+  -> m (Either RSA.Error (UCAN fct res abl))
 signRS256 sk claims = do
   let raw = B64.URL.encodeJWT header (jsonFromClaims claims)
       signedData = RawContent raw
@@ -524,6 +608,7 @@ signRS256 sk claims = do
 -----------------------------
 
 parseClaimsV_0_3 ::
+  forall fct rsc abl .
   ( FromJSON fct
   , FromJSON rsc
   , FromJSON abl
@@ -542,12 +627,22 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
 
   attenuation <- case (resource, potency) of
     (Just "*", _) ->
-      case attenuation . claims <$> proof of
-        Just [CapOwnedResources res] ->
-          return [CapOwnedResources res]
-
+      case proof of
         Nothing ->
           return [CapOwnedResources (OwnedResources sender All)]
+
+        Just (Nested jwt) ->
+          case decodeStrict @(UCAN fct rsc abl) $ Text.encodeUtf8 jwt of
+            Nothing ->
+              return []
+
+            Just ucan ->
+              case attenuation $ claims ucan  of
+                [CapOwnedResources res] ->
+                  return [CapOwnedResources res]
+
+                _ ->
+                  return []
 
         _ ->
           return []
@@ -555,13 +650,13 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
     (Just rsc, Just pot) -> do
       -- TODO Somewhat of a hack to support backwards compatibility for capabilities
       -- probably needs special-casing for a WNFS capability
-      let obj = object
+      let cap = object
             [ ("rsc", rsc)
             , ("pot", pot)
             ]
-      resource <- parseJSON obj
-      ability <- parseJSON obj
-      return [CapResource resource ability]
+      res <- parseJSON cap
+      abl <- parseJSON cap
+      return [CapResource res abl]
 
     _ ->
       return []
@@ -570,7 +665,7 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
     { sender = sender
     , receiver = receiver
     , attenuation = attenuation
-    , proofs = [] -- TODO maybeToList proof
+    , proofs = maybeToList proof
     , facts = facts
     , notBefore = Just notBefore
     , expiration = expiration

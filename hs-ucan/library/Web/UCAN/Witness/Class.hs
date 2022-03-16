@@ -18,6 +18,10 @@ instance DelegationSemantics cap => DelegationSemantics (Maybe cap) where
   _                 `canDelegate` Nothing    = True
   (Just capWitness) `canDelegate` (Just cap) = capWitness `canDelegate` cap
 
+instance (DelegationSemantics a, DelegationSemantics b) => DelegationSemantics (a, b) where
+  (a, b) `canDelegate` (c, d) = a `canDelegate` c && b `canDelegate` d
+
+
 -- For deriving via
 
 newtype GreaterDelegatesMore a = GreaterDelegatesMore a
