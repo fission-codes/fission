@@ -1,4 +1,4 @@
-resolver: lts-18.24
+resolver: lts-19.0
 allow-newer: true # Needed for servant-ekg
 
 packages:
@@ -12,22 +12,18 @@ packages:
 
 extra-deps:
   - amazonka-1.6.1
+  - amazonka-core-1.6.1
+  - amazonka-route53-1.6.1
   - constraints-deriving-1.1.1.2
-  - cryptostore-0.2.1.0
   - dimensions-2.1.1.0
+  - ekg-core-0.1.1.7
+  - ekg-statsd-0.2.5.0
   - hfsevents-0.1.6
   - lzma-clib-5.2.2
   - raven-haskell-0.1.4.0
-  - rescue-0.4.2.1
   - servant-ekg-0.3.1
-  - servant-multipart-client-0.12.1
-  - servant-swagger-ui-redoc-0.3.4.1.22.3
-  - servant-websockets-2.0.0
   - unliftio-core-0.1.2.0
   - powerdns-0.2.2
-
-  # Waiting for github to make it back into Stackage LTS 18
-  - github-0.27
 
 ghc-options:
   "$everything": -haddock
