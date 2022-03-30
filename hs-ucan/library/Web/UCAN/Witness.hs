@@ -9,28 +9,27 @@ module Web.UCAN.Witness
   , module Web.UCAN.Witness.Class
   ) where
 
-import           RIO                  hiding (exp)
+import           RIO                    hiding (exp)
 
+import           Web.UCAN.Types         as UCAN
 import           Web.UCAN.Witness.Class
 import           Web.UCAN.Witness.Error
-import           Web.UCAN.Types       as UCAN
 
 
 delegatedInBounds ::
-  DelegationSemantics cap
-  => UCAN fct cap
-  -> UCAN fct cap
-  -> Either Error (UCAN fct cap)
+  UCAN fct res abl
+  -> UCAN fct res abl
+  -> Either Error (UCAN fct res abl)
 delegatedInBounds ucan witness = do
   signaturesMatch ucan witness
 
-signaturesMatch :: UCAN fct cap -> UCAN fct cap -> Either Error (UCAN fct cap)
+signaturesMatch :: UCAN fct res abl -> UCAN fct res abl -> Either Error (UCAN fct res abl)
 signaturesMatch ucan witness =
   if (ucan & claims & sender) == (witness & claims & receiver)
     then Right ucan
     else Left InvalidSignatureChain
 
-containsFact :: UCAN fct cap -> ([fct] -> Either Error ()) -> Either Error (UCAN fct cap)
+containsFact :: UCAN fct res abl -> ([fct] -> Either Error ()) -> Either Error (UCAN fct res abl)
 containsFact ucan factChecker =
   ucan
     & claims

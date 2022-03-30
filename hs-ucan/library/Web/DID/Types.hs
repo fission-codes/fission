@@ -165,9 +165,9 @@ parseText txt =
 
 parse :: Parse.Parser DID
 parse = do
-  prefix <- Parse.string "did:key:z"
+  didKeyPrefix <- Parse.string "did:key:z"
   base64 <- Parse.takeWhile1 (`elem` base64URLChars)
-  case JSON.parse parseText $ prefix <> base64 of
+  case JSON.parse parseText $ didKeyPrefix <> base64 of
     JSON.Success did -> return did
     JSON.Error err   -> fail err
   where

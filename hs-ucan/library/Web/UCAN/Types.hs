@@ -5,6 +5,7 @@ module Web.UCAN.Types
   , Witness  (..)
   , Capability (..)
   , OwnedResources (..)
+  , OwnershipScope (..)
   , Ability (..)
   , ProofRedelegation (..)
 
@@ -295,19 +296,18 @@ data Capability resource ability
   = CapResource resource (Ability ability)
   | CapOwnedResources (OwnedResources ability)
   | CapProofRedelegation ProofRedelegation
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- | The "wnfs/APPEND" part of a capability as in { with: "wnfs://...", can: "wnfs/APPEND" }
 data Ability ability
   = SuperUser       -- ^ represents can: "*"
   | Ability ability -- ^ represents any other can: "scope/action" pair
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- | Represents resources of the form "my:<ability>" or "as:<did>:<ability>" and their associated ability
 data OwnedResources ability
-  = OwnedAll (Maybe DID)
-  | Owned (Maybe DID) (URI.RText 'URI.Scheme) ability
-  deriving (Show, Eq)
+  = OwnedResources (Maybe DID) (OwnershipScope ability)
+  deriving (Show, Eq, Ord)
 
 -- | Represents the set of abilities referred to in "my:<ability>"
 -- | or "as:<did>:<ability>" capabilities.
@@ -316,13 +316,13 @@ data OwnershipScope ability
     -- ^ the "*" in "my:*". The whole capability *must* be "{ with: "my:*", can: "*" }" or the equivalent with "as:..."
   | OnlyScheme (URI.RText 'URI.Scheme) ability
     -- ^ e.g. the "wnfs" in "my:wnfs" or "as:<did>:wnfs"
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- | Represents the "with" in e.g. { with: "prf:*", can: "ucan/DELEGATE" }
 data ProofRedelegation
   = RedelegateAllProofs     -- ^ prf:*
   | RedelegateProof Natural -- ^ e.g. prf:0 or prf:10
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 
 instance DelegationSemantics ability => DelegationSemantics (OwnershipScope ability) where
@@ -360,10 +360,12 @@ instance Arbitrary ability => Arbitrary (OwnershipScope ability) where
 
 instance Arbitrary ability => Arbitrary (OwnedResources ability) where
   arbitrary =
-    oneof
-      [ OwnedAll <$> arbitrary
-      , Owned <$> arbitrary <*> arbitrary <*> arbitrary
-      ]
+    OwnedResources
+      <$> arbitrary
+      <*> oneof
+        [ pure All
+        , OnlyScheme <$> arbitrary <*> arbitrary
+        ]
 
 instance ToJSON ProofRedelegation where
   toJSON RedelegateAllProofs = object
@@ -394,11 +396,11 @@ instance FromJSON abl => FromJSON (Ability abl) where
       else parseJSON value
 
 instance Display ability => ToJSON (OwnedResources ability) where
-  toJSON (OwnedAll maybeDID) = object
+  toJSON (OwnedResources maybeDID All) = object
     [ "with" .= String (myOrAsPrefix maybeDID)
     , "can"  .= String "*"
     ]
-  toJSON (Owned maybeDID scheme ability) = object
+  toJSON (OwnedResources maybeDID (OnlyScheme scheme ability)) = object
     [ "with" .= String (myOrAsPrefix maybeDID <> URI.unRText scheme)
     , "can"  .= String (textDisplay ability)
     ]
@@ -467,13 +469,13 @@ instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
             when (can /= "*") do
               fail "The 'my:*' resource must have the ability set to '*'"
 
-            return $ CapOwnedResources $ OwnedAll Nothing
+            return $ CapOwnedResources $ OwnedResources Nothing All
 
           Right (As did Nothing) -> do
             when (can /= "*") do
               fail "They 'as:<did>:*' resource must have the ability set to '*'"
 
-            return $ CapOwnedResources $ OwnedAll $ Just did
+            return $ CapOwnedResources $ OwnedResources (Just did) All
 
           Right (My (Just scheme)) -> do
             unless (Text.toLower (URI.unRText scheme) `Text.isPrefixOf` Text.toLower can) do
@@ -481,7 +483,7 @@ instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
 
             -- TODO Figure out exactly how to slice this problem. Where do we allow the ability parser to parse?
             ability <- parseJSON canField
-            return $ CapOwnedResources $ Owned Nothing scheme ability
+            return $ CapOwnedResources $ OwnedResources Nothing (OnlyScheme scheme ability)
 
           Right (As did (Just scheme)) -> do
             unless (Text.toLower (URI.unRText scheme) `Text.isPrefixOf` Text.toLower can) do
@@ -489,7 +491,7 @@ instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
 
             -- TODO see above
             ability <- parseJSON canField
-            return $ CapOwnedResources $ Owned (Just did) scheme ability
+            return $ CapOwnedResources $ OwnedResources (Just did) (OnlyScheme scheme ability)
 
           Right (Prf idx) -> do
             when (Text.toLower can /= "ucan/delegate") do
@@ -629,7 +631,7 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
     (Just "*", _) ->
       case proof of
         Nothing ->
-          return [CapOwnedResources (OwnedResources sender All)]
+          return [CapOwnedResources (OwnedResources (Just sender) All)]
 
         Just (Nested jwt) ->
           case decodeStrict @(UCAN fct rsc abl) $ Text.encodeUtf8 jwt of

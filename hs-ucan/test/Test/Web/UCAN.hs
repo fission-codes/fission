@@ -10,7 +10,7 @@ import           Test.Web.UCAN.Prelude
 
 import qualified Test.Web.UCAN.Attenuation         as Attenuation
 import qualified Test.Web.UCAN.DelegationSemantics as DelegationSemantics
-import           Test.Web.UCAN.Example
+import qualified Test.Web.UCAN.Example             as Ex
 
 
 spec :: Spec
@@ -19,17 +19,17 @@ spec =
     Attenuation.spec
 
     describe "serialization" do
-      itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Capability) ->
+      itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
         JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan
 
       describe "format" do
-        itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Capability) ->
+        itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
           ucan
             & JSON.encode
             & Lazy.count (fromIntegral $ Char.ord '.')
             & shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Capability) ->
+        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
           let
             encoded = JSON.encode ucan
           in
@@ -40,17 +40,18 @@ spec =
               & shouldBe mempty
 
     describe "DelegationSemantics" do
-      describe "Capability" do
-        DelegationSemantics.itHasPartialOrderProperties @Capability
-
       describe "Resource" do
-        DelegationSemantics.itHasPartialOrderProperties @Resource
+        DelegationSemantics.itHasPartialOrderProperties @Ex.Resource
 
       describe "Potency" do
-        DelegationSemantics.itHasPartialOrderProperties @Potency
+        DelegationSemantics.itHasPartialOrderProperties @Ex.Ability
 
       describe "Maybe _" do
-        DelegationSemantics.itHasPartialOrderProperties @(Maybe Potency)
+        DelegationSemantics.itHasPartialOrderProperties @(Maybe Ex.Ability)
+
+      describe "(Resource, Ability)" do
+        DelegationSemantics.itHasPartialOrderProperties @(Ex.Resource, Ex.Ability)
+
 
 
 isValidChar :: Word8 -> Bool

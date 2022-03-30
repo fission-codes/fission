@@ -44,8 +44,8 @@ import           Web.UCAN.Signature.Types       as Signature
 --   , UCAN.Witness.DelegationSemantics cap
 --   )
 --   => DID
---   -> UCAN fct cap
---   -> m (Either UCAN.Error (UCAN fct cap))
+--   -> UCAN fct res abl
+--   -> m (Either UCAN.Error (UCAN fct res abl))
 -- check receiverDID rawContent ucan = do
 --   now <- currentTime
 --   case checkTime now ucan of
@@ -63,26 +63,26 @@ import           Web.UCAN.Signature.Types       as Signature
 --   , FromJSON cap
 --   , UCAN.Witness.DelegationSemantics cap
 --   )
---   => UCAN fct cap
+--   => UCAN fct res abl
 --   -> UTCTime
---   -> m (Either UCAN.Error (UCAN fct cap))
+--   -> m (Either UCAN.Error (UCAN fct res abl))
 -- check' raw ucan now =
 --   case pureChecks raw ucan of
 --     Left  err -> return $ Left err
 --     Right _   -> checkWitness now ucan
 
-pureChecks :: UCAN fct cap -> Either UCAN.Error (UCAN fct cap)
+pureChecks :: UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
 pureChecks ucan = do
   _ <- checkVersion ucan
   checkSignature ucan
 
-checkReceiver :: DID -> UCAN fct cap -> Either UCAN.Error (UCAN fct cap)
+checkReceiver :: DID -> UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
 checkReceiver recipientDID ucan@UCAN {claims = UCAN.Claims {receiver}} = do
   if receiver == recipientDID
     then Right ucan
     else Left $ ClaimsError IncorrectReceiver
 
-checkVersion :: UCAN fct cap -> Either UCAN.Error (UCAN fct cap)
+checkVersion :: UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
 checkVersion ucan@UCAN { header = UCAN.Header {ucv} } =
   if isSupportedVersion ucv
     then Right ucan
@@ -123,7 +123,7 @@ checkVersion ucan@UCAN { header = UCAN.Header {ucv} } =
 --           Left err -> Left . UCAN.ClaimsError $ WitnessError err
 --           Right _  -> Right ucan
 
-checkTime :: UTCTime -> UCAN fct cap -> Either UCAN.Error (UCAN fct cap)
+checkTime :: UTCTime -> UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
 checkTime now ucan@UCAN {claims = UCAN.Claims { expiration, notBefore }} =
   if now > expiration
     then Left $ UCAN.ClaimsError Expired
@@ -134,7 +134,7 @@ checkTime now ucan@UCAN {claims = UCAN.Claims { expiration, notBefore }} =
           then Left $ UCAN.ClaimsError TooEarly
           else Right ucan
 
-checkSignature :: UCAN fct cap -> Either UCAN.Error (UCAN fct cap)
+checkSignature :: UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
 checkSignature ucan@UCAN {..} =
   case (publicKey, signature) of
     (RSAPublicKey pk, Signature.RS256 (RS256.Signature innerSig)) ->
