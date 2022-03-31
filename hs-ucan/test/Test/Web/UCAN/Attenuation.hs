@@ -14,7 +14,7 @@ import qualified RIO.ByteString                        as BS
 import qualified RIO.Set                               as Set
 import qualified RIO.Text                              as Text
 
-import           Test.Prelude
+import           Test.Web.UCAN.Prelude
 
 import qualified RIO.List                              as List
 import           RIO.Time

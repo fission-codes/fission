@@ -271,18 +271,15 @@ parseJSONString token =
 
 checkDelegation :: UCAN fct res abl -> UCAN fct res abl -> Either Error ()
 checkDelegation UCAN.UCAN{ claims = from } UCAN.UCAN{ claims = to } = do
-  () <- senderReceiverMatch
-  () <- expirationBeforeNotBefore
-  () <- notBeforeAfterExpiration
-  return ()
+  senderReceiverMatch
+  expirationBeforeNotBefore
+  notBeforeAfterExpiration
   where
     receiver = UCAN.receiver from
     sender = UCAN.sender to
 
     senderReceiverMatch =
-      if sender == receiver then
-        Right ()
-      else
+      unless (sender == receiver) do
         Left (DelegationIssuerAudienceMismatch sender receiver)
 
     expirationBeforeNotBefore =
