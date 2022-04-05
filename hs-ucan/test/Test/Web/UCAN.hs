@@ -19,17 +19,17 @@ spec =
     Attenuation.spec
 
     describe "serialization" do
-      itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
+      itsPropSized "serialized is isomorphic to ADT" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
         JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan
 
       describe "format" do
-        itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
+        itsPropSized "contains exactly two '.'s" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
           ucan
             & JSON.encode
             & Lazy.count (fromIntegral $ Char.ord '.')
             & shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
+        itsPropSized "contains only valid base64 URL characters" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
           let
             encoded = JSON.encode ucan
           in

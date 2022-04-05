@@ -231,7 +231,7 @@ instance
     sender      <- arbitrary
     receiver    <- DID.Key <$> arbitrary
     attenuation <- arbitrary
-    proofs      <- map (Nested . textDisplay) <$> arbitraryWitnesss
+    proofs      <- map (Nested . textDisplay) <$> sized arbitraryWitness
     facts       <- arbitrary
     expiration  <- arbitrary
     notBefore   <- arbitrary
@@ -239,14 +239,19 @@ instance
 
     return Claims {..}
     where
-      arbitraryWitnesss :: Gen [UCAN fct res abl]
-      arbitraryWitnesss =
-        -- try to generate deep rather than wide UCANs
-        frequency
-          [ (1,  replicateM 2 arbitrary)
-          , (4,  replicateM 1 arbitrary)
-          , (20, replicateM 0 arbitrary)
-          ]
+      distributeRands :: Int -> Int -> Gen [Int]
+      distributeRands 0 _ = return []
+      distributeRands numChildren available = do
+        chosen <- choose (0, available)
+        rest <- distributeRands (numChildren - 1) (available - chosen)
+        return (chosen:rest)
+
+      arbitraryWitness :: Int -> Gen [UCAN fct res abl]
+      arbitraryWitness size = do
+        numChildren <- choose (0, size)
+        distributedSizes <- distributeRands numChildren size
+        mapM (\childSize -> resize childSize arbitrary) distributedSizes
+
 
 jsonFromClaims ::
   ( ToJSON fct
@@ -389,8 +394,7 @@ instance Arbitrary ability => Arbitrary (Ability ability) where
       ]
 
 instance FromJSON abl => FromJSON (Ability abl) where
-  parseJSON value = value & withObject "UCAN.Ability" \obj -> do
-    (can :: Text) <- obj .: "can"
+  parseJSON value = value & withText "UCAN.Ability" \can -> do
     if can == "*"
       then return SuperUser
       else parseJSON value
