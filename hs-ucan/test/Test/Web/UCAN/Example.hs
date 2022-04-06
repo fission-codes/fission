@@ -54,12 +54,12 @@ instance Display Resource where
 instance FromJSON Ability where
   parseJSON = withText "AuthZ.Ability" \txt ->
     case Text.toUpper txt of
-      "CAN_LOOK"   -> pure CanLook
-      "CAN_TOUCH"  -> pure CanTouch
-      "SUPER_USER" -> pure SuperUser
+      "example/CAN_LOOK"   -> pure CanLook
+      "example/CAN_TOUCH"  -> pure CanTouch
+      "example/SUPER_USER" -> pure SuperUser
       nope -> fail $ show nope <> " is not a valid authorization potency"
 
 instance Display Ability where
-  textDisplay CanLook   = "CAN_LOOK"
-  textDisplay CanTouch  = "CAN_TOUCH"
-  textDisplay SuperUser = "SUPER_USER"
+  textDisplay CanLook   = "example/CAN_LOOK"
+  textDisplay CanTouch  = "example/CAN_TOUCH"
+  textDisplay SuperUser = "example/SUPER_USER"
