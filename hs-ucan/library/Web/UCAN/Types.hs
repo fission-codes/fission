@@ -401,7 +401,7 @@ instance FromJSON abl => FromJSON (Ability abl) where
 
 instance Display ability => ToJSON (OwnedResources ability) where
   toJSON (OwnedResources maybeDID All) = object
-    [ "with" .= String (myOrAsPrefix maybeDID)
+    [ "with" .= String (myOrAsPrefix maybeDID <> "*")
     , "can"  .= String "*"
     ]
   toJSON (OwnedResources maybeDID (OnlyScheme scheme ability)) = object
@@ -458,7 +458,7 @@ parseAsOrMyOrPrf = do
   case prefix of
     P -> Prf <$> parseStarOr Parse.decimal
     M -> My  <$> parseStarOr parseScheme
-    A -> As  <$> DID.parse <*> parseStarOr parseScheme
+    A -> As  <$> DID.parse <* Parse.string ":" <*> parseStarOr parseScheme
 
 
 instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
