@@ -102,7 +102,11 @@ instance
   , Display abl
   ) => Arbitrary (UCAN fct res abl) where
   arbitrary = do
-    algorithm <- elements [Algorithm.RSA2048, Algorithm.Ed25519]
+    algorithm <- frequency
+      -- RSA Signatures & keys are huge and slow down tests a *lot*
+      [ (1, pure Algorithm.RSA2048)
+      , (5, pure Algorithm.Ed25519)
+      ]
     (pk, sk) <- case algorithm of
       Algorithm.RSA2048 -> do
         RSA2048.Pair pk' sk' <- arbitrary
@@ -356,21 +360,15 @@ instance Arbitrary ProofRedelegation where
       , RedelegateProof <$> arbitrary
       ]
 
+instance Arbitrary ability => Arbitrary (OwnedResources ability) where
+  arbitrary = OwnedResources <$> arbitrary <*> arbitrary
+
 instance Arbitrary ability => Arbitrary (OwnershipScope ability) where
   arbitrary =
     oneof
       [ pure All
       , OnlyScheme <$> arbitrary <*> arbitrary
       ]
-
-instance Arbitrary ability => Arbitrary (OwnedResources ability) where
-  arbitrary =
-    OwnedResources
-      <$> arbitrary
-      <*> oneof
-        [ pure All
-        , OnlyScheme <$> arbitrary <*> arbitrary
-        ]
 
 instance ToJSON ProofRedelegation where
   toJSON RedelegateAllProofs = object
@@ -482,17 +480,11 @@ instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
             return $ CapOwnedResources $ OwnedResources (Just did) All
 
           Right (My (Just scheme)) -> do
-            unless (Text.toLower (URI.unRText scheme) `Text.isPrefixOf` Text.toLower can) do
-              fail "The 'can' field must start with the same scheme as the 'my' field specifies"
-
             -- TODO Figure out exactly how to slice this problem. Where do we allow the ability parser to parse?
             ability <- parseJSON canField
             return $ CapOwnedResources $ OwnedResources Nothing (OnlyScheme scheme ability)
 
           Right (As did (Just scheme)) -> do
-            unless (Text.toLower (URI.unRText scheme) `Text.isPrefixOf` Text.toLower can) do
-              fail "The 'can' field must start with the same scheme as the 'as' field specifies"
-
             -- TODO see above
             ability <- parseJSON canField
             return $ CapOwnedResources $ OwnedResources (Just did) (OnlyScheme scheme ability)
