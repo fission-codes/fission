@@ -41,22 +41,22 @@ instance Arbitrary Ability where
 
 instance FromJSON Resource where
   parseJSON = withText "AuthZ.Resource" \case
-    "OnlyOneThing" -> pure OnlyOneThing
-    "OnlySome"     -> pure OnlySome
-    "Everything"   -> pure Everything
+    "example:/OnlyOneThing" -> pure OnlyOneThing
+    "example:/OnlySome"     -> pure OnlySome
+    "example:/Everything"   -> pure Everything
     nope -> fail $ show nope <> " is not a valid authorization resource"
 
 instance Display Resource where
-  textDisplay OnlyOneThing = "OnlyOneThing"
-  textDisplay OnlySome     = "OnlySome"
-  textDisplay Everything   = "Everything"
+  textDisplay OnlyOneThing = "example:/OnlyOneThing"
+  textDisplay OnlySome     = "example:/OnlySome"
+  textDisplay Everything   = "example:/Everything"
 
 instance FromJSON Ability where
   parseJSON = withText "AuthZ.Ability" \txt ->
     case Text.toUpper txt of
-      "example/CAN_LOOK"   -> pure CanLook
-      "example/CAN_TOUCH"  -> pure CanTouch
-      "example/SUPER_USER" -> pure SuperUser
+      "EXAMPLE/CAN_LOOK"   -> pure CanLook
+      "EXAMPLE/CAN_TOUCH"  -> pure CanTouch
+      "EXAMPLE/SUPER_USER" -> pure SuperUser
       nope -> fail $ show nope <> " is not a valid authorization potency"
 
 instance Display Ability where
