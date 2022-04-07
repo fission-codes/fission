@@ -104,7 +104,7 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
         attempt (checkDelegation witness ucan) \() ->
           ListT.fromFoldable attenuation >>= \case
           -- v0.8.1:
-          -- If cap is something like prf:x, thent get prf:x and essentially replace cap with each of the caps in the prf(s)
+          -- If cap is something like prf:x, thent get prf:x and essentially replace prf:x with each of the caps in the prf(s)
           -- If cap is something like as:<did>:* then check that proofs also contain either as:<did>:* or my:* and the issuer matches
           -- If cap is anything else, just do the normal canDelegate thing.
             UCAN.CapResource resource ability ->
@@ -112,6 +112,10 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
                 proof@(ProofAuthorization parentResource parentAbility _ _) -> do
                   guard $ (parentResource, parentAbility) `canDelegate` (resource, ability)
                   return $ Right $ ProofAuthorization resource ability ucan $ ProofByDelegation proof
+                
+                -- TODO allow "extending" the delegation of capabilities using as: and my: capabilities
+                -- Also: Write a failing test for this
+                -- Also: Extract out a function that roughly allows us to say: canDelegate :: Capability -> Proof -> Bool
 
                 _ ->
                   empty
@@ -139,6 +143,11 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
 
                 _ ->
                   empty
+
+            -- TODO redelegate invididual proof indices
+            -- UCAN.CapProofRedelegation (UCAN.RedelegateProof proofIndex) -> do
+            --   liftAttempt (capabilitiesStream witness) \case
+            --     proof@(ProofAuthorization resource ability _ _) ->
 
             _ ->
               empty
