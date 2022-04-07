@@ -395,7 +395,7 @@ instance FromJSON abl => FromJSON (Ability abl) where
   parseJSON value = value & withText "UCAN.Ability" \can -> do
     if can == "*"
       then return SuperUser
-      else parseJSON value
+      else Ability <$> parseJSON value
 
 instance Display ability => ToJSON (OwnedResources ability) where
   toJSON (OwnedResources maybeDID All) = object
