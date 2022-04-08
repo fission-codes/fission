@@ -53,10 +53,8 @@ spec =
         --       Set.fromList expectedCapabilities
 
         it "works with partial-order delgation semantics" do
-          now <- currentTime
+          tomorrow <- addUTCTime nominalDay <$> currentTime
           let
-            tomorrow = addUTCTime nominalDay now
-
             leafUcan = signEd25519 @JSON.Value aliceKey Claims
               { sender = aliceDID
               , receiver = bobDID
@@ -110,6 +108,18 @@ spec =
           Set.fromList actualCapabilities `shouldBe`
             Set.fromList expectedCapabilities
 
+      describe "DummyAbility" do
+        DelegationSemantics.itHasPartialOrderProperties @(Ability DummyAbility)
+
+        it "AnyAbility can delegate AnyAbility" do
+          (Ability AnyAbility `canDelegate` Ability AnyAbility) `shouldBe` True
+
+        it "* can delegate AnyAbility" do
+          (SuperUser `canDelegate` Ability AnyAbility) `shouldBe` True
+
+        it "AnyAbility can not delegate *" do
+          (Ability AnyAbility `canDelegate` SuperUser) `shouldBe` False
+
       describe "PathCapability" do
         DelegationSemantics.itHasPartialOrderProperties @PathCapability
 
@@ -142,8 +152,11 @@ instance Display EmailResource where
   textDisplay (EmailResource email) = email
 
 instance FromJSON DummyAbility where
-  parseJSON = withObject "UCAN.DummyAbility" \_ -> do
+  parseJSON = withText "UCAN.DummyAbility" \_ -> do
     return AnyAbility
+
+instance Arbitrary DummyAbility where
+  arbitrary = pure AnyAbility
 
 instance Display DummyAbility where
   textDisplay AnyAbility = "DUMMY_ABILITY"
@@ -152,9 +165,8 @@ data PathCapability
   = PathCapability [Text] deriving (Show, Eq, Ord)
 
 instance FromJSON PathCapability where
-  parseJSON = withObject "UCAN.PathCapability" \obj -> do
-    (path :: Text) <- obj .: "with"
-    return $ PathCapability $ Text.split (== '/') path
+  parseJSON = withText "UCAN.PathCapability" \txt -> do
+    return $ PathCapability $ Text.split (== '/') txt
 
 instance Display PathCapability where
   textDisplay (PathCapability path) = mconcat $ List.intersperse "/" path
