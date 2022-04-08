@@ -25,7 +25,9 @@ import qualified Web.UCAN.Types              as UCAN
 import           Web.UCAN.Witness.Class
 -- Re-exports
 
+import           Web.UCAN.Capabilities.Class
 import           Web.UCAN.Capabilities.Error
+
 
 
 data ChainStep a
@@ -55,8 +57,8 @@ capabilities ::
   , Eq res
   , Eq abl
   , FromJSON fct
-  , FromJSON res
-  , FromJSON abl
+  , IsResource res
+  , IsAbility abl
   , Resolver m
   )
   => UCAN fct res abl
@@ -75,8 +77,8 @@ capabilitiesStream ::
   , Eq res
   , Eq abl
   , FromJSON fct
-  , FromJSON res
-  , FromJSON abl
+  , IsResource res
+  , IsAbility abl
   , Resolver m
   )
   => UCAN fct res abl
@@ -112,7 +114,7 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
                 proof@(ProofAuthorization parentResource parentAbility _ _) -> do
                   guard $ (parentResource, parentAbility) `canDelegate` (resource, ability)
                   return $ Right $ ProofAuthorization resource ability ucan $ ProofByDelegation proof
-                
+
                 -- TODO allow "extending" the delegation of capabilities using as: and my: capabilities
                 -- Also: Write a failing test for this
                 -- Also: Extract out a function that roughly allows us to say: canDelegate :: Capability -> Proof -> Bool
@@ -210,8 +212,8 @@ resolveToken = \case
 
 parseJSONString ::
   ( FromJSON fct
-  , FromJSON res
-  , FromJSON abl
+  , IsResource res
+  , IsAbility abl
   ) => Text -> Either Error (UCAN fct res abl)
 parseJSONString token =
   case fromJSON $ String token of

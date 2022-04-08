@@ -65,6 +65,7 @@ import           Web.UCAN.Witness.Class
 import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
 
+import           Web.UCAN.Capabilities.Class
 import qualified Web.UCAN.Internal.Base64.URL                  as B64.URL
 import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
 import qualified Web.UCAN.Internal.RSA2048.Pair.Types          as RSA2048
@@ -98,8 +99,8 @@ instance
   , Arbitrary res
   , Arbitrary abl
   , ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   ) => Arbitrary (UCAN fct res abl) where
   arbitrary = do
     algorithm <- frequency
@@ -131,8 +132,8 @@ instance
 
 instance
   ( ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   ) => ToJSON (UCAN fct res abl) where
   toJSON UCAN {..} = String $ content <> "." <> textDisplay signature
     where
@@ -148,8 +149,8 @@ instance
 
 instance
   ( FromJSON fct
-  , FromJSON res
-  , FromJSON abl
+  , IsResource res
+  , IsAbility abl
   ) => FromJSON (UCAN fct res abl) where
   parseJSON = withText "UCAN.Token" \txt ->
     case Text.split (== '.') txt of
@@ -176,8 +177,8 @@ instance
 
 instance
   ( ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   ) => Servant.ToHttpApiData (UCAN fct res abl) where
   toUrlPiece ucan =
     ucan
@@ -228,8 +229,8 @@ instance
   , Arbitrary res
   , Arbitrary abl
   , ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   ) => Arbitrary (Claims fct res abl) where
   arbitrary = do
     sender      <- arbitrary
@@ -259,8 +260,8 @@ instance
 
 jsonFromClaims ::
   ( ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   ) => Claims fct res abl -> JSON.Value
 jsonFromClaims Claims {..} = object
     [ "iss" .= sender
@@ -277,9 +278,9 @@ jsonFromClaims Claims {..} = object
 
 instance
   ( FromJSON fct
-  , FromJSON cap
-  , FromJSON abl
-  ) => FromJSON (Claims fct cap abl) where
+  , IsResource res
+  , IsAbility abl
+  ) => FromJSON (Claims fct res abl) where
   parseJSON = withObject "JWT.Payload" \obj -> do
     sender   <- obj .: "iss"
     receiver <- obj .: "aud"
@@ -380,10 +381,6 @@ instance ToJSON ProofRedelegation where
     , "can"  .= String "ucan/DELEGATE"
     ]
 
-instance Display ability => Display (Ability ability) where
-  textDisplay SuperUser         = "*"
-  textDisplay (Ability ability) = textDisplay ability
-
 instance Arbitrary ability => Arbitrary (Ability ability) where
   arbitrary =
     frequency
@@ -391,20 +388,26 @@ instance Arbitrary ability => Arbitrary (Ability ability) where
       , (1, Ability <$> arbitrary)
       ]
 
-instance FromJSON abl => FromJSON (Ability abl) where
-  parseJSON value = value & withText "UCAN.Ability" \can -> do
+instance IsAbility ability => Display (Ability ability) where
+  textDisplay SuperUser         = "*"
+  textDisplay (Ability ability) = renderAbility ability
+
+instance IsAbility abl => FromJSON (Ability abl) where
+  parseJSON value = value & withText "UCAN.Ability" \can ->
     if can == "*"
       then return SuperUser
-      else Ability <$> parseJSON value
+      else Ability <$> case parseAbility can of
+        JSON.Success ability -> return ability
+        JSON.Error message   -> fail message
 
-instance Display ability => ToJSON (OwnedResources ability) where
+instance IsAbility ability => ToJSON (OwnedResources ability) where
   toJSON (OwnedResources maybeDID All) = object
     [ "with" .= String (myOrAsPrefix maybeDID <> "*")
     , "can"  .= String "*"
     ]
   toJSON (OwnedResources maybeDID (OnlyScheme scheme ability)) = object
     [ "with" .= String (myOrAsPrefix maybeDID <> URI.unRText scheme)
-    , "can"  .= String (textDisplay ability)
+    , "can"  .= String (renderAbility ability)
     ]
 
 myOrAsPrefix :: Maybe DID -> Text
@@ -413,11 +416,11 @@ myOrAsPrefix = \case
   Nothing  -> "my:"
 
 
-instance (Display res, Display abl) => ToJSON (Capability res abl) where
+instance (IsResource res, IsAbility abl) => ToJSON (Capability res abl) where
   toJSON = \case
     CapResource res ability ->
       object
-        [ "with" .= String (textDisplay res)
+        [ "with" .= String (renderResource res)
         , "can"  .= String (textDisplay ability)
         ]
 
@@ -459,7 +462,7 @@ parseAsOrMyOrPrf = do
     A -> As  <$> DID.parse <* Parse.string ":" <*> parseStarOr parseScheme
 
 
-instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
+instance (IsResource res, IsAbility abl) => FromJSON (Capability res abl) where
   parseJSON = withObject "UCAN.Capability" \obj -> do
     withField <- obj .: "with"
     canField  <- obj .: "can"
@@ -480,13 +483,15 @@ instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
             return $ CapOwnedResources $ OwnedResources (Just did) All
 
           Right (My (Just scheme)) -> do
-            -- TODO Figure out exactly how to slice this problem. Where do we allow the ability parser to parse?
-            ability <- parseJSON canField
+            ability <- case parseAbility can of
+              JSON.Success ability -> return ability
+              JSON.Error message   -> fail message
             return $ CapOwnedResources $ OwnedResources Nothing (OnlyScheme scheme ability)
 
           Right (As did (Just scheme)) -> do
-            -- TODO see above
-            ability <- parseJSON canField
+            ability <- case parseAbility can of
+              JSON.Success ability -> return ability
+              JSON.Error message   -> fail message
             return $ CapOwnedResources $ OwnedResources (Just did) (OnlyScheme scheme ability)
 
           Right (Prf idx) -> do
@@ -496,8 +501,9 @@ instance (FromJSON res, FromJSON abl) => FromJSON (Capability res abl) where
             return $ CapProofRedelegation $ maybe RedelegateAllProofs RedelegateProof idx
 
           Left _ -> do
-            -- TODO see above
-            resource <- parseJSON withField
+            resource <- case parseResource with of
+              JSON.Success res   -> return res
+              JSON.Error message -> fail message
             ability <- parseJSON canField
             return $ CapResource resource ability
 
@@ -567,8 +573,8 @@ instance ToJSON Nonce where
 
 signEd25519 ::
   ( ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   )
   => Ed25519.SecretKey
   -> Claims fct res abl
@@ -583,8 +589,8 @@ signEd25519 sk claims = UCAN{..}
 signRS256 ::
   ( MonadRandom m
   , ToJSON fct
-  , Display res
-  , Display abl
+  , IsResource res
+  , IsAbility abl
   )
   => RSA.PrivateKey
   -> Claims fct res abl
@@ -607,9 +613,9 @@ signRS256 sk claims = do
 
 parseClaimsV_0_3 ::
   forall fct rsc abl .
-  ( FromJSON fct
-  , FromJSON rsc
-  , FromJSON abl
+  ( FromJSON   fct
+  , IsResource rsc
+  , IsAbility  abl
   ) => Value -> JSON.Parser (Claims fct rsc abl)
 parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
   sender   <- obj .: "iss"
@@ -646,15 +652,9 @@ parseClaimsV_0_3 = withObject "JWT.Payload" \obj -> do
           return []
 
     (Just rsc, Just pot) -> do
-      -- TODO Somewhat of a hack to support backwards compatibility for capabilities
-      -- probably needs special-casing for a WNFS capability
-      let cap = object
-            [ ("rsc", rsc)
-            , ("pot", pot)
-            ]
-      res <- parseJSON cap
-      abl <- parseJSON cap
-      return [CapResource res abl]
+      res <- maybe (fail $ "Couldn't parse UCAN v0.3 resource: " <> Text.unpack rsc) pure $ parseResourceV_0_3 rsc
+      abl <- maybe (fail $ "Couldn't parse UCAN v0.3 ability: " <> Text.unpack pot) pure $ parseAbilityV_0_3 pot
+      return [CapResource res (Ability abl)]
 
     _ ->
       return []

@@ -124,6 +124,7 @@ dependencies:
   - hashable
   - lens
   - list-t
+  - megaparsec
   - memory
   - QuickCheck
   - quickcheck-instances
