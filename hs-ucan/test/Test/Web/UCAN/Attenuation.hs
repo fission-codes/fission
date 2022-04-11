@@ -1,9 +1,10 @@
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE QuasiQuotes #-}
 module Test.Web.UCAN.Attenuation (spec) where
 
+import           Control.Lens
 import           Control.Monad.Time
 import qualified Data.Aeson.Types                      as JSON
-import           Data.Monoid
 import qualified RIO.Set                               as Set
 import           RIO.Time
 import           Test.Web.DID.Fixtures
@@ -11,6 +12,7 @@ import qualified Test.Web.UCAN.DelegationSemantics     as DelegationSemantics
 import qualified Test.Web.UCAN.Example                 as Ex
 import           Test.Web.UCAN.Orphanage.DummyResolver ()
 import           Test.Web.UCAN.Prelude
+import qualified Text.URI.QQ                           as URI
 import           Web.DID.Types
 import           Web.UCAN.Capabilities
 import           Web.UCAN.Capabilities.Class
@@ -41,7 +43,8 @@ spec =
         it "works with partial-order delgation semantics" do
           tomorrow <- addUTCTime nominalDay <$> currentTime
           let
-            leafUcan = signEd25519 @JSON.Value aliceKey Claims
+            leafUcan :: UCAN JSON.Value Ex.PathResource Ex.MsgAbility
+            leafUcan = signEd25519 aliceKey Claims
               { sender = aliceDID
               , receiver = bobDID
               , attenuation =
@@ -55,7 +58,8 @@ spec =
               , nonce = Nothing
               }
 
-            ucan = signEd25519 @JSON.Value bobKey Claims
+            ucan :: UCAN JSON.Value Ex.PathResource Ex.MsgAbility
+            ucan = signEd25519 bobKey Claims
               { sender = bobDID
               , receiver = malloryDID
               , attenuation =
@@ -85,6 +89,82 @@ spec =
 
           Set.fromList actualDelegations `shouldBe`
             Set.fromList expectedDelegations
+
+        it "extends capability root issuers through `as:` and `my:`" do
+          tomorrow <- addUTCTime nominalDay <$> currentTime
+          let
+            leafUcan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            leafUcan = signEd25519 aliceKey Claims
+              { sender = aliceDID
+              , receiver = bobDID
+              , attenuation = [ CapOwnedResources (OwnedResources Nothing (OnlyScheme [URI.scheme|example|] Ex.CanTouch)) ]
+              , proofs = []
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            ucan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            ucan = signEd25519 bobKey Claims
+              { sender = bobDID
+              , receiver = malloryDID
+              , attenuation = [ CapResource Ex.Everything (Ability Ex.CanTouch) ]
+              , proofs = [ Nested $ textDisplay leafUcan ]
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            expectedDelegations =
+              [ -- short-circuited "by parenthood"
+                ( (Ex.Everything, Ability Ex.CanTouch)
+                , bobDID
+                )
+              , -- extended root issuer through my: capability
+                ( (Ex.Everything, Ability Ex.CanTouch)
+                , aliceDID
+                )
+              ]
+
+          actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+
+          Set.fromList actualDelegations `shouldBe`
+            Set.fromList expectedDelegations
+
+        it "delegates ownership through `as:` and `my:`" do
+          tomorrow <- addUTCTime nominalDay <$> currentTime
+          let
+            leafUcan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            leafUcan = signEd25519 aliceKey Claims
+              { sender = aliceDID
+              , receiver = bobDID
+              , attenuation = [ CapOwnedResources (OwnedResources Nothing All) ]
+              , proofs = []
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            ucan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            ucan = signEd25519 bobKey Claims
+              { sender = bobDID
+              , receiver = malloryDID
+              , attenuation = [ CapOwnedResources (OwnedResources (Just aliceDID) All) ]
+              , proofs = [ Nested $ textDisplay leafUcan ]
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+          actualDelegations <- toListOf (traversed . _Right) <$> capabilities ucan
+
+          Set.fromList actualDelegations `shouldBe`
+            Set.fromList
+              [ DelegatedAuthentication (DelegateAs aliceDID All ucan (DelegateMy All leafUcan)) ]
 
       describe "PathResource" do
         DelegationSemantics.itHasPartialOrderProperties @Ex.PathResource
