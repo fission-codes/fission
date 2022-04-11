@@ -103,7 +103,7 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
           empty
 
   viaParenthood <|> do
-    witnessRef <- ListT.fromFoldable proofs
+    (witnessRef, witnessIndex) <- ListT.fromFoldable (proofs `zip` [(0 :: Natural)..])
     liftAttempt (lift (resolveToken witnessRef)) \witnessResolved ->
       attempt (parseJSONString witnessResolved) \witness ->
         attempt (checkDelegation witness ucan) \() ->
@@ -151,18 +151,20 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
                 _ ->
                   empty
 
-            UCAN.CapProofRedelegation UCAN.RedelegateAllProofs -> do
+            UCAN.CapProofRedelegation whichProofs -> do
+              case whichProofs of
+                UCAN.RedelegateAllProofs ->
+                  return ()
+
+                UCAN.RedelegateProof proofIndex ->
+                  guard $ proofIndex == witnessIndex
+
               liftAttempt (capabilitiesStream witness) \case
                 proof@(DelegatedAuthorization resource ability _ _) ->
                   return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
 
                 _ ->
                   empty
-
-            -- TODO redelegate invididual proof indices
-            -- UCAN.CapProofRedelegation (UCAN.RedelegateProof proofIndex) -> do
-            --   liftAttempt (capabilitiesStream witness) \case
-            --     proof@(DelegatedAuthorization resource ability _ _) ->
 
             _ ->
               empty

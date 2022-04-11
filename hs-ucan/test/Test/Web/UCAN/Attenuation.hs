@@ -166,6 +166,98 @@ spec =
             Set.fromList
               [ DelegatedAuthentication (DelegateAs aliceDID All ucan (DelegateMy All leafUcan)) ]
 
+        it "redelegates everything using `prf:*`" do
+          tomorrow <- addUTCTime nominalDay <$> currentTime
+          let
+            leafUcan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            leafUcan = signEd25519 aliceKey Claims
+              { sender = aliceDID
+              , receiver = bobDID
+              , attenuation =
+                  [ CapResource Ex.Everything (Ability Ex.CanLook)
+                  , CapResource Ex.OnlyOneThing (Ability Ex.CanTouch)
+                  ]
+              , proofs = []
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            ucan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            ucan = signEd25519 bobKey Claims
+              { sender = bobDID
+              , receiver = malloryDID
+              , attenuation = [ CapProofRedelegation RedelegateAllProofs ]
+              , proofs = [ Nested $ textDisplay leafUcan ]
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            expectedDelegations =
+              [ ((Ex.Everything, Ability Ex.CanLook), aliceDID)
+              , ((Ex.OnlyOneThing, Ability Ex.CanTouch), aliceDID)
+              ]
+
+          actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+
+          Set.fromList actualDelegations `shouldBe`
+            Set.fromList expectedDelegations
+
+        it "redelegates everything from a specific proof using `prf:1`" do
+          tomorrow <- addUTCTime nominalDay <$> currentTime
+          let
+            leafUcan0 :: UCAN JSON.Value Ex.Resource Ex.Ability
+            leafUcan0 = signEd25519 aliceKey Claims
+              { sender = aliceDID
+              , receiver = bobDID
+              , attenuation = [ CapResource Ex.Everything SuperUser ]
+              , proofs = []
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            leafUcan1 :: UCAN JSON.Value Ex.Resource Ex.Ability
+            leafUcan1 = signEd25519 aliceKey Claims
+              { sender = aliceDID
+              , receiver = bobDID
+              , attenuation =
+                  [ CapResource Ex.Everything (Ability Ex.CanLook)
+                  , CapResource Ex.OnlyOneThing (Ability Ex.CanTouch)
+                  ]
+              , proofs = []
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            ucan :: UCAN JSON.Value Ex.Resource Ex.Ability
+            ucan = signEd25519 bobKey Claims
+              { sender = bobDID
+              , receiver = malloryDID
+              , attenuation = [ CapProofRedelegation (RedelegateProof 1) ]
+              , proofs = map (Nested . textDisplay) [ leafUcan0, leafUcan1 ]
+              , facts = []
+              , expiration = tomorrow
+              , notBefore = Nothing
+              , nonce = Nothing
+              }
+
+            expectedDelegations =
+              [ ((Ex.Everything, Ability Ex.CanLook), aliceDID)
+              , ((Ex.OnlyOneThing, Ability Ex.CanTouch), aliceDID)
+              ]
+
+          actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+
+          Set.fromList actualDelegations `shouldBe`
+            Set.fromList expectedDelegations
+
       describe "PathResource" do
         DelegationSemantics.itHasPartialOrderProperties @Ex.PathResource
 
