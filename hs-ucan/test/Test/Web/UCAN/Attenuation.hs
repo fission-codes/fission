@@ -33,15 +33,17 @@ spec =
   describe "Attenuation" do
     describe "capabilities" do
       itsPropSized "produces parenthood proofs on UCANs without proofs" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) -> do
-        proofs <- capabilities ucan{ claims = (claims ucan){ proofs = [] } }
-        let isParenthoodWitness = \case
-              Right (ProofAuthorization _ _ _ (ProofByDelegation _)) -> False
-              _                                                      -> True
-        all isParenthoodWitness proofs `shouldBe` True
+        delegations <- capabilities ucan{ claims = (claims ucan){ proofs = [] } }
+        let isIntroducedByParenthood = \case
+              Right (DelegatedAuthorization _ _ _ IntroducedByParenthood) -> True
+              Right (DelegatedAuthentication _) -> True -- ignored
+              Left _ -> True -- ignored as well
+              _ -> False
+        all isIntroducedByParenthood delegations `shouldBe` True
 
       itsPropSized "produces only valid proofs" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) -> do
         proofs <- capabilities ucan
-        all (either (const True) checkProof) proofs `shouldBe` True
+        all (either (const True) checkDelegationChain) proofs `shouldBe` True
 
       describe "fixtures" do
         -- TODO Test UCAN spec fixtures.
@@ -85,7 +87,7 @@ spec =
               , nonce = Nothing
               }
 
-            expectedCapabilities =
+            expectedDelegations =
               [ ( (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|], [URI.pathPiece|file.txt|]], Ability Ex.MsgSend)
                 , aliceDID
                 )
@@ -97,10 +99,10 @@ spec =
                 )
               ]
 
-          actualCapabilities <- capsWithOriginators <$> capabilities ucan
+          actualDelegations <- capsWithRootIssuers <$> capabilities ucan
 
-          Set.fromList actualCapabilities `shouldBe`
-            Set.fromList expectedCapabilities
+          Set.fromList actualDelegations `shouldBe`
+            Set.fromList expectedDelegations
 
       describe "PathResource" do
         DelegationSemantics.itHasPartialOrderProperties @Ex.PathResource
@@ -154,7 +156,7 @@ parseNaClEd25519SecretKeyBase64 bs = do
       Crypto.Error.CryptoFailed err -> Left $ Text.pack $ show err
 
 
-capsWithOriginators :: [Either a (Proof fct res abl)] -> [((res, Ability abl), DID)]
-capsWithOriginators = concatMap \case
-  Right proof@(ProofAuthorization res abl _ _) -> [((res, abl), originator proof)]
+capsWithRootIssuers :: [Either a (DelegationChain fct res abl)] -> [((res, Ability abl), DID)]
+capsWithRootIssuers = concatMap \case
+  Right proof@(DelegatedAuthorization res abl _ _) -> [((res, abl), rootIssuer proof)]
   _                                            -> []
