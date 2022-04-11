@@ -18,11 +18,14 @@ import qualified ListT
 import           RIO                         hiding (exp, to)
 import           RIO.Time
 
+import qualified Text.URI                    as URI
+
 import           Web.DID.Types
 import           Web.UCAN.Resolver.Class
 import           Web.UCAN.Types              (UCAN)
 import qualified Web.UCAN.Types              as UCAN
 import           Web.UCAN.Witness.Class
+
 -- Re-exports
 
 import           Web.UCAN.Capabilities.Class
@@ -43,7 +46,7 @@ data DelegationChain fct res abl
   | DelegatedAuthentication (DelegatedAuthentication fct res abl)
   deriving (Show, Eq, Ord)
 
-
+-- TODO I think I can get rid of the DID. You can just follow the links to the right UCAN
 data DelegatedAuthentication fct res abl
   = DelegateAs DID (UCAN.OwnershipScope abl) (UCAN fct res abl) (DelegatedAuthentication fct res abl)
   | DelegateMy (UCAN.OwnershipScope abl) (UCAN fct res abl)
@@ -115,13 +118,23 @@ capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
                   guard $ (parentResource, parentAbility) `canDelegate` (resource, ability)
                   return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
 
-                -- TODO allow "extending" the delegation of capabilities using as: and my: capabilities
-                -- Also: Write a failing test for this
-                -- Also: Extract out a function that roughly allows us to say: canDelegate :: Capability -> Proof -> Bool
+                proof@(DelegatedAuthentication authnDelegation) -> do
+                  let ownershipScope =
+                        case authnDelegation of
+                          DelegateAs _ scope _ _ -> scope
+                          DelegateMy scope _     -> scope
 
-                _ ->
-                  empty
+                  case ownershipScope of
+                    UCAN.All ->
+                      return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
 
+                    UCAN.OnlyScheme scheme parentAbility -> do
+                      guard $ Just scheme == URI.uriScheme (renderResourceURI resource)
+                      guard $ parentAbility `canDelegate` ability
+                      return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
+
+            -- we only care about the `Just` case here (as:<did>:..),
+            -- because the `Nothing` case (my:..) was covered in `viaParenthood` above
             UCAN.CapOwnedResources (UCAN.OwnedResources (Just did) ownershipScope) ->
               liftAttempt (capabilitiesStream witness) \case
                 DelegatedAuthentication parent@(DelegateAs parentDid parentOwnershipScope _ _) -> do
