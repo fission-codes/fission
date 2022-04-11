@@ -37,7 +37,7 @@ data Ability
   = CanLook
   | CanTouch
   | SuperUser
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- You can either look or touch. You can only do both when you're SuperUser.
 instance DelegationSemantics Ability where

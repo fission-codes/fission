@@ -34,20 +34,20 @@ data ChainStep a
   = IntroducedByParenthood
   | Delegated a
   --  | DelegateViaRightsAmplification (NonEmpty a)
-  deriving (Show, Eq, Functor)
+  deriving (Show, Eq, Ord, Functor)
 
 
 
 data DelegationChain fct res abl
   = DelegatedAuthorization res (UCAN.Ability abl) (UCAN fct res abl) (ChainStep (DelegationChain fct res abl))
   | DelegatedAuthentication (DelegatedAuthentication fct res abl)
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 
 data DelegatedAuthentication fct res abl
   = DelegateAs DID (UCAN.OwnershipScope abl) (UCAN fct res abl) (DelegatedAuthentication fct res abl)
   | DelegateMy (UCAN.OwnershipScope abl) (UCAN fct res abl)
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 
 

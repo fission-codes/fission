@@ -83,6 +83,11 @@ data UCAN fct res abl = UCAN
   } deriving (Show, Eq)
 
 
+instance (Eq fct, Eq res, Eq abl) => Ord (UCAN fct res abl) where
+  compare x y =
+    textDisplay x `compare` textDisplay y
+
+
 instance Display (UCAN fct res abl) where
   textDisplay UCAN{..} =
     textDisplay signedData <> "." <> textDisplay signature
