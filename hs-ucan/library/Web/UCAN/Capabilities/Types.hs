@@ -45,7 +45,7 @@ data OwnedResources ability
 data OwnershipScope ability
   = All
     -- ^ the "*" in "my:*". The whole capability *must* be "{ with: "my:*", can: "*" }" or the equivalent with "as:..."
-  | OnlyScheme (URI.RText 'URI.Scheme) ability
+  | OnlyScheme (URI.RText 'URI.Scheme) (Ability ability)
     -- ^ e.g. the "wnfs" in "my:wnfs" or "as:<did>:wnfs"
   deriving (Show, Eq, Ord)
 
@@ -128,7 +128,7 @@ instance IsAbility ability => ToJSON (OwnedResources ability) where
     ]
   toJSON (OwnedResources maybeDID (OnlyScheme scheme ability)) = object
     [ "with" .= String (myOrAsPrefix maybeDID <> URI.unRText scheme)
-    , "can"  .= String (renderAbility ability)
+    , "can"  .= String (textDisplay ability)
     ]
 
 myOrAsPrefix :: Maybe DID -> Text
@@ -204,15 +204,11 @@ instance (IsResource res, IsAbility abl) => FromJSON (Capability res abl) where
             return $ CapOwnedResources $ OwnedResources (Just did) All
 
           Right (My (Just scheme)) -> do
-            ability <- case parseAbility can of
-              JSON.Success ability -> return ability
-              JSON.Error message   -> fail message
+            ability <- parseJSON canField
             return $ CapOwnedResources $ OwnedResources Nothing (OnlyScheme scheme ability)
 
           Right (As did (Just scheme)) -> do
-            ability <- case parseAbility can of
-              JSON.Success ability -> return ability
-              JSON.Error message   -> fail message
+            ability <- parseJSON canField
             return $ CapOwnedResources $ OwnedResources (Just did) (OnlyScheme scheme ability)
 
           Right (Prf idx) -> do
