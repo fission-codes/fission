@@ -65,7 +65,7 @@ parseWithUav = withObject "JWT.Header" \obj -> do
 
 
 ucanVersion :: SemVer
-ucanVersion = SemVer 0 8 0
+ucanVersion = SemVer 0 8 2
 
 isSupportedVersion :: SemVer -> Bool
 isSupportedVersion = \case
