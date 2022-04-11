@@ -13,7 +13,6 @@ import           Data.Monoid
 import qualified RIO.ByteString                        as BS
 import qualified RIO.Set                               as Set
 import qualified RIO.Text                              as Text
-import qualified Text.URI.QQ                           as URI
 
 import           Test.Web.UCAN.Prelude
 
@@ -24,6 +23,7 @@ import           Test.Web.UCAN.Orphanage.DummyResolver ()
 import           Web.DID.Types
 import qualified Web.DID.Types                         as DID
 import           Web.UCAN.Capabilities
+import           Web.UCAN.Capabilities.Class
 import           Web.UCAN.Types
 import           Web.UCAN.Witness
 
@@ -55,12 +55,8 @@ spec =
               { sender = aliceDID
               , receiver = bobDID
               , attenuation =
-                [ CapResource
-                    (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|]])
-                    (Ability Ex.MsgSend)
-                , CapResource
-                    (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|Apps|]])
-                    (Ability Ex.MsgSend)
+                [ CapResource (pathResource "path:/public/test") (Ability Ex.MsgSend)
+                , CapResource (pathResource "path:/public/Apps") (Ability Ex.MsgSend)
                 ]
               , proofs = []
               , facts = []
@@ -73,12 +69,8 @@ spec =
               { sender = bobDID
               , receiver = malloryDID
               , attenuation =
-                [ CapResource
-                    (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|], [URI.pathPiece|file.txt|]])
-                    (Ability Ex.MsgSend)
-                , CapResource
-                    (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|abc|]])
-                    (Ability Ex.MsgSend)
+                [ CapResource (pathResource "path:/public/test/file.txt") (Ability Ex.MsgSend)
+                , CapResource (pathResource "path:/public/abc") (Ability Ex.MsgSend)
                 ]
               , proofs = [ Nested $ textDisplay leafUcan ]
               , facts = []
@@ -88,13 +80,13 @@ spec =
               }
 
             expectedDelegations =
-              [ ( (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|], [URI.pathPiece|file.txt|]], Ability Ex.MsgSend)
+              [ ( (pathResource "path:/public/test/file.txt", Ability Ex.MsgSend)
                 , aliceDID
                 )
-              , ( (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|], [URI.pathPiece|file.txt|]], Ability Ex.MsgSend)
+              , ( (pathResource "path:/public/test/file.txt", Ability Ex.MsgSend)
                 , bobDID
                 )
-              , ( (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|abc|]], Ability Ex.MsgSend)
+              , ( (pathResource "path:/public/abc", Ability Ex.MsgSend)
                 , bobDID
                 )
               ]
@@ -108,15 +100,15 @@ spec =
         DelegationSemantics.itHasPartialOrderProperties @Ex.PathResource
 
         it "public/ can delegate public/test" do
-          (Ex.PathResource [[URI.pathPiece|public|]] `canDelegate` Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|]])
+          (pathResource "path:/public" `canDelegate` pathResource "path:/public/test")
             `shouldBe` True
 
         it "public/ can not delegate private/" do
-          (Ex.PathResource [[URI.pathPiece|public|]] `canDelegate` Ex.PathResource [[URI.pathPiece|private|]])
+          (pathResource "path:/public" `canDelegate` pathResource "path:/private")
             `shouldBe` False
 
         it "public/test can not delegate public/" do
-          (Ex.PathResource [[URI.pathPiece|public|], [URI.pathPiece|test|]] `canDelegate` Ex.PathResource [[URI.pathPiece|public|]])
+          (pathResource "path:/public/test" `canDelegate` pathResource "path:/public")
             `shouldBe` False
 
 
@@ -160,3 +152,9 @@ capsWithRootIssuers :: [Either a (DelegationChain fct res abl)] -> [((res, Abili
 capsWithRootIssuers = concatMap \case
   Right proof@(DelegatedAuthorization res abl _ _) -> [((res, abl), rootIssuer proof)]
   _                                            -> []
+
+
+pathResource :: Text -> Ex.PathResource
+pathResource text = case parseResource text of
+  JSON.Success path -> path
+  JSON.Error message -> error $ "Couldn't parse PathResource fixture: " <> message
