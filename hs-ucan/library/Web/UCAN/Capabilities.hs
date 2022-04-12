@@ -21,11 +21,11 @@ import qualified Text.URI                    as URI
 
 import           Web.DID.Types
 import           Web.UCAN.Error
+import           Web.UCAN.Proof.Class
 import           Web.UCAN.Resolver.Class
 import           Web.UCAN.Types              (UCAN)
 import qualified Web.UCAN.Types              as UCAN
 import qualified Web.UCAN.Validation         as Validation
-import           Web.UCAN.Witness.Class
 
 -- Re-exports
 
@@ -171,24 +171,24 @@ capabilitiesFromDelegations ::
   => UCAN fct res abl
   -> ListT m (Either Error (DelegationChain fct res abl))
 capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
-  (witnessRef, witnessIndex) <- ListT.fromFoldable (proofs `zip` [(0 :: Natural)..])
-  liftAttempt (lift (resolveToken witnessRef)) \witnessResolved ->
-    attempt (parseJSONString witnessResolved) \witness ->
-      attempt (Validation.checkDelegation witness ucan) \() ->
+  (proofRef, proofIndex) <- ListT.fromFoldable (proofs `zip` [(0 :: Natural)..])
+  liftAttempt (lift (resolveToken proofRef)) \proofResolved ->
+    attempt (parseJSONString proofResolved) \proof ->
+      attempt (Validation.checkDelegation proof ucan) \() ->
         ListT.fromFoldable attenuation >>= \case
           -- v0.8.1:
           -- If cap is something like prf:x, thent get prf:x and essentially replace prf:x with each of the caps in the prf(s)
           -- If cap is something like as:<did>:* then check that proofs also contain either as:<did>:* or my:* and the issuer matches
           -- If cap is anything else, just do the normal canDelegate thing.
           UCAN.CapResource resource ability ->
-            liftAttempt (capabilitiesStream witness) \delegation -> do
+            liftAttempt (capabilitiesStream proof) \delegation -> do
               guard $ capabilityCanBeDelegated (resource, ability) delegation
               return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated delegation
 
           -- we only care about the `Just` case here (as:<did>:..),
           -- because the `Nothing` case (my:..) is covered in `capabilitiesFromParenthood` above
           UCAN.CapOwnedResources (UCAN.OwnedResources (Just did) ownershipScope) ->
-            liftAttempt (capabilitiesStream witness) \case
+            liftAttempt (capabilitiesStream proof) \case
               DelegatedAuthentication authDelegation -> do
                 guard $ ownershipCanBeDelegated did ownershipScope authDelegation
                 return $ Right $ DelegatedAuthentication $ DelegateAs did ownershipScope ucan authDelegation
@@ -201,12 +201,12 @@ capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
               UCAN.RedelegateAllProofs ->
                 return ()
 
-              UCAN.RedelegateProof proofIndex ->
-                guard $ proofIndex == witnessIndex
+              UCAN.RedelegateProof idx ->
+                guard $ proofIndex == idx
 
-            liftAttempt (capabilitiesStream witness) \case
-              proof@(DelegatedAuthorization resource ability _ _) ->
-                return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
+            liftAttempt (capabilitiesStream proof) \case
+              delegation@(DelegatedAuthorization resource ability _ _) ->
+                return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated delegation
 
               _ ->
                 empty
@@ -231,7 +231,7 @@ attempt failable f =
     Left e  -> return $ Left e
 
 
-resolveToken :: Resolver m => UCAN.Witness -> m (Either Error Text)
+resolveToken :: Resolver m => UCAN.Proof -> m (Either Error Text)
 resolveToken = \case
   UCAN.Nested text -> return $ Right text
   UCAN.Reference cid -> do

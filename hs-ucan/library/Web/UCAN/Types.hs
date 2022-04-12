@@ -2,7 +2,7 @@
 module Web.UCAN.Types
   ( UCAN (..)
   , Claims (..)
-  , Witness  (..)
+  , Proof  (..)
 
   , signEd25519
   , signRS256
@@ -14,7 +14,7 @@ module Web.UCAN.Types
   , module Web.UCAN.Header.Types
   , module Web.UCAN.Nonce.Types
   , module Web.UCAN.RawContent
-  , module Web.UCAN.Witness.Types
+  , module Web.UCAN.Proof.Types
   ) where
 
 import qualified System.IO.Unsafe                              as Unsafe
@@ -69,8 +69,8 @@ import           Web.UCAN.Capabilities.Types
 import           Web.UCAN.Claims.Types
 import           Web.UCAN.Header.Types
 import           Web.UCAN.Nonce.Types
+import           Web.UCAN.Proof.Types
 import           Web.UCAN.RawContent
-import           Web.UCAN.Witness.Types
 
 
 -- | An RFC 7519 extended with support for Ed25519 keys,
@@ -116,7 +116,7 @@ instance
         sk' <- arbitrary
         return (Ed25519PublicKey (toPublic sk'), Right sk')
 
-    claims <- arbitraryClaims arbitraryWitnesses (DID.Key pk)
+    claims <- arbitraryClaims arbitraryProofs (DID.Key pk)
 
     return case sk of
       Left rsaSK ->
@@ -128,8 +128,8 @@ instance
         signEd25519 edSK claims
 
     where
-      arbitraryWitnesses :: Gen [Witness]
-      arbitraryWitnesses = map (Nested . textDisplay) <$> sized arbitraryUCAN
+      arbitraryProofs :: Gen [Proof]
+      arbitraryProofs = map (Nested . textDisplay) <$> sized arbitraryUCAN
 
       arbitraryUCAN :: Int -> Gen [UCAN fct res abl]
       arbitraryUCAN size = do

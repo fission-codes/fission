@@ -17,7 +17,7 @@ import           Test.Web.UCAN.Prelude
 import qualified Text.URI                    as URI
 import qualified Text.URI.QQ                 as URI
 import           Web.UCAN.Capabilities.Class
-import           Web.UCAN.Witness.Class
+import           Web.UCAN.Proof.Class
 
 
 ----------------------

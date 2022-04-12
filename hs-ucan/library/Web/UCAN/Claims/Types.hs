@@ -14,7 +14,7 @@ import           Web.UCAN.Capabilities.Types
 import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
 import           Web.UCAN.Internal.Time
 import           Web.UCAN.Nonce.Types
-import           Web.UCAN.Witness.Types
+import           Web.UCAN.Proof.Types
 
 
 data Claims fct cap abl = Claims
@@ -23,7 +23,7 @@ data Claims fct cap abl = Claims
   , receiver    :: DID
   -- Authorization Target
   , attenuation :: [Capability cap abl]
-  , proofs      :: [Witness]
+  , proofs      :: [Proof]
   , facts       :: [fct]
   -- Temporal Bounds
   , expiration  :: UTCTime
@@ -91,11 +91,11 @@ arbitraryClaims ::
   ( Arbitrary fct
   , Arbitrary res
   , Arbitrary abl
-  ) => Gen [Witness] -> DID -> Gen (Claims fct res abl)
-arbitraryClaims arbitraryWitnesses sender = do
+  ) => Gen [Proof] -> DID -> Gen (Claims fct res abl)
+arbitraryClaims arbitraryProofs sender = do
   receiver    <- DID.Key <$> arbitrary
   attenuation <- arbitrary
-  proofs      <- arbitraryWitnesses
+  proofs      <- arbitraryProofs
   facts       <- arbitrary
   expiration  <- arbitrary
   notBefore   <- arbitrary

@@ -22,9 +22,9 @@ import           Web.UCAN.Signature.Error
 
 import           Web.UCAN                       as UCAN
 import           Web.UCAN.Error                 as UCAN
+import qualified Web.UCAN.Proof.Error           as Proof
 import qualified Web.UCAN.Signature.RS256.Types as RS256
 import           Web.UCAN.Signature.Types       as Signature
-import qualified Web.UCAN.Witness.Error         as Witness
 
 
 
@@ -65,12 +65,12 @@ checkDelegation UCAN.UCAN{ header = headerFrom, claims = claimsFrom } UCAN.UCAN{
 
     senderReceiverMatch =
       unless (sender == receiver) do
-        Left $ UCAN.WitnessError $ Witness.IssuerAudienceMismatch sender receiver
+        Left $ UCAN.ProofError $ Proof.IssuerAudienceMismatch sender receiver
 
     expirationBeforeNotBefore =
       case (UCAN.expiration claimsFrom, UCAN.notBefore claimsTo) of
         (exp, Just nbf) | exp <= nbf ->
-          Left $ UCAN.WitnessError $ Witness.NotBeforeWitnessExpired nbf exp
+          Left $ UCAN.ProofError $ Proof.NotBeforeProofExpired nbf exp
 
         _ ->
           Right ()
@@ -78,14 +78,14 @@ checkDelegation UCAN.UCAN{ header = headerFrom, claims = claimsFrom } UCAN.UCAN{
     notBeforeAfterExpiration =
       case (UCAN.notBefore claimsFrom, UCAN.expiration claimsTo) of
         (Just nbf, exp) | nbf >= exp ->
-          Left $ UCAN.WitnessError $ Witness.ExpiresAfterNotBefore exp nbf
+          Left $ UCAN.ProofError $ Proof.ExpiresAfterNotBefore exp nbf
 
         _ ->
           Right ()
 
     versionIsIncreasing =
       unless (UCAN.ucv headerFrom >= UCAN.ucv headerTo) do
-        Left $ UCAN.WitnessError $ Witness.DecreasingVersionInChain (UCAN.ucv headerTo) (UCAN.ucv headerFrom)
+        Left $ UCAN.ProofError $ Proof.DecreasingVersionInChain (UCAN.ucv headerTo) (UCAN.ucv headerFrom)
 
 
 -- 🤓

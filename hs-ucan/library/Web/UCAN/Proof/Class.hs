@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Web.UCAN.Witness.Class
+module Web.UCAN.Proof.Class
   ( DelegationSemantics(..)
   , GreaterDelegatesMore(..)
   , SmallerDelegatesMore(..)

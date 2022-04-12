@@ -1,5 +1,5 @@
-module Web.UCAN.Witness.Types
-  ( Witness(..)
+module Web.UCAN.Proof.Types
+  ( Proof(..)
   ) where
 
 import           Data.Aeson
@@ -11,18 +11,18 @@ import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
 
 
 
-data Witness
+data Proof
   = Nested    Text
   | Reference CID
   deriving (Show, Eq)
 
 
-instance Display Witness where
+instance Display Proof where
   display = \case
     Nested raw    -> "Nested "    <> display raw
     Reference cid -> "Reference " <> display cid
 
-instance ToJSON Witness where
+instance ToJSON Proof where
   toJSON = \case
     Reference cid ->
       toJSON cid
@@ -30,10 +30,10 @@ instance ToJSON Witness where
     Nested raw ->
       String raw
 
-instance FromJSON Witness where
+instance FromJSON Proof where
   parseJSON val =
     val
-      & withText "Credential Witness" \txt ->
+      & withText "Credential Proof" \txt ->
         if "eyJ" `Text.isPrefixOf` txt -- i.e. starts with Base64 encoded '{'
           then pure $ Nested txt
           else Reference <$> parseJSON val

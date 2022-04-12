@@ -17,7 +17,7 @@ import           Web.DID.Types
 import           Web.UCAN.Capabilities
 import           Web.UCAN.Capabilities.Class
 import           Web.UCAN.Types
-import           Web.UCAN.Witness.Class
+import           Web.UCAN.Proof.Class
 
 
 spec :: Spec

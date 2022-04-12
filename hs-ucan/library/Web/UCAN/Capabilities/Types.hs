@@ -18,7 +18,7 @@ import qualified Text.URI                                      as URI
 import           Web.DID.Types                                 as DID
 import           Web.UCAN.Capabilities.Class
 import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
-import           Web.UCAN.Witness.Class
+import           Web.UCAN.Proof.Class
 
 
 
