@@ -17,12 +17,12 @@ import           Web.UCAN.Nonce.Types
 import           Web.UCAN.Proof.Types
 
 
-data Claims fct cap abl = Claims
+data Claims fct res abl = Claims
   -- Dramatis Personae
   { sender      :: DID
   , receiver    :: DID
   -- Authorization Target
-  , attenuation :: [Capability cap abl]
+  , attenuation :: [Capability res abl]
   , proofs      :: [Proof]
   , facts       :: [fct]
   -- Temporal Bounds
@@ -31,10 +31,10 @@ data Claims fct cap abl = Claims
   , nonce       :: Maybe Nonce
   } deriving (Show)
 
-instance (Show fct, Show cap, Show abl) => Display (Claims fct cap abl) where
+instance (Show fct, Show res, Show abl) => Display (Claims fct res abl) where
   textDisplay = Text.pack . show
 
-instance (Eq fct, Eq cap, Eq abl) => Eq (Claims fct cap abl) where
+instance (Eq fct, Eq res, Eq abl) => Eq (Claims fct res abl) where
   jwtA == jwtB = eqWho && eqAuth && eqTime && eqFacts && eqNonce
     where
       eqWho = sender jwtA == sender   jwtB
