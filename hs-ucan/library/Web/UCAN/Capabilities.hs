@@ -5,9 +5,9 @@ module Web.UCAN.Capabilities
   , DelegatedAuthentication(..)
   , capabilities
   , capabilitiesStream
-  , checkDelegationChain
   , rootIssuer
-  , module Web.UCAN.Capabilities.Error
+  , capabilityCanBeDelegated
+  , ownershipCanBeDelegated
   ) where
 
 import           Data.Aeson
@@ -16,20 +16,20 @@ import           Control.Applicative
 import           ListT                       (ListT)
 import qualified ListT
 import           RIO                         hiding (exp, to)
-import           RIO.Time
 
 import qualified Text.URI                    as URI
 
 import           Web.DID.Types
+import           Web.UCAN.Error
 import           Web.UCAN.Resolver.Class
 import           Web.UCAN.Types              (UCAN)
 import qualified Web.UCAN.Types              as UCAN
+import qualified Web.UCAN.Validation         as Validation
 import           Web.UCAN.Witness.Class
 
 -- Re-exports
 
 import           Web.UCAN.Capabilities.Class
-import           Web.UCAN.Capabilities.Error
 
 
 
@@ -40,13 +40,12 @@ data ChainStep a
   deriving (Show, Eq, Ord, Functor)
 
 
-
 data DelegationChain fct res abl
   = DelegatedAuthorization res (UCAN.Ability abl) (UCAN fct res abl) (ChainStep (DelegationChain fct res abl))
   | DelegatedAuthentication (DelegatedAuthentication fct res abl)
   deriving (Show, Eq, Ord)
 
--- TODO I think I can get rid of the DID. You can just follow the links to the right UCAN
+
 data DelegatedAuthentication fct res abl
   = DelegateAs DID (UCAN.OwnershipScope abl) (UCAN fct res abl) (DelegatedAuthentication fct res abl)
   | DelegateMy (UCAN.OwnershipScope abl) (UCAN fct res abl)
@@ -86,117 +85,134 @@ capabilitiesStream ::
   )
   => UCAN fct res abl
   -> ListT m (Either Error (DelegationChain fct res abl))
-capabilitiesStream ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
-  let
-    -- This is how every capability proof tree begins: A capability is always introduced "by parenthood" at some point.
-    viaParenthood :: ListT m (Either Error (DelegationChain fct res abl))
-    viaParenthood = do
-      ListT.fromFoldable attenuation >>= \case
-        UCAN.CapResource resource ability ->
-          return $ Right $ DelegatedAuthorization resource ability ucan IntroducedByParenthood
-
-        -- `Nothing` indicates "My resources". `Just` would indicate re-delegating ownership
-        UCAN.CapOwnedResources (UCAN.OwnedResources Nothing ownershipScope) -> do
-          return $ Right $ DelegatedAuthentication $ DelegateMy ownershipScope ucan
-
-        _ ->
-          empty
-
-  viaParenthood <|> do
-    (witnessRef, witnessIndex) <- ListT.fromFoldable (proofs `zip` [(0 :: Natural)..])
-    liftAttempt (lift (resolveToken witnessRef)) \witnessResolved ->
-      attempt (parseJSONString witnessResolved) \witness ->
-        attempt (checkDelegation witness ucan) \() ->
-          ListT.fromFoldable attenuation >>= \case
-          -- v0.8.1:
-          -- If cap is something like prf:x, thent get prf:x and essentially replace prf:x with each of the caps in the prf(s)
-          -- If cap is something like as:<did>:* then check that proofs also contain either as:<did>:* or my:* and the issuer matches
-          -- If cap is anything else, just do the normal canDelegate thing.
-            UCAN.CapResource resource ability ->
-              liftAttempt (capabilitiesStream witness) \case
-                proof@(DelegatedAuthorization parentResource parentAbility _ _) -> do
-                  guard $ (parentResource, parentAbility) `canDelegate` (resource, ability)
-                  return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
-
-                proof@(DelegatedAuthentication authnDelegation) -> do
-                  let ownershipScope =
-                        case authnDelegation of
-                          DelegateAs _ scope _ _ -> scope
-                          DelegateMy scope _     -> scope
-
-                  case ownershipScope of
-                    UCAN.All ->
-                      return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
-
-                    UCAN.OnlyScheme scheme parentAbility -> do
-                      guard $ Just scheme == URI.uriScheme (renderResourceURI resource)
-                      guard $ parentAbility `canDelegate` ability
-                      return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
-
-            -- we only care about the `Just` case here (as:<did>:..),
-            -- because the `Nothing` case (my:..) was covered in `viaParenthood` above
-            UCAN.CapOwnedResources (UCAN.OwnedResources (Just did) ownershipScope) ->
-              liftAttempt (capabilitiesStream witness) \case
-                DelegatedAuthentication parent@(DelegateAs parentDid parentOwnershipScope _ _) -> do
-                  guard $ parentDid == did
-                  guard $ parentOwnershipScope `canDelegate` ownershipScope
-                  return $ Right $ DelegatedAuthentication $ DelegateAs did ownershipScope ucan parent
-
-                DelegatedAuthentication parent@(DelegateMy parentOwnershipScope parentUcan) -> do
-                  -- in case of my:<scope> the DID is implied to be the UCAN sender
-                  guard $ did == UCAN.sender (UCAN.claims parentUcan)
-                  guard $ parentOwnershipScope `canDelegate` ownershipScope
-                  return $ Right $ DelegatedAuthentication $ DelegateAs did ownershipScope ucan parent
-
-                _ ->
-                  empty
-
-            UCAN.CapProofRedelegation whichProofs -> do
-              case whichProofs of
-                UCAN.RedelegateAllProofs ->
-                  return ()
-
-                UCAN.RedelegateProof proofIndex ->
-                  guard $ proofIndex == witnessIndex
-
-              liftAttempt (capabilitiesStream witness) \case
-                proof@(DelegatedAuthorization resource ability _ _) ->
-                  return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
-
-                _ ->
-                  empty
-
-            _ ->
-              empty
+capabilitiesStream ucan = do
+  attempt (Validation.checkBesidesDelegation ucan) \() ->
+    capabilitiesFromParenthood ucan <|> capabilitiesFromDelegations ucan
 
 
-checkDelegationChain ::
+rootIssuer :: DelegationChain fct res abl -> DID
+rootIssuer (DelegatedAuthorization _ _ ucan IntroducedByParenthood) = UCAN.sender (UCAN.claims ucan)
+rootIssuer (DelegatedAuthorization _ _ _ (Delegated proof))         = rootIssuer proof
+rootIssuer (DelegatedAuthentication (DelegateAs did _ _ _))         = did
+rootIssuer (DelegatedAuthentication (DelegateMy _ ucan))            = UCAN.sender (UCAN.claims ucan)
+
+
+capabilityCanBeDelegated ::
+  ( DelegationSemantics res
+  , DelegationSemantics abl
+  , IsResource res
+  )
+  => (res, UCAN.Ability abl)
+  -> DelegationChain fct res abl
+  -> Bool
+capabilityCanBeDelegated (resource, ability) = \case
+  DelegatedAuthorization parentResource parentAbility _ _ -> do
+    (parentResource, parentAbility) `canDelegate` (resource, ability)
+
+  DelegatedAuthentication authnDelegation -> do
+    let ownershipScope =
+          case authnDelegation of
+            DelegateAs _ scope _ _ -> scope
+            DelegateMy scope _     -> scope
+
+    case ownershipScope of
+      UCAN.All -> True
+      UCAN.OnlyScheme scheme parentAbility ->
+        Just scheme == URI.uriScheme (renderResourceURI resource)
+        && parentAbility `canDelegate` ability
+
+
+ownershipCanBeDelegated ::
+  DelegationSemantics abl
+  => DID
+  -> UCAN.OwnershipScope abl
+  -> DelegatedAuthentication fct res abl
+  -> Bool
+ownershipCanBeDelegated did ownershipScope = \case
+  DelegateAs parentDid parentOwnershipScope _ _ ->
+    parentDid == did
+    && parentOwnershipScope `canDelegate` ownershipScope
+
+  DelegateMy parentOwnershipScope parentUcan ->
+    -- in case of my:<scope> the DID is implied to be the UCAN sender
+    did == UCAN.sender (UCAN.claims parentUcan)
+    && parentOwnershipScope `canDelegate` ownershipScope
+
+
+
+-- ㊙️
+
+
+capabilitiesFromParenthood :: Monad m => UCAN fct res abl -> ListT m (Either Error (DelegationChain fct res abl))
+capabilitiesFromParenthood ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } =
+  ListT.fromFoldable attenuation >>= \case
+    UCAN.CapResource resource ability ->
+      return $ Right $ DelegatedAuthorization resource ability ucan IntroducedByParenthood
+
+    -- `Nothing` indicates "My resources". `Just` would indicate re-delegating ownership
+    UCAN.CapOwnedResources (UCAN.OwnedResources Nothing ownershipScope) ->
+      return $ Right $ DelegatedAuthentication $ DelegateMy ownershipScope ucan
+
+    _ ->
+      empty
+
+
+capabilitiesFromDelegations ::
+  forall fct res abl m.
   ( DelegationSemantics res
   , DelegationSemantics abl
   , Eq res
   , Eq abl
-  ) => DelegationChain fct res abl -> Bool
-checkDelegationChain proof =
-  True
-  -- checkDelegationChainLayer proof
-  -- && case proof of
-  --   DelegatedAuthorization _ _ _ (Delegated parentProof) ->
-  --     checkDelegationChain parentProof
+  , FromJSON fct
+  , IsResource res
+  , IsAbility abl
+  , Resolver m
+  )
+  => UCAN fct res abl
+  -> ListT m (Either Error (DelegationChain fct res abl))
+capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
+  (witnessRef, witnessIndex) <- ListT.fromFoldable (proofs `zip` [(0 :: Natural)..])
+  liftAttempt (lift (resolveToken witnessRef)) \witnessResolved ->
+    attempt (parseJSONString witnessResolved) \witness ->
+      attempt (Validation.checkDelegation witness ucan) \() ->
+        ListT.fromFoldable attenuation >>= \case
+          -- v0.8.1:
+          -- If cap is something like prf:x, thent get prf:x and essentially replace prf:x with each of the caps in the prf(s)
+          -- If cap is something like as:<did>:* then check that proofs also contain either as:<did>:* or my:* and the issuer matches
+          -- If cap is anything else, just do the normal canDelegate thing.
+          UCAN.CapResource resource ability ->
+            liftAttempt (capabilitiesStream witness) \delegation -> do
+              guard $ capabilityCanBeDelegated (resource, ability) delegation
+              return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated delegation
 
-  --   DelegatedAuthentication authProof ->
-  --     checkAuthProof authProof
+          -- we only care about the `Just` case here (as:<did>:..),
+          -- because the `Nothing` case (my:..) is covered in `capabilitiesFromParenthood` above
+          UCAN.CapOwnedResources (UCAN.OwnedResources (Just did) ownershipScope) ->
+            liftAttempt (capabilitiesStream witness) \case
+              DelegatedAuthentication authDelegation -> do
+                guard $ ownershipCanBeDelegated did ownershipScope authDelegation
+                return $ Right $ DelegatedAuthentication $ DelegateAs did ownershipScope ucan authDelegation
 
-  --   _ -> True
+              _ ->
+                empty
 
+          UCAN.CapProofRedelegation whichProofs -> do
+            case whichProofs of
+              UCAN.RedelegateAllProofs ->
+                return ()
 
-rootIssuer :: DelegationChain fct res abl -> DID
-rootIssuer (DelegatedAuthorization _ _ ucan IntroducedByParenthood)      = UCAN.sender (UCAN.claims ucan)
-rootIssuer (DelegatedAuthorization _ _ _ (Delegated proof)) = rootIssuer proof
-rootIssuer (DelegatedAuthentication (DelegateAs did _ _ _))            = did
-rootIssuer (DelegatedAuthentication (DelegateMy _ ucan))               = UCAN.sender (UCAN.claims ucan)
+              UCAN.RedelegateProof proofIndex ->
+                guard $ proofIndex == witnessIndex
 
+            liftAttempt (capabilitiesStream witness) \case
+              proof@(DelegatedAuthorization resource ability _ _) ->
+                return $ Right $ DelegatedAuthorization resource ability ucan $ Delegated proof
 
--- ㊙️
+              _ ->
+                empty
+
+          _ ->
+            empty
 
 
 -- | Either return the error from the action as a single element in the stream
@@ -221,7 +237,7 @@ resolveToken = \case
   UCAN.Reference cid -> do
     resolved <- resolve cid
     case resolved of
-      Left err -> return $ Left $ ResolveError err
+      Left err -> return $ Left $ ResolverError err
       Right bs -> return $ Right $ decodeUtf8Lenient bs
 
 
@@ -234,94 +250,5 @@ parseJSONString token =
   case fromJSON $ String token of
     Error e       -> Left $ ParseError e
     Success proof -> Right proof
-
-
--- checkDelegationChainLayer ::
---   ( DelegationSemantics res
---   , DelegationSemantics abl
---   , Eq res
---   , Eq abl
---   ) => DelegationChain fct res abl -> Bool
--- checkDelegationChainLayer (DelegatedAuthorization resource ability UCAN.UCAN{ claims } step) =
---   case step of
---     IntroducedByParenthood ->
---       -- parenthood
---       orig == UCAN.sender ucanClaims
---       -- Capability integrity
---       && any (== capability) (UCAN.attenuation ucanClaims)
---       -- Time bounds
---       && expiration <= UCAN.expiration ucanClaims
---       && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
-
---     Delegated parentProof ->
---       -- Proof integrity
---           UCAN.sender ucanClaims
---       == UCAN.receiver witnessClaims
---       -- Capability integrity
---       && any (== capability) (UCAN.attenuation ucanClaims)
---       -- Delegation ability
---       && checkCapabilityDelegation capability (UCAN.sender ucanClaims) witnessClaims
---       -- Time bounds
---       && expiration <= UCAN.expiration ucanClaims
---       && fromMaybe True ((>=) <$> notBefore <*> UCAN.notBefore ucanClaims)
-
--- checkAuthProof :: DelegatedAuthentication fct res abl -> Bool
--- checkAuthProof (DelegateAs did scope UCAN.UCAN{ claims } parentProof) =
---   -- Proof integrity
---   UCAN.sender claims
-
-
--- checkCapabilityDelegation ::
---   ( DelegationSemantics res
---   , DelegationSemantics abl
---   ) => UCAN.Capability res abl -> DID -> UCAN.Claims fct res abl -> Bool
--- checkCapabilityDelegation capability sender witnessClaims =
---   case capability of
---     UCAN.CapProofRedelegation _ ->
---       True
-
---     UCAN.CapOwnedResources ownedRes@(UCAN.OwnedResources did _) ->
---       did == sender || any (`canDelegate` ownedRes) (filterOwnedResources =<< UCAN.attenuation witnessClaims)
-
---     UCAN.CapResource resource ability ->
---       any (`canDelegate` (resource, ability)) (filterResources =<< UCAN.attenuation witnessClaims)
---   where
---     filterOwnedResources = \case
---       UCAN.CapOwnedResources ownedResources -> [ownedResources]
---       _                                     -> []
-
---     filterResources = \case
---       UCAN.CapResource resource ability -> [(resource, ability)]
---       _                                 -> []
-
-
-checkDelegation :: UCAN fct res abl -> UCAN fct res abl -> Either Error ()
-checkDelegation UCAN.UCAN{ claims = from } UCAN.UCAN{ claims = to } = do
-  senderReceiverMatch
-  expirationBeforeNotBefore
-  notBeforeAfterExpiration
-  where
-    receiver = UCAN.receiver from
-    sender = UCAN.sender to
-
-    senderReceiverMatch =
-      unless (sender == receiver) do
-        Left (DelegationIssuerAudienceMismatch sender receiver)
-
-    expirationBeforeNotBefore =
-      case (UCAN.expiration from, UCAN.notBefore to) of
-        (exp, Just nbf) | exp <= nbf ->
-          Left $ DelegationNotBeforeWitnessExpired nbf exp
-
-        _ ->
-          Right ()
-
-    notBeforeAfterExpiration =
-      case (UCAN.notBefore from, UCAN.expiration to) of
-        (Just nbf, exp) | nbf >= exp ->
-          Left $ DelegationExpiresAfterNotBefore exp nbf
-
-        _ ->
-          Right ()
 
 

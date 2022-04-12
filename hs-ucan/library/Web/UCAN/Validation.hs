@@ -1,9 +1,9 @@
 module Web.UCAN.Validation
-  ( pureChecks
-  -- , check
-  -- , check'
+  ( checkBesidesDelegation
+  , checkDelegation
   , checkTime
-  , checkSignature
+  , checkReceiver
+  , checkFacts
   ) where
 
 import           Crypto.Hash.Algorithms         (SHA256 (..))
@@ -13,15 +13,8 @@ import qualified Crypto.PubKey.RSA.PKCS15       as Crypto.RSA.PKCS
 import           RIO                            hiding (exp)
 import           RIO.Time
 
-import           Data.Aeson
-
-import           Control.Monad.Time
-
 import           Crypto.Key.Asymmetric          as Key
 import           Web.DID.Types                  as DID
-import           Web.SemVer.Types
-
-import           Web.UCAN.Resolver              as Witness
 
 import           Web.UCAN.Claims.Error
 import           Web.UCAN.Header.Error
@@ -29,99 +22,24 @@ import           Web.UCAN.Signature.Error
 
 import           Web.UCAN                       as UCAN
 import           Web.UCAN.Error                 as UCAN
-import           Web.UCAN.Witness               as UCAN.Witness
-
-import           Web.UCAN.Header
 import qualified Web.UCAN.Signature.RS256.Types as RS256
 import           Web.UCAN.Signature.Types       as Signature
+import qualified Web.UCAN.Witness.Error         as Witness
 
 
--- check ::
---   ( Witness.Resolver m
---   , MonadTime      m
---   , FromJSON fct
---   , FromJSON cap
---   , UCAN.Witness.DelegationSemantics cap
---   )
---   => DID
---   -> UCAN fct res abl
---   -> m (Either UCAN.Error (UCAN fct res abl))
--- check receiverDID rawContent ucan = do
---   now <- currentTime
---   case checkTime now ucan of
---     Left err ->
---       return $ Left err
 
---     Right _  ->
---       case checkReceiver receiverDID ucan of
---         Left  err -> return $ Left err
---         Right _   -> check' rawContent ucan now
-
--- check' ::
---   ( Witness.Resolver m
---   , FromJSON fct
---   , FromJSON cap
---   , UCAN.Witness.DelegationSemantics cap
---   )
---   => UCAN fct res abl
---   -> UTCTime
---   -> m (Either UCAN.Error (UCAN fct res abl))
--- check' raw ucan now =
---   case pureChecks raw ucan of
---     Left  err -> return $ Left err
---     Right _   -> checkWitness now ucan
-
-pureChecks :: UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
-pureChecks ucan = do
-  _ <- checkVersion ucan
+checkBesidesDelegation :: UCAN fct res abl -> Either UCAN.Error ()
+checkBesidesDelegation ucan = do
+  checkVersion ucan
   checkSignature ucan
 
-checkReceiver :: DID -> UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
-checkReceiver recipientDID ucan@UCAN {claims = UCAN.Claims {receiver}} = do
+
+checkReceiver :: DID -> UCAN fct res abl -> Either UCAN.Error ()
+checkReceiver recipientDID UCAN{ claims = UCAN.Claims {receiver} } = do
   if receiver == recipientDID
-    then Right ucan
+    then Right ()
     else Left $ ClaimsError IncorrectReceiver
 
-checkVersion :: UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
-checkVersion ucan@UCAN { header = UCAN.Header {ucv} } =
-  if isSupportedVersion ucv
-    then Right ucan
-    else Left $ UCAN.HeaderError UnsupportedVersion
-
--- checkWitness ::
---   ( Witness.Resolver m
---   , FromJSON fct
---   , FromJSON rsc
---   , FromJSON ptc
---   , UCAN.Witness.DelegationSemantics rsc
---   , UCAN.Witness.DelegationSemantics ptc
---   )
---   => UTCTime -> UCAN fct rsc ptc -> m (Either UCAN.Error (UCAN fct rsc ptc))
--- checkWitness now ucan@UCAN {claims = Claims {proofs}} =
---   case proof of
---     Reference cid ->
---       Witness.resolve cid >>= \case
---         Left err ->
---           return . Left . UCAN.ClaimsError . WitnessError . UCAN.Witness.ResolverError $ err
-
---         Right rawWitness -> do
---           case eitherDecode $ decodeUtf8 rawWitness of
---             Left _          -> return $ Left UCAN.ParseError
---             Right proofUCAN ->
---               check' rawWitness proofUCAN now <&> \case
---                 Left err -> Left err
---                 Right _  -> checkDelegate proofUCAN
-
---     Nested rawWitness proofUCAN ->
---       check' rawWitness proofUCAN now <&> \case
---         Left err -> Left err
---         Right _  -> checkDelegate proofUCAN
-
---     where
---       checkDelegate proofUCAN =
---         case UCAN.Witness.delegatedInBounds ucan proofUCAN of
---           Left err -> Left . UCAN.ClaimsError $ WitnessError err
---           Right _  -> Right ucan
 
 checkTime :: UTCTime -> UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
 checkTime now ucan@UCAN {claims = UCAN.Claims { expiration, notBefore }} =
@@ -134,17 +52,68 @@ checkTime now ucan@UCAN {claims = UCAN.Claims { expiration, notBefore }} =
           then Left $ UCAN.ClaimsError TooEarly
           else Right ucan
 
-checkSignature :: UCAN fct res abl -> Either UCAN.Error (UCAN fct res abl)
-checkSignature ucan@UCAN {..} =
+
+checkDelegation :: UCAN fct res abl -> UCAN fct res abl -> Either UCAN.Error ()
+checkDelegation UCAN.UCAN{ header = headerFrom, claims = claimsFrom } UCAN.UCAN{ header = headerTo, claims = claimsTo } = do
+  senderReceiverMatch
+  expirationBeforeNotBefore
+  notBeforeAfterExpiration
+  versionIsIncreasing
+  where
+    receiver = UCAN.receiver claimsFrom
+    sender = UCAN.sender claimsTo
+
+    senderReceiverMatch =
+      unless (sender == receiver) do
+        Left $ UCAN.WitnessError $ Witness.IssuerAudienceMismatch sender receiver
+
+    expirationBeforeNotBefore =
+      case (UCAN.expiration claimsFrom, UCAN.notBefore claimsTo) of
+        (exp, Just nbf) | exp <= nbf ->
+          Left $ UCAN.WitnessError $ Witness.NotBeforeWitnessExpired nbf exp
+
+        _ ->
+          Right ()
+
+    notBeforeAfterExpiration =
+      case (UCAN.notBefore claimsFrom, UCAN.expiration claimsTo) of
+        (Just nbf, exp) | nbf >= exp ->
+          Left $ UCAN.WitnessError $ Witness.ExpiresAfterNotBefore exp nbf
+
+        _ ->
+          Right ()
+
+    versionIsIncreasing =
+      unless (UCAN.ucv headerFrom >= UCAN.ucv headerTo) do
+        Left $ UCAN.WitnessError $ Witness.DecreasingVersionInChain (UCAN.ucv headerTo) (UCAN.ucv headerFrom)
+
+
+-- 🤓
+checkFacts :: UCAN fct res abl -> ([fct] -> Either err ()) -> Either err ()
+checkFacts ucan factChecker = ucan & claims & facts & factChecker
+
+
+-- ㊙️
+
+
+checkVersion :: UCAN fct res abl -> Either UCAN.Error ()
+checkVersion UCAN{ header = UCAN.Header {ucv} } =
+  if isSupportedVersion ucv
+    then Right ()
+    else Left $ UCAN.HeaderError UnsupportedVersion
+
+
+checkSignature :: UCAN fct res abl -> Either UCAN.Error ()
+checkSignature UCAN {..} =
   case (publicKey, signature) of
     (RSAPublicKey pk, Signature.RS256 (RS256.Signature innerSig)) ->
       if Crypto.RSA.PKCS.verify (Just SHA256) pk content innerSig
-        then Right ucan
+        then Right ()
         else Left $ UCAN.SignatureError SignatureDoesNotMatch
 
     (Ed25519PublicKey pk, Signature.Ed25519 edSig) ->
       if Crypto.Ed25519.verify pk content edSig
-        then Right ucan
+        then Right ()
         else Left $ UCAN.SignatureError SignatureDoesNotMatch
 
     (_, _) ->
