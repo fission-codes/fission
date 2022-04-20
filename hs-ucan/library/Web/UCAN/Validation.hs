@@ -1,5 +1,5 @@
 module Web.UCAN.Validation
-  ( checkBesidesDelegation
+  ( checkPure
   , checkDelegation
   , checkTime
   , checkReceiver
@@ -28,8 +28,8 @@ import           Web.UCAN.Signature.Types       as Signature
 
 
 
-checkBesidesDelegation :: UCAN fct res abl -> Either UCAN.Error ()
-checkBesidesDelegation ucan = do
+checkPure :: UCAN fct res abl -> Either UCAN.Error ()
+checkPure ucan = do
   checkVersion ucan
   checkSignature ucan
 

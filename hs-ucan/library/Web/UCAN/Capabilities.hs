@@ -73,7 +73,6 @@ capabilities =
 
 
 capabilitiesStream ::
-  forall fct res abl m.
   ( DelegationSemantics res
   , DelegationSemantics abl
   , Eq res
@@ -86,7 +85,7 @@ capabilitiesStream ::
   => UCAN fct res abl
   -> ListT m (Either Error (DelegationChain fct res abl))
 capabilitiesStream ucan = do
-  attempt (Validation.checkBesidesDelegation ucan) \() ->
+  attempt (Validation.checkPure ucan) \() ->
     capabilitiesFromParenthood ucan <|> capabilitiesFromDelegations ucan
 
 
@@ -158,7 +157,6 @@ capabilitiesFromParenthood ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } =
 
 
 capabilitiesFromDelegations ::
-  forall fct res abl m.
   ( DelegationSemantics res
   , DelegationSemantics abl
   , Eq res
@@ -224,7 +222,7 @@ liftAttempt action f =
     Left e  -> return $ Left e
 
 
-attempt :: Monad m => Either e a -> (a -> ListT m (Either e b)) -> ListT m (Either e b)
+attempt :: Monad m => Either e a -> (a -> m (Either e b)) -> m (Either e b)
 attempt failable f =
   case failable of
     Right a -> f a
