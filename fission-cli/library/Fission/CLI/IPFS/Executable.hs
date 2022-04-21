@@ -118,7 +118,9 @@ configure ::
 configure = do
   logUser @Text "🎛️  Configuring managed IPFS"
   void IPFS.Config.init
+
   void IPFS.Config.enableRelay
+  void IPFS.Config.enableHolePunching
 
   void IPFS.Config.setApiAddress
   void IPFS.Config.setBootstrap
