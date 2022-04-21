@@ -71,7 +71,7 @@ place' host = do
   IPFS.BinPath ipfsPath <- Path.globalIPFSBin
 
   -- Network
-  ipfsBin <- ensureM . unpack =<< download (IPFS.Version 0 9 0) host
+  ipfsBin <- ensureM . unpack =<< download (IPFS.Version 0 12 2) host
 
   logDebug @Text "🚎 Moving IPFS into place..."
   File.lazyForceWrite ipfsPath ipfsBin
