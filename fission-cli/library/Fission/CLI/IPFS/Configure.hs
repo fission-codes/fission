@@ -103,7 +103,7 @@ enableRelay ::
 enableRelay =
   ensureM $ IPFS.runLocal
     [ "config --bool"
-    , "Swarm.EnableRelayHop"
+    , "Swarm.RelayClient.Enabled"
     ]
     "true"
 
