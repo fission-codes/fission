@@ -5,6 +5,7 @@ module Fission.CLI.IPFS.Configure
   , setGatewayAddress
   , setSwarmAddresses
   , enableRelay
+  , enableHolePunching
   ) where
 
 import qualified RIO.ByteString.Lazy        as Lazy
@@ -102,6 +103,19 @@ enableRelay ::
 enableRelay =
   ensureM $ IPFS.runLocal
     [ "config --bool"
-    , "Swarm.EnableRelayHop"
+    , "Swarm.RelayClient.Enabled"
+    ]
+    "true"
+
+enableHolePunching ::
+  ( MonadLocalIPFS m
+  , MonadRaise     m
+  , m `Raises` IPFS.Error
+  )
+  => m IPFS.RawMessage
+enableHolePunching =
+  ensureM $ IPFS.runLocal
+    [ "config --bool"
+    , "Swarm.EnableHolePunching"
     ]
     "true"
