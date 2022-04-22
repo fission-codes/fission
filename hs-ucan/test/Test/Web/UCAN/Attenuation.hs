@@ -146,7 +146,7 @@ spec = do
 
       Set.fromList actualDelegations `shouldBe`
         Set.fromList
-          [ DelegatedAuthentication (DelegateAs aliceDID All ucan (DelegateMy All leafUcan)) ]
+          [ DelegatedOwnership (DelegateAs aliceDID All ucan (DelegateMy All leafUcan)) ]
 
     it "redelegates everything using `prf:*`" do
       tomorrow <- addUTCTime nominalDay <$> currentTime
@@ -259,7 +259,7 @@ spec = do
 
 capsWithRootIssuers :: [Either a (DelegationChain fct res abl)] -> [((res, Ability abl), DID)]
 capsWithRootIssuers = concatMap \case
-  Right proof@(DelegatedAuthorization res abl _ _) -> [((res, abl), rootIssuer proof)]
+  Right proof@(DelegatedCapability res abl _ _) -> [((res, abl), rootIssuer proof)]
   _                                            -> []
 
 

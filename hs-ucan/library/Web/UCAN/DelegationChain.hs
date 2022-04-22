@@ -4,7 +4,7 @@ module Web.UCAN.DelegationChain
   , rootIssuer
   , capabilityCanBeDelegated
   , ownershipCanBeDelegated
-  
+
   -- Re-exports
   , module Web.UCAN.Capabilities.Class
   , module Web.UCAN.DelegationChain.Class
@@ -15,23 +15,23 @@ import           Data.Aeson
 
 import           Control.Applicative
 import qualified ListT
-import           RIO                         hiding (exp, to)
+import           RIO                            hiding (exp, to)
 
-import qualified Text.URI                    as URI
+import qualified Text.URI                       as URI
 
 import           Web.DID.Types
 import           Web.UCAN.Error
 import           Web.UCAN.Proof.Class
 import           Web.UCAN.Resolver.Class
-import           Web.UCAN.Types              (UCAN)
-import qualified Web.UCAN.Types              as UCAN
-import qualified Web.UCAN.Validation         as Validation
+import           Web.UCAN.Types                 (UCAN)
+import qualified Web.UCAN.Types                 as UCAN
+import qualified Web.UCAN.Validation            as Validation
 
 -- Re-exports
 
 import           Web.UCAN.Capabilities.Class
-import Web.UCAN.DelegationChain.Class
-import Web.UCAN.DelegationChain.Types
+import           Web.UCAN.DelegationChain.Class
+import           Web.UCAN.DelegationChain.Types
 
 
 
@@ -72,10 +72,10 @@ delegationChainStream ucan = do
   capabilitiesFromParenthood ucan <|> capabilitiesFromDelegations ucan
 
 rootIssuer :: DelegationChain fct res abl -> DID
-rootIssuer (DelegatedAuthorization _ _ ucan IntroducedByParenthood) = UCAN.sender (UCAN.claims ucan)
-rootIssuer (DelegatedAuthorization _ _ _ (Delegated proof))         = rootIssuer proof
-rootIssuer (DelegatedAuthentication (DelegateAs did _ _ _))         = did
-rootIssuer (DelegatedAuthentication (DelegateMy _ ucan))            = UCAN.sender (UCAN.claims ucan)
+rootIssuer (DelegatedCapability _ _ ucan IntroducedByParenthood) = UCAN.sender (UCAN.claims ucan)
+rootIssuer (DelegatedCapability _ _ _ (Delegated proof))         = rootIssuer proof
+rootIssuer (DelegatedOwnership (DelegateAs did _ _ _))         = did
+rootIssuer (DelegatedOwnership (DelegateMy _ ucan))            = UCAN.sender (UCAN.claims ucan)
 
 
 capabilityCanBeDelegated ::
@@ -87,10 +87,10 @@ capabilityCanBeDelegated ::
   -> DelegationChain fct res abl
   -> Bool
 capabilityCanBeDelegated (resource, ability) = \case
-  DelegatedAuthorization parentResource parentAbility _ _ -> do
+  DelegatedCapability parentResource parentAbility _ _ -> do
     (parentResource, parentAbility) `canDelegate` (resource, ability)
 
-  DelegatedAuthentication authnDelegation -> do
+  DelegatedOwnership authnDelegation -> do
     let ownershipScope =
           case authnDelegation of
             DelegateAs _ scope _ _ -> scope
@@ -107,7 +107,7 @@ ownershipCanBeDelegated ::
   DelegationSemantics abl
   => DID
   -> UCAN.OwnershipScope abl
-  -> DelegatedAuthentication fct res abl
+  -> DelegatedOwnership fct res abl
   -> Bool
 ownershipCanBeDelegated did ownershipScope = \case
   DelegateAs parentDid parentOwnershipScope _ _ ->
@@ -128,11 +128,11 @@ capabilitiesFromParenthood :: MonadDelegationChain m => UCAN fct res abl -> m (D
 capabilitiesFromParenthood ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
   walk attenuation >>= \case
     UCAN.CapResource resource ability ->
-      return $ DelegatedAuthorization resource ability ucan IntroducedByParenthood
+      return $ DelegatedCapability resource ability ucan IntroducedByParenthood
 
     -- `Nothing` indicates "My resources". `Just` would indicate re-delegating ownership
     UCAN.CapOwnedResources (UCAN.OwnedResources Nothing ownershipScope) ->
-      return $ DelegatedAuthentication $ DelegateMy ownershipScope ucan
+      return $ DelegatedOwnership $ DelegateMy ownershipScope ucan
 
     _ ->
       empty
@@ -165,15 +165,15 @@ capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
     UCAN.CapResource resource ability -> do
       delegation <- delegationChainStream proof
       guard $ capabilityCanBeDelegated (resource, ability) delegation
-      return $ DelegatedAuthorization resource ability ucan $ Delegated delegation
+      return $ DelegatedCapability resource ability ucan $ Delegated delegation
 
     -- we only care about the `Just` case here (as:<did>:..),
     -- because the `Nothing` case (my:..) is covered in `capabilitiesFromParenthood` above
     UCAN.CapOwnedResources (UCAN.OwnedResources (Just did) ownershipScope) -> do
       delegationChainStream proof >>= \case
-        DelegatedAuthentication authDelegation -> do
+        DelegatedOwnership authDelegation -> do
           guard $ ownershipCanBeDelegated did ownershipScope authDelegation
-          return $ DelegatedAuthentication $ DelegateAs did ownershipScope ucan authDelegation
+          return $ DelegatedOwnership $ DelegateAs did ownershipScope ucan authDelegation
 
         _ ->
           empty
@@ -187,8 +187,8 @@ capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
           guard $ proofIndex == idx
 
       delegationChainStream proof >>= \case
-        delegation@(DelegatedAuthorization resource ability _ _) ->
-          return $ DelegatedAuthorization resource ability ucan $ Delegated delegation
+        delegation@(DelegatedCapability resource ability _ _) ->
+          return $ DelegatedCapability resource ability ucan $ Delegated delegation
 
         _ ->
           empty
