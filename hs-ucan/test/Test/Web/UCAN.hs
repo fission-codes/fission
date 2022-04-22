@@ -8,25 +8,28 @@ import           Web.UCAN.Types
 
 import           Test.Web.UCAN.Prelude
 
+import qualified Test.Web.UCAN.Attenuation         as Attenuation
 import qualified Test.Web.UCAN.DelegationSemantics as DelegationSemantics
-import           Test.Web.UCAN.Example
+import qualified Test.Web.UCAN.Example             as Ex
 
 
 spec :: Spec
 spec =
   describe "UCAN" do
+    Attenuation.spec
+
     describe "serialization" do
-      itsProp' "serialized is isomorphic to ADT" \(ucan :: UCAN () Resource Potency) ->
+      itsPropSized "serialized is isomorphic to ADT" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
         JSON.eitherDecode (JSON.encode ucan) `shouldBe` Right ucan
 
       describe "format" do
-        itsProp' "contains exactly two '.'s" \(ucan :: UCAN () Resource Potency) ->
+        itsPropSized "contains exactly two '.'s" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
           ucan
             & JSON.encode
             & Lazy.count (fromIntegral $ Char.ord '.')
             & shouldBe 2
 
-        itsProp' "contains only valid base64 URL characters" \(ucan :: UCAN () Resource Potency) ->
+        itsPropSized "contains only valid base64 URL characters" 6 \(ucan :: UCAN () Ex.Resource Ex.Ability) ->
           let
             encoded = JSON.encode ucan
           in
@@ -38,13 +41,17 @@ spec =
 
     describe "DelegationSemantics" do
       describe "Resource" do
-        DelegationSemantics.partialOrderProperties @Resource
+        DelegationSemantics.itHasPartialOrderProperties @Ex.Resource
 
       describe "Potency" do
-        DelegationSemantics.partialOrderProperties @Potency
+        DelegationSemantics.itHasPartialOrderProperties @Ex.Ability
 
       describe "Maybe _" do
-        DelegationSemantics.partialOrderProperties @(Maybe Potency)
+        DelegationSemantics.itHasPartialOrderProperties @(Maybe Ex.Ability)
+
+      describe "(Resource, Ability)" do
+        DelegationSemantics.itHasPartialOrderProperties @(Ex.Resource, Ex.Ability)
+
 
 
 isValidChar :: Word8 -> Bool

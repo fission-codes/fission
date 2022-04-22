@@ -20,7 +20,7 @@ import           Data.ByteString.Base64
 
 -- | Scrub incoming base64-encoded bytes
 scrubB64 :: ByteString -> BA.ScrubbedBytes
-scrubB64 = scrub . BS64.decodeLenient
+scrubB64 = scrub . BS64.decodeBase64Lenient
 
 scrub :: ByteString -> BA.ScrubbedBytes
 scrub = BA.pack . BS.unpack

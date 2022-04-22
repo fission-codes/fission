@@ -115,13 +115,16 @@ dependencies:
   - aeson-casing
   - asn1-encoding
   - asn1-types
+  - attoparsec
   - base58string
-  - base64-bytestring
+  - base64
   - binary
   - bytestring
   - generic-lens
   - hashable
   - lens
+  - list-t
+  - megaparsec
   - memory
   - QuickCheck
   - quickcheck-instances
@@ -148,6 +151,7 @@ dependencies:
   - dns
   - ipfs
   - mime-types
+  - modern-uri
   - path-pieces
   - servant
   - servant-client

@@ -25,7 +25,7 @@ instance ToHttpApiData Ed25519.PublicKey where
 
 instance FromHttpApiData Ed25519.PublicKey where
   parseUrlPiece txt =
-    case Ed25519.publicKey . BS64.decodeLenient $ encodeUtf8 txt of
+    case Ed25519.publicKey $ BS64.decodeBase64Lenient $ encodeUtf8 txt of
       CryptoPassed pk -> Right pk
       err -> Left $ "Unable to decode Ed25519 PK because: " <> Text.pack (show err) <> " / " <> txt
 

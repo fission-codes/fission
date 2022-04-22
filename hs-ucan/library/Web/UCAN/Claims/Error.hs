@@ -2,20 +2,17 @@ module Web.UCAN.Claims.Error (Error (..)) where
 
 import           RIO
 
-import qualified Web.UCAN.Proof.Error as Proof
 
 data Error
   = Expired
   | TooEarly
-  | IncorrectSender
   | IncorrectReceiver
-  | ProofError Proof.Error
+  | MissingExpectedFact
   deriving (Show, Eq, Exception)
 
 instance Display Error where
   display = \case
-    Expired           -> "Expired"
-    TooEarly          -> "Use too early"
-    IncorrectSender   -> "Incorrect sender"
-    IncorrectReceiver -> "Incorrect receiver"
-    ProofError resErr -> "Proof error: " <> display resErr
+    Expired             -> "Expired"
+    TooEarly            -> "Use too early"
+    IncorrectReceiver   -> "Incorrect receiver"
+    MissingExpectedFact -> "Expected fact not present"

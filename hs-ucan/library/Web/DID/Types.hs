@@ -1,9 +1,11 @@
 module Web.DID.Types
   ( DID (..)
+  , parse
   ) where
 
 import           Data.Aeson                   as JSON
 import qualified Data.Aeson.Types             as JSON
+import qualified Data.Attoparsec.Text         as Parse
 import           Data.Swagger
 
 import           Control.Lens                 ((?~))
@@ -111,7 +113,7 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
 
           RSAPublicKey rsa ->
             -- breaking change, but spec-adhering format: 0x85 : 0x24 : BS.unpack (Public.encodeASN1DERRSAPublicKey rsa)
-            0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
+            0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeBase64Lenient . encodeUtf8 $ textDisplay rsa)
 
 instance ToJSON DID where
   toJSON = String . textDisplay
@@ -154,9 +156,24 @@ parseText txt =
 
         -- Backwards compatibility
         (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
-          RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
+          RSAPublicKey <$> parseKeyW8s (BS64.encodeBase64' $ BS.pack rsaKeyW8s)
 
         nope ->
-          fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
+          fail . show . BS64.encodeBase64' $ BS.pack nope <> " is not an acceptable did:key"
 
       return $ Key pk
+
+parse :: Parse.Parser DID
+parse = do
+  didKeyPrefix <- Parse.string "did:key:z"
+  base64 <- Parse.takeWhile1 (`elem` base64URLChars)
+  case JSON.parse parseText $ didKeyPrefix <> base64 of
+    JSON.Success did -> return did
+    JSON.Error err   -> fail err
+  where
+    base64URLChars :: [Char]
+    base64URLChars =
+         ['a'..'z']
+      <> ['A'..'Z']
+      <> ['0'..'9']
+      <> ['_', '-']

@@ -50,7 +50,7 @@ instance ToHttpApiData RSA.PublicKey where
 
 instance FromHttpApiData RSA.PublicKey where
   parseUrlPiece txt =
-    case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeLenient $ encodeUtf8 txt) of
+    case ASN1.fromASN1 <$> ASN1.decodeASN1' ASN1.DER (BS64.decodeBase64Lenient $ encodeUtf8 txt) of
       Right (Right (X509.PubKeyRSA pk, _)) -> Right pk
       err -> Left $ "Cannot parse RSA key because: " <> Text.pack (show err) <> " / " <> txt
 

@@ -33,9 +33,10 @@ instance Display Public where
   textDisplay (RSAPublicKey     pk) = textDisplay pk
 
 instance Arbitrary Public where
-  arbitrary = oneof
-    [ Ed25519PublicKey <$> arbitrary
-    , RSAPublicKey . Pair.pk <$> arbitrary
+  arbitrary = frequency
+    -- RSA public keys are huge and slow down tests a *lot*
+    [ (10, Ed25519PublicKey <$> arbitrary)
+    , (1, RSAPublicKey . Pair.pk <$> arbitrary)
     ]
 
 instance ToHttpApiData Public where
