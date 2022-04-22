@@ -14,10 +14,9 @@ import           Test.Web.UCAN.Orphanage.DummyResolver ()
 import           Test.Web.UCAN.Prelude
 import qualified Text.URI.QQ                           as URI
 import           Web.DID.Types
-import           Web.UCAN.Capabilities
-import           Web.UCAN.Capabilities.Class
-import           Web.UCAN.Types
+import           Web.UCAN.DelegationChain
 import           Web.UCAN.Proof.Class
+import           Web.UCAN.Types
 
 
 spec :: Spec
@@ -68,7 +67,7 @@ spec = do
             )
           ]
 
-      actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+      actualDelegations <- capsWithRootIssuers <$> delegationChains ucan
 
       Set.fromList actualDelegations `shouldBe`
         Set.fromList expectedDelegations
@@ -111,7 +110,7 @@ spec = do
             )
           ]
 
-      actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+      actualDelegations <- capsWithRootIssuers <$> delegationChains ucan
 
       Set.fromList actualDelegations `shouldBe`
         Set.fromList expectedDelegations
@@ -143,7 +142,7 @@ spec = do
           , nonce = Nothing
           }
 
-      actualDelegations <- toListOf (traversed . _Right) <$> capabilities ucan
+      actualDelegations <- toListOf (traversed . _Right) <$> delegationChains ucan
 
       Set.fromList actualDelegations `shouldBe`
         Set.fromList
@@ -184,7 +183,7 @@ spec = do
           , ((Ex.OnlyOneThing, Ability Ex.CanTouch), aliceDID)
           ]
 
-      actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+      actualDelegations <- capsWithRootIssuers <$> delegationChains ucan
 
       Set.fromList actualDelegations `shouldBe`
         Set.fromList expectedDelegations
@@ -236,7 +235,7 @@ spec = do
           , ((Ex.OnlyOneThing, Ability Ex.CanTouch), aliceDID)
           ]
 
-      actualDelegations <- capsWithRootIssuers <$> capabilities ucan
+      actualDelegations <- capsWithRootIssuers <$> delegationChains ucan
 
       Set.fromList actualDelegations `shouldBe`
         Set.fromList expectedDelegations
