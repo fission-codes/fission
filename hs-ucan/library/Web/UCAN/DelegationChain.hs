@@ -29,20 +29,32 @@ import qualified Web.UCAN.Validation            as Validation
 
 -- Re-exports
 
+import           Control.Monad.Except
 import           Web.UCAN.Capabilities.Class
 import           Web.UCAN.DelegationChain.Class
 import           Web.UCAN.DelegationChain.Types
 
 
+type MonadDelegationChain m =
+  ( MonadWalk m
+  , MonadError Error m
+  , Alternative m
+  , Resolver m
+  )
 
-delegationChains ::
+type IsCapability res abl =
   ( DelegationSemantics res
   , DelegationSemantics abl
   , Eq res
   , Eq abl
-  , FromJSON fct
   , IsResource res
   , IsAbility abl
+  )
+
+
+delegationChains ::
+  ( IsCapability res abl
+  , FromJSON fct
   , Resolver m
   )
   => UCAN fct res abl
@@ -55,21 +67,16 @@ delegationChains =
 
 
 delegationChainStream ::
-  ( DelegationSemantics res
-  , DelegationSemantics abl
-  , Eq res
-  , Eq abl
+  ( IsCapability res abl
   , FromJSON fct
-  , IsResource res
-  , IsAbility abl
-  , Resolver m
   , MonadDelegationChain m
   )
   => UCAN fct res abl
   -> m (DelegationChain fct res abl)
 delegationChainStream ucan = do
-  attemptOrEmit $ Validation.checkPure ucan
+  liftEither $ Validation.checkPure ucan
   capabilitiesFromParenthood ucan <|> capabilitiesFromDelegations ucan
+
 
 rootIssuer :: DelegationChain fct res abl -> DID
 rootIssuer (DelegatedCapability _ _ ucan IntroducedByParenthood) = UCAN.sender (UCAN.claims ucan)
@@ -139,24 +146,17 @@ capabilitiesFromParenthood ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
 
 
 capabilitiesFromDelegations ::
-  ( DelegationSemantics res
-  , DelegationSemantics abl
-  , Eq res
-  , Eq abl
+  ( IsCapability res abl
   , FromJSON fct
-  , IsResource res
-  , IsAbility abl
-  , Alternative m
   , MonadDelegationChain m
-  , Resolver m
   )
   => UCAN fct res abl
   -> m (DelegationChain fct res abl)
 capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
   (proofRef, proofIndex) <- walk (proofs `zip` [(0 :: Natural)..])
-  proofResolved <- attemptOrEmit =<< resolveToken proofRef
-  proof <- attemptOrEmit $ parseJSONString proofResolved
-  attemptOrEmit $ Validation.checkDelegation proof ucan
+  proofResolved <- resolveToken proofRef
+  proof <- parseJSONString proofResolved
+  liftEither $ Validation.checkDelegation proof ucan
   walk attenuation >>= \case
     -- v0.8.1:
     -- If cap is something like prf:x, thent get prf:x and essentially replace prf:x with each of the caps in the prf(s)
@@ -196,24 +196,24 @@ capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
     _ ->
       empty
 
-resolveToken :: Resolver m => UCAN.Proof -> m (Either Error Text)
+
+resolveToken :: (Resolver m, MonadError Error m) => UCAN.Proof -> m Text
 resolveToken = \case
-  UCAN.Nested text -> return $ Right text
+  UCAN.Nested text -> return text
   UCAN.Reference cid -> do
     resolved <- resolve cid
     case resolved of
-      Left err -> return $ Left $ ResolverError err
-      Right bs -> return $ Right $ decodeUtf8Lenient bs
+      Left err -> throwError $ ResolverError err
+      Right bs -> return $ decodeUtf8Lenient bs
 
 
 parseJSONString ::
   ( FromJSON fct
   , IsResource res
   , IsAbility abl
-  ) => Text -> Either Error (UCAN fct res abl)
+  , MonadError Error m
+  ) => Text -> m (UCAN fct res abl)
 parseJSONString token =
   case fromJSON $ String token of
-    Error e       -> Left $ ParseError e
-    Success proof -> Right proof
-
-
+    Error e       -> throwError $ ParseError e
+    Success proof -> return proof

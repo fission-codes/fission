@@ -1,24 +1,21 @@
 module Web.UCAN.DelegationChain.Class
-  ( MonadDelegationChain(..)
+  ( MonadWalk(..)
   , StreamWithErrors(..)
   ) where
 
 import           Control.Applicative
-import Control.Monad
-import           ListT                       (ListT)
+import           Control.Monad
+import           ListT                   (ListT)
 import qualified ListT
-import           RIO                         
+import           RIO
 
+import           Control.Monad.Except
 import           Web.UCAN.Error
 import           Web.UCAN.Resolver.Class
 
 
--- | A monad abstracting the effects needed for computing delegation chains.
--- Specifically:
---  - iterating over some foldable via @walk@ and
---  - short-circuiting using @attemptOrEmit@ by emitting UCAN errors
-class (Alternative m, Monad m) => MonadDelegationChain m where
-  attemptOrEmit :: Either Error a -> m a
+-- | A monad abstracting over iterating elements
+class Alternative m => MonadWalk m where
   walk :: Foldable f => f a -> m a
 
 
@@ -43,11 +40,7 @@ instance Monad m => Monad (StreamWithErrors m) where
         Left err -> return $ Left err
 
 
-instance Monad m => MonadDelegationChain (StreamWithErrors m) where
-  attemptOrEmit = \case
-    Right a  -> return a
-    Left err -> StreamWithErrors $ return $ Left err
-
+instance Monad m => MonadWalk (StreamWithErrors m) where
   walk = StreamWithErrors . fmap Right . ListT.fromFoldable
 
 
@@ -59,3 +52,11 @@ instance Monad m => Alternative (StreamWithErrors m) where
 instance Resolver m => Resolver (StreamWithErrors m) where
   resolve cid = StreamWithErrors $ lift (Right <$> resolve cid)
 
+
+instance Monad m => MonadError Error (StreamWithErrors m) where
+  throwError = StreamWithErrors . return . Left
+  catchError (StreamWithErrors listt) handler =
+    StreamWithErrors $ do
+      listt >>= \case
+        Right a  -> return $ Right a
+        Left err -> runStreamWithErrors $ handler err
