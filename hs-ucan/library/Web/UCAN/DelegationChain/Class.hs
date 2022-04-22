@@ -33,11 +33,8 @@ instance Monad m => Applicative (StreamWithErrors m) where
 instance Monad m => Monad (StreamWithErrors m) where
   return a = StreamWithErrors (pure (Right a))
   StreamWithErrors ma >>= f =
-    StreamWithErrors do
-      a <- ma
-      case a of
-        Right x  -> runStreamWithErrors $ f x
-        Left err -> return $ Left err
+    StreamWithErrors $
+      ma >>= either (return . Left) (runStreamWithErrors . f)
 
 
 instance Monad m => MonadWalk (StreamWithErrors m) where
