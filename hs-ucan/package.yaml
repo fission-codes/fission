@@ -123,7 +123,7 @@ dependencies:
   - generic-lens
   - hashable
   - lens
-  - list-t
+  - list-transformer
   - megaparsec
   - memory
   - QuickCheck

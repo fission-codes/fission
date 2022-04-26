@@ -1,22 +1,15 @@
-module Web.UCAN.DelegationChain.Class
-  ( MonadWalk(..)
-  , StreamWithErrors(..)
+module Web.UCAN.DelegationChain.StreamWithErrors
+  ( StreamWithErrors(..)
   ) where
 
 import           Control.Applicative
 import           Control.Monad
-import           ListT                   (ListT)
-import qualified ListT
+import           List.Transformer        (ListT)
 import           RIO
 
 import           Control.Monad.Except
 import           Web.UCAN.Error
 import           Web.UCAN.Resolver.Class
-
-
--- | A monad abstracting over iterating elements
-class Alternative m => MonadWalk m where
-  walk :: Foldable f => f a -> m a
 
 
 newtype StreamWithErrors m a
@@ -37,12 +30,8 @@ instance Monad m => Monad (StreamWithErrors m) where
       ma >>= either (return . Left) (runStreamWithErrors . f)
 
 
-instance Monad m => MonadWalk (StreamWithErrors m) where
-  walk = StreamWithErrors . fmap Right . ListT.fromFoldable
-
-
 instance Monad m => Alternative (StreamWithErrors m) where
-  empty = StreamWithErrors $ empty
+  empty = StreamWithErrors empty
   StreamWithErrors a <|> StreamWithErrors b = StreamWithErrors (a <|> b)
 
 
