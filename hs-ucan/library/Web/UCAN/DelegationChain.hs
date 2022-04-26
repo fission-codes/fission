@@ -7,37 +7,36 @@ module Web.UCAN.DelegationChain
 
   -- Re-exports
   , module Web.UCAN.Capabilities.Class
-  , module Web.UCAN.DelegationChain.Class
+  , module Web.UCAN.DelegationChain.StreamWithErrors
   , module Web.UCAN.DelegationChain.Types
   ) where
 
 import           Data.Aeson
 
 import           Control.Applicative
-import qualified ListT
-import           RIO                            hiding (exp, to)
+import qualified List.Transformer                          as ListT
+import           RIO                                       hiding (exp, to)
 
-import qualified Text.URI                       as URI
+import qualified Text.URI                                  as URI
 
 import           Web.DID.Types
 import           Web.UCAN.Error
 import           Web.UCAN.Proof.Class
 import           Web.UCAN.Resolver.Class
-import           Web.UCAN.Types                 (UCAN)
-import qualified Web.UCAN.Types                 as UCAN
-import qualified Web.UCAN.Validation            as Validation
+import           Web.UCAN.Types                            (UCAN)
+import qualified Web.UCAN.Types                            as UCAN
+import qualified Web.UCAN.Validation                       as Validation
 
 -- Re-exports
 
 import           Control.Monad.Except
 import           Web.UCAN.Capabilities.Class
-import           Web.UCAN.DelegationChain.Class
+import           Web.UCAN.DelegationChain.StreamWithErrors
 import           Web.UCAN.DelegationChain.Types
 
 
 type MonadDelegationChain m =
-  ( MonadWalk m
-  , MonadError Error m
+  ( MonadError Error m
   , Alternative m
   , Resolver m
   )
@@ -60,10 +59,7 @@ delegationChains ::
   => UCAN fct res abl
   -> m [Either Error (DelegationChain fct res abl)]
 delegationChains =
-  -- toReverseList because order doesn't really matter
-  -- and this way we get it in the order they're produced
-  -- and it's more performant than ListT.toList
-  ListT.toReverseList . runStreamWithErrors . delegationChainStream
+  ListT.fold (flip (:)) [] id . runStreamWithErrors . delegationChainStream
 
 
 delegationChainStream ::
@@ -133,7 +129,7 @@ ownershipCanBeDelegated did ownershipScope = \case
 
 capabilitiesFromParenthood :: MonadDelegationChain m => UCAN fct res abl -> m (DelegationChain fct res abl)
 capabilitiesFromParenthood ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
-  walk attenuation >>= \case
+  ListT.select attenuation >>= \case
     UCAN.CapResource resource ability ->
       return $ DelegatedCapability resource ability ucan IntroducedByParenthood
 
@@ -153,11 +149,11 @@ capabilitiesFromDelegations ::
   => UCAN fct res abl
   -> m (DelegationChain fct res abl)
 capabilitiesFromDelegations ucan@UCAN.UCAN{ claims = UCAN.Claims{..} } = do
-  (proofRef, proofIndex) <- walk (proofs `zip` [(0 :: Natural)..])
+  (proofRef, proofIndex) <- ListT.select (proofs `zip` [(0 :: Natural)..])
   proofResolved <- resolveToken proofRef
   proof <- parseJSONString proofResolved
   liftEither $ Validation.checkDelegation proof ucan
-  walk attenuation >>= \case
+  ListT.select attenuation >>= \case
     -- v0.8.1:
     -- If cap is something like prf:x, thent get prf:x and essentially replace prf:x with each of the caps in the prf(s)
     -- If cap is something like as:<did>:* then check that proofs also contain either as:<did>:* or my:* and the issuer matches

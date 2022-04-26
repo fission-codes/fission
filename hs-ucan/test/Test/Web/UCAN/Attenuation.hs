@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE QuasiQuotes #-}
 module Test.Web.UCAN.Attenuation (spec) where
 
