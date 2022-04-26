@@ -31,7 +31,7 @@ instance Monad m => Monad (StreamWithErrors m) where
 
 
 instance Monad m => Alternative (StreamWithErrors m) where
-  empty = StreamWithErrors $ empty
+  empty = StreamWithErrors empty
   StreamWithErrors a <|> StreamWithErrors b = StreamWithErrors (a <|> b)
 
 
