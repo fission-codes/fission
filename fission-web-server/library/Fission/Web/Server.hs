@@ -24,6 +24,7 @@ import qualified Fission.Web.Server.User                      as User
 import           Fission.Web.Server.WNFS
 
 import qualified Fission.Web.Server.Handler.App               as App
+import qualified Fission.Web.Server.Handler.Append            as Append
 import qualified Fission.Web.Server.Handler.DNS               as DNS
 import qualified Fission.Web.Server.Handler.Heroku            as Heroku
 import qualified Fission.Web.Server.Handler.IPFS              as IPFS
@@ -158,6 +159,7 @@ server appHost =
         , app    = genericServerT App.handlerV2
         , user   = genericServerT User.handlerV2
         , auth   = genericServerT Auth.UCAN.handler
+        , append = genericServerT Append.handlerV2
       }
 
     serverV_ =

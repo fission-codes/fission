@@ -14,6 +14,7 @@ import qualified Fission.Pong.Types              as Ping
 import           Fission.Web.API.Prelude
 
 import qualified Fission.Web.API.App.Types       as App
+import qualified Fission.Web.API.Append.Types    as Append
 import qualified Fission.Web.API.Auth.UCAN.Types as UCAN
 import qualified Fission.Web.API.DNS.Types       as DNS
 import           Fission.Web.API.Docs
@@ -39,10 +40,11 @@ data RoutesV2 mode = RoutesV2
   deriving Generic
 
 data V2 mode = V2
-  { ipfs :: mode :- "ipfs"           :> ToServantApi IPFS.RoutesV2
-  , app  :: mode :- "app"            :> ToServantApi App.RoutesV2
-  , user :: mode :- "user"           :> ToServantApi User.RoutesV2
-  , auth :: mode :- "auth" :> "ucan" :> ToServantApi UCAN.Routes
+  { ipfs   :: mode :- "ipfs"           :> ToServantApi IPFS.RoutesV2
+  , app    :: mode :- "app"            :> ToServantApi App.RoutesV2
+  , user   :: mode :- "user"           :> ToServantApi User.RoutesV2
+  , auth   :: mode :- "auth" :> "ucan" :> ToServantApi UCAN.Routes
+  , append :: mode :- "append"         :> ToServantApi Append.RoutesV2
   }
   deriving Generic
 
