@@ -8,7 +8,6 @@ import qualified Fission.Web.API.Auth.Types              as Auth
 
 import           Fission.FileSystem.DirectoryName.Types  as DirectoryName
 import           Fission.FileSystem.FileName.Types       as FileName
-import           Fission.User.Username.Types             as Username
 
 data RoutesV2 mode = RoutesV2
   { append ::
@@ -16,8 +15,6 @@ data RoutesV2 mode = RoutesV2
       :- Summary     "Append a file"
       :> Description "Append a file to an app's public upload directory"
       --
-      :> Capture    "Username"  Username
-      :> Capture    "Creator"   Username
       :> Capture    "App Name"  DirectoryName
       :> Capture    "File Name" FileName
       --
