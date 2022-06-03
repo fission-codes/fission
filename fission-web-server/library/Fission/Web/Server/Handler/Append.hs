@@ -19,5 +19,5 @@ handlerV2 ::
   => Append.RoutesV2 (AsServerT m)
 handlerV2 = Append.RoutesV2 {append}
   where
-    append username creator appName fileName (Serialized rawData) Authorization {about = Entity userId _} =
+    append appName fileName (Serialized rawData) Authorization {about = Entity userId _} =
       return NoContent
