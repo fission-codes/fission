@@ -1,4 +1,4 @@
-resolver: lts-18.24
+resolver: lts-18.28
 allow-newer: true # Needed for servant-ekg
 
 packages:
@@ -31,8 +31,3 @@ extra-deps:
 
 ghc-options:
   "$everything": -haddock
-
-nix:
-  enable: true
-  pure: true
-  shell-file: shell.nix
