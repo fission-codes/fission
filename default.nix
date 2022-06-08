@@ -1,15 +1,13 @@
-{ haskellNixSrc ? builtins.fetchTarball https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz
-}:
-
-let
-  haskellNix = import haskellNixSrc { };
-  pkgs = import haskellNix.sources.nixpkgs-unstable haskellNix.nixpkgsArgs;
-
-  pkgSet = pkgs.haskell-nix.mkStackPkgSet {
-    stack-pkgs = import ./nix/pkgs.nix;
-    pkg-def-extras = [];
-    modules = [];
-  };
-
-in
-  pkgSet.config.hsPkgs
+(import
+  (
+    let
+      lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+    in
+    fetchTarball {
+      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = lock.nodes.flake-compat.locked.narHash;
+    }
+  )
+  {
+    src = ./.;
+  }).defaultNix
