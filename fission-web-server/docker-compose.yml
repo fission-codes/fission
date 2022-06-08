@@ -20,9 +20,15 @@ services:
       default:
         ipv4_address: 172.25.0.6
   dns-recursor:
-    image: powerdns/pdns-recursor-44
-    command: --forward-zones=${BASE_DOMAIN}=172.25.0.6:5300,${USER_DOMAIN}=172.25.0.6:5300,${APP_DOMAIN}=172.25.0.6:5300 --forward-zones-recurse=.=1.1.1.1 --local-address=0.0.0.0 --local-port=53
-    env_file: .env
+    image: pschiffe/pdns-recursor
+    depends_on:
+      - dns-auth
+    networks:
+      - default
+    environment:
+      - PDNS_forward-zones=${BASE_DOMAIN}=172.25.0.6:5300, ${USER_DOMAIN}=172.25.0.6:5300, ${APP_DOMAIN}=172.25.0.6:5300
+      - PDNS_forward-zones-recurse=.=1.1.1.1
+      - PDNS_dnssec=off
     ports:
       - "53:53"
       - "53:53/udp"
