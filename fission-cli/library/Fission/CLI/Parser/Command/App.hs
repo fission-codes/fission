@@ -11,10 +11,11 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
-import qualified Fission.CLI.Parser.Command.App.Info  as Info
-import qualified Fission.CLI.Parser.Command.App.Init  as Init
-import qualified Fission.CLI.Parser.Command.App.Types as App
-import qualified Fission.CLI.Parser.Command.App.Up    as Up
+import qualified Fission.CLI.Parser.Command.App.Types    as App
+import qualified Fission.CLI.Parser.Command.App.Delegate as Delegate
+import qualified Fission.CLI.Parser.Command.App.Info     as Info
+import qualified Fission.CLI.Parser.Command.App.Init     as Init
+import qualified Fission.CLI.Parser.Command.App.Up       as Up
 
 -- Reexports
 
@@ -36,8 +37,9 @@ commands =
   hsubparser $ mconcat
     [ commandGroup "Commands"
     , metavar "COMMAND"
-    , command "register" . fmap App.Init $ Init.parserWithInfo
-    , command "publish"  . fmap App.Up   $ Up.parserWithInfo
+    , command "delegate" . fmap App.Delegate $ Delegate.parserWithInfo
+    , command "register" . fmap App.Init     $ Init.parserWithInfo
+    , command "publish"  . fmap App.Up       $ Up.parserWithInfo
     ]
 
 queries :: Parser App.Options
