@@ -56,6 +56,7 @@
               stack-wrapped
               haskellPackages.haskell-language-server
               pkgs.nixpkgs-fmt
+              pkgs.stylish-haskell
               tasks
             ];
             NIX_PATH = "nixpkgs=" + pkgs.path;
