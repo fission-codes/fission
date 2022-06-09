@@ -26,7 +26,6 @@ parser :: Parser Options
 parser = do
   appName <- strOption $ mconcat
     [ help    "The app to append" 
-    , showDefault
     -----------
     , long    "app-name"
     , short   'a'
@@ -50,6 +49,8 @@ parser = do
     , short   'd'
     -----------
     , metavar "DID"
+    -----------
+    , value Nothing
     ]
 
   return Options {..}
