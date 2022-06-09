@@ -124,12 +124,6 @@ commands {
   repl = cmd "Enter the project REPL" "${stack} repl  --nix --no-nix-pure";
   watch = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
 
-  get-nt = cmd "Get haskell.nix nix-tools"
-    "nix build -f https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz pkgs.haskell-nix.nix-tools.ghc8104 --out-link nix-tools";
-
-  stack-to-nix = cmd "Generate Nix expressions for all Stack project components"
-    "./nix-tools/bin/stack-to-nix --output ./nix --stack-yaml stack.yaml";
-
   ssh-staging = cmd "SSH into the staging environment"
     "${ssh} fission@instance.runfission.net";
 
