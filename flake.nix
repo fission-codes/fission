@@ -27,7 +27,7 @@
               wrapProgram $out/bin/stack \
                 --add-flags "\
                   --nix \
-                  --no-nix-pure \
+                  --nix-pure \
                   --nix-shell-file=nix/stack-integration.nix \
                 "
             '';
