@@ -2,10 +2,14 @@ module Network.IPFS.Client
   ( API
   , add
   , cat
-  , stat
-  , pin
-  , unpin
   , dagPut
+  , filesCopy
+  , filesRemove
+  , filesStatCid
+  , filesWrite
+  , pin
+  , stat
+  , unpin
   ) where
 
 import qualified RIO.ByteString.Lazy                             as Lazy
@@ -26,6 +30,8 @@ import qualified Network.IPFS.Client.Add                         as Add
 import qualified Network.IPFS.Client.Cat                         as Cat
 import qualified Network.IPFS.Client.DAG.Put.Types               as DAG.Put
 import qualified Network.IPFS.Client.DAG.Types                   as DAG
+import qualified Network.IPFS.Client.Files                       as Files
+import qualified Network.IPFS.Client.Files.Statistics.Types      as Files.Statistics
 import qualified Network.IPFS.Client.Pin                         as Pin
 import qualified Network.IPFS.Client.Stat                        as Stat
 
@@ -36,19 +42,36 @@ type API
 
 type V0API = "add"    :> Add.API
         :<|> "cat"    :> Cat.API
-        :<|> "object" :> Stat.API
         :<|> "dag"    :> DAG.API
+        :<|> "object" :> Stat.API
+
         :<|> "pin"    :> Pin.API
 
-cat    :: CID                                         -> ClientM File.Serialized
-stat   :: CID                                         -> ClientM Stat
-pin    :: CID                                         -> ClientM Pin.Response
-unpin  :: CID -> Bool                                 -> ClientM Pin.Response
-dagPut ::        Bool -> (Lazy.ByteString, File.Form) -> ClientM DAG.Put.Response
-add    ::                 Lazy.ByteString             -> ClientM CID
+        :<|> "files"  :> Files.API
+
+add           :: Lazy.ByteString                      -> ClientM CID
+cat           :: CID                                  -> ClientM File.Serialized
+dagPut        :: Bool -> (Lazy.ByteString, File.Form) -> ClientM DAG.Put.Response
+stat          :: CID                                  -> ClientM Stat
+
+pin           :: CID                                  -> ClientM Pin.Response
+unpin         :: CID -> Bool                          -> ClientM Pin.Response
+
+filesCopy     :: Text -> Text -> Bool                 -> ClientM ()
+filesRemove   :: Text -> Bool -> Maybe Bool           -> ClientM ()
+filesStatCid  :: Text -> Bool                         -> ClientM Files.Statistics.CidResponse
+
+filesWrite
+  :: Text -> Bool -> Bool -> Bool
+  -> Maybe Bool -> Maybe Integer -> Maybe Text
+  -> Lazy.ByteString
+  -> ClientM ()
 
 add :<|> cat
-    :<|> stat
     :<|> dagPut
-    :<|> pin
-    :<|> unpin = client $ Proxy @API
+    :<|> stat
+
+    :<|> (pin :<|> unpin)
+    :<|> (filesCopy :<|> filesRemove :<|> filesStatCid :<|> filesWrite)
+
+    = client (Proxy @API :: Proxy API)

@@ -42,6 +42,7 @@ import qualified Fission.Web.Server.App.Domain                as App.Domain
 import           Fission.Web.Server.Handler
 import qualified Fission.Web.Server.Handler.Auth.UCAN         as Auth.UCAN
 
+import           Fission.Web.Server.Config.Types
 import           Fission.Web.Server.IPFS.Cluster              as Cluster
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.MonadDB
@@ -70,6 +71,7 @@ app :: forall m t .
   , MonadDNSLink                m
   , MonadWNFS                   m
   , MonadLogger                 m
+  , MonadReader Config          m
   , MonadTime                   m
   , MonadEmail                  m
   , User.CRUD                   m
@@ -86,6 +88,7 @@ app :: forall m t .
   , LoosePin.CRUD             t
   , User.Retriever            t
   , User.Destroyer            t
+  , App.Modifier              t
   , App.Retriever             t
   , App.Domain.Retriever      t
   )
@@ -116,6 +119,7 @@ server ::
   , MonadDNSLink                m
   , MonadWNFS                   m
   , MonadLogger                 m
+  , MonadReader Config          m
   , MonadTime                   m
   , MonadEmail                  m
   , User.CRUD                   m
@@ -132,6 +136,7 @@ server ::
   , LoosePin.CRUD             t
   , User.Retriever            t
   , User.Destroyer            t
+  , App.Modifier              t
   , App.Retriever             t
   , App.Domain.Retriever      t
   )
@@ -173,4 +178,4 @@ server appHost =
       }
 
     v2Docs =
-      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v2" :> (ToServantApi Fission.RoutesV2)))
+      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v2" :> ToServantApi Fission.RoutesV2))

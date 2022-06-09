@@ -6,11 +6,13 @@ module Network.IPFS.Error
 import           Network.IPFS.Prelude
 import           Network.IPFS.Types
 
-import qualified Network.IPFS.Add.Error as Add
-import qualified Network.IPFS.Get.Error as Get
+import qualified Network.IPFS.Add.Error     as Add
+import qualified Network.IPFS.Files.Error   as Files
+import qualified Network.IPFS.Get.Error     as Get
 
 data Error
   = AddErr Add.Error
+  | FilesErr Files.Error
   | GetErr Get.Error
   | LinearizationErr Linearization
   deriving ( Exception

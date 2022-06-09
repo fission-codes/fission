@@ -10,6 +10,7 @@ import qualified Crypto.PubKey.RSA.Types               as RSA
 
 import           Network.DNS                           as DNS
 import qualified Network.IPFS.Add.Error                as IPFS.Add
+import qualified Network.IPFS.Files.Error              as IPFS.Files
 import           Network.IPFS.CID.Types
 import qualified Network.IPFS.Process.Error            as IPFS.Process
 import qualified Network.IPFS.Types                    as IPFS
@@ -61,6 +62,7 @@ type Errs
      , Status Denied
      --
      , IPFS.Add.Error
+     , IPFS.Files.Error
      , IPFS.Process.Error
      , IPFS.UnableToConnect
      --

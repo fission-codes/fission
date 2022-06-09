@@ -9,7 +9,7 @@ import qualified Fission.Web.API.Auth.Types              as Auth
 import           Fission.FileSystem.DirectoryName.Types  as DirectoryName
 import           Fission.FileSystem.FileName.Types       as FileName
 
-data RoutesV2 mode = RoutesV2
+newtype RoutesV2 mode = RoutesV2
   { append ::
       mode
       :- Summary     "Append a file"
