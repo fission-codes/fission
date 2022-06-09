@@ -20,6 +20,7 @@ import qualified Fission.CLI.Handler                     as Handler
 import           Fission.CLI.Handler.Error.Types         (Errs)
 
 import           Fission.CLI.Parser.Command.App          as App
+import qualified Fission.CLI.Parser.Command.App.Delegate as App.Delegate
 import qualified Fission.CLI.Parser.Command.App.Info     as App.Info
 import           Fission.CLI.Parser.Command.App.Init     as App.Init
 import           Fission.CLI.Parser.Command.App.Up.Types as App.Up
@@ -38,6 +39,9 @@ interpret baseCfg cmd = do
   logDebug @Text "App interpreter"
 
   case cmd of
+    Delegate App.Delegate.Options {appName, generateKey, audienceDid} ->
+      Handler.delegate appName generateKey audienceDid
+
     Info App.Info.CommandOnly ->
       Handler.appInfo
 
