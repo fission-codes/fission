@@ -2,35 +2,35 @@
 module Fission.CLI.Handler.App.Delegate (delegate) where
 
 import qualified Crypto.PubKey.Ed25519                     as Ed25519
+
+import           Crypto.Random.Types
 import           Data.Function
 import qualified Data.Yaml                                 as YAML
 import qualified RIO.Text                                  as Text
 import qualified RIO.Map                                   as Map
-import qualified System.Console.ANSI                       as ANSI
 
 import           Fission.Prelude
 
+import qualified Fission.Key                                 as Key
+
 import qualified Fission.App.Name                          as App
+
 import           Fission.Authorization.ServerDID
+
 import           Fission.Error.Types
-import qualified Fission.Internal.UTF8                     as UTF8
 
 import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Auth.Token.UCAN.Types
 import           Fission.Web.Client
 
-import           Fission.CLI.Display.Text
-
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
-
-import qualified Fission.CLI.App.Environment               as App.Env
-import qualified Fission.CLI.Prompt.BuildDir               as BuildDir
+import           Fission.CLI.Key.Ed25519
 
 import           Fission.CLI.Environment
 import           Fission.CLI.WebNative.Mutation.Auth.Store as UCAN
 
-import           Web.DID.Types
+import           Web.DID.Types                             as DID
 
 import Fission.Web.API.App.Index.Payload.Types
 
@@ -38,6 +38,7 @@ import Fission.Web.API.App.Index.Payload.Types
 delegate ::
   ( MonadIO          m
   , MonadLogger      m 
+  , MonadRandom m
   , MonadTime        m
 
   , MonadEnvironment m
@@ -67,8 +68,24 @@ delegate appName generateKey mayAudienceDid = do
     proof <- getRootUserProof
     appRegistered <- checkAppRegistration appName proof
 
-    if appRegistered then
+    if appRegistered then do
       logDebug $ appName <> " is registered!"
+
+      case mayAudienceDid of
+        Just audienceDid ->
+          logDebug $ textDisplay audienceDid <> " is the audience DID"
+
+        Nothing -> do
+          logDebug @Text "🏗️  Generating signing key"
+
+          secretKey <- Ed25519.generateSecretKey
+          publicKey <- return $ Ed25519.toPublic secretKey
+          did <- return $ DID.Key $ Key.Ed25519PublicKey publicKey
+
+          logDebug $ "Secret key " <> show secretKey
+          logDebug $ "Public key " <> textDisplay publicKey
+          logDebug $ "DID " <> textDisplay did
+
     else
       logDebug $ appName <> " is not registered."
 
