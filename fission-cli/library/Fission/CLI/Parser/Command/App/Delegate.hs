@@ -9,8 +9,6 @@ import           Options.Applicative
 
 import           Fission.Prelude
 
-import           Fission.CLI.Parser.Internal
-
 import           Fission.CLI.Parser.Command.App.Delegate.Types
 
 import           Web.DID.Types as DID
@@ -19,13 +17,13 @@ parserWithInfo :: ParserInfo Options
 parserWithInfo =
   parser `info` mconcat
     [ fullDesc
-    , progDesc "Delegate append capability to a DID or key pair"
+    , progDesc "Delegate append capability to a key pair or DID. Generates a key pair by default."
     ]
 
 parser :: Parser Options
 parser = do
   appName <- strOption $ mconcat
-    [ help    "The app to append" 
+    [ help    "The target app"
     -----------
     , long    "app-name"
     , short   'a'
@@ -33,17 +31,8 @@ parser = do
     , metavar "NAME"
     ]
 
-  generateKey  <- option boolean $ mconcat
-    [ help  "Generate a key pair"
-    , showDefault
-    ----------
-    , long  "generate-key"
-    ----------
-    , value True
-    ]
-
   audienceDid <- option did $ mconcat
-    [ help    "The DID audience"
+    [ help    "An audience DID"
     -----------
     , long    "did"
     , short   'd'

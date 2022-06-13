@@ -71,10 +71,9 @@ delegate ::
   , MonadWebAuth m Ed25519.SecretKey
   )
   => Text
-  -> Bool 
   -> Maybe DID
   -> m ()
-delegate appName generateKey mayAudienceDid = do
+delegate appName mayAudienceDid = do
     logDebug @Text "delegate"
 
     signingKey <- Key.Store.fetch $ Proxy @SigningKey

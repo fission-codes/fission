@@ -6,6 +6,5 @@ import           Web.DID.Types
 
 data Options = Options
   { appName :: Text
-  , generateKey :: Bool
   , audienceDid :: Maybe DID
   } deriving (Show, Eq)
