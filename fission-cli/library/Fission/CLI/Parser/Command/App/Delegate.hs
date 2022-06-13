@@ -42,6 +42,18 @@ parser = do
     , value Nothing
     ]
 
+  lifetimeInSeconds <- option auto $ mconcat
+    [ help    "Lifetime in seconds before UCAN expires"
+    , showDefault
+    -----------
+    , long    "lifetime"
+    , short   'l'
+    -----------
+    , metavar "LIFETIME"
+    -----------
+    , value (300 :: Int)
+    ]
+
   return Options {..}
 
 did :: ReadM (Maybe DID)

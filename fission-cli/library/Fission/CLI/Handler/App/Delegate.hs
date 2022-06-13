@@ -72,9 +72,13 @@ delegate ::
   )
   => Text
   -> Maybe DID
+  -> Int
   -> m ()
-delegate appName mayAudienceDid = do
+delegate appName mayAudienceDid lifetimeInSeconds = do
     logDebug @Text "delegate"
+
+    logDebug $ "Maybe DID: " <> show mayAudienceDid
+    logDebug $ "Lifetime: " <> show lifetimeInSeconds
 
     signingKey <- Key.Store.fetch $ Proxy @SigningKey
     proof <- getRootUserProof
