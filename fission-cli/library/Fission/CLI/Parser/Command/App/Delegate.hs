@@ -57,4 +57,4 @@ parser = do
   return Options {..}
 
 did :: ReadM (Maybe DID)
-did = decodeStrict' <$> str
+did = decodeStrict' . wrapIn "\"" <$> str
