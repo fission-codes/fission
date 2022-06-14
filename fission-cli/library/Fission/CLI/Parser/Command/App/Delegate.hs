@@ -11,6 +11,8 @@ import           Fission.Prelude
 
 import           Fission.CLI.Parser.Command.App.Delegate.Types
 
+import           Fission.Internal.UTF8
+
 import           Web.DID.Types as DID
 
 parserWithInfo :: ParserInfo Options
