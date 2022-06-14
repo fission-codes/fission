@@ -42,6 +42,7 @@ import           Fission.Web.API.App.Index.Payload.Types
 
 import           Web.DID.Types                              as DID
 
+import qualified Web.UCAN.Internal.Base64                   as B64
 import           Web.UCAN.Internal.Base64.URL               as B64.URL
 import qualified Web.UCAN.Types                             as UCAN.Types
 
@@ -103,7 +104,7 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
             ucan = delegateAppendApp appName did signingKey proof now
             encodedUcan = encodeUcan ucan
 
-          logDebug $ "Secret key " <> show secretKey
+          logDebug $ "Secret key " <> decodeUtf8Lenient (B64.toB64ByteString secretKey)
           logDebug $ "Public key " <> textDisplay publicKey
           logDebug $ "DID " <> textDisplay did
           logDebug $ "UCAN " <> textDisplay encodedUcan 
