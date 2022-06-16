@@ -166,11 +166,10 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
 checkProofToken :: String  -> Either Text UCAN
 checkProofToken token =
   let
-    RawContent rawBS = UCAN.contentOf $ wrapIn "\"" (Text.pack token)
-    rc = RawContent $ "\"" <> rawBS <> "\""
+    rawContent = UCAN.contentOf (Text.pack token)
   in
 
-  case Web.UCAN.fromRawContent rc of
+  case Web.UCAN.fromRawContent rawContent of
     Left err -> 
       -- raise err
       Left $ textDisplay err
@@ -178,21 +177,6 @@ checkProofToken token =
     Right ucan ->
       -- Do more to check and return a UCAN.Proof
       Right ucan 
-
--- checkProofToken :: String  -> Either Text UCAN
--- checkProofToken token =
---   let
---     rawContent = UCAN.contentOf (Text.pack token)
---   in
-
---   case Web.UCAN.fromRawContent rawContent of
---     Left err -> 
---       -- raise err
---       Left $ textDisplay err
-          
---     Right ucan ->
---       -- Do more to check and return a UCAN.Proof
---       Right ucan 
   
 
 checkAppRegistration :: 
