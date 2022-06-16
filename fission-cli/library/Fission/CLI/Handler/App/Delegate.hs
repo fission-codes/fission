@@ -56,6 +56,11 @@ import qualified Web.UCAN.Types                             as UCAN.Types
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Char8 as Char8
 
+import           Fission.Internal.UTF8 (wrapIn)
+
+import Web.UCAN.RawContent.Types
+-- import Web.UCAN.Types.RawContent
+
 -- | Delegate capabilities to a key pair or DID
 delegate ::
   ( MonadIO          m
@@ -105,6 +110,9 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
           maybeUcan = checkProofToken appUcan
 
+          rawContent = UCAN.contentOf (Text.pack appUcan)
+
+        logError $ "Raw Content: " <> show rawContent 
         logError $ "UCAN Result: " <> show maybeUcan
 
         -- return (signingKey, proof)
@@ -158,10 +166,11 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
 checkProofToken :: String  -> Either Text UCAN
 checkProofToken token =
   let
-    rawContent = UCAN.contentOf (Text.pack token)
+    RawContent rawBS = UCAN.contentOf $ wrapIn "\"" (Text.pack token)
+    rc = RawContent $ "\"" <> rawBS <> "\""
   in
 
-  case Web.UCAN.fromRawContent rawContent of
+  case Web.UCAN.fromRawContent rc of
     Left err -> 
       -- raise err
       Left $ textDisplay err
@@ -169,6 +178,21 @@ checkProofToken token =
     Right ucan ->
       -- Do more to check and return a UCAN.Proof
       Right ucan 
+
+-- checkProofToken :: String  -> Either Text UCAN
+-- checkProofToken token =
+--   let
+--     rawContent = UCAN.contentOf (Text.pack token)
+--   in
+
+--   case Web.UCAN.fromRawContent rawContent of
+--     Left err -> 
+--       -- raise err
+--       Left $ textDisplay err
+          
+--     Right ucan ->
+--       -- Do more to check and return a UCAN.Proof
+--       Right ucan 
   
 
 checkAppRegistration :: 
