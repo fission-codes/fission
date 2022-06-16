@@ -9,6 +9,8 @@ import qualified Data.Yaml                                 as YAML
 import qualified RIO.Text                                  as Text
 import qualified RIO.Map                                   as Map
 
+import qualified System.Environment                        as Env
+
 import           Fission.Prelude
 
 import qualified Fission.Key                                 as Key
@@ -42,9 +44,14 @@ import           Fission.Web.API.App.Index.Payload.Types
 
 import           Web.DID.Types                              as DID
 
+
+import qualified Web.UCAN                                   (fromRawContent)
 import qualified Web.UCAN.Internal.Base64                   as B64
+import qualified Web.UCAN.Internal.Base64.Scrubbed          as B64.Scrubbed
+
 import           Web.UCAN.Internal.Base64.URL               as B64.URL
 import qualified Web.UCAN.Types                             as UCAN.Types
+
 
 -- | Delegate capabilities to a key pair or DID
 delegate ::
@@ -81,8 +88,40 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
     logDebug $ "Maybe DID: " <> show mayAudienceDid
     logDebug $ "Lifetime: " <> show lifetimeInSeconds
 
-    signingKey <- Key.Store.fetch $ Proxy @SigningKey
-    proof <- getRootUserProof
+    maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
+    mayAppUcan <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
+
+    logError $ "FISSION_MACHINE_KEY: " <> show maySigningKey
+    logError $ "FISSION_APP_UCAN: " <> show mayAppUcan
+
+    (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
+      (Just key, Just appUcan) -> do
+        -- Sign with key, use appUcan as proof
+
+        let
+          rawKey = B64.Scrubbed.scrub (encodeUtf8 (Text.pack key))
+          maybeUcan = checkProofToken appUcan
+
+        logError $ "UCAN Result: " <> show maybeUcan
+
+        -- return (signingKey, proof)
+
+        signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+        return (signingKey, UCAN.Types.RootCredential)
+      (Just key, Nothing) -> do
+        -- Sign with key, assume key has root authority
+        let
+          rawKey = B64.Scrubbed.scrub (encodeUtf8 (Text.pack key))
+
+        signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+        return (signingKey, UCAN.Types.RootCredential)
+
+      (Nothing, _) -> do
+        -- Use normal CLI config from keystore
+        signingKey <- Key.Store.fetch $ Proxy @SigningKey
+        proof <- getRootUserProof
+        return (signingKey, proof)
+
     appRegistered <- checkAppRegistration appName proof
 
     if appRegistered then do
@@ -112,6 +151,22 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
     else
       logDebug $ appName <> " is not registered."
 
+
+checkProofToken :: String  -> Either Text UCAN
+checkProofToken token =
+  let
+    rawContent = UCAN.contentOf (Text.pack token)
+  in
+
+  case Web.UCAN.fromRawContent rawContent of
+    Left err -> 
+      -- raise err
+      Left $ textDisplay err
+          
+    Right ucan ->
+      -- Do more to check and return a UCAN.Proof
+      Right ucan 
+  
 
 checkAppRegistration :: 
   ( MonadIO          m
