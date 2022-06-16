@@ -557,7 +557,7 @@ instance UCAN.Resolver Server where
         return $ Left $ CannotResolve cid clientErr
 
       Right (Serialized resolvedLBS) ->
-        return $ Right $ UCAN.contentOf $ decodeUtf8Lenient $ Lazy.toStrict resolvedLBS
+        return $ Right $ Lazy.toStrict resolvedLBS
 
 instance ServerDID Server where
   getServerDID = asks fissionDID
