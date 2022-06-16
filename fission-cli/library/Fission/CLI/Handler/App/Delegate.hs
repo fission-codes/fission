@@ -4,6 +4,10 @@ module Fission.CLI.Handler.App.Delegate (delegate) where
 import qualified Crypto.PubKey.Ed25519                     as Ed25519
 
 import           Crypto.Random.Types
+
+import qualified Data.ByteString.Base64                    as Base64
+import qualified Data.ByteString.Char8                     as Char8
+
 import           Data.Function
 import qualified Data.Yaml                                 as YAML
 import qualified RIO.Text                                  as Text
@@ -39,13 +43,12 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Potency.Types
 import           Fission.Web.API.App.Index.Payload.Types
--- import qualified Fission.Web.Auth.Token.Bearer                    as Bearer (fromJWT)
  
 
 import           Web.DID.Types                              as DID
 
 
-import qualified Web.UCAN                                   (fromRawContent)
+import qualified Web.UCAN
 import qualified Web.UCAN.Internal.Base64                   as B64
 import qualified Web.UCAN.Internal.Base64.Scrubbed          as B64.Scrubbed
 
@@ -53,13 +56,7 @@ import           Web.UCAN.Internal.Base64.URL               as B64.URL
 import qualified Web.UCAN.Types                             as UCAN.Types
 
 
-import qualified Data.ByteString.Base64 as Base64
-import qualified Data.ByteString.Char8 as Char8
-
 import           Fission.Internal.UTF8 (wrapIn)
-
-import Web.UCAN.RawContent.Types
--- import Web.UCAN.Types.RawContent
 
 -- | Delegate capabilities to a key pair or DID
 delegate ::
@@ -110,9 +107,6 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
           maybeUcan = checkProofToken appUcan
 
-          rawContent = UCAN.contentOf (Text.pack appUcan)
-
-        logError $ "Raw Content: " <> show rawContent 
         logError $ "UCAN Result: " <> show maybeUcan
 
         -- return (signingKey, proof)
@@ -166,10 +160,10 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
 checkProofToken :: String  -> Either Text UCAN
 checkProofToken token =
   let
-    rawContent = UCAN.contentOf (Text.pack token)
+    tokenBS = Char8.pack $ wrapIn "\"" token
   in
 
-  case Web.UCAN.fromRawContent rawContent of
+  case Web.UCAN.parse tokenBS of
     Left err -> 
       -- raise err
       Left $ textDisplay err
