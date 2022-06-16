@@ -41,7 +41,6 @@ import qualified Network.IPFS.Types                        as IPFS
 import qualified Web.DID.Oldstyle.Types                    as DID
 import           Web.DID.Types                             as DID
 
-import qualified Web.UCAN.RawContent                       as UCAN
 import           Web.UCAN.Resolver                         as UCAN
 
 import           Fission.Prelude
