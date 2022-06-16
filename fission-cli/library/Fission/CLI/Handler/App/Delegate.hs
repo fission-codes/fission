@@ -53,6 +53,9 @@ import           Web.UCAN.Internal.Base64.URL               as B64.URL
 import qualified Web.UCAN.Types                             as UCAN.Types
 
 
+import qualified Data.ByteString.Base64 as Base64
+import qualified Data.ByteString.Char8 as Char8
+
 -- | Delegate capabilities to a key pair or DID
 delegate ::
   ( MonadIO          m
@@ -99,7 +102,7 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
         -- Sign with key, use appUcan as proof
 
         let
-          rawKey = B64.Scrubbed.scrub (encodeUtf8 (Text.pack key))
+          rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
           maybeUcan = checkProofToken appUcan
 
         logError $ "UCAN Result: " <> show maybeUcan
@@ -111,7 +114,7 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
       (Just key, Nothing) -> do
         -- Sign with key, assume key has root authority
         let
-          rawKey = B64.Scrubbed.scrub (encodeUtf8 (Text.pack key))
+          rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
 
         signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
         return (signingKey, UCAN.Types.RootCredential)
