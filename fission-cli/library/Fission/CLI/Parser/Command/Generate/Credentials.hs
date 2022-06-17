@@ -16,7 +16,7 @@ parserWithInfo :: ParserInfo Options
 parserWithInfo =
   parser `info` mconcat
     [ fullDesc
-    , progDesc "Generate a key pair and DID"
+    , progDesc "Generate an Ed25519 key pair and an associated DID"
     ]
 
 parser :: Parser Options
