@@ -48,4 +48,4 @@ credentials = do
 
   UTF8.putText "🆔 DID: "
   colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
-    UTF8.putText $ textDisplay did <> "\n"
+    UTF8.putTextLn $ textDisplay did
