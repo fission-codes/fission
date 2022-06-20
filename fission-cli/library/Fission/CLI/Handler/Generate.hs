@@ -26,4 +26,3 @@ interpret cmd = do
   case cmd of
     Credentials _ -> do
       Handler.credentials
-      return ()
