@@ -92,7 +92,8 @@ delegate ::
 delegate appName audienceDid lifetimeInSeconds = do
     logDebug @Text "delegate"
 
-    logDebug $ "Audience DID: " <> show audienceDid
+    logDebug $ "App Name: " <> show audienceDid
+    logDebug $ "Raw Audience DID: " <> show audienceDid
     logDebug $ "Lifetime: " <> show lifetimeInSeconds
 
     maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
@@ -111,12 +112,14 @@ delegate appName audienceDid lifetimeInSeconds = do
 
         logError $ "UCAN Result: " <> show maybeUcan
 
-        -- return (signingKey, proof)
 
         signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+
+        -- Conver maybeUCAN to proof and use below
         return (signingKey, UCAN.Types.RootCredential)
       (Just key, Nothing) -> do
         -- Sign with key, assume key has root authority
+
         let
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
 
@@ -135,25 +138,19 @@ delegate appName audienceDid lifetimeInSeconds = do
       logDebug $ appName <> " is registered!"
 
       case audienceDid of
-        Right did -> do
-          logDebug $ textDisplay did <> " is the audience DID"
-
-
         Left err -> do
-          logDebug @Text "🏗️  Generating signing key"
+          CLI.Error.put err "Could not parse DID"
+          raise $ ParseError @DID
 
-          secretKey <- Ed25519.generateSecretKey
+        Right did -> do
+          logDebug $ "Audience DID" <> textDisplay did
+
           now <- getCurrentTime
 
           let 
-            publicKey = Ed25519.toPublic secretKey
-            did = DID.Key $ Key.Ed25519PublicKey publicKey
             ucan = delegateAppendApp appName did signingKey proof now
             encodedUcan = encodeUcan ucan
 
-          logDebug $ "Secret key " <> decodeUtf8Lenient (B64.toB64ByteString secretKey)
-          logDebug $ "Public key " <> textDisplay publicKey
-          logDebug $ "DID " <> textDisplay did
           logDebug $ "UCAN " <> textDisplay encodedUcan 
 
     else

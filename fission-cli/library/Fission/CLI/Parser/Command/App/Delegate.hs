@@ -19,7 +19,7 @@ parserWithInfo :: ParserInfo Options
 parserWithInfo =
   parser `info` mconcat
     [ fullDesc
-    , progDesc "Delegate append capability to a key pair or DID. Generates a key pair by default."
+    , progDesc "Delegate append capability to an audience DID"
     ]
 
 parser :: Parser Options
