@@ -17,6 +17,7 @@ import qualified System.Environment                        as Env
 
 import           Fission.Prelude
 
+import           Fission.Error
 import qualified Fission.Key                                 as Key
 import           Fission.URL
 
@@ -75,6 +76,7 @@ delegate ::
   , m `Raises` Key.Error
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
+  , m `Raises` ParseError DID
 
   , Contains (Errors m) (Errors m)
   , Display  (OpenUnion (Errors m))
@@ -84,13 +86,13 @@ delegate ::
   , MonadWebAuth m Ed25519.SecretKey
   )
   => Text
-  -> Maybe DID
+  -> Either String DID
   -> Int
   -> m ()
-delegate appName mayAudienceDid lifetimeInSeconds = do
+delegate appName audienceDid lifetimeInSeconds = do
     logDebug @Text "delegate"
 
-    logDebug $ "Maybe DID: " <> show mayAudienceDid
+    logDebug $ "Audience DID: " <> show audienceDid
     logDebug $ "Lifetime: " <> show lifetimeInSeconds
 
     maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
@@ -132,11 +134,12 @@ delegate appName mayAudienceDid lifetimeInSeconds = do
     if appRegistered then do
       logDebug $ appName <> " is registered!"
 
-      case mayAudienceDid of
-        Just audienceDid ->
-          logDebug $ textDisplay audienceDid <> " is the audience DID"
+      case audienceDid of
+        Right did -> do
+          logDebug $ textDisplay did <> " is the audience DID"
 
-        Nothing -> do
+
+        Left err -> do
           logDebug @Text "🏗️  Generating signing key"
 
           secretKey <- Ed25519.generateSecretKey

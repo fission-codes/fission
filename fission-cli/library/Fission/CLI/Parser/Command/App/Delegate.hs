@@ -40,8 +40,6 @@ parser = do
     , short   'd'
     -----------
     , metavar "DID"
-    -----------
-    , value Nothing
     ]
 
   lifetimeInSeconds <- option auto $ mconcat
@@ -58,5 +56,5 @@ parser = do
 
   return Options {..}
 
-did :: ReadM (Maybe DID)
-did = decodeStrict' . wrapIn "\"" <$> str
+did :: ReadM (Either String DID)
+did = eitherDecodeStrict' . wrapIn "\"" <$> str

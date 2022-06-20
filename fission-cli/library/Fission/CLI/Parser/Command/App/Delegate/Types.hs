@@ -6,6 +6,6 @@ import           Web.DID.Types
 
 data Options = Options
   { appName :: Text
-  , audienceDid :: Maybe DID
+  , audienceDid :: Either String DID
   , lifetimeInSeconds :: Int
   } deriving (Show, Eq)

@@ -86,6 +86,8 @@ type Errs
      , NotRegistered
      , NotSetup
      --
+     , ParseError DID
+     --
      , OS.Unsupported
      , RSA.Error
      --
