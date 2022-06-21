@@ -38,6 +38,7 @@ import qualified Fission.CLI.App                                    as App
 import           Fission.CLI.Types
 
 import           Fission.CLI.Handler.Error.Types                    (Errs)
+import qualified Fission.CLI.Handler.Generate                       as Generate
 import qualified Fission.CLI.Handler.Setup                          as Setup
 import qualified Fission.CLI.Handler.User                           as User
 
@@ -109,6 +110,9 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} cmd =
 
         User subCmd ->
           User.interpret subCmd
+
+        Generate subCmd ->
+          Generate.interpret subCmd
 
 finalizeDID :: MonadIO m => Maybe DID -> Base.Config -> m (Either (OpenUnion Errs) DID)
 finalizeDID (Just did) _ =

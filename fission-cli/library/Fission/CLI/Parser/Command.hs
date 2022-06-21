@@ -11,6 +11,8 @@ import qualified Fission.CLI.Parser.Verbose             as Verbose
 import qualified Fission.CLI.Parser.Command.App         as App
 import qualified Fission.CLI.Parser.Command.App.Up      as App.Up
 
+import qualified Fission.CLI.Parser.Command.Generate    as Generate
+
 import qualified Fission.CLI.Parser.Command.User        as User
 import qualified Fission.CLI.Parser.Command.User.Login  as User.Login
 import qualified Fission.CLI.Parser.Command.User.WhoAmI as User.WhoAmI
@@ -51,7 +53,8 @@ subCommands =
   hsubparser $ mconcat
     [ commandGroup "Command Groups"
     , metavar "COMMAND"
-    , command "app"  $ fmap Command.App  App.parserWithInfo
-    , command "user" $ fmap Command.User User.parserWithInfo
+    , command "app"      $ fmap Command.App      App.parserWithInfo
+    , command "user"     $ fmap Command.User     User.parserWithInfo
+    , command "generate" $ fmap Command.Generate Generate.parserWithInfo
     ]
 
