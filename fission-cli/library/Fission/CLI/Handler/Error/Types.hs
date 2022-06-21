@@ -87,6 +87,7 @@ type Errs
      , NotSetup
      --
      , ParseError DID
+     , ParseError UCAN
      --
      , OS.Unsupported
      , RSA.Error

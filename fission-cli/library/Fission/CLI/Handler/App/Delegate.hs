@@ -78,6 +78,7 @@ delegate ::
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   , m `Raises` ParseError DID
+  , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
 
   , Contains (Errors m) (Errors m)
@@ -101,20 +102,20 @@ delegate appName audienceDid lifetimeInSeconds = do
     maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
     mayAppUcan <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
 
-    logError $ "FISSION_MACHINE_KEY: " <> show maySigningKey
-    logError $ "FISSION_APP_UCAN: " <> show mayAppUcan
+    logDebug $ "FISSION_MACHINE_KEY: " <> show maySigningKey
+    logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
 
     (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
       (Just key, Just appUcan) -> do
         -- Sign with key, use appUcan as proof
         let
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
-          -- maybeUcan = checkProofToken appUcan
 
         attempt (checkProofToken appUcan) >>= \case
           Left err -> do
-             logError $ "UCAN Validation error: " <> show err
-             raise err
+             logDebug $ "UCAN Validation error: " <> show err
+             CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
+             raise $ ParseError @UCAN
 
           Right ucan -> do
             logDebug $ "UCAN Result: " <> show ucan

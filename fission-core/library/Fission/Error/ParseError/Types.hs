@@ -2,6 +2,8 @@ module Fission.Error.ParseError.Types (ParseError (..)) where
 
 import           Fission.Prelude
 
+import           Fission.Web.Auth.Token.UCAN.Types
+
 import           Web.DID.Types
 
 data ParseError entity
@@ -13,3 +15,6 @@ data ParseError entity
 
 instance Display (ParseError DID) where
   display _ = "Unable to parse DID"
+
+instance Display (ParseError UCAN) where
+  display _ = "Unable to parse UCAN"
