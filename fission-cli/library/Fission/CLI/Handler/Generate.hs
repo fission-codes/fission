@@ -24,5 +24,5 @@ interpret cmd = do
   logDebug @Text "Generate interpreter"
 
   case cmd of
-    Credentials _ -> do
+    Credentials _ ->
       Handler.credentials
