@@ -63,8 +63,11 @@ To mimic the full "fission stack" for local development, you can use the include
    `docker compose exec ipfs ipfs pin add -r QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN`
 7. Copy `addon-manifest.json.example` to `addon-manifest.json` and change `CHANGE_ME_TO_NUMBER` to a random number (e.g. 42)
 8. Copy `server.yaml.example` to `server.yaml`
-9. Build / install the server (if using nix-shell you can run `server-install`)
-10. Run the server (if using nix-shell you can run `server-debug`)
+9. Update `server.yaml` with two values:
+   1. Under `ipfs`, update the `remotePeers` value to match the docker IPFS node ID. (You can determine this by running `docker compose exec ipfs ipfs id`).
+   2. Under `send_in_blue`, update the `api_key` to a valid send in blue API key (Fission team: this is available in 1password). 
+10. Build / install the server (if using nix-shell you can run `server-install`)
+11. Run the server (if using nix-shell you can run `server-debug`)
    
 You should now have a rest server running on port `1337` (test: http://runfission.test:1337/ping).
 
