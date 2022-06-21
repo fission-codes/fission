@@ -54,6 +54,7 @@ import qualified Web.UCAN.Internal.Base64                   as B64
 import qualified Web.UCAN.Internal.Base64.Scrubbed          as B64.Scrubbed
 
 import           Web.UCAN.Internal.Base64.URL               as B64.URL
+import           Web.UCAN.Resolver.Error                    as UCAN.Resolver
 import qualified Web.UCAN.Types                             as UCAN.Types
 
 
@@ -77,6 +78,7 @@ delegate ::
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
   , m `Raises` ParseError DID
+  , m `Raises` UCAN.Resolver.Error
 
   , Contains (Errors m) (Errors m)
   , Display  (OpenUnion (Errors m))
@@ -105,18 +107,23 @@ delegate appName audienceDid lifetimeInSeconds = do
     (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
       (Just key, Just appUcan) -> do
         -- Sign with key, use appUcan as proof
-
         let
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
-          maybeUcan = checkProofToken appUcan
+          -- maybeUcan = checkProofToken appUcan
 
-        logError $ "UCAN Result: " <> show maybeUcan
+        attempt (checkProofToken appUcan) >>= \case
+          Left err -> do
+             logError $ "UCAN Validation error: " <> show err
+             raise err
 
+          Right ucan -> do
+            logDebug $ "UCAN Result: " <> show ucan
 
-        signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+            signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
 
-        -- Conver maybeUCAN to proof and use below
-        return (signingKey, UCAN.Types.RootCredential)
+            -- Convert ucan to proof and use below
+            return (signingKey, UCAN.Types.RootCredential)
+
       (Just key, Nothing) -> do
         -- Sign with key, assume key has root authority
 
@@ -130,6 +137,9 @@ delegate appName audienceDid lifetimeInSeconds = do
         -- Use normal CLI config from keystore
         signingKey <- Key.Store.fetch $ Proxy @SigningKey
         proof <- getRootUserProof
+
+        logDebug $ "Proof from config: " <> textDisplay proof
+
         return (signingKey, proof)
 
     appRegistered <- checkAppRegistration appName proof
@@ -143,7 +153,7 @@ delegate appName audienceDid lifetimeInSeconds = do
           raise $ ParseError @DID
 
         Right did -> do
-          logDebug $ "Audience DID" <> textDisplay did
+          logDebug $ "Audience DID: " <> textDisplay did
 
           now <- getCurrentTime
 
@@ -157,21 +167,24 @@ delegate appName audienceDid lifetimeInSeconds = do
       logDebug $ appName <> " is not registered."
 
 
-checkProofToken :: String  -> Either Text UCAN
-checkProofToken token =
+checkProofToken ::
+  ( MonadRaise m
+  , m `Raises` UCAN.Resolver.Error
+  )
+  => String
+  -> m UCAN
+checkProofToken token = do
   let
     tokenBS = Char8.pack $ wrapIn "\"" token
-  in
 
   case Web.UCAN.parse tokenBS of
-    Left err -> 
-      -- raise err
-      Left $ textDisplay err
+    Left err ->
+      raise err
           
     Right ucan ->
       -- Do more to check and return a UCAN.Proof
-      Right ucan 
-  
+      return ucan
+
 
 checkAppRegistration :: 
   ( MonadIO          m
