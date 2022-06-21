@@ -15,8 +15,7 @@ import           Fission.CLI.Handler.Error.Types           (Errs)
 interpret ::
   ( Contains Errs errs
   , Contains errs errs
-  , Display   (OpenUnion errs)
-  , Exception (OpenUnion errs)
+  , Display  (OpenUnion errs)
   )
   => Generate.Options
   -> FissionCLI errs Base.Config ()
