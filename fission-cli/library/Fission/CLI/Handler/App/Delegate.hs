@@ -105,6 +105,10 @@ delegate appName audienceDid lifetimeInSeconds = do
     logDebug $ "FISSION_MACHINE_KEY: " <> show maySigningKey
     logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
 
+    let
+      url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
+      appResource = Subset $ FissionApp (Subset url)
+
     (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
       (Just key, Just appUcan) -> do
         -- Sign with key, use appUcan as proof
@@ -159,7 +163,7 @@ delegate appName audienceDid lifetimeInSeconds = do
           now <- getCurrentTime
 
           let 
-            ucan = delegateAppendApp appName did signingKey proof now
+            ucan = delegateAppendApp appResource did signingKey proof now
             encodedUcan = encodeUcan ucan
 
           logDebug $ "UCAN " <> textDisplay encodedUcan 
@@ -226,15 +230,9 @@ checkAppRegistration appName proof = do
         return registered
 
 
-delegateAppendApp :: Text -> DID -> Ed25519.SecretKey -> Proof -> UTCTime -> UCAN
-delegateAppendApp appName targetDID sk proof now =
-  let
-    url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
-    resource = FissionApp (Subset url)
-    scope = Subset resource
-
-  in
-  UCAN.mkUCAN targetDID sk start expire [] (Just scope) (Just AppendOnly) proof
+delegateAppendApp :: Scope Resource -> DID -> Ed25519.SecretKey -> Proof -> UTCTime -> UCAN
+delegateAppendApp resource targetDID sk proof now =
+  UCAN.mkUCAN targetDID sk start expire [] (Just resource) (Just AppendOnly) proof
     where
       start  = addUTCTime (secondsToNominalDiffTime (-30)) now
       expire = addUTCTime (nominalDay * 365)         now
