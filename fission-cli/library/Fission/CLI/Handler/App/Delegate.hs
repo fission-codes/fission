@@ -34,7 +34,6 @@ import           Fission.Web.Client
 
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
-import           Fission.CLI.Key.Ed25519
 
 import           Fission.CLI.Environment
 import           Fission.CLI.WebNative.Mutation.Auth.Store
@@ -50,15 +49,26 @@ import           Web.DID.Types                              as DID
 
 
 import qualified Web.UCAN
-import qualified Web.UCAN.Internal.Base64                   as B64
 import qualified Web.UCAN.Internal.Base64.Scrubbed          as B64.Scrubbed
 
 import           Web.UCAN.Internal.Base64.URL               as B64.URL
-import           Web.UCAN.Resolver.Error                    as UCAN.Resolver
+import           Web.UCAN.Resolver                          as UCAN.Resolver 
+import           Web.UCAN.Resolver.Error                    as UCAN.Resolver.Error
 import qualified Web.UCAN.Types                             as UCAN.Types
 
 
 import           Fission.Internal.UTF8 (wrapIn)
+
+
+
+
+import qualified Web.UCAN.Error                             as UCAN.Error
+import           Web.UCAN.Proof.Class
+import           Web.UCAN.Proof.Error                       as UCAN.Proof.Error
+import qualified Web.UCAN.RawContent                        as RawContent
+import qualified Web.UCAN.Resolver.Class                    as UCAN.Resolver.Class
+import           Web.UCAN.Validation                        (check', checkTime)
+
 
 -- | Delegate capabilities to a key pair or DID
 delegate ::
@@ -80,6 +90,10 @@ delegate ::
   , m `Raises` ParseError DID
   , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
+  , m `Raises` UCAN.Proof.Error.Error
+  , m `Raises` UCAN.Error.Error
+
+  , UCAN.Resolver.Resolver m
 
   , Contains (Errors m) (Errors m)
   , Display  (OpenUnion (Errors m))
@@ -95,9 +109,10 @@ delegate ::
 delegate appName audienceDid lifetimeInSeconds = do
     logDebug @Text "delegate"
 
-    logDebug $ "App Name: " <> show audienceDid
+    logDebug $ "App Name: " <> show appName
     logDebug $ "Raw Audience DID: " <> show audienceDid
     logDebug $ "Lifetime: " <> show lifetimeInSeconds
+
 
     maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
     mayAppUcan <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
@@ -106,6 +121,7 @@ delegate appName audienceDid lifetimeInSeconds = do
     logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
 
     let
+      -- Add support for staging, check remote flag
       url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
       appResource = Subset $ FissionApp (Subset url)
 
@@ -115,7 +131,7 @@ delegate appName audienceDid lifetimeInSeconds = do
         let
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
 
-        attempt (checkProofToken appUcan) >>= \case
+        attempt (checkProofToken appUcan appResource) >>= \case
           Left err -> do
              logDebug $ "UCAN Validation error: " <> show err
              CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
@@ -147,6 +163,7 @@ delegate appName audienceDid lifetimeInSeconds = do
 
         return (signingKey, proof)
 
+    -- Skip this check when capability delegated in UCAN
     appRegistered <- checkAppRegistration appName proof
 
     if appRegistered then do
@@ -173,12 +190,18 @@ delegate appName audienceDid lifetimeInSeconds = do
 
 
 checkProofToken ::
-  ( MonadRaise m
-  , m `Raises` UCAN.Resolver.Error
+  ( MonadIO m
+  , MonadRaise m
+  , MonadLogger      m 
+  , UCAN.Resolver.Resolver m
+  , m `Raises` UCAN.Resolver.Error.Error
+  , m `Raises` UCAN.Proof.Error.Error
+  , m `Raises` UCAN.Error.Error
   )
   => String
-  -> m UCAN
-checkProofToken token = do
+  -> Scope Resource
+  -> m UCAN 
+checkProofToken token requestedResource = do
   let
     tokenBS = Char8.pack $ wrapIn "\"" token
 
@@ -186,9 +209,53 @@ checkProofToken token = do
     Left err ->
       raise err
           
-    Right ucan ->
-      -- Do more to check and return a UCAN.Proof
-      return ucan
+    Right ucan -> do
+      logDebug $ "Parsed UCAN: " <> textDisplay ucan
+
+      let 
+        UCAN.Types.UCAN {claims = UCAN.Types.Claims {resource = mayResource, potency = mayPotency, proof}} = ucan
+
+      hasCapability <- case mayResource of
+        Just rsc -> do
+          let
+            hasResource = requestedResource `canDelegate` rsc
+
+          case mayPotency of
+            Just ptc -> do
+              let
+                hasPotency = AppendOnly `canDelegate` ptc
+
+              return $ hasResource && hasPotency
+
+
+            Nothing -> 
+              return False
+
+        Nothing ->
+          return False
+
+      if hasCapability then
+        case proof of
+          UCAN.Types.RootCredential -> 
+            return ucan
+
+          UCAN.Types.Nested rawContent prf -> do
+            now <- getCurrentTime
+            _ <- ensure $ checkTime now prf
+            ensureM $ check' rawContent prf now
+
+          UCAN.Types.Reference cid -> do
+            proofTokenBS <- ensureM $ UCAN.Resolver.Class.resolve cid
+            rawContent <- return $ RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
+            prf <- ensure $ Web.UCAN.parse proofTokenBS
+
+            now <- getCurrentTime
+            _ <- ensure $ checkTime now prf
+            ensureM $ check' rawContent prf now
+
+      else
+        -- could be potency escalation too
+        raise ScopeOutOfBounds
 
 
 checkAppRegistration :: 
