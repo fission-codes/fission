@@ -55,6 +55,7 @@
             buildInputs = [
               stack-wrapped
               haskellPackages.haskell-language-server
+              pkgs.cachix
               pkgs.nixpkgs-fmt
               pkgs.stylish-haskell
               tasks

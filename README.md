@@ -48,3 +48,5 @@ Web server, database, 3rd party integrations
 # Building
 
 Fission is built inside of a pure Nix shell via the [Stack integration](https://docs.haskellstack.org/en/stable/nix_integration/). This means that you _should_ only need to type `stack build` to do a complete build of all packages.
+
+If you're using a nix shell, you can use `cachix` to prevent re-building dependencies (particularly on `aarch64-darwin`) via: `cachix use fission-codes`.
