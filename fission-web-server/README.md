@@ -52,11 +52,26 @@ To mimic the full "fission stack" for local development, you can use the include
    -  `docker compose exec dns-auth pdnsutil create-zone runfission.test`
    -  `docker compose exec dns-auth pdnsutil create-zone fissionuser.test`
    -  `docker compose exec dns-auth pdnsutil create-zone fissionapp.test`
-4. Point your local DNS resolver to localhost.
+4. Create some initial DNS records:
+   - `docker compose exec dns-auth pdnsutil add-record runfission.test. @ A "127.0.0.1"`
+   - `docker compose exec dns-auth pdnsutil add-record fissionuser.test. gateway A "127.0.0.1"`
+   - `docker compose exec dns-auth pdnsutil add-record fissionapp.test. gateway A "127.0.0.1"`
+5. Point your local DNS resolver to localhost.
    - on macOS: this is under System Preferences > Network > Advanced.
    - on Linux: Add `nameserver 127.0.0.1` to `/etc/resolv.conf`
-  
-You can now build / run the haskell server. The included `server.yaml.example` is configured to work with the local docker setup.
+6. Pin the CID for the new app placeholder:
+   `docker compose exec ipfs ipfs pin add -r QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN`
+7. Copy `addon-manifest.json.example` to `addon-manifest.json` and change `CHANGE_ME_TO_NUMBER` to a random number (e.g. 42)
+8. Copy `server.yaml.example` to `server.yaml`
+9. Update `server.yaml` with two values:
+   1. Under `ipfs`, update the `remotePeers` value to match the docker IPFS node ID. (You can determine this by running `docker compose exec ipfs ipfs id`).
+   2. Under `send_in_blue`, update the `api_key` to a valid send in blue API key (Fission team: this is available in 1password). 
+10. Build / install the server (if using nix-shell you can run `server-install`)
+11. Run the server (if using nix-shell you can run `server-debug`)
+   
+You should now have a rest server running on port `1337` (test: http://runfission.test:1337/ping).
+
+You can use the fission CLI to register users and deploy apps: `fission setup -R runfission.test:1337` (always pass the `-R runfission.test:1337` to commands).
 
 #### Local DNS troubleshooting 
 
