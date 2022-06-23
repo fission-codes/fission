@@ -63,7 +63,7 @@ import           Fission.Internal.UTF8 (wrapIn)
 
 
 import qualified Web.UCAN.Error                             as UCAN.Error
-import           Web.UCAN.Proof.Class
+import           Web.UCAN.Proof                             as UCAN.Proof
 import           Web.UCAN.Proof.Error                       as UCAN.Proof.Error
 import qualified Web.UCAN.RawContent                        as RawContent
 import qualified Web.UCAN.Resolver.Class                    as UCAN.Resolver.Class
@@ -212,29 +212,10 @@ checkProofToken token requestedResource = do
     Right ucan -> do
       logDebug $ "Parsed UCAN: " <> textDisplay ucan
 
-      let 
-        UCAN.Types.UCAN {claims = UCAN.Types.Claims {resource = mayResource, potency = mayPotency, proof}} = ucan
+      if hasCapability requestedResource ucan then do
+        let
+          UCAN.Types.UCAN {claims = UCAN.Types.Claims {proof}} = ucan
 
-      hasCapability <- case mayResource of
-        Just rsc -> do
-          let
-            hasResource = requestedResource `canDelegate` rsc
-
-          case mayPotency of
-            Just ptc -> do
-              let
-                hasPotency = AppendOnly `canDelegate` ptc
-
-              return $ hasResource && hasPotency
-
-
-            Nothing -> 
-              return False
-
-        Nothing ->
-          return False
-
-      if hasCapability then
         case proof of
           UCAN.Types.RootCredential -> 
             return ucan
@@ -256,6 +237,28 @@ checkProofToken token requestedResource = do
       else
         -- could be potency escalation too
         raise ScopeOutOfBounds
+
+
+hasCapability ::
+  Scope Resource
+  -> UCAN
+  -> Bool
+hasCapability requestedResource ucan = do
+  let
+    UCAN.Types.UCAN {claims = UCAN.Types.Claims {resource = mayResource, potency = mayPotency}} = ucan
+
+  case mayResource of
+    Just rsc ->
+      requestedResource `canDelegate` rsc &&
+        case mayPotency of
+          Just ptc ->
+            AppendOnly `canDelegate` ptc
+
+          Nothing ->
+            False
+
+    Nothing ->
+      False
 
 
 checkAppRegistration :: 
