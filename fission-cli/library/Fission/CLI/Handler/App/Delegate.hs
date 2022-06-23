@@ -133,17 +133,19 @@ delegate appName audienceDid lifetimeInSeconds = do
 
         attempt (checkProofToken appUcan appResource) >>= \case
           Left err -> do
-             logDebug $ "UCAN Validation error: " <> show err
-             CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
-             raise $ ParseError @UCAN
+            logDebug $ "UCAN Validation error: " <> show err
+            CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
+            raise $ ParseError @UCAN
 
           Right ucan -> do
-            logDebug $ "UCAN Result: " <> show ucan
+            let
+                tokenBS = Char8.pack $ wrapIn "\"" appUcan
+                rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
+                proof = UCAN.Types.Nested rawContent ucan
 
+            logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
             signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
-
-            -- Convert ucan to proof and use below
-            return (signingKey, UCAN.Types.RootCredential)
+            return (signingKey, proof)
 
       (Just key, Nothing) -> do
         -- Sign with key, assume key has root authority
