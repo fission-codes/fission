@@ -86,6 +86,7 @@ delegate ::
   , m `Raises` ClientError
   , m `Raises` Key.Error
   , m `Raises` YAML.ParseException
+  , m `Raises` NotFound Ed25519.SecretKey
   , m `Raises` NotFound FilePath
   , m `Raises` NotFound UCAN
   , m `Raises` NotFound URL
@@ -153,7 +154,11 @@ delegate appName audienceDid lifetimeInSeconds = do
         CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
         raise $ NotFound @UCAN
 
-      (Nothing, _) -> do
+      (Nothing, Just _) -> do
+        CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set to delegate when using environment variables."
+        raise $ NotFound @Ed25519.SecretKey
+
+      (Nothing, Nothing) -> do
         -- Use normal CLI config from keystore
         signingKey <- Key.Store.fetch $ Proxy @SigningKey
         proof <- getRootUserProof
