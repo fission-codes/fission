@@ -89,7 +89,7 @@ let
 
   # This will be much better when we have a nix-build
   server-install = cmd "Install the Fission Server"
-    "${stack} install --nix fission-web-server:fission-server";
+    "${stack} install fission-web-server:fission-server";
 
   server-start = cmd "Run the currently installed Fission Server"
     "DEBUG=true nohup ${server-path} &";
@@ -104,8 +104,8 @@ commands {
     ${figlet} "Fission Build Env" | ${lolcat} -a -s 50
   '';
 
-  build = cmd "Build entire project" "${stack} build   --nix";
-  cli-install = cmd "Install the Fission CLI" "${stack} install --nix fission-cli:fission";
+  build = cmd "Build entire project" "${stack} build";
+  cli-install = cmd "Install the Fission CLI" "${stack} install fission-cli:fission";
 
   inherit
     server-install
@@ -120,9 +120,9 @@ commands {
     && ${server-start.script}
   '';
 
-  quality = cmd "Run the complete test suite" "${stack} test  --nix --test-arguments='--color=always'";
-  repl = cmd "Enter the project REPL" "${stack} repl  --nix --no-nix-pure";
-  watch = cmd "Autobuild with file watcher" "${stack} build --nix --file-watch";
+  quality = cmd "Run the complete test suite" "${stack} test --test-arguments='--color=always'";
+  repl = cmd "Enter the project REPL" "${stack} repl --no-nix-pure";
+  watch = cmd "Autobuild with file watcher" "${stack} build --file-watch";
 
   ssh-staging = cmd "SSH into the staging environment"
     "${ssh} fission@instance.runfission.net";
