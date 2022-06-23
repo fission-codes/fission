@@ -87,6 +87,7 @@ delegate ::
   , m `Raises` Key.Error
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
+  , m `Raises` NotFound UCAN
   , m `Raises` NotFound URL
   , m `Raises` ParseError DID
   , m `Raises` ParseError UCAN
@@ -148,22 +149,9 @@ delegate appName audienceDid lifetimeInSeconds = do
             signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
             return (signingKey, proof)
 
-      (Just key, Nothing) -> do
-        -- Sign with key, assume key has root authority
-        let
-          rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
-
-        signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
-
-        -- Needs to check with key from environment
-        appRegistered <- checkAppRegistration appName UCAN.Types.RootCredential
-
-        if appRegistered then
-          return (signingKey, UCAN.Types.RootCredential)
-
-        else do
-          CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
-          raise $ NotFound @URL
+      (Just _, Nothing) -> do
+        CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
+        raise $ NotFound @UCAN
 
       (Nothing, _) -> do
         -- Use normal CLI config from keystore
