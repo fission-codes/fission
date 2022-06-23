@@ -87,6 +87,7 @@ delegate ::
   , m `Raises` Key.Error
   , m `Raises` YAML.ParseException
   , m `Raises` NotFound FilePath
+  , m `Raises` NotFound URL
   , m `Raises` ParseError DID
   , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
@@ -149,46 +150,51 @@ delegate appName audienceDid lifetimeInSeconds = do
 
       (Just key, Nothing) -> do
         -- Sign with key, assume key has root authority
-
         let
           rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
 
         signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
-        return (signingKey, UCAN.Types.RootCredential)
+
+        -- Needs to check with key from environment
+        appRegistered <- checkAppRegistration appName UCAN.Types.RootCredential
+
+        if appRegistered then
+          return (signingKey, UCAN.Types.RootCredential)
+
+        else do
+          CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
+          raise $ NotFound @URL
 
       (Nothing, _) -> do
         -- Use normal CLI config from keystore
         signingKey <- Key.Store.fetch $ Proxy @SigningKey
         proof <- getRootUserProof
 
-        logDebug $ "Proof from config: " <> textDisplay proof
+        -- check if using RootCredential or UCAN
+        appRegistered <- checkAppRegistration appName proof
 
-        return (signingKey, proof)
+        if appRegistered then
+          return (signingKey, proof)
 
-    -- Skip this check when capability delegated in UCAN
-    appRegistered <- checkAppRegistration appName proof
+        else do
+          CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
+          raise $ NotFound @URL
 
-    if appRegistered then do
-      logDebug $ appName <> " is registered!"
+    case audienceDid of
+      Left err -> do
+        CLI.Error.put err "Could not parse DID"
+        raise $ ParseError @DID
 
-      case audienceDid of
-        Left err -> do
-          CLI.Error.put err "Could not parse DID"
-          raise $ ParseError @DID
+      Right did -> do
+        logDebug $ "Audience DID: " <> textDisplay did
 
-        Right did -> do
-          logDebug $ "Audience DID: " <> textDisplay did
+        now <- getCurrentTime
 
-          now <- getCurrentTime
+        let 
+          ucan = delegateAppendApp appResource did signingKey proof now
+          encodedUcan = encodeUcan ucan
 
-          let 
-            ucan = delegateAppendApp appResource did signingKey proof now
-            encodedUcan = encodeUcan ucan
-
-          logDebug $ "UCAN " <> textDisplay encodedUcan 
-
-    else
-      logDebug $ appName <> " is not registered."
+        logDebug $ "UCAN " <> textDisplay encodedUcan 
 
 
 checkProofToken ::
