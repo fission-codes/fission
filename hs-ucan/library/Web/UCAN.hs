@@ -1,25 +1,24 @@
 module Web.UCAN
-  ( fromRawContent
+  ( parse
   , module Web.UCAN.Types
   ) where
 
 import           Data.Aeson
+
 import           RIO
+import qualified RIO.Text as Text
 
 import           Web.UCAN.Resolver.Error as Resolver
 import           Web.UCAN.Types
 
-
-fromRawContent ::
+parse ::
   ( FromJSON fct
   , FromJSON rsc
   , FromJSON ptc
   )
-  => RawContent
+  => ByteString
   -> Either Resolver.Error (UCAN fct rsc ptc)
-fromRawContent rawContent =
-  case decodeStrict rawContentBS of
-    Nothing   -> Left (InvalidJWT rawContentBS)
-    Just ucan -> Right ucan
-  where
-    rawContentBS = encodeUtf8 (unRawContent rawContent)
+parse bs =
+  case eitherDecodeStrict bs of
+    Left reason -> Left $ InvalidJWT (Text.pack reason) bs
+    Right ucan  -> Right ucan

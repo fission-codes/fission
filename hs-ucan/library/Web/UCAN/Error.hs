@@ -8,7 +8,7 @@ import qualified Web.UCAN.Header.Error    as Header
 import qualified Web.UCAN.Signature.Error as Signature
 
 data Error
-  = ParseError
+  = ParseError     Text
   | HeaderError    Header.Error
   | ClaimsError    Claims.Error
   | SignatureError Signature.Error
@@ -22,7 +22,7 @@ instance ToJSON Error where
 
 instance Display Error where
   display = \case
-    ParseError         -> "Could not parse JWT"
+    ParseError     err -> "Could not parse JWT: " <> display err
     HeaderError    err -> "JWT header error: "    <> display err
     SignatureError err -> "JWT signature error: " <> display err
     ClaimsError    err -> "JWT claims error: "    <> display err

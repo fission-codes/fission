@@ -7,7 +7,7 @@ import           Web.UCAN.Internal.Orphanage.ClientError ()
 
 data Error
   = CannotResolve CID ClientError
-  | InvalidJWT ByteString
+  | InvalidJWT Text ByteString
   deriving (Show, Eq, Exception)
 
 instance Display Error where
@@ -15,5 +15,5 @@ instance Display Error where
     CannotResolve cid err ->
       "Unable to resolve " <> display cid <> " because " <> display err
 
-    InvalidJWT jwtBS ->
-      "Invalid resolved JWT: " <> displayBytesUtf8 jwtBS
+    InvalidJWT reason jwtBS ->
+      "Invalid resolved JWT: " <> display reason <> ", raw input: " <> displayBytesUtf8 jwtBS

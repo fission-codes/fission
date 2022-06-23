@@ -163,7 +163,7 @@ instance ToServerError UCAN.Header.Error where
 instance ToServerError UCAN.Resolver.Error where
   toServerError = \case
     err@(CannotResolve _ _) -> err504 { errBody = displayLazyBS err }
-    err@(InvalidJWT _)      -> err422 { errBody = displayLazyBS err }
+    err@(InvalidJWT _ _)    -> err422 { errBody = displayLazyBS err }
 
 instance ToServerError UCAN.Signature.Error where
   toServerError err = err422 { errBody = displayLazyBS err }
@@ -187,7 +187,7 @@ instance ToServerError UCAN.Claims.Error where
 
 instance ToServerError UCAN.Error where
   toServerError = \case
-    ParseError         -> err400 { errBody = displayLazyBS ParseError }
+    ParseError     err -> err400 { errBody = displayLazyBS $ ParseError err }
     HeaderError    err -> toServerError err
     ClaimsError    err -> toServerError err
     SignatureError err -> toServerError err

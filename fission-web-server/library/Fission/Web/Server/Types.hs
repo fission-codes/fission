@@ -41,7 +41,6 @@ import qualified Network.IPFS.Types                        as IPFS
 import qualified Web.DID.Oldstyle.Types                    as DID
 import           Web.DID.Types                             as DID
 
-import qualified Web.UCAN.RawContent                       as UCAN
 import           Web.UCAN.Resolver                         as UCAN
 
 import           Fission.Prelude
@@ -557,7 +556,7 @@ instance UCAN.Resolver Server where
         return $ Left $ CannotResolve cid clientErr
 
       Right (Serialized resolvedLBS) ->
-        return $ Right $ UCAN.contentOf $ decodeUtf8Lenient $ Lazy.toStrict resolvedLBS
+        return $ Right $ Lazy.toStrict resolvedLBS
 
 instance ServerDID Server where
   getServerDID = asks fissionDID

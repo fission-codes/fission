@@ -58,8 +58,10 @@ getRoot ucan@UCAN {claims = Claims {proof}} =
       case resolved of
         Left err -> return $ Left err
         Right rawContent ->
-          case UCAN.fromRawContent rawContent of
-            Left err -> return $ Left err
+          case UCAN.parse rawContent of
+            Left err ->
+              return $ Left err
+
             Right proofUCAN ->
               getRoot proofUCAN
 
@@ -75,14 +77,16 @@ getRootDID fallbackPK = \case
   RootCredential ->
     return $ DID.Key fallbackPK
 
-  Nested _ ucan ->  do
+  Nested _ ucan -> do
     UCAN {claims = Claims {sender}} <- ensureM $ getRoot ucan
     return sender
 
   Reference cid -> do
     rawContent <- ensureM $ Proof.resolve cid
-    case UCAN.fromRawContent rawContent of
-      Left err -> raise err
+    case UCAN.parse rawContent of
+      Left err ->
+        raise err
+
       Right UCAN {claims = Claims {proof}} ->
         getRootDID fallbackPK proof
 

@@ -822,7 +822,7 @@ instance
         Left $ CannotResolve cid (ConnectionError $ toException errMsg)
 
       Right (Lazy.toStrict -> resolvedBS) ->
-          Right (UCAN.contentOf (decodeUtf8Lenient resolvedBS))
+        Right resolvedBS
 
 instance MonadEnvironment (FissionCLI errs cfg) where
   getGlobalPath = do

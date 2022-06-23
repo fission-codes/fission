@@ -111,15 +111,20 @@ checkProof now ucan@UCAN {claims = Claims {proof}} =
     Reference cid ->
       Proof.resolve cid >>= \case
         Left err ->
-          return . Left . UCAN.ClaimsError . ProofError . UCAN.Proof.ResolverError $ err
+          return . Left . UCAN.ClaimsError . ProofError $ UCAN.Proof.ResolverError err
 
-        Right rawProof -> do
-          case UCAN.fromRawContent rawProof of
-            Left _          -> return $ Left UCAN.ParseError
+        Right proofBS -> do
+          case UCAN.parse proofBS of
             Right proofUCAN ->
-              check' rawProof proofUCAN now <&> \case
+              check' (UCAN.contentOf (decodeUtf8Lenient proofBS)) proofUCAN now <&> \case
                 Left err -> Left err
                 Right _  -> checkDelegate proofUCAN
+
+            Left (InvalidJWT reason _) ->
+              return . Left $ UCAN.ParseError reason
+
+            Left _ ->
+              return . Left . UCAN.ParseError $ "unknown: " <> decodeUtf8Lenient proofBS
 
     Nested rawProof proofUCAN ->
       check' rawProof proofUCAN now <&> \case
