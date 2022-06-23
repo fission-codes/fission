@@ -112,67 +112,6 @@ delegate ::
 delegate appName audienceDid lifetimeInSeconds = do
     logDebug @Text "delegate"
 
-    logDebug $ "App Name: " <> show appName
-    logDebug $ "Raw Audience DID: " <> show audienceDid
-    logDebug $ "Lifetime: " <> show lifetimeInSeconds
-
-
-    maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
-    mayAppUcan <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
-
-    logDebug $ "FISSION_MACHINE_KEY: " <> show maySigningKey
-    logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
-
-    let
-      -- Add support for staging, check remote flag
-      url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
-      appResource = Subset $ FissionApp (Subset url)
-
-    (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
-      (Just key, Just appUcan) -> do
-        -- Sign with key, use appUcan as proof
-        let
-          rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
-
-        attempt (checkProofToken appUcan appResource) >>= \case
-          Left err -> do
-            logDebug $ "UCAN Validation error: " <> show err
-            CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
-            raise $ ParseError @UCAN
-
-          Right ucan -> do
-            let
-                tokenBS = Char8.pack $ wrapIn "\"" appUcan
-                rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
-                proof = UCAN.Types.Nested rawContent ucan
-
-            logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
-            signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
-            return (signingKey, proof)
-
-      (Just _, Nothing) -> do
-        CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
-        raise $ NotFound @UCAN
-
-      (Nothing, Just _) -> do
-        CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set to delegate when using environment variables."
-        raise $ NotFound @Ed25519.SecretKey
-
-      (Nothing, Nothing) -> do
-        -- Use normal CLI config from keystore
-        signingKey <- Key.Store.fetch $ Proxy @SigningKey
-        proof <- getRootUserProof
-
-        -- check if using RootCredential or UCAN
-        appRegistered <- checkAppRegistration appName proof
-
-        if appRegistered then
-          return (signingKey, proof)
-
-        else do
-          CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
-          raise $ NotFound @URL
-
     case audienceDid of
       Left err -> do
         CLI.Error.put err "Could not parse DID"
@@ -180,6 +119,62 @@ delegate appName audienceDid lifetimeInSeconds = do
 
       Right did -> do
         logDebug $ "Audience DID: " <> textDisplay did
+
+        maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
+        mayAppUcan <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
+
+        logDebug $ "FISSION_MACHINE_KEY: " <> show maySigningKey
+        logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
+
+        let
+          -- Add support for staging, check remote flag
+          url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
+          appResource = Subset $ FissionApp (Subset url)
+
+        (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
+          (Just key, Just appUcan) -> do
+            -- Sign with key, use appUcan as proof
+            let
+              rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
+
+            attempt (checkProofToken appUcan appResource) >>= \case
+              Left err -> do
+                logDebug $ "UCAN Validation error: " <> show err
+                CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
+                raise $ ParseError @UCAN
+
+              Right ucan -> do
+                let
+                    tokenBS = Char8.pack $ wrapIn "\"" appUcan
+                    rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
+                    proof = UCAN.Types.Nested rawContent ucan
+
+                logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
+                signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+                return (signingKey, proof)
+
+          (Just _, Nothing) -> do
+            CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
+            raise $ NotFound @UCAN
+
+          (Nothing, Just _) -> do
+            CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set to delegate when using environment variables."
+            raise $ NotFound @Ed25519.SecretKey
+
+          (Nothing, Nothing) -> do
+            -- Use normal CLI config from keystore
+            signingKey <- Key.Store.fetch $ Proxy @SigningKey
+            proof <- getRootUserProof
+
+            -- check if using RootCredential or UCAN
+            appRegistered <- checkAppRegistration appName proof
+
+            if appRegistered then
+              return (signingKey, proof)
+
+            else do
+              CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
+              raise $ NotFound @URL
 
         now <- getCurrentTime
 
