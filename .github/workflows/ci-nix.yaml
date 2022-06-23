@@ -31,7 +31,6 @@ jobs:
         with:
           path: ~/.stack
           key: ${{ matrix.os }}-stack-nix-${{ hashFiles('stack.yaml.lock') }}
-          restore-keys: ${{ matrix.os }}-stack-nix
 
       - name: 🧪 Test
         run: |
