@@ -10,6 +10,7 @@ import qualified Data.ByteString.Char8                     as Char8
 
 import           Data.Function
 import qualified Data.Yaml                                 as YAML
+
 import qualified RIO.Text                                  as Text
 import qualified RIO.Map                                   as Map
 
@@ -184,7 +185,7 @@ delegate appName audienceDid lifetimeInSeconds = do
         now <- getCurrentTime
 
         let 
-          ucan = delegateAppendApp appResource did signingKey proof now
+          ucan = delegateAppendApp appResource did signingKey proof lifetimeInSeconds now
           encodedUcan = encodeUcan ucan
 
         logDebug $ "UCAN " <> textDisplay encodedUcan 
@@ -335,12 +336,12 @@ checkAppRegistration appName proof = do
         return registered
 
 
-delegateAppendApp :: Scope Resource -> DID -> Ed25519.SecretKey -> Proof -> UTCTime -> UCAN
-delegateAppendApp resource targetDID sk proof now =
+delegateAppendApp :: Scope Resource -> DID -> Ed25519.SecretKey -> Proof -> Int -> UTCTime -> UCAN
+delegateAppendApp resource targetDID sk proof lifetime now =
   UCAN.mkUCAN targetDID sk start expire [] (Just resource) (Just AppendOnly) proof
     where
-      start  = addUTCTime (secondsToNominalDiffTime (-30)) now
-      expire = addUTCTime (nominalDay * 365)         now
+      start  = addUTCTime (secondsToNominalDiffTime (-30))                    now
+      expire = addUTCTime (secondsToNominalDiffTime (fromIntegral lifetime))  now
 
 
 encodeUcan :: UCAN -> Text
