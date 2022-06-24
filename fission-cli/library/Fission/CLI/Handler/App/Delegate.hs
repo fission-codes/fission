@@ -227,6 +227,11 @@ checkProofToken token requestedResource = do
       if hasCapability requestedResource ucan then do
         let
           UCAN.Types.UCAN {claims = UCAN.Types.Claims {proof}} = ucan
+          rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
+
+        now <- getCurrentTime
+        ensure $ checkTime now ucan
+        ensureM $ check' rawContent ucan now
 
         attempt (checkProof proof)  >>= \case
           Left err ->
