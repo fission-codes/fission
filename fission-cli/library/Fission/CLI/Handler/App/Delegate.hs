@@ -1,78 +1,61 @@
 -- | Delegate capabilities to a key pair or DID
 module Fission.CLI.Handler.App.Delegate (delegate) where
 
-import qualified Crypto.PubKey.Ed25519                     as Ed25519
+import qualified Crypto.PubKey.Ed25519                            as Ed25519
 
 import           Crypto.Random.Types
 
-import qualified Data.ByteString.Base64                    as Base64
-import qualified Data.ByteString.Char8                     as Char8
+import qualified Data.ByteString.Base64                           as Base64
+import qualified Data.ByteString.Char8                            as Char8
 
 import           Data.Function
-import qualified Data.Yaml                                 as YAML
+import qualified Data.Yaml                                        as YAML
 
-import qualified RIO.Text                                  as Text
-import qualified RIO.Map                                   as Map
+import qualified RIO.Text                                         as Text
+import qualified RIO.Map                                          as Map
 
-import qualified System.Console.ANSI                       as ANSI
-import qualified System.Environment                        as Env
+import qualified System.Console.ANSI                              as ANSI
+import qualified System.Environment                               as Env
 
 import           Fission.Prelude
 
-import           Fission.Error
-import qualified Fission.Internal.UTF8                       as UTF8
-import qualified Fission.Key                                 as Key
-import           Fission.URL
-
-import qualified Fission.App.Name                            as App
-
 import           Fission.Authorization.ServerDID
 
-import           Fission.Error.Types
-
-import           Fission.CLI.Key.Store                       as Key.Store
-import           Fission.Web.Auth.Token.Types
-import           Fission.Web.Auth.Token.UCAN.Types
-import           Fission.Web.Client
-
 import           Fission.CLI.Display.Text
-import qualified Fission.CLI.Display.Error                 as CLI.Error
-import qualified Fission.CLI.Display.Success               as CLI.Success
-
+import qualified Fission.CLI.Display.Error                        as CLI.Error
+import qualified Fission.CLI.Display.Success                      as CLI.Success
 import           Fission.CLI.Environment
+import           Fission.CLI.Key.Store                            as Key.Store
 import           Fission.CLI.WebNative.Mutation.Auth.Store
 
+import           Fission.Error
+
+import           Fission.Internal.UTF8                            as UTF8
+
+import qualified Fission.Key                                      as Key
+
+import           Fission.Web.Auth.Token.Types
 import qualified Fission.Web.Auth.Token.UCAN                      as UCAN
-import           Fission.Web.Auth.Token.UCAN.Fact.Types           as Fact
+import           Fission.Web.Auth.Token.UCAN.Types
+import           Fission.Web.Auth.Token.UCAN.Fact.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Potency.Types
 import           Fission.Web.API.App.Index.Payload.Types
- 
+import           Fission.Web.Client
 
-import           Web.DID.Types                              as DID
+import           Fission.URL
 
+import           Web.DID.Types                                    as DID
 
-import qualified Web.UCAN
-import qualified Web.UCAN.Internal.Base64.Scrubbed          as B64.Scrubbed
-
-import           Web.UCAN.Internal.Base64.URL               as B64.URL
-import           Web.UCAN.Resolver                          as UCAN.Resolver 
-import           Web.UCAN.Resolver.Error                    as UCAN.Resolver.Error
-import qualified Web.UCAN.Types                             as UCAN.Types
-
-
-import           Fission.Internal.UTF8 (wrapIn)
-
-
-
-
-import qualified Web.UCAN.Error                             as UCAN.Error
-import           Web.UCAN.Proof                             as UCAN.Proof
-import           Web.UCAN.Proof.Error                       as UCAN.Proof.Error
-import qualified Web.UCAN.RawContent                        as RawContent
-import qualified Web.UCAN.Resolver.Class                    as UCAN.Resolver.Class
-import           Web.UCAN.Validation                        (check', checkTime)
+import qualified Web.UCAN                                         as UCAN
+import qualified Web.UCAN.Internal.Base64.Scrubbed                as B64
+import           Web.UCAN.Internal.Base64.URL                     as B64
+import           Web.UCAN.Resolver                                as UCAN.Resolver
+import qualified Web.UCAN.Types                                   as UCAN.Types
+import           Web.UCAN.Proof                                   as UCAN.Proof
+import qualified Web.UCAN.RawContent                              as UCAN.RawContent
+import           Web.UCAN.Validation                              (check', checkTime)
 
 
 -- | Delegate capabilities to a key pair or DID
@@ -98,8 +81,8 @@ delegate ::
   , m `Raises` ParseError DID
   , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
-  , m `Raises` UCAN.Proof.Error.Error
-  , m `Raises` UCAN.Error.Error
+  , m `Raises` UCAN.Proof.Error
+  , m `Raises` UCAN.Error
 
   , UCAN.Resolver.Resolver m
 
@@ -168,8 +151,8 @@ getCredentialsFor ::
   , m `Raises` NotFound URL
   , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
-  , m `Raises` UCAN.Proof.Error.Error
-  , m `Raises` UCAN.Error.Error
+  , m `Raises` UCAN.Proof.Error
+  , m `Raises` UCAN.Error
 
   , UCAN.Resolver.Resolver m
 
@@ -194,7 +177,7 @@ getCredentialsFor appName appResource = do
     (Just key, Just appUcan) -> do
       -- Sign with key, use appUcan as proof
       let
-        rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
+        rawKey = B64.scrub $ Base64.decodeLenient $ Char8.pack key
 
       attempt (checkProofToken appUcan appResource) >>= \case
         Left err -> do
@@ -205,7 +188,7 @@ getCredentialsFor appName appResource = do
         Right ucan -> do
           let
               tokenBS = Char8.pack $ wrapIn "\"" appUcan
-              rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
+              rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
               proof = UCAN.Types.Nested rawContent ucan
 
           logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
@@ -249,7 +232,7 @@ checkProofToken ::
 
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` UCAN.Proof.Error
-  , m `Raises` UCAN.Error.Error
+  , m `Raises` UCAN.Error
 
   , Contains (Errors m) (Errors m)
   )
@@ -260,7 +243,7 @@ checkProofToken token requestedResource = do
   let
     tokenBS = Char8.pack $ wrapIn "\"" token
 
-  case Web.UCAN.parse tokenBS of
+  case UCAN.parse tokenBS of
     Left err ->
       raise err
           
@@ -270,7 +253,7 @@ checkProofToken token requestedResource = do
       if hasCapability requestedResource ucan then do
         let
           UCAN.Types.UCAN {claims = UCAN.Types.Claims {proof}} = ucan
-          rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
+          rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
 
         now <- getCurrentTime
         ensure $ checkTime now ucan
@@ -312,14 +295,14 @@ checkProof proof = do
 
     UCAN.Types.Reference cid -> do
       let
-        parseToken :: ByteString -> Either UCAN.Resolver.Error.Error (UCAN.Types.UCAN Fact (Scope Resource) Potency)
-        parseToken bs =  Web.UCAN.parse bs
+        parseToken :: ByteString -> Either UCAN.Resolver.Error (UCAN.Types.UCAN Fact (Scope Resource) Potency)
+        parseToken bs =  UCAN.parse bs
 
-      proofTokenBS <- ensureM $ UCAN.Resolver.Class.resolve cid
+      proofTokenBS <- ensureM $ UCAN.Resolver.resolve cid
       prf <- ensure $ parseToken proofTokenBS
 
       let
-        rawContent = RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
+        rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
 
       now <- getCurrentTime
       _ <- ensure $ checkTime now prf
@@ -399,6 +382,6 @@ delegateAppendApp resource targetDID sk proof lifetime now =
 encodeUcan :: UCAN -> Text
 encodeUcan UCAN.Types.UCAN {..} =
   let
-    rawContent = UCAN.RawContent $ B64.URL.encodeJWT header claims
+    rawContent = UCAN.RawContent $ B64.encodeJWT header claims
   in
   textDisplay rawContent <> "." <> textDisplay sig
