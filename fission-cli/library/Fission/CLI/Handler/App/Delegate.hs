@@ -39,6 +39,7 @@ import           Fission.CLI.Environment
 import           Fission.CLI.WebNative.Mutation.Auth.Store
 
 import qualified Fission.Web.Auth.Token.UCAN                      as UCAN
+import           Fission.Web.Auth.Token.UCAN.Fact.Types           as Fact
 import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 import           Fission.Web.Auth.Token.UCAN.Potency.Types
@@ -166,15 +167,19 @@ delegate appName audienceDid lifetimeInSeconds = do
             signingKey <- Key.Store.fetch $ Proxy @SigningKey
             proof <- getRootUserProof
 
-            -- check if using RootCredential or UCAN
-            appRegistered <- checkAppRegistration appName proof
+            attempt (checkProof proof)  >>= \case
+              Left err ->
+                raise err
 
-            if appRegistered then
-              return (signingKey, proof)
+              Right prf -> do
+                appRegistered <- checkAppRegistration appName prf
 
-            else do
-              CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
-              raise $ NotFound @URL
+                if appRegistered then
+                  return (signingKey, proof)
+
+                else do
+                  CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
+                  raise $ NotFound @URL
 
         now <- getCurrentTime
 
@@ -187,12 +192,16 @@ delegate appName audienceDid lifetimeInSeconds = do
 
 checkProofToken ::
   ( MonadIO m
-  , MonadRaise m
   , MonadLogger      m 
+  , MonadRescue m
+
   , UCAN.Resolver.Resolver m
-  , m `Raises` UCAN.Resolver.Error.Error
-  , m `Raises` UCAN.Proof.Error.Error
+
+  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` UCAN.Proof.Error
   , m `Raises` UCAN.Error.Error
+
+  , Contains (Errors m) (Errors m)
   )
   => String
   -> Scope Resource
@@ -212,27 +221,57 @@ checkProofToken token requestedResource = do
         let
           UCAN.Types.UCAN {claims = UCAN.Types.Claims {proof}} = ucan
 
-        case proof of
-          UCAN.Types.RootCredential -> 
+        attempt (checkProof proof)  >>= \case
+          Left err ->
+            raise err
+
+          Right _ ->
             return ucan
-
-          UCAN.Types.Nested rawContent prf -> do
-            now <- getCurrentTime
-            _ <- ensure $ checkTime now prf
-            ensureM $ check' rawContent prf now
-
-          UCAN.Types.Reference cid -> do
-            proofTokenBS <- ensureM $ UCAN.Resolver.Class.resolve cid
-            rawContent <- return $ RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
-            prf <- ensure $ Web.UCAN.parse proofTokenBS
-
-            now <- getCurrentTime
-            _ <- ensure $ checkTime now prf
-            ensureM $ check' rawContent prf now
 
       else
         -- could be potency escalation too
         raise ScopeOutOfBounds
+
+
+
+checkProof ::
+  ( MonadIO m
+  , MonadRaise m
+
+  , UCAN.Resolver.Resolver m
+
+  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` UCAN.Error
+  )
+  => Proof
+  -> m Proof 
+checkProof proof = do
+  case proof of
+    UCAN.Types.RootCredential ->
+      return proof
+
+    UCAN.Types.Nested rawContent prf -> do
+      now <- getCurrentTime
+      _ <- ensure $ checkTime now prf
+      _ <- ensureM $ check' rawContent prf now
+      return proof
+
+    UCAN.Types.Reference cid -> do
+      let
+        parseToken :: ByteString -> Either UCAN.Resolver.Error.Error (UCAN.Types.UCAN Fact (Scope Resource) Potency)
+        parseToken bs =  Web.UCAN.parse bs
+
+      proofTokenBS <- ensureM $ UCAN.Resolver.Class.resolve cid
+      prf <- ensure $ parseToken proofTokenBS
+
+      let
+        rawContent = RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
+
+      now <- getCurrentTime
+      _ <- ensure $ checkTime now prf
+      _ <- ensureM $ check' rawContent prf now
+      return proof
+
 
 
 hasCapability ::
