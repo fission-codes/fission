@@ -125,76 +125,119 @@ delegate appName audienceDid lifetimeInSeconds = do
       Right did -> do
         logDebug $ "Audience DID: " <> textDisplay did
 
-        maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
-        mayAppUcan <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
-
-        logDebug $ "FISSION_MACHINE_KEY: " <> show maySigningKey
-        logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
-
         let
           -- Add support for staging, check remote flag
           url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
           appResource = Subset $ FissionApp (Subset url)
 
-        (signingKey, proof) <- case (maySigningKey, mayAppUcan) of
-          (Just key, Just appUcan) -> do
-            -- Sign with key, use appUcan as proof
-            let
-              rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
+        attempt (getCredentialsFor appName appResource) >>= \case
+          Left err ->
+            raise err
 
-            attempt (checkProofToken appUcan appResource) >>= \case
-              Left err -> do
-                logDebug $ "UCAN Validation error: " <> show err
-                CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
-                raise $ ParseError @UCAN
+          Right (signingKey, proof) -> do
+            now <- getCurrentTime
 
-              Right ucan -> do
-                let
-                    tokenBS = Char8.pack $ wrapIn "\"" appUcan
-                    rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
-                    proof = UCAN.Types.Nested rawContent ucan
+            let 
+              ucan = delegateAppendApp appResource did signingKey proof lifetimeInSeconds now
+              encodedUcan = encodeUcan ucan
 
-                logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
-                signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
-                return (signingKey, proof)
+            CLI.Success.putOk $ "Delegated a UCAN for " <> appName <> " to " <> textDisplay did 
+            UTF8.putText "🎫 UCAN: "
+            colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+              UTF8.putTextLn $ textDisplay encodedUcan
 
-          (Just _, Nothing) -> do
-            CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
-            raise $ NotFound @UCAN
 
-          (Nothing, Just _) -> do
-            CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set to delegate when using environment variables."
-            raise $ NotFound @Ed25519.SecretKey
+getCredentialsFor ::
+  ( MonadIO          m
+  , MonadLogger      m 
+  , MonadRandom m
+  , MonadTime        m
 
-          (Nothing, Nothing) -> do
-            -- Use normal CLI config from keystore
-            signingKey <- Key.Store.fetch $ Proxy @SigningKey
-            proof <- getRootUserProof
+  , MonadEnvironment m
+  , MonadStore  m
+  , MonadWebClient   m
+  , ServerDID        m
 
-            attempt (checkProof proof)  >>= \case
-              Left err ->
-                raise err
+  , MonadCleanup     m
+  , m `Raises` ClientError
+  , m `Raises` Key.Error
+  , m `Raises` YAML.ParseException
+  , m `Raises` NotFound Ed25519.SecretKey
+  , m `Raises` NotFound FilePath
+  , m `Raises` NotFound UCAN
+  , m `Raises` NotFound URL
+  , m `Raises` ParseError UCAN
+  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` UCAN.Proof.Error.Error
+  , m `Raises` UCAN.Error.Error
 
-              Right prf -> do
-                appRegistered <- checkAppRegistration appName prf
+  , UCAN.Resolver.Resolver m
 
-                if appRegistered then
-                  return (signingKey, proof)
+  , Contains (Errors m) (Errors m)
+  , Display  (OpenUnion (Errors m))
+  , Show     (OpenUnion (Errors m))
 
-                else do
-                  CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
-                  raise $ NotFound @URL
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+  ) 
+  => Text 
+  -> Scope Resource
+  -> m (SecretKey SigningKey, Proof)
+getCredentialsFor appName appResource = do
+  maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
+  mayAppUcan    <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
 
-        now <- getCurrentTime
+  logDebug $ "FISSION_MACHINE_KEY: " <> show maySigningKey
+  logDebug $ "FISSION_APP_UCAN: " <> show mayAppUcan
 
-        let 
-          ucan = delegateAppendApp appResource did signingKey proof lifetimeInSeconds now
-          encodedUcan = encodeUcan ucan
+  case (maySigningKey, mayAppUcan) of
+    (Just key, Just appUcan) -> do
+      -- Sign with key, use appUcan as proof
+      let
+        rawKey = B64.Scrubbed.scrub $ Base64.decodeLenient $ Char8.pack key
 
-        CLI.Success.putOk $ "Delegated a UCAN for " <> appName <> " to " <> textDisplay did 
-        UTF8.putText "🎫 UCAN: "
-        colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
-          UTF8.putTextLn $ textDisplay encodedUcan
+      attempt (checkProofToken appUcan appResource) >>= \case
+        Left err -> do
+          logDebug $ "UCAN Validation error: " <> show err
+          CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
+          raise $ ParseError @UCAN
+
+        Right ucan -> do
+          let
+              tokenBS = Char8.pack $ wrapIn "\"" appUcan
+              rawContent = RawContent.contentOf (decodeUtf8Lenient tokenBS)
+              proof = UCAN.Types.Nested rawContent ucan
+
+          logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
+          signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+          return (signingKey, proof)
+
+    (Just _, Nothing) -> do
+      CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
+      raise $ NotFound @UCAN
+
+    (Nothing, Just _) -> do
+      CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set to delegate when using environment variables."
+      raise $ NotFound @Ed25519.SecretKey
+
+    (Nothing, Nothing) -> do
+      -- Use normal CLI config from keystore
+      signingKey <- Key.Store.fetch $ Proxy @SigningKey
+      proof <- getRootUserProof
+
+      attempt (checkProof proof)  >>= \case
+        Left err ->
+          raise err
+
+        Right prf -> do
+          appRegistered <- checkAppRegistration appName prf
+
+          if appRegistered then
+            return (signingKey, proof)
+
+          else do
+            CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
+            raise $ NotFound @URL
 
 
 checkProofToken ::
@@ -245,7 +288,6 @@ checkProofToken token requestedResource = do
         raise ScopeOutOfBounds
 
 
-
 checkProof ::
   ( MonadIO m
   , MonadRaise m
@@ -283,7 +325,6 @@ checkProof proof = do
       _ <- ensure $ checkTime now prf
       _ <- ensureM $ check' rawContent prf now
       return proof
-
 
 
 hasCapability ::
