@@ -14,11 +14,13 @@ import qualified Data.Yaml                                 as YAML
 import qualified RIO.Text                                  as Text
 import qualified RIO.Map                                   as Map
 
+import qualified System.Console.ANSI                       as ANSI
 import qualified System.Environment                        as Env
 
 import           Fission.Prelude
 
 import           Fission.Error
+import qualified Fission.Internal.UTF8                       as UTF8
 import qualified Fission.Key                                 as Key
 import           Fission.URL
 
@@ -33,6 +35,7 @@ import           Fission.Web.Auth.Token.Types
 import           Fission.Web.Auth.Token.UCAN.Types
 import           Fission.Web.Client
 
+import           Fission.CLI.Display.Text
 import qualified Fission.CLI.Display.Error                 as CLI.Error
 import qualified Fission.CLI.Display.Success               as CLI.Success
 
@@ -188,7 +191,10 @@ delegate appName audienceDid lifetimeInSeconds = do
           ucan = delegateAppendApp appResource did signingKey proof lifetimeInSeconds now
           encodedUcan = encodeUcan ucan
 
-        logDebug $ "UCAN " <> textDisplay encodedUcan 
+        CLI.Success.putOk $ "Delegated a UCAN for " <> appName <> " to " <> textDisplay did 
+        UTF8.putText "🎫 UCAN: "
+        colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+          UTF8.putTextLn $ textDisplay encodedUcan
 
 
 checkProofToken ::
