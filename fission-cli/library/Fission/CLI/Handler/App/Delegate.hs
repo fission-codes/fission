@@ -241,18 +241,13 @@ checkProofEnvVar token requestedResource = do
     Right ucan -> do
       logDebug $ "Parsed UCAN: " <> textDisplay ucan
 
-      if hasCapability requestedResource ucan then do
-        let
-          rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
+      let
+        rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
 
-        now <- getCurrentTime
-        ensure $ checkTime now ucan
-        ensureM $ check' rawContent ucan now
-        return ucan
-
-      else do
-        CLI.Error.put (Text.pack "Unable to delegate") "UCAN does not have sufficient capabilities to delegate."
-        raise ScopeOutOfBounds
+      now <- getCurrentTime
+      capableUcan <- ensureM $ checkCapability requestedResource ucan
+      timeBoundUcan <- ensure $ checkTime now capableUcan
+      ensureM $ check' rawContent timeBoundUcan now
 
 
 checkProofConfig ::
@@ -319,26 +314,42 @@ checkProofConfig proof appName = do
       return proof
 
 
-hasCapability ::
-  Scope Resource
+checkCapability ::
+  ( MonadIO          m
+  , MonadLogger      m
+  )
+  => Scope Resource
   -> UCAN
-  -> Bool
-hasCapability requestedResource ucan = do
+  -> m (Either UCAN.Proof.Error UCAN)
+checkCapability requestedResource ucan = do
   let
     UCAN.Types.UCAN {claims = UCAN.Types.Claims {resource = mayResource, potency = mayPotency}} = ucan
+    putPotencyError = CLI.Error.put (Text.pack "Potency Escalation") "UCAN does not have sufficient potency to delegate"
+    putScopeError = CLI.Error.put (Text.pack "Scope out of bounds") "UCAN does not have sufficient scope to delegate"
 
   case mayResource of
     Just rsc ->
-      rsc `canDelegate` requestedResource &&
+      if rsc `canDelegate` requestedResource then
         case mayPotency of
           Just ptc ->
-            ptc `canDelegate` AppendOnly
+            if  ptc `canDelegate` AppendOnly then
+              return $ Right ucan
 
-          Nothing ->
-            False
+            else do
+              putPotencyError
+              return $ Left PotencyEscelation
 
-    Nothing ->
-      False
+          Nothing -> do
+            putPotencyError
+            return $ Left PotencyEscelation
+
+      else do
+        putScopeError
+        return $ Left ScopeOutOfBounds
+
+    Nothing -> do
+      putScopeError
+      return $ Left ScopeOutOfBounds
 
 
 checkAppRegistration :: 
