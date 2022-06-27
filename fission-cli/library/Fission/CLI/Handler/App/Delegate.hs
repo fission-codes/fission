@@ -322,10 +322,10 @@ hasCapability requestedResource ucan = do
 
   case mayResource of
     Just rsc ->
-      requestedResource `canDelegate` rsc &&
+      rsc `canDelegate` requestedResource &&
         case mayPotency of
           Just ptc ->
-            AppendOnly `canDelegate` ptc
+            ptc `canDelegate` AppendOnly
 
           Nothing ->
             False
