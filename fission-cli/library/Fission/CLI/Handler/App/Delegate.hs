@@ -1,4 +1,4 @@
--- | Delegate capabilities to a key pair or DID
+-- | Delegate capabilities to a DID
 module Fission.CLI.Handler.App.Delegate (delegate) where
 
 import qualified Crypto.PubKey.Ed25519                            as Ed25519
@@ -58,7 +58,7 @@ import qualified Web.UCAN.RawContent                              as UCAN.RawCon
 import           Web.UCAN.Validation                              (check', checkTime)
 
 
--- | Delegate capabilities to a key pair or DID
+-- | Delegate capabilities to a DID
 delegate ::
   ( MonadIO          m
   , MonadLogger      m 
@@ -133,11 +133,11 @@ delegate appName audienceDid lifetimeInSeconds = do
 getCredentialsFor ::
   ( MonadIO          m
   , MonadLogger      m 
-  , MonadRandom m
+  , MonadRandom      m
   , MonadTime        m
 
   , MonadEnvironment m
-  , MonadStore  m
+  , MonadStore       m
   , MonadWebClient   m
   , ServerDID        m
 
@@ -179,7 +179,7 @@ getCredentialsFor appName appResource = do
       let
         rawKey = B64.scrub $ Base64.decodeLenient $ Char8.pack key
 
-      attempt (checkProofToken appUcan appResource) >>= \case
+      attempt (checkProofEnvVar appUcan appResource) >>= \case
         Left err -> do
           raise err
 
@@ -206,41 +206,30 @@ getCredentialsFor appName appResource = do
       signingKey <- Key.Store.fetch $ Proxy @SigningKey
       proof <- getRootUserProof
 
-      attempt (checkProof proof)  >>= \case
+      attempt (checkProofConfig proof appName)  >>= \case
         Left err ->
           raise err
 
         Right prf -> do
-          appRegistered <- checkAppRegistration appName prf
-
-          if appRegistered then
-            return (signingKey, proof)
-
-          else do
-            CLI.Error.put (Text.pack "Not Found") $ 
-              "Unable to find an app named " <> appName <>
-              ". Is the name right and have you registered it?"
-            raise $ NotFound @URL
+          return (signingKey, prf)
 
 
-checkProofToken ::
-  ( MonadIO m
-  , MonadLogger      m 
-  , MonadRescue m
+checkProofEnvVar ::
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadRescue      m
 
   , UCAN.Resolver.Resolver m
 
   , m `Raises` ParseError UCAN
-  , m `Raises` UCAN.Resolver.Error
   , m `Raises` UCAN.Proof.Error
   , m `Raises` UCAN.Error
 
-  , Contains (Errors m) (Errors m)
   )
   => String
   -> Scope Resource
   -> m UCAN 
-checkProofToken token requestedResource = do
+checkProofEnvVar token requestedResource = do
   let
     tokenBS = Char8.pack $ wrapIn "\"" token
 
@@ -254,45 +243,63 @@ checkProofToken token requestedResource = do
 
       if hasCapability requestedResource ucan then do
         let
-          UCAN.Types.UCAN {claims = UCAN.Types.Claims {proof}} = ucan
           rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
 
         now <- getCurrentTime
         ensure $ checkTime now ucan
         ensureM $ check' rawContent ucan now
-
-        attempt (checkProof proof)  >>= \case
-          Left err ->
-            raise err
-
-          Right _ ->
-            return ucan
+        return ucan
 
       else do
         CLI.Error.put (Text.pack "Unable to delegate") "UCAN does not have sufficient capabilities to delegate."
         raise ScopeOutOfBounds
 
 
-checkProof ::
-  ( MonadIO m
-  , MonadRaise m
+checkProofConfig ::
+  ( MonadIO          m
+  , MonadLogger      m
+  , MonadTime        m
+
+  , MonadWebClient   m
+  , ServerDID        m
 
   , UCAN.Resolver.Resolver m
 
+  , MonadCleanup     m
+  , m `Raises` ClientError
+  , m `Raises` NotFound URL
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` UCAN.Error
+
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
+
+  , Contains (Errors m) (Errors m)
+  , Display  (OpenUnion (Errors m))
+  , Show     (OpenUnion (Errors m))
   )
   => Proof
+  -> Text
   -> m Proof 
-checkProof proof = do
+checkProofConfig proof appName = do
   case proof of
-    UCAN.Types.RootCredential ->
-      return proof
+    UCAN.Types.RootCredential -> do
+      appRegistered <- checkAppRegistration appName proof
+
+      if appRegistered then
+        return proof
+
+      else do
+        CLI.Error.put (Text.pack "Not Found") $
+          "Unable to find an app named " <> appName <>
+          ". Is the name right and have you registered it?"
+        raise $ NotFound @URL
+
 
     UCAN.Types.Nested rawContent prf -> do
       now <- getCurrentTime
-      _ <- ensure $ checkTime now prf
-      _ <- ensureM $ check' rawContent prf now
+      ensure $ checkTime now prf
+      ensureM $ check' rawContent prf now
       return proof
 
     UCAN.Types.Reference cid -> do
@@ -307,8 +314,8 @@ checkProof proof = do
         rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
 
       now <- getCurrentTime
-      _ <- ensure $ checkTime now prf
-      _ <- ensureM $ check' rawContent prf now
+      ensure $ checkTime now prf
+      ensureM $ check' rawContent prf now
       return proof
 
 
