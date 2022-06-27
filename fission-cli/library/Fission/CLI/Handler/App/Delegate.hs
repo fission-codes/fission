@@ -87,7 +87,6 @@ delegate ::
   , UCAN.Resolver.Resolver m
 
   , Contains (Errors m) (Errors m)
-  , Display  (OpenUnion (Errors m))
   , Show     (OpenUnion (Errors m))
 
   , MonadWebAuth m Token
@@ -157,7 +156,6 @@ getCredentialsFor ::
   , UCAN.Resolver.Resolver m
 
   , Contains (Errors m) (Errors m)
-  , Display  (OpenUnion (Errors m))
   , Show     (OpenUnion (Errors m))
 
   , MonadWebAuth m Token
@@ -271,7 +269,6 @@ checkProofConfig ::
   , MonadWebAuth m Ed25519.SecretKey
 
   , Contains (Errors m) (Errors m)
-  , Display  (OpenUnion (Errors m))
   , Show     (OpenUnion (Errors m))
   )
   => Proof
@@ -281,17 +278,8 @@ checkProofConfig ::
 checkProofConfig proof appName appResource = do
   case proof of
     UCAN.Types.RootCredential -> do
-      appRegistered <- checkAppRegistration appName proof
-
-      if appRegistered then
-        return proof
-
-      else do
-        CLI.Error.put (Text.pack "Not Found") $
-          "Unable to find an app named " <> appName <>
-          ". Is the name right and have you registered it?"
-        raise $ NotFound @URL
-
+      ensureM $ checkAppRegistration appName proof
+      return proof
 
     UCAN.Types.Nested rawContent ucan -> do
       now <- getCurrentTime
@@ -366,9 +354,8 @@ checkAppRegistration ::
 
   , MonadCleanup     m
   , m `Raises` ClientError
+  , m `Raises` NotFound URL
 
-  , Contains (Errors m) (Errors m)
-  , Display  (OpenUnion (Errors m))
   , Show     (OpenUnion (Errors m))
 
   , MonadWebAuth m Token
@@ -376,13 +363,14 @@ checkAppRegistration ::
   )
   => Text 
   -> Proof 
-  -> m Bool 
+  -> m (Either (ErrorCase m) Bool)
 checkAppRegistration appName proof = do
     attempt (sendAuthedRequest proof appIndex) >>= \case
       Left err -> do
-        logDebug $ textDisplay err
-        CLI.Error.put err $ textDisplay err
-        raise err
+        CLI.Error.put err $
+          "Unable to find an app named " <> appName <>
+          ". Is the name right and have you registered it?"
+        raise $ NotFound @URL
 
       Right index -> do
         let
@@ -392,7 +380,7 @@ checkAppRegistration appName proof = do
               & fmap (fst . Text.break (== '.') . textDisplay)
               & elem appName
 
-        return registered
+        return $ Right registered
 
 
 delegateAppendApp :: Scope Resource -> DID -> Ed25519.SecretKey -> Proof -> Int -> UTCTime -> UCAN
