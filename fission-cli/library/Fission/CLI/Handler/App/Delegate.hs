@@ -181,9 +181,7 @@ getCredentialsFor appName appResource = do
 
       attempt (checkProofToken appUcan appResource) >>= \case
         Left err -> do
-          logDebug $ "UCAN Validation error: " <> show err
-          CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
-          raise $ ParseError @UCAN
+          raise err
 
         Right ucan -> do
           let
@@ -196,11 +194,11 @@ getCredentialsFor appName appResource = do
           return (signingKey, proof)
 
     (Just _, Nothing) -> do
-      CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set to delegate when using environment variables."
+      CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set when delegating with environment variables."
       raise $ NotFound @UCAN
 
     (Nothing, Just _) -> do
-      CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set to delegate when using environment variables."
+      CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set when delegating with environment variables."
       raise $ NotFound @Ed25519.SecretKey
 
     (Nothing, Nothing) -> do
@@ -219,7 +217,9 @@ getCredentialsFor appName appResource = do
             return (signingKey, proof)
 
           else do
-            CLI.Error.put (Text.pack "Not Found") $ "Unable to find an app named " <> appName <> ". Is the name right and have you registered it?"
+            CLI.Error.put (Text.pack "Not Found") $ 
+              "Unable to find an app named " <> appName <>
+              ". Is the name right and have you registered it?"
             raise $ NotFound @URL
 
 
@@ -230,6 +230,7 @@ checkProofToken ::
 
   , UCAN.Resolver.Resolver m
 
+  , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` UCAN.Proof.Error
   , m `Raises` UCAN.Error
@@ -244,8 +245,9 @@ checkProofToken token requestedResource = do
     tokenBS = Char8.pack $ wrapIn "\"" token
 
   case UCAN.parse tokenBS of
-    Left err ->
-      raise err
+    Left err -> do
+      CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
+      raise $ ParseError @UCAN
           
     Right ucan -> do
       logDebug $ "Parsed UCAN: " <> textDisplay ucan
@@ -266,8 +268,8 @@ checkProofToken token requestedResource = do
           Right _ ->
             return ucan
 
-      else
-        -- could be potency escalation too
+      else do
+        CLI.Error.put (Text.pack "Unable to delegate") "UCAN does not have sufficient capabilities to delegate."
         raise ScopeOutOfBounds
 
 
