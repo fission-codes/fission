@@ -206,7 +206,7 @@ getCredentialsFor appName appResource = do
       signingKey <- Key.Store.fetch $ Proxy @SigningKey
       proof <- getRootUserProof
 
-      attempt (checkProofConfig proof appName)  >>= \case
+      attempt (checkProofConfig proof appName appResource)  >>= \case
         Left err ->
           raise err
 
@@ -263,8 +263,9 @@ checkProofConfig ::
   , MonadCleanup     m
   , m `Raises` ClientError
   , m `Raises` NotFound URL
-  , m `Raises` UCAN.Resolver.Error
   , m `Raises` UCAN.Error
+  , m `Raises` UCAN.Resolver.Error
+  , m `Raises` UCAN.Proof.Error
 
   , MonadWebAuth m Token
   , MonadWebAuth m Ed25519.SecretKey
@@ -275,8 +276,9 @@ checkProofConfig ::
   )
   => Proof
   -> Text
+  -> Scope Resource
   -> m Proof 
-checkProofConfig proof appName = do
+checkProofConfig proof appName appResource = do
   case proof of
     UCAN.Types.RootCredential -> do
       appRegistered <- checkAppRegistration appName proof
@@ -291,10 +293,11 @@ checkProofConfig proof appName = do
         raise $ NotFound @URL
 
 
-    UCAN.Types.Nested rawContent prf -> do
+    UCAN.Types.Nested rawContent ucan -> do
       now <- getCurrentTime
-      ensure $ checkTime now prf
-      ensureM $ check' rawContent prf now
+      ensureM $ checkCapability appResource ucan
+      ensure $ checkTime now ucan
+      ensureM $ check' rawContent ucan now
       return proof
 
     UCAN.Types.Reference cid -> do
@@ -303,14 +306,15 @@ checkProofConfig proof appName = do
         parseToken bs =  UCAN.parse bs
 
       proofTokenBS <- ensureM $ UCAN.Resolver.resolve cid
-      prf <- ensure $ parseToken proofTokenBS
+      ucan <- ensure $ parseToken proofTokenBS
 
       let
         rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
 
       now <- getCurrentTime
-      ensure $ checkTime now prf
-      ensureM $ check' rawContent prf now
+      ensureM $ checkCapability appResource ucan
+      ensure $ checkTime now ucan
+      ensureM $ check' rawContent ucan now
       return proof
 
 
