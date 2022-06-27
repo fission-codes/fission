@@ -26,6 +26,7 @@ import qualified Fission.CLI.Display.Error                        as CLI.Error
 import qualified Fission.CLI.Display.Success                      as CLI.Success
 import           Fission.CLI.Environment
 import           Fission.CLI.Key.Store                            as Key.Store
+import           Fission.CLI.Remote                               as Remote
 import           Fission.CLI.WebNative.Mutation.Auth.Store
 
 import           Fission.Error
@@ -66,6 +67,7 @@ delegate ::
   , MonadTime        m
 
   , MonadEnvironment m
+  , MonadRemote      m
   , MonadStore  m
   , MonadWebClient   m
   , ServerDID        m
@@ -105,12 +107,14 @@ delegate appName audienceDid lifetimeInSeconds = do
         raise $ ParseError @DID
 
       Right did -> do
-        logDebug $ "Audience DID: " <> textDisplay did
+        remoteUrl <- getRemoteURL
 
         let
-          -- Add support for staging, check remote flag
-          url = URL { domainName = "fission.app", subdomain = Just $ Subdomain appName}
+          URL { domainName } = remoteUrl
+          url = URL { domainName, subdomain = Just $ Subdomain appName}
           appResource = Subset $ FissionApp (Subset url)
+
+        logDebug $ "Remote URL: " <> show remoteUrl
 
         attempt (getCredentialsFor appName appResource) >>= \case
           Left err ->
