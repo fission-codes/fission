@@ -39,8 +39,8 @@ interpret baseCfg cmd = do
   logDebug @Text "App interpreter"
 
   case cmd of
-    Delegate App.Delegate.Options {appName, audienceDid, lifetimeInSeconds} ->
-      Handler.delegate appName audienceDid lifetimeInSeconds
+    Delegate App.Delegate.Options {appName, audienceDid, lifetimeInSeconds, quiet} ->
+      Handler.delegate appName audienceDid lifetimeInSeconds quiet
 
     Info App.Info.CommandOnly ->
       Handler.appInfo

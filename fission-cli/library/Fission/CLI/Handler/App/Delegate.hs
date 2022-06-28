@@ -26,6 +26,7 @@ import qualified Fission.CLI.Display.Error                        as CLI.Error
 import qualified Fission.CLI.Display.Success                      as CLI.Success
 import           Fission.CLI.Environment
 import           Fission.CLI.Key.Store                            as Key.Store
+import           Fission.CLI.Parser.Quiet.Types
 import           Fission.CLI.Remote                               as Remote
 import           Fission.CLI.WebNative.Mutation.Auth.Store
 
@@ -97,8 +98,9 @@ delegate ::
   => Text
   -> Either String DID
   -> Int
+  -> QuietFlag
   -> m ()
-delegate appName audienceDid lifetimeInSeconds = do
+delegate appName audienceDid lifetimeInSeconds (QuietFlag quiet) = do
     logDebug @Text "delegate"
 
     case audienceDid of
@@ -127,10 +129,14 @@ delegate appName audienceDid lifetimeInSeconds = do
               ucan = delegateAppendApp appResource did signingKey proof lifetimeInSeconds now
               encodedUcan = encodeUcan ucan
 
-            CLI.Success.putOk $ "Delegated a UCAN for " <> appName <> " to " <> textDisplay did 
-            UTF8.putText "🎫 UCAN: "
-            colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+            if quiet then
               UTF8.putTextLn $ textDisplay encodedUcan
+
+            else do
+              CLI.Success.putOk $ "Delegated a UCAN for " <> appName <> " to " <> textDisplay did
+              UTF8.putText "🎫 UCAN: "
+              colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
+                UTF8.putTextLn $ textDisplay encodedUcan
 
 
 getCredentialsFor ::

@@ -10,6 +10,7 @@ import           Options.Applicative
 import           Fission.Prelude
 
 import           Fission.CLI.Parser.Command.App.Delegate.Types
+import           Fission.CLI.Parser.Quiet.Types
 
 import           Fission.Internal.UTF8
 
@@ -52,6 +53,13 @@ parser = do
     , metavar "LIFETIME"
     -----------
     , value (300 :: Int)
+    ]
+
+  quiet <- fmap QuietFlag . switch $ mconcat
+    [ help  "Only output the UCAN on success"
+    ----------
+    , long  "quiet"
+    , short 'q'
     ]
 
   return Options {..}
