@@ -56,7 +56,7 @@ import           Web.UCAN.Resolver                                as UCAN.Resolv
 import qualified Web.UCAN.Types                                   as UCAN.Types
 import           Web.UCAN.Proof                                   as UCAN.Proof
 import qualified Web.UCAN.RawContent                              as UCAN.RawContent
-import           Web.UCAN.Validation                              (check', checkTime)
+import           Web.UCAN.Validation                              (check)
 
 
 -- | Delegate capabilities to a DID
@@ -177,11 +177,11 @@ getCredentialsFor appName appResource = do
 
   case (maySigningKey, mayAppUcan) of
     (Just key, Just appUcan) -> do
-      -- Sign with key, use appUcan as proof
-      let
-        rawKey = B64.scrub $ Base64.decodeLenient $ Char8.pack key
+      let rawKey = B64.scrub $ Base64.decodeLenient $ Char8.pack key
+      signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
+      let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
 
-      attempt (checkProofEnvVar appUcan appResource) >>= \case
+      attempt (checkProofEnvVar appUcan did appResource) >>= \case
         Left err -> do
           raise err
 
@@ -192,7 +192,6 @@ getCredentialsFor appName appResource = do
               proof = UCAN.Types.Nested rawContent ucan
 
           logDebug $ "Delegating with FISSION_APP_UCAN: " <> show ucan
-          signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
           return (signingKey, proof)
 
     (Just _, Nothing) -> do
@@ -204,11 +203,11 @@ getCredentialsFor appName appResource = do
       raise $ NotFound @Ed25519.SecretKey
 
     (Nothing, Nothing) -> do
-      -- Use normal CLI config from keystore
       signingKey <- Key.Store.fetch $ Proxy @SigningKey
+      let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
       proof <- getRootUserProof
 
-      attempt (checkProofConfig proof appName appResource)  >>= \case
+      attempt (checkProofConfig proof did appResource appName) >>= \case
         Left err ->
           raise err
 
@@ -220,6 +219,7 @@ checkProofEnvVar ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadRescue      m
+  , MonadTime        m
 
   , UCAN.Resolver.Resolver m
 
@@ -229,9 +229,10 @@ checkProofEnvVar ::
 
   )
   => String
+  -> DID
   -> Scope Resource
   -> m UCAN 
-checkProofEnvVar token requestedResource = do
+checkProofEnvVar token did requestedResource = do
   let
     tokenBS = Char8.pack $ wrapIn "\"" token
 
@@ -241,15 +242,11 @@ checkProofEnvVar token requestedResource = do
       raise $ ParseError @UCAN
           
     Right ucan -> do
-      logDebug $ "Parsed UCAN: " <> textDisplay ucan
+      logDebug $ "Parsed FISSION_APP_UCAN: " <> textDisplay ucan
 
-      let
-        rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
-
-      now <- getCurrentTime
+      let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
       capableUcan <- ensureM $ checkCapability requestedResource ucan
-      timeBoundUcan <- ensure $ checkTime now capableUcan
-      ensureM $ check' rawContent timeBoundUcan now
+      ensureM $ check did rawContent capableUcan
 
 
 checkProofConfig ::
@@ -276,20 +273,19 @@ checkProofConfig ::
   , Show     (OpenUnion (Errors m))
   )
   => Proof
-  -> Text
+  -> DID
   -> Scope Resource
+  -> Text
   -> m Proof 
-checkProofConfig proof appName appResource = do
+checkProofConfig proof did appResource appName = do
   case proof of
     UCAN.Types.RootCredential -> do
       ensureM $ checkAppRegistration appName proof
       return proof
 
     UCAN.Types.Nested rawContent ucan -> do
-      now <- getCurrentTime
       ensureM $ checkCapability appResource ucan
-      ensure $ checkTime now ucan
-      ensureM $ check' rawContent ucan now
+      ensureM $ check did rawContent ucan
       return proof
 
     UCAN.Types.Reference cid -> do
@@ -298,15 +294,11 @@ checkProofConfig proof appName appResource = do
         parseToken bs =  UCAN.parse bs
 
       proofTokenBS <- ensureM $ UCAN.Resolver.resolve cid
+      let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
       ucan <- ensure $ parseToken proofTokenBS
 
-      let
-        rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
-
-      now <- getCurrentTime
       ensureM $ checkCapability appResource ucan
-      ensure $ checkTime now ucan
-      ensureM $ check' rawContent ucan now
+      ensureM $ check did rawContent ucan
       return proof
 
 
