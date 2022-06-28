@@ -204,6 +204,7 @@ getCredentialsFor appName appResource = do
 
     (Nothing, Nothing) -> do
       signingKey <- Key.Store.fetch $ Proxy @SigningKey
+      -- signingKey <- getAuth
       let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
       proof <- getRootUserProof
 
@@ -390,6 +391,6 @@ delegateAppendApp resource targetDID sk proof lifetime now =
 encodeUcan :: UCAN -> Text
 encodeUcan UCAN.Types.UCAN {..} =
   let
-    rawContent = UCAN.RawContent $ B64.encodeJWT header claims
+    rawContent = B64.encodeJWT header claims
   in
   textDisplay rawContent <> "." <> textDisplay sig
