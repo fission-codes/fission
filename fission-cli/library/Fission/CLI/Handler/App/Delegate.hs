@@ -210,16 +210,23 @@ getCredentialsFor appName appResource = do
       raise $ NotFound @Ed25519.SecretKey
 
     (Nothing, Nothing) -> do
-      signingKey <- Key.Store.fetch $ Proxy @SigningKey
-      let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
-      proof <- getRootUserProof
-
-      attempt (checkProofConfig proof did appResource appName) >>= \case
-        Left err ->
+      attempt (Key.Store.fetch $ Proxy @SigningKey) >>= \case
+        Left err -> do
+          CLI.Error.put err $
+            "User credentials not found. Please setup an account with `fission setup` or " <>
+            "set FISSION_MACHINE_KEY and FISSION_APP_UCAN environment variables."
           raise err
 
-        Right prf -> do
-          return (signingKey, prf)
+        Right signingKey -> do
+          let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
+          proof <- getRootUserProof
+
+          attempt (checkProofConfig proof did appResource appName) >>= \case
+            Left err ->
+              raise err
+
+            Right prf -> do
+              return (signingKey, prf)
 
 
 checkProofEnvVar ::
