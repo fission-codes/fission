@@ -64,12 +64,12 @@ import           Web.UCAN.Validation                              (check)
 delegate ::
   ( MonadIO          m
   , MonadLogger      m 
-  , MonadRandom m
+  , MonadRandom      m
   , MonadTime        m
 
   , MonadEnvironment m
   , MonadRemote      m
-  , MonadStore  m
+  , MonadStore       m
   , MonadWebClient   m
   , ServerDID        m
 
@@ -87,13 +87,12 @@ delegate ::
   , m `Raises` UCAN.Proof.Error
   , m `Raises` UCAN.Error
 
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
   , UCAN.Resolver.Resolver m
 
   , Contains (Errors m) (Errors m)
   , Show     (OpenUnion (Errors m))
-
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
   )
   => Text
   -> Either String DID
@@ -110,13 +109,12 @@ delegate appName audienceDid lifetimeInSeconds (QuietFlag quiet) = do
 
       Right did -> do
         remoteUrl <- getRemoteURL
+        logDebug $ "Remote URL: " <> show remoteUrl
 
         let
           URL { domainName } = remoteUrl
           url = URL { domainName, subdomain = Just $ Subdomain appName}
           appResource = Subset $ FissionApp (Subset url)
-
-        logDebug $ "Remote URL: " <> show remoteUrl
 
         attempt (getCredentialsFor appName appResource) >>= \case
           Left err ->
@@ -163,13 +161,12 @@ getCredentialsFor ::
   , m `Raises` UCAN.Proof.Error
   , m `Raises` UCAN.Error
 
+  , MonadWebAuth m Token
+  , MonadWebAuth m Ed25519.SecretKey
   , UCAN.Resolver.Resolver m
 
   , Contains (Errors m) (Errors m)
   , Show     (OpenUnion (Errors m))
-
-  , MonadWebAuth m Token
-  , MonadWebAuth m Ed25519.SecretKey
   ) 
   => Text 
   -> Scope Resource
@@ -201,16 +198,19 @@ getCredentialsFor appName appResource = do
           return (signingKey, proof)
 
     (Just _, Nothing) -> do
-      CLI.Error.put (Text.pack "Not Found") "FISSION_APP_UCAN must be set when delegating with environment variables."
+      CLI.Error.put
+        (Text.pack "Not Found")
+        "FISSION_APP_UCAN must be set when delegating with environment variables."
       raise $ NotFound @UCAN
 
     (Nothing, Just _) -> do
-      CLI.Error.put (Text.pack "Not Found") "FISSION_MACHINE_KEY must be set when delegating with environment variables."
+      CLI.Error.put
+        (Text.pack "Not Found")
+        "FISSION_MACHINE_KEY must be set when delegating with environment variables."
       raise $ NotFound @Ed25519.SecretKey
 
     (Nothing, Nothing) -> do
       signingKey <- Key.Store.fetch $ Proxy @SigningKey
-      -- signingKey <- getAuth
       let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
       proof <- getRootUserProof
 
@@ -228,20 +228,18 @@ checkProofEnvVar ::
   , MonadRescue      m
   , MonadTime        m
 
-  , UCAN.Resolver.Resolver m
-
   , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Proof.Error
   , m `Raises` UCAN.Error
 
+  , UCAN.Resolver.Resolver m
   )
   => String
   -> DID
   -> Scope Resource
   -> m UCAN 
 checkProofEnvVar token did requestedResource = do
-  let
-    tokenBS = Char8.pack $ wrapIn "\"" token
+  let tokenBS = Char8.pack $ wrapIn "\"" token
 
   case UCAN.parse tokenBS of
     Left err -> do
@@ -249,8 +247,6 @@ checkProofEnvVar token did requestedResource = do
       raise $ ParseError @UCAN
           
     Right ucan -> do
-      logDebug $ "Parsed FISSION_APP_UCAN: " <> textDisplay ucan
-
       let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
       capableUcan <- ensureM $ checkCapability requestedResource ucan
       ensureM $ check did rawContent capableUcan
@@ -260,11 +256,8 @@ checkProofConfig ::
   ( MonadIO          m
   , MonadLogger      m
   , MonadTime        m
-
   , MonadWebClient   m
   , ServerDID        m
-
-  , UCAN.Resolver.Resolver m
 
   , MonadCleanup     m
   , m `Raises` ClientError
@@ -275,6 +268,7 @@ checkProofConfig ::
 
   , MonadWebAuth m Token
   , MonadWebAuth m Ed25519.SecretKey
+  , UCAN.Resolver.Resolver m
 
   , Contains (Errors m) (Errors m)
   , Show     (OpenUnion (Errors m))
@@ -351,7 +345,6 @@ checkAppRegistration ::
   ( MonadIO          m
   , MonadLogger      m 
   , MonadTime        m
-
   , MonadWebClient   m
   , ServerDID        m
 
@@ -359,10 +352,10 @@ checkAppRegistration ::
   , m `Raises` ClientError
   , m `Raises` NotFound URL
 
-  , Show     (OpenUnion (Errors m))
-
   , MonadWebAuth m Token
   , MonadWebAuth m Ed25519.SecretKey
+
+  , Show     (OpenUnion (Errors m))
   )
   => Text 
   -> Proof 
