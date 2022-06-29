@@ -1,7 +1,7 @@
 module Network.IPFS.Remote.Class
   ( MonadRemoteIPFS
   , MfsCopyArgs (..)
-  , MfsStatCidArgs (..)
+  , MfsStatArgs (..)
   , MfsRemoveArgs (..)
   , MfsWriteArgs (..)
   , runRemote
@@ -12,7 +12,7 @@ module Network.IPFS.Remote.Class
   , ipfsUnpin
   , mfsCopy
   , mfsRemove
-  , mfsStatCid
+  , mfsStat
   , mfsWrite
   ) where
 
@@ -31,7 +31,7 @@ import qualified Network.IPFS.Client.Files.Statistics.Types as Files.Statistics
 
 data MfsCopyArgs = MfsCopyArgs { from :: Text, to :: Text, parents :: Bool }
 data MfsRemoveArgs = MfsRemoveArgs { path :: Text, recursive :: Bool, force :: Maybe Bool }
-data MfsStatCidArgs = MfsStatCidArgs { path :: Text }
+data MfsStatArgs = MfsStatArgs { path :: Text }
 data MfsWriteArgs = MfsWriteArgs
                       { path :: Text
                       , create :: Bool
@@ -53,7 +53,7 @@ class MonadIO m => MonadRemoteIPFS m where
 
   mfsCopy     :: MfsCopyArgs                      -> m (Either ClientError ())
   mfsRemove   :: MfsRemoveArgs                    -> m (Either ClientError ())
-  mfsStatCid  :: MfsStatCidArgs                   -> m (Either ClientError Files.Statistics.CidResponse)
+  mfsStat     :: MfsStatArgs                      -> m (Either ClientError Files.Statistics.Response)
   mfsWrite    :: MfsWriteArgs -> Lazy.ByteString  -> m (Either ClientError ())
 
   -- defaults
@@ -65,5 +65,5 @@ class MonadIO m => MonadRemoteIPFS m where
 
   mfsCopy (MfsCopyArgs { .. })        = runRemote $ IPFS.Client.filesCopy from to parents
   mfsRemove (MfsRemoveArgs { .. })    = runRemote $ IPFS.Client.filesRemove path recursive force
-  mfsStatCid (MfsStatCidArgs { .. })  = runRemote $ IPFS.Client.filesStatCid path True
+  mfsStat (MfsStatArgs { .. })        = runRemote $ IPFS.Client.filesStat path
   mfsWrite (MfsWriteArgs { .. }) raw  = runRemote $ IPFS.Client.filesWrite path create parents truncate rawLeaves cidVersion hash raw

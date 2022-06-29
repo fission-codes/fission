@@ -1,4 +1,4 @@
-module Network.IPFS.Client.Files.Statistics.Types (CidAPI, CidResponse (..)) where
+module Network.IPFS.Client.Files.Statistics.Types (API, Response (..)) where
 
 import           Servant.API
 
@@ -6,17 +6,18 @@ import           Network.IPFS.CID.Types
 import           Network.IPFS.Prelude
 
 
-type CidAPI
+type API
   = "stat"
     :> QueryParam' '[Required] "arg" Text -- path
-    :> QueryParam' '[Required] "hash" Bool -- must be true
-    :> Post '[JSON] CidResponse
+    :> Post '[JSON] Response
 
-newtype CidResponse = CidResponse CID
+newtype Response = Response { cid :: CID }
   deriving (Eq, Show)
 
-instance Display CidResponse where
-  textDisplay (CidResponse cid) = textDisplay cid
+instance Display Response where
+  textDisplay (Response cid) = textDisplay cid
 
-instance FromJSON CidResponse where
-  parseJSON = withText "Stat Response" (return . CidResponse . mkCID)
+instance FromJSON Response where
+  parseJSON = withObject "IPFS.Files.Stat.Response" \obj -> do
+    cid <- obj .: "Hash"
+    return $ Response cid

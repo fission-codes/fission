@@ -5,7 +5,7 @@ module Network.IPFS.Client
   , dagPut
   , filesCopy
   , filesRemove
-  , filesStatCid
+  , filesStat
   , filesWrite
   , pin
   , stat
@@ -59,7 +59,7 @@ unpin         :: CID -> Bool                          -> ClientM Pin.Response
 
 filesCopy     :: Text -> Text -> Bool                 -> ClientM ()
 filesRemove   :: Text -> Bool -> Maybe Bool           -> ClientM ()
-filesStatCid  :: Text -> Bool                         -> ClientM Files.Statistics.CidResponse
+filesStat     :: Text                                 -> ClientM Files.Statistics.Response
 
 filesWrite
   :: Text -> Bool -> Bool -> Bool
@@ -72,6 +72,6 @@ add :<|> cat
     :<|> stat
 
     :<|> (pin :<|> unpin)
-    :<|> (filesCopy :<|> filesRemove :<|> filesStatCid :<|> filesWrite)
+    :<|> (filesCopy :<|> filesRemove :<|> filesStat :<|> filesWrite)
 
     = client (Proxy @API :: Proxy API)

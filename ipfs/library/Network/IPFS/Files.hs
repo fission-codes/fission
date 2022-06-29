@@ -82,10 +82,10 @@ statCID :: (MonadLogger m, MonadRemoteIPFS m)
   -> m (Either IPFS.Files.Error IPFS.CID)
 statCID path =
   let
-    args = MfsStatCidArgs { path = Text.pack path }
+    args = MfsStatArgs { path = Text.pack path }
   in
-  IPFS.mfsStatCid args >>= \case
-    Right (Files.Statistics.CidResponse cid) ->
+  IPFS.mfsStat args >>= \case
+    Right (Files.Statistics.Response {cid}) ->
       return $ Right cid
 
     Left err -> do
