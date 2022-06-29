@@ -362,6 +362,7 @@ checkAppRegistration ::
   , MonadWebAuth m Token
   , MonadWebAuth m Ed25519.SecretKey
 
+  , Contains (Errors m) (Errors m)
   , Show     (OpenUnion (Errors m))
   )
   => Text 
@@ -370,10 +371,8 @@ checkAppRegistration ::
 checkAppRegistration appName proof = do
     attempt (sendAuthedRequest proof appIndex) >>= \case
       Left err -> do
-        CLI.Error.put err $
-          "Unable to find an app named " <> appName <>
-          ". Is the name right and have you registered it?"
-        raise $ NotFound @URL
+        CLI.Error.put err "Unable to retrieve a list of your apps from the server."
+        raise err
 
       Right index -> do
         let
@@ -383,7 +382,15 @@ checkAppRegistration appName proof = do
               & fmap (fst . Text.break (== '.') . textDisplay)
               & elem appName
 
-        return $ Right registered
+        if registered then
+          return $ Right True
+
+        else do
+          CLI.Error.put (Text.pack "Not found") $
+            "Unable to find an app named " <> appName <>
+            ". Is the name right and have you registered it?"
+          raise $ NotFound @URL
+
 
 
 delegateAppendApp :: Scope Resource -> DID -> Ed25519.SecretKey -> Proof -> Int -> UTCTime -> UCAN
