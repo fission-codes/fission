@@ -32,6 +32,7 @@ import qualified Network.IPFS.Client.DAG.Put.Types               as DAG.Put
 import qualified Network.IPFS.Client.DAG.Types                   as DAG
 import qualified Network.IPFS.Client.Files                       as Files
 import qualified Network.IPFS.Client.Files.Statistics.Types      as Files.Statistics
+import qualified Network.IPFS.Client.Files.Write.Form.Types      as Files.Write
 import qualified Network.IPFS.Client.Pin                         as Pin
 import qualified Network.IPFS.Client.Stat                        as Stat
 
@@ -64,7 +65,7 @@ filesStat     :: Text                                 -> ClientM Files.Statistic
 filesWrite
   :: Text -> Bool -> Bool -> Bool
   -> Maybe Bool -> Maybe Integer -> Maybe Text
-  -> Lazy.ByteString
+  -> (Lazy.ByteString, Files.Write.Form)
   -> ClientM ()
 
 add :<|> cat

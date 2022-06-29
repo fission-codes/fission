@@ -3,6 +3,7 @@ module Network.IPFS.Files (cp, rm, statCID, write) where
 import           Data.ByteString.Lazy.Char8  as CL
 
 import           Network.IPFS.Client.Files   as Files
+import           Network.IPFS.File.Types
 import           Network.IPFS.Files.Error    as IPFS.Files
 import qualified Network.IPFS.Internal.UTF8  as UTF8
 import           Network.IPFS.Remote.Class   as IPFS
@@ -12,11 +13,14 @@ import           Network.IPFS.CID.Types      as IPFS ( mkCID, CID(CID) )
 import           Network.IPFS.Types          as IPFS
 
 import qualified Network.IPFS.Client.Files.Statistics.Types as Files.Statistics
+import qualified Network.IPFS.Client.Files.Write.Form.Types as Write
 
 import qualified RIO.ByteString.Lazy         as Lazy
 import qualified RIO.Text                    as Text
 
 import           Servant.Client
+import           Servant.Multipart           as Multipart
+import qualified Servant.Multipart.Client    as Multipart.Client
 
 
 {-| MFS Copying.
@@ -113,8 +117,11 @@ write path raw =
         , cidVersion = Just 1
         , hash = Nothing
         }
-  in
-  IPFS.mfsWrite args raw >>= \case
+  in do
+  boundary <- liftIO Multipart.Client.genBoundary
+  let formData = Serialized raw
+
+  IPFS.mfsWrite args (boundary, Write.Form formData) >>= \case
     Right () ->
       return $ Right ()
 

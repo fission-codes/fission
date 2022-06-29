@@ -27,6 +27,7 @@ import qualified Network.IPFS.Client                        as IPFS.Client
 import qualified Network.IPFS.Client.Pin                    as Pin
 import qualified Network.IPFS.File.Types                    as File
 import qualified Network.IPFS.Client.Files.Statistics.Types as Files.Statistics
+import qualified Network.IPFS.Client.Files.Write.Form.Types as Files.Write
 
 
 data MfsCopyArgs = MfsCopyArgs { from :: Text, to :: Text, parents :: Bool }
@@ -51,10 +52,10 @@ class MonadIO m => MonadRemoteIPFS m where
   ipfsPin   :: CID             -> m (Either ClientError Pin.Response)
   ipfsUnpin :: CID -> Bool     -> m (Either ClientError Pin.Response)
 
-  mfsCopy     :: MfsCopyArgs                      -> m (Either ClientError ())
-  mfsRemove   :: MfsRemoveArgs                    -> m (Either ClientError ())
-  mfsStat     :: MfsStatArgs                      -> m (Either ClientError Files.Statistics.Response)
-  mfsWrite    :: MfsWriteArgs -> Lazy.ByteString  -> m (Either ClientError ())
+  mfsCopy     :: MfsCopyArgs                                          -> m (Either ClientError ())
+  mfsRemove   :: MfsRemoveArgs                                        -> m (Either ClientError ())
+  mfsStat     :: MfsStatArgs                                          -> m (Either ClientError Files.Statistics.Response)
+  mfsWrite    :: MfsWriteArgs -> (Lazy.ByteString, Files.Write.Form)  -> m (Either ClientError ())
 
   -- defaults
   ipfsAdd   raw           = runRemote $ IPFS.Client.add   raw
