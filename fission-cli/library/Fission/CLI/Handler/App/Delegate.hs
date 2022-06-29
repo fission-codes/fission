@@ -292,8 +292,8 @@ checkProofConfig proof did appResource appName = do
       return proof
 
     UCAN.Types.Nested rawContent ucan -> do
-      ensureM $ checkCapability appResource ucan
-      ensureM $ check did rawContent ucan
+      capableUcan <- ensureM $ checkCapability appResource ucan
+      ensureM $ check did rawContent capableUcan
       return proof
 
     UCAN.Types.Reference cid -> do
@@ -305,8 +305,8 @@ checkProofConfig proof did appResource appName = do
       let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
       ucan <- ensure $ parseToken proofTokenBS
 
-      ensureM $ checkCapability appResource ucan
-      ensureM $ check did rawContent ucan
+      capableUcan <- ensureM $ checkCapability appResource ucan
+      ensureM $ check did rawContent capableUcan 
       return proof
 
 
