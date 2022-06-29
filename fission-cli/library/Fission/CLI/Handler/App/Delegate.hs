@@ -369,27 +369,27 @@ checkAppRegistration ::
   -> Proof 
   -> m (Either (ErrorCase m) Bool)
 checkAppRegistration appName proof = do
-    attempt (sendAuthedRequest proof appIndex) >>= \case
-      Left err -> do
-        CLI.Error.put err "Unable to retrieve a list of your apps from the server."
-        raise err
+  attempt (sendAuthedRequest proof appIndex) >>= \case
+    Left err -> do
+      CLI.Error.put err "Unable to retrieve a list of your apps from the server."
+      raise err
 
-      Right index -> do
-        let
-          registered = 
-            Map.elems index
-              & concatMap (\Payload { urls } -> urls)
-              & fmap (fst . Text.break (== '.') . textDisplay)
-              & elem appName
+    Right index -> do
+      let
+        registered =
+          Map.elems index
+            & concatMap (\Payload { urls } -> urls)
+            & fmap (fst . Text.break (== '.') . textDisplay)
+            & elem appName
 
-        if registered then
-          return $ Right True
+      if registered then
+        return $ Right True
 
-        else do
-          CLI.Error.put (Text.pack "Not found") $
-            "Unable to find an app named " <> appName <>
-            ". Is the name right and have you registered it?"
-          raise $ NotFound @URL
+      else do
+        CLI.Error.put (Text.pack "Not found") $
+          "Unable to find an app named " <> appName <>
+          ". Is the name right and have you registered it?"
+        raise $ NotFound @URL
 
 
 
