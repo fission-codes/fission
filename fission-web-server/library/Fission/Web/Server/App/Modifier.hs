@@ -80,7 +80,9 @@ addFile userId appName@(DirectoryName appNameText) fileName rawData = do
     Right (Entity appId app@App {appCid}) ->
       if isOwnedBy userId app then do
         -- Update DAG, DNSLink & DB
-        appendToDag appName fileName rawData appCid >>= \case
+        let (DomainName domainNameTxt) = domainName
+
+        appendToDag domainNameTxt appName fileName rawData appCid >>= \case
           Left err ->
             return $ Left err
 
@@ -109,13 +111,13 @@ appendToDag ::
   ( MonadRemoteIPFS m
   , MonadLogger m
   )
-  => DirectoryName
+  => Text
+  -> DirectoryName
   -> FileName
   -> Lazy.ByteString
   -> CID
   -> m (Either Errors' CID)
-appendToDag (DirectoryName appName) (FileName fileName) rawData appCid = do
-  let domainName = "fission.app"
+appendToDag domainName (DirectoryName appName) (FileName fileName) rawData appCid = do
   let appCidText = unaddress appCid
 
   let tmpDirPath = Text.concat [ "/", domainName, "/", appName, "/" ]
