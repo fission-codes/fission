@@ -36,6 +36,15 @@ parser = do
     , metavar "NAME"
     ]
 
+  audienceDid <- option did $ mconcat
+    [ help    "An audience DID"
+    -----------
+    , long    "did"
+    , short   'd'
+    -----------
+    , metavar "DID"
+    ]
+
   potency <- option parseAbility $ mconcat
     [ help    "The potency to delegate. Options include AppendOnly, Destroy, or Super_User."
     , showDefaultWith $ \_ -> show @Text "AppendOnly"
@@ -46,15 +55,6 @@ parser = do
     , metavar "POTENCY"
     -----------
     , value $ Right AppendOnly
-    ]
-
-  audienceDid <- option did $ mconcat
-    [ help    "An audience DID"
-    -----------
-    , long    "did"
-    , short   'd'
-    -----------
-    , metavar "DID"
     ]
 
   lifetimeInSeconds <- option auto $ mconcat
