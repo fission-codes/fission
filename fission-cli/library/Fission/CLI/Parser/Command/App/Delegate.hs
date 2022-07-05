@@ -14,13 +14,15 @@ import           Fission.CLI.Parser.Quiet.Types
 
 import           Fission.Internal.UTF8
 
+import           Fission.Web.Auth.Token.UCAN.Potency.Types      as Potency
+
 import           Web.DID.Types as DID
 
 parserWithInfo :: ParserInfo Options
 parserWithInfo =
   parser `info` mconcat
     [ fullDesc
-    , progDesc "Delegate append capability to an audience DID"
+    , progDesc "Delegate capability to an audience DID"
     ]
 
 parser :: Parser Options
@@ -32,6 +34,18 @@ parser = do
     , short   'a'
     -----------
     , metavar "NAME"
+    ]
+
+  potency <- option parseAbility $ mconcat
+    [ help    "The potency to delegate. Options include AppendOnly, Destroy, or Super_User."
+    , showDefaultWith $ \_ -> show @Text "AppendOnly"
+    -----------
+    , long    "potency"
+    , short   'p'
+    -----------
+    , metavar "POTENCY"
+    -----------
+    , value $ Right AppendOnly
     ]
 
   audienceDid <- option did $ mconcat
@@ -66,3 +80,6 @@ parser = do
 
 did :: ReadM (Either String DID)
 did = eitherDecodeStrict' . wrapIn "\"" <$> str
+
+parseAbility :: ReadM (Either String Potency)
+parseAbility = eitherDecodeStrict' . wrapIn "\"" <$> str

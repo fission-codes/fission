@@ -82,6 +82,7 @@ delegate ::
   , m `Raises` NotFound UCAN
   , m `Raises` NotFound URL
   , m `Raises` ParseError DID
+  , m `Raises` ParseError Potency
   , m `Raises` ParseError UCAN
   , m `Raises` UCAN.Resolver.Error
   , m `Raises` UCAN.Proof.Error
@@ -95,12 +96,13 @@ delegate ::
   , Show     (OpenUnion (Errors m))
   )
   => Text
+  -> Either String Potency
   -> Either String DID
   -> Int
   -> QuietFlag
   -> m ()
-delegate appName audienceDid lifetimeInSeconds (QuietFlag quiet) = do
-    logDebug @Text "delegate"
+delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
+    logDebug @Text "delegate app"
 
     case audienceDid of
       Left err -> do
@@ -116,7 +118,15 @@ delegate appName audienceDid lifetimeInSeconds (QuietFlag quiet) = do
           url = URL { domainName, subdomain = Just $ Subdomain appName}
           appResource = Subset $ FissionApp (Subset url)
 
-        attempt (getCredentialsFor appName appResource) >>= \case
+        ptc <- case potency of
+          Left err -> do
+            CLI.Error.put err "Could not parse potency. Potency must be AppendOnly, Destructive, or Super_User."
+            raise $ ParseError @Potency
+
+          Right ptc ->
+            return ptc
+
+        attempt (getCredentialsFor appName appResource ptc) >>= \case
           Left err ->
             raise err
 
@@ -124,7 +134,7 @@ delegate appName audienceDid lifetimeInSeconds (QuietFlag quiet) = do
             now <- getCurrentTime
 
             let 
-              ucan = delegateAppendApp appResource did signingKey proof lifetimeInSeconds now
+              ucan = delegateApp appResource ptc did signingKey proof lifetimeInSeconds now
               encodedUcan = encodeUcan ucan
 
             if quiet then
@@ -170,8 +180,9 @@ getCredentialsFor ::
   ) 
   => Text 
   -> Scope Resource
+  -> Potency
   -> m (SecretKey SigningKey, Proof)
-getCredentialsFor appName appResource = do
+getCredentialsFor appName appResource potency = do
   maySigningKey <- liftIO $ Env.lookupEnv "FISSION_MACHINE_KEY"
   mayAppUcan    <- liftIO $ Env.lookupEnv "FISSION_APP_UCAN"
 
@@ -184,7 +195,7 @@ getCredentialsFor appName appResource = do
       signingKey <- ensureM $ Key.Store.parse (Proxy @SigningKey) rawKey
       let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
 
-      attempt (checkProofEnvVar appUcan did appResource) >>= \case
+      attempt (checkProofEnvVar appUcan did appResource potency) >>= \case
         Left err -> do
           raise err
 
@@ -221,7 +232,7 @@ getCredentialsFor appName appResource = do
           let did =  DID.Key $ Key.Ed25519PublicKey $ Ed25519.toPublic signingKey
           proof <- getRootUserProof
 
-          attempt (checkProofConfig proof did appResource appName) >>= \case
+          attempt (checkProofConfig proof did appName appResource potency) >>= \case
             Left err ->
               raise err
 
@@ -244,8 +255,9 @@ checkProofEnvVar ::
   => String
   -> DID
   -> Scope Resource
+  -> Potency
   -> m UCAN 
-checkProofEnvVar token did requestedResource = do
+checkProofEnvVar token did resource potency = do
   let tokenBS = Char8.pack $ wrapIn "\"" token
 
   case UCAN.parse tokenBS of
@@ -255,7 +267,7 @@ checkProofEnvVar token did requestedResource = do
           
     Right ucan -> do
       let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
-      capableUcan <- ensureM $ checkCapability requestedResource ucan
+      capableUcan <- ensureM $ checkCapability resource potency ucan
       ensureM $ check did rawContent capableUcan
 
 
@@ -282,17 +294,18 @@ checkProofConfig ::
   )
   => Proof
   -> DID
-  -> Scope Resource
   -> Text
+  -> Scope Resource
+  -> Potency
   -> m Proof 
-checkProofConfig proof did appResource appName = do
+checkProofConfig proof did appName appResource potency = do
   case proof of
     UCAN.Types.RootCredential -> do
       ensureM $ checkAppRegistration appName proof
       return proof
 
     UCAN.Types.Nested rawContent ucan -> do
-      capableUcan <- ensureM $ checkCapability appResource ucan
+      capableUcan <- ensureM $ checkCapability appResource potency ucan
       ensureM $ check did rawContent capableUcan
       return proof
 
@@ -305,7 +318,7 @@ checkProofConfig proof did appResource appName = do
       let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient proofTokenBS)
       ucan <- ensure $ parseToken proofTokenBS
 
-      capableUcan <- ensureM $ checkCapability appResource ucan
+      capableUcan <- ensureM $ checkCapability appResource potency ucan
       ensureM $ check did rawContent capableUcan 
       return proof
 
@@ -315,9 +328,10 @@ checkCapability ::
   , MonadLogger      m
   )
   => Scope Resource
+  -> Potency
   -> UCAN
   -> m (Either UCAN.Proof.Error UCAN)
-checkCapability requestedResource ucan = do
+checkCapability requestedResource requestedPotency ucan = do
   let
     UCAN.Types.UCAN {claims = UCAN.Types.Claims {resource = mayResource, potency = mayPotency}} = ucan
     putPotencyError = CLI.Error.put PotencyEscelation "UCAN does not have sufficient potency to delegate"
@@ -328,7 +342,7 @@ checkCapability requestedResource ucan = do
       if rsc `canDelegate` requestedResource then
         case mayPotency of
           Just ptc ->
-            if  ptc `canDelegate` AppendOnly then
+            if  ptc `canDelegate` requestedPotency then
               return $ Right ucan
 
             else do
@@ -393,9 +407,9 @@ checkAppRegistration appName proof = do
 
 
 
-delegateAppendApp :: Scope Resource -> DID -> Ed25519.SecretKey -> Proof -> Int -> UTCTime -> UCAN
-delegateAppendApp resource targetDID sk proof lifetime now =
-  UCAN.mkUCAN targetDID sk start expire [] (Just resource) (Just AppendOnly) proof
+delegateApp :: Scope Resource -> Potency -> DID -> Ed25519.SecretKey -> Proof -> Int -> UTCTime -> UCAN
+delegateApp resource potency targetDID sk proof lifetime now =
+  UCAN.mkUCAN targetDID sk start expire [] (Just resource) (Just potency) proof
     where
       start  = addUTCTime (secondsToNominalDiffTime (-30))                    now
       expire = addUTCTime (secondsToNominalDiffTime (fromIntegral lifetime))  now

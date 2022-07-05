@@ -4,6 +4,8 @@ import           Fission.Prelude
 
 import           Fission.Web.Auth.Token.UCAN.Types
 
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
+
 import           Web.DID.Types
 
 data ParseError entity
@@ -18,3 +20,6 @@ instance Display (ParseError DID) where
 
 instance Display (ParseError UCAN) where
   display _ = "Unable to parse UCAN"
+
+instance Display (ParseError Potency) where
+  display _ = "Unable to parse Potency"
