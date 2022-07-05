@@ -18,6 +18,7 @@ import           Fission.Prelude                                    hiding (on)
 import           Fission.Error                                      as Error
 import           Fission.URL
 
+import qualified Fission.Web.Server.IPFS.DNSLink.Class              as DNSLink
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB.Types (Transaction)
@@ -37,6 +38,7 @@ type Errors' = OpenUnion
    , IPFS.Pin.Error
    , IPFS.Stat.Error
 
+   , DNSLink.Errors'
    , ServerError
    , InvalidURL
    ]

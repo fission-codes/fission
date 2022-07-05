@@ -38,6 +38,7 @@ import qualified Fission.Web.Server.LoosePin                  as LoosePin
 import qualified Fission.Web.Server.App                       as App
 import qualified Fission.Web.Server.App.Content               as App.Content
 import qualified Fission.Web.Server.App.Domain                as App.Domain
+import qualified Fission.Web.Server.Domain.Retriever.Class    as Domain
 
 import           Fission.Web.Server.Handler
 import qualified Fission.Web.Server.Handler.Auth.UCAN         as Auth.UCAN
@@ -60,8 +61,10 @@ import qualified Paths_fission_web_server                     as Fission
 -- | Top level web API type. Handled by 'server'.
 app :: forall m t .
   ( App.Domain.Initializer      m
+  , App.Domain.Retriever        m
   , App.Content.Initializer     m
   , App.CRUD                    m
+  , Domain.Retriever            m
   , Proof.Resolver              m
   , MonadReflectiveServer       m
   , MonadRelayStore             m
@@ -108,8 +111,10 @@ app handlerNT authChecks appHost =
 -- | Web handlers for the 'API'
 server ::
   ( App.Domain.Initializer      m
+  , App.Domain.Retriever        m
   , App.Content.Initializer     m
   , App.CRUD                    m
+  , Domain.Retriever            m
   , Proof.Resolver              m
   , MonadReflectiveServer       m
   , MonadRelayStore             m

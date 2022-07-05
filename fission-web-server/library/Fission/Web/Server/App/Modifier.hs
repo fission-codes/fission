@@ -13,7 +13,6 @@ import qualified Network.IPFS.Files                                 as IPFS.File
 import qualified Network.IPFS.Pin                                   as IPFS.Pin
 import qualified Network.IPFS.Stat                                  as IPFS.Stat
 
-import           Network.IPFS.Local.Class (MonadLocalIPFS)
 import           Network.IPFS.Remote.Class (MonadRemoteIPFS)
 
 import qualified RIO.ByteString.Lazy                                as Lazy
@@ -26,11 +25,15 @@ import           Fission.FileSystem.DirectoryName
 import           Fission.FileSystem.FileName
 import           Fission.URL
 
+import qualified Fission.Web.Server.App.Domain.Retriever            as App.Domain
 import           Fission.Web.Server.App.Modifier.Class
 import           Fission.Web.Server.App.Retriever.Class (Retriever)
 import qualified Fission.Web.Server.App.Retriever.Class             as App.Retriever
 import           Fission.Web.Server.Config.Types
+import qualified Fission.Web.Server.Domain                          as Domain
+import qualified Fission.Web.Server.Domain.Retriever.Class          as Domain.Retriever
 import           Fission.Web.Server.Error.ActionNotAuthorized.Types
+import qualified Fission.Web.Server.IPFS.DNSLink                    as DNSLink
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB.Class (MonadDB(..))
 import           Fission.Web.Server.MonadDB.Types (Transaction)
@@ -45,7 +48,10 @@ Notes:
 
 -}
 addFile ::
-  ( MonadDB t m
+  ( App.Domain.Retriever m
+  , Domain.Retriever.Retriever m
+  , DNSLink.MonadDNSLink m
+  , MonadDB t m
   , MonadLogger m
   , MonadReader Config m
   , MonadRemoteIPFS m
@@ -62,9 +68,10 @@ addFile userId appName@(DirectoryName appNameText) fileName rawData = do
   now           <- currentTime
   domainName    <- asks baseAppDomain
 
-  mayApp        <- App.Retriever.byURL
-                    userId
-                    (URL domainName $ Just $ Subdomain appNameText)
+  let subdomain = Subdomain appNameText
+  let url = URL domainName (Just subdomain)
+
+  mayApp        <- App.Retriever.byURL userId url
 
   case mayApp of
     Left _ -> do
@@ -72,7 +79,7 @@ addFile userId appName@(DirectoryName appNameText) fileName rawData = do
 
     Right (Entity appId app@App {appCid}) ->
       if isOwnedBy userId app then do
-        -- Update DAG & DB
+        -- Update DAG, DNSLink & DB
         appendToDag appName fileName rawData appCid >>= \case
           Left err ->
             return $ Left err
@@ -83,8 +90,16 @@ addFile userId appName@(DirectoryName appNameText) fileName rawData = do
                 return . Error.openLeft $ err
 
               Right size -> do
-                runDB (setCIDDirectly now appId size newCID)
-                return $ Right ()
+                Domain.getByDomainName domainName >>= \case
+                  Left err ->
+                    return . Error.openLeft $ err
+
+                  Right Domain {domainZoneId} -> do
+                    DNSLink.set userId url domainZoneId newCID >>= \case
+                      Left err -> return . Error.openLeft $ err
+                      Right _  -> do
+                        runDB (setCIDDirectly now appId size newCID)
+                        return $ Right ()
 
       else
         return . Error.openLeft $ ActionNotAuthorized @App userId
