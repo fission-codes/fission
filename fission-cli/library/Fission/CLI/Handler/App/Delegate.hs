@@ -320,8 +320,8 @@ checkCapability ::
 checkCapability requestedResource ucan = do
   let
     UCAN.Types.UCAN {claims = UCAN.Types.Claims {resource = mayResource, potency = mayPotency}} = ucan
-    putPotencyError = CLI.Error.put (Text.pack "Potency Escalation") "UCAN does not have sufficient potency to delegate"
-    putScopeError = CLI.Error.put (Text.pack "Scope out of bounds") "UCAN does not have sufficient scope to delegate"
+    putPotencyError = CLI.Error.put PotencyEscelation "UCAN does not have sufficient potency to delegate"
+    putScopeError = CLI.Error.put ScopeOutOfBounds "UCAN does not have sufficient scope to delegate"
 
   case mayResource of
     Just rsc ->
