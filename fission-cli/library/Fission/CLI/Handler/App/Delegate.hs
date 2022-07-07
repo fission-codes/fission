@@ -59,7 +59,6 @@ import           Web.UCAN.Proof                                   as UCAN.Proof
 import qualified Web.UCAN.RawContent                              as UCAN.RawContent
 import           Web.UCAN.Validation                              (check)
 
-
 -- | Delegate capabilities to a DID
 delegate ::
   ( MonadIO          m
@@ -134,7 +133,7 @@ delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
             now <- getCurrentTime
 
             let 
-              ucan = delegateApp appResource ptc did signingKey proof lifetimeInSeconds now
+              ucan = UCAN.delegateWithLifetime did signingKey appResource ptc proof lifetimeInSeconds now
               encodedUcan = encodeUcan ucan
 
             if quiet then
@@ -145,7 +144,6 @@ delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
               UTF8.putText "🎫 UCAN: "
               colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
                 UTF8.putTextLn $ textDisplay encodedUcan
-
 
 getCredentialsFor ::
   ( MonadIO          m
@@ -239,7 +237,6 @@ getCredentialsFor appName appResource potency = do
             Right prf -> do
               return (signingKey, prf)
 
-
 checkProofEnvVar ::
   ( MonadIO          m
   , MonadLogger      m
@@ -269,7 +266,6 @@ checkProofEnvVar token did resource potency = do
       let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
       capableUcan <- ensureM $ checkCapability resource potency ucan
       ensureM $ check did rawContent capableUcan
-
 
 checkProofConfig ::
   ( MonadIO          m
@@ -322,7 +318,6 @@ checkProofConfig proof did appName appResource potency = do
       ensureM $ check did rawContent capableUcan 
       return proof
 
-
 checkCapability ::
   ( MonadIO          m
   , MonadLogger      m
@@ -360,7 +355,6 @@ checkCapability requestedResource requestedPotency ucan = do
     Nothing -> do
       putScopeError
       return $ Left ScopeOutOfBounds
-
 
 checkAppRegistration :: 
   ( MonadIO          m
@@ -404,16 +398,6 @@ checkAppRegistration appName proof = do
           "Unable to find an app named " <> appName <>
           ". Is the name right and have you registered it?"
         raise $ NotFound @URL
-
-
-
-delegateApp :: Scope Resource -> Potency -> DID -> Ed25519.SecretKey -> Proof -> Int -> UTCTime -> UCAN
-delegateApp resource potency targetDID sk proof lifetime now =
-  UCAN.mkUCAN targetDID sk start expire [] (Just resource) (Just potency) proof
-    where
-      start  = addUTCTime (secondsToNominalDiffTime (-30))                    now
-      expire = addUTCTime (secondsToNominalDiffTime (fromIntegral lifetime))  now
-
 
 encodeUcan :: UCAN -> Text
 encodeUcan UCAN.Types.UCAN {..} =
