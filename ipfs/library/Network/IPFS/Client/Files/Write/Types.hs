@@ -3,8 +3,6 @@ module Network.IPFS.Client.Files.Write.Types (API) where
 import           Servant.API
 import           Servant.Multipart
 
-import qualified RIO.ByteString.Lazy as Lazy
-
 import           Network.IPFS.Prelude
 import           Network.IPFS.Client.Files.Write.Form.Types
 
@@ -18,5 +16,5 @@ type API
     :> QueryParam' '[] "raw-leaves" Bool          -- (experimental) Use raw blocks for newly created leaf nodes.
     :> QueryParam' '[] "cid-version" Integer      -- (experimental) Cid version to use.
     :> QueryParam' '[] "hash" Text                -- (experimental) Hash function to use.
-    :> MultipartForm Tmp Form
+    :> MultipartForm Mem Form
     :> Post '[JSON] ()

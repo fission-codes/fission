@@ -1,23 +1,25 @@
 module Network.IPFS.Client.Files.Write.Form.Types (Form (..)) where
 
 import           RIO
-import qualified RIO.ByteString.Lazy     as Lazy
 
 import           Servant.Multipart
 import           Servant.Multipart.API
 
+import           Network.Mime
 import qualified Network.IPFS.File.Types as File
 
-newtype Form = Form
+data Form = Form
   { content :: File.Serialized
+  , fileName :: FileName
   }
 
-instance ToMultipart Tmp Form where
-  toMultipart Form { content = File.Serialized fileLBS } =
+instance ToMultipart Mem Form where
+  toMultipart Form { content = File.Serialized fileLBS, fileName } =
     MultipartData
-        [ Input
-          { iName  = "data"
-          , iValue = decodeUtf8Lenient $ Lazy.toStrict fileLBS
-          }
-        ]
-        []
+      []
+      [ FileData
+          "data"
+          fileName
+          (decodeUtf8Lenient $ defaultMimeLookup fileName)
+          fileLBS
+      ]
