@@ -8,7 +8,7 @@ import           Servant.Multipart.API
 
 import qualified Network.IPFS.File.Types as File
 
-data Form = Form
+newtype Form = Form
   { content :: File.Serialized
   }
 

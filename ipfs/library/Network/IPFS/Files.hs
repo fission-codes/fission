@@ -52,7 +52,7 @@ cp cidOrFilePath destination =
 
     Left err -> do
       formattedError <- parseClientError err
-      return <| Left formattedError
+      return $ Left formattedError
 
 
 {-| MFS Removing.
@@ -73,7 +73,7 @@ rm path =
 
     Left err -> do
       formattedError <- parseClientError err
-      return <| Left formattedError
+      return $ Left formattedError
 
 
 {-| MFS CID for path.
@@ -94,7 +94,7 @@ statCID path =
 
     Left err -> do
       formattedError <- parseClientError err
-      return <| Left formattedError
+      return $ Left formattedError
 
 
 {-| MFS Writing.
@@ -127,7 +127,7 @@ write path raw =
 
     Left err -> do
       formattedError <- parseClientError err
-      return <| Left formattedError
+      return $ Left formattedError
 
 
 
@@ -138,18 +138,18 @@ write path raw =
 -}
 parseClientError :: MonadLogger m => ClientError -> m Error
 parseClientError err = do
-  logError <| displayShow err
-  return <| case err of
+  logError $ displayShow err
+  return $ case err of
     FailureResponse _ response ->
       response
         |> responseBody
         |> decode
         |> \case
           Just IPFS.ErrorBody {message} ->
-            IPFSDaemonErr <| UTF8.textShow message
+            IPFSDaemonErr $ UTF8.textShow message
 
           _ ->
-            UnexpectedOutput <| UTF8.textShow err
+            UnexpectedOutput $ UTF8.textShow err
 
     unknownClientError ->
-      UnknownFilesErr <| UTF8.textShow unknownClientError
+      UnknownFilesErr $ UTF8.textShow unknownClientError

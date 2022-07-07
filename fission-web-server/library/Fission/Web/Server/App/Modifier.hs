@@ -120,9 +120,9 @@ appendToDag ::
 appendToDag domainName (DirectoryName appName) (FileName fileName) rawData appCid = do
   let appCidText = unaddress appCid
 
-  let tmpDirPath = Text.concat [ "/", domainName, "/", appName, "/" ]
-  let distDirPath = Text.concat [ tmpDirPath, appCidText, "/" ]
-  let filePath = Text.concat [ distDirPath, "uploads/", fileName ]
+  let tmpDirPath = "/" <> domainName <> "/" <> appName <> "/"
+  let distDirPath = tmpDirPath <> appCidText <> "/"
+  let filePath = distDirPath <> "uploads/" <> fileName
 
   IPFS.Files.cp (Left appCid) (Text.unpack tmpDirPath)
   IPFS.Files.write (Text.unpack filePath) rawData
