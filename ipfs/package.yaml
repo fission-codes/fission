@@ -88,6 +88,7 @@ dependencies:
   - Glob
   - http-media
   - lens
+  - mime-types
   - monad-logger
   - network-ip
   - regex-compat

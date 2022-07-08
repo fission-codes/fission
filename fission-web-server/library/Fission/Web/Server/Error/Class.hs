@@ -11,6 +11,7 @@ import qualified Network.IPFS.Error                                 as IPFS
 import           Network.IPFS.Types
 
 import qualified Network.IPFS.Add.Error                             as Add
+import qualified Network.IPFS.Files.Error                           as Files
 import qualified Network.IPFS.Get.Error                             as Get
 import qualified Network.IPFS.Peer.Error                            as Peer
 
@@ -84,6 +85,7 @@ instance ToServerError Int where
 instance ToServerError IPFS.Error where
   toServerError = \case
     IPFS.AddErr           addErr -> toServerError addErr
+    IPFS.FilesErr         filErr -> toServerError filErr
     IPFS.GetErr           getErr -> toServerError getErr
     IPFS.LinearizationErr linErr -> toServerError linErr
 
@@ -114,6 +116,11 @@ instance ToServerError Add.Error where
     Add.RecursiveAddErr  _ -> err502 { errBody = "Error while adding directory" }
     Add.UnexpectedOutput _ -> err502 { errBody = "Unexpected IPFS result" }
     Add.IPFSDaemonErr  msg -> err502 { errBody = "IPFS Daemon Error: " <> displayLazyBS msg}
+
+instance ToServerError Files.Error where
+  toServerError = \err -> case err of
+    Files.DestinationAlreadyExists -> err422 { errBody = displayLazyBS err }
+    _                              -> err502 { errBody = displayLazyBS err }
 
 instance ToServerError Peer.Error where
   toServerError = \case

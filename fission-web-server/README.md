@@ -57,7 +57,7 @@ To mimic the full "fission stack" for local development, you can use the include
    - `docker compose exec dns-auth pdnsutil add-record fissionuser.test. gateway A "127.0.0.1"`
    - `docker compose exec dns-auth pdnsutil add-record fissionapp.test. gateway A "127.0.0.1"`
 5. Point your local DNS resolver to localhost.
-   - on macOS: this is under System Preferences > Network > Advanced.
+   - on macOS: this is under System Preferences > Network > Advanced (make sure your local IP is at the top of the list)
    - on Linux: Add `nameserver 127.0.0.1` to `/etc/resolv.conf`
 6. Pin the CID for the new app placeholder:
    `docker compose exec ipfs ipfs pin add -r QmRVvvMeMEPi1zerpXYH9df3ATdzuB63R1wf3Mz5NS5HQN`
@@ -85,3 +85,9 @@ If you don't see that, you can try the following steps:
 1. Ensure the local DNS server is set up for the zone, e.g. `dig runfission.test -p 5300 @127.0.0.1`. If that fails, make sure the zone is created (see above).
 2. Ensure the local resolver is working, e.g. `dig runfission.test @127.0.0.1`. If that fails, make sure the zone exists in `.env`.
 3. If `dig runfission.test` still fails, ensure your system is set to use the local resolver. Also, try disabling any VPN software (Tailscale, etc) as they may conflict with DNS resolution.
+
+#### Practical
+
+- Connecting to the database: `docker compose exec postgres psql`
+- You can lookup DNSLinks using `dig -t TXT _dnslink.HOST` (eg. `dig -t TXT _dnslink.icidasset.files.fissionuser.test`)
+- Interacting with the IPFS CLI connected to the IPFS daemon: `docker compose exec ipfs ipfs ...`

@@ -1,6 +1,7 @@
 module Fission.Web.API.Append.Types (RoutesV2 (..)) where
 
 import           Network.IPFS.File.Types                 as File
+import           Network.IPFS.CID.Types
 
 import           Fission.Web.API.Prelude
 
@@ -9,7 +10,7 @@ import qualified Fission.Web.API.Auth.Types              as Auth
 import           Fission.FileSystem.DirectoryName.Types  as DirectoryName
 import           Fission.FileSystem.FileName.Types       as FileName
 
-data RoutesV2 mode = RoutesV2
+newtype RoutesV2 mode = RoutesV2
   { append ::
       mode
       :- Summary     "Append a file"
@@ -21,6 +22,6 @@ data RoutesV2 mode = RoutesV2
       :> ReqBody '[OctetStream] Serialized
       --
       :> Auth.HigherOrder
-      :> PutNoContent
+      :> PutAccepted '[JSON] CID
   }
   deriving Generic

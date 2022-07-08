@@ -109,6 +109,7 @@ import           Fission.Web.Server.Auth.Token.Basic.Class
 import           Fission.Web.Server.Relay.Store.Class
 
 import           Fission.Web.Server.Config.Types
+import Fission.Web.Server.App.Domain (AlreadyAssociated(maybeSubdomain))
 
 -- | The top-level app type
 newtype Server a = Server { unServer :: RIO Config a }
@@ -546,6 +547,12 @@ instance MonadAuth Authorization Server where
 instance App.Domain.Initializer Server where
   initial = asks baseAppDomain
 
+instance App.Domain.Retriever Server where
+  allForOwner         userId                    = runDB $ App.Domain.allForOwner userId
+  allForApp           appId                     = runDB $ App.Domain.allForApp appId
+  allSiblingsByDomain domainName maybeSubdomain = runDB $ App.Domain.allSiblingsByDomain domainName maybeSubdomain
+  primarySibling      userId url                = runDB $ App.Domain.primarySibling userId url
+
 instance App.Content.Initializer Server where
   placeholder = asks appPlaceholder
 
@@ -906,4 +913,3 @@ runUserUpdate updateDB dbValToTxt uID subdomain =
           PowerDNS.set TXT url (textDisplay zoneID) segments 10 >>= \case
             Left serverErr -> return $ Error.openLeft serverErr
             Right _        -> return $ Right dbVal
-
