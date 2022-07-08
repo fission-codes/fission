@@ -63,7 +63,7 @@ addFile ::
   -> DirectoryName
   -> FileName
   -> Lazy.ByteString
-  -> m (Either Errors' ())
+  -> m (Either Errors' CID)
 addFile userId appName@(DirectoryName appNameText) fileName rawData = do
   now           <- currentTime
   domainName    <- asks baseAppDomain
@@ -86,8 +86,8 @@ addFile userId appName@(DirectoryName appNameText) fileName rawData = do
           Left err ->
             return $ Left err
 
-          Right newCID ->
-            IPFS.Stat.getSizeRemote newCID >>= \case
+          Right (fileCid, newCid) ->
+            IPFS.Stat.getSizeRemote newCid >>= \case
               Left err ->
                 return . Error.openLeft $ err
 
@@ -97,11 +97,11 @@ addFile userId appName@(DirectoryName appNameText) fileName rawData = do
                     return . Error.openLeft $ err
 
                   Right Domain {domainZoneId} -> do
-                    DNSLink.set userId url domainZoneId newCID >>= \case
+                    DNSLink.set userId url domainZoneId newCid >>= \case
                       Left err -> return . Error.openLeft $ err
                       Right _  -> do
-                        runDB (setCIDDirectly now appId size newCID)
-                        return $ Right ()
+                        runDB (setCIDDirectly now appId size newCid)
+                        return $ Right fileCid
 
       else
         return . Error.openLeft $ ActionNotAuthorized @App userId
@@ -116,7 +116,7 @@ appendToDag ::
   -> FileName
   -> Lazy.ByteString
   -> CID
-  -> m (Either Errors' CID)
+  -> m (Either Errors' (CID, CID))
 appendToDag domainName (DirectoryName appName) (FileName fileName) rawData appCid = do
   let appCidText = unaddress appCid
 
@@ -126,16 +126,22 @@ appendToDag domainName (DirectoryName appName) (FileName fileName) rawData appCi
 
   IPFS.Files.cp (Left appCid) (Text.unpack tmpDirPath)
   IPFS.Files.write (Text.unpack filePath) rawData
-  IPFS.Files.statCID (Text.unpack distDirPath) >>= \case
 
-    Left err ->
+  maybefileCid <- IPFS.Files.statCID (Text.unpack filePath)
+  maybedirCid <- IPFS.Files.statCID (Text.unpack distDirPath)
+
+  case (maybefileCid, maybedirCid) of
+    (Left err, _) ->
       return . Error.openLeft $ err
 
-    Right newCID -> do
-      _ <- IPFS.Pin.add newCID
+    (_, Left err) ->
+      return . Error.openLeft $ err
+
+    (Right fileCid, Right newAppCid) -> do
+      _ <- IPFS.Pin.add newAppCid
       IPFS.Files.rm (Text.unpack distDirPath)
 
-      return $ Right newCID
+      return $ Right (fileCid, newAppCid)
 
 
 setCidDB ::

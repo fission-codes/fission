@@ -1,6 +1,5 @@
 module Network.IPFS.Client.Files
   ( API
-  , module Statistics
   ) where
 
 import           Servant.API

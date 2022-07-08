@@ -37,5 +37,5 @@ handlerV2 ::
 handlerV2 = Append.RoutesV2 {append}
   where
     append appName fileName (Serialized rawData) Authorization {about = Entity userId _} = do
-      Web.Err.ensureM $ App.addFile userId appName fileName rawData
-      return NoContent
+      cid <- Web.Err.ensureM $ App.addFile userId appName fileName rawData
+      return cid

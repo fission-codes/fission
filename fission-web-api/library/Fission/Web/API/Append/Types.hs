@@ -1,6 +1,7 @@
 module Fission.Web.API.Append.Types (RoutesV2 (..)) where
 
 import           Network.IPFS.File.Types                 as File
+import           Network.IPFS.CID.Types
 
 import           Fission.Web.API.Prelude
 
@@ -21,6 +22,6 @@ newtype RoutesV2 mode = RoutesV2
       :> ReqBody '[OctetStream] Serialized
       --
       :> Auth.HigherOrder
-      :> PutNoContent
+      :> PutAccepted '[JSON] CID
   }
   deriving Generic
