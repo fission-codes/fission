@@ -46,8 +46,8 @@ parser = do
     ]
 
   potency <- option parseAbility $ mconcat
-    [ help    "The potency to delegate. Options include AppendOnly, Destroy, or Super_User."
-    , showDefaultWith $ \_ -> show @Text "AppendOnly"
+    [ help    "The potency to delegate. Options include Append, Destroy, or Super_User."
+    , showDefaultWith $ \_ -> show @Text "Append"
     -----------
     , long    "potency"
     , short   'p'

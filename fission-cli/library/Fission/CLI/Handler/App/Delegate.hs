@@ -119,7 +119,7 @@ delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
 
         ptc <- case potency of
           Left err -> do
-            CLI.Error.put err "Could not parse potency. Potency must be AppendOnly, Destructive, or Super_User."
+            CLI.Error.put err "Could not parse potency. Potency must be Append, Destructive, and Super_User."
             raise $ ParseError @Potency
 
           Right ptc ->
