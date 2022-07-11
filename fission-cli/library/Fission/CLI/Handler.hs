@@ -1,5 +1,6 @@
 module Fission.CLI.Handler
-  ( module Fission.CLI.Handler.App.Info
+  ( module Fission.CLI.Handler.App.Delegate
+  , module Fission.CLI.Handler.App.Info
   , module Fission.CLI.Handler.App.Init
   , module Fission.CLI.Handler.App.Publish
   --
@@ -9,6 +10,8 @@ module Fission.CLI.Handler
   , module Fission.CLI.Handler.User.Register
   , module Fission.CLI.Handler.User.Whoami
   ) where
+
+import           Fission.CLI.Handler.App.Delegate
 
 import           Fission.CLI.Handler.App.Info
 import           Fission.CLI.Handler.App.Init

@@ -4,6 +4,7 @@ module Fission.Web.Auth.Token.UCAN
   , mkUCAN
   , delegateSuperUser
   , delegateAppendAll
+  , delegateWithLifetime
   , simpleWNFS
   , proveWNFS
   , prettyPrintGrants
@@ -125,6 +126,21 @@ delegateSuperUser targetDID sk proof now =
   where
     start  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expire = addUTCTime (nominalDay * 365 * 255)         now
+
+delegateWithLifetime ::
+     DID
+  -> Ed25519.SecretKey
+  -> Scope Resource
+  -> Potency
+  -> Fission.Proof
+  -> Int
+  -> UTCTime
+  -> Fission.UCAN
+delegateWithLifetime targetDID sk resource potency proof lifetime now =
+  mkUCAN targetDID sk start expire [] (Just resource) (Just potency) proof
+    where
+      start  = addUTCTime (secondsToNominalDiffTime (-30))                    now
+      expire = addUTCTime (secondsToNominalDiffTime (fromIntegral lifetime))  now
 
 mkUCAN ::
      DID
