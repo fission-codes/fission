@@ -43,7 +43,7 @@
           };
 
           # The default version of HLS (with binary cache) is built with GHC 9.0.1
-          # We can get this version working with our current set up, but it builds 
+          # We can get this version working with our current set up, but it builds
           # from source (and takes a long time).
           #
           # The prebuilt package is marked as broken on aarch64-darwin
@@ -57,6 +57,7 @@
               haskellPackages.haskell-language-server
               pkgs.cachix
               pkgs.nixpkgs-fmt
+              pkgs.secp256k1
               pkgs.stylish-haskell
               tasks
             ];
