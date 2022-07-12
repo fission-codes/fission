@@ -129,7 +129,7 @@ createAccount maybeUsername maybeEmail = do
   let
     form = Registration
       { username
-      , email
+      , email      = Just email
       , password   = Nothing
       , exchangePK = Just exchangePK
       }

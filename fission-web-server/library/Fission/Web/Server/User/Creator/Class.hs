@@ -56,14 +56,14 @@ class Heroku.AddOn.Creator m => Creator m where
   create ::
        Username
     -> Key.Public
-    -> Email
+    -> Maybe Email
     -> UTCTime
     -> m (Either Errors' UserId)
 
   createWithPassword ::
        Username
     -> Password
-    -> Email
+    -> Maybe Email
     -> UTCTime
     -> m (Either Errors' UserId)
 

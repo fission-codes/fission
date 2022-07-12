@@ -223,7 +223,7 @@ start middleware runner = do
     logInfo @Text "🙋 Ensuring default user is in DB"
     userId <- User.getByPublicKey serverPK >>= \case
       Just (Entity userId _) -> return userId
-      Nothing -> Web.Error.ensureM $ User.createDB "fission" serverPK "hello@fission.codes" now
+      Nothing -> Web.Error.ensureM $ User.createDB "fission" serverPK (Just "hello@fission.codes") now
 
     logInfo @Text "💽 Ensuring default data domain domains is in DB"
     Domain.getByDomainName userRootDomain >>= \case
