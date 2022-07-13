@@ -37,10 +37,10 @@ createDB ::
      MonadIO m
   => Username
   -> Key.Public
-  -> Email
+  -> Maybe Email
   -> UTCTime
   -> Transaction m (Either Errors' UserId)
-createDB username pk email now =
+createDB username pk mayEmail now =
   insertUnique user >>= \case
     Just userId -> return $ Right userId
     Nothing     -> determineConflict username (Just pk)
@@ -50,7 +50,7 @@ createDB username pk email now =
         { userPublicKey     = Just pk
         , userExchangeKeys  = Just []
         , userUsername      = username
-        , userEmail         = Just email
+        , userEmail         = mayEmail
         , userRole          = Regular
         , userActive        = True
         , userVerified      = False
@@ -66,10 +66,10 @@ createWithPasswordDB ::
      MonadIO m
   => Username
   -> Password
-  -> Email
+  -> Maybe Email
   -> UTCTime
   -> Transaction m (Either Errors' UserId)
-createWithPasswordDB username password email now =
+createWithPasswordDB username password mayEmail now =
   Password.hashPassword password >>= \case
     Left err ->
       return $ Error.openLeft err
@@ -79,7 +79,7 @@ createWithPasswordDB username password email now =
         { userPublicKey     = Nothing
         , userExchangeKeys  = Just []
         , userUsername      = username
-        , userEmail         = Just email
+        , userEmail         = mayEmail
         , userRole          = Regular
         , userActive        = True
         , userVerified      = False

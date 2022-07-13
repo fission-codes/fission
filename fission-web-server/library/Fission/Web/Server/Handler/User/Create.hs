@@ -45,12 +45,19 @@ withDID ::
   , Challenge.Creator m
   )
   => ServerT User.Create.WithDID m
-withDID User.Registration {username, email} (DID.Key publicKey) = do
+withDID User.Registration {username, email = mayEmail} (DID.Key publicKey) = do
   now       <- currentTime
-  userId    <- Web.Err.ensureM $ User.create username publicKey email now
+  userId    <- Web.Err.ensureM $ User.create username publicKey mayEmail now
   challenge <- Web.Err.ensureM $ Challenge.create userId
-  Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
-  return NoContent
+
+  case mayEmail of
+    Just email -> do
+      Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
+      return NoContent
+
+    Nothing ->
+      return NoContent
+
 
 withPassword ::
   ( MonadDNSLink      m
@@ -64,9 +71,15 @@ withPassword ::
 withPassword User.Registration {password = Nothing} =
   Web.Err.throw err422 { errBody = "Missing password" }
 
-withPassword User.Registration {username, password = Just pass, email} = do
+withPassword User.Registration {username, password = Just pass, email = mayEmail} = do
   now <- currentTime
-  userId <- Web.Err.ensureM $ User.createWithPassword username pass email now
+  userId <- Web.Err.ensureM $ User.createWithPassword username pass mayEmail now
   challenge <- Web.Err.ensureM $ Challenge.create userId
-  Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
-  return ()
+
+  case mayEmail of
+    Just email -> do
+      Web.Err.ensureM $ sendVerificationEmail (Recipient email username) challenge
+      return ()
+
+    Nothing ->
+      return ()
