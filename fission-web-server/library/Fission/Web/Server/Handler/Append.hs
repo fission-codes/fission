@@ -4,7 +4,6 @@ import           Fission.Web.Server.IPFS.DNSLink.Class
 import           Network.IPFS.File.Types                            as File
 import           Network.IPFS.Remote.Class (MonadRemoteIPFS)
 
-import           Servant
 import           Servant.Server.Generic
 
 import           Fission.Prelude
@@ -36,6 +35,6 @@ handlerV2 ::
   => Append.RoutesV2 (AsServerT m)
 handlerV2 = Append.RoutesV2 {append}
   where
-    append appName fileName (Serialized rawData) Authorization {about = Entity userId _} = do
-      cid <- Web.Err.ensureM $ App.addFile userId appName fileName rawData
+    append appName fileName (Serialized rawData) Authorization {about = Entity userId _, potency, resource} = do
+      cid <- Web.Err.ensureM $ App.addFile userId appName fileName rawData potency resource
       return cid

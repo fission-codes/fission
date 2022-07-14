@@ -23,6 +23,8 @@ import           Fission.Web.Server.Error.ActionNotAuthorized.Types
 import           Fission.Web.Server.Models
 import           Fission.Web.Server.MonadDB.Types (Transaction)
 
+import qualified Fission.Web.Auth.Token.UCAN.Resource.Types         as Ucan
+
 
 type Errors' = OpenUnion
   '[ NotFound App
@@ -33,6 +35,7 @@ type Errors' = OpenUnion
    , ActionNotAuthorized App
    , ActionNotAuthorized AppDomain
    , ActionNotAuthorized URL
+   , ActionNotAuthorized Ucan.Resource
 
    , IPFS.Files.Error
    , IPFS.Pin.Error

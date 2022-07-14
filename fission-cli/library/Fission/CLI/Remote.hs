@@ -1,5 +1,6 @@
 module Fission.CLI.Remote
-  ( getRemoteURL
+  ( getAppDomain
+  , getRemoteURL
   , getRemoteBaseUrl
   , getNameService
   , getIpfsGateway
@@ -16,6 +17,9 @@ import           Fission.URL.Types
 import           Fission.Web.API.Remote
 
 import           Fission.CLI.Remote.Class
+
+getAppDomain :: MonadRemote m => m URL
+getAppDomain = toAppDomain <$> getRemote
 
 getRemoteBaseUrl :: MonadRemote m => m BaseUrl
 getRemoteBaseUrl = toBaseUrl <$> getRemote
