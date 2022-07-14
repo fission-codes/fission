@@ -76,7 +76,7 @@ appInit appDir mayBuildDir' mayAppName = do
 
       CLI.Success.putOk $ "App initialized as " <> textDisplay appURL
 
-      UTF8.putText "⏯️  Next run "
+      UTF8.putText "⏯️  Next, run "
 
       colourized [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Blue] do
         UTF8.putText "fission app publish [--open|--watch]"
