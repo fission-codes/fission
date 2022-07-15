@@ -24,6 +24,7 @@ import qualified Fission.Web.Server.User                      as User
 import           Fission.Web.Server.WNFS
 
 import qualified Fission.Web.Server.Handler.App               as App
+import qualified Fission.Web.Server.Handler.Append            as Append
 import qualified Fission.Web.Server.Handler.DNS               as DNS
 import qualified Fission.Web.Server.Handler.Heroku            as Heroku
 import qualified Fission.Web.Server.Handler.IPFS              as IPFS
@@ -37,10 +38,12 @@ import qualified Fission.Web.Server.LoosePin                  as LoosePin
 import qualified Fission.Web.Server.App                       as App
 import qualified Fission.Web.Server.App.Content               as App.Content
 import qualified Fission.Web.Server.App.Domain                as App.Domain
+import qualified Fission.Web.Server.Domain.Retriever.Class    as Domain
 
 import           Fission.Web.Server.Handler
 import qualified Fission.Web.Server.Handler.Auth.UCAN         as Auth.UCAN
 
+import           Fission.Web.Server.Config.Types
 import           Fission.Web.Server.IPFS.Cluster              as Cluster
 import           Fission.Web.Server.IPFS.Linked
 import           Fission.Web.Server.MonadDB
@@ -58,8 +61,10 @@ import qualified Paths_fission_web_server                     as Fission
 -- | Top level web API type. Handled by 'server'.
 app :: forall m t .
   ( App.Domain.Initializer      m
+  , App.Domain.Retriever        m
   , App.Content.Initializer     m
   , App.CRUD                    m
+  , Domain.Retriever            m
   , Proof.Resolver              m
   , MonadReflectiveServer       m
   , MonadRelayStore             m
@@ -69,6 +74,7 @@ app :: forall m t .
   , MonadDNSLink                m
   , MonadWNFS                   m
   , MonadLogger                 m
+  , MonadReader Config          m
   , MonadTime                   m
   , MonadEmail                  m
   , User.CRUD                   m
@@ -85,6 +91,7 @@ app :: forall m t .
   , LoosePin.CRUD             t
   , User.Retriever            t
   , User.Destroyer            t
+  , App.Modifier              t
   , App.Retriever             t
   , App.Domain.Retriever      t
   )
@@ -104,8 +111,10 @@ app handlerNT authChecks appHost =
 -- | Web handlers for the 'API'
 server ::
   ( App.Domain.Initializer      m
+  , App.Domain.Retriever        m
   , App.Content.Initializer     m
   , App.CRUD                    m
+  , Domain.Retriever            m
   , Proof.Resolver              m
   , MonadReflectiveServer       m
   , MonadRelayStore             m
@@ -115,6 +124,7 @@ server ::
   , MonadDNSLink                m
   , MonadWNFS                   m
   , MonadLogger                 m
+  , MonadReader Config          m
   , MonadTime                   m
   , MonadEmail                  m
   , User.CRUD                   m
@@ -131,6 +141,7 @@ server ::
   , LoosePin.CRUD             t
   , User.Retriever            t
   , User.Destroyer            t
+  , App.Modifier              t
   , App.Retriever             t
   , App.Domain.Retriever      t
   )
@@ -158,6 +169,7 @@ server appHost =
         , app    = genericServerT App.handlerV2
         , user   = genericServerT User.handlerV2
         , auth   = genericServerT Auth.UCAN.handler
+        , append = genericServerT Append.handlerV2
       }
 
     serverV_ =
@@ -171,4 +183,4 @@ server appHost =
       }
 
     v2Docs =
-      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v2" :> (ToServantApi Fission.RoutesV2)))
+      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v2" :> ToServantApi Fission.RoutesV2))
