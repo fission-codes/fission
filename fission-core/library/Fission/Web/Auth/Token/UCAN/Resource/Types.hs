@@ -2,7 +2,8 @@ module Fission.Web.Auth.Token.UCAN.Resource.Types (Resource (..)) where
 
 import           Fission.Prelude
 
-import           Fission.URL
+import           Fission.URL.DomainName.Types ( DomainName )
+import           Fission.URL.Types ( URL )
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 import qualified Data.Bits                                        as Bits

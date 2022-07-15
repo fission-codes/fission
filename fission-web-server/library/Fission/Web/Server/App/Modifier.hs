@@ -39,6 +39,12 @@ import           Fission.Web.Server.MonadDB.Class (MonadDB(..))
 import           Fission.Web.Server.MonadDB.Types (Transaction)
 import           Fission.Web.Server.Ownership
 
+import           Fission.Web.Auth.Token.UCAN.Resource.Types
+import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
+import           Fission.Web.Auth.Token.UCAN.Potency.Types
+
+import           Web.UCAN.Proof                                     as UCAN.Proof
+
 
 {-| Adds a file to an app.
 
@@ -63,25 +69,37 @@ addFile ::
   -> DirectoryName
   -> FileName
   -> Lazy.ByteString
+  -> Maybe Potency
+  -> Scope Resource
   -> m (Either Errors' CID)
-addFile userId appName@(DirectoryName appNameText) fileName rawData = do
+addFile userId appName@(DirectoryName appNameText) fileName rawData maybePtc rsc = do
   now           <- currentTime
   domainName    <- asks baseAppDomain
 
   let subdomain = Subdomain appNameText
   let url = URL domainName (Just subdomain)
 
+  let resourceNeeded = Subset $ FissionApp (Subset url)
+  logDebug $ show rsc
+  logDebug $ show resourceNeeded
+  let hasResource = rsc `canDelegate` resourceNeeded
+
   mayApp        <- App.Retriever.byURL userId url
 
-  case mayApp of
-    Left _ -> do
+  case (hasResource, mayApp) of
+    (False, _) ->
+      return . Error.openLeft $ ActionNotAuthorized @Resource userId
+
+    (True, Left _) -> do
       return . Error.openLeft $ NotFound @App
 
-    Right (Entity appId app@App {appCid}) ->
+    (True, Right (Entity appId app@App {appCid})) ->
       if isOwnedBy userId app then do
         -- Update DAG, DNSLink & DB
         let (DomainName domainNameTxt) = domainName
 
+        -- TODO: Pass potency `maybePtc` to the following function, based on this
+        --       it should, or should not, be able to overwrite a file.
         appendToDag domainNameTxt appName fileName rawData appCid >>= \case
           Left err ->
             return $ Left err

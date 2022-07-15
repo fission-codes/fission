@@ -62,7 +62,7 @@ import           Web.UCAN.Validation                              (check)
 -- | Delegate capabilities to a DID
 delegate ::
   ( MonadIO          m
-  , MonadLogger      m 
+  , MonadLogger      m
   , MonadRandom      m
   , MonadTime        m
 
@@ -109,12 +109,13 @@ delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
         raise $ ParseError @DID
 
       Right did -> do
-        remoteUrl <- getRemoteURL
-        logDebug $ "Remote URL: " <> show remoteUrl
+        appUrl <- getAppDomain
+
+        logDebug $ "Application domain: " <> show appUrl
 
         let
-          URL { domainName } = remoteUrl
-          url = URL { domainName, subdomain = Just $ Subdomain appName}
+          URL { domainName } = appUrl
+          url = URL { domainName, subdomain = Just $ Subdomain appName }
           appResource = Subset $ FissionApp (Subset url)
 
         ptc <- case potency of
@@ -132,7 +133,7 @@ delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
           Right (signingKey, proof) -> do
             now <- getCurrentTime
 
-            let 
+            let
               ucan = UCAN.delegateWithLifetime did signingKey appResource ptc proof lifetimeInSeconds now
               encodedUcan = encodeUcan ucan
 
@@ -147,7 +148,7 @@ delegate appName potency audienceDid lifetimeInSeconds (QuietFlag quiet) = do
 
 getCredentialsFor ::
   ( MonadIO          m
-  , MonadLogger      m 
+  , MonadLogger      m
   , MonadRandom      m
   , MonadTime        m
 
@@ -175,8 +176,8 @@ getCredentialsFor ::
 
   , Contains (Errors m) (Errors m)
   , Show     (OpenUnion (Errors m))
-  ) 
-  => Text 
+  )
+  => Text
   -> Scope Resource
   -> Potency
   -> m (SecretKey SigningKey, Proof)
@@ -253,7 +254,7 @@ checkProofEnvVar ::
   -> DID
   -> Scope Resource
   -> Potency
-  -> m UCAN 
+  -> m UCAN
 checkProofEnvVar token did resource potency = do
   let tokenBS = Char8.pack $ wrapIn "\"" token
 
@@ -261,7 +262,7 @@ checkProofEnvVar token did resource potency = do
     Left err -> do
       CLI.Error.put err "Unable to parse UCAN set in FISSION_APP_UCAN environment variable"
       raise $ ParseError @UCAN
-          
+
     Right ucan -> do
       let rawContent = UCAN.RawContent.contentOf (decodeUtf8Lenient tokenBS)
       capableUcan <- ensureM $ checkCapability resource potency ucan
@@ -293,7 +294,7 @@ checkProofConfig ::
   -> Text
   -> Scope Resource
   -> Potency
-  -> m Proof 
+  -> m Proof
 checkProofConfig proof did appName appResource potency = do
   case proof of
     UCAN.Types.RootCredential -> do
@@ -315,7 +316,7 @@ checkProofConfig proof did appName appResource potency = do
       ucan <- ensure $ parseToken proofTokenBS
 
       capableUcan <- ensureM $ checkCapability appResource potency ucan
-      ensureM $ check did rawContent capableUcan 
+      ensureM $ check did rawContent capableUcan
       return proof
 
 checkCapability ::
@@ -356,9 +357,9 @@ checkCapability requestedResource requestedPotency ucan = do
       putScopeError
       return $ Left ScopeOutOfBounds
 
-checkAppRegistration :: 
+checkAppRegistration ::
   ( MonadIO          m
-  , MonadLogger      m 
+  , MonadLogger      m
   , MonadTime        m
   , MonadWebClient   m
   , ServerDID        m
@@ -373,8 +374,8 @@ checkAppRegistration ::
   , Contains (Errors m) (Errors m)
   , Show     (OpenUnion (Errors m))
   )
-  => Text 
-  -> Proof 
+  => Text
+  -> Proof
   -> m (Either (ErrorCase m) Bool)
 checkAppRegistration appName proof = do
   attempt (sendAuthedRequest proof appIndex) >>= \case

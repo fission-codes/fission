@@ -1,6 +1,7 @@
 module Fission.Web.API.Remote
   ( Remote (..)
   , fromText
+  , toAppDomain
   , toBaseUrl
   , toURL
   , toNameService
@@ -50,6 +51,17 @@ fromText txt =
     "dev"         -> pure LocalDev
 
     custom        -> Custom <$> parseBaseUrl (Text.unpack custom)
+
+toAppDomain :: Remote -> URL
+toAppDomain = \case
+  Production -> URL "fission.app"    Nothing
+  Staging    -> URL "fissionapp.net" Nothing
+  LocalDev   -> URL "localhost"      Nothing
+  Custom url ->
+    if Text.isSuffixOf ".test" (textDisplay $ baseUrlHost url) then
+      URL "fissionapp.test" Nothing
+    else
+      URL.fromBaseUrl url
 
 toBaseUrl :: Remote -> BaseUrl
 toBaseUrl = \case
