@@ -107,9 +107,9 @@ dependencies:
   - cryptonite
   - cryptostore
   - HsOpenSSL
+  - libsecp256k1
   - pem
   - RSA
-  - secp256k1-haskell
 
   ## Data ##
   - aeson
@@ -156,8 +156,6 @@ dependencies:
   - servant-swagger
   - swagger2
   - x509
-
-extra-libraries: [ "libsecp256k1" ]
 
 library:
   source-dirs: library

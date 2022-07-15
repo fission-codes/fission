@@ -48,6 +48,13 @@ packages:
     hackage: lzma-clib-5.2.2
 - completed:
     pantry-tree:
+      sha256: 9713733dbf509b8af64449ea9b4b3d1ee518cb1e7e61c03a8a9297fa29c3b274
+      size: 901
+    hackage: libsecp256k1-0.1.0@sha256:c8de65c640e2e36b14947db00366228d550881640f5e61f496aeb2249966039c,1898
+  original:
+    hackage: libsecp256k1-0.1.0
+- completed:
+    pantry-tree:
       sha256: 19c2aaf9c09d341108777e3a4de975841f81518ed271b156983d25ec622dd266
       size: 632
     hackage: raven-haskell-0.1.4.0@sha256:64eca8650d140fc853a951af0cf4e2ce255b90491b9e3014d82be2e79593c43a,1251
