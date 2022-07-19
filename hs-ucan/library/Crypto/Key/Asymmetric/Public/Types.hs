@@ -35,7 +35,7 @@ instance Show Public where
 instance Display Public where
   textDisplay (Ed25519PublicKey   pk) = textDisplay pk
   textDisplay (RSAPublicKey       pk) = textDisplay pk
-  textDisplay (Secp256k1PublicKey pk) = Text.pack $ show pk
+  textDisplay (Secp256k1PublicKey pk) = textDisplay pk
 
 instance Arbitrary Public where
   arbitrary = oneof
