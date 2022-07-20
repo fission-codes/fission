@@ -10,6 +10,8 @@ import           Database.Persist.Sql
 import           Control.Lens                                     ((?~))
 import           Data.Aeson
 import           RIO
+import qualified RIO.List                                         as List
+import qualified RIO.Map                                          as Map
 import qualified RIO.Text                                         as Text
 import           Servant.API
 import           Test.QuickCheck
@@ -24,7 +26,7 @@ data Public
   = Ed25519PublicKey   Crypto.Ed25519.PublicKey
   | RSAPublicKey       Crypto.RSA.PublicKey
   | Secp256k1PublicKey Crypto.Secp256k1.PubKeyXY
-  deriving Eq
+  deriving (Eq)
 
 instance Show Public where
   show = \case
@@ -66,11 +68,22 @@ instance ToJSON Public where
   toJSON = String . textDisplay
 
 instance PersistField Public where
-  toPersistValue =
-    PersistText . textDisplay
+  toPersistValue key =
+    PersistMap
+      [ ( "type", PersistText . toConstructor $ key )
+      , ( "key", PersistText . textDisplay $ key )
+      ]
 
-  fromPersistValue (PersistText txt) =
-    parseUrlPiece txt
+  fromPersistValue (PersistMap list) =
+    let
+      map = Map.fromList list
+    in
+    case (Map.lookup "type" map, Map.lookup "key" map) of
+      (Just (PersistText typ), Just (PersistText key)) ->
+        fromConstructor typ key
+
+      _ ->
+        Left "Couldn't find 'type' and 'key' map properties"
 
   fromPersistValue other =
     Left $ "Invalid Persistent PK: " <> Text.pack (show other)
@@ -85,3 +98,19 @@ instance ToSchema Public where
       & description ?~ "A public key"
       & NamedSchema (Just "PublicKey")
       & pure
+
+
+
+-- CONSTRUCTORS
+
+
+fromConstructor :: Text -> Text -> Either Text Public
+fromConstructor "Ed25519PublicKey"   = fmap Ed25519PublicKey . parseUrlPiece
+fromConstructor "RSAPublicKey"       = fmap RSAPublicKey . parseUrlPiece
+fromConstructor "Secp256k1PublicKey" = fmap Secp256k1PublicKey . parseUrlPiece
+fromConstructor _                    = \_ -> Left "Invalid Public.Key constructor"
+
+toConstructor :: Public -> Text
+toConstructor (Ed25519PublicKey _)   = "Ed25519PublicKey"
+toConstructor (RSAPublicKey _)       = "RSAPublicKey"
+toConstructor (Secp256k1PublicKey _) = "Secp256k1PublicKey"
