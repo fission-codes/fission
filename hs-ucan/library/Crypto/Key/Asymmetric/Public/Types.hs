@@ -10,7 +10,6 @@ import           Database.Persist.Sql
 import           Control.Lens                                     ((?~))
 import           Data.Aeson
 import           RIO
-import qualified RIO.List                                         as List
 import qualified RIO.Map                                          as Map
 import qualified RIO.Text                                         as Text
 import           Servant.API
@@ -69,21 +68,29 @@ instance ToJSON Public where
 
 instance PersistField Public where
   toPersistValue key =
-    PersistMap
-      [ ( "type", PersistText . toConstructor $ key )
-      , ( "key", PersistText . textDisplay $ key )
-      ]
+    -- PersistMap
+    --   [ ( "type", PersistText . toConstructor $ key )
+    --   , ( "key", PersistText . textDisplay $ key )
+    --   ]
+    PersistText . textDisplay $ key
 
   fromPersistValue (PersistMap list) =
     let
-      map = Map.fromList list
+      m = Map.fromList list
     in
-    case (Map.lookup "type" map, Map.lookup "key" map) of
+    case
+      ( Map.lookup "type" m
+      , Map.lookup "key" m
+      )
+    of
       (Just (PersistText typ), Just (PersistText key)) ->
         fromConstructor typ key
 
       _ ->
         Left "Couldn't find 'type' and 'key' map properties"
+
+  fromPersistValue (PersistText text) =
+    parseUrlPiece text
 
   fromPersistValue other =
     Left $ "Invalid Persistent PK: " <> Text.pack (show other)
