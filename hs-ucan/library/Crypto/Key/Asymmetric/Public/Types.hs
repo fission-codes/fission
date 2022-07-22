@@ -68,11 +68,10 @@ instance ToJSON Public where
 
 instance PersistField Public where
   toPersistValue key =
-    -- PersistMap
-    --   [ ( "type", PersistText . toConstructor $ key )
-    --   , ( "key", PersistText . textDisplay $ key )
-    --   ]
-    PersistText . textDisplay $ key
+    PersistMap
+      [ ( "type", PersistText . toConstructor $ key )
+      , ( "key", PersistText . textDisplay $ key )
+      ]
 
   fromPersistValue (PersistMap list) =
     let
