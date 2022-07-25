@@ -8,9 +8,10 @@ import           Data.Swagger
 import           Database.Persist.Sql
 
 import           Control.Lens                                     ((?~))
-import           Data.Aeson
+import           Data.Aeson                                       as Json
+import qualified Data.Aeson.Types                                 as Json
 import           RIO
-import qualified RIO.Map                                          as Map
+import qualified RIO.ByteString.Lazy                              as Lazy
 import qualified RIO.Text                                         as Text
 import           Servant.API
 import           Test.QuickCheck
@@ -49,44 +50,31 @@ instance ToHttpApiData Public where
   toUrlPiece = textDisplay
 
 instance FromHttpApiData Public where
-  parseUrlPiece txt =
-    if "MII" `Text.isPrefixOf` txt
-      then RSAPublicKey     <$> parseUrlPiece txt
-      else Ed25519PublicKey <$> parseUrlPiece txt
+  parseUrlPiece text =
+    case (Json.decode . Lazy.fromStrict . Text.encodeUtf8 $ text) :: Maybe Public of
+      Just pub -> Right pub
+      Nothing -> Left "Failed to decode the JSON formatted public key"
 
 instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
 
 instance FromJSON Public where
-  parseJSON = withText "PublicKey" \txt ->
-    case parseUrlPiece txt of
-      Right pk -> return pk
-      Left msg -> fail $ Text.unpack msg
+  parseJSON =
+    withObject "PublicKey" \j ->
+      ((,) <$> j .: "type" <*> j .: "key") >>= \(t, k) ->
+      case fromConstructor t k of
+        Right pub -> return pub
+        Left err -> Json.parseFail (Text.unpack err)
 
 instance ToJSON Public where
-  toJSON = String . textDisplay
+  toJSON key = object
+    [ "type" .= toConstructor key
+    , "key"  .= textDisplay key
+    ]
 
 instance PersistField Public where
-  toPersistValue key =
-    PersistMap
-      [ ( "type", PersistText . toConstructor $ key )
-      , ( "key", PersistText . textDisplay $ key )
-      ]
-
-  fromPersistValue (PersistMap list) =
-    let
-      m = Map.fromList list
-    in
-    case
-      ( Map.lookup "type" m
-      , Map.lookup "key" m
-      )
-    of
-      (Just (PersistText typ), Just (PersistText key)) ->
-        fromConstructor typ key
-
-      _ ->
-        Left "Couldn't find 'type' and 'key' map properties"
+  toPersistValue =
+    PersistText . decodeUtf8Lenient . Lazy.toStrict . Json.encode . toJSON
 
   fromPersistValue (PersistText text) =
     parseUrlPiece text
