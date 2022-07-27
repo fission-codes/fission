@@ -116,6 +116,12 @@ spec =
             it ("Deserializes vector #" <> show idx <> " to a valid DID") $
               eitherDecode (encode bs) `shouldSatisfy` isRSADidKey
 
+      describe "SECP256K1" do
+        describe "did:key test vectors" do
+          testVectorsSecp256k1 & foldMapM \(idx, bs) ->
+            it ("Deserializes vector #" <> show idx <> " to a valid DID") $
+              eitherDecode (encode bs) `shouldSatisfy` isSecp256k1DidKey
+
 
 runSignatureTest :: Alg.Algorithm -> Text -> ByteString -> Text -> JSON.Result (Either Signature.Error Bool)
 runSignatureTest alg didEncoded signedData sigEncoded =
@@ -152,12 +158,17 @@ bobHelloWorldSignature = "PV9pjuzha64gVXCUHghTN3aa6r1lKFOdmH4OJPshDBEgqATA06jWoj
 rsaDIDEncoded :: Text
 rsaDIDEncoded = "did:key:z4MXj1wBzi9jUstyNvmiK5WLRRL4rr9UvzPxhry1CudCLKWLyMbP1WoTwDfttBTpxDKf5hAJEjqNbeYx2EEvrJmSWHAu7TJRPTrE3QodbMfRvRNRDyYvaN1FSQus2ziS1rWXwAi5Gpc16bY3JwjyLCPJLfdRWHZhRXiay5FWEkfoSKy6aftnzAvqNkKBg2AxgzGMinR6d1WiH4w5mEXFtUeZkeo4uwtRTd8rD9BoVaHVkGwJkksDybE23CsBNXiNfbweFVRcwfTMhcQsTsYhUWDcSC6QE3zt9h4Rsrj7XRYdwYSK5bc1qFRsg5HULKBp2uZ1gcayiW2FqHFcMRjBieC4LnSMSD1AZB1WUncVRbPpVkn1UGhCU"
 
+secp256k1DIDEncoded :: Text
+secp256k1DIDEncoded = "did:key:zQ3shjRPgHQQbTtXyofk1ygghRJ75RZpXmWBMY1BKnhyz7zKp"
 
 rsaKey :: Key.Public
 Success rsaKey = fromJSON . JSON.object $ [( "type", "RSA" ), ( "key", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB" )]
 
 edKey :: Key.Public
 Success edKey = fromJSON . JSON.object $ [( "type", "Ed25519" ), ( "key", "Hv+AVRD2WUjUFOsSNbsmrp9fokuwrUnjBcr92f0kxw4=" )]
+
+secpKey :: Key.Public
+Success secpKey = fromJSON . JSON.object $ [( "type", "Secp256k1" ), ( "key", "Aqluux/W1jmSxG2D+iteA26RXdMF/5+J/gBBCq4HsF4D" )]
 
 isEd25519DidKey :: Either String DID -> Bool
 isEd25519DidKey = \case
@@ -168,6 +179,11 @@ isRSADidKey :: Either String DID -> Bool
 isRSADidKey = \case
   Right (DID.Key (RSAPublicKey _)) -> True
   _                                -> False
+
+isSecp256k1DidKey :: Either String DID -> Bool
+isSecp256k1DidKey = \case
+  Right (DID.Key (Secp256k1PublicKey _)) -> True
+  _                                      -> False
 
 testVectorsW3CEdKey :: [(Natural, Text)]
 testVectorsW3CEdKey =
@@ -182,5 +198,12 @@ testVectorsW3CRSA =
   , (1, "did:key:zgghBUVkqmWS8e1ioRVp2WN9Vw6x4NvnE9PGAyQsPqM3fnfPf8EdauiRVfBTcVDyzhqM5FFC7ekAvuV1cJHawtfgB9wDcru1hPDobk3hqyedijhgWmsYfJCmodkiiFnjNWATE7PvqTyoCjcmrc8yMRXmFPnoASyT5beUd4YZxTE9VfgmavcPy3BSouNmASMQ8xUXeiRwjb7xBaVTiDRjkmyPD7NYZdXuS93gFhyDFr5b3XLg7Rfj9nHEqtHDa7NmAX7iwDAbMUFEfiDEf9hrqZmpAYJracAjTTR8Cvn6mnDXMLwayNG8dcsXFodxok2qksYF4D8ffUxMRmyyQVQhhhmdSi4YaMPqTnC1J6HTG9Yfb98yGSVaWi4TApUhLXFow2ZvB6vqckCNhjCRL2R4MDUSk71qzxWHgezKyDeyThJgdxydrn1osqH94oSeA346eipkJvKqYREXBKwgB5VL6WF4qAK6sVZxJp2dQBfCPVZ4EbsBQaJXaVK7cNcWG8tZBFWZ79gG9Cu6C4u8yjBS8Ux6dCcJPUTLtixQu4z2n5dCsVSNdnP1EEs8ZerZo5pBgc68w4Yuf9KL3xVxPnAB1nRCBfs9cMU6oL1EdyHbqrTfnjE8HpY164akBqe92LFVsk8RusaGsVPrMekT8emTq5y8v8CabuZg5rDs3f9NPEtogjyx49wiub1FecM5B7QqEcZSYiKHgF4mfkteT2" )
   ]
 
+-- Source: https://github.com/transmute-industries/did-key.js/tree/c9a478da12508fefd8018d82ab95638ea6980dd7/packages/did-key-test-vectors/src/secp256k1
+testVectorsSecp256k1 :: [(Natural, Text)]
+testVectorsSecp256k1 =
+  [ (0, "did:key:zQ3shjRPgHQQbTtXyofk1ygghRJ75RZpXmWBMY1BKnhyz7zKp")
+  , (1, "did:key:zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme")
+  , (2, "did:key:zQ3shoB1GSdwvLCXGqksPpapZ6awvitNNxznBixJQQqNqvEJa")
+  ]
 oldstyleEdKey :: Text
 oldstyleEdKey = "did:key:zStEZpzSMtTt9k2vszgvCwF4fLQQSyA15W5AQ4z3AR6Bx4eFJ5crJFbuGxKmbma4"
