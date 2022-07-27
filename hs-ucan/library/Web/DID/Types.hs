@@ -17,6 +17,7 @@ import           Data.Hashable                (Hashable (..))
 
 import           Crypto.Error
 import qualified Crypto.PubKey.Ed25519        as Ed25519
+import qualified Crypto.Secp256k1             as Secp256k1
 
 import           RIO
 import qualified RIO.ByteString               as BS
@@ -113,6 +114,10 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
             -- breaking change, but spec-adhering format: 0x85 : 0x24 : BS.unpack (Public.encodeASN1DERRSAPublicKey rsa)
             0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
 
+          Secp256k1PublicKey sec ->
+            -- compressed key format
+            0xe7 : 0x01 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay sec)
+
 instance ToJSON DID where
   toJSON = String . textDisplay
 
@@ -155,6 +160,11 @@ parseText txt =
         -- Backwards compatibility
         (0x00 : 0xF5 : 0x02 : rsaKeyW8s) ->
           RSAPublicKey <$> parseKeyW8s (BS64.encode $ BS.pack rsaKeyW8s)
+
+        (0xe7 : 0x01 : secpKeyW8s) ->
+          case Secp256k1.importPubKeyXY (BS.pack secpKeyW8s) of
+            Just key -> return $ Secp256k1PublicKey key
+            Nothing -> fail $ "Unable to parse Secp256k1 key"
 
         nope ->
           fail . show . BS64.encode $ BS.pack nope <> " is not an acceptable did:key"
