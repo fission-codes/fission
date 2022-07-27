@@ -22,6 +22,8 @@ import           Web.UCAN.Internal.Orphanage.Ed25519.PublicKey    ()
 import           Web.UCAN.Internal.Orphanage.RSA2048.Public       ()
 import           Web.UCAN.Internal.Orphanage.Secp256k1.PublicKey  ()
 
+{-| Public key type.
+-}
 data Public
   = Ed25519PublicKey   Crypto.Ed25519.PublicKey
   | RSAPublicKey       Crypto.RSA.PublicKey
@@ -62,13 +64,13 @@ instance FromJSON Public where
   parseJSON =
     withObject "PublicKey" \j ->
       ((,) <$> j .: "type" <*> j .: "key") >>= \(t, k) ->
-      case fromConstructor t k of
+      case fromKeyType t k of
         Right pub -> return pub
         Left err -> Json.parseFail (Text.unpack err)
 
 instance ToJSON Public where
   toJSON key = object
-    [ "type" .= toConstructor key
+    [ "type" .= toKeyType key
     , "key"  .= textDisplay key
     ]
 
@@ -98,13 +100,13 @@ instance ToSchema Public where
 -- CONSTRUCTORS
 
 
-fromConstructor :: Text -> Text -> Either Text Public
-fromConstructor "Ed25519PublicKey"   = fmap Ed25519PublicKey . parseUrlPiece
-fromConstructor "RSAPublicKey"       = fmap RSAPublicKey . parseUrlPiece
-fromConstructor "Secp256k1PublicKey" = fmap Secp256k1PublicKey . parseUrlPiece
-fromConstructor _                    = \_ -> Left "Invalid Public.Key constructor"
+fromKeyType :: Text -> Text -> Either Text Public
+fromKeyType "Ed25519"   = fmap Ed25519PublicKey . parseUrlPiece
+fromKeyType "RSA"       = fmap RSAPublicKey . parseUrlPiece
+fromKeyType "Secp256k1" = fmap Secp256k1PublicKey . parseUrlPiece
+fromKeyType _           = \_ -> Left "Invalid Public.Key type"
 
-toConstructor :: Public -> Text
-toConstructor (Ed25519PublicKey _)   = "Ed25519PublicKey"
-toConstructor (RSAPublicKey _)       = "RSAPublicKey"
-toConstructor (Secp256k1PublicKey _) = "Secp256k1PublicKey"
+toKeyType :: Public -> Text
+toKeyType (Ed25519PublicKey _)   = "Ed25519"
+toKeyType (RSAPublicKey _)       = "RSA"
+toKeyType (Secp256k1PublicKey _) = "Secp256k1"
