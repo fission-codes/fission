@@ -8,33 +8,35 @@ module Web.UCAN.Validation
   , checkRSA2048Signature
   ) where
 
-import           Crypto.Hash.Algorithms         (SHA256 (..))
-import qualified Crypto.PubKey.Ed25519          as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA.PKCS15       as Crypto.RSA.PKCS
+import           Crypto.Hash.Algorithms               (SHA256 (..))
+import qualified Crypto.PubKey.Ed25519                as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA.PKCS15             as Crypto.RSA.PKCS
+import qualified Crypto.Secp256k1
 
-import           RIO                            hiding (exp)
+import           RIO                                  hiding (exp)
 import           RIO.Time
 
 import           Data.Aeson
 
 import           Control.Monad.Time
 
-import           Crypto.Key.Asymmetric          as Key
-import           Web.DID.Types                  as DID
+import           Crypto.Key.Asymmetric                as Key
+import           Web.DID.Types                        as DID
 import           Web.SemVer.Types
 
-import           Web.UCAN.Resolver              as Proof
+import           Web.UCAN.Resolver                    as Proof
 
 import           Web.UCAN.Claims.Error
 import           Web.UCAN.Header.Error
 import           Web.UCAN.Signature.Error
 
-import           Web.UCAN                       as UCAN
-import           Web.UCAN.Error                 as UCAN
-import           Web.UCAN.Proof                 as UCAN.Proof
+import           Web.UCAN                             as UCAN
+import           Web.UCAN.Error                       as UCAN
+import           Web.UCAN.Proof                       as UCAN.Proof
 
-import qualified Web.UCAN.Signature.RS256.Types as RS256
-import           Web.UCAN.Signature.Types       as Signature
+import qualified Web.UCAN.Signature.RS256.Types       as RS256
+import qualified Web.UCAN.Signature.Secp256k1.Types   as Secp256k1
+import           Web.UCAN.Signature.Types             as Signature
 
 check ::
   ( Proof.Resolver m
@@ -146,8 +148,9 @@ checkTime now ucan@UCAN {claims = UCAN.Claims { exp, nbf }} =
 checkSignature :: UCAN.RawContent -> UCAN fct rsc ptc -> Either UCAN.Error (UCAN fct rsc ptc)
 checkSignature rawContent ucan@UCAN {sig} =
   case sig of
-    Signature.Ed25519 _        -> checkEd25519Signature rawContent ucan
-    Signature.RS256   rs256Sig -> checkRSA2048Signature rawContent ucan rs256Sig
+    Signature.Ed25519   _        -> checkEd25519Signature rawContent ucan
+    Signature.RS256     rs256Sig -> checkRSA2048Signature rawContent ucan rs256Sig
+    Signature.Secp256k1 secpSig  -> checkSecp256k1Signature rawContent ucan secpSig
 
 checkRSA2048Signature ::
      UCAN.RawContent
@@ -180,4 +183,28 @@ checkEd25519Signature (UCAN.RawContent raw) ucan@UCAN {..} =
       Left $ UCAN.SignatureError InvalidPublicKey
 
   where
+    Claims {sender = DID.Key publicKey} = claims
+
+checkSecp256k1Signature ::
+     UCAN.RawContent
+  -> UCAN fct rsc ptc
+  -> Secp256k1.Signature
+  -> Either UCAN.Error (UCAN fct rsc ptc)
+checkSecp256k1Signature (UCAN.RawContent raw) ucan@UCAN {..} (Secp256k1.Signature innerSig) = do
+  case publicKey of
+    Secp256k1PublicKey pk ->
+      case Crypto.Secp256k1.importRecoverableSignature innerSig of
+        Just recovSig ->
+          if Crypto.Secp256k1.ecdsaVerify content pk (Crypto.Secp256k1.recSigToSig recovSig)
+            then Right ucan
+            else Left $ UCAN.SignatureError SignatureDoesNotMatch
+
+        Nothing ->
+          Left $ UCAN.SignatureError InvalidPublicKey
+
+    _ ->
+      Left $ UCAN.SignatureError InvalidPublicKey
+
+  where
+    content = encodeUtf8 raw
     Claims {sender = DID.Key publicKey} = claims

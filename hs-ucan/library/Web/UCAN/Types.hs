@@ -23,6 +23,8 @@ import qualified Crypto.PubKey.RSA.PKCS15                      as RSA.PKCS15
 import           Crypto.PubKey.Ed25519                         (toPublic)
 import qualified Crypto.PubKey.Ed25519                         as Ed25519
 
+import qualified Crypto.Secp256k1                              as Secp256k1
+
 import           Data.Aeson
 import qualified Data.ByteString.Base64.URL                    as BS.B64.URL
 
@@ -48,6 +50,7 @@ import           Web.UCAN.Header.Types                         (Header (..))
 import qualified Web.UCAN.RawContent                           as UCAN
 import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
+import qualified Web.UCAN.Signature.Secp256k1.Types            as Secp256k1
 
 import qualified Web.UCAN.Internal.Base64.URL                  as B64.URL
 import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
@@ -80,28 +83,38 @@ instance
   , ToJSON ptc
   ) => Arbitrary (UCAN fct rsc ptc) where
   arbitrary = do
-    header   <- arbitrary
-    (pk, sk) <- case alg header of
+    (header :: Header) <- arbitrary
+    (claims' :: Claims fct rsc ptc) <- arbitrary
+
+    (claims, sig') <- case alg header of
       Algorithm.RSA2048 -> do
-        RSA2048.Pair pk' sk' <- arbitrary
-        return (RSAPublicKey pk', Left sk')
+        RSA2048.Pair pk sk <- arbitrary
+
+        let claims = claims' {sender = DID.Key (RSAPublicKey pk)}
+
+        case Unsafe.unsafePerformIO (signRS256 header claims sk) of
+          Left _  -> return (claims, Nothing)
+          Right s -> return (claims, Just s)
 
       Algorithm.Ed25519 -> do
-        sk' <- arbitrary
-        return (Ed25519PublicKey (toPublic sk'), Right sk')
+        sk <- arbitrary
 
-    claims' <- arbitrary
+        let pk = toPublic sk
+        let claims = claims' {sender = DID.Key (Ed25519PublicKey pk)}
 
-    let
-      claims = claims' {sender = DID.Key pk}
+        return (claims, Just $ signEd25519 header claims sk)
 
-      sig' = case sk of
-        Left rsaSK -> Unsafe.unsafePerformIO $ signRS256 header claims rsaSK
-        Right edSK -> Right $ signEd25519 header claims edSK
+      Algorithm.Secp256k1 -> do
+        sk <- arbitrary
+
+        let pk = Secp256k1.derivePubKey sk
+        let claims = claims' {sender = DID.Key (Secp256k1PublicKey pk)}
+
+        return (claims, signSecp256k1 header claims sk)
 
     case sig' of
-      Left _    -> error "Unable to sign UCAN"
-      Right sig -> return UCAN {..}
+      Nothing  -> error "Unable to sign UCAN"
+      Just sig -> return UCAN {..}
 
 instance (ToJSON fct, ToJSON rsc, ToJSON ptc) => ToJSON (UCAN fct rsc ptc) where
   toJSON UCAN {..} = String $ content <> "." <> textDisplay sig
@@ -314,3 +327,15 @@ signRS256 header claims sk =
   RSA.PKCS15.signSafer (Just SHA256) sk (encodeUtf8 $ B64.URL.encodeJWT header claims) <&> \case
     Left err  -> Left err
     Right sig -> Right . Signature.RS256 $ RS256.Signature sig
+
+signSecp256k1 :: ( ToJSON fct
+  , ToJSON rsc
+  , ToJSON ptc
+  )
+  => Header
+  -> Claims fct rsc ptc
+  -> Secp256k1.SecKey
+  -> Maybe Signature.Signature
+signSecp256k1 header claims sk =
+  -- Only works if the signed data is 32 bytes
+  Signature.Secp256k1 . Secp256k1.Signature . Secp256k1.exportRecoverableSignature <$> Secp256k1.ecdsaSignRecoverable sk (encodeUtf8 $ B64.URL.encodeJWT header claims)

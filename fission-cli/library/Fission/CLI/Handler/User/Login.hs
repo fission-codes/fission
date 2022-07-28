@@ -280,6 +280,9 @@ produce signingSK baseURL = do
         Ed25519PublicKey _ ->
           raise Asymmetric.Algorithm.Invalid
 
+        Secp256k1PublicKey _ ->
+          raise Asymmetric.Algorithm.Invalid
+
         RSAPublicKey tmpRSA ->
           reattempt 10 do
             logDebug @Text "🤝 Device linking handshake: Step 3"
