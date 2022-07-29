@@ -9,36 +9,37 @@ module Web.UCAN.Validation
   ) where
 
 import           Crypto.Hash
-import qualified Crypto.PubKey.Ed25519                as Crypto.Ed25519
-import qualified Crypto.PubKey.RSA.PKCS15             as Crypto.RSA.PKCS
+import qualified Crypto.PubKey.Ed25519                  as Crypto.Ed25519
+import qualified Crypto.PubKey.RSA.PKCS15               as Crypto.RSA.PKCS
 import qualified Crypto.Secp256k1
 
-import           RIO                                  hiding (exp)
-import           RIO.ByteString                       as BS
+import           RIO                                    hiding (exp)
+import           RIO.ByteString                         as BS
 import           RIO.Time
 
-import qualified Data.ByteArray                       as BA
+import qualified Data.ByteArray                         as BA
 import           Data.Aeson
 
 import           Control.Monad.Time
 
-import           Crypto.Key.Asymmetric                as Key
-import           Web.DID.Types                        as DID
+import           Crypto.Key.Asymmetric                  as Key
+import           Web.DID.Types                          as DID
 import           Web.SemVer.Types
 
-import           Web.UCAN.Resolver                    as Proof
+import           Web.UCAN.Resolver                      as Proof
 
 import           Web.UCAN.Claims.Error
 import           Web.UCAN.Header.Error
 import           Web.UCAN.Signature.Error
 
-import           Web.UCAN                             as UCAN
-import           Web.UCAN.Error                       as UCAN
-import           Web.UCAN.Proof                       as UCAN.Proof
+import           Web.UCAN                               as UCAN
+import           Web.UCAN.Error                         as UCAN
+import           Web.UCAN.Proof                         as UCAN.Proof
 
-import qualified Web.UCAN.Signature.RS256.Types       as RS256
-import qualified Web.UCAN.Signature.Secp256k1.Types   as Secp256k1
-import           Web.UCAN.Signature.Types             as Signature
+import qualified Web.UCAN.Signature.RS256.Types         as RS256
+import qualified Web.UCAN.Signature.Secp256k1.Types     as Secp256k1
+import           Web.UCAN.Signature.Types               as Signature
+import qualified Web.UCAN.Signature.Secp256k1.Ethereum  as Ethereum
 
 check ::
   ( Proof.Resolver m
@@ -204,17 +205,8 @@ checkSecp256k1Signature (UCAN.RawContent raw) ucan@UCAN {..} (Secp256k1.Signatur
       case Crypto.Secp256k1.importSignature (BS.take 64 innerSig) of
         Just secpSig ->
           let
-            contentLength =
-                textDisplay (BS.length content)
-
-            prefix =
-              0x19 : (BS.unpack $ encodeUtf8 $ "Ethereum Signed Message:\n" <> contentLength)
-
-            prefixedContent =
-              BS.pack prefix <> content
-
             hashedContent =
-              BS.pack . BA.unpack $ (hash prefixedContent :: Digest Keccak_256)
+              BS.pack . BA.unpack . Ethereum.hashWithPrefix $ content
           in
           if Crypto.Secp256k1.ecdsaVerify hashedContent pk secpSig
             then Right ucan

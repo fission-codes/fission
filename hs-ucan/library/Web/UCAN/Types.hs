@@ -51,6 +51,7 @@ import qualified Web.UCAN.RawContent                           as UCAN
 import           Web.UCAN.Signature                            as Signature
 import qualified Web.UCAN.Signature.RS256.Types                as RS256
 import qualified Web.UCAN.Signature.Secp256k1.Types            as Secp256k1
+import qualified Web.UCAN.Signature.Secp256k1.Ethereum         as Ethereum
 
 import qualified Web.UCAN.Internal.Base64.URL                  as B64.URL
 import           Web.UCAN.Internal.Orphanage.Ed25519.SecretKey ()
@@ -337,5 +338,9 @@ signSecp256k1 :: ( ToJSON fct
   -> Secp256k1.SecKey
   -> Maybe Signature.Signature
 signSecp256k1 header claims sk =
+  let
+    content =
+      Ethereum.hashWithPrefix . encodeUtf8 $ B64.URL.encodeJWT header claims
+  in
   -- Only works if the signed data is 32 bytes
-  Signature.Secp256k1 . Secp256k1.Signature . Secp256k1.exportRecoverableSignature <$> Secp256k1.ecdsaSignRecoverable sk (encodeUtf8 $ B64.URL.encodeJWT header claims)
+  Signature.Secp256k1 . Secp256k1.Signature . Secp256k1.exportRecoverableSignature <$> Secp256k1.ecdsaSignRecoverable sk content
