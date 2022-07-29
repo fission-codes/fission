@@ -8,14 +8,16 @@ module Web.UCAN.Validation
   , checkRSA2048Signature
   ) where
 
-import           Crypto.Hash.Algorithms               (SHA256 (..))
+import           Crypto.Hash
 import qualified Crypto.PubKey.Ed25519                as Crypto.Ed25519
 import qualified Crypto.PubKey.RSA.PKCS15             as Crypto.RSA.PKCS
 import qualified Crypto.Secp256k1
 
 import           RIO                                  hiding (exp)
+import           RIO.ByteString                       as BS
 import           RIO.Time
 
+import qualified Data.ByteArray                       as BA
 import           Data.Aeson
 
 import           Control.Monad.Time
@@ -193,9 +195,28 @@ checkSecp256k1Signature ::
 checkSecp256k1Signature (UCAN.RawContent raw) ucan@UCAN {..} (Secp256k1.Signature innerSig) = do
   case publicKey of
     Secp256k1PublicKey pk ->
-      case Crypto.Secp256k1.importRecoverableSignature innerSig of
-        Just recovSig ->
-          if Crypto.Secp256k1.ecdsaVerify content pk (Crypto.Secp256k1.recSigToSig recovSig)
+      -- `innerSig` is actually a recoverable signature,
+      -- but since Ethereum (or Metamask?) often has a `v` value
+      -- of `27 + actual v value` for historical reasons, we ignore that value here.
+      --
+      -- Recoverable signature: 65 bytes
+      -- Regular signature: 64 bytes
+      case Crypto.Secp256k1.importSignature (BS.take 64 innerSig) of
+        Just secpSig ->
+          let
+            contentLength =
+                textDisplay (BS.length content)
+
+            prefix =
+              0x19 : (BS.unpack $ encodeUtf8 $ "Ethereum Signed Message:\n" <> contentLength)
+
+            prefixedContent =
+              BS.pack prefix <> content
+
+            hashedContent =
+              BS.pack . BA.unpack $ (hash prefixedContent :: Digest Keccak_256)
+          in
+          if Crypto.Secp256k1.ecdsaVerify hashedContent pk secpSig
             then Right ucan
             else Left $ UCAN.SignatureError SignatureDoesNotMatch
 
