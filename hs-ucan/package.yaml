@@ -159,6 +159,8 @@ dependencies:
 
 library:
   source-dirs: library
+  pkg-config-dependencies:
+    - libsecp256k1
 
 tests:
   hs-ucan-test:
