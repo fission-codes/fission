@@ -61,12 +61,25 @@ instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
 
 instance FromJSON Public where
-  parseJSON =
-    withObject "PublicKey" \j ->
-      ((,) <$> j .: "type" <*> j .: "key") >>= \(t, k) ->
-      case fromKeyType t k of
-        Right pub -> return pub
-        Left err -> Json.parseFail (Text.unpack err)
+  parseJSON (Object j) =
+    ((,) <$> j .: "type" <*> j .: "key") >>= \(t, k) ->
+    case fromKeyType t k of
+      Right pub -> return pub
+      Left err -> Json.parseFail (Text.unpack err)
+
+  parseJSON value =
+    withText
+      "PublicKey"
+      (\text ->
+        case
+          if "MII" `Text.isPrefixOf` text
+          then RSAPublicKey     <$> parseUrlPiece text
+          else Ed25519PublicKey <$> parseUrlPiece text
+        of
+          Right pk -> return pk
+          Left msg -> fail $ Text.unpack msg
+      )
+      value
 
 instance ToJSON Public where
   toJSON key = object
