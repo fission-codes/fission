@@ -62,7 +62,10 @@
 
               # https://nixos.wiki/wiki/FAQ/I_installed_a_library_but_my_compiler_is_not_finding_it._Why%3F
               # Needed for binding secp256k1
+              pkgs.autoconf
+              pkgs.automake
               pkgs.pkg-config
+              pkgs.libtool
             ];
             NIX_PATH = "nixpkgs=" + pkgs.path;
           };
