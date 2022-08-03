@@ -29,8 +29,8 @@ jobs:
     - name: 📦 Install native dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install cmake
-        sudo apt-get install libsecp256k1-0
+        sudo apt-get install automake libtool
+        sudo apt-get install libsecp256k1-dev
 
     - uses: haskell/actions/setup@v1
       name: 🧱 Set up Haskell Stack
