@@ -41,8 +41,8 @@ jobs:
     - name: 📦 Install native dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install automake libtool
-        sudo apt-get install libsecp256k1-dev
+        sudo apt-get update
+        sudo apt-get install libsecp256k1-0
 
     - name: 📦 Install dependencies
       run: |
