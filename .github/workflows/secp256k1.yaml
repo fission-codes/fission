@@ -1,0 +1,21 @@
+name: libsecp256k1
+
+on:
+  workflow_call:
+
+jobs:
+  install:
+    name: 📦 Build and install libsecp256k1
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: bitcoin-core/secp256k1
+          path: libsecp256k1
+
+      - run: |
+          cd libsecp256k1
+          ./autogen.sh
+          ./configure --enable-module-recovery
+          make
+          sudo make install
+          pkg-config --cflags --libs libsecp256k1
