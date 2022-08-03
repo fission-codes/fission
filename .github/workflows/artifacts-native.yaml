@@ -38,6 +38,11 @@ jobs:
         path: ~/.stack
         key: ${{ matrix.os }}-${{ matrix.ghc }}-stack-native-4
 
+    - name: 📦 Install native dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        apt-get install -y libsecp256k1-dev
+
     - name: 📦 Install dependencies
       run: |
         stack build --no-nix --only-dependencies
