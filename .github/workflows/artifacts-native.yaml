@@ -41,7 +41,8 @@ jobs:
     - name: 📦 Install native dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install -y libsecp256k1-dev
+        sudo apt-get install cmake
+        sudo apt-get install libsecp256k1-0
 
     - name: 📦 Install dependencies
       run: |
