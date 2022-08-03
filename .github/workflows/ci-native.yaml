@@ -29,7 +29,7 @@ jobs:
     - name: 📦 Install native dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
-        apt-get install -y libsecp256k1-dev
+        sudo apt-get install -y libsecp256k1-dev
 
     - uses: haskell/actions/setup@v1
       name: 🧱 Set up Haskell Stack
