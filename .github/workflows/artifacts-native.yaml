@@ -41,8 +41,11 @@ jobs:
     - name: 📦 Install native dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
+        sudo apt update
         sudo apt-get update
-        sudo apt-get install libsecp256k1-dev
+        sudo apt-get install libsecp256k1-0
+        sudo apt install --only-upgrade libsecp256k1-0
+        sudo apt-get install --only-upgrade libsecp256k1-0
 
     - name: 📦 Install dependencies
       run: |
