@@ -61,8 +61,9 @@ instance IsString (Either Text Public) where
   fromString = parseUrlPiece . Text.pack
 
 instance FromJSON Public where
-  parseJSON (Object j) =
-    ((,) <$> j .: "type" <*> j .: "key") >>= \(t, k) ->
+  parseJSON (Object j) = do
+    t <- j .: "type"
+    k <- j .: "key"
     case fromKeyType t k of
       Right pub -> return pub
       Left err -> Json.parseFail (Text.unpack err)
