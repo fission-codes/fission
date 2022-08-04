@@ -38,7 +38,7 @@ jobs:
       run: |
         cd libsecp256k1
         ./autogen.sh
-        ./configure --enable-module-recovery
+        ./configure --enable-module-recovery --enable-module-schnorrsig --enable-module-ecdh
         make
         sudo make install
         pkg-config --cflags --libs libsecp256k1
