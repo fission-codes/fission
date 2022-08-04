@@ -184,6 +184,9 @@ dependencies:
   - warp-tls
   - websockets
 
+extra-libraries:
+  - libsecp256k1
+
 library:
   source-dirs: library
 

@@ -157,10 +157,11 @@ dependencies:
   - swagger2
   - x509
 
+extra-libraries:
+  - libsecp256k1
+
 library:
   source-dirs: library
-  pkg-config-dependencies:
-    - libsecp256k1
 
 tests:
   hs-ucan-test:

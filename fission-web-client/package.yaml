@@ -123,5 +123,8 @@ dependencies:
   - fission-core
   - fission-web-api
 
+extra-libraries:
+  - libsecp256k1
+
 library:
   source-dirs: library
