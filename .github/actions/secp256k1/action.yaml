@@ -10,6 +10,7 @@ runs:
         path: libsecp256k1
 
     - if: runner.os == 'Linux'
+      shell: bash
       run: |
         cd libsecp256k1
         ./autogen.sh
@@ -19,6 +20,7 @@ runs:
         pkg-config --cflags --libs libsecp256k1
 
     - if: runner.os == 'macOS'
+      shell: bash
       run: |
         brew install libtool automake
         cd libsecp256k1
