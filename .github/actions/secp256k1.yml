@@ -1,0 +1,29 @@
+name: 'libsecp256k1'
+description: 'Build and install libsecp256k1'
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: bitcoin-core/secp256k1
+        path: libsecp256k1
+
+    - if: runner.os == 'Linux'
+      run: |
+        cd libsecp256k1
+        ./autogen.sh
+        ./configure --enable-module-recovery --enable-module-schnorrsig --enable-module-ecdh
+        make
+        sudo make install
+        pkg-config --cflags --libs libsecp256k1
+
+    - if: runner.os == 'macOS'
+      run: |
+        brew install libtool automake
+        cd libsecp256k1
+        ./autogen.sh
+        ./configure --enable-module-recovery --enable-module-schnorrsig --enable-module-ecdh
+        make
+        sudo make install
+        pkg-config --cflags --libs libsecp256k1

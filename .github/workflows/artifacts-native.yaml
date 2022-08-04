@@ -38,22 +38,8 @@ jobs:
         path: ~/.stack
         key: ${{ matrix.os }}-${{ matrix.ghc }}-stack-native-4
 
-    - uses: actions/checkout@v2
-      name: 📤 Checkout libsecp256k1
-      if: runner.os == 'Linux'
-      with:
-        repository: bitcoin-core/secp256k1
-        path: libsecp256k1
-
-    - name: 📦 Build and install libsecp256k1
-      if: runner.os == 'Linux'
-      run: |
-        cd libsecp256k1
-        ./autogen.sh
-        ./configure --enable-module-recovery --enable-module-schnorrsig --enable-module-ecdh
-        make
-        sudo make install
-        pkg-config --cflags --libs libsecp256k1
+    - uses: ./.github/actions/secp256k1
+      name: 📦 Build and install libsecp256k1
 
     - name: 📦 Install dependencies
       run: |
