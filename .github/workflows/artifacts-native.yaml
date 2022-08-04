@@ -38,7 +38,7 @@ jobs:
         path: ~/.stack
         key: ${{ matrix.os }}-${{ matrix.ghc }}-stack-native-4
 
-    - uses: ./.github/actions/secp256k1.yml
+    - uses: ./.github/actions/secp256k1
       name: 📦 Build and install libsecp256k1
 
     - name: 📦 Install dependencies
