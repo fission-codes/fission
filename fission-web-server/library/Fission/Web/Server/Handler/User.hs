@@ -1,4 +1,4 @@
-module Fission.Web.Server.Handler.User (handlerV_, handlerV2) where
+module Fission.Web.Server.Handler.User (handlerV_, handlerV2, handlerV3) where
 
 import           Servant.Server.Generic
 
@@ -31,6 +31,21 @@ import qualified Fission.Web.Server.Handler.User.Password.Reset as Password.Rese
 import qualified Fission.Web.Server.Handler.User.Verify         as Verify
 import qualified Fission.Web.Server.Handler.User.WhoAmI         as WhoAmI
 
+handlerV3 ::
+  ( User.Modifier               m
+  , User.Retriever              m
+  , RecoveryChallenge.Retriever m
+  , RecoveryChallenge.Destroyer m
+  , MonadTime                   m
+  , MonadLogger                 m
+  , MonadDNSLink                m
+  )
+  => User.RoutesV3 (AsServerT m)
+handlerV3 =
+  User.RoutesV3
+    { did = genericServerT DID.handlerV3
+    }
+
 handlerV2 ::
   ( App.Domain.Initializer      m
   , User.Creator                m
@@ -55,7 +70,7 @@ handlerV2 =
     { create       = Create.withDID
     , whoAmI       = genericServerT WhoAmI.handler
     , email        = genericServerT Email.handler
-    , did          = genericServerT DID.handler
+    , did          = genericServerT DID.handlerV_
     , linkingRelay = genericServerT Relay.handler
     , dataRoot     = genericServerT DataRoot.handlerV2
     }
@@ -84,7 +99,7 @@ handlerV_ =
     { create        = genericServerT Create.createV_
     , whoAmI        = genericServerT WhoAmI.handler
     , email         = genericServerT Email.handler
-    , did           = genericServerT DID.handler
+    , did           = genericServerT DID.handlerV_
     , exchangeKeys  = genericServerT ExchangeKey.handler
     , linkingRelay  = genericServerT Relay.handler
     , dataRoot      = genericServerT DataRoot.handlerV_

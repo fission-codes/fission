@@ -1,8 +1,10 @@
 -- | Top-level router type for the application
 module Fission.Web.API.Types
   ( Routes   (..)
+  , RoutesV3 (..)
   , RoutesV2 (..)
   , RoutesV_ (..)
+  , V3       (..)
   , V2       (..)
   , Root
   ) where
@@ -22,7 +24,8 @@ import qualified Fission.Web.API.IPFS.Types      as IPFS
 import qualified Fission.Web.API.User.Types      as User
 
 data Routes mode = Routes
-  { v2          :: mode :- "v2" :> ToServantApi RoutesV2
+  { v3          :: mode :- "v3" :> ToServantApi RoutesV3
+  , v2          :: mode :- "v2" :> ToServantApi RoutesV2
   , heroku      :: mode :- "heroku" :> "resources" :> ToServantApi Heroku.Routes
   , latestDocs  :: mode :- Docs
   , unversioned :: mode :- ToServantApi RoutesV_
@@ -31,6 +34,23 @@ data Routes mode = Routes
   deriving Generic
 
 type Root = Get '[JSON, OctetStream, PlainText] NoContent
+
+
+-- V3
+
+data RoutesV3 mode = RoutesV3
+  { api  :: mode :- "api" :> ToServantApi V3
+  , docs :: mode :- Docs
+  }
+  deriving Generic
+
+data V3 mode = V3
+  { user :: mode :- "user" :> ToServantApi User.RoutesV3
+  }
+  deriving Generic
+
+
+-- V2
 
 data RoutesV2 mode = RoutesV2
   { api  :: mode :- "api" :> ToServantApi V2
@@ -46,7 +66,9 @@ data V2 mode = V2
   }
   deriving Generic
 
--- DEPRECATED version
+
+-- DEPRECATED
+
 data RoutesV_ mode = RoutesV_
   { ipfs   :: mode :- "ipfs"           :> ToServantApi IPFS.RoutesV_
   , app    :: mode :- "app"            :> ToServantApi App.RoutesV_

@@ -78,7 +78,7 @@ Fission.Routes
                       User.WhoAmI.Routes { whoAmI }
 
                   , did = fromServant @_ @(AsClientT ClientM) ->
-                      User.DID.Routes
+                      User.DID.RoutesV_
                         { setAuthenticated = setDIDViaUCAN
                         , setViaChallenge  = setDIDViaChallenge
                         }
