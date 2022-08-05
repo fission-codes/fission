@@ -18,6 +18,7 @@ runs:
         make
         sudo make install
         pkg-config --cflags --libs libsecp256k1
+        sudo ldconfig
 
     - if: runner.os == 'macOS'
       shell: bash
