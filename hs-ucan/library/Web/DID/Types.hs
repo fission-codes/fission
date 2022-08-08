@@ -115,7 +115,7 @@ instance Display DID where -- NOTE `pk` here is base2, not base58
             0x00 : 0xF5 : 0x02 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay rsa)
 
           Secp256k1PublicKey sec ->
-            -- compressed key format
+            -- uncompressed key format
             0xe7 : 0x01 : BS.unpack (BS64.decodeLenient . encodeUtf8 $ textDisplay sec)
 
 instance ToJSON DID where
