@@ -14,7 +14,7 @@ module Web.UCAN.Types
 
 import qualified System.IO.Unsafe                              as Unsafe
 
-import           Crypto.Hash.Algorithms                        (SHA256 (..))
+import           Crypto.Hash
 import           Crypto.Random                                 (MonadRandom (..))
 
 import qualified Crypto.PubKey.RSA                             as RSA
@@ -26,10 +26,12 @@ import qualified Crypto.PubKey.Ed25519                         as Ed25519
 import qualified Crypto.Secp256k1                              as Secp256k1
 
 import           Data.Aeson
+import qualified Data.ByteArray                                as BA
 import qualified Data.ByteString.Base64.URL                    as BS.B64.URL
 
 import           Network.IPFS.CID.Types
 
+import qualified RIO.ByteString                                as BS
 import qualified RIO.ByteString.Lazy                           as Lazy
 import qualified RIO.Text                                      as Text
 
@@ -348,8 +350,9 @@ signSecp256k1 header claims sk =
     content =
       if Ethereum.isPublicEthereumSecp256k1Key pubKey == Just True then
         Ethereum.hashWithPrefix encodedHeaderClaims
+
       else
-        encodedHeaderClaims
+        BS.pack . BA.unpack $ (hash encodedHeaderClaims :: Digest SHA256)
   in
   -- Only works if the signed data is 32 bytes
   Signature.Secp256k1 . Secp256k1.Signature . Secp256k1.exportRecoverableSignature <$> Secp256k1.ecdsaSignRecoverable sk content

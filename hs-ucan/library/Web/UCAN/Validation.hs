@@ -209,8 +209,9 @@ checkSecp256k1Signature (UCAN.RawContent raw) ucan@UCAN {..} (Secp256k1.Signatur
             hashedContent =
               if Ethereum.isPublicEthereumSecp256k1Key pk == Just True then
                 BS.pack . BA.unpack . Ethereum.hashWithPrefix $ content
+
               else
-                content
+                BS.pack . BA.unpack $ (hash content :: Digest SHA256)
           in
           if Crypto.Secp256k1.ecdsaVerify hashedContent pk secpSig
             then Right ucan
