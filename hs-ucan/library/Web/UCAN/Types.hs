@@ -339,8 +339,17 @@ signSecp256k1 :: ( ToJSON fct
   -> Maybe Signature.Signature
 signSecp256k1 header claims sk =
   let
+    encodedHeaderClaims =
+      encodeUtf8 (B64.URL.encodeJWT header claims)
+
+    pubKey =
+      Secp256k1.derivePubKey sk
+
     content =
-      Ethereum.hashWithPrefix . encodeUtf8 $ B64.URL.encodeJWT header claims
+      if Ethereum.isPublicEthereumSecp256k1Key pubKey == Just True then
+        Ethereum.hashWithPrefix encodedHeaderClaims
+      else
+        encodedHeaderClaims
   in
   -- Only works if the signed data is 32 bytes
   Signature.Secp256k1 . Secp256k1.Signature . Secp256k1.exportRecoverableSignature <$> Secp256k1.ecdsaSignRecoverable sk content

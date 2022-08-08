@@ -197,8 +197,9 @@ checkSecp256k1Signature (UCAN.RawContent raw) ucan@UCAN {..} (Secp256k1.Signatur
   case publicKey of
     Secp256k1PublicKey pk ->
       -- `innerSig` is actually a recoverable signature,
-      -- but since Ethereum (or Metamask?) often has a `v` value
-      -- of `27 + actual v value` for historical reasons, we ignore that value here.
+      -- but since Ethereum has a `v` value
+      -- of `35 + actual v value` for historical reasons, we ignore that value here.
+      -- (ie. the secp256k1 lib doesn't understand `v` values greater than 3)
       --
       -- Recoverable signature: 65 bytes
       -- Regular signature: 64 bytes
@@ -206,7 +207,10 @@ checkSecp256k1Signature (UCAN.RawContent raw) ucan@UCAN {..} (Secp256k1.Signatur
         Just secpSig ->
           let
             hashedContent =
-              BS.pack . BA.unpack . Ethereum.hashWithPrefix $ content
+              if Ethereum.isPublicEthereumSecp256k1Key pk == Just True then
+                BS.pack . BA.unpack . Ethereum.hashWithPrefix $ content
+              else
+                content
           in
           if Crypto.Secp256k1.ecdsaVerify hashedContent pk secpSig
             then Right ucan
