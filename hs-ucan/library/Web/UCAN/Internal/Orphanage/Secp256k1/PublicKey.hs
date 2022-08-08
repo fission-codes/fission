@@ -23,8 +23,8 @@ instance Arbitrary Secp256k1.PubKeyXY where
 instance ByteArrayAccess Secp256k1.PubKeyXY where
   -- Bool argument to `exportPubKeyXY` is whether or not to enable compression
   -- 33 bytes compressed, 65 bytes uncompressed
-  length        = ByteArray.length . Secp256k1.exportPubKeyXY True
-  withByteArray = withByteArray    . Secp256k1.exportPubKeyXY True
+  length        = ByteArray.length . Secp256k1.exportPubKeyXY False
+  withByteArray = withByteArray    . Secp256k1.exportPubKeyXY False
 
 instance Display Secp256k1.PubKeyXY where
   textDisplay = decodeUtf8Lenient . B64.toB64ByteString
