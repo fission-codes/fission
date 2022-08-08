@@ -21,7 +21,7 @@ instance Arbitrary Secp256k1.PubKeyXY where
   arbitrary = Secp256k1.derivePubKey <$> arbitrary
 
 instance ByteArrayAccess Secp256k1.PubKeyXY where
-  -- Bool argument to `exportPubKeyXY` is wether or not to enable compression
+  -- Bool argument to `exportPubKeyXY` is whether or not to enable compression
   -- 33 bytes compressed, 65 bytes uncompressed
   length        = ByteArray.length . Secp256k1.exportPubKeyXY True
   withByteArray = withByteArray    . Secp256k1.exportPubKeyXY True
