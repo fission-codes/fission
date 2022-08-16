@@ -107,6 +107,7 @@ dependencies:
   - cryptonite
   - cryptostore
   - HsOpenSSL
+  - libsecp256k1
   - pem
   - RSA
 
@@ -155,6 +156,9 @@ dependencies:
   - servant-swagger
   - swagger2
   - x509
+
+extra-libraries:
+  - secp256k1
 
 library:
   source-dirs: library

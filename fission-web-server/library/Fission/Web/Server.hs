@@ -149,7 +149,8 @@ server ::
   -> Fission.Routes (AsServerT m)
 server appHost =
   Fission.Routes
-    { v2
+    { v3
+    , v2
     , heroku      = genericServerT Heroku.handler
     , latestDocs  = v2Docs
     , unversioned = serverV_
@@ -157,11 +158,22 @@ server appHost =
     }
 
   where
+    v3 =
+      genericServerT Fission.RoutesV3
+        { api  = serverV3
+        , docs = v3Docs
+        }
+
     v2 =
       genericServerT Fission.RoutesV2
         { api  = serverV2
         , docs = v2Docs
         }
+
+    serverV3 =
+      genericServerT Fission.V3
+        { user   = genericServerT User.handlerV3
+      }
 
     serverV2 =
       genericServerT Fission.V2
@@ -181,6 +193,9 @@ server appHost =
         , auth       = genericServerT Auth.UCAN.handler
         , ping       = Ping.handler
       }
+
+    v3Docs =
+      Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v3" :> (ToServantApi Fission.RoutesV3)))
 
     v2Docs =
       Web.Swagger.handler fromHandler appHost Fission.version (Proxy @("v2" :> ToServantApi Fission.RoutesV2))
