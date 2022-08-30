@@ -3,7 +3,7 @@
 
   inputs = {
     haskellNix.url = "github:input-output-hk/haskell.nix";
-    nixpkgs.follows = "haskellNix/nixpkgs-unstable";
+    nixpkgs.follows = "haskellNix/nixpkgs-2205";
     flake-utils.url = "github:numtide/flake-utils";
 
     flake-compat = {
@@ -23,7 +23,7 @@
               final.haskell-nix.project' {
                 src = pkgs.haskell-nix.haskellLib.cleanSourceWith { name = "fission"; src = ./.; };
                 compiler-nix-name = "ghc8107";
-                stack-sha256 = "029kzhvljx3x13ngmb1mvf4ljf75l3ngnj95n3gxmbj7a211xs3c";
+                stack-sha256 = "0y24hd42sn2qzdcfvy892rkv1as36divjskzz2h3cx5v9mgl1i1p";
                 materialized = ./nix/materialized;
 
                 # NOTE: Currently handling devShells separately from haskell.nix

@@ -8,6 +8,7 @@
         "dimensions" = (((hackage.dimensions)."2.1.1.0").revisions).default;
         "hfsevents" = (((hackage.hfsevents)."0.1.6").revisions).default;
         "lzma-clib" = (((hackage.lzma-clib)."5.2.2").revisions).default;
+        "libsecp256k1" = (((hackage.libsecp256k1)."0.1.0").revisions).default;
         "raven-haskell" = (((hackage.raven-haskell)."0.1.4.0").revisions).default;
         "rescue" = (((hackage.rescue)."0.4.2.1").revisions).default;
         "servant-ekg" = (((hackage.servant-ekg)."0.3.1").revisions).default;

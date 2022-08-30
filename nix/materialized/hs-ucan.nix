@@ -59,6 +59,7 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."ipfs" or (errorHandler.buildDepError "ipfs"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."libsecp256k1" or (errorHandler.buildDepError "libsecp256k1"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mime-types" or (errorHandler.buildDepError "mime-types"))
           (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
@@ -85,6 +86,7 @@
           (hsPkgs."x509" or (errorHandler.buildDepError "x509"))
           (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
           ];
+        libs = [ (pkgs."secp256k1" or (errorHandler.sysDepError "secp256k1")) ];
         buildable = true;
         modules = [ "Paths_hs_ucan" ];
         hsSourceDirs = [ "library" ];
@@ -122,6 +124,7 @@
             (hsPkgs."hspec-expectations" or (errorHandler.buildDepError "hspec-expectations"))
             (hsPkgs."ipfs" or (errorHandler.buildDepError "ipfs"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."libsecp256k1" or (errorHandler.buildDepError "libsecp256k1"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."mime-types" or (errorHandler.buildDepError "mime-types"))
             (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
@@ -152,6 +155,9 @@
             (hsPkgs."world-peace" or (errorHandler.buildDepError "world-peace"))
             (hsPkgs."x509" or (errorHandler.buildDepError "x509"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+            ];
+          libs = [
+            (pkgs."secp256k1" or (errorHandler.sysDepError "secp256k1"))
             ];
           buildable = true;
           modules = [ "Paths_hs_ucan" ];
