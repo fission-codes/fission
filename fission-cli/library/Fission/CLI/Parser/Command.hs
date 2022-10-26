@@ -46,7 +46,7 @@ shortcuts =
     , command "up"     $ Command.App  . App.Up      <$> App.Up.parserWithInfo
     , command "whoami" $ Command.User . User.WhoAmI <$> User.WhoAmI.parserWithInfo
     , command "login"  $ Command.User . User.Login  <$> User.Login.parserWithInfo
-    ]
+ ]
 
 subCommands :: Parser Command
 subCommands =
