@@ -4,11 +4,12 @@ import qualified RIO.Text                                 as Text
 
 import           Fission.Prelude
 
-import qualified Fission.CLI.Parser.Command.App.Types      as App
-import qualified Fission.CLI.Parser.Command.Generate.Types as Generate
-import qualified Fission.CLI.Parser.Command.Setup.Types    as Setup
-import qualified Fission.CLI.Parser.Command.User.Types     as User
-import qualified Fission.CLI.Parser.Command.Version.Types  as Version
+import qualified Fission.CLI.Parser.Command.App.Types           as App
+import qualified Fission.CLI.Parser.Command.Generate.Types      as Generate
+import qualified Fission.CLI.Parser.Command.Setup.Types         as Setup
+import qualified Fission.CLI.Parser.Command.UCAN.Generate.Types as UCAN
+import qualified Fission.CLI.Parser.Command.User.Types          as User
+import qualified Fission.CLI.Parser.Command.Version.Types       as Version
 
 data Command
   = Version  Version.Options
@@ -16,6 +17,7 @@ data Command
   | User     User.Options
   | Setup    Setup.Options
   | Generate Generate.Options
+  | UCAN     UCAN.Options
   deriving (Eq, Show)
 
 instance Display Command where

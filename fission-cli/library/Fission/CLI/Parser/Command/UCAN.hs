@@ -32,5 +32,4 @@ commands =
     [ commandGroup "Commands"
     , metavar "COMMAND"
     , command "ucan" $ Generate.parserWithInfo
-    -- , command "ucan" . fmap Generate.Generate $ Generate.parserWithInfo
     ]
