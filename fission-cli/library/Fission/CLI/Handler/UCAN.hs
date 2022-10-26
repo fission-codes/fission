@@ -50,7 +50,6 @@ interpret ::
   -> m ()
 interpret mayResource mayPotency facts receiverDID = do
   now       <- currentTime
-  -- serverDID <- getServerDID
   sk        <- getAuth
   proof     <-
     attempt Env.get >>= \case
@@ -72,6 +71,6 @@ interpret mayResource mayPotency facts receiverDID = do
     -- Accounting for minor clock drift
     begin  = addUTCTime (secondsToNominalDiffTime (-30)) now
     expiry = addUTCTime (secondsToNominalDiffTime   30)  now
+    ucan   = mkUCAN receiverDID sk begin expiry facts mayResource mayPotency proof
 
-  return $ mkUCAN receiverDID sk begin expiry facts mayResource mayPotency proof
-  error "Finalize me"
+  UTF8.putText $ textDisplay ucan
