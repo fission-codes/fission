@@ -6,6 +6,7 @@ module Fission.CLI.Parser.Command.UCAN.Generate
   ) where
 
 import           Options.Applicative
+import qualified RIO.ByteString.Lazy                              as Lazy
 import           Servant.API
 import           Web.DID.Types
 
@@ -27,15 +28,21 @@ parserWithInfo =
 
 parser :: Parser Options
 parser = do
-  resource <- option (Just <$> resourceM) $ mconcat
+  mayResource <- option (Just <$> resourceM) $ mconcat
     [ help    "UCAN resource"
+    ----------
+    , long "resource"
+    , short 'r'
     ----------
     , value    Nothing
     , metavar "RESOURCE"
     ]
 
-  potency <- option (Just <$> potencyM) $ mconcat
+  mayPotency <- option (Just <$> potencyM) $ mconcat
     [ help    "UCAN potency"
+    ----------
+    , long "potency"
+    , short 'p'
     ----------
     , value    Nothing
     , metavar "POTENCY"
@@ -44,14 +51,43 @@ parser = do
   audience <- option didM $ mconcat
     [ help    "UCAN audience"
     ----------
+    , long "audience"
+    , short 'a'
+    ----------
     , metavar "AUDIENCE"
     ]
 
   facts <- option factsM $ mconcat
-    [ help    "UCAN facts (as string)"
+    [ help    "Facts given as JSON array"
+    ----------
+    , long "facts"
+    , short 'f'
     ----------
     , value    []
-    , metavar "Facts"
+    , showDefault
+    , metavar "FACTS"
+    ]
+
+  mayNbf <- option (Just <$> utcTimeM) $ mconcat
+    [ help    "Not before Unix time"
+    ----------
+    , long "starts"
+    , short 'n'
+    ----------
+    , value    Nothing
+    , showDefaultWith $ \_ -> show @Text "30s ago"
+    , metavar "NBF"
+    ]
+
+  mayExp <- option (Just <$> utcTimeM) $ mconcat
+    [ help    "Expiry Unix Time"
+    ----------
+    , long "expires"
+    , short 'e'
+    ----------
+    , value Nothing
+    , showDefaultWith $ \_ -> show @Text "30s from now"
+    , metavar "EXP"
     ]
 
   return Options {..}
@@ -73,13 +109,25 @@ potencyM = do
 didM :: ReadM DID
 didM = do
   txt <- str
-  case eitherDecode txt of
+  case eitherDecode $ encode (txt :: String) of
     Left  err -> fail $ "Unable to parse did: " <> show err
     Right did -> pure did
 
 factsM :: ReadM [UCAN.Fact]
 factsM = do
   txt <- str
-  case eitherDecode txt of
-    Left  err -> fail $ "Unable to parse facts: " <> show err
-    Right did -> pure did
+  case eitherDecode (txt :: Lazy.ByteString) of
+    Left  err   -> fail $ "Unable to parse facts: " <> show err
+    Right facts -> pure facts
+
+utcTimeM :: ReadM UTCTime
+utcTimeM = do
+  mayNat <- readMaybe <$> str
+  case mayNat of
+    Nothing ->
+      fail "NaN"
+
+    Just nat ->
+      case eitherDecode $ encode (nat :: Natural) of
+        Left  err  -> fail $ "Unable to parse UTCTime: " <> show err
+        Right secs -> pure $ fromSeconds secs

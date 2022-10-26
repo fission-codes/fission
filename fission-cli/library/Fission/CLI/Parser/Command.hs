@@ -20,6 +20,7 @@ import qualified Fission.CLI.Parser.Command.User.WhoAmI as User.WhoAmI
 import qualified Fission.CLI.Parser.Command.Setup       as Setup
 import           Fission.CLI.Parser.Command.Types       as Command
 import qualified Fission.CLI.Parser.Command.Version     as Version
+import qualified Fission.CLI.Parser.Command.UCAN        as UCAN
 
 parser :: Parser Options
 parser = do
@@ -56,5 +57,6 @@ subCommands =
     , command "app"      $ fmap Command.App      App.parserWithInfo
     , command "user"     $ fmap Command.User     User.parserWithInfo
     , command "generate" $ fmap Command.Generate Generate.parserWithInfo
+    , command "ucan"     $ fmap Command.UCAN     UCAN.parserWithInfo
     ]
 

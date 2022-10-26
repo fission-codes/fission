@@ -10,8 +10,10 @@ import           Fission.Web.Auth.Token.UCAN.Resource.Types
 import           Fission.Web.Auth.Token.UCAN.Resource.Scope.Types
 
 data Options = Options
-  { resource :: Maybe (Scope Resource)
-  , potency  :: Maybe Potency
-  , facts    :: [Fact]
-  , audience :: DID
+  { mayResource :: Maybe (Scope Resource)
+  , mayPotency  :: Maybe Potency
+  , facts       :: [Fact]
+  , audience    :: DID
+  , mayNbf      :: Maybe UTCTime
+  , mayExp      :: Maybe UTCTime
   } deriving (Show, Eq)

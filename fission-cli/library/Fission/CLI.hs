@@ -116,8 +116,8 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} cmd =
         Generate subCmd ->
           Generate.interpret subCmd
 
-        UCAN (UCAN.Options _ _ _ _) ->
-          UCAN.interpret Nothing Nothing [] undefined
+        UCAN UCAN.Options {..} ->
+          UCAN.interpret mayResource mayPotency facts mayNbf mayExp audience
 
 finalizeDID :: MonadIO m => Maybe DID -> Base.Config -> m (Either (OpenUnion Errs) DID)
 finalizeDID (Just did) _ =
