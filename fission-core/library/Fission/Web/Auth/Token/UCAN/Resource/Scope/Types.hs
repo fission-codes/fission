@@ -3,7 +3,7 @@ module Fission.Web.Auth.Token.UCAN.Resource.Scope.Types (Scope (..)) where
 import           Fission.Prelude
 
 import           Web.UCAN.Proof.Class
-
+import           Servant.API
 
 data Scope subset
   = Complete
@@ -45,3 +45,7 @@ instance FromJSON a => FromJSONKey (Scope a) where
   fromJSONKey = FromJSONKeyValue \case
     String "*" -> return Complete
     val        -> parseJSON val
+
+instance FromHttpApiData a => FromHttpApiData (Scope a) where
+  parseUrlPiece "*" = Right Complete
+  parseUrlPiece txt = Subset <$> parseUrlPiece txt

@@ -10,6 +10,7 @@ import qualified Data.Bits                                        as Bits
 import qualified RIO.ByteString                                   as BS
 import qualified RIO.List                                         as List
 import qualified RIO.Text                                         as Text
+import           Servant.API
 
 import           Web.UCAN.Proof.Class
 
@@ -56,6 +57,12 @@ instance FromJSON Resource where
     case wnfs <|> floofs <|> app <|> url of
       Just parsed -> return parsed
       Nothing     -> fail "Does not match any known Fission resource"
+
+instance FromHttpApiData Resource where
+  parseUrlPiece txt =
+    case eitherDecode $ encode txt of
+      Left  err -> Left $ Text.pack err
+      Right res -> Right res
 
 instance DelegationSemantics Resource where
   canDelegate rsc rscProof =

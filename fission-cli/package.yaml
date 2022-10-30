@@ -1,5 +1,5 @@
 name: fission-cli
-version: "2.18.0.0"
+version: "2.19.0.0"
 category: CLI
 author:
   - Brooklyn Zelenka
@@ -15,7 +15,7 @@ maintainer:
   - james@fission.codes
   - brian@fission.codes
   - philipp@fission.codes
-copyright: © 2021 Fission Internet Software Services for Open Networks Inc.
+copyright: © 2022 Fission Internet Software Services for Open Networks Inc.
 license: AGPL-3.0-or-later
 license-file: LICENSE
 github: fission-suite/fission

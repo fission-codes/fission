@@ -31,6 +31,7 @@ import qualified Fission.CLI.Remote                                 as Remote
 import           Fission.CLI.Parser                                 as CLI
 import           Fission.CLI.Parser.Command.Setup.Types             as Setup
 import           Fission.CLI.Parser.Command.Types
+import qualified Fission.CLI.Parser.Command.UCAN.Generate.Types as UCAN
 import           Fission.CLI.Parser.Types                           as Parser
 import           Fission.CLI.Parser.Verbose.Types
 
@@ -40,6 +41,7 @@ import           Fission.CLI.Types
 import           Fission.CLI.Handler.Error.Types                    (Errs)
 import qualified Fission.CLI.Handler.Generate                       as Generate
 import qualified Fission.CLI.Handler.Setup                          as Setup
+import qualified Fission.CLI.Handler.UCAN                           as UCAN
 import qualified Fission.CLI.Handler.User                           as User
 
 import           Fission.Internal.Orphanage.Crypto.Error            ()
@@ -113,6 +115,9 @@ interpret baseCfg@Base.Config {ipfsDaemonVar} cmd =
 
         Generate subCmd ->
           Generate.interpret subCmd
+
+        UCAN UCAN.Options {..} ->
+          UCAN.interpret mayResource mayPotency facts mayNbf mayExp audience
 
 finalizeDID :: MonadIO m => Maybe DID -> Base.Config -> m (Either (OpenUnion Errs) DID)
 finalizeDID (Just did) _ =

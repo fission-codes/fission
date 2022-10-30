@@ -8,6 +8,9 @@ import           Crypto.Cipher.AES          (AES256)
 import           Crypto.Cipher.Types        (blockSize)
 import           Crypto.Random.Types
 
+import qualified RIO.Text                   as Text
+import           Servant.API
+
 import           Fission.Prelude
 
 import           Fission.Key.GenData.Family
@@ -30,6 +33,12 @@ instance ToJSON (Key AES256) where
 
 instance FromJSON (Key AES256) where
   parseJSON = withText "AES256 SymmetricKey" \txt ->
+    case parseUrlPiece txt of
+      Left  err -> fail $ Text.unpack err
+      Right key -> pure key
+
+instance FromHttpApiData (Key AES256) where
+  parseUrlPiece txt =
     case Base64.decode $ encodeUtf8 txt of
-      Left  errMsg -> fail $ "Unable to decode AES key: " <> errMsg
-      Right keyBS  -> return $ Key keyBS
+      Left  errMsg -> Left $ "Unable to decode AES key: " <> Text.pack errMsg
+      Right keyBS  -> Right $ Key keyBS

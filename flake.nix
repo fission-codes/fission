@@ -46,14 +46,14 @@
           # from source (and takes a long time).
           #
           # The prebuilt package is marked as broken on aarch64-darwin
-          haskellPackages = pkgs.haskell.packages.ghc8107;
+          #haskellPackages = pkgs.haskell.packages.ghc8107;
         in
         {
           devShells.default = pkgs.mkShell {
             name = "fission";
             buildInputs = [
               stack-wrapped
-              haskellPackages.haskell-language-server
+              # haskellPackages.haskell-language-server
               pkgs.cachix
               pkgs.nixpkgs-fmt
               pkgs.stylish-haskell

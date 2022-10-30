@@ -4,6 +4,7 @@ import           RIO
 import qualified RIO.Text             as Text
 
 import           Data.Aeson
+import           Servant.API
 import           Test.QuickCheck
 
 import           Web.UCAN.Proof.Class
@@ -40,6 +41,14 @@ instance FromJSON Potency where
       "DESTROY"    -> pure Destructive
       "SUPER_USER" -> pure SuperUser
       nope -> fail $ show nope <> " is not a valid authorization potency"
+
+instance FromHttpApiData Potency where
+  parseUrlPiece txt =
+    case Text.toUpper txt of
+      "APPEND"     -> Right AppendOnly
+      "DESTROY"    -> Right Destructive
+      "SUPER_USER" -> Right SuperUser
+      _ -> Left $ txt <> " is not a valid authorization potency"
 
 instance DelegationSemantics Potency where
   proofPtc `canDelegate` ptc = fromEnum proofPtc >= fromEnum ptc
