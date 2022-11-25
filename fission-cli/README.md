@@ -12,7 +12,7 @@ Seamlessly deploy websites and store secure user data
 ### MacOS
 
 ```shell
-brew install fission-suite/fission/fission-cli
+brew install fission-codes/fission/fission-cli
 ```
 
 Or to build from source:
