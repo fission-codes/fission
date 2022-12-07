@@ -71,7 +71,7 @@ place' host = do
   IPFS.BinPath ipfsPath <- Path.globalIPFSBin
 
   -- Network
-  ipfsBin <- ensureM . unpack =<< download (IPFS.Version 0 12 2) host
+  ipfsBin <- ensureM . unpack =<< download (IPFS.Version 0 17 0) host
 
   logDebug @Text "🚎 Moving IPFS into place..."
   File.lazyForceWrite ipfsPath ipfsBin
@@ -89,7 +89,7 @@ download ::
   -> OS.Supported
   -> m Lazy.ByteString
 download version os = do
-  logDebug $ "⬇️  Downloading go-ipfs " <> display version <> " for " <> display os
+  logDebug $ "⬇️  Downloading kubo " <> display version <> " for " <> display os
   ensureM . GitHub.sendRequest $ IPFS.getRelease IPFS.Release {..}
 
 unpack :: (MonadIO m, MonadLogger m) => Lazy.ByteString -> m (Either (NotFound FilePath) Lazy.ByteString)
@@ -104,7 +104,7 @@ unpack tarGz = do
     getIPFS :: Tar.Entry -> Either (NotFound FilePath) Lazy.ByteString -> Either (NotFound FilePath) Lazy.ByteString
     getIPFS entry acc =
       case (Tar.entryPath entry, Tar.entryContent entry) of
-        ("go-ipfs/ipfs", Tar.NormalFile ipfsBin _) -> Right ipfsBin
+        ("kubo/ipfs", Tar.NormalFile ipfsBin _) -> Right ipfsBin
         _                                          -> acc
 
 configure ::

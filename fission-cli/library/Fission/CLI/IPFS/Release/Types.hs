@@ -17,7 +17,7 @@ data Release = Release
 instance Display Release where
   display Release {..} =
     mconcat
-      [ "go-ipfs_"
+      [ "kubo_"
       , display version
       , "_"
       , osLabel

@@ -9,7 +9,7 @@ import qualified Fission.CLI.IPFS.Version.Types as IPFS
 
 type GetRelease
   = "ipfs"
-  :> "go-ipfs"
+  :> "kubo"
   :> "releases"
   :> "download"
   :> Capture "version" IPFS.Version
