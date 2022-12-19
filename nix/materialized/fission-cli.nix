@@ -11,9 +11,9 @@
     flags = {};
     package = {
       specVersion = "2.2";
-      identifier = { name = "fission-cli"; version = "2.18.0.0"; };
+      identifier = { name = "fission-cli"; version = "2.20.0.0"; };
       license = "AGPL-3.0-or-later";
-      copyright = "© 2021 Fission Internet Software Services for Open Networks Inc.";
+      copyright = "© 2022 Fission Internet Software Services for Open Networks Inc.";
       maintainer = "brooklyn@fission.codes,\ndaniel@fission.codes,\nsteven@fission.codes,\njames@fission.codes,\nbrian@fission.codes,\nphilipp@fission.codes";
       author = "Brooklyn Zelenka,\nDaniel Holmgren,\nSteven Vandevelde,\nJames Walker,\nBrian Ginsburg,\nPhilipp Krüger";
       homepage = "https://github.com/fission-suite/fission#readme";
