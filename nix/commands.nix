@@ -1,11 +1,11 @@
-{ pkgs, stack-wrapped, server-path, ... }:
+{ pkgs, server-path, ... }:
 let
   bash = "${pkgs.bash}/bin/bash";
   cachix = "${pkgs.cachix}/bin/cachix";
   git = "${pkgs.git}/bin/git";
   killall = "${pkgs.killall}/bin/killall";
   ssh = "${pkgs.openssh}/bin/ssh";
-  stack = "${stack-wrapped}/bin/stack";
+  stack = "${pkgs.stack}/bin/stack --nix";
   figlet = "${pkgs.figlet}/bin/figlet";
   lolcat = "${pkgs.lolcat}/bin/lolcat";
 
@@ -121,7 +121,7 @@ commands {
   '';
 
   quality = cmd "Run the complete test suite" "${stack} test --test-arguments='--color=always'";
-  repl = cmd "Enter the project REPL" "${stack} repl --no-nix-pure";
+  repl = cmd "Enter the project REPL" "${stack} repl";
   watch = cmd "Autobuild with file watcher" "${stack} build --file-watch";
 
   ssh-staging = cmd "SSH into the staging environment"
