@@ -40,12 +40,16 @@
                   # NOTE: Currently handling devShells separately from haskell.nix
                   #
                   shell.tools = {
-                    # cabal = "3.8.1.0";
+                    cabal = "3.8.1.0";
                     # hlint = "3.4.1";
                     stack = "2.9.1";
                     # Currently running into https://github.com/input-output-hk/haskell.nix/issues/1830
                     # haskell-language-server = "1.9.0.0";
                   };
+
+                  # From: https://github.com/input-output-hk/haskell.nix/issues/1759#issuecomment-1286299368
+                  shell.additional = ps: with ps; [ Cabal ];
+
                   # Non-Haskell shell tools go here
                   shell.buildInputs = with pkgs; [
                     cachix
@@ -58,21 +62,6 @@
         ];
         pkgs = import nixpkgs { inherit system overlays; inherit (haskellNix) config; };
         flake = pkgs.fission.flake { };
-
-        # Inspired by https://www.tweag.io/blog/2022-06-02-haskell-stack-nix-shell/
-        stack-wrapped = pkgs.symlinkJoin {
-          name = "stack";
-          paths = [ pkgs.stack ];
-          buildInputs = [ pkgs.makeWrapper ];
-          postBuild = ''
-            wrapProgram $out/bin/stack \
-              --add-flags "\
-                --nix \
-                --no-nix-pure \
-                --nix-shell-file=nix/stack-integration.nix \
-              "
-          '';
-        };
 
         # The default version of HLS (with binary cache) is built with GHC 9.0.1
         # We can get this version working with our current set up, but it builds 

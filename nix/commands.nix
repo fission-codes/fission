@@ -5,7 +5,7 @@ let
   git = "${pkgs.git}/bin/git";
   killall = "${pkgs.killall}/bin/killall";
   ssh = "${pkgs.openssh}/bin/ssh";
-  stack = "${pkgs.stack}/bin/stack --nix";
+  stack = "${pkgs.stack}/bin/stack --no-nix --system-ghc";
   figlet = "${pkgs.figlet}/bin/figlet";
   lolcat = "${pkgs.lolcat}/bin/lolcat";
 
