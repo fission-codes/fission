@@ -3,7 +3,7 @@
 
   inputs = {
     haskellNix.url = "github:input-output-hk/haskell.nix";
-    nixpkgs.follows = "haskellNix/nixpkgs-unstable";
+    nixpkgs.follows = "haskellNix/nixpkgs-2211";
     flake-utils.url = "github:numtide/flake-utils";
 
     flake-compat = {
