@@ -8,6 +8,7 @@ on:
 
 jobs:
   stack:
+    if: false # I don't think we need this.
     name: 🖥️  ${{ matrix.os }} ❄️  Nix
     runs-on: ${{ matrix.os }}
     strategy:
