@@ -1,11 +1,11 @@
-{ pkgs, server-path, ... }:
+{ pkgs, stack-wrapped, server-path, ... }:
 let
   bash = "${pkgs.bash}/bin/bash";
   cachix = "${pkgs.cachix}/bin/cachix";
   git = "${pkgs.git}/bin/git";
   killall = "${pkgs.killall}/bin/killall";
   ssh = "${pkgs.openssh}/bin/ssh";
-  stack = "${pkgs.stack}/bin/stack --no-nix --system-ghc";
+  stack = "${stack-wrapped}/bin/stack";
   figlet = "${pkgs.figlet}/bin/figlet";
   lolcat = "${pkgs.lolcat}/bin/lolcat";
 
