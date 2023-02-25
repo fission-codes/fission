@@ -25,6 +25,7 @@ import qualified Fission.Web.Server.Handler.Relay               as Relay
 import qualified Fission.Web.Server.Handler.User.Create         as Create
 import qualified Fission.Web.Server.Handler.User.DID            as DID
 import qualified Fission.Web.Server.Handler.User.DataRoot       as DataRoot
+import qualified Fission.Web.Server.Handler.User.Challenge      as Challenge
 import qualified Fission.Web.Server.Handler.User.Email          as Email
 import qualified Fission.Web.Server.Handler.User.ExchangeKey    as ExchangeKey
 import qualified Fission.Web.Server.Handler.User.Password.Reset as Password.Reset
@@ -69,6 +70,7 @@ handlerV2 =
   User.RoutesV2
     { create       = Create.withDID
     , whoAmI       = genericServerT WhoAmI.handler
+    , challenge    = genericServerT Challenge.handler
     , email        = genericServerT Email.handler
     , did          = genericServerT DID.handlerV_
     , linkingRelay = genericServerT Relay.handler

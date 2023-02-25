@@ -6,6 +6,7 @@ import qualified Fission.Web.API.Relay.Types               as Relay
 import qualified Fission.Web.API.User.Create.Types         as Create
 import qualified Fission.Web.API.User.DID.Types            as DID
 import qualified Fission.Web.API.User.DataRoot.Types       as DataRoot
+import qualified Fission.Web.API.User.Challenge.Types      as Challenge
 import qualified Fission.Web.API.User.Email.Types          as Email
 import qualified Fission.Web.API.User.ExchangeKey.Types    as ExchangeKeys
 import qualified Fission.Web.API.User.Password.Reset.Types as Password
@@ -18,11 +19,12 @@ data RoutesV3 mode = RoutesV3
   deriving Generic
 
 data RoutesV2 mode = RoutesV2
-  { dataRoot     :: mode :- "data"   :> ToServantApi DataRoot.RoutesV2
-  , email        :: mode :- "email"  :> ToServantApi Email.Routes
-  , did          :: mode :- "did"    :> ToServantApi DID.RoutesV_
-  , whoAmI       :: mode :- "whoami" :> ToServantApi WhoAmI.Routes
-  , linkingRelay :: mode :- "link"   :> ToServantApi Relay.Routes
+  { dataRoot     :: mode :- "data"      :> ToServantApi DataRoot.RoutesV2
+  , challenge    :: mode :- "challenge" :> ToServantApi Challenge.Routes
+  , email        :: mode :- "email"     :> ToServantApi Email.Routes
+  , did          :: mode :- "did"       :> ToServantApi DID.RoutesV_
+  , whoAmI       :: mode :- "whoami"    :> ToServantApi WhoAmI.Routes
+  , linkingRelay :: mode :- "link"      :> ToServantApi Relay.Routes
   , create       :: mode :- Create.WithDID
   }
   deriving Generic
