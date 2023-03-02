@@ -1,6 +1,6 @@
 module Fission.Web.API.User.Challenge.Types (Routes (..)) where
 
--- import           Fission.Challenge.Types
+import           Fission.Challenge.Types
 
 import           Fission.Web.API.Prelude
 
@@ -15,8 +15,7 @@ data Routes mode = Routes
       --
       :> Capture "Username" Username
       --
-      :> Auth.HigherOrder
-      :> GetNoContent
-      -- :> Post '[JSON] Challenge
+      -- :> Auth.HigherOrder
+      :> Post '[JSON] Challenge
   }
   deriving Generic

@@ -16,9 +16,6 @@ import qualified Fission.Web.Server.RecoveryChallenge.Creator.Class as RecoveryC
 import           Fission.Web.Server.Redirect
 import           Fission.Web.Server.User.Retriever.Class            as User
 
-import           Fission.Web.Server.Email.Types
-import           Fission.Web.Server.Email.Types
-
 handler ::
   ( Challenge.Retriever       m
   , Challenge.Verifier        m
@@ -26,23 +23,17 @@ handler ::
   , User.Retriever            m
   , MonadThrow                m
   , MonadLogger               m
-  -- , MonadEmail                m
   , MonadTime                 m
   )
   => Challenge.Routes (AsServerT m)
 handler = Challenge.Routes {..}
   where
     recover username = do
-      Entity userId User { userEmail } <- Web.Err.ensureMaybe couldntFindUser =<< getByUsername username
-      email <- Web.Err.ensureMaybe noAssociatedEmail userEmail
+      Entity userId User { } <- Web.Err.ensureMaybe couldntFindUser =<< getByUsername username
       now       <- currentTime
       challenge <- RecoveryChallenge.create userId now
-      return NoContent
-      -- return challenge
+      return challenge
 
       where
         couldntFindUser =
           err422 { errBody = "Couldn't find a user with this username" }
-
-        noAssociatedEmail =
-          err422 { errBody = "There is no email associated with the user" }
