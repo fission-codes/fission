@@ -15,7 +15,7 @@ data Routes mode = Routes
       --
       :> Capture "Username" Username
       --
-      -- :> Auth.HigherOrder
+      :> Auth.HigherOrder
       :> Post '[JSON] Challenge
   }
   deriving Generic
