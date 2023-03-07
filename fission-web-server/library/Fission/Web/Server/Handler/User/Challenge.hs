@@ -13,7 +13,6 @@ import qualified Fission.Web.Server.Challenge.Verifier.Class        as Challenge
 import qualified Fission.Web.Server.Error                           as Web.Err
 import           Fission.Web.Server.Models
 import qualified Fission.Web.Server.RecoveryChallenge.Creator.Class as RecoveryChallenge
-import           Fission.Web.Server.Redirect
 import           Fission.Web.Server.User.Retriever.Class            as User
 
 handler ::
@@ -28,8 +27,8 @@ handler ::
   => Challenge.Routes (AsServerT m)
 handler = Challenge.Routes {..}
   where
-    recover username = do
-      Entity userId User { } <- Web.Err.ensureMaybe couldntFindUser =<< getByUsername username
+    recover Authorization { about = Entity userId User { userUsername = username } } = do
+      Entity _ User { } <- Web.Err.ensureMaybe couldntFindUser =<< getByUsername username
       now       <- currentTime
       challenge <- RecoveryChallenge.create userId now
       return challenge
