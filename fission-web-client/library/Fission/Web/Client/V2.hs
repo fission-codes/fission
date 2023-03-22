@@ -17,7 +17,7 @@ module Fission.Web.Client.V2
   , setDIDViaUCAN
   , setDIDViaChallenge
   --
-  , recoverChallenge
+  , recoverViaChallenge
   --
   , verifyViaEmail
   , resendVerificationEmail
@@ -88,7 +88,7 @@ Fission.Routes
 
                   , challenge = fromServant @_ @(AsClientT ClientM) ->
                       User.Challenge.Routes
-                        { recover = recoverChallenge
+                        { recover = recoverViaChallenge
                         }
 
                   , email = fromServant @_ @(AsClientT ClientM) ->
