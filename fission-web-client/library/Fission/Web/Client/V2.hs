@@ -17,6 +17,8 @@ module Fission.Web.Client.V2
   , setDIDViaUCAN
   , setDIDViaChallenge
   --
+  , recoverViaChallenge
+  --
   , verifyViaEmail
   , resendVerificationEmail
   , recoverViaEmail
@@ -36,6 +38,7 @@ import qualified Fission.Web.API.Types                            as Fission
 
 import qualified Fission.Web.API.User.DID.Types                   as User.DID
 import qualified Fission.Web.API.User.DataRoot.Types              as User.DataRoot
+import qualified Fission.Web.API.User.Challenge.Types             as User.Challenge
 import qualified Fission.Web.API.User.Email.Types                 as User.Email
 import qualified Fission.Web.API.User.Types                       as User
 import qualified Fission.Web.API.User.WhoAmI.Types                as User.WhoAmI
@@ -81,6 +84,11 @@ Fission.Routes
                       User.DID.RoutesV_
                         { setAuthenticated = setDIDViaUCAN
                         , setViaChallenge  = setDIDViaChallenge
+                        }
+
+                  , challenge = fromServant @_ @(AsClientT ClientM) ->
+                      User.Challenge.Routes
+                        { recover = recoverViaChallenge
                         }
 
                   , email = fromServant @_ @(AsClientT ClientM) ->
