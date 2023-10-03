@@ -13,33 +13,21 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
-
+          - macos-latest-xlarge
     steps:
       - uses: actions/checkout@v3
         name: 📤 Checkout
-        if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/main'
-
-      - uses: cachix/install-nix-action@v22
-        name: ❄️  Set up Nix
-        with:
-          extra_nix_config: |
-            substituters = https://cache.nixos.org https://cache.iog.io
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
-
+      - uses: DeterminateSystems/nix-installer-action@main
+        name: ❄️ Set up Nix
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - uses: cachix/cachix-action@v12
         name: 🧰 Cachix
         with:
           name: fission-codes
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-
-      - uses: actions/cache@v3
-        name: 🗄️  Cache ~/.stack
-        with:
-          path: ~/.stack
-          key: ${{ matrix.os }}-stack-nix-${{ hashFiles('stack.yaml.lock', 'flake.lock') }}
-
-      - name: 🧪 Test
+      - name: 👷 Build
         run: |
-          nix-shell --command quality
+          nix develop
+          nix build .#fission-cli
+          nix build .#fission-server

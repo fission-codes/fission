@@ -3,7 +3,7 @@
 
   inputs = {
     haskellNix.url = "github:input-output-hk/haskell.nix";
-    nixpkgs.follows = "haskellNix/nixpkgs-unstable";
+    nixpkgs.follows = "haskellNix/nixpkgs-2305";
     flake-utils.url = "github:numtide/flake-utils";
 
     flake-compat = {
@@ -12,7 +12,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, haskellNix, flake-compat }:
+  outputs = { self, nixpkgs, flake-utils, haskellNix, ... }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ]
       (system:
         let
@@ -99,4 +99,12 @@
         inherit (self.packages.${prev.system}) fission-cli fission-server;
       };
     };
+
+  nixConfig = {
+    extra-substituters = [ "https://fission-codes.cachix.org" "https://cache.iog.io" ];
+    extra-trusted-public-keys = [
+      "fission-codes.cachix.org-1:z9T3OvxxngfRrx/TelcOzdnceJaCaqKQ0fby3GV1VFw="
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+    ];
+  };
 }
