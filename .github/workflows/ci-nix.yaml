@@ -1,4 +1,4 @@
-name: 🧪 Tests (Nix)
+name: ❄️ Nix Build
 
 # Trigger the workflow on push or pull request, but only for the main branch
 on:
@@ -14,7 +14,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest-xlarge
     steps:
       - uses: actions/checkout@v3
         name: 📤 Checkout
