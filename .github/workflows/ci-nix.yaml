@@ -27,6 +27,6 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
       - name: 👷 Build
         run: |
-          nix develop
+          nix develop --accept-flake-config
           nix build .#fission-cli
           nix build .#fission-server
