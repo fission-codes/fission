@@ -19,7 +19,6 @@ jobs:
         name: 📤 Checkout
       - uses: DeterminateSystems/nix-installer-action@main
         name: ❄️ Set up Nix
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - uses: cachix/cachix-action@v12
         name: 🧰 Cachix
         with:
