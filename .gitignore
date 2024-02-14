@@ -591,3 +591,5 @@ MigrationBackup/
 fission-web-server/data/
 fission-web-server/.env
 .direnv/
+
+!.stack-to-nix.cache

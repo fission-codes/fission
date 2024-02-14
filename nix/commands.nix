@@ -121,7 +121,7 @@ commands {
   '';
 
   quality = cmd "Run the complete test suite" "${stack} test --test-arguments='--color=always'";
-  repl = cmd "Enter the project REPL" "${stack} repl --no-nix-pure";
+  repl = cmd "Enter the project REPL" "${stack} repl";
   watch = cmd "Autobuild with file watcher" "${stack} build --file-watch";
 
   ssh-staging = cmd "SSH into the staging environment"
